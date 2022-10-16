@@ -53,6 +53,7 @@ If you wish to work on the provider, you'll first need [Go](http://www.golang.or
 
 To compile the provider, run `go install`. This will build the provider and put the provider binary in the `$GOPATH/bin` directory.
 
+
 To generate or update documentation, run `go generate`.
 
 In order to run the full suite of Acceptance tests, run `make testacc`.
@@ -62,3 +63,26 @@ In order to run the full suite of Acceptance tests, run `make testacc`.
 ```shell
 make testacc
 ```
+
+## Development Overrides for Provider Developers
+
+To support local development workflows a [developer override](https://www.terraform.io/cli/config/config-file#development-overrides-for-provider-developers) 
+allows Terraform to forgo the versioning and checksum verification for local configurations explicitly allow-listed in a `.terraformrc` file.    
+
+```shell
+$ touch  $HOME/.terraformrc
+$ vim  $HOME/.terraformrc
+
+```
+
+Add your terraform provider ("core-infra-svcs/meraki") in the `dev_overrides` section of the file:
+
+```text
+provider_installation {
+
+    dev_overrides {
+        "$REPOSITORY/$PROVIDER"  = "/Users/$USER/go/bin"
+    }
+}
+```
+

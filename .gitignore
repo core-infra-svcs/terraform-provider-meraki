@@ -33,3 +33,5 @@ website/vendor
 
 # Keep windows files with windows line endings
 *.winfile eol=crlf
+examples/terraform.tfvars
+examples/meraki_vars.auto.tf
