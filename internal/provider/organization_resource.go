@@ -163,27 +163,27 @@ func (r *OrganizationResource) Create(ctx context.Context, req resource.CreateRe
 
 	// If applicable, this is a great opportunity to initialize any necessary
 	// provider client data and make a call using it.
-	createOrganization := *apiclient.NewInlineObject148(data.Name.Value)
+	createOrganization := *apiclient.NewInlineObject166(data.Name.Value)
 	response, d, err := r.client.OrganizationsApi.CreateOrganization(context.Background()).CreateOrganization(createOrganization).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"create error received",
+			"-- Create Error --",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 		resp.Diagnostics.AddError(
-			"response header",
-			fmt.Sprintf("%v\n", d),
+			"-- Response Header --",
+			fmt.Sprintf("%v\n", d.Header),
 		)
 		resp.Diagnostics.AddError(
-			"response payload",
-			fmt.Sprintf("%v\n", response),
+			"-- Request URL --",
+			fmt.Sprintf("%v\n", d.Request.URL),
 		)
 		return
 	}
 
 	// extract map string interface data into struct
 	responseData, _ := json.Marshal(response)
-	var results apiclient.InlineResponse2001
+	var results apiclient.InlineResponse20064
 	json.Unmarshal(responseData, &results)
 
 	// save into the Terraform state.
@@ -196,7 +196,7 @@ func (r *OrganizationResource) Create(ctx context.Context, req resource.CreateRe
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
-	tflog.Trace(ctx, "created a resource")
+	tflog.Trace(ctx, "create resource")
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -217,16 +217,16 @@ func (r *OrganizationResource) Read(ctx context.Context, req resource.ReadReques
 	response, d, err := r.client.OrganizationsApi.GetOrganization(context.Background(), data.Id.Value).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"read error received",
+			"-- Read Error --",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 		resp.Diagnostics.AddError(
-			"response header",
-			fmt.Sprintf("%v\n", d),
+			"-- Response Header --",
+			fmt.Sprintf("%v\n", d.Header),
 		)
 		resp.Diagnostics.AddError(
-			"response payload",
-			fmt.Sprintf("%v\n", response),
+			"-- Request URL --",
+			fmt.Sprintf("%v\n", d.Request.URL),
 		)
 		return
 	}
@@ -256,7 +256,7 @@ func (r *OrganizationResource) Update(ctx context.Context, req resource.UpdateRe
 	// provider client data and make a call using it.
 
 	// create payload
-	updateOrganization := apiclient.NewInlineObject149()
+	updateOrganization := apiclient.NewInlineObject167()
 	updateOrganization.SetName(data.Name.Value)
 
 	// nested params are strongly typed
@@ -269,23 +269,23 @@ func (r *OrganizationResource) Update(ctx context.Context, req resource.UpdateRe
 		data.Id.Value).UpdateOrganization(*updateOrganization).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"update error received",
+			"-- Update Error --",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 		resp.Diagnostics.AddError(
-			"response header",
-			fmt.Sprintf("%v\n", d),
+			"-- Response Header --",
+			fmt.Sprintf("%v\n", d.Header),
 		)
 		resp.Diagnostics.AddError(
-			"response payload",
-			fmt.Sprintf("%v\n", response),
+			"-- Request URL --",
+			fmt.Sprintf("%v\n", d.Request.URL),
 		)
 		return
 	}
 
 	// extract map string interface data into struct
 	responseData, _ := json.Marshal(response)
-	var results apiclient.InlineResponse2001
+	var results apiclient.InlineResponse20064
 	json.Unmarshal(responseData, &results)
 
 	// save into the Terraform state.
@@ -316,16 +316,16 @@ func (r *OrganizationResource) Delete(ctx context.Context, req resource.DeleteRe
 	response, err := r.client.OrganizationsApi.DeleteOrganization(context.Background(), data.Id.Value).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"create error received",
+			"-- Delete Error --",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 		resp.Diagnostics.AddError(
-			"response header",
+			"-- Response Header --",
 			fmt.Sprintf("%v\n", response.Header),
 		)
 		resp.Diagnostics.AddError(
-			"status code",
-			fmt.Sprintf("%v\n", response.StatusCode),
+			"-- Request URL --",
+			fmt.Sprintf("%v\n", response.Request.URL),
 		)
 		return
 	}

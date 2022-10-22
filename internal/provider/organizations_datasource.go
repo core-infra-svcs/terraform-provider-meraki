@@ -25,6 +25,7 @@ type OrganizationsDataSource struct {
 
 // OrganizationsDataSourceModel describes the data source data model.
 type OrganizationsDataSourceModel struct {
+	Id   types.String                  `tfsdk:"id"`
 	List []OrganizationDataSourceModel `tfsdk:"list"`
 }
 
@@ -48,6 +49,11 @@ func (d *OrganizationsDataSource) GetSchema(ctx context.Context) (tfsdk.Schema, 
 		MarkdownDescription: "Organizations data source",
 
 		Attributes: map[string]tfsdk.Attribute{
+			"id": {
+				MarkdownDescription: "Example identifier",
+				Type:                types.StringType,
+				Computed:            true,
+			},
 			"list": {
 				MarkdownDescription: "List of organizations",
 				Optional:            true,
@@ -190,6 +196,10 @@ func (d *OrganizationsDataSource) Read(ctx context.Context, req datasource.ReadR
 
 		data.List = append(data.List, result)
 	}
+
+	// For the purposes of this example code, hardcoding a response value to
+	// save into the Terraform state.
+	data.Id = types.String{Value: "example-id"}
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log

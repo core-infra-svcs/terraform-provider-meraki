@@ -26,10 +26,8 @@ type ScaffoldingProvider struct {
 
 // ScaffoldingProviderModel describes the provider data model.
 type ScaffoldingProviderModel struct {
-	Endpoint types.String `tfsdk:"endpoint"`
-	Host     types.String `tfsdk:"host"`
-	Path     types.String `tfsdk:"path"`
-	ApiKey   types.String `tfsdk:"apikey"`
+	ApiKey  types.String `tfsdk:"apikey"`
+	BaseUrl types.String `tfsdk:"baseurl"`
 }
 
 func (p *ScaffoldingProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
@@ -40,25 +38,14 @@ func (p *ScaffoldingProvider) Metadata(ctx context.Context, req provider.Metadat
 func (p *ScaffoldingProvider) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
 		Attributes: map[string]tfsdk.Attribute{
-			"endpoint": {
-				MarkdownDescription: "Example provider attribute",
-				Optional:            true,
-				Type:                types.StringType,
-			},
-			"path": {
-				Type:     types.StringType,
-				Optional: true,
-				Computed: true,
-			},
-			"host": {
-				Type:     types.StringType,
-				Optional: true,
-				Computed: true,
-			},
 			"apikey": {
 				Type:      types.StringType,
-				Required:  true,
+				Optional:  true,
 				Sensitive: true,
+			},
+			"baseurl": {
+				Type:     types.StringType,
+				Optional: true,
 			},
 		},
 	}, nil
@@ -76,64 +63,24 @@ func (p *ScaffoldingProvider) Configure(ctx context.Context, req provider.Config
 	// Configuration values are now available.
 	// if data.Endpoint.IsNull() { /* ... */ }
 
-	// User must provide url to the provider
-	var host string
-	if data.Host.Null {
-		host = "api.meraki.com"
-	} else {
-		host = data.Host.Value
+	// api key
+	var apiKey string
+	if data.ApiKey.IsNull() {
+		apiKey = os.Getenv("MERAKI_DASHBOARD_API_KEY")
+		if apiKey == "" {
+			// Error vs warning - empty value must stop execution
+			resp.Diagnostics.AddError(
+				"Unable to set apiKey from env vars",
+				"api key must be set",
+			)
+			return
+		}
 	}
 
-	if host == "" {
-		// Error vs warning - empty value must stop execution
-		resp.Diagnostics.AddError(
-			"Unable to find host",
-			"host cannot be an empty string",
-		)
-		return
-	}
-
-	// must provide api path to the provider
-	var path string
-	if data.Path.Null {
-		path = "/api/v1"
-	} else {
-		path = data.Path.Value
-	}
-
-	if path == "" {
-		// Error vs warning - empty value must stop execution
-		resp.Diagnostics.AddError(
-			"Unable to find path",
-			"path cannot be an empty string",
-		)
-		return
-	}
-
-	// must provide apikey to the provider
-	var apikey string
-	if data.ApiKey.Unknown {
-		// Cannot connect to client with an unknown value
-		resp.Diagnostics.AddError(
-			"Unable to create client",
-			"Cannot use unknown value as apikey",
-		)
-		return
-	}
-
-	if data.ApiKey.Null {
-		apikey = os.Getenv("MERAKI_DASHBOARD_API_KEY")
-	} else {
-		apikey = data.ApiKey.Value
-	}
-
-	if apikey == "" {
-		// Error vs warning - empty value must stop execution
-		resp.Diagnostics.AddError(
-			"Unable to find apikey",
-			"apikey cannot be an empty string",
-		)
-		return
+	// base url
+	var baseUrl string
+	if data.BaseUrl.Null {
+		baseUrl = "https://api.meraki.com/api/v1"
 	}
 
 	// Example client configuration for data sources and resources
@@ -141,7 +88,9 @@ func (p *ScaffoldingProvider) Configure(ctx context.Context, req provider.Config
 	// If the upstream provider SDK or HTTP client requires configuration, such
 	// as authentication or logging, this is a great opportunity to do so.
 	configuration := apiclient.NewConfiguration()
-	configuration.AddDefaultHeader("X-Cisco-Meraki-API-Key", apikey)
+	configuration.AddDefaultHeader("X-Cisco-Meraki-API-Key", apiKey)
+	configuration.Host = os.Getenv(baseUrl)
+	configuration.Debug = true
 
 	client := apiclient.NewAPIClient(configuration)
 	resp.DataSourceData = client

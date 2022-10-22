@@ -75,8 +75,8 @@ github.com/cncf/udpa/go v0.0.0-20210930031921-04548b0d99d4/go.mod h1:6pvJx4me5XP
 github.com/cncf/xds/go v0.0.0-20210922020428-25de7278fc84/go.mod h1:eXthEFrGJvWHgFFCl3hGmgk+/aYT6PnTQLykKQRLhEs=
 github.com/cncf/xds/go v0.0.0-20211001041855-01bcc9b48dfe/go.mod h1:eXthEFrGJvWHgFFCl3hGmgk+/aYT6PnTQLykKQRLhEs=
 github.com/cncf/xds/go v0.0.0-20211011173535-cb28da3451f1/go.mod h1:eXthEFrGJvWHgFFCl3hGmgk+/aYT6PnTQLykKQRLhEs=
-github.com/core-infra-svcs/dashboard-api-golang/client v0.0.0-20220603151337-ece74a96a909 h1:Tf5QeOEGQdoa3DzSjJ7+HV7RFCMYtPWqUX1fM2140QM=
-github.com/core-infra-svcs/dashboard-api-golang/client v0.0.0-20220603151337-ece74a96a909/go.mod h1:u2NyavR1V79X25stl9QsLt+HhbJCtYhD4TceTwu+fK4=
+github.com/core-infra-svcs/dashboard-api-golang/client v0.0.0-20221018184925-a5b5e3514f9d h1:Z3xx9Pec0lLgx41i+xa2+kmcM/6aJodWX1aF//q9p7M=
+github.com/core-infra-svcs/dashboard-api-golang/client v0.0.0-20221018184925-a5b5e3514f9d/go.mod h1:u2NyavR1V79X25stl9QsLt+HhbJCtYhD4TceTwu+fK4=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=

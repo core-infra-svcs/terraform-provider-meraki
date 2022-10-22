@@ -14,7 +14,14 @@ func TestAccOrganizationsDataSource(t *testing.T) {
 			{
 				Config: testAccOrganizationsDataSourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("data.scaffolding_organizations.test", "id", "example-id"),
+					resource.TestCheckResourceAttr("data.meraki_organizations.list", "id", "example-id"),
+
+					// this checks the number of organizations available to the API user.
+					resource.TestCheckResourceAttr("data.meraki_organizations.list", "list.#", "1"),
+
+					// Verify data inside a returned meraki organization by attribute element value
+					//resource.TestCheckResourceAttr("data.meraki_organizations.list", "list.0.name", "DextersLab"),
+					//resource.TestCheckResourceAttr("data.meraki_organizations.list", "list.0.api_enabled", "true"),
 				),
 			},
 		},
@@ -22,7 +29,6 @@ func TestAccOrganizationsDataSource(t *testing.T) {
 }
 
 const testAccOrganizationsDataSourceConfig = `
-data "scaffolding_organizations" "test" {
-  configurable_attribute = "example"
+data "meraki_organizations" "list" {
 }
 `
