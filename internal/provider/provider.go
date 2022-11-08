@@ -2,7 +2,7 @@ package provider
 
 import (
 	"context"
-	apiclient "github.com/core-infra-svcs/dashboard-api-golang/client"
+	apiclient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
