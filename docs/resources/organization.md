@@ -3,12 +3,12 @@
 page_title: "meraki_organization Resource - terraform-provider-meraki"
 subcategory: ""
 description: |-
-  Organization resource
+  Organization resource - Manage the organizations that the user has privileges on
 ---
 
 # meraki_organization (Resource)
 
-Organization resource
+Organization resource - Manage the organizations that the user has privileges on
 
 
 
@@ -17,11 +17,11 @@ Organization resource
 
 ### Optional
 
-- `api_enabled` (Boolean) Enable API access
+- `api_enabled` (Boolean) API-specific settings
 - `cloud_region` (String) Region info
 - `id` (String) Organization ID
 - `licensing_model` (String) Organization licensing model. Can be 'co-term', 'per-device', or 'subscription'.
-- `name` (String) Organization name
+- `name` (String) The name of the organization
 - `url` (String) Organization URL
 
 

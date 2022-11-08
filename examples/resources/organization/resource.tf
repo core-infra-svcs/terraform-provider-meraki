@@ -6,18 +6,9 @@ terraform {
   }
 }
 
-provider "meraki" {
-  # example configuration here
-  apikey = var.MERAKI_DASHBOARD_API_KEY
-  path   = var.path
-  host   = var.host
-}
-
-
 // Get List of Organizations
 data "meraki_organizations" "list" {
 }
-
 
 // terraform output -json organizations | jq
 output "organizations" {
@@ -35,8 +26,8 @@ terraform state rm 'meraki_organization.testOrg1'
 
 // Create a new Meraki Organization. api_enabled and Id are required fields when modifying an organization.
 resource "meraki_organization" "testOrg1" {
-  id = "762234236932456967"
-  name = "testOrg1"
+  id          = "762234236932456967"
+  name        = "testOrg1"
   api_enabled = true
 }
 
