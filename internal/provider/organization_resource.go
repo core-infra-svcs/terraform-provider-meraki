@@ -163,7 +163,7 @@ func (r *OrganizationResource) Create(ctx context.Context, req resource.CreateRe
 
 	// If applicable, this is a great opportunity to initialize any necessary
 	// provider client data and make a call using it.
-	createOrganization := *apiclient.NewInlineObject166(data.Name.Value)
+	createOrganization := *apiclient.NewInlineObject165(data.Name.Value)
 	response, d, err := r.client.OrganizationsApi.CreateOrganization(context.Background()).CreateOrganization(createOrganization).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -183,7 +183,7 @@ func (r *OrganizationResource) Create(ctx context.Context, req resource.CreateRe
 
 	// extract map string interface data into struct
 	responseData, _ := json.Marshal(response)
-	var results apiclient.InlineResponse20064
+	var results apiclient.InlineResponse20068
 	json.Unmarshal(responseData, &results)
 
 	// save into the Terraform state.
@@ -256,7 +256,7 @@ func (r *OrganizationResource) Update(ctx context.Context, req resource.UpdateRe
 	// provider client data and make a call using it.
 
 	// create payload
-	updateOrganization := apiclient.NewInlineObject167()
+	updateOrganization := apiclient.NewInlineObject166()
 	updateOrganization.SetName(data.Name.Value)
 
 	// nested params are strongly typed
@@ -285,7 +285,7 @@ func (r *OrganizationResource) Update(ctx context.Context, req resource.UpdateRe
 
 	// extract map string interface data into struct
 	responseData, _ := json.Marshal(response)
-	var results apiclient.InlineResponse20064
+	var results apiclient.InlineResponse20068
 	json.Unmarshal(responseData, &results)
 
 	// save into the Terraform state.
