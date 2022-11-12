@@ -2,16 +2,16 @@ package provider
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	apiclient "github.com/core-infra-svcs/dashboard-api-go/client"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"strconv"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -29,25 +29,28 @@ type DevicesResource struct {
 
 // DevicesResourceModel describes the resource data model.
 type DevicesResourceModel struct {
-	Id                  types.String  `tfsdk:"id"`
-	Serial              types.String  `tfsdk:"serial"`
-	Name                types.String  `tfsdk:"name"`
-	Mac                 types.String  `tfsdk:"mac"`
-	Model               types.String  `tfsdk:"model"`
-	Tags                []string      `tfsdk:"tags"`
-	LanIp               types.String  `tfsdk:"lan_ip"`
-	Firmware            types.String  `tfsdk:"firmware"`
-	Lat                 types.Float64 `tfsdk:"lat"`
-	Lng                 types.Float64 `tfsdk:"lng"`
-	Address             types.String  `tfsdk:"address"`
-	Notes               types.String  `tfsdk:"notes"`
-	MoveMapMarker       types.Bool    `tfsdk:"move_map_marker"`
-	FloorPlanId         types.String  `tfsdk:"floor_plan_id"`
-	NetworkId           types.String  `tfsdk:"network_id"`
-	BeaconIdParamsUuid  types.String  `tfsdk:"beacon_id_params_uuid"`
-	BeaconIdParamsMajor types.Int64   `tfsdk:"beacon_id_params_major"`
-	BeaconIdParamsMinor types.Int64   `tfsdk:"beacon_id_params_minor"`
-	SwitchProfileId     types.String  `tfsdk:"switch_profile_id"`
+	Id                  types.String `tfsdk:"id"`
+	Serial              types.String `tfsdk:"serial"`
+	Name                types.String `tfsdk:"name"`
+	Mac                 types.String `tfsdk:"mac"`
+	Model               types.String `tfsdk:"model"`
+	Tags                types.List   `tfsdk:"tags"`
+	LanIp               types.String `tfsdk:"lan_ip"`
+	Firmware            types.String `tfsdk:"firmware"`
+	Lat                 types.String `tfsdk:"lat"`
+	Lng                 types.String `tfsdk:"lng"`
+	Address             types.String `tfsdk:"address"`
+	Notes               types.String `tfsdk:"notes"`
+	Url                 types.String `tfsdk:"url"`
+	Wan1Ip              types.String `tfsdk:"wan1ip"`
+	Wan2Ip              types.String `tfsdk:"wan2ip"`
+	MoveMapMarker       types.Bool   `tfsdk:"move_map_marker"`
+	FloorPlanId         types.String `tfsdk:"floor_plan_id"`
+	NetworkId           types.String `tfsdk:"network_id"`
+	BeaconIdParamsUuid  types.String `tfsdk:"beacon_id_params_uuid"`
+	BeaconIdParamsMajor types.Int64  `tfsdk:"beacon_id_params_major"`
+	BeaconIdParamsMinor types.Int64  `tfsdk:"beacon_id_params_minor"`
+	SwitchProfileId     types.String `tfsdk:"switch_profile_id"`
 }
 
 func (r *DevicesResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -62,7 +65,7 @@ func (r *DevicesResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Dia
 			"id": {
 				MarkdownDescription: "Example identifier",
 				Type:                types.StringType,
-				Computed:            false,
+				Computed:            true,
 			},
 			"serial": {
 				Description:         "The devices serial number",
@@ -83,7 +86,7 @@ func (r *DevicesResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Dia
 				Type:                types.StringType,
 				Required:            false,
 				Optional:            true,
-				Computed:            false,
+				Computed:            true,
 				Sensitive:           false,
 				Attributes:          nil,
 				DeprecationMessage:  "",
@@ -95,8 +98,8 @@ func (r *DevicesResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Dia
 				MarkdownDescription: "The mac address of a device",
 				Type:                types.StringType,
 				Required:            false,
-				Optional:            true,
-				Computed:            false,
+				Optional:            false,
+				Computed:            true,
 				Sensitive:           false,
 				Attributes:          nil,
 				DeprecationMessage:  "",
@@ -109,7 +112,7 @@ func (r *DevicesResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Dia
 				Type:                types.StringType,
 				Required:            false,
 				Optional:            true,
-				Computed:            false,
+				Computed:            true,
 				Sensitive:           false,
 				Attributes:          nil,
 				DeprecationMessage:  "",
@@ -122,7 +125,7 @@ func (r *DevicesResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Dia
 				Type:                types.ListType{ElemType: types.StringType},
 				Required:            false,
 				Optional:            true,
-				Computed:            false,
+				Computed:            true,
 				Sensitive:           false,
 				Attributes:          nil,
 				DeprecationMessage:  "",
@@ -135,7 +138,7 @@ func (r *DevicesResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Dia
 				Type:                types.StringType,
 				Required:            false,
 				Optional:            true,
-				Computed:            false,
+				Computed:            true,
 				Sensitive:           false,
 				Attributes:          nil,
 				DeprecationMessage:  "",
@@ -148,7 +151,7 @@ func (r *DevicesResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Dia
 				Type:                types.StringType,
 				Required:            false,
 				Optional:            true,
-				Computed:            false,
+				Computed:            true,
 				Sensitive:           false,
 				Attributes:          nil,
 				DeprecationMessage:  "",
@@ -158,10 +161,10 @@ func (r *DevicesResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Dia
 			"lat": {
 				Description:         "The latitude of a device",
 				MarkdownDescription: "The latitude of a device",
-				Type:                types.Float64Type,
+				Type:                types.StringType,
 				Required:            false,
 				Optional:            true,
-				Computed:            false,
+				Computed:            true,
 				Sensitive:           false,
 				Attributes:          nil,
 				DeprecationMessage:  "",
@@ -171,10 +174,10 @@ func (r *DevicesResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Dia
 			"lng": {
 				Description:         "The longitude of a device",
 				MarkdownDescription: "The longitude of a device",
-				Type:                types.Float64Type,
+				Type:                types.StringType,
 				Required:            false,
 				Optional:            true,
-				Computed:            false,
+				Computed:            true,
 				Sensitive:           false,
 				Attributes:          nil,
 				DeprecationMessage:  "",
@@ -187,7 +190,7 @@ func (r *DevicesResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Dia
 				Type:                types.StringType,
 				Required:            false,
 				Optional:            true,
-				Computed:            false,
+				Computed:            true,
 				Sensitive:           false,
 				Attributes:          nil,
 				DeprecationMessage:  "",
@@ -200,7 +203,46 @@ func (r *DevicesResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Dia
 				Type:                types.StringType,
 				Required:            false,
 				Optional:            true,
-				Computed:            false,
+				Computed:            true,
+				Sensitive:           false,
+				Attributes:          nil,
+				DeprecationMessage:  "",
+				Validators:          nil,
+				PlanModifiers:       nil,
+			},
+			"url": {
+				Description:         "The url for the network associated with the device.",
+				MarkdownDescription: "The url for the network associated with the device.",
+				Type:                types.StringType,
+				Required:            false,
+				Optional:            true,
+				Computed:            true,
+				Sensitive:           false,
+				Attributes:          nil,
+				DeprecationMessage:  "",
+				Validators:          nil,
+				PlanModifiers:       nil,
+			},
+			"wan1ip": {
+				Description:         "IP of Wan interface 1",
+				MarkdownDescription: "IP of Wan interface 1",
+				Type:                types.StringType,
+				Required:            false,
+				Optional:            true,
+				Computed:            true,
+				Sensitive:           false,
+				Attributes:          nil,
+				DeprecationMessage:  "",
+				Validators:          nil,
+				PlanModifiers:       nil,
+			},
+			"wan2ip": {
+				Description:         "IP of Wan interface 2",
+				MarkdownDescription: "IP of Wan interface 2",
+				Type:                types.StringType,
+				Required:            false,
+				Optional:            true,
+				Computed:            true,
 				Sensitive:           false,
 				Attributes:          nil,
 				DeprecationMessage:  "",
@@ -213,7 +255,7 @@ func (r *DevicesResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Dia
 				Type:                types.BoolType,
 				Required:            false,
 				Optional:            true,
-				Computed:            false,
+				Computed:            true,
 				Sensitive:           false,
 				Attributes:          nil,
 				DeprecationMessage:  "",
@@ -226,7 +268,7 @@ func (r *DevicesResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Dia
 				Type:                types.StringType,
 				Required:            false,
 				Optional:            true,
-				Computed:            false,
+				Computed:            true,
 				Sensitive:           false,
 				Attributes:          nil,
 				DeprecationMessage:  "",
@@ -239,7 +281,7 @@ func (r *DevicesResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Dia
 				Type:                types.StringType,
 				Required:            false,
 				Optional:            true,
-				Computed:            false,
+				Computed:            true,
 				Sensitive:           false,
 				Attributes:          nil,
 				DeprecationMessage:  "",
@@ -251,8 +293,8 @@ func (r *DevicesResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Dia
 				MarkdownDescription: "The name of a device",
 				Type:                types.StringType,
 				Required:            false,
-				Optional:            true,
-				Computed:            false,
+				Optional:            false,
+				Computed:            true,
 				Sensitive:           false,
 				Attributes:          nil,
 				DeprecationMessage:  "",
@@ -264,8 +306,8 @@ func (r *DevicesResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Dia
 				MarkdownDescription: "The beacon id params major of a device",
 				Type:                types.Int64Type,
 				Required:            false,
-				Optional:            true,
-				Computed:            false,
+				Optional:            false,
+				Computed:            true,
 				Sensitive:           false,
 				Attributes:          nil,
 				DeprecationMessage:  "",
@@ -277,8 +319,8 @@ func (r *DevicesResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Dia
 				MarkdownDescription: "The beacon id params minor of a device",
 				Type:                types.Int64Type,
 				Required:            false,
-				Optional:            true,
-				Computed:            false,
+				Optional:            false,
+				Computed:            true,
 				Sensitive:           false,
 				Attributes:          nil,
 				DeprecationMessage:  "",
@@ -291,7 +333,7 @@ func (r *DevicesResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Dia
 				Type:                types.StringType,
 				Required:            false,
 				Optional:            true,
-				Computed:            false,
+				Computed:            true,
 				Sensitive:           false,
 				Attributes:          nil,
 				DeprecationMessage:  "",
@@ -332,47 +374,150 @@ func (r *DevicesResource) Create(ctx context.Context, req resource.CreateRequest
 		return
 	}
 
-	payload := apiclient.NewInlineObject()
-	payload.SetName(data.Name.ValueString())
-	payload.SetAddress(data.Address.ValueString())
-	payload.SetLat(float32(data.Lat.ValueFloat64()))
-	payload.SetLng(float32(data.Lng.ValueFloat64()))
-	payload.SetFloorPlanId(data.FloorPlanId.ValueString())
-	payload.SetMoveMapMarker(data.MoveMapMarker.ValueBool())
-	payload.SetNotes(data.Notes.ValueString())
-	payload.SetSwitchProfileId(data.SwitchProfileId.ValueString())
-	payload.SetTags(data.Tags)
+	// Write logs using the tflog package
+	tflog.Trace(ctx, "create resource")
 
-	response, d, err := r.client.DevicesApi.UpdateDevice(context.Background(),
-		data.Serial.Value).UpdateDevice(*payload).Execute()
+	response, d, err := r.client.DevicesApi.GetDevice(context.Background(), data.Serial.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"-- Create Error --",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 		resp.Diagnostics.AddError(
-			"-- Response --",
+			"-- HTTP Response --",
 			fmt.Sprintf("%v\n", d),
 		)
 		return
 	}
 
-	responseData, _ := json.Marshal(response)
-	var results apiclient.InlineObject
-	json.Unmarshal(responseData, &results)
+	data.Id = types.StringValue("example-id")
 
-	data.Id = types.String{Value: "example-id"}
-	data.Name = types.String{Value: results.GetName()}
-	data.Notes = types.String{Value: results.GetNotes()}
-	data.FloorPlanId = types.String{Value: results.GetFloorPlanId()}
-	data.Address = types.String{Value: results.GetAddress()}
-	data.Tags = results.GetTags()
-	data.Lat = types.Float64{Value: float64(results.GetLat())}
-	data.Lng = types.Float64{Value: float64(results.GetLng())}
-	data.SwitchProfileId = types.String{Value: results.GetSwitchProfileId()}
+	// name attribute
+	if name := response["name"]; name != nil {
+		data.Name = types.StringValue(name.(string))
+	} else {
+		data.Name = types.StringNull()
+	}
 
-	// Write logs using the tflog package
-	tflog.Trace(ctx, "create resource")
+	// address attribute
+	if address := response["address"]; address != nil {
+		data.Address = types.StringValue(address.(string))
+	} else {
+		data.Address = types.StringNull()
+	}
+
+	// firmware attribute
+	if firmware := response["firmware"]; firmware != nil {
+		data.Firmware = types.StringValue(firmware.(string))
+	} else {
+		data.Firmware = types.StringNull()
+	}
+
+	// floor plan attribute
+	if floorplan := response["floorplan"]; floorplan != nil {
+		data.FloorPlanId = types.StringValue(floorplan.(string))
+	} else {
+		data.FloorPlanId = types.StringNull()
+	}
+
+	// lat attribute
+	if lat := response["lat"]; lat != nil {
+		data.Lat = types.StringValue(fmt.Sprintf("%f", lat.(float64)))
+	} else {
+		data.Lat = types.StringNull()
+	}
+
+	// lng attribute
+	if lng := response["lng"]; lng != nil {
+		data.Lng = types.StringValue(fmt.Sprintf("%f", lng.(float64)))
+	} else {
+		data.Lng = types.StringNull()
+	}
+
+	// mac attribute
+	if mac := response["mac"]; mac != nil {
+		data.Mac = types.StringValue(mac.(string))
+	} else {
+		data.Mac = types.StringNull()
+	}
+
+	// model attribute
+	if model := response["model"]; model != nil {
+		data.Model = types.StringValue(model.(string))
+	} else {
+		data.Model = types.StringNull()
+	}
+
+	// networkId attribute
+	if networkId := response["networkId"]; networkId != nil {
+		data.NetworkId = types.StringValue(networkId.(string))
+	} else {
+		data.NetworkId = types.StringNull()
+	}
+
+	// serial number is immutable
+
+	// tags attribute
+	if tags := response["tags"]; tags != nil {
+
+		// append tags to tag list
+		var tagElements []attr.Value // list of tags
+		for _, v := range response["tags"].([]interface{}) {
+			tagElements = append(tagElements, types.StringValue(v.(string)))
+		}
+		data.Tags, _ = types.ListValue(types.StringType, tagElements)
+	} else {
+		data.Tags = types.ListNull(types.StringType)
+	}
+
+	// networkId attribute
+	if networkId := response["networkId"]; networkId != nil {
+		data.NetworkId = types.StringValue(networkId.(string))
+	} else {
+		data.NetworkId = types.StringNull()
+	}
+
+	// url attribute
+	if url := response["url"]; url != nil {
+		data.Url = types.StringValue(url.(string))
+	} else {
+		data.Url = types.StringNull()
+	}
+
+	// wan1Ip attribute
+	if wan1Ip := response["wan1Ip"]; wan1Ip != nil {
+		data.Wan1Ip = types.StringValue(wan1Ip.(string))
+	} else {
+		data.Wan1Ip = types.StringNull()
+	}
+
+	// wan2Ip attribute
+	if wan2Ip := response["wan2Ip"]; wan2Ip != nil {
+		data.Wan2Ip = types.StringValue(wan2Ip.(string))
+	} else {
+		data.Wan2Ip = types.StringNull()
+	}
+
+	// lanIp attribute (unknown)
+	data.LanIp = types.StringNull()
+
+	// lanIp attribute (unknown)
+	data.Notes = types.StringNull()
+
+	// lanIp attribute (unknown)
+	data.SwitchProfileId = types.StringNull()
+
+	// lanIp attribute (unknown)
+	data.MoveMapMarker = types.BoolNull()
+
+	// uuid attribute (unknown)
+	data.BeaconIdParamsUuid = types.StringNull()
+
+	// major attribute  (unknown)
+	data.BeaconIdParamsMajor = types.Int64Null()
+
+	// minor attribute  (unknown)
+	data.BeaconIdParamsMinor = types.Int64Null()
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -395,25 +540,140 @@ func (r *DevicesResource) Read(ctx context.Context, req resource.ReadRequest, re
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 		resp.Diagnostics.AddError(
-			"-- Response --",
+			"-- HTTP Response --",
 			fmt.Sprintf("%v\n", d),
 		)
 		return
 	}
 
-	responseData, _ := json.Marshal(response)
-	var results apiclient.InlineObject
-	json.Unmarshal(responseData, &results)
+	data.Id = types.StringValue("example-id")
 
-	data.Id = types.String{Value: "example-id"}
-	data.Name = types.String{Value: results.GetName()}
-	data.Notes = types.String{Value: results.GetNotes()}
-	data.FloorPlanId = types.String{Value: results.GetFloorPlanId()}
-	data.Address = types.String{Value: results.GetAddress()}
-	data.Tags = results.GetTags()
-	data.Lat = types.Float64{Value: float64(results.GetLat())}
-	data.Lng = types.Float64{Value: float64(results.GetLng())}
-	data.SwitchProfileId = types.String{Value: results.GetSwitchProfileId()}
+	// name attribute
+	if name := response["name"]; name != nil {
+		data.Name = types.StringValue(name.(string))
+	} else {
+		data.Name = types.StringNull()
+	}
+
+	// address attribute
+	if address := response["address"]; address != nil {
+		data.Address = types.StringValue(address.(string))
+	} else {
+		data.Address = types.StringNull()
+	}
+
+	// firmware attribute
+	if firmware := response["firmware"]; firmware != nil {
+		data.Firmware = types.StringValue(firmware.(string))
+	} else {
+		data.Firmware = types.StringNull()
+	}
+
+	// floor plan attribute
+	if floorplan := response["floorplan"]; floorplan != nil {
+		data.FloorPlanId = types.StringValue(floorplan.(string))
+	} else {
+		data.FloorPlanId = types.StringNull()
+	}
+
+	// lat attribute
+	if lat := response["lat"]; lat != nil {
+		data.Lat = types.StringValue(fmt.Sprintf("%f", lat.(float64)))
+	} else {
+		data.Lat = types.StringNull()
+	}
+
+	// lng attribute
+	if lng := response["lng"]; lng != nil {
+		data.Lng = types.StringValue(fmt.Sprintf("%f", lng.(float64)))
+	} else {
+		data.Lng = types.StringNull()
+	}
+
+	// mac attribute
+	if mac := response["mac"]; mac != nil {
+		data.Mac = types.StringValue(mac.(string))
+	} else {
+		data.Mac = types.StringNull()
+	}
+
+	// model attribute
+	if model := response["model"]; model != nil {
+		data.Model = types.StringValue(model.(string))
+	} else {
+		data.Model = types.StringNull()
+	}
+
+	// networkId attribute
+	if networkId := response["networkId"]; networkId != nil {
+		data.NetworkId = types.StringValue(networkId.(string))
+	} else {
+		data.NetworkId = types.StringNull()
+	}
+
+	// serial number is immutable
+
+	// tags attribute
+	if tags := response["tags"]; tags != nil {
+
+		// append tags to tag list
+		var tagElements []attr.Value // list of tags
+		for _, v := range response["tags"].([]interface{}) {
+			tagElements = append(tagElements, types.StringValue(v.(string)))
+		}
+		data.Tags, _ = types.ListValue(types.StringType, tagElements)
+	} else {
+		data.Tags = types.ListNull(types.StringType)
+	}
+
+	// networkId attribute
+	if networkId := response["networkId"]; networkId != nil {
+		data.NetworkId = types.StringValue(networkId.(string))
+	} else {
+		data.NetworkId = types.StringNull()
+	}
+
+	// url attribute
+	if url := response["url"]; url != nil {
+		data.Url = types.StringValue(url.(string))
+	} else {
+		data.Url = types.StringNull()
+	}
+
+	// wan1Ip attribute
+	if wan1Ip := response["wan1Ip"]; wan1Ip != nil {
+		data.Wan1Ip = types.StringValue(wan1Ip.(string))
+	} else {
+		data.Wan1Ip = types.StringNull()
+	}
+
+	// wan2Ip attribute
+	if wan2Ip := response["wan2Ip"]; wan2Ip != nil {
+		data.Wan2Ip = types.StringValue(wan2Ip.(string))
+	} else {
+		data.Wan2Ip = types.StringNull()
+	}
+
+	// lanIp attribute (unknown)
+	data.LanIp = types.StringNull()
+
+	// lanIp attribute (unknown)
+	data.Notes = types.StringNull()
+
+	// lanIp attribute (unknown)
+	data.SwitchProfileId = types.StringNull()
+
+	// lanIp attribute (unknown)
+	data.MoveMapMarker = types.BoolNull()
+
+	// uuid attribute (unknown)
+	data.BeaconIdParamsUuid = types.StringNull()
+
+	// major attribute  (unknown)
+	data.BeaconIdParamsMajor = types.Int64Null()
+
+	// minor attribute  (unknown)
+	data.BeaconIdParamsMinor = types.Int64Null()
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -429,19 +689,53 @@ func (r *DevicesResource) Update(ctx context.Context, req resource.UpdateRequest
 		return
 	}
 
+	// Body Parameters for HTTP Request
 	payload := apiclient.NewInlineObject()
-	payload.SetName(data.Name.ValueString())
+
+	// Name
+	payload.SetAddress(data.Name.ValueString())
+
+	// TODO -   Error: Provider produced inconsistent result after apply
+	//        When applying changes to meraki_devices.test, provider
+	//        "provider[\"registry.terraform.io/hashicorp/meraki\"]" produced an unexpected
+	//        new value: .tags[0]: was cty.StringVal("sea"), but now
+	//        cty.StringVal("\"sea\"").
+	//	Tags
+	var tags []string
+	for _, attribute := range data.Tags.Elements() {
+		tags = append(tags, attribute.String())
+	}
+	payload.SetTags(tags)
+
+	//	Lat
+	lat, _ := strconv.ParseFloat(data.Lat.ValueString(), 32)
+	payload.SetLat(float32(lat))
+
+	//	Lng
+	lng, _ := strconv.ParseFloat(data.Lng.ValueString(), 32)
+	payload.SetLng(float32(lng))
+
+	//	Address
 	payload.SetAddress(data.Address.ValueString())
-	payload.SetLat(float32(data.Lat.ValueFloat64()))
-	payload.SetLng(float32(data.Lng.ValueFloat64()))
-	payload.SetFloorPlanId(data.FloorPlanId.ValueString())
-	payload.SetMoveMapMarker(data.MoveMapMarker.ValueBool())
+
+	//	Notes
 	payload.SetNotes(data.Notes.ValueString())
-	payload.SetSwitchProfileId(data.SwitchProfileId.ValueString())
-	payload.SetTags(data.Tags)
+
+	//	MoveMapMarker
+	payload.SetMoveMapMarker(data.MoveMapMarker.ValueBool())
+
+	// TODO - {{"errors":["Only switches can be bound to a switch profile","Device's
+	//        network must be bound to a configuration template (that supports switches) to
+	//        allow for switch profile binding","Invalid floorPlanId"]}}
+
+	//	SwitchProfileId
+	//payload.SetSwitchProfileId("null")
+
+	//	FloorPlanId
+	//payload.SetFloorPlanId("null")
 
 	response, d, err := r.client.DevicesApi.UpdateDevice(context.Background(),
-		data.Serial.Value).UpdateDevice(*payload).Execute()
+		data.Serial.ValueString()).UpdateDevice(*payload).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"-- Update Error --",
@@ -454,19 +748,197 @@ func (r *DevicesResource) Update(ctx context.Context, req resource.UpdateRequest
 		return
 	}
 
-	responseData, _ := json.Marshal(response)
-	var results apiclient.InlineObject
-	json.Unmarshal(responseData, &results)
+	data.Id = types.StringValue("example-id")
 
-	data.Id = types.String{Value: "example-id"}
-	data.Name = types.String{Value: results.GetName()}
-	data.Notes = types.String{Value: results.GetNotes()}
-	data.FloorPlanId = types.String{Value: results.GetFloorPlanId()}
-	data.Address = types.String{Value: results.GetAddress()}
-	data.Tags = results.GetTags()
-	data.Lat = types.Float64{Value: float64(results.GetLat())}
-	data.Lng = types.Float64{Value: float64(results.GetLng())}
-	data.SwitchProfileId = types.String{Value: results.GetSwitchProfileId()}
+	// TODO - "provider[\"registry.terraform.io/hashicorp/meraki\"]" produced an unexpected
+	//        new value: .name: was cty.StringVal("My AP"), but now null.
+	// name attribute
+	if name := response["name"]; name != nil {
+		data.Name = types.StringValue(name.(string))
+	} else if data.Name.IsNull() != true {
+	} else {
+		data.Name = types.StringNull()
+	}
+
+	// address attribute
+	if address := response["address"]; address != nil {
+		data.Address = types.StringValue(address.(string))
+	} else if data.Address.IsNull() != true {
+	} else {
+		data.Address = types.StringNull()
+	}
+
+	// firmware attribute
+	if firmware := response["firmware"]; firmware != nil {
+		data.Firmware = types.StringValue(firmware.(string))
+	} else if data.Firmware.IsNull() != true {
+	} else {
+		data.Firmware = types.StringNull()
+	}
+
+	// floor plan attribute
+	if floorplan := response["floorplan"]; floorplan != nil {
+		data.FloorPlanId = types.StringValue(floorplan.(string))
+	} else if data.FloorPlanId.IsNull() != true {
+		data.FloorPlanId = types.StringNull()
+	} else {
+		data.FloorPlanId = types.StringNull()
+	}
+
+	// lat attribute
+	if lat := response["lat"]; lat != nil {
+		data.Lat = types.StringValue(fmt.Sprintf("%f", lat.(float64)))
+	} else if data.Lat.IsNull() != true {
+	} else {
+		data.Lat = types.StringNull()
+	}
+
+	// lng attribute
+	if lng := response["lng"]; lng != nil {
+		data.Lng = types.StringValue(fmt.Sprintf("%f", lng.(float64)))
+	} else if data.Lng.IsNull() != true {
+	} else {
+		data.Lng = types.StringNull()
+	}
+
+	// mac attribute
+	if mac := response["mac"]; mac != nil {
+		data.Mac = types.StringValue(mac.(string))
+	} else if data.Mac.IsNull() != true {
+	} else {
+		data.Mac = types.StringNull()
+	}
+
+	// model attribute
+	if model := response["model"]; model != nil {
+		data.Model = types.StringValue(model.(string))
+	} else if data.Model.IsNull() != true {
+	} else {
+		data.Model = types.StringNull()
+	}
+
+	// networkId attribute
+	if networkId := response["networkId"]; networkId != nil {
+		data.NetworkId = types.StringValue(networkId.(string))
+	} else if data.NetworkId.IsNull() != true {
+	} else {
+		data.NetworkId = types.StringNull()
+	}
+
+	// serial number is immutable
+
+	// tags attribute
+	if tags := response["tags"]; tags != nil {
+		// append tags to tag list
+		var tagElements []attr.Value // list of tags
+		for _, v := range response["tags"].([]interface{}) {
+			tagElements = append(tagElements, types.StringValue(v.(string)))
+		}
+		data.Tags, _ = types.ListValue(types.StringType, tagElements)
+	} else if data.Tags.IsNull() != true {
+	} else {
+		data.Tags = types.ListNull(types.StringType)
+	}
+
+	// networkId attribute
+	if networkId := response["networkId"]; networkId != nil {
+		data.NetworkId = types.StringValue(networkId.(string))
+	} else if data.NetworkId.IsNull() != true {
+		data.NetworkId = types.StringNull()
+	} else {
+		data.NetworkId = types.StringNull()
+	}
+
+	// url attribute
+	if url := response["url"]; url != nil {
+		data.Url = types.StringValue(url.(string))
+	} else if data.Url.IsNull() != true {
+		data.Url = types.StringNull()
+	} else {
+		data.Url = types.StringNull()
+	}
+
+	// wan1Ip attribute
+	if wan1Ip := response["wan1Ip"]; wan1Ip != nil {
+		data.Wan1Ip = types.StringValue(wan1Ip.(string))
+	} else if data.Wan1Ip.IsNull() != true {
+		data.Wan1Ip = types.StringNull()
+	} else {
+		data.Wan1Ip = types.StringNull()
+	}
+
+	// wan2Ip attribute
+	if wan2Ip := response["wan2Ip"]; wan2Ip != nil {
+		data.Wan2Ip = types.StringValue(wan2Ip.(string))
+	} else if data.Wan2Ip.IsNull() != true {
+		data.Wan2Ip = types.StringNull()
+	} else {
+		data.Wan2Ip = types.StringNull()
+	}
+
+	// lanIp attribute (computed)
+	if lanIp := response["lanIp"]; lanIp != nil {
+		data.LanIp = types.StringValue(lanIp.(string))
+	} else if data.LanIp.IsNull() != true {
+		data.LanIp = types.StringNull()
+	} else {
+		data.LanIp = types.StringNull()
+	}
+
+	// notes attribute (computed)
+	if notes := response["notes"]; notes != nil {
+		data.Notes = types.StringValue(notes.(string))
+	} else if data.Notes.IsNull() != true {
+		data.Notes = types.StringNull()
+	} else {
+		data.Notes = types.StringNull()
+	}
+
+	// switchProfileId attribute (computed)
+	if switchProfileId := response["switchProfileId"]; switchProfileId != nil {
+		data.SwitchProfileId = types.StringValue(switchProfileId.(string))
+	} else if data.SwitchProfileId.IsNull() != true {
+		data.SwitchProfileId = types.StringNull()
+	} else {
+		data.SwitchProfileId = types.StringNull()
+	}
+
+	// moveMapMarker attribute (computed)
+	if moveMapMarker := response["moveMapMarker"]; moveMapMarker != nil {
+		data.MoveMapMarker = types.BoolValue(moveMapMarker.(bool))
+	} else if data.MoveMapMarker.IsNull() != true {
+		data.MoveMapMarker = types.BoolNull()
+	} else {
+		data.MoveMapMarker = types.BoolNull()
+	}
+
+	// TODO - these are nested objects not flattened in the api response...
+	// beaconIdParamsUuid attribute (computed)
+	if beaconIdParamsUuid := response["beaconIdParamsUuid"]; beaconIdParamsUuid != nil {
+		data.BeaconIdParamsUuid = types.StringValue(beaconIdParamsUuid.(string))
+	} else if data.BeaconIdParamsUuid.IsNull() != true {
+		data.BeaconIdParamsUuid = types.StringNull()
+	} else {
+		data.BeaconIdParamsUuid = types.StringNull()
+	}
+
+	// beaconIdParamsMajor attribute (computed)
+	if beaconIdParamsMajor := response["beaconIdParamsMajor"]; beaconIdParamsMajor != nil {
+		data.BeaconIdParamsMajor = types.Int64Value(beaconIdParamsMajor.(int64))
+	} else if data.BeaconIdParamsMajor.IsNull() != true {
+		data.BeaconIdParamsMajor = types.Int64Null()
+	} else {
+		data.BeaconIdParamsMajor = types.Int64Null()
+	}
+
+	// beaconIdParamsMinor attribute (computed)
+	if beaconIdParamsMinor := response["beaconIdParamsMinor"]; beaconIdParamsMinor != nil {
+		data.BeaconIdParamsMinor = types.Int64Value(beaconIdParamsMinor.(int64))
+	} else if data.BeaconIdParamsMinor.IsNull() != true {
+		data.BeaconIdParamsMinor = types.Int64Null()
+	} else {
+		data.BeaconIdParamsMinor = types.Int64Null()
+	}
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -482,19 +954,44 @@ func (r *DevicesResource) Delete(ctx context.Context, req resource.DeleteRequest
 		return
 	}
 
+	// Body Parameters for HTTP Request
 	payload := apiclient.NewInlineObject()
-	payload.SetName("")
+
+	// Name
 	payload.SetAddress("")
+
+	//	Tags
+	var tags []string
+	payload.SetTags(tags)
+
+	//	Lat
 	payload.SetLat(0)
+
+	//	Lng
 	payload.SetLng(0)
-	payload.SetFloorPlanId("")
-	payload.SetMoveMapMarker(false)
+
+	//	Address
+	payload.SetAddress("")
+
+	//	Notes
 	payload.SetNotes("")
-	payload.SetSwitchProfileId("")
-	payload.SetTags([]string{})
+
+	//	MoveMapMarker
+	payload.SetMoveMapMarker(false)
+
+	// TODO - {{"errors":["Only switches can be bound to a switch profile","Device's
+	//        network must be bound to a configuration template (that supports switches) to
+	//        allow for switch profile binding","Invalid floorPlanId"]}}
+
+	// TODO -  I just changed this from null to <nil> so check if it works after resolving update issues.
+	//	SwitchProfileId
+	//payload.SetSwitchProfileId("<nil>")
+
+	//	FloorPlanId
+	//payload.SetFloorPlanId("<nil>")
 
 	response, d, err := r.client.DevicesApi.UpdateDevice(context.Background(),
-		data.Serial.Value).UpdateDevice(*payload).Execute()
+		data.Serial.ValueString()).UpdateDevice(*payload).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"-- Delete Error --",
@@ -507,10 +1004,6 @@ func (r *DevicesResource) Delete(ctx context.Context, req resource.DeleteRequest
 		return
 	}
 
-	responseData, _ := json.Marshal(response)
-	var results apiclient.InlineObject
-	json.Unmarshal(responseData, &results)
-
 	if d.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"-- Delete Error --",
@@ -522,12 +1015,12 @@ func (r *DevicesResource) Delete(ctx context.Context, req resource.DeleteRequest
 		)
 		resp.Diagnostics.AddError(
 			"-- Results --",
-			fmt.Sprintf("%v\n", results),
+			fmt.Sprintf("%v\n", response),
 		)
 		return
+	} else {
+		resp.State.RemoveResource(ctx)
 	}
-
-	resp.State.RemoveResource(ctx)
 
 }
 
