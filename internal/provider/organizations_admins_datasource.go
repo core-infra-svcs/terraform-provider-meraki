@@ -301,7 +301,7 @@ func (d *OrganizationsAdminsDataSource) Read(ctx context.Context, req datasource
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	response, r, err := d.client.AdminsApi.GetOrganizationAdmins(context.Background(), data.Id.Value).Execute()
+	response, r, err := d.client.AdminsApi.GetOrganizationAdmins(context.Background(), data.Id.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			fmt.Sprintf("Error when calling read: %v\n", r),
@@ -336,14 +336,14 @@ func (d *OrganizationsAdminsDataSource) Read(ctx context.Context, req datasource
 		result.HasApiKey = types.Bool{Value: adminData.HasApiKey}
 		for _, network := range adminData.Networks {
 			var networkData Network
-			networkData.Id = types.String{Value: network.Id.Value}
-			networkData.Access = types.String{Value: network.Access.Value}
+			networkData.Id = types.String{Value: network.Id.ValueString()}
+			networkData.Access = types.String{Value: network.Access.ValueString()}
 			result.Networks = append(result.Networks, networkData)
 		}
 		for _, tag := range adminData.Tags {
 			var tagData Tag
-			tagData.Tag = types.String{Value: tag.Tag.Value}
-			tagData.Access = types.String{Value: tag.Access.Value}
+			tagData.Tag = types.String{Value: tag.Tag.ValueString()}
+			tagData.Access = types.String{Value: tag.Access.ValueString()}
 			result.Tags = append(result.Tags, tagData)
 		}
 		data.List = append(data.List, result)

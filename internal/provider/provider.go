@@ -80,7 +80,7 @@ func (p *ScaffoldingProvider) Configure(ctx context.Context, req provider.Config
 
 	// base url
 	var baseUrl string
-	if data.BaseUrl.Null {
+	if data.BaseUrl.IsNull() {
 		baseUrl = "https://api.meraki.com/api/v1"
 	}
 

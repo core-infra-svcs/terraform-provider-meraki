@@ -301,7 +301,7 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 	}
 
 	// Creating and Validating Payload for Creating Database Adminstrator
-	createOrganizationAdmin := *apiclient.NewInlineObject176(data.Email.Value, data.Name.Value, data.OrgAccess.Value)
+	createOrganizationAdmin := *apiclient.NewInlineObject176(data.Email.ValueString(), data.Name.ValueString(), data.OrgAccess.ValueString())
 
 	if data.Tags != nil {
 		if len(data.Tags) != 0 {
@@ -331,10 +331,10 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 	}
 
 	if !data.AuthenticationMethod.IsUnknown() {
-		createOrganizationAdmin.SetAuthenticationMethod(data.AuthenticationMethod.Value)
+		createOrganizationAdmin.SetAuthenticationMethod(data.AuthenticationMethod.ValueString())
 	}
 
-	response, d, err := r.client.AdminsApi.CreateOrganizationAdmin(context.Background(), data.Id.Value).CreateOrganizationAdmin(createOrganizationAdmin).Execute()
+	response, d, err := r.client.AdminsApi.CreateOrganizationAdmin(context.Background(), data.Id.ValueString()).CreateOrganizationAdmin(createOrganizationAdmin).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"-- Create Error --",
@@ -391,7 +391,7 @@ func (r *OrganizationsAdminResource) Read(ctx context.Context, req resource.Read
 		return
 	}
 
-	response, d, err := r.client.AdminsApi.GetOrganizationAdmins(context.Background(), data.Id.Value).Execute()
+	response, d, err := r.client.AdminsApi.GetOrganizationAdmins(context.Background(), data.Id.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"-- Read Error --",
@@ -418,7 +418,7 @@ func (r *OrganizationsAdminResource) Read(ctx context.Context, req resource.Read
 
 	for _, admindata := range adminresource {
 
-		if admindata.Email == data.Email.Value {
+		if admindata.Email == data.Email.ValueString() {
 
 			data.Name = types.String{Value: admindata.Name}
 			data.Email = types.String{Value: admindata.Email}
@@ -484,9 +484,9 @@ func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.Up
 			updateOrganizationAdmin.SetNetworks(n)
 		}
 	}
-	updateOrganizationAdmin.SetName(data.Name.Value)
-	updateOrganizationAdmin.SetOrgAccess(data.OrgAccess.Value)
-	response, d, err := r.client.AdminsApi.UpdateOrganizationAdmin(context.Background(), data.Id.Value, state.AdminId.Value).UpdateOrganizationAdmin(updateOrganizationAdmin).Execute()
+	updateOrganizationAdmin.SetName(data.Name.ValueString())
+	updateOrganizationAdmin.SetOrgAccess(data.OrgAccess.ValueString())
+	response, d, err := r.client.AdminsApi.UpdateOrganizationAdmin(context.Background(), data.Id.ValueString(), state.AdminId.ValueString()).UpdateOrganizationAdmin(updateOrganizationAdmin).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"-- Update Error --",
@@ -541,7 +541,7 @@ func (r *OrganizationsAdminResource) Delete(ctx context.Context, req resource.De
 		return
 	}
 
-	response, err := r.client.AdminsApi.DeleteOrganizationAdmin(context.Background(), data.Id.Value, data.AdminId.Value).Execute()
+	response, err := r.client.AdminsApi.DeleteOrganizationAdmin(context.Background(), data.Id.ValueString(), data.AdminId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"-- Delete Error --",
