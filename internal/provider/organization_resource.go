@@ -223,6 +223,7 @@ func (r *OrganizationResource) Create(ctx context.Context, req resource.CreateRe
 	}
 
 	// save into the Terraform state.
+	data.Id = types.StringValue("example-id")
 	data.OrgId = types.StringValue(response.GetId())
 	data.Name = types.StringValue(response.GetName())
 	data.CloudRegion = types.StringValue(response.Cloud.Region.GetName())
@@ -284,6 +285,7 @@ func (r *OrganizationResource) Read(ctx context.Context, req resource.ReadReques
 	}
 
 	// save into the Terraform state.
+	data.Id = types.StringValue("example-id")
 	data.OrgId = types.StringValue(response.GetId())
 	data.Name = types.StringValue(response.GetName())
 	data.CloudRegion = types.StringValue(response.Cloud.Region.GetName())
@@ -324,9 +326,9 @@ func (r *OrganizationResource) Update(ctx context.Context, req resource.UpdateRe
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
-	// Check for required parameters
+	// TODO - Check for required parameters
 	if len(data.OrgId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing organizationId", fmt.Sprintf("%s", data.OrgId.ValueString()))
+		resp.Diagnostics.AddError("Missing organization_Id", fmt.Sprintf("org_id: %s", data.OrgId.ValueString()))
 	}
 
 	if resp.Diagnostics.HasError() {
@@ -369,6 +371,7 @@ func (r *OrganizationResource) Update(ctx context.Context, req resource.UpdateRe
 	}
 
 	// save into the Terraform state.
+	data.Id = types.StringValue("example-id")
 	data.OrgId = types.StringValue(response.GetId())
 	data.Name = types.StringValue(response.GetName())
 	data.CloudRegion = types.StringValue(response.Cloud.Region.GetName())
