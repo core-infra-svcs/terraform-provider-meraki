@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"net/http/httputil"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -188,19 +189,18 @@ func (r *OrganizationResource) Configure(ctx context.Context, req resource.Confi
 func (r *OrganizationResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data *OrganizationResourceModel
 
-	// Read Terraform plan data into the model
+	// Read Terraform plan data
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
+	// Create HTTP request body
 	createOrganization := *apiclient.NewInlineObject165(data.Name.ValueString())
 
-	// Set Management Details
+	// Set management details
 	var name = data.ManagementDetailsName.ValueString()
 	var value = data.ManagementDetailsValue.ValueString()
-
 	detail := apiclient.OrganizationsManagementDetails{
 		Name:  &name,
 		Value: &value,
@@ -209,32 +209,66 @@ func (r *OrganizationResource) Create(ctx context.Context, req resource.CreateRe
 	organizationsManagement := apiclient.OrganizationsManagement{Details: details}
 	createOrganization.SetManagement(organizationsManagement)
 
-	response, d, err := r.client.OrganizationsApi.CreateOrganization(context.Background()).CreateOrganization(createOrganization).Execute()
+	// Initialize provider client and make API call
+	inlineResp, httpResp, err := r.client.OrganizationsApi.CreateOrganization(context.Background()).CreateOrganization(createOrganization).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"-- Create Error --",
+			"Failed to create resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+	}
+
+	// Collect HTTP request diagnostics
+	reqDump, err := httputil.DumpRequestOut(httpResp.Request, true)
+	if err != nil {
+		resp.Diagnostics.AddWarning(
+			"Failed to gather HTTP request diagnostics", fmt.Sprintf("\n%s", err),
+		)
+	}
+
+	// Collect HTTP response diagnostics
+	respDump, err := httputil.DumpResponse(httpResp, true)
+	if err != nil {
+		resp.Diagnostics.AddWarning(
+			"Failed to gather HTTP inlineResp diagnostics", fmt.Sprintf("\n%s", err),
+		)
+	}
+
+	// Check for API success response code
+	if httpResp.StatusCode != 201 {
 		resp.Diagnostics.AddError(
-			"-- Response Header --",
-			fmt.Sprintf("%v\n", d.Header),
+			"Unexpected HTTP Response Status Code",
+			fmt.Sprintf("%v", httpResp.StatusCode),
+		)
+	}
+
+	// Check for errors after diagnostics collected
+	if resp.Diagnostics.HasError() {
+
+		resp.Diagnostics.AddError(
+			"Request Diagnostics:",
+			fmt.Sprintf("\n%s", string(reqDump)),
+		)
+
+		resp.Diagnostics.AddError(
+			"Response Diagnostics:",
+			fmt.Sprintf("\n%s", string(respDump)),
 		)
 		return
 	}
 
 	// save into the Terraform state.
 	data.Id = types.StringValue("example-id")
-	data.OrgId = types.StringValue(response.GetId())
-	data.Name = types.StringValue(response.GetName())
-	data.CloudRegion = types.StringValue(response.Cloud.Region.GetName())
-	data.Url = types.StringValue(response.GetUrl())
-	data.ApiEnabled = types.BoolValue(response.Api.GetEnabled())
-	data.LicensingModel = types.StringValue(response.Licensing.GetModel())
+	data.OrgId = types.StringValue(inlineResp.GetId())
+	data.Name = types.StringValue(inlineResp.GetName())
+	data.CloudRegion = types.StringValue(inlineResp.Cloud.Region.GetName())
+	data.Url = types.StringValue(inlineResp.GetUrl())
+	data.ApiEnabled = types.BoolValue(inlineResp.Api.GetEnabled())
+	data.LicensingModel = types.StringValue(inlineResp.Licensing.GetModel())
 
 	// Management Details Response
-	if len(response.Management.Details) > 0 {
-
-		responseDetails := response.Management.GetDetails()
+	if len(inlineResp.Management.Details) > 0 {
+		responseDetails := inlineResp.Management.GetDetails()
 
 		// name attribute
 		if managementDetailName := responseDetails[0].GetName(); responseDetails[0].HasName() == true {
@@ -249,54 +283,91 @@ func (r *OrganizationResource) Create(ctx context.Context, req resource.CreateRe
 		} else {
 			data.ManagementDetailsValue = types.StringNull()
 		}
+
 	} else {
 		data.ManagementDetailsName = types.StringNull()
 		data.ManagementDetailsValue = types.StringNull()
 	}
 
-	// Write logs using the tflog package
-	tflog.Trace(ctx, "create resource")
-
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+
+	// Write logs using the tflog package
+	tflog.Trace(ctx, "created resource")
 }
 
 func (r *OrganizationResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var data *OrganizationResourceModel
 
-	// Read Terraform prior state data into the model
+	// Read Terraform state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-	if resp.Diagnostics.HasError() {
+	// check for required parameters
+	if len(data.OrgId.ValueString()) < 1 {
+		resp.Diagnostics.AddError("Missing organization_Id", fmt.Sprintf("org_id: %s", data.OrgId.ValueString()))
 		return
 	}
 
-	response, d, err := r.client.OrganizationsApi.GetOrganization(context.Background(), data.OrgId.ValueString()).Execute()
+	// Initialize provider client and make API call
+	inlineResp, httpResp, err := r.client.OrganizationsApi.GetOrganization(context.Background(), data.OrgId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"-- Read Error --",
+			"Failed to read resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+	}
+
+	// Collect HTTP request diagnostics
+	reqDump, err := httputil.DumpRequestOut(httpResp.Request, true)
+	if err != nil {
+		resp.Diagnostics.AddWarning(
+			"Failed to gather HTTP request diagnostics", fmt.Sprintf("\n%s", err),
+		)
+	}
+
+	// Collect HTTP response diagnostics
+	respDump, err := httputil.DumpResponse(httpResp, true)
+	if err != nil {
+		resp.Diagnostics.AddWarning(
+			"Failed to gather HTTP inlineResp diagnostics", fmt.Sprintf("\n%s", err),
+		)
+	}
+
+	// Check for API success inlineResp code
+	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
-			"-- Response Header --",
-			fmt.Sprintf("%v\n", d.Header),
+			"Unexpected HTTP Response Status Code",
+			fmt.Sprintf("%v", httpResp.StatusCode),
+		)
+	}
+
+	// Check for errors after diagnostics collected
+	if resp.Diagnostics.HasError() {
+
+		resp.Diagnostics.AddError(
+			"Request Diagnostics:",
+			fmt.Sprintf("\n%s", string(reqDump)),
+		)
+
+		resp.Diagnostics.AddError(
+			"Response Diagnostics:",
+			fmt.Sprintf("\n%s", string(respDump)),
 		)
 		return
 	}
 
-	// save into the Terraform state.
+	// save inlineResp data into Terraform state.
 	data.Id = types.StringValue("example-id")
-	data.OrgId = types.StringValue(response.GetId())
-	data.Name = types.StringValue(response.GetName())
-	data.CloudRegion = types.StringValue(response.Cloud.Region.GetName())
-	data.Url = types.StringValue(response.GetUrl())
-	data.ApiEnabled = types.BoolValue(response.Api.GetEnabled())
-	data.LicensingModel = types.StringValue(response.Licensing.GetModel())
+	data.OrgId = types.StringValue(inlineResp.GetId())
+	data.Name = types.StringValue(inlineResp.GetName())
+	data.CloudRegion = types.StringValue(inlineResp.Cloud.Region.GetName())
+	data.Url = types.StringValue(inlineResp.GetUrl())
+	data.ApiEnabled = types.BoolValue(inlineResp.Api.GetEnabled())
+	data.LicensingModel = types.StringValue(inlineResp.Licensing.GetModel())
 
 	// Management Details Response
-	if len(response.Management.Details) > 0 {
-
-		responseDetails := response.Management.GetDetails()
+	if len(inlineResp.Management.Details) > 0 {
+		responseDetails := inlineResp.Management.GetDetails()
 
 		// name attribute
 		if managementDetailName := responseDetails[0].GetName(); responseDetails[0].HasName() == true {
@@ -318,33 +389,33 @@ func (r *OrganizationResource) Read(ctx context.Context, req resource.ReadReques
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+
+	// Write logs using the tflog package
+	tflog.Trace(ctx, "read resource")
 }
 
 func (r *OrganizationResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var data *OrganizationResourceModel
 
-	// Read Terraform plan data into the model
+	// Read Terraform plan data
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
-	// TODO - Check for required parameters
+	// Check for required parameters
 	if len(data.OrgId.ValueString()) < 1 {
 		resp.Diagnostics.AddError("Missing organization_Id", fmt.Sprintf("org_id: %s", data.OrgId.ValueString()))
-	}
-
-	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// create payload
+	// Create HTTP request body
 	updateOrganization := apiclient.NewInlineObject166()
 	updateOrganization.SetName(data.Name.ValueString())
 
-	// API Enabled
+	// Set enabled attribute
 	var enabled = data.ApiEnabled.ValueBool()
 	Api := apiclient.OrganizationsOrganizationIdApi{Enabled: &enabled}
 	updateOrganization.SetApi(Api)
 
-	// Set Management Details
+	// Set management details
 	var name = data.ManagementDetailsName.ValueString()
 	var value = data.ManagementDetailsValue.ValueString()
 	detail := apiclient.OrganizationsManagementDetails{
@@ -355,34 +426,67 @@ func (r *OrganizationResource) Update(ctx context.Context, req resource.UpdateRe
 	organizationsManagement := apiclient.OrganizationsManagement{Details: details}
 	updateOrganization.SetManagement(organizationsManagement)
 
-	// Initialize provider client
-	response, d, err := r.client.OrganizationsApi.UpdateOrganization(context.Background(),
+	// Initialize provider client and make API call
+	inlineResp, httpResp, err := r.client.OrganizationsApi.UpdateOrganization(context.Background(),
 		data.OrgId.ValueString()).UpdateOrganization(*updateOrganization).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"-- Update Error --",
+			"Failed to update resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+	}
+
+	// Collect HTTP request diagnostics
+	reqDump, err := httputil.DumpRequestOut(httpResp.Request, true)
+	if err != nil {
+		resp.Diagnostics.AddWarning(
+			"Failed to gather HTTP request diagnostics", fmt.Sprintf("\n%s", err),
+		)
+	}
+
+	// Collect HTTP response diagnostics
+	respDump, err := httputil.DumpResponse(httpResp, true)
+	if err != nil {
+		resp.Diagnostics.AddWarning(
+			"Failed to gather HTTP inlineResp diagnostics", fmt.Sprintf("\n%s", err),
+		)
+	}
+
+	// Check for API success response code
+	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
-			"-- Response Header --",
-			fmt.Sprintf("%v\n", d.Header),
+			"Unexpected HTTP Response Status Code",
+			fmt.Sprintf("%v", httpResp.StatusCode),
+		)
+	}
+
+	// Check for errors after diagnostics collected
+	if resp.Diagnostics.HasError() {
+
+		resp.Diagnostics.AddError(
+			"Request Diagnostics:",
+			fmt.Sprintf("\n%s", string(reqDump)),
+		)
+
+		resp.Diagnostics.AddError(
+			"Response Diagnostics:",
+			fmt.Sprintf("\n%s", string(respDump)),
 		)
 		return
 	}
 
-	// save into the Terraform state.
+	// save inlineResp data into Terraform state
 	data.Id = types.StringValue("example-id")
-	data.OrgId = types.StringValue(response.GetId())
-	data.Name = types.StringValue(response.GetName())
-	data.CloudRegion = types.StringValue(response.Cloud.Region.GetName())
-	data.Url = types.StringValue(response.GetUrl())
-	data.ApiEnabled = types.BoolValue(response.Api.GetEnabled())
-	data.LicensingModel = types.StringValue(response.Licensing.GetModel())
+	data.OrgId = types.StringValue(inlineResp.GetId())
+	data.Name = types.StringValue(inlineResp.GetName())
+	data.CloudRegion = types.StringValue(inlineResp.Cloud.Region.GetName())
+	data.Url = types.StringValue(inlineResp.GetUrl())
+	data.ApiEnabled = types.BoolValue(inlineResp.Api.GetEnabled())
+	data.LicensingModel = types.StringValue(inlineResp.Licensing.GetModel())
 
 	// Management Details Response
-	if len(response.Management.Details) > 0 {
-
-		responseDetails := response.Management.GetDetails()
+	if len(inlineResp.Management.Details) > 0 {
+		responseDetails := inlineResp.Management.GetDetails()
 
 		// name attribute
 		if managementDetailName := responseDetails[0].GetName(); responseDetails[0].HasName() == true {
@@ -404,45 +508,76 @@ func (r *OrganizationResource) Update(ctx context.Context, req resource.UpdateRe
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+
+	// Write logs using the tflog package
+	tflog.Trace(ctx, "updated resource")
 }
 
 func (r *OrganizationResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var data *OrganizationResourceModel
 
-	// Read Terraform prior state data into the model
+	// Read Terraform state data
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-	if resp.Diagnostics.HasError() {
+	// check for required parameters
+	if len(data.OrgId.ValueString()) < 1 {
+		resp.Diagnostics.AddError("Missing organization_Id", fmt.Sprintf("org_id: %s", data.OrgId.ValueString()))
 		return
 	}
 
-	// Delete Organization
-	response, err := r.client.OrganizationsApi.DeleteOrganization(context.Background(), data.OrgId.ValueString()).Execute()
+	// Initialize provider client and make API call
+	httpResp, err := r.client.OrganizationsApi.DeleteOrganization(context.Background(), data.OrgId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"-- Delete Error --",
+			"Failed to delete resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+	}
+
+	// Collect HTTP request diagnostics
+	reqDump, err := httputil.DumpRequestOut(httpResp.Request, true)
+	if err != nil {
+		resp.Diagnostics.AddWarning(
+			"Failed to gather HTTP request diagnostics", fmt.Sprintf("\n%s", err),
+		)
+	}
+
+	// Collect HTTP response diagnostics
+	respDump, err := httputil.DumpResponse(httpResp, true)
+	if err != nil {
+		resp.Diagnostics.AddWarning(
+			"Failed to gather HTTP inlineResp diagnostics", fmt.Sprintf("\n%s", err),
+		)
+	}
+
+	// Check for API success response code
+	if httpResp.StatusCode != 204 {
 		resp.Diagnostics.AddError(
-			"-- Response --",
-			fmt.Sprintf("%v\n", response),
+			"Unexpected HTTP Response Status Code",
+			fmt.Sprintf("%v", httpResp.StatusCode),
+		)
+	}
+
+	// Check for errors after diagnostics collected
+	if resp.Diagnostics.HasError() {
+
+		resp.Diagnostics.AddError(
+			"Request Diagnostics:",
+			fmt.Sprintf("\n%s", string(reqDump)),
+		)
+
+		resp.Diagnostics.AddError(
+			"Response Diagnostics:",
+			fmt.Sprintf("\n%s", string(respDump)),
 		)
 		return
 	}
 
-	if response.StatusCode != 204 {
-		resp.Diagnostics.AddError(
-			"-- Delete Error --",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-		resp.Diagnostics.AddError(
-			"-- Response --",
-			fmt.Sprintf("%v\n", response),
-		)
-		return
-	} else {
-		resp.State.RemoveResource(ctx)
-	}
+	// Remove from state
+	resp.State.RemoveResource(ctx)
+
+	// Write logs using the tflog package
+	tflog.Trace(ctx, "removed resource")
 
 }
 
