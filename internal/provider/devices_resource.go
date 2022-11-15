@@ -633,6 +633,7 @@ func (r *DevicesResource) Read(ctx context.Context, req resource.ReadRequest, re
 	// save inlineResp data into Terraform state
 	data.Id = types.StringValue("example-id")
 
+	// TODO - make reusable function with error handling,inputs: mapstring interface, key name, and tfsdk.type.
 	// name attribute
 	if name := inlineResp["name"]; name != nil {
 		data.Name = types.StringValue(name.(string))
@@ -739,8 +740,9 @@ func (r *DevicesResource) Read(ctx context.Context, req resource.ReadRequest, re
 		data.Wan2Ip = types.StringNull()
 	}
 
+	// TODO - Set defaults to unknown
 	// lanIp attribute (unknown)
-	data.LanIp = types.StringNull()
+	data.LanIp = types.StringUnknown()
 
 	// lanIp attribute (unknown)
 	data.Notes = types.StringNull()
@@ -876,30 +878,56 @@ func (r *DevicesResource) Update(ctx context.Context, req resource.UpdateRequest
 	// save inlineResp data into Terraform state
 	data.Id = types.StringValue("example-id")
 
-	// name attribute
-	if name := inlineResp["name"]; name != nil {
-		data.Name = types.StringValue(name.(string))
-	} else if data.Name.IsNull() != true {
-	} else {
-		data.Name = types.StringNull()
-	}
+	/*
+		resp.Diagnostics.AddError(
+				"Response Data",
+				fmt.Sprintf("\n%s", inlineResp),
+			)
 
-	// tags attribute
-	if tags := inlineResp["tags"]; tags != nil {
-		// append tags to tag list
-		var tagElements []attr.Value // list of tags
-		for _, v := range inlineResp["tags"].([]interface{}) {
-			tagElements = append(tagElements, types.StringValue(v.(string)))
+			// Check for errors after diagnostics collected
+			if resp.Diagnostics.HasError() {
+				return
+			}
+	*/
+
+	/*
+		// name attribute
+			if name := inlineResp["name"]; name != nil {
+				data.Name = types.StringValue(name.(string))
+			} else if data.Name.IsNull() != true {
+			} else {
+				data.Name = types.StringNull()
+			}
+
+
+		// TODO - Treat this more like a list
+		// tags attribute
+		if tags := inlineResp["tags"]; tags != nil {
+			// append tags to tag list
+			var tagElements []attr.Value // list of tags
+			for _, v := range inlineResp["tags"].([]interface{}) {
+				tagElements = append(tagElements, types.StringValue(v.(string)))
+			}
+			data.Tags, _ = types.ListValue(types.StringType, tagElements)
+		} else if data.Tags.IsNull() != true {
+		} else {
+			data.Tags = types.ListNull(types.StringType)
 		}
-		data.Tags, _ = types.ListValue(types.StringType, tagElements)
-	} else if data.Tags.IsNull() != true {
+
+	*/
+
+	// address attribute
+	if address := inlineResp["address"]; address != nil {
+
+		data.Address = types.StringValue(address.(string))
+	} else if data.Address.IsNull() != true {
 	} else {
-		data.Tags = types.ListNull(types.StringType)
+		data.Address = types.StringNull()
 	}
 
 	// lat attribute
 	if latResp := inlineResp["lat"]; latResp != nil {
-		data.Lat = types.StringValue(fmt.Sprintf("%f", latResp.(float64)))
+		data.Lat = types.StringValue(fmt.Sprintf("%f", latResp.(float32)))
 	} else if data.Lat.IsNull() != true {
 	} else {
 		data.Lat = types.StringNull()
@@ -907,21 +935,13 @@ func (r *DevicesResource) Update(ctx context.Context, req resource.UpdateRequest
 
 	// lng attribute
 	if lngResp := inlineResp["lng"]; lngResp != nil {
-		data.Lng = types.StringValue(fmt.Sprintf("%f", lngResp.(float64)))
+		data.Lng = types.StringValue(fmt.Sprintf("%f", lngResp.(float32)))
 	} else if data.Lng.IsNull() != true {
 	} else {
 		data.Lng = types.StringNull()
 	}
 
-	// address attribute
-	if address := inlineResp["address"]; address != nil {
-		data.Address = types.StringValue(address.(string))
-	} else if data.Address.IsNull() != true {
-	} else {
-		data.Address = types.StringNull()
-	}
-
-	// notes attribute (computed)
+	// notes attribute
 	if notes := inlineResp["notes"]; notes != nil {
 		data.Notes = types.StringValue(notes.(string))
 	} else if data.Notes.IsNull() != true {
@@ -930,7 +950,7 @@ func (r *DevicesResource) Update(ctx context.Context, req resource.UpdateRequest
 		data.Notes = types.StringNull()
 	}
 
-	// moveMapMarker attribute (computed)
+	// moveMapMarker attribute
 	if moveMapMarker := inlineResp["moveMapMarker"]; moveMapMarker != nil {
 		data.MoveMapMarker = types.BoolValue(moveMapMarker.(bool))
 	} else if data.MoveMapMarker.IsNull() != true {
@@ -939,7 +959,7 @@ func (r *DevicesResource) Update(ctx context.Context, req resource.UpdateRequest
 		data.MoveMapMarker = types.BoolNull()
 	}
 
-	// switchProfileId attribute (computed)
+	// switchProfileId attribute
 	if switchProfileId := inlineResp["switchProfileId"]; switchProfileId != nil {
 		data.SwitchProfileId = types.StringValue(switchProfileId.(string))
 	} else if data.SwitchProfileId.IsNull() != true {
@@ -957,115 +977,111 @@ func (r *DevicesResource) Update(ctx context.Context, req resource.UpdateRequest
 		data.FloorPlanId = types.StringNull()
 	}
 
-	/*
+	// firmware attribute
+	if firmware := inlineResp["firmware"]; firmware != nil {
+		data.Firmware = types.StringValue(firmware.(string))
+	} else if data.Firmware.IsNull() != true {
+	} else {
+		data.Firmware = types.StringNull()
+	}
 
-		// firmware attribute
-		if firmware := inlineResp["firmware"]; firmware != nil {
-			data.Firmware = types.StringValue(firmware.(string))
-		} else if data.Firmware.IsNull() != true {
-		} else {
-			data.Firmware = types.StringNull()
-		}
+	// mac attribute
+	if mac := inlineResp["mac"]; mac != nil {
+		data.Mac = types.StringValue(mac.(string))
+	} else if data.Mac.IsNull() != true {
+	} else {
+		data.Mac = types.StringNull()
+	}
 
-		// mac attribute
-		if mac := inlineResp["mac"]; mac != nil {
-			data.Mac = types.StringValue(mac.(string))
-		} else if data.Mac.IsNull() != true {
-		} else {
-			data.Mac = types.StringNull()
-		}
+	// model attribute
+	if model := inlineResp["model"]; model != nil {
+		data.Model = types.StringValue(model.(string))
+	} else if data.Model.IsNull() != true {
+	} else {
+		data.Model = types.StringNull()
+	}
 
-		// model attribute
-		if model := inlineResp["model"]; model != nil {
-			data.Model = types.StringValue(model.(string))
-		} else if data.Model.IsNull() != true {
-		} else {
-			data.Model = types.StringNull()
-		}
+	// networkId attribute
+	if networkId := inlineResp["networkId"]; networkId != nil {
+		data.NetworkId = types.StringValue(networkId.(string))
+	} else if data.NetworkId.IsNull() != true {
+	} else {
+		data.NetworkId = types.StringNull()
+	}
 
-		// networkId attribute
-		if networkId := inlineResp["networkId"]; networkId != nil {
-			data.NetworkId = types.StringValue(networkId.(string))
-		} else if data.NetworkId.IsNull() != true {
-		} else {
-			data.NetworkId = types.StringNull()
-		}
+	// serial number is not computed or optional
 
-		// serial number is not computed or optional
+	// networkId attribute
+	if networkId := inlineResp["networkId"]; networkId != nil {
+		data.NetworkId = types.StringValue(networkId.(string))
+	} else if data.NetworkId.IsNull() != true {
+		data.NetworkId = types.StringNull()
+	} else {
+		data.NetworkId = types.StringNull()
+	}
 
-		// networkId attribute
-		if networkId := inlineResp["networkId"]; networkId != nil {
-			data.NetworkId = types.StringValue(networkId.(string))
-		} else if data.NetworkId.IsNull() != true {
-			data.NetworkId = types.StringNull()
-		} else {
-			data.NetworkId = types.StringNull()
-		}
+	// url attribute
+	if url := inlineResp["url"]; url != nil {
+		data.Url = types.StringValue(url.(string))
+	} else if data.Url.IsNull() != true {
+		data.Url = types.StringNull()
+	} else {
+		data.Url = types.StringNull()
+	}
 
-		// url attribute
-		if url := inlineResp["url"]; url != nil {
-			data.Url = types.StringValue(url.(string))
-		} else if data.Url.IsNull() != true {
-			data.Url = types.StringNull()
-		} else {
-			data.Url = types.StringNull()
-		}
+	// wan1Ip attribute
+	if wan1Ip := inlineResp["wan1Ip"]; wan1Ip != nil {
+		data.Wan1Ip = types.StringValue(wan1Ip.(string))
+	} else if data.Wan1Ip.ValueString() != "<nil>" {
+		data.Wan1Ip = types.StringNull()
+	} else {
+		data.Wan1Ip = types.StringNull()
+	}
 
-		// wan1Ip attribute
-		if wan1Ip := inlineResp["wan1Ip"]; wan1Ip != nil {
-			data.Wan1Ip = types.StringValue(wan1Ip.(string))
-		} else if data.Wan1Ip.IsNull() != true {
-			data.Wan1Ip = types.StringNull()
-		} else {
-			data.Wan1Ip = types.StringNull()
-		}
+	// wan2Ip attribute
+	if wan2Ip := inlineResp["wan2Ip"]; wan2Ip != nil {
+		data.Wan2Ip = types.StringValue(wan2Ip.(string))
+	} else if data.Wan2Ip.IsNull() != true {
+		data.Wan2Ip = types.StringNull()
+	} else {
+		data.Wan2Ip = types.StringNull()
+	}
 
-		// wan2Ip attribute
-		if wan2Ip := inlineResp["wan2Ip"]; wan2Ip != nil {
-			data.Wan2Ip = types.StringValue(wan2Ip.(string))
-		} else if data.Wan2Ip.IsNull() != true {
-			data.Wan2Ip = types.StringNull()
-		} else {
-			data.Wan2Ip = types.StringNull()
-		}
+	// lanIp attribute (computed)
+	if lanIp := inlineResp["lanIp"]; lanIp != nil {
+		data.LanIp = types.StringValue(lanIp.(string))
+	} else if data.LanIp.IsNull() != true {
+		data.LanIp = types.StringNull()
+	} else {
+		data.LanIp = types.StringNull()
+	}
 
-		// lanIp attribute (computed)
-		if lanIp := inlineResp["lanIp"]; lanIp != nil {
-			data.LanIp = types.StringValue(lanIp.(string))
-		} else if data.LanIp.IsNull() != true {
-			data.LanIp = types.StringNull()
-		} else {
-			data.LanIp = types.StringNull()
-		}
+	// beaconIdParamsUuid attribute (computed)
+	if beaconIdParamsUuid := inlineResp["beaconIdParamsUuid"]; beaconIdParamsUuid != nil {
+		data.BeaconIdParamsUuid = types.StringValue(beaconIdParamsUuid.(string))
+	} else if data.BeaconIdParamsUuid.IsNull() != true {
+		data.BeaconIdParamsUuid = types.StringNull()
+	} else {
+		data.BeaconIdParamsUuid = types.StringNull()
+	}
 
-		// beaconIdParamsUuid attribute (computed)
-		if beaconIdParamsUuid := inlineResp["beaconIdParamsUuid"]; beaconIdParamsUuid != nil {
-			data.BeaconIdParamsUuid = types.StringValue(beaconIdParamsUuid.(string))
-		} else if data.BeaconIdParamsUuid.IsNull() != true {
-			data.BeaconIdParamsUuid = types.StringNull()
-		} else {
-			data.BeaconIdParamsUuid = types.StringNull()
-		}
+	// beaconIdParamsMajor attribute (computed)
+	if beaconIdParamsMajor := inlineResp["beaconIdParamsMajor"]; beaconIdParamsMajor != nil {
+		data.BeaconIdParamsMajor = types.Int64Value(beaconIdParamsMajor.(int64))
+	} else if data.BeaconIdParamsMajor.IsNull() != true {
+		data.BeaconIdParamsMajor = types.Int64Null()
+	} else {
+		data.BeaconIdParamsMajor = types.Int64Null()
+	}
 
-		// beaconIdParamsMajor attribute (computed)
-		if beaconIdParamsMajor := inlineResp["beaconIdParamsMajor"]; beaconIdParamsMajor != nil {
-			data.BeaconIdParamsMajor = types.Int64Value(beaconIdParamsMajor.(int64))
-		} else if data.BeaconIdParamsMajor.IsNull() != true {
-			data.BeaconIdParamsMajor = types.Int64Null()
-		} else {
-			data.BeaconIdParamsMajor = types.Int64Null()
-		}
-
-		// beaconIdParamsMinor attribute (computed)
-		if beaconIdParamsMinor := inlineResp["beaconIdParamsMinor"]; beaconIdParamsMinor != nil {
-			data.BeaconIdParamsMinor = types.Int64Value(beaconIdParamsMinor.(int64))
-		} else if data.BeaconIdParamsMinor.IsNull() != true {
-			data.BeaconIdParamsMinor = types.Int64Null()
-		} else {
-			data.BeaconIdParamsMinor = types.Int64Null()
-		}
-
-	*/
+	// beaconIdParamsMinor attribute (computed)
+	if beaconIdParamsMinor := inlineResp["beaconIdParamsMinor"]; beaconIdParamsMinor != nil {
+		data.BeaconIdParamsMinor = types.Int64Value(beaconIdParamsMinor.(int64))
+	} else if data.BeaconIdParamsMinor.IsNull() != true {
+		data.BeaconIdParamsMinor = types.Int64Null()
+	} else {
+		data.BeaconIdParamsMinor = types.Int64Null()
+	}
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -1175,6 +1191,9 @@ func (r *DevicesResource) Delete(ctx context.Context, req resource.DeleteRequest
 
 	// Remove from state
 	resp.State.RemoveResource(ctx)
+
+	// Write logs using the tflog package
+	tflog.Trace(ctx, "delete resource")
 }
 
 func (r *DevicesResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
