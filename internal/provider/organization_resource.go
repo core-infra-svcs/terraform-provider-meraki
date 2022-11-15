@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 	apiclient "github.com/core-infra-svcs/dashboard-api-go/client"
+	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"net/http/httputil"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -218,22 +218,6 @@ func (r *OrganizationResource) Create(ctx context.Context, req resource.CreateRe
 		)
 	}
 
-	// Collect HTTP request diagnostics
-	reqDump, err := httputil.DumpRequestOut(httpResp.Request, true)
-	if err != nil {
-		resp.Diagnostics.AddWarning(
-			"Failed to gather HTTP request diagnostics", fmt.Sprintf("\n%s", err),
-		)
-	}
-
-	// Collect HTTP response diagnostics
-	respDump, err := httputil.DumpResponse(httpResp, true)
-	if err != nil {
-		resp.Diagnostics.AddWarning(
-			"Failed to gather HTTP inlineResp diagnostics", fmt.Sprintf("\n%s", err),
-		)
-	}
-
 	// Check for API success response code
 	if httpResp.StatusCode != 201 {
 		resp.Diagnostics.AddError(
@@ -242,20 +226,15 @@ func (r *OrganizationResource) Create(ctx context.Context, req resource.CreateRe
 		)
 	}
 
+	// collect diagnostics
+	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
-
-		resp.Diagnostics.AddError(
-			"Request Diagnostics:",
-			fmt.Sprintf("\n%s", string(reqDump)),
-		)
-
-		resp.Diagnostics.AddError(
-			"Response Diagnostics:",
-			fmt.Sprintf("\n%s", string(respDump)),
-		)
 		return
 	}
+
+	resp.Diagnostics.Append()
 
 	// save into the Terraform state.
 	data.Id = types.StringValue("example-id")
@@ -317,22 +296,6 @@ func (r *OrganizationResource) Read(ctx context.Context, req resource.ReadReques
 		)
 	}
 
-	// Collect HTTP request diagnostics
-	reqDump, err := httputil.DumpRequestOut(httpResp.Request, true)
-	if err != nil {
-		resp.Diagnostics.AddWarning(
-			"Failed to gather HTTP request diagnostics", fmt.Sprintf("\n%s", err),
-		)
-	}
-
-	// Collect HTTP response diagnostics
-	respDump, err := httputil.DumpResponse(httpResp, true)
-	if err != nil {
-		resp.Diagnostics.AddWarning(
-			"Failed to gather HTTP inlineResp diagnostics", fmt.Sprintf("\n%s", err),
-		)
-	}
-
 	// Check for API success inlineResp code
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
@@ -341,18 +304,11 @@ func (r *OrganizationResource) Read(ctx context.Context, req resource.ReadReques
 		)
 	}
 
+	// collect diagnostics
+	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
-
-		resp.Diagnostics.AddError(
-			"Request Diagnostics:",
-			fmt.Sprintf("\n%s", string(reqDump)),
-		)
-
-		resp.Diagnostics.AddError(
-			"Response Diagnostics:",
-			fmt.Sprintf("\n%s", string(respDump)),
-		)
 		return
 	}
 
@@ -436,22 +392,6 @@ func (r *OrganizationResource) Update(ctx context.Context, req resource.UpdateRe
 		)
 	}
 
-	// Collect HTTP request diagnostics
-	reqDump, err := httputil.DumpRequestOut(httpResp.Request, true)
-	if err != nil {
-		resp.Diagnostics.AddWarning(
-			"Failed to gather HTTP request diagnostics", fmt.Sprintf("\n%s", err),
-		)
-	}
-
-	// Collect HTTP response diagnostics
-	respDump, err := httputil.DumpResponse(httpResp, true)
-	if err != nil {
-		resp.Diagnostics.AddWarning(
-			"Failed to gather HTTP inlineResp diagnostics", fmt.Sprintf("\n%s", err),
-		)
-	}
-
 	// Check for API success response code
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
@@ -460,18 +400,11 @@ func (r *OrganizationResource) Update(ctx context.Context, req resource.UpdateRe
 		)
 	}
 
+	// collect diagnostics
+	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
-
-		resp.Diagnostics.AddError(
-			"Request Diagnostics:",
-			fmt.Sprintf("\n%s", string(reqDump)),
-		)
-
-		resp.Diagnostics.AddError(
-			"Response Diagnostics:",
-			fmt.Sprintf("\n%s", string(respDump)),
-		)
 		return
 	}
 
@@ -534,22 +467,6 @@ func (r *OrganizationResource) Delete(ctx context.Context, req resource.DeleteRe
 		)
 	}
 
-	// Collect HTTP request diagnostics
-	reqDump, err := httputil.DumpRequestOut(httpResp.Request, true)
-	if err != nil {
-		resp.Diagnostics.AddWarning(
-			"Failed to gather HTTP request diagnostics", fmt.Sprintf("\n%s", err),
-		)
-	}
-
-	// Collect HTTP response diagnostics
-	respDump, err := httputil.DumpResponse(httpResp, true)
-	if err != nil {
-		resp.Diagnostics.AddWarning(
-			"Failed to gather HTTP inlineResp diagnostics", fmt.Sprintf("\n%s", err),
-		)
-	}
-
 	// Check for API success response code
 	if httpResp.StatusCode != 204 {
 		resp.Diagnostics.AddError(
@@ -558,18 +475,11 @@ func (r *OrganizationResource) Delete(ctx context.Context, req resource.DeleteRe
 		)
 	}
 
+	// collect diagnostics
+	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
-
-		resp.Diagnostics.AddError(
-			"Request Diagnostics:",
-			fmt.Sprintf("\n%s", string(reqDump)),
-		)
-
-		resp.Diagnostics.AddError(
-			"Response Diagnostics:",
-			fmt.Sprintf("\n%s", string(respDump)),
-		)
 		return
 	}
 
