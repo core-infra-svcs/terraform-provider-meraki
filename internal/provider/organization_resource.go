@@ -3,7 +3,6 @@ package provider
 import (
 	"context"
 	"fmt"
-	"net/http/httputil"
 
 	apiclient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -12,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"net/http/httputil"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -237,6 +237,7 @@ func (r *OrganizationResource) Create(ctx context.Context, req resource.CreateRe
 
 	// Check for API success response code
 	if httpResp.StatusCode != 201 {
+
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
@@ -252,6 +253,7 @@ func (r *OrganizationResource) Create(ctx context.Context, req resource.CreateRe
 		)
 
 		resp.Diagnostics.AddError(
+
 			"Response Diagnostics:",
 			fmt.Sprintf("\n%s", string(respDump)),
 		)
@@ -272,14 +274,18 @@ func (r *OrganizationResource) Create(ctx context.Context, req resource.CreateRe
 		responseDetails := inlineResp.Management.GetDetails()
 
 		// name attribute
-		if managementDetailName := responseDetails[0].GetName(); responseDetails[0].HasName() {
+
+		if managementDetailName := responseDetails[0].GetName(); responseDetails[0].HasName() == true {
+
 			data.ManagementDetailsName = types.StringValue(managementDetailName)
 		} else {
 			data.ManagementDetailsName = types.StringNull()
 		}
 
 		// Value attribute
-		if managementDetailValue := responseDetails[0].GetValue(); responseDetails[0].HasValue() {
+
+		if managementDetailValue := responseDetails[0].GetValue(); responseDetails[0].HasValue() == true {
+
 			data.ManagementDetailsValue = types.StringValue(managementDetailValue)
 		} else {
 			data.ManagementDetailsValue = types.StringNull()
@@ -371,14 +377,18 @@ func (r *OrganizationResource) Read(ctx context.Context, req resource.ReadReques
 		responseDetails := inlineResp.Management.GetDetails()
 
 		// name attribute
-		if managementDetailName := responseDetails[0].GetName(); responseDetails[0].HasName() {
+
+		if managementDetailName := responseDetails[0].GetName(); responseDetails[0].HasName() == true {
+
 			data.ManagementDetailsName = types.StringValue(managementDetailName)
 		} else {
 			data.ManagementDetailsName = types.StringNull()
 		}
 
 		// Value attribute
-		if managementDetailValue := responseDetails[0].GetValue(); responseDetails[0].HasValue() {
+
+		if managementDetailValue := responseDetails[0].GetValue(); responseDetails[0].HasValue() == true {
+
 			data.ManagementDetailsValue = types.StringValue(managementDetailValue)
 		} else {
 			data.ManagementDetailsValue = types.StringNull()
@@ -490,14 +500,18 @@ func (r *OrganizationResource) Update(ctx context.Context, req resource.UpdateRe
 		responseDetails := inlineResp.Management.GetDetails()
 
 		// name attribute
-		if managementDetailName := responseDetails[0].GetName(); responseDetails[0].HasName() {
+
+		if managementDetailName := responseDetails[0].GetName(); responseDetails[0].HasName() == true {
+
 			data.ManagementDetailsName = types.StringValue(managementDetailName)
 		} else {
 			data.ManagementDetailsName = types.StringNull()
 		}
 
 		// Value attribute
-		if managementDetailValue := responseDetails[0].GetValue(); responseDetails[0].HasValue() {
+
+		if managementDetailValue := responseDetails[0].GetValue(); responseDetails[0].HasValue() == true {
+
 			data.ManagementDetailsValue = types.StringValue(managementDetailValue)
 		} else {
 			data.ManagementDetailsValue = types.StringNull()
