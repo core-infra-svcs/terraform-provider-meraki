@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	apiclient "github.com/core-infra-svcs/dashboard-api-go/client"
+	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -11,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"net/http/httputil"
 	"strconv"
 )
 
@@ -391,22 +391,6 @@ func (r *DevicesResource) Create(ctx context.Context, req resource.CreateRequest
 		)
 	}
 
-	// Collect HTTP request diagnostics
-	reqDump, err := httputil.DumpRequestOut(httpResp.Request, true)
-	if err != nil {
-		resp.Diagnostics.AddWarning(
-			"Failed to gather HTTP request diagnostics", fmt.Sprintf("\n%s", err),
-		)
-	}
-
-	// Collect HTTP response diagnostics
-	respDump, err := httputil.DumpResponse(httpResp, true)
-	if err != nil {
-		resp.Diagnostics.AddWarning(
-			"Failed to gather HTTP inlineResp diagnostics", fmt.Sprintf("\n%s", err),
-		)
-	}
-
 	// Check for API success response code
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
@@ -415,18 +399,11 @@ func (r *DevicesResource) Create(ctx context.Context, req resource.CreateRequest
 		)
 	}
 
+	// collect diagnostics
+	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
-
-		resp.Diagnostics.AddError(
-			"Request Diagnostics:",
-			fmt.Sprintf("\n%s", string(reqDump)),
-		)
-
-		resp.Diagnostics.AddError(
-			"Response Diagnostics:",
-			fmt.Sprintf("\n%s", string(respDump)),
-		)
 		return
 	}
 
@@ -591,22 +568,6 @@ func (r *DevicesResource) Read(ctx context.Context, req resource.ReadRequest, re
 		)
 	}
 
-	// Collect HTTP request diagnostics
-	reqDump, err := httputil.DumpRequestOut(httpResp.Request, true)
-	if err != nil {
-		resp.Diagnostics.AddWarning(
-			"Failed to gather HTTP request diagnostics", fmt.Sprintf("\n%s", err),
-		)
-	}
-
-	// Collect HTTP response diagnostics
-	respDump, err := httputil.DumpResponse(httpResp, true)
-	if err != nil {
-		resp.Diagnostics.AddWarning(
-			"Failed to gather HTTP inlineResp diagnostics", fmt.Sprintf("\n%s", err),
-		)
-	}
-
 	// Check for API success inlineResp code
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
@@ -615,18 +576,11 @@ func (r *DevicesResource) Read(ctx context.Context, req resource.ReadRequest, re
 		)
 	}
 
+	// collect diagnostics
+	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
-
-		resp.Diagnostics.AddError(
-			"Request Diagnostics:",
-			fmt.Sprintf("\n%s", string(reqDump)),
-		)
-
-		resp.Diagnostics.AddError(
-			"Response Diagnostics:",
-			fmt.Sprintf("\n%s", string(respDump)),
-		)
 		return
 	}
 
@@ -836,22 +790,6 @@ func (r *DevicesResource) Update(ctx context.Context, req resource.UpdateRequest
 		)
 	}
 
-	// Collect HTTP request diagnostics
-	reqDump, err := httputil.DumpRequestOut(httpResp.Request, true)
-	if err != nil {
-		resp.Diagnostics.AddWarning(
-			"Failed to gather HTTP request diagnostics", fmt.Sprintf("\n%s", err),
-		)
-	}
-
-	// Collect HTTP response diagnostics
-	respDump, err := httputil.DumpResponse(httpResp, true)
-	if err != nil {
-		resp.Diagnostics.AddWarning(
-			"Failed to gather HTTP inlineResp diagnostics", fmt.Sprintf("\n%s", err),
-		)
-	}
-
 	// Check for API success response code
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
@@ -860,18 +798,11 @@ func (r *DevicesResource) Update(ctx context.Context, req resource.UpdateRequest
 		)
 	}
 
+	// collect diagnostics
+	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
-
-		resp.Diagnostics.AddError(
-			"Request Diagnostics:",
-			fmt.Sprintf("\n%s", string(reqDump)),
-		)
-
-		resp.Diagnostics.AddError(
-			"Response Diagnostics:",
-			fmt.Sprintf("\n%s", string(respDump)),
-		)
 		return
 	}
 
@@ -927,7 +858,7 @@ func (r *DevicesResource) Update(ctx context.Context, req resource.UpdateRequest
 
 	// lat attribute
 	if latResp := inlineResp["lat"]; latResp != nil {
-		data.Lat = types.StringValue(fmt.Sprintf("%f", latResp.(float32)))
+		data.Lat = types.StringValue(fmt.Sprintf("%f", latResp.(float64)))
 	} else if data.Lat.IsNull() != true {
 	} else {
 		data.Lat = types.StringNull()
@@ -935,7 +866,7 @@ func (r *DevicesResource) Update(ctx context.Context, req resource.UpdateRequest
 
 	// lng attribute
 	if lngResp := inlineResp["lng"]; lngResp != nil {
-		data.Lng = types.StringValue(fmt.Sprintf("%f", lngResp.(float32)))
+		data.Lng = types.StringValue(fmt.Sprintf("%f", lngResp.(float64)))
 	} else if data.Lng.IsNull() != true {
 	} else {
 		data.Lng = types.StringNull()
@@ -1150,22 +1081,6 @@ func (r *DevicesResource) Delete(ctx context.Context, req resource.DeleteRequest
 		)
 	}
 
-	// Collect HTTP request diagnostics
-	reqDump, err := httputil.DumpRequestOut(httpResp.Request, true)
-	if err != nil {
-		resp.Diagnostics.AddWarning(
-			"Failed to gather HTTP request diagnostics", fmt.Sprintf("\n%s", err),
-		)
-	}
-
-	// Collect HTTP response diagnostics
-	respDump, err := httputil.DumpResponse(httpResp, true)
-	if err != nil {
-		resp.Diagnostics.AddWarning(
-			"Failed to gather HTTP inlineResp diagnostics", fmt.Sprintf("\n%s", err),
-		)
-	}
-
 	// Check for API success response code
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
@@ -1174,18 +1089,11 @@ func (r *DevicesResource) Delete(ctx context.Context, req resource.DeleteRequest
 		)
 	}
 
+	// collect diagnostics
+	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
-
-		resp.Diagnostics.AddError(
-			"Request Diagnostics:",
-			fmt.Sprintf("\n%s", string(reqDump)),
-		)
-
-		resp.Diagnostics.AddError(
-			"Response Diagnostics:",
-			fmt.Sprintf("\n%s", string(respDump)),
-		)
 		return
 	}
 
