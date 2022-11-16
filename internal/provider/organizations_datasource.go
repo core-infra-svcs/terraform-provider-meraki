@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	apiclient "github.com/core-infra-svcs/dashboard-api-go/client"
+	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -31,12 +32,12 @@ type OrganizationsDataSourceModel struct {
 
 // OrganizationDataSourceModel describes the data source data model.
 type OrganizationDataSourceModel struct {
-	Api_enabled     types.Bool   `tfsdk:"api_enabled"`
-	Cloud_region    types.String `tfsdk:"cloud_region"`
-	Id              types.String `tfsdk:"id"`
-	Licensing_model types.String `tfsdk:"licensing_model"`
-	Name            types.String `tfsdk:"name"`
-	Url             types.String `tfsdk:"url"`
+	ApiEnabled     types.Bool   `tfsdk:"api_enabled"`
+	CloudRegion    types.String `tfsdk:"cloud_region"`
+	OrgId          types.String `tfsdk:"organization_id"`
+	LicensingModel types.String `tfsdk:"licensing_model"`
+	Name           types.String `tfsdk:"name"`
+	Url            types.String `tfsdk:"url"`
 }
 
 func (d *OrganizationsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -60,7 +61,7 @@ func (d *OrganizationsDataSource) GetSchema(ctx context.Context) (tfsdk.Schema, 
 				Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
 					"api_enabled": {
 						Description:         "Enable API access",
-						MarkdownDescription: "",
+						MarkdownDescription: "Enable API access",
 						Type:                types.BoolType,
 						Required:            false,
 						Optional:            true,
@@ -73,7 +74,7 @@ func (d *OrganizationsDataSource) GetSchema(ctx context.Context) (tfsdk.Schema, 
 					},
 					"cloud_region": {
 						Description:         "Region info",
-						MarkdownDescription: "",
+						MarkdownDescription: "Region info",
 						Type:                types.StringType,
 						Required:            false,
 						Optional:            true,
@@ -84,9 +85,9 @@ func (d *OrganizationsDataSource) GetSchema(ctx context.Context) (tfsdk.Schema, 
 						Validators:          nil,
 						PlanModifiers:       nil,
 					},
-					"id": {
+					"organization_id": {
 						Description:         "Organization ID",
-						MarkdownDescription: "",
+						MarkdownDescription: "Organization ID",
 						Type:                types.StringType,
 						Required:            false,
 						Optional:            true,
@@ -99,7 +100,7 @@ func (d *OrganizationsDataSource) GetSchema(ctx context.Context) (tfsdk.Schema, 
 					},
 					"licensing_model": {
 						Description:         "Organization licensing model. Can be 'co-term', 'per-device', or 'subscription'.",
-						MarkdownDescription: "",
+						MarkdownDescription: "Organization licensing model. Can be 'co-term', 'per-device', or 'subscription'.",
 						Type:                types.StringType,
 						Required:            false,
 						Optional:            true,
@@ -112,7 +113,7 @@ func (d *OrganizationsDataSource) GetSchema(ctx context.Context) (tfsdk.Schema, 
 					},
 					"name": {
 						Description:         "Organization name",
-						MarkdownDescription: "",
+						MarkdownDescription: "Organization name",
 						Type:                types.StringType,
 						Required:            false,
 						Optional:            true,
@@ -125,7 +126,7 @@ func (d *OrganizationsDataSource) GetSchema(ctx context.Context) (tfsdk.Schema, 
 					},
 					"url": {
 						Description:         "Organization URL",
-						MarkdownDescription: "",
+						MarkdownDescription: "Organization URL",
 						Type:                types.StringType,
 						Required:            false,
 						Optional:            true,
@@ -164,47 +165,57 @@ func (d *OrganizationsDataSource) Configure(ctx context.Context, req datasource.
 func (d *OrganizationsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data OrganizationsDataSourceModel
 
-	// Read Terraform configuration data into the model
+	// Read Terraform state data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// If applicable, this is a great opportunity to initialize any necessary
-	// provider client data and make a call using it.
-	response, r, err := d.client.OrganizationsApi.GetOrganizations(context.Background()).Execute()
+	// Initialize provider client and make API call
+	inlineResp, httpResp, err := d.client.OrganizationsApi.GetOrganizations(context.Background()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			fmt.Sprintf("Error when calling read: %v\n", r),
-			"Could not complete read request: "+err.Error(),
+			"Failed to read datasource",
+			fmt.Sprintf("%v\n", err.Error()),
 		)
+	}
+
+	// Check for API success inlineResp code
+	if httpResp.StatusCode != 200 {
+		resp.Diagnostics.AddError(
+			"Unexpected HTTP Response Status Code",
+			fmt.Sprintf("%v", httpResp.StatusCode),
+		)
+	}
+
+	// collect diagnostics
+	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+
+	// Check for errors after diagnostics collected
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Map response body to resource schema attribute
-	for _, organization := range response {
+	// save inlineResp data into Terraform state.
+	data.Id = types.StringValue("example-id")
 
+	for _, organization := range inlineResp {
 		var result OrganizationDataSourceModel
 
-		result.Id = types.String{Value: organization.GetId()}
-		result.Name = types.String{Value: organization.GetName()}
-		result.Url = types.String{Value: organization.GetUrl()}
-		result.Api_enabled = types.Bool{Value: *organization.GetApi().Enabled}
-		result.Licensing_model = types.String{Value: *organization.GetLicensing().Model}
-		result.Cloud_region = types.String{Value: organization.Cloud.Region.GetName()}
+		result.OrgId = types.StringValue(organization.GetId())
+		result.Name = types.StringValue(organization.GetName())
+		result.Url = types.StringValue(organization.GetUrl())
+		result.ApiEnabled = types.BoolValue(*organization.GetApi().Enabled)
+		result.LicensingModel = types.StringValue(*organization.GetLicensing().Model)
+		result.CloudRegion = types.StringValue(organization.Cloud.Region.GetName())
 
 		data.List = append(data.List, result)
 	}
 
-	// For the purposes of this example code, hardcoding a response value to
-	// save into the Terraform state.
-	data.Id = types.String{Value: "example-id"}
-
-	// Write logs using the tflog package
-	// Documentation: https://terraform.io/plugin/log
-	tflog.Trace(ctx, "read a data source")
-
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+
+	// Write logs using the tflog package
+	tflog.Trace(ctx, "read datasource")
 }
