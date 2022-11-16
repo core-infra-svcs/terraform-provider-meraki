@@ -60,9 +60,6 @@ func (p *ScaffoldingProvider) Configure(ctx context.Context, req provider.Config
 		return
 	}
 
-	// Configuration values are now available.
-	// if data.Endpoint.IsNull() { /* ... */ }
-
 	// api key
 	var apiKey string
 	if data.ApiKey.IsNull() {
@@ -79,7 +76,7 @@ func (p *ScaffoldingProvider) Configure(ctx context.Context, req provider.Config
 
 	// base url
 	var baseUrl string
-	if data.BaseUrl.Null {
+	if data.BaseUrl.IsNull() {
 		baseUrl = "https://api.meraki.com/api/v1"
 	}
 
@@ -90,7 +87,6 @@ func (p *ScaffoldingProvider) Configure(ctx context.Context, req provider.Config
 	configuration := apiclient.NewConfiguration()
 	configuration.AddDefaultHeader("X-Cisco-Meraki-API-Key", apiKey)
 	configuration.Host = os.Getenv(baseUrl)
-	configuration.Debug = true
 
 	client := apiclient.NewAPIClient(configuration)
 	resp.DataSourceData = client
