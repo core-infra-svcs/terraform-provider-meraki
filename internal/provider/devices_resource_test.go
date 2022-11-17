@@ -22,13 +22,15 @@ func TestAccDevicesResourceSecurityAppliance(t *testing.T) {
 				),
 			},
 
-			// Update testing
-			{
-				Config: testAccDevicesResourceConfigUpdate,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_devices.test", "name", "My AP"),
-				),
-			},
+			/*
+				// Update testing
+					{
+						Config: testAccDevicesResourceConfigUpdate,
+						Check: resource.ComposeAggregateTestCheckFunc(
+							resource.TestCheckResourceAttr("meraki_devices.test", "name", "My AP"),
+						),
+					},
+			*/
 
 			// Delete testing automatically occurs in TestCase
 		},

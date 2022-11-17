@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	apiclient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
@@ -12,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"log"
 	"strconv"
 )
 
@@ -64,11 +66,11 @@ func (r *DevicesResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Dia
 		Attributes: map[string]tfsdk.Attribute{
 			"id": {
 				Computed:            true,
+				Type:                types.StringType,
 				MarkdownDescription: "Example identifier",
 				PlanModifiers: tfsdk.AttributePlanModifiers{
 					resource.UseStateForUnknown(),
 				},
-				Type: types.StringType,
 			},
 			"serial": {
 				Description:         "The devices serial number",
@@ -409,7 +411,7 @@ func (r *DevicesResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	// Save data into Terraform state
-	extractHttpResponseDevicesResource(data, inlineResp)
+	extractHttpResponseDevicesResource(inlineResp, data)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
@@ -458,7 +460,7 @@ func (r *DevicesResource) Read(ctx context.Context, req resource.ReadRequest, re
 	}
 
 	// Save data into Terraform state
-	extractHttpResponseDevicesResource(data, inlineResp)
+	extractHttpResponseDevicesResource(inlineResp, data)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
@@ -550,7 +552,7 @@ func (r *DevicesResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 
 	// Save data into Terraform state
-	extractHttpResponseDevicesResource(data, inlineResp)
+	extractHttpResponseDevicesResource(inlineResp, data)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
@@ -572,67 +574,69 @@ func (r *DevicesResource) Delete(ctx context.Context, req resource.DeleteRequest
 		return
 	}
 
-	// Create HTTP request body
-	deleteDevice := apiclient.NewInlineObject()
+	/*
+		// Create HTTP request body
+			deleteDevice := apiclient.NewInlineObject()
 
-	// Name
-	deleteDevice.SetAddress("")
+			// Name
+			deleteDevice.SetAddress("")
 
-	//	Tags
-	var tags []string
-	deleteDevice.SetTags(tags)
+			//	Tags
+			var tags []string
+			deleteDevice.SetTags(tags)
 
-	//	Lat
-	deleteDevice.SetLat(0)
+			//	Lat
+			deleteDevice.SetLat(0)
 
-	//	Lng
-	deleteDevice.SetLng(0)
+			//	Lng
+			deleteDevice.SetLng(0)
 
-	//	Address
-	deleteDevice.SetAddress("")
+			//	Address
+			deleteDevice.SetAddress("")
 
-	//	Notes
-	deleteDevice.SetNotes("")
+			//	Notes
+			deleteDevice.SetNotes("")
 
-	//	MoveMapMarker
-	deleteDevice.SetMoveMapMarker(false)
+			//	MoveMapMarker
+			deleteDevice.SetMoveMapMarker(false)
 
-	// SwitchProfileId
-	if data.SwitchProfileId.IsNull() != true {
-		deleteDevice.SetSwitchProfileId(types.StringNull().ValueString())
-	}
+			// SwitchProfileId
+			if data.SwitchProfileId.IsNull() != true {
+				deleteDevice.SetSwitchProfileId(types.StringNull().ValueString())
+			}
 
-	//	FloorPlanId
-	if data.FloorPlanId.IsNull() != true {
-		deleteDevice.SetFloorPlanId(types.StringNull().ValueString())
-	}
+			//	FloorPlanId
+			if data.FloorPlanId.IsNull() != true {
+				deleteDevice.SetFloorPlanId(types.StringNull().ValueString())
+			}
 
-	// Initialize provider client and make API call
-	_, httpResp, err := r.client.DevicesApi.UpdateDevice(context.Background(),
-		data.Serial.ValueString()).UpdateDevice(*deleteDevice).Execute()
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Failed to delete resource",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-	}
+			// Initialize provider client and make API call
+			_, httpResp, err := r.client.DevicesApi.UpdateDevice(context.Background(),
+				data.Serial.ValueString()).UpdateDevice(*deleteDevice).Execute()
+			if err != nil {
+				resp.Diagnostics.AddError(
+					"Failed to delete resource",
+					fmt.Sprintf("%v\n", err.Error()),
+				)
+			}
 
-	// Check for API success response code
-	if httpResp.StatusCode != 200 {
-		resp.Diagnostics.AddError(
-			"Unexpected HTTP Response Status Code",
-			fmt.Sprintf("%v", httpResp.StatusCode),
-		)
-	}
+			// Check for API success response code
+			if httpResp.StatusCode != 200 {
+				resp.Diagnostics.AddError(
+					"Unexpected HTTP Response Status Code",
+					fmt.Sprintf("%v", httpResp.StatusCode),
+				)
+			}
 
-	// collect diagnostics
-	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+			// collect diagnostics
+			tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 
-	// Check for errors after diagnostics collected
-	if resp.Diagnostics.HasError() {
-		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
-		return
-	}
+			// Check for errors after diagnostics collected
+			if resp.Diagnostics.HasError() {
+				resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
+				return
+			}
+	*/
 
 	// Remove from state
 	resp.State.RemoveResource(ctx)
@@ -641,22 +645,23 @@ func (r *DevicesResource) Delete(ctx context.Context, req resource.DeleteRequest
 	tflog.Trace(ctx, "delete resource")
 }
 
-func extractHttpResponseDevicesResource(data *DevicesResourceModel, inlineResp map[string]interface{}) *DevicesResourceModel {
+func extractHttpResponseDevicesResource(inlineResp map[string]interface{}, data *DevicesResourceModel) *DevicesResourceModel {
 
 	// save into the Terraform state
 	data.Id = types.StringValue("example-id")
 
-	// serial number is not computed or optional
+	// address attribute
+	if address := inlineResp["address"]; address != nil {
+		data.Address = types.StringValue(address.(string))
+	} else {
+		data.Address = types.StringNull()
+	}
 
-	// TODO -
-	//        Error: Provider produced inconsistent result after apply
-	//        When applying changes to meraki_devices.test, provider
-	//        "provider[\"registry.terraform.io/hashicorp/meraki\"]" produced an unexpected
-	//        new value: .name: was cty.StringVal("My AP"), but now null.
-
-	// name attribute
-	if name := inlineResp["name"]; name != nil {
-		data.Name = types.StringValue(name.(string))
+	// firmware attribute
+	if firmware := inlineResp["firmware"]; firmware != nil {
+		data.Firmware = types.StringValue(firmware.(string))
+	} else {
+		data.Firmware = types.StringNull()
 	}
 
 	// mac attribute
@@ -666,6 +671,20 @@ func extractHttpResponseDevicesResource(data *DevicesResourceModel, inlineResp m
 		data.Mac = types.StringNull()
 	}
 
+	// url attribute
+	if url := inlineResp["url"]; url != nil {
+		data.Url = types.StringValue(url.(string))
+	} else {
+		data.Url = types.StringNull()
+	}
+
+	// name attribute
+	if name := inlineResp["name"]; name != nil {
+		data.Name = types.StringValue(name.(string))
+	} else {
+		data.Name = types.StringNull()
+	}
+
 	// model attribute
 	if model := inlineResp["model"]; model != nil {
 		data.Model = types.StringValue(model.(string))
@@ -673,15 +692,12 @@ func extractHttpResponseDevicesResource(data *DevicesResourceModel, inlineResp m
 		data.Model = types.StringNull()
 	}
 
-	// TODO -  Error: Provider produced inconsistent result after apply
-	//        When applying changes to meraki_devices.test, provider
-	//        "provider[\"registry.terraform.io/hashicorp/meraki\"]" produced an unexpected
-	//        new value: .tags[0]: was cty.StringVal("sea"), but now
-	//        cty.StringVal("\"sea\"").
-	//        When applying changes to meraki_devices.test, provider
-	//        "provider[\"registry.terraform.io/hashicorp/meraki\"]" produced an unexpected
-	//        new value: .tags[1]: was cty.StringVal("wa"), but now
-	//        cty.StringVal("\"wa\"").
+	// networkId attribute
+	if networkId := inlineResp["networkId"]; networkId != nil {
+		data.NetworkId = types.StringValue(networkId.(string))
+	} else {
+		data.NetworkId = types.StringNull()
+	}
 
 	// tags attribute
 	if tags := inlineResp["tags"]; tags != nil {
@@ -696,41 +712,25 @@ func extractHttpResponseDevicesResource(data *DevicesResourceModel, inlineResp m
 		data.Tags = types.ListNull(types.StringType)
 	}
 
-	// lanIp attribute (computed)
-	if lanIp := inlineResp["lanIp"]; lanIp != nil {
-		data.LanIp = types.StringValue(lanIp.(string))
-	} else if data.LanIp.IsNull() != true {
-		data.LanIp = types.StringNull()
+	// floorPlanId attribute
+	if floorPlanId := inlineResp["floorPlanId"]; floorPlanId != nil {
+		data.FloorPlanId = types.StringValue(floorPlanId.(string))
 	} else {
-		data.LanIp = types.StringNull()
-	}
-
-	// firmware attribute
-	if firmware := inlineResp["firmware"]; firmware != nil {
-		data.Firmware = types.StringValue(firmware.(string))
-	} else {
-		data.Firmware = types.StringNull()
+		data.FloorPlanId = types.StringNull()
 	}
 
 	// lat attribute
 	if lat := inlineResp["lat"]; lat != nil {
-		data.Lat = types.StringValue(fmt.Sprintf("%f", lat.(float64)))
+		data.Lat = types.StringValue(fmt.Sprintf("%v", lat.(float64)))
 	} else {
 		data.Lat = types.StringNull()
 	}
 
 	// lng attribute
 	if lng := inlineResp["lng"]; lng != nil {
-		data.Lng = types.StringValue(fmt.Sprintf("%f", lng.(float64)))
+		data.Lng = types.StringValue(fmt.Sprintf("%v", lng.(float64)))
 	} else {
 		data.Lng = types.StringNull()
-	}
-
-	// address attribute
-	if address := inlineResp["address"]; address != nil {
-		data.Address = types.StringValue(address.(string))
-	} else {
-		data.Address = types.StringNull()
 	}
 
 	// notes attribute
@@ -740,31 +740,28 @@ func extractHttpResponseDevicesResource(data *DevicesResourceModel, inlineResp m
 		data.Notes = types.StringNull()
 	}
 
-	// url attribute
-	if url := inlineResp["url"]; url != nil {
-		data.Url = types.StringValue(url.(string))
-	} else if data.Url.IsNull() != true {
-		data.Url = types.StringNull()
+	// switchProfileId attribute
+	if switchProfileId := inlineResp["switchProfileId"]; switchProfileId != nil {
+		data.SwitchProfileId = types.StringValue(switchProfileId.(string))
 	} else {
-		data.Url = types.StringNull()
+		data.SwitchProfileId = types.StringNull()
 	}
 
-	// wan1Ip attribute
-	if wan1Ip := inlineResp["wan1Ip"]; wan1Ip != nil {
-		data.Wan1Ip = types.StringValue(wan1Ip.(string))
-	} else if data.Wan1Ip.ValueString() != "<nil>" {
-		data.Wan1Ip = types.StringNull()
-	} else {
-		data.Wan1Ip = types.StringNull()
-	}
+	// beaconIdParams attribute
+	if beaconIdParams := inlineResp["beaconIdParams"]; beaconIdParams != nil {
+		uuid := beaconIdParams.(map[string]interface{})
+		data.BeaconIdParamsUuid = types.StringValue(uuid["uuid"].(string))
 
-	// wan2Ip attribute
-	if wan2Ip := inlineResp["wan2Ip"]; wan2Ip != nil {
-		data.Wan2Ip = types.StringValue(wan2Ip.(string))
-	} else if data.Wan2Ip.IsNull() != true {
-		data.Wan2Ip = types.StringNull()
+		major := beaconIdParams.(map[string]interface{})
+		data.BeaconIdParamsMajor = types.Int64Value(major["major"].(int64))
+
+		minor := beaconIdParams.(map[string]interface{})
+		data.BeaconIdParamsMajor = types.Int64Value(minor["minor"].(int64))
+
 	} else {
-		data.Wan2Ip = types.StringNull()
+		data.BeaconIdParamsUuid = types.StringNull()
+		data.BeaconIdParamsMajor = types.Int64Null()
+		data.BeaconIdParamsMinor = types.Int64Null()
 	}
 
 	// moveMapMarker attribute
@@ -774,53 +771,34 @@ func extractHttpResponseDevicesResource(data *DevicesResourceModel, inlineResp m
 		data.MoveMapMarker = types.BoolNull()
 	}
 
-	// floor plan attribute
-	if floorPlan := inlineResp["floorPlan"]; floorPlan != nil {
-		data.FloorPlanId = types.StringValue(floorPlan.(string))
+	// wan1Ip attribute
+	if wan1Ip := inlineResp["wan1Ip"]; wan1Ip != nil {
+		data.Wan1Ip = types.StringValue(wan1Ip.(string))
 	} else {
-		data.FloorPlanId = types.StringNull()
+		data.Wan1Ip = types.StringNull()
 	}
 
-	// networkId attribute
-	if networkId := inlineResp["networkId"]; networkId != nil {
-		data.NetworkId = types.StringValue(networkId.(string))
+	// wan2Ip attribute
+	if wan2Ip := inlineResp["wan2Ip"]; wan2Ip != nil {
+		data.Wan2Ip = types.StringValue(wan2Ip.(string))
 	} else {
-		data.NetworkId = types.StringNull()
+		data.Wan2Ip = types.StringNull()
 	}
 
-	// beaconIdParamsUuid attribute (computed)
-	if beaconIdParamsUuid := inlineResp["beaconIdParamsUuid"]; beaconIdParamsUuid != nil {
-		data.BeaconIdParamsUuid = types.StringValue(beaconIdParamsUuid.(string))
-	} else if data.BeaconIdParamsUuid.IsNull() != true {
-		data.BeaconIdParamsUuid = types.StringNull()
+	// lanIp attribute (computed)
+	if lanIp := inlineResp["lanIp"]; lanIp != nil {
+		data.LanIp = types.StringValue(lanIp.(string))
 	} else {
-		data.BeaconIdParamsUuid = types.StringNull()
+		data.LanIp = types.StringNull()
 	}
 
-	// beaconIdParamsMajor attribute (computed)
-	if beaconIdParamsMajor := inlineResp["beaconIdParamsMajor"]; beaconIdParamsMajor != nil {
-		data.BeaconIdParamsMajor = types.Int64Value(beaconIdParamsMajor.(int64))
-	} else if data.BeaconIdParamsMajor.IsNull() != true {
-		data.BeaconIdParamsMajor = types.Int64Null()
-	} else {
-		data.BeaconIdParamsMajor = types.Int64Null()
+	b, err := json.Marshal(inlineResp)
+	if err != nil {
+		log.Fatal(err)
 	}
+	fmt.Println(string(b))
 
-	// beaconIdParamsMinor attribute (computed)
-	if beaconIdParamsMinor := inlineResp["beaconIdParamsMinor"]; beaconIdParamsMinor != nil {
-		data.BeaconIdParamsMinor = types.Int64Value(beaconIdParamsMinor.(int64))
-	} else if data.BeaconIdParamsMinor.IsNull() != true {
-		data.BeaconIdParamsMinor = types.Int64Null()
-	} else {
-		data.BeaconIdParamsMinor = types.Int64Null()
-	}
-
-	// switchProfileId attribute
-	if switchProfileId := inlineResp["switchProfileId"]; switchProfileId != nil {
-		data.SwitchProfileId = types.StringValue(switchProfileId.(string))
-	} else {
-		data.SwitchProfileId = types.StringNull()
-	}
+	fmt.Println(data)
 
 	return data
 }
