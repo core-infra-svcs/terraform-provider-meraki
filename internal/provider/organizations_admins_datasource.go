@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	apiclient "github.com/core-infra-svcs/dashboard-api-go/client"
+	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -301,19 +302,33 @@ func (d *OrganizationsAdminsDataSource) Read(ctx context.Context, req datasource
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	response, r, err := d.client.AdminsApi.GetOrganizationAdmins(context.Background(), data.Id.ValueString()).Execute()
+	inlineResp, httpResp, err := d.client.AdminsApi.GetOrganizationAdmins(context.Background(), data.Id.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			fmt.Sprintf("Error when calling read: %v\n", r),
-			"Could not complete read request: "+err.Error(),
+			"Failed to read datasource",
+			fmt.Sprintf("%v\n", err.Error()),
 		)
-		return
 	}
 
+	// Check for API success inlineResp code
+	if httpResp.StatusCode != 200 {
+		resp.Diagnostics.AddError(
+			"Unexpected HTTP Response Status Code",
+			fmt.Sprintf("%v", httpResp.StatusCode),
+		)
+	}
+
+	// collect diagnostics
+	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+
+	// Check for errors after diagnostics collected
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	var admins []AdminData
 
 	// Convert map to json string
-	jsonStr, err := json.Marshal(response)
+	jsonStr, err := json.Marshal(inlineResp)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -325,31 +340,31 @@ func (d *OrganizationsAdminsDataSource) Read(ctx context.Context, req datasource
 	for _, adminData := range admins {
 
 		var result OrganizationAdminsDataSourceModel
-		result.Name = types.String{Value: adminData.Name}
-		result.Email = types.String{Value: adminData.Email}
-		result.Id = types.String{Value: adminData.Id}
-		result.OrgAccess = types.String{Value: adminData.OrgAccess}
-		result.AuthenticationMethod = types.String{Value: adminData.AuthenticationMethod}
-		result.LastActive = types.String{Value: adminData.LastActive}
-		result.AccountStatus = types.String{Value: adminData.AccountStatus}
-		result.TwoFactorAuthEnabled = types.Bool{Value: adminData.TwoFactorAuthEnabled}
-		result.HasApiKey = types.Bool{Value: adminData.HasApiKey}
+		result.Name = types.StringValue(adminData.Name)
+		result.Email = types.StringValue(adminData.Email)
+		result.Id = types.StringValue(adminData.Id)
+		result.OrgAccess = types.StringValue(adminData.OrgAccess)
+		result.AuthenticationMethod = types.StringValue(adminData.AuthenticationMethod)
+		result.LastActive = types.StringValue(adminData.LastActive)
+		result.AccountStatus = types.StringValue(adminData.AccountStatus)
+		result.TwoFactorAuthEnabled = types.BoolValue(adminData.TwoFactorAuthEnabled)
+		result.HasApiKey = types.BoolValue(adminData.HasApiKey)
 		for _, network := range adminData.Networks {
 			var networkData Network
-			networkData.Id = types.String{Value: network.Id.ValueString()}
-			networkData.Access = types.String{Value: network.Access.ValueString()}
+			networkData.Id = types.StringValue(network.Id.ValueString())
+			networkData.Access = types.StringValue(network.Access.ValueString())
 			result.Networks = append(result.Networks, networkData)
 		}
 		for _, tag := range adminData.Tags {
 			var tagData Tag
-			tagData.Tag = types.String{Value: tag.Tag.ValueString()}
-			tagData.Access = types.String{Value: tag.Access.ValueString()}
+			tagData.Tag = types.StringValue(tag.Tag.ValueString())
+			tagData.Access = types.StringValue(tag.Access.ValueString())
 			result.Tags = append(result.Tags, tagData)
 		}
 		data.List = append(data.List, result)
 	}
 
-	data.Id = types.String{Value: "example-id"}
+	data.Id = types.StringValue("example-id")
 
 	// Write logs using the tflog package
 	tflog.Trace(ctx, "read a data source")

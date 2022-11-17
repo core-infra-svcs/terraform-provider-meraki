@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	apiclient "github.com/core-infra-svcs/dashboard-api-go/client"
+	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -175,23 +176,38 @@ func (d *AdministeredIdentitiesMeDataSource) Read(ctx context.Context, req datas
 		return
 	}
 
-	response, r, err := d.client.AdministeredApi.GetAdministeredIdentitiesMe(context.Background()).Execute()
+	inlineResp, httpResp, err := d.client.AdministeredApi.GetAdministeredIdentitiesMe(context.Background()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			fmt.Sprintf("Error when calling read: %v\n", r),
-			"Could not complete read request: "+err.Error(),
+			"Failed to read datasource",
+			fmt.Sprintf("%v\n", err.Error()),
 		)
+	}
+
+	// Check for API success inlineResp code
+	if httpResp.StatusCode != 200 {
+		resp.Diagnostics.AddError(
+			"Unexpected HTTP Response Status Code",
+			fmt.Sprintf("%v", httpResp.StatusCode),
+		)
+	}
+
+	// collect diagnostics
+	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+
+	// Check for errors after diagnostics collected
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	data.Id = types.String{Value: "example-id"}
-	data.Name = types.String{Value: response.GetName()}
-	data.Email = types.String{Value: response.GetEmail()}
-	data.LastUsedDashboardAt = types.String{Value: response.GetLastUsedDashboardAt().String()}
-	data.AuthenticationMode = types.String{Value: response.Authentication.GetMode()}
-	data.AuthenticationApiKeyCreated = types.Bool{Value: response.Authentication.Api.Key.GetCreated()}
-	data.AuthenticationSaml = types.Bool{Value: response.Authentication.Saml.GetEnabled()}
-	data.AuthenticationTwofactor = types.Bool{Value: response.Authentication.TwoFactor.GetEnabled()}
+	data.Id = types.StringValue("example-id")
+	data.Name = types.StringValue(inlineResp.GetName())
+	data.Email = types.StringValue(inlineResp.GetEmail())
+	data.LastUsedDashboardAt = types.StringValue(inlineResp.GetLastUsedDashboardAt().String())
+	data.AuthenticationMode = types.StringValue(inlineResp.Authentication.GetMode())
+	data.AuthenticationApiKeyCreated = types.BoolValue(inlineResp.Authentication.Api.Key.GetCreated())
+	data.AuthenticationSaml = types.BoolValue(inlineResp.Authentication.Saml.GetEnabled())
+	data.AuthenticationTwofactor = types.BoolValue(inlineResp.Authentication.TwoFactor.GetEnabled())
 
 	// Write logs using the tflog package
 	tflog.Trace(ctx, "read a data source")

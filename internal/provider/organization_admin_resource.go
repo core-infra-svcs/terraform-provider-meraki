@@ -7,6 +7,7 @@ import (
 
 	apiclient "github.com/core-infra-svcs/dashboard-api-go/client"
 
+	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -313,6 +314,9 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 				t = append(t, tagData)
 			}
 			createOrganizationAdmin.SetTags(t)
+		} else {
+			resp.Diagnostics.AddError("tags should not be empty. Add atleast one tag and access fields or else remove tags field ", fmt.Sprintf("tags: %s", data.Tags))
+			return
 		}
 	}
 
@@ -326,6 +330,9 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 				n = append(n, networkData)
 			}
 			createOrganizationAdmin.SetNetworks(n)
+		} else {
+			resp.Diagnostics.AddError("networks should not be empty. Add atleast one id and access fields or else remove networks field ", fmt.Sprintf("networks: %s", data.Networks))
+			return
 		}
 
 	}
@@ -334,22 +341,36 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 		createOrganizationAdmin.SetAuthenticationMethod(data.AuthenticationMethod.ValueString())
 	}
 
-	response, d, err := r.client.AdminsApi.CreateOrganizationAdmin(context.Background(), data.Id.ValueString()).CreateOrganizationAdmin(createOrganizationAdmin).Execute()
+	inlineResp, httpResp, err := r.client.AdminsApi.CreateOrganizationAdmin(context.Background(), data.Id.ValueString()).CreateOrganizationAdmin(createOrganizationAdmin).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"-- Create Error --",
+			"Failed to create resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+	}
+
+	// Check for API success response code
+	if httpResp.StatusCode != 201 {
 		resp.Diagnostics.AddError(
-			"-- Response --",
-			fmt.Sprintf("%v\n", d),
+			"Unexpected HTTP Response Status Code",
+			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
+	}
+
+	// collect diagnostics
+	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+
+	// Check for errors after diagnostics collected
+	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	resp.Diagnostics.Append()
+
 	var admindata AdminResourceInfo
 
 	// Convert map to json string
-	jsonStr, err := json.Marshal(response)
+	jsonStr, err := json.Marshal(inlineResp)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -358,15 +379,15 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 		fmt.Println(err)
 	}
 
-	data.Name = types.String{Value: admindata.Name}
-	data.Email = types.String{Value: admindata.Email}
-	data.AdminId = types.String{Value: admindata.Id}
-	data.OrgAccess = types.String{Value: admindata.OrgAccess}
-	data.AuthenticationMethod = types.String{Value: admindata.AuthenticationMethod}
-	data.AccountStatus = types.String{Value: admindata.AccountStatus}
-	data.TwoFactorAuthEnabled = types.Bool{Value: admindata.TwoFactorAuthEnabled}
-	data.HasApiKey = types.Bool{Value: admindata.HasApiKey}
-	data.LastActive = types.String{Value: admindata.LastActive}
+	data.Name = types.StringValue(admindata.Name)
+	data.Email = types.StringValue(admindata.Email)
+	data.AdminId = types.StringValue(admindata.Id)
+	data.OrgAccess = types.StringValue(admindata.OrgAccess)
+	data.AuthenticationMethod = types.StringValue(admindata.AuthenticationMethod)
+	data.AccountStatus = types.StringValue(admindata.AccountStatus)
+	data.TwoFactorAuthEnabled = types.BoolValue(admindata.TwoFactorAuthEnabled)
+	data.HasApiKey = types.BoolValue(admindata.HasApiKey)
+	data.LastActive = types.StringValue(admindata.LastActive)
 	if data.Tags != nil {
 		data.Tags = admindata.Tags
 	}
@@ -391,23 +412,34 @@ func (r *OrganizationsAdminResource) Read(ctx context.Context, req resource.Read
 		return
 	}
 
-	response, d, err := r.client.AdminsApi.GetOrganizationAdmins(context.Background(), data.Id.ValueString()).Execute()
+	inlineResp, httpResp, err := r.client.AdminsApi.GetOrganizationAdmins(context.Background(), data.Id.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"-- Read Error --",
+			"Failed to read resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+	}
+
+	// Check for API success inlineResp code
+	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
-			"-- Response --",
-			fmt.Sprintf("%v\n", d),
+			"Unexpected HTTP Response Status Code",
+			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
+	}
+
+	// collect diagnostics
+	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+
+	// Check for errors after diagnostics collected
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	var adminresource []AdminResourceInfo
 
 	// Convert map to json string
-	jsonStr, err := json.Marshal(response)
+	jsonStr, err := json.Marshal(inlineResp)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -420,15 +452,15 @@ func (r *OrganizationsAdminResource) Read(ctx context.Context, req resource.Read
 
 		if admindata.Email == data.Email.ValueString() {
 
-			data.Name = types.String{Value: admindata.Name}
-			data.Email = types.String{Value: admindata.Email}
-			data.AdminId = types.String{Value: admindata.Id}
-			data.OrgAccess = types.String{Value: admindata.OrgAccess}
-			data.AuthenticationMethod = types.String{Value: admindata.AuthenticationMethod}
-			data.AccountStatus = types.String{Value: admindata.AccountStatus}
-			data.TwoFactorAuthEnabled = types.Bool{Value: admindata.TwoFactorAuthEnabled}
-			data.HasApiKey = types.Bool{Value: admindata.HasApiKey}
-			data.LastActive = types.String{Value: admindata.LastActive}
+			data.Name = types.StringValue(admindata.Name)
+			data.Email = types.StringValue(admindata.Email)
+			data.AdminId = types.StringValue(admindata.Id)
+			data.OrgAccess = types.StringValue(admindata.OrgAccess)
+			data.AuthenticationMethod = types.StringValue(admindata.AuthenticationMethod)
+			data.AccountStatus = types.StringValue(admindata.AccountStatus)
+			data.TwoFactorAuthEnabled = types.BoolValue(admindata.TwoFactorAuthEnabled)
+			data.HasApiKey = types.BoolValue(admindata.HasApiKey)
+			data.LastActive = types.StringValue(admindata.LastActive)
 			if data.Tags != nil {
 				data.Tags = admindata.Tags
 			}
@@ -470,6 +502,9 @@ func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.Up
 
 			}
 			updateOrganizationAdmin.SetTags(t)
+		} else {
+			resp.Diagnostics.AddError("tags should not be empty. Add atleast one tag and access fields or else remove tags field ", fmt.Sprintf("tags: %s", data.Tags))
+			return
 		}
 	}
 	if data.Networks != nil {
@@ -482,27 +517,42 @@ func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.Up
 				n = append(n, networkData)
 			}
 			updateOrganizationAdmin.SetNetworks(n)
+		} else {
+			resp.Diagnostics.AddError("networks should not be empty. Add atleast one id and access fields or else remove networks field ", fmt.Sprintf("networks: %s", data.Networks))
+			return
 		}
+
 	}
 	updateOrganizationAdmin.SetName(data.Name.ValueString())
 	updateOrganizationAdmin.SetOrgAccess(data.OrgAccess.ValueString())
-	response, d, err := r.client.AdminsApi.UpdateOrganizationAdmin(context.Background(), data.Id.ValueString(), state.AdminId.ValueString()).UpdateOrganizationAdmin(updateOrganizationAdmin).Execute()
+	inlineResp, httpResp, err := r.client.AdminsApi.UpdateOrganizationAdmin(context.Background(), data.Id.ValueString(), state.AdminId.ValueString()).UpdateOrganizationAdmin(updateOrganizationAdmin).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"-- Update Error --",
+			"Failed to update resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+	}
+
+	// Check for API success response code
+	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
-			"-- Response --",
-			fmt.Sprintf("%v\n", d),
+			"Unexpected HTTP Response Status Code",
+			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
+	}
+
+	// collect diagnostics
+	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+
+	// Check for errors after diagnostics collected
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	var admindata AdminResourceInfo
 
 	// Convert map to json string
-	jsonStr, err := json.Marshal(response)
+	jsonStr, err := json.Marshal(inlineResp)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -511,15 +561,15 @@ func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.Up
 		fmt.Println(err)
 	}
 
-	data.Name = types.String{Value: admindata.Name}
-	data.Email = types.String{Value: admindata.Email}
-	data.AdminId = types.String{Value: admindata.Id}
-	data.OrgAccess = types.String{Value: admindata.OrgAccess}
-	data.AuthenticationMethod = types.String{Value: admindata.AuthenticationMethod}
-	data.AccountStatus = types.String{Value: admindata.AccountStatus}
-	data.TwoFactorAuthEnabled = types.Bool{Value: admindata.TwoFactorAuthEnabled}
-	data.HasApiKey = types.Bool{Value: admindata.HasApiKey}
-	data.LastActive = types.String{Value: admindata.LastActive}
+	data.Name = types.StringValue(admindata.Name)
+	data.Email = types.StringValue(admindata.Email)
+	data.AdminId = types.StringValue(admindata.Id)
+	data.OrgAccess = types.StringValue(admindata.OrgAccess)
+	data.AuthenticationMethod = types.StringValue(admindata.AuthenticationMethod)
+	data.AccountStatus = types.StringValue(admindata.AccountStatus)
+	data.TwoFactorAuthEnabled = types.BoolValue(admindata.TwoFactorAuthEnabled)
+	data.HasApiKey = types.BoolValue(admindata.HasApiKey)
+	data.LastActive = types.StringValue(admindata.LastActive)
 	if data.Tags != nil {
 		data.Tags = admindata.Tags
 	}
@@ -541,16 +591,27 @@ func (r *OrganizationsAdminResource) Delete(ctx context.Context, req resource.De
 		return
 	}
 
-	response, err := r.client.AdminsApi.DeleteOrganizationAdmin(context.Background(), data.Id.ValueString(), data.AdminId.ValueString()).Execute()
+	httpResp, err := r.client.AdminsApi.DeleteOrganizationAdmin(context.Background(), data.Id.ValueString(), data.AdminId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"-- Delete Error --",
+			"Failed to delete resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+	}
+
+	// Check for API success response code
+	if httpResp.StatusCode != 204 {
 		resp.Diagnostics.AddError(
-			"-- Response --",
-			fmt.Sprintf("%v\n", response),
+			"Unexpected HTTP Response Status Code",
+			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
+	}
+
+	// collect diagnostics
+	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+
+	// Check for errors after diagnostics collected
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
