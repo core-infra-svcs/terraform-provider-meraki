@@ -26,7 +26,7 @@ func TestAccOrganizationsAdminResource(t *testing.T) {
 				resource "meraki_organizations_admin" "testAdmin" {
 					id          = "784752235069308981"
 					name        = "testAdmin123456"
-					email       = "kirankumar600270092456016661289@gmail.com"
+					email       = "kirankumar6002700924560166612891@gmail.com"
 					orgaccess   = "none"
 					tags        = [
 						{
@@ -34,9 +34,7 @@ func TestAccOrganizationsAdminResource(t *testing.T) {
 							access = "read-only"
 						}
 					]
-					networks = [
-				   
-				  ]   
+					  
 					
 				  }
 `,
@@ -55,7 +53,7 @@ const testAccOrganizationsAdminResourceConfig = `
 resource "meraki_organizations_admin" "testAdmin" {
 	id          = "784752235069308981"
 	name        = "testAdmin12345"
-	email       = "kirankumar600270092456016661289@gmail.com"
+	email       = "kirankumar6002700924560166612891@gmail.com"
 	orgaccess   = "none"
 	tags        = [
         {
@@ -63,9 +61,7 @@ resource "meraki_organizations_admin" "testAdmin" {
             access = "read-only"
         }
     ]
-    networks = [
-   
-  ]   
+     
 	
   }
 `

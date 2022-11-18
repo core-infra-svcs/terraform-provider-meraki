@@ -447,6 +447,7 @@ func (r *OrganizationsAdminResource) Read(ctx context.Context, req resource.Read
 	if err := json.Unmarshal(jsonStr, &adminresource); err != nil {
 		fmt.Println(err)
 	}
+	adminsearch := false
 
 	for _, admindata := range adminresource {
 
@@ -467,9 +468,16 @@ func (r *OrganizationsAdminResource) Read(ctx context.Context, req resource.Read
 			if data.Networks != nil {
 				data.Networks = admindata.Networks
 			}
+			adminsearch = true
 
 		}
 
+	}
+	if !adminsearch {
+		{
+			resp.Diagnostics.AddError("No Admin details found or not created yet", fmt.Sprintf("email: %s", data.Email))
+			return
+		}
 	}
 
 	// Save updated data into Terraform state
@@ -478,10 +486,6 @@ func (r *OrganizationsAdminResource) Read(ctx context.Context, req resource.Read
 
 func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var data *OrganizationsAdminResourceModel
-	var state *OrganizationsAdminResourceModel
-
-	// Read Terraform state data into the model
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -489,6 +493,62 @@ func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.Up
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Fetching admin current details before updating
+	inlinegetResp, httpResp, err := r.client.AdminsApi.GetOrganizationAdmins(context.Background(), data.Id.ValueString()).Execute()
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to read resource",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+	}
+
+	// Check for API success inlineResp code
+	if httpResp.StatusCode != 200 {
+		resp.Diagnostics.AddError(
+			"Unexpected HTTP Response Status Code",
+			fmt.Sprintf("%v", httpResp.StatusCode),
+		)
+	}
+
+	// collect diagnostics
+	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+
+	// Check for errors after diagnostics collected
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	var adminresource []AdminResourceInfo
+
+	// Convert map to json string
+	jsongetStr, err := json.Marshal(inlinegetResp)
+	if err != nil {
+		fmt.Println(err)
+	}
+	// Convert json string to struct
+	if err := json.Unmarshal(jsongetStr, &adminresource); err != nil {
+		fmt.Println(err)
+	}
+
+	adminsearch := false
+
+	for _, admindata := range adminresource {
+
+		if admindata.Email == data.Email.ValueString() {
+
+			data.AdminId = types.StringValue(admindata.Id)
+			adminsearch = true
+
+		}
+	}
+	if !adminsearch {
+		{
+			resp.Diagnostics.AddError("No Admin details found or not created yet", fmt.Sprintf("email: %s", data.Email))
+			return
+		}
+	}
+
 	// Creating and Validating Payload for Updating Database Adminstrator
 	updateOrganizationAdmin := *apiclient.NewInlineObject177()
 	if data.Tags != nil {
@@ -517,15 +577,12 @@ func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.Up
 				n = append(n, networkData)
 			}
 			updateOrganizationAdmin.SetNetworks(n)
-		} else {
-			resp.Diagnostics.AddError("networks should not be empty. Add atleast one id and access fields or else remove networks field ", fmt.Sprintf("networks: %s", data.Networks))
-			return
 		}
 
 	}
 	updateOrganizationAdmin.SetName(data.Name.ValueString())
 	updateOrganizationAdmin.SetOrgAccess(data.OrgAccess.ValueString())
-	inlineResp, httpResp, err := r.client.AdminsApi.UpdateOrganizationAdmin(context.Background(), data.Id.ValueString(), state.AdminId.ValueString()).UpdateOrganizationAdmin(updateOrganizationAdmin).Execute()
+	inlineResp, httpResp, err := r.client.AdminsApi.UpdateOrganizationAdmin(context.Background(), data.Id.ValueString(), data.AdminId.ValueString()).UpdateOrganizationAdmin(updateOrganizationAdmin).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to update resource",
