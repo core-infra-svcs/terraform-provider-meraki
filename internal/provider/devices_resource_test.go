@@ -21,17 +21,15 @@ func TestAccDevicesResourceSecurityAppliance(t *testing.T) {
 					resource.TestCheckResourceAttr("meraki_devices.test", "serial", "Q2HY-6Y6T-X3HX"),
 				),
 			},
-
-			/*
-				// Update testing
-					{
-						Config: testAccDevicesResourceConfigUpdate,
-						Check: resource.ComposeAggregateTestCheckFunc(
-							resource.TestCheckResourceAttr("meraki_devices.test", "name", "My AP"),
-						),
-					},
-			*/
-
+			// Update testing
+			{
+				Config: testAccDevicesResourceConfigUpdate,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("meraki_devices.test", "name", "My AP"),
+					resource.TestCheckResourceAttr("meraki_devices.test", "serial", "Q2HY-6Y6T-X3HX"),
+					resource.TestCheckResourceAttr("meraki_devices.test", "model", "MX67C-NA"),
+				),
+			},
 			// Delete testing automatically occurs in TestCase
 		},
 	})
@@ -47,7 +45,7 @@ const testAccDevicesResourceConfigUpdate = `
 resource "meraki_devices" "test" {
     serial = "Q2HY-6Y6T-X3HX"
 	name = "My AP"
-	tags = ["sea", "wa"]
+	tags = ["ca", "sfo"]
 	
 }
 `

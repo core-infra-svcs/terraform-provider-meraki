@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"log"
 	"strconv"
 )
 
@@ -37,7 +36,7 @@ type DevicesResourceModel struct {
 	Name                types.String `tfsdk:"name"`
 	Mac                 types.String `tfsdk:"mac"`
 	Model               types.String `tfsdk:"model"`
-	Tags                types.List   `tfsdk:"tags"`
+	Tags                types.Set    `tfsdk:"tags"`
 	LanIp               types.String `tfsdk:"lan_ip"`
 	Firmware            types.String `tfsdk:"firmware"`
 	Lat                 types.String `tfsdk:"lat"`
@@ -101,15 +100,19 @@ func (r *DevicesResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Dia
 			"tags": {
 				Description:         "The list of tags of a device",
 				MarkdownDescription: "The list of tags of a device",
-				Type:                types.ListType{ElemType: types.StringType},
+				Type:                types.SetType{ElemType: types.StringType},
 				Required:            false,
 				Optional:            true,
 				Computed:            true,
 				Sensitive:           false,
 				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
+				// tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
+				//					"tag": {
+				//						Type:     types.StringType,
+				//						Computed: true,
+				//						Optional: true,
+				//					},
+				//				})
 			},
 			"lat": {
 				Description:         "The latitude of a device",
@@ -411,7 +414,7 @@ func (r *DevicesResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	// Save data into Terraform state
-	extractHttpResponseDevicesResource(inlineResp, data)
+	extractHttpResponseDevicesResource(ctx, inlineResp, data)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
@@ -460,7 +463,7 @@ func (r *DevicesResource) Read(ctx context.Context, req resource.ReadRequest, re
 	}
 
 	// Save data into Terraform state
-	extractHttpResponseDevicesResource(inlineResp, data)
+	extractHttpResponseDevicesResource(ctx, inlineResp, data)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
@@ -486,10 +489,13 @@ func (r *DevicesResource) Update(ctx context.Context, req resource.UpdateRequest
 	updateDevice := apiclient.NewInlineObject()
 
 	// Name
-	updateDevice.SetAddress(data.Name.ValueString())
+	updateDevice.SetName(data.Name.ValueString())
+
+	// address
+	updateDevice.SetAddress(data.Address.ValueString())
 
 	// Tags
-	if data.Tags.Elements() != nil {
+	if data.Tags.IsNull() != true {
 		var tags []string
 		for _, attribute := range data.Tags.Elements() {
 			tags = append(tags, attribute.String())
@@ -504,9 +510,6 @@ func (r *DevicesResource) Update(ctx context.Context, req resource.UpdateRequest
 	//	Lng
 	lng, _ := strconv.ParseFloat(data.Lng.ValueString(), 32)
 	updateDevice.SetLng(float32(lng))
-
-	//	Address
-	updateDevice.SetAddress(data.Address.ValueString())
 
 	//	Notes
 	updateDevice.SetNotes(data.Notes.ValueString())
@@ -552,7 +555,7 @@ func (r *DevicesResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 
 	// Save data into Terraform state
-	extractHttpResponseDevicesResource(inlineResp, data)
+	extractHttpResponseDevicesResource(ctx, inlineResp, data)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
@@ -645,7 +648,7 @@ func (r *DevicesResource) Delete(ctx context.Context, req resource.DeleteRequest
 	tflog.Trace(ctx, "delete resource")
 }
 
-func extractHttpResponseDevicesResource(inlineResp map[string]interface{}, data *DevicesResourceModel) *DevicesResourceModel {
+func extractHttpResponseDevicesResource(ctx context.Context, inlineResp map[string]interface{}, data *DevicesResourceModel) *DevicesResourceModel {
 
 	// save into the Terraform state
 	data.Id = types.StringValue("example-id")
@@ -702,14 +705,35 @@ func extractHttpResponseDevicesResource(inlineResp map[string]interface{}, data 
 	// tags attribute
 	if tags := inlineResp["tags"]; tags != nil {
 
-		// append tags to tag list
-		var tagElements []attr.Value // list of tags
-		for _, v := range inlineResp["tags"].([]interface{}) {
-			tagElements = append(tagElements, types.StringValue(v.(string)))
+		// format tags
+		var sortedTagList []string
+		for _, v := range tags.([]interface{}) {
+			var s string
+			_ = json.Unmarshal([]byte(v.(string)), &s)
+			sortedTagList = append(sortedTagList, s)
 		}
-		data.Tags, _ = types.ListValue(types.StringType, tagElements)
+
+		// append to tag list
+		var tagList []attr.Value
+		for _, i := range sortedTagList {
+			tag := types.StringValue(i)
+			tagList = append(tagList, tag)
+		}
+
+		/*
+			var tagList []attr.Value
+
+				for _, v := range tags.([]interface{}) {
+					var s string
+					_ = json.Unmarshal([]byte(v.(string)), &s)
+					tag := types.StringValue(s)
+					tagList = append(tagList, tag)
+				}
+		*/
+
+		data.Tags, _ = types.SetValue(types.StringType, tagList)
 	} else {
-		data.Tags = types.ListNull(types.StringType)
+		data.Tags = types.SetNull(types.StringType)
 	}
 
 	// floorPlanId attribute
@@ -791,14 +815,6 @@ func extractHttpResponseDevicesResource(inlineResp map[string]interface{}, data 
 	} else {
 		data.LanIp = types.StringNull()
 	}
-
-	b, err := json.Marshal(inlineResp)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(string(b))
-
-	fmt.Println(data)
 
 	return data
 }
