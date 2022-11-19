@@ -106,13 +106,6 @@ func (r *DevicesResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Dia
 				Computed:            true,
 				Sensitive:           false,
 				Attributes:          nil,
-				// tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-				//					"tag": {
-				//						Type:     types.StringType,
-				//						Computed: true,
-				//						Optional: true,
-				//					},
-				//				})
 			},
 			"lat": {
 				Description:         "The latitude of a device",
@@ -577,69 +570,67 @@ func (r *DevicesResource) Delete(ctx context.Context, req resource.DeleteRequest
 		return
 	}
 
-	/*
-		// Create HTTP request body
-			deleteDevice := apiclient.NewInlineObject()
+	// Create HTTP request body
+	deleteDevice := apiclient.NewInlineObject()
 
-			// Name
-			deleteDevice.SetAddress("")
+	// Name
+	deleteDevice.SetAddress("")
 
-			//	Tags
-			var tags []string
-			deleteDevice.SetTags(tags)
+	//	Tags
+	var tags []string
+	deleteDevice.SetTags(tags)
 
-			//	Lat
-			deleteDevice.SetLat(0)
+	//	Lat
+	deleteDevice.SetLat(0)
 
-			//	Lng
-			deleteDevice.SetLng(0)
+	//	Lng
+	deleteDevice.SetLng(0)
 
-			//	Address
-			deleteDevice.SetAddress("")
+	//	Address
+	deleteDevice.SetAddress("")
 
-			//	Notes
-			deleteDevice.SetNotes("")
+	//	Notes
+	deleteDevice.SetNotes("")
 
-			//	MoveMapMarker
-			deleteDevice.SetMoveMapMarker(false)
+	//	MoveMapMarker
+	deleteDevice.SetMoveMapMarker(false)
 
-			// SwitchProfileId
-			if data.SwitchProfileId.IsNull() != true {
-				deleteDevice.SetSwitchProfileId(types.StringNull().ValueString())
-			}
+	// SwitchProfileId
+	if data.SwitchProfileId.IsNull() != true {
+		deleteDevice.SetSwitchProfileId(types.StringNull().ValueString())
+	}
 
-			//	FloorPlanId
-			if data.FloorPlanId.IsNull() != true {
-				deleteDevice.SetFloorPlanId(types.StringNull().ValueString())
-			}
+	//	FloorPlanId
+	if data.FloorPlanId.IsNull() != true {
+		deleteDevice.SetFloorPlanId(types.StringNull().ValueString())
+	}
 
-			// Initialize provider client and make API call
-			_, httpResp, err := r.client.DevicesApi.UpdateDevice(context.Background(),
-				data.Serial.ValueString()).UpdateDevice(*deleteDevice).Execute()
-			if err != nil {
-				resp.Diagnostics.AddError(
-					"Failed to delete resource",
-					fmt.Sprintf("%v\n", err.Error()),
-				)
-			}
+	// Initialize provider client and make API call
+	_, httpResp, err := r.client.DevicesApi.UpdateDevice(context.Background(),
+		data.Serial.ValueString()).UpdateDevice(*deleteDevice).Execute()
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to delete resource",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+	}
 
-			// Check for API success response code
-			if httpResp.StatusCode != 200 {
-				resp.Diagnostics.AddError(
-					"Unexpected HTTP Response Status Code",
-					fmt.Sprintf("%v", httpResp.StatusCode),
-				)
-			}
+	// Check for API success response code
+	if httpResp.StatusCode != 200 {
+		resp.Diagnostics.AddError(
+			"Unexpected HTTP Response Status Code",
+			fmt.Sprintf("%v", httpResp.StatusCode),
+		)
+	}
 
-			// collect diagnostics
-			tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+	// collect diagnostics
+	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 
-			// Check for errors after diagnostics collected
-			if resp.Diagnostics.HasError() {
-				resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
-				return
-			}
-	*/
+	// Check for errors after diagnostics collected
+	if resp.Diagnostics.HasError() {
+		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
+		return
+	}
 
 	// Remove from state
 	resp.State.RemoveResource(ctx)
@@ -704,32 +695,14 @@ func extractHttpResponseDevicesResource(ctx context.Context, inlineResp map[stri
 
 	// tags attribute
 	if tags := inlineResp["tags"]; tags != nil {
+		var tagList []attr.Value
 
-		// format tags
-		var sortedTagList []string
 		for _, v := range tags.([]interface{}) {
 			var s string
 			_ = json.Unmarshal([]byte(v.(string)), &s)
-			sortedTagList = append(sortedTagList, s)
-		}
-
-		// append to tag list
-		var tagList []attr.Value
-		for _, i := range sortedTagList {
-			tag := types.StringValue(i)
+			tag := types.StringValue(s)
 			tagList = append(tagList, tag)
 		}
-
-		/*
-			var tagList []attr.Value
-
-				for _, v := range tags.([]interface{}) {
-					var s string
-					_ = json.Unmarshal([]byte(v.(string)), &s)
-					tag := types.StringValue(s)
-					tagList = append(tagList, tag)
-				}
-		*/
 
 		data.Tags, _ = types.SetValue(types.StringType, tagList)
 	} else {

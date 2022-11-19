@@ -45,7 +45,7 @@ const testAccDevicesResourceConfigUpdate = `
 resource "meraki_devices" "test" {
     serial = "Q2HY-6Y6T-X3HX"
 	name = "My AP"
-	tags = ["ca", "sfo"]
+	tags = ["sfo", "ca"]
 	
 }
 `
