@@ -1,6 +1,8 @@
 package provider
 
 import (
+	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -13,20 +15,20 @@ func TestAccDevicesResourceSecurityAppliance(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Create and Read testing
 			{
-				Config: testAccDevicesResourceConfig,
+				Config: testAccDevicesResourceConfig(os.Getenv("TF_MERAKI_MX_SERIAL")),
 				Check: resource.ComposeAggregateTestCheckFunc(
 
 					// TODO - Check return data matches expected result
 					resource.TestCheckResourceAttr("meraki_devices.test", "id", "example-id"),
-					resource.TestCheckResourceAttr("meraki_devices.test", "serial", "Q2HY-6Y6T-X3HX"),
+					resource.TestCheckResourceAttr("meraki_devices.test", "serial", os.Getenv("TF_MERAKI_MX_SERIAL")),
 				),
 			},
 			// Update testing
 			{
-				Config: testAccDevicesResourceConfigUpdate,
+				Config: testAccDevicesResourceConfigUpdate(os.Getenv("TF_MERAKI_MX_SERIAL")),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_devices.test", "name", "My AP"),
-					resource.TestCheckResourceAttr("meraki_devices.test", "serial", "Q2HY-6Y6T-X3HX"),
+					resource.TestCheckResourceAttr("meraki_devices.test", "serial", os.Getenv("TF_MERAKI_MX_SERIAL")),
 					resource.TestCheckResourceAttr("meraki_devices.test", "model", "MX67C-NA"),
 				),
 			},
@@ -35,17 +37,20 @@ func TestAccDevicesResourceSecurityAppliance(t *testing.T) {
 	})
 }
 
-const testAccDevicesResourceConfig = `
+func testAccDevicesResourceConfig(serialNumber string) string {
+	return fmt.Sprintf(`
 resource "meraki_devices" "test" {
-    serial = "Q2HY-6Y6T-X3HX"
+ 	serial = "%s"
+ }
+ `, serialNumber)
 }
-`
 
-const testAccDevicesResourceConfigUpdate = `
+func testAccDevicesResourceConfigUpdate(serialNumber string) string {
+	return fmt.Sprintf(`
 resource "meraki_devices" "test" {
-    serial = "Q2HY-6Y6T-X3HX"
+ 	serial = "%s"
 	name = "My AP"
 	tags = ["sfo", "ca"]
-	
+ }
+ `, serialNumber)
 }
-`

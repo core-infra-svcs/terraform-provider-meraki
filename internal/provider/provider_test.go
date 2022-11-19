@@ -22,7 +22,7 @@ func testAccPreCheck(t *testing.T) {
 	// function.
 
 	// Check environmental variables
-	ev := []string{"MERAKI_DASHBOARD_API_KEY"}
+	ev := []string{"MERAKI_DASHBOARD_API_KEY", "TF_MERAKI_MX_SERIAL"}
 	for _, v := range ev {
 		if os.Getenv(v) == "" {
 			t.Fatalf("%s must be set for acceptance tests", v)
