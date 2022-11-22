@@ -21,29 +21,21 @@ func TestAccOrganizationsAdaptivepolicyAclResource(t *testing.T) {
 				),
 			},
 
+			// Update testing
 			{
-				Config: `
-				resource "meraki_organizations_adaptivePolicy_acl" "testAcl" {
-					id          = "784752235069308981"
-					name        = "Block12345467868900123 sensitive web traffic"
-					description = "Blocks sensitive web traffic sets"
-					ipversion   = "ipv6"
-					rules       = [
-        
-                                  {
-                                    policy = "allow"
-                                    protocol = "any"
-                                    srcport = "any"
-                                    dstport = "any"
-                                  }
-                                  ] 
-				  
-				  }
-                `,
+				Config: testUpdatedAccOrganizationsAdaptivepolicyAclResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					// Verify first order item updated
 					resource.TestCheckResourceAttr("meraki_organizations_adaptivePolicy_acl.testAcl", "description", "Blocks sensitive web traffic sets"),
 				),
+			},
+
+			// ImportState testing
+			{
+				ResourceName:      "meraki_organizations_adaptivePolicy_acl.testAcl",
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateId:     "784752235069308981,Block12345467868900123 sensitive web traffic",
 			},
 
 			// Delete testing automatically occurs in TestCase
@@ -66,5 +58,23 @@ resource "meraki_organizations_adaptivePolicy_acl" "testAcl" {
                    dstport = "any"
                   }
                   ]  
+  }
+`
+const testUpdatedAccOrganizationsAdaptivepolicyAclResourceConfig = `
+resource "meraki_organizations_adaptivePolicy_acl" "testAcl" {
+	id          = "784752235069308981"
+	name        = "Block12345467868900123 sensitive web traffic"
+	description = "Blocks sensitive web traffic sets"
+	ipversion   = "ipv6"
+	rules       = [
+
+				  {
+					policy = "allow"
+					protocol = "any"
+					srcport = "any"
+					dstport = "any"
+				  }
+				  ] 
+  
   }
 `
