@@ -81,6 +81,14 @@ resource "meraki_organization" "testOrg" {
 	api_enabled = true
 }
 
+// Get List of Organizations
+data "meraki_organizations" "list" {
+}
+
+output "organizations" {
+  value = data.meraki_organizations.list
+}
+
 resource "meraki_network" "test" {
 	depends_on = ["meraki_organization.testOrg"]
 	product_types = ["appliance"]
