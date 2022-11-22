@@ -91,12 +91,14 @@ func (p *ScaffoldingProvider) Configure(ctx context.Context, req provider.Config
 	client := apiclient.NewAPIClient(configuration)
 	resp.DataSourceData = client
 	resp.ResourceData = client
+	client.GetConfig().UserAgent = "Meraki Golang Client"
 
 }
 
 func (p *ScaffoldingProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		NewOrganizationResource,
+		NewNetworkResource,
 	}
 }
 
