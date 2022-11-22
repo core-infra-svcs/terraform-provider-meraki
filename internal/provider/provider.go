@@ -99,6 +99,8 @@ func (p *ScaffoldingProvider) Resources(ctx context.Context) []func() resource.R
 	return []func() resource.Resource{
 		NewOrganizationResource,
 		NewOrganizationsAdminResource,
+		NewOrganizationsSamlroleResource,
+		NewOrganizationsAdaptivepolicyAclResource,
 	}
 }
 
