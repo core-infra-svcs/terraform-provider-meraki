@@ -14,10 +14,9 @@ func TestAccOrganizationsAdaptivepolicyAclResource(t *testing.T) {
 			// Create and Read testing
 			{
 				Config: testAccOrganizationsAdaptivepolicyAclResourceConfig,
-				Check:  resource.ComposeAggregateTestCheckFunc(
+				Check: resource.ComposeAggregateTestCheckFunc(
 
-				// TODO - Check return data matches expected result
-				// TODO - Example: resource.TestCheckResourceAttr("meraki_organizations_adaptive_policy_acl.test", "name", "testOrg1"),
+					resource.TestCheckResourceAttr("meraki_organizations_adaptivePolicy_acl.testAcl", "name", "testacl"),
 				),
 			},
 
@@ -35,7 +34,7 @@ func TestAccOrganizationsAdaptivepolicyAclResource(t *testing.T) {
 				ResourceName:      "meraki_organizations_adaptivePolicy_acl.testAcl",
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateId:     "784752235069308981,Block12345467868900123 sensitive web traffic",
+				ImportStateId:     "784752235069308981,testacl",
 			},
 
 			// Delete testing automatically occurs in TestCase
@@ -43,14 +42,14 @@ func TestAccOrganizationsAdaptivepolicyAclResource(t *testing.T) {
 	})
 }
 
+// Config for create and read
 const testAccOrganizationsAdaptivepolicyAclResourceConfig = `
 resource "meraki_organizations_adaptivePolicy_acl" "testAcl" {
 	id          = "784752235069308981"
-	name        = "Block12345467868900123 sensitive web traffic"
+	name        = "testacl"
 	description = "Blocks sensitive web traffic"
 	ipversion   = "ipv6"
-	rules       = [
-      
+	rules       = [      
                   {
                    policy = "allow"
                    protocol = "any"
@@ -60,14 +59,15 @@ resource "meraki_organizations_adaptivePolicy_acl" "testAcl" {
                   ]  
   }
 `
+
+// Config for update
 const testUpdatedAccOrganizationsAdaptivepolicyAclResourceConfig = `
 resource "meraki_organizations_adaptivePolicy_acl" "testAcl" {
 	id          = "784752235069308981"
-	name        = "Block12345467868900123 sensitive web traffic"
+	name        = "testacl"
 	description = "Blocks sensitive web traffic sets"
 	ipversion   = "ipv6"
 	rules       = [
-
 				  {
 					policy = "allow"
 					protocol = "any"
