@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"strings"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -241,25 +242,29 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 		return
 	}
 
-	// validate inputs and update product types list
-	//expectedProductTypes := []string{"appliance", "switch", "systemsManager", "camera", "cellularGateway", "sensor"}
 	var productTypes []string
 
-	if len(data.ProductTypes.Elements()) > 0 {
+	// ProductTypes
+	if data.ProductTypes.IsNull() != true {
 
-		// compare with list of expected product type strings
 		for _, attribute := range data.ProductTypes.Elements() {
-			switch string(attribute.String()) {
-			case
-				"appliance",
-				"switch",
-				"systemsManager",
-				"camera",
-				"cellularGateway",
-				"sensor":
-				productTypes = append(productTypes, attribute.String())
+			product := strings.Trim(attribute.String(), "\"") // attr.Value string wrapped in double quotes...
+			switch product {
+			case "appliance":
+				productTypes = append(productTypes, "appliance")
+			case "switch":
+				productTypes = append(productTypes, "switch")
+			case "systemsManager":
+				productTypes = append(productTypes, "systemsManager")
+			case "camera":
+				productTypes = append(productTypes, "camera")
+			case "cellularGateway":
+				productTypes = append(productTypes, "cellularGateway")
+			case "sensor":
+				productTypes = append(productTypes, "sensor")
 			default:
 				resp.Diagnostics.AddError("Invalid Entry", fmt.Sprintf("The input: %s, is not a valid product type", attribute.String()))
+
 			}
 		}
 	}
@@ -278,6 +283,7 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 	createOrganizationNetwork := apiclient.NewInlineObject207(data.Name.ValueString(), productTypes) // InlineObject207 |
 
 	createOrganizationNetwork.SetTimeZone(data.Timezone.ValueString())
+
 	// Tags
 	if data.Tags.IsNull() != true {
 		var tags []string
@@ -322,7 +328,8 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 
 	// save inlineResp data into Terraform state.
 	data.Id = types.StringValue("example-id")
-	data.OrganizationId = types.StringValue(inlineResp.GetId())
+	data.NetworkId = types.StringValue(inlineResp.GetId())
+	data.OrganizationId = types.StringValue(inlineResp.GetOrganizationId())
 	data.Name = types.StringValue(inlineResp.GetName())
 
 	// product types attribute
@@ -357,6 +364,7 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 	data.Url = types.StringValue(inlineResp.GetUrl())
 	data.Notes = types.StringValue(inlineResp.GetNotes())
 	data.IsBoundToConfigTemplate = types.BoolValue(inlineResp.GetIsBoundToConfigTemplate())
+	data.CopyFromNetworkId = types.StringNull()
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -404,7 +412,8 @@ func (r *NetworkResource) Read(ctx context.Context, req resource.ReadRequest, re
 
 	// save inlineResp data into Terraform state.
 	data.Id = types.StringValue("example-id")
-	data.OrganizationId = types.StringValue(inlineResp.GetId())
+	data.NetworkId = types.StringValue(inlineResp.GetId())
+	data.OrganizationId = types.StringValue(inlineResp.GetOrganizationId())
 	data.Name = types.StringValue(inlineResp.GetName())
 
 	// product types attribute
@@ -439,6 +448,7 @@ func (r *NetworkResource) Read(ctx context.Context, req resource.ReadRequest, re
 	data.Url = types.StringValue(inlineResp.GetUrl())
 	data.Notes = types.StringValue(inlineResp.GetNotes())
 	data.IsBoundToConfigTemplate = types.BoolValue(inlineResp.GetIsBoundToConfigTemplate())
+	data.CopyFromNetworkId = types.StringNull()
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -452,6 +462,13 @@ func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest
 
 	// Read Terraform plan data
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+
+	// check state data to retrieve required values
+	if len(data.NetworkId.ValueString()) < 1 {
+		var stateData *NetworkResourceModel
+		resp.Diagnostics.Append(req.State.Get(ctx, &stateData)...)
+		data.NetworkId = stateData.NetworkId
+	}
 
 	// check for required parameters
 	if len(data.NetworkId.ValueString()) < 1 {
@@ -473,7 +490,11 @@ func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest
 		updateNetwork.SetTags(tags)
 	}
 
-	updateNetwork.SetEnrollmentString(data.EnrollmentString.ValueString())
+	// check for enrollment state
+	if len(data.EnrollmentString.ValueString()) > 4 {
+		updateNetwork.SetEnrollmentString(data.EnrollmentString.ValueString())
+	}
+
 	updateNetwork.SetNotes(data.Notes.ValueString())
 
 	// Initialize provider client and make API call
@@ -504,7 +525,8 @@ func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest
 
 	// save inlineResp data into Terraform state.
 	data.Id = types.StringValue("example-id")
-	data.OrganizationId = types.StringValue(inlineResp.GetId())
+	data.NetworkId = types.StringValue(inlineResp.GetId())
+	data.OrganizationId = types.StringValue(inlineResp.GetOrganizationId())
 	data.Name = types.StringValue(inlineResp.GetName())
 
 	// product types attribute
@@ -539,6 +561,7 @@ func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest
 	data.Url = types.StringValue(inlineResp.GetUrl())
 	data.Notes = types.StringValue(inlineResp.GetNotes())
 	data.IsBoundToConfigTemplate = types.BoolValue(inlineResp.GetIsBoundToConfigTemplate())
+	data.CopyFromNetworkId = types.StringNull()
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
