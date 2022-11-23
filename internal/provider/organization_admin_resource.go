@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	apiclient "github.com/core-infra-svcs/dashboard-api-go/client"
 
@@ -157,8 +158,6 @@ func (r *OrganizationsAdminResource) GetSchema(ctx context.Context) (tfsdk.Schem
 				Description:         "Two Factor Auth Enabled or Not",
 				MarkdownDescription: "",
 				Type:                types.BoolType,
-				Required:            false,
-				Optional:            true,
 				Computed:            true,
 				Sensitive:           false,
 				Attributes:          nil,
@@ -170,8 +169,6 @@ func (r *OrganizationsAdminResource) GetSchema(ctx context.Context) (tfsdk.Schem
 				Description:         "Account Status",
 				MarkdownDescription: "",
 				Type:                types.StringType,
-				Required:            false,
-				Optional:            true,
 				Computed:            true,
 				Sensitive:           false,
 				Attributes:          nil,
@@ -183,8 +180,6 @@ func (r *OrganizationsAdminResource) GetSchema(ctx context.Context) (tfsdk.Schem
 				Description:         "Api key exists or not",
 				MarkdownDescription: "",
 				Type:                types.BoolType,
-				Required:            false,
-				Optional:            true,
 				Computed:            true,
 				Sensitive:           false,
 				Attributes:          nil,
@@ -196,8 +191,6 @@ func (r *OrganizationsAdminResource) GetSchema(ctx context.Context) (tfsdk.Schem
 				Description:         "Last Time Active",
 				MarkdownDescription: "",
 				Type:                types.StringType,
-				Required:            false,
-				Optional:            true,
 				Computed:            true,
 				Sensitive:           false,
 				Attributes:          nil,
@@ -315,7 +308,7 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 			}
 			createOrganizationAdmin.SetTags(t)
 		} else {
-			resp.Diagnostics.AddError("tags should not be empty. Add atleast one tag and access fields or else remove tags field ", fmt.Sprintf("tags: %s", data.Tags))
+			resp.Diagnostics.AddError("tags should not be empty. Add atleast one tag and access fields or else remove tags field ", fmt.Sprintf("tags: %v", data.Tags))
 			return
 		}
 	}
@@ -331,7 +324,7 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 			}
 			createOrganizationAdmin.SetNetworks(n)
 		} else {
-			resp.Diagnostics.AddError("networks should not be empty. Add atleast one id and access fields or else remove networks field ", fmt.Sprintf("networks: %s", data.Networks))
+			resp.Diagnostics.AddError("networks should not be empty. Add atleast one id and access fields or else remove networks field ", fmt.Sprintf("networks: %v", data.Networks))
 			return
 		}
 
@@ -563,10 +556,13 @@ func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.Up
 			}
 			updateOrganizationAdmin.SetTags(t)
 		} else {
-			resp.Diagnostics.AddError("tags should not be empty. Add atleast one tag and access fields or else remove tags field ", fmt.Sprintf("tags: %s", data.Tags))
+			resp.Diagnostics.AddError("tags should not be empty. Add atleast one tag and access fields or else remove tags field ", fmt.Sprintf("tags: %v", data.Tags))
 			return
 		}
+	} else {
+		updateOrganizationAdmin.SetTags(nil)
 	}
+
 	if data.Networks != nil {
 		if len(data.Networks) != 0 {
 			var n []apiclient.OrganizationsOrganizationIdAdminsNetworks
@@ -577,8 +573,13 @@ func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.Up
 				n = append(n, networkData)
 			}
 			updateOrganizationAdmin.SetNetworks(n)
+		} else {
+			resp.Diagnostics.AddError("networks should not be empty. Add atleast one id and access fields or else remove netwoeks field ", fmt.Sprintf("tags: %v", data.Networks))
+			return
 		}
 
+	} else {
+		updateOrganizationAdmin.SetNetworks(nil)
 	}
 	updateOrganizationAdmin.SetName(data.Name.ValueString())
 	updateOrganizationAdmin.SetOrgAccess(data.OrgAccess.ValueString())
@@ -677,5 +678,18 @@ func (r *OrganizationsAdminResource) Delete(ctx context.Context, req resource.De
 }
 
 func (r *OrganizationsAdminResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	idParts := strings.Split(req.ID, ",")
+	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: id,email. Got: %q", req.ID),
+		)
+		return
+	}
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), idParts[0])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("email"), idParts[1])...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 }

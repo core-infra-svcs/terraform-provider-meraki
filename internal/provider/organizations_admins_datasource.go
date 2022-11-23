@@ -364,8 +364,6 @@ func (d *OrganizationsAdminsDataSource) Read(ctx context.Context, req datasource
 		data.List = append(data.List, result)
 	}
 
-	data.Id = types.StringValue("example-id")
-
 	// Write logs using the tflog package
 	tflog.Trace(ctx, "read a data source")
 

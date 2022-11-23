@@ -505,20 +505,10 @@ func (r *OrganizationsAdaptivepolicyAclResource) Update(ctx context.Context, req
 	// collect diagnostics
 	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 
-	var aclUpdatedData AclInfo
-
-	// Convert map to json string
-	jsongetStr, err := json.Marshal(inlineUpdatedResp)
+	aclUpdatedData, err := ConvertToSingleAclData(inlineUpdatedResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to Convert json string to struct",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-	}
-	// Convert json string to struct
-	if err := json.Unmarshal(jsongetStr, &aclUpdatedData); err != nil {
-		resp.Diagnostics.AddError(
-			"Failed to Convert json string to struct",
+			"Failed to Convert map to struct",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
