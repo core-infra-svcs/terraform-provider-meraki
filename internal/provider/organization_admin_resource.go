@@ -200,7 +200,7 @@ func (r *OrganizationsAdminResource) GetSchema(ctx context.Context) (tfsdk.Schem
 			},
 			"tags": {
 				Description: "list of tags that the dashboard administrator has privileges on.",
-				Optional:    true,
+				Required:    true,
 				Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
 					"tag": {
 						Description:         "administrator tag",
@@ -231,7 +231,7 @@ func (r *OrganizationsAdminResource) GetSchema(ctx context.Context) (tfsdk.Schem
 				})},
 			"networks": {
 				Description: "list of networks that the dashboard administrator has privileges on.",
-				Optional:    true,
+				Required:    true,
 				Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
 					"id": {
 						Description:         "administrator network id ",
@@ -294,7 +294,7 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 		return
 	}
 
-	// Creating and Validating Payload for Creating Database Adminstrator
+	// Creating and Validating Payload for Creating Adminstrator
 	createOrganizationAdmin := *apiclient.NewInlineObject176(data.Email.ValueString(), data.Name.ValueString(), data.OrgAccess.ValueString())
 
 	if data.Tags != nil {
@@ -308,7 +308,7 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 			}
 			createOrganizationAdmin.SetTags(t)
 		} else {
-			resp.Diagnostics.AddError("tags should not be empty. Add atleast one tag and access fields or else remove tags field ", fmt.Sprintf("tags: %v", data.Tags))
+			resp.Diagnostics.AddError("tags should not be empty. Add atleast one tag and access field", fmt.Sprintf("tags: %v", data.Tags))
 			return
 		}
 	}
@@ -324,7 +324,7 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 			}
 			createOrganizationAdmin.SetNetworks(n)
 		} else {
-			resp.Diagnostics.AddError("networks should not be empty. Add atleast one id and access fields or else remove networks field ", fmt.Sprintf("networks: %v", data.Networks))
+			resp.Diagnostics.AddError("networks should not be empty. Add atleast one id and access field", fmt.Sprintf("networks: %v", data.Networks))
 			return
 		}
 
@@ -353,24 +353,20 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 	// collect diagnostics
 	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 
+	admindata, err := ConvertToSingleAdminData(inlineResp)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to Convert map to struct",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+	}
+
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	resp.Diagnostics.Append()
-
-	var admindata AdminResourceInfo
-
-	// Convert map to json string
-	jsonStr, err := json.Marshal(inlineResp)
-	if err != nil {
-		fmt.Println(err)
-	}
-	// Convert json string to struct
-	if err := json.Unmarshal(jsonStr, &admindata); err != nil {
-		fmt.Println(err)
-	}
 
 	data.Name = types.StringValue(admindata.Name)
 	data.Email = types.StringValue(admindata.Email)
@@ -429,17 +425,16 @@ func (r *OrganizationsAdminResource) Read(ctx context.Context, req resource.Read
 		return
 	}
 
-	var adminresource []AdminResourceInfo
+	resp.Diagnostics.Append()
 
-	// Convert map to json string
-	jsonStr, err := json.Marshal(inlineResp)
+	adminresource, err := ConvertToSingleAdminDataList(inlineResp)
 	if err != nil {
-		fmt.Println(err)
+		resp.Diagnostics.AddError(
+			"Failed to Convert map to struct",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
 	}
-	// Convert json string to struct
-	if err := json.Unmarshal(jsonStr, &adminresource); err != nil {
-		fmt.Println(err)
-	}
+
 	adminsearch := false
 
 	for _, admindata := range adminresource {
@@ -455,10 +450,10 @@ func (r *OrganizationsAdminResource) Read(ctx context.Context, req resource.Read
 			data.TwoFactorAuthEnabled = types.BoolValue(admindata.TwoFactorAuthEnabled)
 			data.HasApiKey = types.BoolValue(admindata.HasApiKey)
 			data.LastActive = types.StringValue(admindata.LastActive)
-			if data.Tags != nil {
+			if admindata.Tags != nil {
 				data.Tags = admindata.Tags
 			}
-			if data.Networks != nil {
+			if admindata.Networks != nil {
 				data.Networks = admindata.Networks
 			}
 			adminsearch = true
@@ -507,22 +502,21 @@ func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.Up
 	// collect diagnostics
 	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 
+	// Convert map to list of admin data
+	adminresource, err := ConvertToSingleAdminDataList(inlinegetResp)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to Convert map to list of acl data",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+	}
+
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	var adminresource []AdminResourceInfo
-
-	// Convert map to json string
-	jsongetStr, err := json.Marshal(inlinegetResp)
-	if err != nil {
-		fmt.Println(err)
-	}
-	// Convert json string to struct
-	if err := json.Unmarshal(jsongetStr, &adminresource); err != nil {
-		fmt.Println(err)
-	}
+	resp.Diagnostics.Append()
 
 	adminsearch := false
 
@@ -556,11 +550,9 @@ func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.Up
 			}
 			updateOrganizationAdmin.SetTags(t)
 		} else {
-			resp.Diagnostics.AddError("tags should not be empty. Add atleast one tag and access fields or else remove tags field ", fmt.Sprintf("tags: %v", data.Tags))
+			resp.Diagnostics.AddError("tags should not be empty. Add atleast one tag and access field", fmt.Sprintf("tags: %v", data.Tags))
 			return
 		}
-	} else {
-		updateOrganizationAdmin.SetTags(nil)
 	}
 
 	if data.Networks != nil {
@@ -574,12 +566,10 @@ func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.Up
 			}
 			updateOrganizationAdmin.SetNetworks(n)
 		} else {
-			resp.Diagnostics.AddError("networks should not be empty. Add atleast one id and access fields or else remove netwoeks field ", fmt.Sprintf("tags: %v", data.Networks))
+			resp.Diagnostics.AddError("networks should not be empty. Add atleast one id and access field", fmt.Sprintf("networks: %v", data.Networks))
 			return
 		}
 
-	} else {
-		updateOrganizationAdmin.SetNetworks(nil)
 	}
 	updateOrganizationAdmin.SetName(data.Name.ValueString())
 	updateOrganizationAdmin.SetOrgAccess(data.OrgAccess.ValueString())
@@ -602,22 +592,19 @@ func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.Up
 	// collect diagnostics
 	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 
+	admindata, err := ConvertToSingleAdminData(inlineResp)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to Convert map to struct",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+	}
+
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
-	var admindata AdminResourceInfo
-
-	// Convert map to json string
-	jsonStr, err := json.Marshal(inlineResp)
-	if err != nil {
-		fmt.Println(err)
-	}
-	// Convert json string to struct
-	if err := json.Unmarshal(jsonStr, &admindata); err != nil {
-		fmt.Println(err)
-	}
+	resp.Diagnostics.Append()
 
 	data.Name = types.StringValue(admindata.Name)
 	data.Email = types.StringValue(admindata.Email)
@@ -691,5 +678,43 @@ func (r *OrganizationsAdminResource) ImportState(ctx context.Context, req resour
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+}
+
+// Convert to Admin Data
+func ConvertToSingleAdminData(inlineResp map[string]interface{}) (AdminResourceInfo, error) {
+
+	var adminData AdminResourceInfo
+	// Convert map to json string
+	jsongetStr, err := json.Marshal(inlineResp)
+	if err != nil {
+		return adminData, err
+
+	}
+	// Convert json string to struct
+	if err := json.Unmarshal(jsongetStr, &adminData); err != nil {
+		return adminData, err
+	}
+
+	return adminData, err
+
+}
+
+// Convert to Admin Data List
+func ConvertToSingleAdminDataList(inlineResp []map[string]interface{}) ([]AdminResourceInfo, error) {
+
+	var adminDataList []AdminResourceInfo
+	// Convert map to json string
+	jsongetStr, err := json.Marshal(inlineResp)
+	if err != nil {
+		return adminDataList, err
+
+	}
+	// Convert json string to struct
+	if err := json.Unmarshal(jsongetStr, &adminDataList); err != nil {
+		return adminDataList, err
+	}
+
+	return adminDataList, err
 
 }

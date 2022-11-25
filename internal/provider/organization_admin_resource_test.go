@@ -17,7 +17,16 @@ func TestAccOrganizationsAdminResource(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 
 					// TODO - Check return data matches expected result
-					resource.TestCheckResourceAttr("meraki_organizations_admin.testAdmin", "name", "testAdmin123"),
+					resource.TestCheckResourceAttr("meraki_organizations_admin.testAdmin", "name", "testAdmin1234666889"),
+				),
+			},
+
+			// Update testing
+			{
+				Config: testUpdatedAccOrganizationsAdminResourceConfig,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					// Verify first order item updated
+					resource.TestCheckResourceAttr("meraki_organizations_admin.testAdmin", "name", "testAdmin1234666889"),
 				),
 			},
 
@@ -26,16 +35,7 @@ func TestAccOrganizationsAdminResource(t *testing.T) {
 				ResourceName:      "meraki_organizations_admin.testAdmin",
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateId:     "1232821,test666889@gmail.com",
-			},
-
-			// Update testing
-			{
-				Config: testUpdatedAccOrganizationsAdminResourceConfig,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					// Verify first order item updated
-					resource.TestCheckResourceAttr("meraki_organizations_admin.testAdmin", "name", "testAdmin1234"),
-				),
+				ImportStateId:     "1232821,test20226668890101@gmail.com",
 			},
 
 			// Delete testing automatically occurs in TestCase
@@ -46,8 +46,8 @@ func TestAccOrganizationsAdminResource(t *testing.T) {
 const testAccOrganizationsAdminResourceConfig = `
 resource "meraki_organizations_admin" "testAdmin" {
 	id          = "1232821"
-	name        = "testAdmin123"
-	email       = "test666889@gmail.com"
+	name        = "testAdmin1234666889"
+	email       = "test20226668890101@gmail.com"
 	orgaccess   = "read-only"
     tags        = [
 		          {
@@ -68,20 +68,25 @@ resource "meraki_organizations_admin" "testAdmin" {
 const testUpdatedAccOrganizationsAdminResourceConfig = `
 resource "meraki_organizations_admin" "testAdmin" {
 	id          = "1232821"
-	name        = "testAdmin1234"
-	email       = "test666889@gmail.com"
+	name        = "testAdmin1234666889"
+	email       = "test20226668890101@gmail.com"
 	orgaccess   = "read-only"
 
 	networks = [{
 	  id = "N_784752235069332413"
-	  access = "monitor-only"
+	  access = "read-only"
 	}]
 	
 	tags        = [
-		          {
-			       tag = "west"
-			       access = "read-only"
-		          }
-	              ]
-				}
+		{
+			tag = "west"
+			access = "read-only"
+		},
+		{
+			 tag = "east"
+			 access = "read-only"
+		}
+	     ]
+				
+	}
 `

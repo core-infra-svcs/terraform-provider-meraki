@@ -20,17 +20,20 @@ Organization Admin resource - Manage the admins for an organization
 - `email` (String) Email of the dashboard administrator
 - `id` (String) meraki organization Id
 - `name` (String) name of the dashboard administrator
+- `networks` (Attributes List) list of networks that the dashboard administrator has privileges on. (see [below for nested schema](#nestedatt--networks))
 - `orgaccess` (String) Organization Access
+- `tags` (Attributes List) list of tags that the dashboard administrator has privileges on. (see [below for nested schema](#nestedatt--tags))
 
 ### Optional
 
-- `account_status` (String) Account Status
 - `adminid` (String) id of dashboard administrator
 - `authentication_method` (String) Authentication method
+
+### Read-Only
+
+- `account_status` (String) Account Status
 - `has_api_key` (Boolean) Api key exists or not
 - `last_active` (String) Last Time Active
-- `networks` (Attributes List) list of networks that the dashboard administrator has privileges on. (see [below for nested schema](#nestedatt--networks))
-- `tags` (Attributes List) list of tags that the dashboard administrator has privileges on. (see [below for nested schema](#nestedatt--tags))
 - `two_factor_auth_enabled` (Boolean) Two Factor Auth Enabled or Not
 
 <a id="nestedatt--networks"></a>
