@@ -393,7 +393,7 @@ func (r *OrganizationsAdaptivepolicyAclResource) Read(ctx context.Context, req r
 		data.Name = types.StringValue(result.Name)
 		data.AclId = types.StringValue(result.AclId)
 		data.Description = types.StringValue(result.Description)
-		if data.Rules != nil {
+		if result.Rules != nil {
 			data.Rules = result.Rules
 		}
 
