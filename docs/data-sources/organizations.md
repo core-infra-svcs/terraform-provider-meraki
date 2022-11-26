@@ -30,9 +30,9 @@ Optional:
 
 - `api_enabled` (Boolean) Enable API access
 - `cloud_region` (String) Region info
-- `id` (String) Organization ID
 - `licensing_model` (String) Organization licensing model. Can be 'co-term', 'per-device', or 'subscription'.
 - `name` (String) Organization name
+- `organization_id` (String) Organization ID
 - `url` (String) Organization URL
 
 
