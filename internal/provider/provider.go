@@ -2,6 +2,8 @@ package provider
 
 import (
 	"context"
+	"os"
+
 	apiclient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -9,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"os"
 )
 
 // Ensure ScaffoldingProvider satisfies various provider interfaces.
@@ -97,6 +98,7 @@ func (p *ScaffoldingProvider) Configure(ctx context.Context, req provider.Config
 func (p *ScaffoldingProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		NewOrganizationResource,
+		NewOrganizationsAdminResource,
 	}
 }
 
