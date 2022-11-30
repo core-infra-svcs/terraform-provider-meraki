@@ -255,10 +255,10 @@ func (r *OrganizationsAdaptivepolicyAclResource) Create(ctx context.Context, req
 	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 
 	// Convert map to struct
-	result, err := ConvertToSingleAclData(inlineResp)
+	result, err := convertToAclData(inlineResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to Convert map to struct",
+			"Unexpected error was encountered trying to Convert map to struct. This is always an error in the provider. Please report the following to the provider developer",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
@@ -317,10 +317,10 @@ func (r *OrganizationsAdaptivepolicyAclResource) Read(ctx context.Context, req r
 		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 
 		// Convert map to list of acl data
-		acldata, err := ConvertToSingleAclDataList(inlineGetAclResp)
+		acldata, err := convertToAclDataList(inlineGetAclResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
-				"Failed to Convert map to list of acl data",
+				"Unexpected error was encountered trying to Convert map to struct. This is always an error in the provider. Please report the following to the provider developer",
 				fmt.Sprintf("%v\n", err.Error()),
 			)
 		}
@@ -374,10 +374,10 @@ func (r *OrganizationsAdaptivepolicyAclResource) Read(ctx context.Context, req r
 		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 
 		// Convert map to struct
-		result, err := ConvertToSingleAclData(inlineResp)
+		result, err := convertToAclData(inlineResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
-				"Failed to Convert map to struct",
+				"Unexpected error was encountered trying to Convert map to struct. This is always an error in the provider. Please report the following to the provider developer",
 				fmt.Sprintf("%v\n", err.Error()),
 			)
 		}
@@ -434,10 +434,10 @@ func (r *OrganizationsAdaptivepolicyAclResource) Update(ctx context.Context, req
 		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 
 		// Convert map to list of acl data
-		acldata, err := ConvertToSingleAclDataList(inlinegetResp)
+		acldata, err := convertToAclDataList(inlinegetResp)
 		if err != nil {
 			resp.Diagnostics.AddError(
-				"Failed to Convert map to list of acl data",
+				"Unexpected error was encountered trying to Convert map to struct. This is always an error in the provider. Please report the following to the provider developer",
 				fmt.Sprintf("%v\n", err.Error()),
 			)
 		}
@@ -505,10 +505,10 @@ func (r *OrganizationsAdaptivepolicyAclResource) Update(ctx context.Context, req
 	// collect diagnostics
 	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 
-	aclUpdatedData, err := ConvertToSingleAclData(inlineUpdatedResp)
+	aclUpdatedData, err := convertToAclData(inlineUpdatedResp)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to Convert map to struct",
+			"Unexpected error was encountered trying to Convert map to struct. This is always an error in the provider. Please report the following to the provider developer",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
@@ -589,7 +589,7 @@ func (r *OrganizationsAdaptivepolicyAclResource) ImportState(ctx context.Context
 }
 
 // Convert to ACL Data
-func ConvertToSingleAclData(inlineResp map[string]interface{}) (AclInfo, error) {
+func convertToAclData(inlineResp map[string]interface{}) (AclInfo, error) {
 
 	var aclData AclInfo
 	// Convert map to json string
@@ -608,7 +608,7 @@ func ConvertToSingleAclData(inlineResp map[string]interface{}) (AclInfo, error) 
 }
 
 // Convert to ACL Data List
-func ConvertToSingleAclDataList(inlineResp []map[string]interface{}) ([]AclInfo, error) {
+func convertToAclDataList(inlineResp []map[string]interface{}) ([]AclInfo, error) {
 
 	var aclDataList []AclInfo
 	// Convert map to json string
