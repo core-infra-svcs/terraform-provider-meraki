@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"time"
 
 	apiclient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
@@ -30,8 +31,8 @@ type AdministeredIdentitiesMeDataSourceModel struct {
 	Id                          types.String `tfsdk:"id"`
 	AuthenticationApiKeyCreated types.Bool   `tfsdk:"authentication_api_key_created"`
 	AuthenticationMode          types.String `tfsdk:"authentication_mode"`
-	AuthenticationSaml          types.Bool   `tfsdk:"authentication_saml"`
-	AuthenticationTwofactor     types.Bool   `tfsdk:"authentication_two_factor"`
+	AuthenticationSaml          types.Bool   `tfsdk:"authentication_saml_enabled"`
+	AuthenticationTwofactor     types.Bool   `tfsdk:"authentication_two_factor_enabled"`
 	Email                       types.String `tfsdk:"email"`
 	LastUsedDashboardAt         types.String `tfsdk:"last_used_dashboard_at"`
 	Name                        types.String `tfsdk:"name"`
@@ -78,7 +79,7 @@ func (d *AdministeredIdentitiesMeDataSource) GetSchema(ctx context.Context) (tfs
 				Validators:          nil,
 				PlanModifiers:       nil,
 			},
-			"authentication_saml": {
+			"authentication_saml_enabled": {
 				Description:         "SAML authentication",
 				MarkdownDescription: "",
 				Type:                types.BoolType,
@@ -91,7 +92,7 @@ func (d *AdministeredIdentitiesMeDataSource) GetSchema(ctx context.Context) (tfs
 				Validators:          nil,
 				PlanModifiers:       nil,
 			},
-			"authentication_two_factor": {
+			"authentication_two_factor_enabled": {
 				Description:         "TwoFactor authentication",
 				MarkdownDescription: "",
 				Type:                types.BoolType,
@@ -203,7 +204,7 @@ func (d *AdministeredIdentitiesMeDataSource) Read(ctx context.Context, req datas
 	data.Id = types.StringValue("example-id")
 	data.Name = types.StringValue(inlineResp.GetName())
 	data.Email = types.StringValue(inlineResp.GetEmail())
-	data.LastUsedDashboardAt = types.StringValue(inlineResp.GetLastUsedDashboardAt().String())
+	data.LastUsedDashboardAt = types.StringValue(inlineResp.GetLastUsedDashboardAt().Format(time.RFC3339))
 	data.AuthenticationMode = types.StringValue(inlineResp.Authentication.GetMode())
 	data.AuthenticationApiKeyCreated = types.BoolValue(inlineResp.Authentication.Api.Key.GetCreated())
 	data.AuthenticationSaml = types.BoolValue(inlineResp.Authentication.Saml.GetEnabled())

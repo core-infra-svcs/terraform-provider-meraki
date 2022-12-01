@@ -1,9 +1,10 @@
 package provider
 
 import (
-	"testing"
-
+	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"regexp"
+	"testing"
 )
 
 func TestAccAdministeredIdentitiesMeDataSource(t *testing.T) {
@@ -16,13 +17,24 @@ func TestAccAdministeredIdentitiesMeDataSource(t *testing.T) {
 				Config: testAccAdministeredIdentitiesMeDataSourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
 
-					// TODO - Check return data matches expected result
+					//resource.TestCheckResourceAttr("data.meraki_administered_identities_me.test", "name", ""),
+					//resource.TestCheckResourceAttr("data.meraki_administered_identities_me.test", "email", ""),
 					resource.TestCheckResourceAttr("data.meraki_administered_identities_me.test", "id", "example-id"),
-					//resource.TestCheckResourceAttr("data.meraki_administered_identities_me.test", "email", "kiran.surapathi@gmail.com"),
 
-					//resource.TestCheckResourceAttr("data.meraki_administered_identities_me.test", "name", "kiran kumar surapathi"),
-					//resource.TestCheckResourceAttr("data.meraki_administered_identities_me.test", "authentication.saml.enabled", "false"),
-					//resource.TestCheckResourceAttr("data.meraki_administered_identities_me.test", "list.0.api_enabled", "true"),
+					resource.TestCheckResourceAttrWith(
+						"data.meraki_administered_identities_me.test", "last_used_dashboard_at", func(value string) error {
+
+							re := regexp.MustCompile(`^((?:(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}:\d{2}(?:\.\d+)?))(Z|[\+-]\d{2}:\d{2})?)$`)
+							if re.MatchString(value) != true {
+								return fmt.Errorf(fmt.Sprintf("received tiemstring does not match RFC3339 format: %s", value))
+							}
+
+							return nil
+						}),
+					resource.TestCheckResourceAttr("data.meraki_administered_identities_me.test", "authentication_api_key_created", "true"),
+					resource.TestCheckResourceAttr("data.meraki_administered_identities_me.test", "authentication_mode", "email"),
+					resource.TestCheckResourceAttr("data.meraki_administered_identities_me.test", "authentication_two_factor_enabled", "false"),
+					resource.TestCheckResourceAttr("data.meraki_administered_identities_me.test", "authentication_saml_enabled", "false"),
 				),
 			},
 		},
