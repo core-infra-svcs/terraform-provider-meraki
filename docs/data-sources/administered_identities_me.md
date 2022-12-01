@@ -19,8 +19,8 @@ AdministeredIdentitiesMe data source - Returns the identity of the current user
 
 - `authentication_api_key_created` (Boolean) API authentication Key
 - `authentication_mode` (String) Authentication mode
-- `authentication_saml` (Boolean) SAML authentication
-- `authentication_two_factor` (Boolean) TwoFactor authentication
+- `authentication_saml_enabled` (Boolean) SAML authentication
+- `authentication_two_factor_enabled` (Boolean) TwoFactor authentication
 - `email` (String) User email
 - `last_used_dashboard_at` (String) Last seen active on Dashboard UI
 - `name` (String) Username
