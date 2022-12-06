@@ -17,30 +17,34 @@ OrganizationsAdmins data source - get all list of  admins in an organization
 
 ### Required
 
-- `id` (String) org id
+- `organization_id` (String) The Id of the organization
 
 ### Optional
 
-- `list` (Attributes List) List of organization admins (see [below for nested schema](#nestedatt--list))
+- `list` (Attributes Set) List the dashboard administrators in this organization (see [below for nested schema](#nestedatt--list))
+
+### Read-Only
+
+- `id` (String) Example identifier
 
 <a id="nestedatt--list"></a>
 ### Nested Schema for `list`
 
 Optional:
 
-- `account_status` (String) Account Status
-- `authentication_method` (String) Authentication method
-- `email` (String) Email of the dashboard administrator
+- `account_status` (String) The Account Status
+- `authentication_method` (String) The method of authentication the user will use to sign in to the Meraki dashboard. Can be one of 'Email' or 'Cisco SecureX Sign-On'. The default is Email authentication
+- `email` (String) The email of the dashboard administrator. This attribute can not be updated.
 - `has_api_key` (Boolean) Api key exists or not
-- `id` (String) id of the organization
+- `id` (String) The organization id
 - `last_active` (String) Last Time Active
-- `name` (String) name of the dashboard administrator
-- `orgaccess` (String) Organization Access
+- `name` (String) The name of the dashboard administrator
+- `org_access` (String) The privilege of the dashboard administrator on the organization. Can be one of 'full', 'read-only', 'enterprise' or 'none'
 - `two_factor_auth_enabled` (Boolean) Two Factor Auth Enabled or Not
 
 Read-Only:
 
-- `networks` (Attributes List) list of networks that the dashboard administrator has privileges on. (see [below for nested schema](#nestedatt--list--networks))
+- `networks` (Attributes List) The list of networks that the dashboard administrator has privileges on. (see [below for nested schema](#nestedatt--list--networks))
 - `tags` (Attributes List) list of tags that the dashboard administrator has privileges on. (see [below for nested schema](#nestedatt--list--tags))
 
 <a id="nestedatt--list--networks"></a>
@@ -49,7 +53,7 @@ Read-Only:
 Optional:
 
 - `access` (String) network access
-- `id` (String) network id
+- `id` (String) The network id
 
 
 <a id="nestedatt--list--tags"></a>
