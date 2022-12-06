@@ -105,6 +105,7 @@ func (p *ScaffoldingProvider) DataSources(ctx context.Context) []func() datasour
 	return []func() datasource.DataSource{
 		NewOrganizationsDataSource,
 		NewAdministeredIdentitiesMeDataSource,
+		NewOrganizationsAdminsDataSource,
 	}
 }
 
