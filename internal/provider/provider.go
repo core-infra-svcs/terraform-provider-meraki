@@ -98,6 +98,7 @@ func (p *ScaffoldingProvider) Configure(ctx context.Context, req provider.Config
 func (p *ScaffoldingProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		NewOrganizationResource,
+		NewOrganizationSamlResource,
 		NewOrganizationsSamlIdpResource,
 	}
 }

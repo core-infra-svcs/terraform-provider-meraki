@@ -35,7 +35,7 @@ type OrganizationsSamlIdpResourceModel struct {
 	ConsumerUrl             types.String `tfsdk:"consumer_url"`
 	IdpId                   types.String `tfsdk:"idp_id"`
 	SloLogoutUrl            types.String `tfsdk:"slo_logout_url"`
-	X509CertSha1Fingerprint types.String `tfsdk:"x_509cert_sha1_fingerprint"`
+	X509CertSha1Fingerprint types.String `tfsdk:"x_509_cert_sha1_fingerprint"`
 }
 
 func (r *OrganizationsSamlIdpResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -44,8 +44,7 @@ func (r *OrganizationsSamlIdpResource) Metadata(ctx context.Context, req resourc
 
 func (r *OrganizationsSamlIdpResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
-		// TODO - This description is used by the documentation generator and the language server.
-		MarkdownDescription: "OrganizationsSamlIdp resource - ",
+		MarkdownDescription: "OrganizationsSamlIdp resource - Update a SAML IdP in your organization",
 		Attributes: map[string]tfsdk.Attribute{
 			"id": {
 				Computed:            true,
@@ -109,7 +108,7 @@ func (r *OrganizationsSamlIdpResource) GetSchema(ctx context.Context) (tfsdk.Sch
 				Validators:          nil,
 				PlanModifiers:       nil,
 			},
-			"x_509cert_sha1_fingerprint": {
+			"x_509_cert_sha1_fingerprint": {
 				Description:         "Fingerprint (SHA1) of the SAML certificate provided by your Identity Provider (IdP). This will be used for encryption / validation.",
 				MarkdownDescription: "Fingerprint (SHA1) of the SAML certificate provided by your Identity Provider (IdP). This will be used for encryption / validation.",
 				Type:                types.StringType,
@@ -155,6 +154,12 @@ func (r *OrganizationsSamlIdpResource) Create(ctx context.Context, req resource.
 		return
 	}
 
+	// Check for required parameters
+	if len(data.OrganizationId.ValueString()) < 1 {
+		resp.Diagnostics.AddError("Missing organization Id", fmt.Sprintf("Id: %s", data.OrganizationId.ValueString()))
+		return
+	}
+
 	// Create HTTP request body
 	createOrganizationsSamlIdp := *apiclient.NewInlineObject214(data.X509CertSha1Fingerprint.ValueString())
 	createOrganizationsSamlIdp.SetSloLogoutUrl(data.SloLogoutUrl.ValueString())
@@ -168,8 +173,7 @@ func (r *OrganizationsSamlIdpResource) Create(ctx context.Context, req resource.
 	// unmarshal http body into inlineResp object
 	var inlineResp *apiclient.InlineResponse20095
 	body, _ := io.ReadAll(httpResp.Body)
-	if err := json.Unmarshal(body, &inlineResp); err != nil {
-		fmt.Println(err)
+	if err = json.Unmarshal(body, &inlineResp); err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to unmarshal JSON into typed response",
 			fmt.Sprintf("%v", err.Error()),
@@ -191,8 +195,6 @@ func (r *OrganizationsSamlIdpResource) Create(ctx context.Context, req resource.
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
-	resp.Diagnostics.Append()
 
 	// save into the Terraform state.
 	data.Id = types.StringValue("example-id")
@@ -226,11 +228,9 @@ func (r *OrganizationsSamlIdpResource) Read(ctx context.Context, req resource.Re
 		return
 	}
 
-	//ToDo:- Check if this is really needed as it may not be in the required list, but is needed for this api call
-	//if len(data.IdpId.ValueString()) < 1 {
-	//	resp.Diagnostics.AddError("Missing idp_Id", fmt.Sprintf("idp_id: %s", data.IdpId.ValueString()))
-	//	return
-	//}
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	// Initialize provider client and make API call
 	inlineResp, httpResp, err := r.client.SamlApi.GetOrganizationSamlIdp(context.Background(), data.OrganizationId.ValueString(), data.IdpId.ValueString()).Execute()
@@ -272,13 +272,27 @@ func (r *OrganizationsSamlIdpResource) Read(ctx context.Context, req resource.Re
 
 func (r *OrganizationsSamlIdpResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var data *OrganizationsSamlIdpResourceModel
+	var stateData *OrganizationsSamlIdpResourceModel
 
 	// Read Terraform plan data
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
+	// Read Terraform state data into the model
+	resp.Diagnostics.Append(req.State.Get(ctx, &stateData)...)
+
 	// Check for required parameters
 	if len(data.OrganizationId.ValueString()) < 1 {
 		resp.Diagnostics.AddError("Missing organization_Id", fmt.Sprintf("organization_id: %s", data.OrganizationId.ValueString()))
+		return
+	}
+
+	// Check state for required attribute
+	if len(data.IdpId.ValueString()) < 1 {
+		data.IdpId = stateData.IdpId
+	}
+
+	if len(data.IdpId.ValueString()) < 1 {
+		resp.Diagnostics.AddError("Missing Idp Id", fmt.Sprintf("IdpId: %s", data.IdpId.ValueString()))
 		return
 	}
 
@@ -288,12 +302,19 @@ func (r *OrganizationsSamlIdpResource) Update(ctx context.Context, req resource.
 	updateOrganizationsSamlIdp.SetSloLogoutUrl(data.SloLogoutUrl.ValueString())
 
 	// Initialize provider client and make API call
-	inlineResp, httpResp, err := r.client.SamlApi.UpdateOrganizationSamlIdp(context.Background(),
+	_, httpResp, err := r.client.SamlApi.UpdateOrganizationSamlIdp(context.Background(),
 		data.OrganizationId.ValueString(), data.IdpId.ValueString()).UpdateOrganizationSamlIdp(*updateOrganizationsSamlIdp).Execute()
 	if err != nil {
+		// BUG - HTTP Client is unable to unmarshal data into typed response []client.InlineResponse20095, returns empty
+	}
+
+	// unmarshal http body into inlineResp object
+	var inlineResp *apiclient.InlineResponse20095
+	body, _ := io.ReadAll(httpResp.Body)
+	if err = json.Unmarshal(body, &inlineResp); err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"Failed to unmarshal JSON into typed response",
+			fmt.Sprintf("%v", err.Error()),
 		)
 	}
 
@@ -314,10 +335,10 @@ func (r *OrganizationsSamlIdpResource) Update(ctx context.Context, req resource.
 	}
 
 	data.Id = types.StringValue("example-id")
-	data.IdpId = types.StringValue(inlineResp[0].GetIdpId())
-	data.ConsumerUrl = types.StringValue(inlineResp[0].GetConsumerUrl())
-	data.SloLogoutUrl = types.StringValue(inlineResp[0].GetSloLogoutUrl())
-	data.X509CertSha1Fingerprint = types.StringValue(inlineResp[0].GetX509certSha1Fingerprint())
+	data.IdpId = types.StringValue(inlineResp.GetIdpId())
+	data.ConsumerUrl = types.StringValue(inlineResp.GetConsumerUrl())
+	data.SloLogoutUrl = types.StringValue(inlineResp.GetSloLogoutUrl())
+	data.X509CertSha1Fingerprint = types.StringValue(inlineResp.GetX509certSha1Fingerprint())
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -335,6 +356,11 @@ func (r *OrganizationsSamlIdpResource) Delete(ctx context.Context, req resource.
 	// check for required parameters
 	if len(data.OrganizationId.ValueString()) < 1 {
 		resp.Diagnostics.AddError("Missing organization_Id", fmt.Sprintf("organization_id: %s", data.OrganizationId.ValueString()))
+		return
+	}
+
+	if len(data.IdpId.ValueString()) < 1 {
+		resp.Diagnostics.AddError("Missing Idp Id", fmt.Sprintf("IdpId: %s", data.IdpId.ValueString()))
 		return
 	}
 
