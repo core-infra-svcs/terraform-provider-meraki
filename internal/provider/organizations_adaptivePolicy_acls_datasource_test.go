@@ -20,7 +20,9 @@ func TestAccOrganizationsAdaptivePolicyAclsDataSource(t *testing.T) {
 				),
 			},
 
-			// Read testing
+			// TODO - Create an adaptive policy acl
+
+			// Read an adaptive policy acl
 			{
 				Config: testAccOrganizationsAdaptivePolicyAclsDataSourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
@@ -36,6 +38,15 @@ const testAccOrganizationsAdaptivePolicyAclsDataSourceConfigCreateOrg = `
 resource "meraki_organization" "test" {
 	name = "test_meraki_organizations_admin_adaptive_policy_acls"
 	api_enabled = true
+}
+`
+
+// TODO - Create an adaptive policy acl
+const testAccOrganizationsAdaptivePolicyAclsDataSourceConfigCreateAcl = `
+resource "meraki_organization" "test" {}
+
+resource "meraki_organizations_adaptive_policy_acl" "test" {
+	...
 }
 `
 
