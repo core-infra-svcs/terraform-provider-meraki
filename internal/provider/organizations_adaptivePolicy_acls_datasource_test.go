@@ -6,25 +6,43 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccOrganizationsAdaptivepolicyAclsDataSource(t *testing.T) {
+func TestAccOrganizationsAdaptivePolicyAclsDataSource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
+			// Create test organization
+			{
+				Config: testAccOrganizationsAdaptivePolicyAclsDataSourceConfigCreateOrg,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
+					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_meraki_organizations_admin_adaptive_policy_acls"),
+				),
+			},
+
 			// Read testing
 			{
-				Config: testAccOrganizationsAdaptivepolicyAclsDataSourceConfig,
+				Config: testAccOrganizationsAdaptivePolicyAclsDataSourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-
-					resource.TestCheckResourceAttr("data.meraki_organizations_adaptivePolicy_acls.list", "id", "1232821"),
+					resource.TestCheckResourceAttr("data.meraki_organizations_adaptive_policy_acls.test", "id", "example-id"),
+					//resource.TestCheckResourceAttr("data.meraki_organizations_adaptive_policy_acls.test", "list.#", "1"),
 				),
 			},
 		},
 	})
 }
 
-const testAccOrganizationsAdaptivepolicyAclsDataSourceConfig = `
-data "meraki_organizations_adaptivePolicy_acls" "list" {
-    id = "1232821"
+const testAccOrganizationsAdaptivePolicyAclsDataSourceConfigCreateOrg = `
+resource "meraki_organization" "test" {
+	name = "test_meraki_organizations_admin_adaptive_policy_acls"
+	api_enabled = true
+}
+`
+
+const testAccOrganizationsAdaptivePolicyAclsDataSourceConfig = `
+resource "meraki_organization" "test" {}
+
+data "meraki_organizations_adaptive_policy_acls" "test" {
+    organization_id = resource.meraki_organization.test.organization_id
 }
 `

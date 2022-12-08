@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	apiclient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
@@ -11,74 +12,86 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ datasource.DataSource = &OrganizationsAdaptivepolicyAclsDataSource{}
+var _ datasource.DataSource = &OrganizationsAdaptivePolicyAclsDataSource{}
 
-func NewOrganizationsAdaptivepolicyAclsDataSource() datasource.DataSource {
-	return &OrganizationsAdaptivepolicyAclsDataSource{}
+func NewOrganizationsAdaptivePolicyAclsDataSource() datasource.DataSource {
+	return &OrganizationsAdaptivePolicyAclsDataSource{}
 }
 
-// OrganizationsAdaptivepolicyAclsDataSource defines the data source implementation.
-type OrganizationsAdaptivepolicyAclsDataSource struct {
+// OrganizationsAdaptivePolicyAclsDataSource defines the data source implementation.
+type OrganizationsAdaptivePolicyAclsDataSource struct {
 	client *apiclient.APIClient
 }
 
-// OrganizationsAdaptivepolicyAclsDataSourceModel describes the data source data model.
-type OrganizationsAdaptivepolicyAclsDataSourceModel struct {
-	Id   types.String                                    `tfsdk:"id"`
-	List []OrganizationAdaptivepolicyAclsDataSourceModel `tfsdk:"list"`
+// OrganizationsAdaptivePolicyAclsDataSourceModel describes the data source data model.
+type OrganizationsAdaptivePolicyAclsDataSourceModel struct {
+	Id    types.String                                    `tfsdk:"id"`
+	OrgId types.String                                    `tfsdk:"organization_id"`
+	List  []OrganizationAdaptivePolicyAclsDataSourceModel `tfsdk:"list"`
 }
 
-// OrganizationAdaptivepolicyAclsDataSourceModel describes the acl data source data model.
-type OrganizationAdaptivepolicyAclsDataSourceModel struct {
-	AclId       types.String         `tfsdk:"aclid"`
-	Name        types.String         `tfsdk:"name"`
-	Description types.String         `tfsdk:"description"`
-	IpVersion   types.String         `tfsdk:"ipversion"`
-	Rules       []DataSourceAclRules `tfsdk:"rules"`
+// OrganizationAdaptivePolicyAclsDataSourceModel describes the acl data source data model.
+type OrganizationAdaptivePolicyAclsDataSourceModel struct {
+	AclId       types.String                                         `tfsdk:"acl_id"`
+	Name        types.String                                         `tfsdk:"name"`
+	Description types.String                                         `tfsdk:"description"`
+	IpVersion   types.String                                         `tfsdk:"ip_version"`
+	Rules       []OrganizationAdaptivePolicyAclsDataSourceModelRules `tfsdk:"rules"`
+	CreatedAt   types.String                                         `tfsdk:"created_at"`
+	UpdatedAt   types.String                                         `tfsdk:"updated_at"`
 }
 
-// DataSourceAclInfo  describes the acl data model
-type DataSourceAclInfo struct {
-	Name        string
-	AclId       string
-	Description string
-	IpVersion   string
-	Rules       []DataSourceAclRules
-}
-
-// RulesData  describes the rules data model
-type DataSourceAclRules struct {
+type OrganizationAdaptivePolicyAclsDataSourceModelRules struct {
 	Policy   string  `tfsdk:"policy"`
 	Protocol string  `tfsdk:"protocol"`
-	SrcPort  *string `tfsdk:"srcport"`
-	DstPort  *string `tfsdk:"dstport"`
+	SrcPort  *string `tfsdk:"src_port"`
+	DstPort  *string `tfsdk:"dst_port"`
 }
 
-func (d *OrganizationsAdaptivepolicyAclsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_organizations_adaptivePolicy_acls"
+func (d *OrganizationsAdaptivePolicyAclsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_organizations_adaptive_policy_acls"
 }
 
-func (d *OrganizationsAdaptivepolicyAclsDataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+func (d *OrganizationsAdaptivePolicyAclsDataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
 
-		MarkdownDescription: "OrganizationsAdaptivepolicyAcls data source - get all list of  acls in an organization",
+		MarkdownDescription: "OrganizationsAdaptivePolicyAcls data source - get all list of  acls in an organization",
 		Attributes: map[string]tfsdk.Attribute{
 
 			"id": {
-				MarkdownDescription: "org id",
+				Description:         "Example identifier",
+				MarkdownDescription: "Example identifier",
+				Type:                types.StringType,
+				Required:            false,
+				Optional:            false,
+				Computed:            true,
+				Sensitive:           false,
+				Attributes:          nil,
+				DeprecationMessage:  "",
+				Validators:          nil,
+				PlanModifiers:       nil,
+			},
+			"organization_id": {
 				Description:         "Organization Id",
+				MarkdownDescription: "The Id of the organization",
 				Type:                types.StringType,
 				Required:            true,
+				Optional:            false,
+				Computed:            false,
+				Sensitive:           false,
+				Attributes:          nil,
+				DeprecationMessage:  "",
+				Validators:          nil,
+				PlanModifiers:       nil,
 			},
 			"list": {
 				MarkdownDescription: "List of organization acls",
 				Optional:            true,
-				Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-					"aclid": {
+				Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
+					"acl_id": {
 						Description:         "Acl ID",
 						MarkdownDescription: "",
 						Type:                types.StringType,
@@ -117,7 +130,7 @@ func (d *OrganizationsAdaptivepolicyAclsDataSource) GetSchema(ctx context.Contex
 						Validators:          nil,
 						PlanModifiers:       nil,
 					},
-					"ipversion": {
+					"ip_version": {
 						Description:         "IP version of adaptive policy ACL. One of: any, ipv4 or ipv6",
 						MarkdownDescription: "",
 						Type:                types.StringType,
@@ -161,7 +174,7 @@ func (d *OrganizationsAdaptivepolicyAclsDataSource) GetSchema(ctx context.Contex
 								Validators:          nil,
 								PlanModifiers:       nil,
 							},
-							"srcport": {
+							"src_port": {
 								Description:         "Source port. Must be in the format of single port: '1', port list: '1,2' or port range: '1-10', and in the range of 1-65535, or 'any'. Default is 'any'.",
 								MarkdownDescription: "",
 								Type:                types.StringType,
@@ -174,7 +187,7 @@ func (d *OrganizationsAdaptivepolicyAclsDataSource) GetSchema(ctx context.Contex
 								Validators:          nil,
 								PlanModifiers:       nil,
 							},
-							"dstport": {
+							"dst_port": {
 								Description:         "Destination port. Must be in the format of single port: '1', port list: '1,2' or port range: '1-10', and in the range of 1-65535, or 'any'. Default is 'any'.",
 								MarkdownDescription: "",
 								Type:                types.StringType,
@@ -193,7 +206,7 @@ func (d *OrganizationsAdaptivepolicyAclsDataSource) GetSchema(ctx context.Contex
 	}, nil
 }
 
-func (d *OrganizationsAdaptivepolicyAclsDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *OrganizationsAdaptivePolicyAclsDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -212,20 +225,26 @@ func (d *OrganizationsAdaptivepolicyAclsDataSource) Configure(ctx context.Contex
 	d.client = client
 }
 
-func (d *OrganizationsAdaptivepolicyAclsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data OrganizationsAdaptivepolicyAclsDataSourceModel
+func (d *OrganizationsAdaptivePolicyAclsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var data OrganizationsAdaptivePolicyAclsDataSourceModel
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+
+	// Check for required parameters
+	if len(data.OrgId.ValueString()) < 1 {
+		resp.Diagnostics.AddError("Missing organizationId", fmt.Sprintf("Value: %s", data.OrgId.ValueString()))
+		return
+	}
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	inlineResp, httpResp, err := d.client.OrganizationsApi.GetOrganizationAdaptivePolicyAcls(context.Background(), data.Id.ValueString()).Execute()
+	inlineResp, httpResp, err := d.client.OrganizationsApi.GetOrganizationAdaptivePolicyAcls(context.Background(), data.OrgId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to read resource",
+			"Failed to read datasource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
@@ -241,47 +260,82 @@ func (d *OrganizationsAdaptivepolicyAclsDataSource) Read(ctx context.Context, re
 	// collect diagnostics
 	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 
-	var acldata []DataSourceAclInfo
-	// Convert map to json string
-	jsongetStr, err := json.Marshal(inlineResp)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Unexpected error was encountered trying to Convert map to struct. This is always an error in the provider. Please report the following to the provider developer",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-
-	}
-	// Convert json string to struct
-	if err := json.Unmarshal(jsongetStr, &acldata); err != nil {
-		resp.Diagnostics.AddError(
-			"Unexpected error was encountered trying to Convert map to struct. This is always an error in the provider. Please report the following to the provider developer",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-	}
-
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
+		resp.Diagnostics.AddError("State Data", fmt.Sprintf("\n%v", data))
 		return
 	}
 
-	resp.Diagnostics.Append()
+	// Save data into Terraform state
+	data.Id = types.StringValue("example-id")
 
-	for _, acl := range acldata {
-		var result OrganizationAdaptivepolicyAclsDataSourceModel
-		result.AclId = types.StringValue(acl.AclId)
-		result.Name = types.StringValue(acl.Name)
-		result.Description = types.StringValue(acl.Description)
-		result.IpVersion = types.StringValue(acl.IpVersion)
-		if acl.Rules != nil {
-			result.Rules = acl.Rules
+	// acls attribute
+	if acls := inlineResp; acls != nil {
+
+		for _, inlineRespValue := range acls {
+			var acl OrganizationAdaptivePolicyAclsDataSourceModel
+
+			// aclId attribute
+			if aclId := inlineRespValue["aclId"]; aclId != nil {
+				acl.AclId = types.StringValue(aclId.(string))
+			} else {
+				acl.AclId = types.StringNull()
+			}
+
+			// name attribute
+			if name := inlineRespValue["name"]; name != nil {
+				acl.Name = types.StringValue(name.(string))
+			} else {
+				acl.Name = types.StringNull()
+			}
+
+			// description attribute
+			if description := inlineRespValue["description"]; description != nil {
+				acl.Description = types.StringValue(description.(string))
+			} else {
+				acl.Description = types.StringNull()
+			}
+
+			// ipVersion attribute
+			if ipVersion := inlineRespValue["ipVersion"]; ipVersion != nil {
+				acl.IpVersion = types.StringValue(ipVersion.(string))
+			} else {
+				acl.IpVersion = types.StringNull()
+			}
+
+			// rules attribute
+			if rules := inlineRespValue["rules"]; rules != nil {
+				for _, r := range rules.([]interface{}) {
+					var rule OrganizationAdaptivePolicyAclsDataSourceModelRules
+					_ = json.Unmarshal([]byte(r.(string)), &rule)
+					acl.Rules = append(acl.Rules, rule)
+				}
+			} else {
+				acl.Rules = nil
+			}
+
+			// createdAt attribute
+			if createdAt := inlineRespValue["createdAt"]; createdAt != nil {
+				acl.CreatedAt = types.StringValue(createdAt.(string))
+			} else {
+				acl.CreatedAt = types.StringNull()
+			}
+
+			// updatedAt attribute
+			if updatedAt := inlineRespValue["updatedAt"]; updatedAt != nil {
+				acl.UpdatedAt = types.StringValue(updatedAt.(string))
+			} else {
+				acl.UpdatedAt = types.StringNull()
+			}
+
+			// append acl to list of acls
+			data.List = append(data.List, acl)
 		}
 
-		data.List = append(data.List, result)
 	}
 
-	// Write logs using the tflog package
-	tflog.Trace(ctx, "read a data source")
-
-	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+
+	// Write logs using the tflog package
+	tflog.Trace(ctx, "read data source")
 }
