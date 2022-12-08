@@ -32,46 +32,29 @@ type OrganizationsAdminResource struct {
 
 // OrganizationsAdminResourceModel describes the resource data model.
 type OrganizationsAdminResourceModel struct {
-	Id                   types.String           `tfsdk:"id"`
-	AdminId              types.String           `tfsdk:"adminid"`
-	Name                 types.String           `tfsdk:"name"`
-	Email                types.String           `tfsdk:"email"`
-	OrgAccess            types.String           `tfsdk:"orgaccess"`
-	AuthenticationMethod types.String           `tfsdk:"authentication_method"`
-	AccountStatus        types.String           `tfsdk:"account_status"`
-	TwoFactorAuthEnabled types.Bool             `tfsdk:"two_factor_auth_enabled"`
-	HasApiKey            types.Bool             `tfsdk:"has_api_key"`
-	LastActive           types.String           `tfsdk:"last_active"`
-	Tags                 []AdminResourceTag     `tfsdk:"tags"`
-	Networks             []AdminResourceNetwork `tfsdk:"networks"`
+	Id                   types.String                             `tfsdk:"id"`
+	OrgId                types.String                             `tfsdk:"organization_id"`
+	AdminId              types.String                             `tfsdk:"admin_id"`
+	Name                 types.String                             `tfsdk:"name"`
+	Email                types.String                             `tfsdk:"email"`
+	OrgAccess            types.String                             `tfsdk:"org_access"`
+	AccountStatus        types.String                             `tfsdk:"account_status"`
+	TwoFactorAuthEnabled types.Bool                               `tfsdk:"two_factor_auth_enabled"`
+	HasApiKey            types.Bool                               `tfsdk:"has_api_key"`
+	LastActive           types.String                             `tfsdk:"last_active"`
+	Tags                 []OrganizationsAdminResourceModelTag     `tfsdk:"tags"`
+	Networks             []OrganizationsAdminResourceModelNetwork `tfsdk:"networks"`
+	AuthenticationMethod types.String                             `tfsdk:"authentication_method"`
 }
 
-// AdminResourceTag  describes the tag data model
-type AdminResourceTag struct {
-	Tag    string `tfsdk:"tag"`
-	Access string `tfsdk:"access"`
+type OrganizationsAdminResourceModelNetwork struct {
+	Id     types.String `tfsdk:"id"`
+	Access types.String `tfsdk:"access"`
 }
 
-// AdminResourceNetwork  describes the network data model
-type AdminResourceNetwork struct {
-	Id     string `tfsdk:"id"`
-	Access string `tfsdk:"access"`
-}
-
-// AdminResourceInfo  describes the resource data model
-type AdminResourceInfo struct {
-	Name                 string
-	Email                string
-	Id                   string
-	AdminId              string
-	OrgAccess            string
-	AuthenticationMethod string
-	Tags                 []AdminResourceTag
-	Networks             []AdminResourceNetwork
-	AccountStatus        string
-	TwoFactorAuthEnabled bool
-	HasApiKey            bool
-	LastActive           string
+type OrganizationsAdminResourceModelTag struct {
+	Tag    types.String `tfsdk:"tag"`
+	Access types.String `tfsdk:"access"`
 }
 
 func (r *OrganizationsAdminResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -84,12 +67,32 @@ func (r *OrganizationsAdminResource) GetSchema(ctx context.Context) (tfsdk.Schem
 		MarkdownDescription: "Organization Admin resource - Manage the admins for an organization",
 		Attributes: map[string]tfsdk.Attribute{
 			"id": {
-				Description:         "meraki organization Id",
-				MarkdownDescription: "",
+				Description:         "Example identifier",
+				MarkdownDescription: "Example identifier",
+				Type:                types.StringType,
+				Required:            false,
+				Optional:            false,
+				Computed:            true,
+				Sensitive:           false,
+				Attributes:          nil,
+				DeprecationMessage:  "",
+				Validators:          nil,
+				PlanModifiers:       nil,
+			},
+			"organization_id": {
+				Description:         "Organization Id",
+				MarkdownDescription: "The Id of the organization",
 				Type:                types.StringType,
 				Required:            true,
+				Optional:            false,
+				Computed:            false,
+				Sensitive:           false,
+				Attributes:          nil,
+				DeprecationMessage:  "",
+				Validators:          nil,
+				PlanModifiers:       nil,
 			},
-			"adminid": {
+			"admin_id": {
 				Description:         "id of dashboard administrator",
 				MarkdownDescription: "",
 				Type:                types.StringType,
@@ -106,22 +109,9 @@ func (r *OrganizationsAdminResource) GetSchema(ctx context.Context) (tfsdk.Schem
 				Description:         "name of the dashboard administrator",
 				MarkdownDescription: "",
 				Type:                types.StringType,
-				Required:            true,
-				Optional:            false,
-				Computed:            false,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
-			},
-			"orgaccess": {
-				Description:         "Organization Access",
-				MarkdownDescription: "",
-				Type:                types.StringType,
-				Required:            true,
-				Optional:            false,
-				Computed:            false,
+				Required:            false,
+				Optional:            true,
+				Computed:            true,
 				Sensitive:           false,
 				Attributes:          nil,
 				DeprecationMessage:  "",
@@ -132,17 +122,30 @@ func (r *OrganizationsAdminResource) GetSchema(ctx context.Context) (tfsdk.Schem
 				Description:         "Email of the dashboard administrator",
 				MarkdownDescription: "",
 				Type:                types.StringType,
-				Required:            true,
-				Optional:            false,
-				Computed:            false,
+				Required:            false,
+				Optional:            true,
+				Computed:            true,
 				Sensitive:           false,
 				Attributes:          nil,
 				DeprecationMessage:  "",
 				Validators:          nil,
 				PlanModifiers:       nil,
 			},
-			"authentication_method": {
-				Description:         "Authentication method",
+			"org_access": {
+				Description:         "Organization Access",
+				MarkdownDescription: "",
+				Type:                types.StringType,
+				Required:            false,
+				Optional:            true,
+				Computed:            true,
+				Sensitive:           false,
+				Attributes:          nil,
+				DeprecationMessage:  "",
+				Validators:          nil,
+				PlanModifiers:       nil,
+			},
+			"account_status": {
+				Description:         "Account Status",
 				MarkdownDescription: "",
 				Type:                types.StringType,
 				Required:            false,
@@ -158,17 +161,8 @@ func (r *OrganizationsAdminResource) GetSchema(ctx context.Context) (tfsdk.Schem
 				Description:         "Two Factor Auth Enabled or Not",
 				MarkdownDescription: "",
 				Type:                types.BoolType,
-				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
-			},
-			"account_status": {
-				Description:         "Account Status",
-				MarkdownDescription: "",
-				Type:                types.StringType,
+				Required:            false,
+				Optional:            true,
 				Computed:            true,
 				Sensitive:           false,
 				Attributes:          nil,
@@ -180,6 +174,8 @@ func (r *OrganizationsAdminResource) GetSchema(ctx context.Context) (tfsdk.Schem
 				Description:         "Api key exists or not",
 				MarkdownDescription: "",
 				Type:                types.BoolType,
+				Required:            false,
+				Optional:            true,
 				Computed:            true,
 				Sensitive:           false,
 				Attributes:          nil,
@@ -191,6 +187,8 @@ func (r *OrganizationsAdminResource) GetSchema(ctx context.Context) (tfsdk.Schem
 				Description:         "Last Time Active",
 				MarkdownDescription: "",
 				Type:                types.StringType,
+				Required:            false,
+				Optional:            true,
 				Computed:            true,
 				Sensitive:           false,
 				Attributes:          nil,
@@ -199,12 +197,14 @@ func (r *OrganizationsAdminResource) GetSchema(ctx context.Context) (tfsdk.Schem
 				PlanModifiers:       nil,
 			},
 			"tags": {
-				Description: "list of tags that the dashboard administrator has privileges on.",
-				Required:    true,
+				Description:         "list of tags that the dashboard administrator has privileges on.",
+				MarkdownDescription: "list of tags that the dashboard administrator has privileges on.",
+				Computed:            true,
+				Optional:            true,
 				Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
 					"tag": {
-						Description:         "administrator tag",
-						MarkdownDescription: "",
+						Description:         "tag",
+						MarkdownDescription: "tag",
 						Type:                types.StringType,
 						Required:            false,
 						Optional:            true,
@@ -216,8 +216,8 @@ func (r *OrganizationsAdminResource) GetSchema(ctx context.Context) (tfsdk.Schem
 						PlanModifiers:       nil,
 					},
 					"access": {
-						Description:         "administrator tag access",
-						MarkdownDescription: "",
+						Description:         "access",
+						MarkdownDescription: "access",
 						Type:                types.StringType,
 						Required:            false,
 						Optional:            true,
@@ -230,12 +230,14 @@ func (r *OrganizationsAdminResource) GetSchema(ctx context.Context) (tfsdk.Schem
 					},
 				})},
 			"networks": {
-				Description: "list of networks that the dashboard administrator has privileges on.",
-				Required:    true,
+				Description:         "The list of networks that the dashboard administrator has privileges on.",
+				MarkdownDescription: "The list of networks that the dashboard administrator has privileges on.",
+				Computed:            true,
+				Optional:            true,
 				Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
 					"id": {
-						Description:         "administrator network id ",
-						MarkdownDescription: "",
+						Description:         "The network id",
+						MarkdownDescription: "The network id",
 						Type:                types.StringType,
 						Required:            false,
 						Optional:            true,
@@ -247,8 +249,8 @@ func (r *OrganizationsAdminResource) GetSchema(ctx context.Context) (tfsdk.Schem
 						PlanModifiers:       nil,
 					},
 					"access": {
-						Description:         "administrator network access",
-						MarkdownDescription: "",
+						Description:         "network access",
+						MarkdownDescription: "network access",
 						Type:                types.StringType,
 						Required:            false,
 						Optional:            true,
@@ -260,6 +262,19 @@ func (r *OrganizationsAdminResource) GetSchema(ctx context.Context) (tfsdk.Schem
 						PlanModifiers:       nil,
 					},
 				})},
+			"authentication_method": {
+				Description:         "Authentication method must be one of: 'Email' or 'Cisco SecureX or 'Sign-On'. ",
+				MarkdownDescription: "Authentication method must be one of: 'Email' or 'Cisco SecureX or 'Sign-On'.",
+				Type:                types.StringType,
+				Required:            false,
+				Optional:            true,
+				Computed:            true,
+				Sensitive:           false,
+				Attributes:          nil,
+				DeprecationMessage:  "",
+				Validators:          nil,
+				PlanModifiers:       nil,
+			},
 		},
 	}, nil
 }
@@ -290,51 +305,51 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
+	// Check for required parameters
+	if len(data.OrgId.ValueString()) < 1 {
+		resp.Diagnostics.AddError("Missing OrganizationId", fmt.Sprintf("Value: %s", data.OrgId.ValueString()))
+		return
+	}
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Creating and Validating Payload for Creating Adminstrator
-	createOrganizationAdmin := *apiclient.NewInlineObject176(data.Email.ValueString(), data.Name.ValueString(), data.OrgAccess.ValueString())
+	// Creating and Validating Payload for Creating Administrator
+	createOrganizationAdmin := *apiclient.NewInlineObject176(
+		data.Email.ValueString(),
+		data.Name.ValueString(),
+		data.OrgAccess.ValueString())
 
-	if data.Tags != nil {
-		if len(data.Tags) != 0 {
-			var t []apiclient.OrganizationsOrganizationIdAdminsTags
-			for _, tag := range data.Tags {
-				var tagData apiclient.OrganizationsOrganizationIdAdminsTags
-				tagData.Tag = tag.Tag
-				tagData.Access = tag.Access
-				t = append(t, tagData)
-			}
-			createOrganizationAdmin.SetTags(t)
-		} else {
-			resp.Diagnostics.AddError("tags should not be empty. Add atleast one tag and access field", fmt.Sprintf("tags: %v", data.Tags))
-			return
+	// Tags
+	if len(data.Tags) < 0 {
+		var tags []apiclient.OrganizationsOrganizationIdAdminsTags
+		for _, attribute := range data.Tags {
+			var tag apiclient.OrganizationsOrganizationIdAdminsTags
+			tag.Tag = attribute.Tag.ValueString()
+			tag.Access = attribute.Tag.ValueString()
+			tags = append(tags, tag)
 		}
+		createOrganizationAdmin.SetTags(tags)
 	}
 
-	if data.Networks != nil {
-		if len(data.Networks) != 0 {
-			var n []apiclient.OrganizationsOrganizationIdAdminsNetworks
-			for _, network := range data.Networks {
-				var networkData apiclient.OrganizationsOrganizationIdAdminsNetworks
-				networkData.Id = network.Id
-				networkData.Access = network.Access
-				n = append(n, networkData)
-			}
-			createOrganizationAdmin.SetNetworks(n)
-		} else {
-			resp.Diagnostics.AddError("networks should not be empty. Add atleast one id and access field", fmt.Sprintf("networks: %v", data.Networks))
-			return
+	// Networks
+	if len(data.Networks) < 0 {
+		var networks []apiclient.OrganizationsOrganizationIdAdminsNetworks
+		for _, attribute := range data.Networks {
+			var network apiclient.OrganizationsOrganizationIdAdminsNetworks
+			network.Id = attribute.Id.ValueString()
+			network.Access = attribute.Access.ValueString()
+			networks = append(networks, network)
 		}
-
+		createOrganizationAdmin.SetNetworks(networks)
 	}
 
-	if !data.AuthenticationMethod.IsUnknown() {
+	if data.AuthenticationMethod.IsNull() != true {
 		createOrganizationAdmin.SetAuthenticationMethod(data.AuthenticationMethod.ValueString())
 	}
 
-	inlineResp, httpResp, err := r.client.AdminsApi.CreateOrganizationAdmin(context.Background(), data.Id.ValueString()).CreateOrganizationAdmin(createOrganizationAdmin).Execute()
+	inlineResp, httpResp, err := r.client.AdminsApi.CreateOrganizationAdmin(context.Background(), data.OrgId.ValueString()).CreateOrganizationAdmin(createOrganizationAdmin).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to create resource",
@@ -353,42 +368,18 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 	// collect diagnostics
 	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 
-	admindata, err := convertToAdminData(inlineResp)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"An unexpected error was encountered trying to Convert map to struct. This is always an error in the provider. Please report the following to the provider developer",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-	}
-
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
+		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
 		return
 	}
 
-	resp.Diagnostics.Append()
-
-	data.Name = types.StringValue(admindata.Name)
-	data.Email = types.StringValue(admindata.Email)
-	data.AdminId = types.StringValue(admindata.Id)
-	data.OrgAccess = types.StringValue(admindata.OrgAccess)
-	data.AuthenticationMethod = types.StringValue(admindata.AuthenticationMethod)
-	data.AccountStatus = types.StringValue(admindata.AccountStatus)
-	data.TwoFactorAuthEnabled = types.BoolValue(admindata.TwoFactorAuthEnabled)
-	data.HasApiKey = types.BoolValue(admindata.HasApiKey)
-	data.LastActive = types.StringValue(admindata.LastActive)
-	if data.Tags != nil {
-		data.Tags = admindata.Tags
-	}
-	if data.Networks != nil {
-		data.Networks = admindata.Networks
-	}
+	// Save data into Terraform state
+	extractHttpResponseOrganizationAdminResource(ctx, inlineResp, data)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
 	tflog.Trace(ctx, "create resource")
-
-	// Save data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (r *OrganizationsAdminResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -397,11 +388,22 @@ func (r *OrganizationsAdminResource) Read(ctx context.Context, req resource.Read
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
+	// Check for required parameters
+	if len(data.OrgId.ValueString()) < 1 {
+		resp.Diagnostics.AddError("Missing OrganizationId", fmt.Sprintf("Value: %s", data.OrgId.ValueString()))
+		return
+	}
+
+	if len(data.AdminId.ValueString()) < 1 {
+		resp.Diagnostics.AddError("Missing AdminId", fmt.Sprintf("Value: %s", data.AdminId.ValueString()))
+		return
+	}
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	inlineResp, httpResp, err := r.client.AdminsApi.GetOrganizationAdmins(context.Background(), data.Id.ValueString()).Execute()
+	inlineResp, httpResp, err := r.client.AdminsApi.GetOrganizationAdmins(context.Background(), data.OrgId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to read resource",
@@ -425,46 +427,14 @@ func (r *OrganizationsAdminResource) Read(ctx context.Context, req resource.Read
 		return
 	}
 
-	resp.Diagnostics.Append()
+	// get admin
+	for _, admin := range inlineResp {
 
-	adminresource, err := convertToAdminDataList(inlineResp)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"An unexpected error was encountered trying to Convert map to struct. This is always an error in the provider. Please report the following to the provider developer",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-	}
+		// Match id found in tf state
+		if adminId := admin["id"]; adminId == data.AdminId.ValueString() {
 
-	adminsearch := false
-
-	for _, admindata := range adminresource {
-
-		if admindata.Email == data.Email.ValueString() {
-
-			data.Name = types.StringValue(admindata.Name)
-			data.Email = types.StringValue(admindata.Email)
-			data.AdminId = types.StringValue(admindata.Id)
-			data.OrgAccess = types.StringValue(admindata.OrgAccess)
-			data.AuthenticationMethod = types.StringValue(admindata.AuthenticationMethod)
-			data.AccountStatus = types.StringValue(admindata.AccountStatus)
-			data.TwoFactorAuthEnabled = types.BoolValue(admindata.TwoFactorAuthEnabled)
-			data.HasApiKey = types.BoolValue(admindata.HasApiKey)
-			data.LastActive = types.StringValue(admindata.LastActive)
-			if admindata.Tags != nil {
-				data.Tags = admindata.Tags
-			}
-			if admindata.Networks != nil {
-				data.Networks = admindata.Networks
-			}
-			adminsearch = true
-
-		}
-
-	}
-	if !adminsearch {
-		{
-			resp.Diagnostics.AddError("No Admin details found or not created yet", fmt.Sprintf("email: %s", data.Email))
-			return
+			// Save data into Terraform state
+			extractHttpResponseOrganizationAdminResource(ctx, admin, data)
 		}
 	}
 
@@ -474,106 +444,64 @@ func (r *OrganizationsAdminResource) Read(ctx context.Context, req resource.Read
 
 func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var data *OrganizationsAdminResourceModel
+	var stateData *OrganizationsAdminResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
+	// Read Terraform state data into the model
+	resp.Diagnostics.Append(req.State.Get(ctx, &stateData)...)
+
+	// Check for required parameters
+	if len(data.OrgId.ValueString()) < 1 {
+		resp.Diagnostics.AddError("Missing OrganizationId", fmt.Sprintf("Value: %s", data.OrgId.ValueString()))
+		return
+	}
+
+	// Check state for required attribute
+	if len(data.AdminId.ValueString()) < 1 {
+		data.AdminId = stateData.AdminId
+	}
+
+	if len(data.AdminId.ValueString()) < 1 {
+		resp.Diagnostics.AddError("Missing AdminId", fmt.Sprintf("AdminId: %s", data.AdminId.ValueString()))
+		return
+	}
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Fetching admin current details before updating
-	inlinegetResp, httpResp, err := r.client.AdminsApi.GetOrganizationAdmins(context.Background(), data.Id.ValueString()).Execute()
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Failed to read resource",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-	}
-
-	// Check for API success inlineResp code
-	if httpResp.StatusCode != 200 {
-		resp.Diagnostics.AddError(
-			"Unexpected HTTP Response Status Code",
-			fmt.Sprintf("%v", httpResp.StatusCode),
-		)
-	}
-
-	// collect diagnostics
-	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
-
-	// Convert map to list of admin data
-	adminresource, err := convertToAdminDataList(inlinegetResp)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"An unexpected error was encountered trying to Convert map to struct. This is always an error in the provider. Please report the following to the provider developer",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-	}
-
-	// Check for errors after diagnostics collected
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	resp.Diagnostics.Append()
-
-	adminsearch := false
-
-	for _, admindata := range adminresource {
-
-		if admindata.Email == data.Email.ValueString() {
-
-			data.AdminId = types.StringValue(admindata.Id)
-			adminsearch = true
-
-		}
-	}
-	if !adminsearch {
-		{
-			resp.Diagnostics.AddError("No Admin details found or not created yet", fmt.Sprintf("email: %s", data.Email))
-			return
-		}
-	}
-
-	// Creating and Validating Payload for Updating Adminstrator
+	// Creating and Validating Payload for Creating Administrator
 	updateOrganizationAdmin := *apiclient.NewInlineObject177()
-	if data.Tags != nil {
-		if len(data.Tags) != 0 {
-			var t []apiclient.OrganizationsOrganizationIdAdminsTags
-			for _, tag := range data.Tags {
-				var tagData apiclient.OrganizationsOrganizationIdAdminsTags
-				tagData.Tag = tag.Tag
-				tagData.Access = tag.Access
-				t = append(t, tagData)
-
-			}
-			updateOrganizationAdmin.SetTags(t)
-		} else {
-			resp.Diagnostics.AddError("tags should not be empty. Add atleast one tag and access field", fmt.Sprintf("tags: %v", data.Tags))
-			return
-		}
-	}
-
-	if data.Networks != nil {
-		if len(data.Networks) != 0 {
-			var n []apiclient.OrganizationsOrganizationIdAdminsNetworks
-			for _, network := range data.Networks {
-				var networkData apiclient.OrganizationsOrganizationIdAdminsNetworks
-				networkData.Id = network.Id
-				networkData.Access = network.Access
-				n = append(n, networkData)
-			}
-			updateOrganizationAdmin.SetNetworks(n)
-		} else {
-			resp.Diagnostics.AddError("networks should not be empty. Add atleast one id and access field", fmt.Sprintf("networks: %v", data.Networks))
-			return
-		}
-
-	}
 	updateOrganizationAdmin.SetName(data.Name.ValueString())
 	updateOrganizationAdmin.SetOrgAccess(data.OrgAccess.ValueString())
-	inlineResp, httpResp, err := r.client.AdminsApi.UpdateOrganizationAdmin(context.Background(), data.Id.ValueString(), data.AdminId.ValueString()).UpdateOrganizationAdmin(updateOrganizationAdmin).Execute()
+
+	// Tags
+	if len(data.Tags) < 0 {
+		var tags []apiclient.OrganizationsOrganizationIdAdminsTags
+		for _, attribute := range data.Tags {
+			var tag apiclient.OrganizationsOrganizationIdAdminsTags
+			tag.Tag = attribute.Tag.ValueString()
+			tag.Access = attribute.Tag.ValueString()
+			tags = append(tags, tag)
+		}
+		updateOrganizationAdmin.SetTags(tags)
+	}
+
+	// Networks
+	if len(data.Networks) < 0 {
+		var networks []apiclient.OrganizationsOrganizationIdAdminsNetworks
+		for _, attribute := range data.Networks {
+			var network apiclient.OrganizationsOrganizationIdAdminsNetworks
+			network.Id = attribute.Id.ValueString()
+			network.Access = attribute.Access.ValueString()
+			networks = append(networks, network)
+		}
+		updateOrganizationAdmin.SetNetworks(networks)
+	}
+
+	inlineResp, httpResp, err := r.client.AdminsApi.UpdateOrganizationAdmin(context.Background(), data.OrgId.ValueString(), data.AdminId.ValueString()).UpdateOrganizationAdmin(updateOrganizationAdmin).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to update resource",
@@ -592,37 +520,14 @@ func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.Up
 	// collect diagnostics
 	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 
-	admindata, err := convertToAdminData(inlineResp)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"An unexpected error was encountered trying to Convert map to struct. This is always an error in the provider. Please report the following to the provider developer",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-	}
-
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
+		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
 		return
 	}
-	resp.Diagnostics.Append()
 
-	data.Name = types.StringValue(admindata.Name)
-	data.Email = types.StringValue(admindata.Email)
-	data.AdminId = types.StringValue(admindata.Id)
-	data.OrgAccess = types.StringValue(admindata.OrgAccess)
-	data.AuthenticationMethod = types.StringValue(admindata.AuthenticationMethod)
-	data.AccountStatus = types.StringValue(admindata.AccountStatus)
-	data.TwoFactorAuthEnabled = types.BoolValue(admindata.TwoFactorAuthEnabled)
-	data.HasApiKey = types.BoolValue(admindata.HasApiKey)
-	data.LastActive = types.StringValue(admindata.LastActive)
-	if data.Tags != nil {
-		data.Tags = admindata.Tags
-	}
-	if data.Networks != nil {
-		data.Networks = admindata.Networks
-	}
-
-	// Save updated data into Terraform state
+	// Save data into Terraform state
+	extractHttpResponseOrganizationAdminResource(ctx, inlineResp, data)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -632,11 +537,22 @@ func (r *OrganizationsAdminResource) Delete(ctx context.Context, req resource.De
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
+	// Check for required parameters
+	if len(data.OrgId.ValueString()) < 1 {
+		resp.Diagnostics.AddError("Missing OrganizationId", fmt.Sprintf("Value: %s", data.OrgId.ValueString()))
+		return
+	}
+
+	if len(data.AdminId.ValueString()) < 1 {
+		resp.Diagnostics.AddError("Missing AdminId", fmt.Sprintf("Value: %s", data.AdminId.ValueString()))
+		return
+	}
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	httpResp, err := r.client.AdminsApi.DeleteOrganizationAdmin(context.Background(), data.Id.ValueString(), data.AdminId.ValueString()).Execute()
+	httpResp, err := r.client.AdminsApi.DeleteOrganizationAdmin(context.Background(), data.OrgId.ValueString(), data.AdminId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to delete resource",
@@ -664,57 +580,112 @@ func (r *OrganizationsAdminResource) Delete(ctx context.Context, req resource.De
 
 }
 
+func extractHttpResponseOrganizationAdminResource(ctx context.Context, inlineRespValue map[string]interface{}, data *OrganizationsAdminResourceModel) *OrganizationsAdminResourceModel {
+
+	// save into the Terraform state
+	data.Id = types.StringValue("example-id")
+
+	// id attribute
+	if id := inlineRespValue["id"]; id != nil {
+		data.AdminId = types.StringValue(id.(string))
+	} else {
+		data.AdminId = types.StringNull()
+	}
+
+	// name attribute
+	if name := inlineRespValue["name"]; name != nil {
+		data.Name = types.StringValue(name.(string))
+	} else {
+		data.Name = types.StringNull()
+	}
+
+	// email attribute
+	if email := inlineRespValue["email"]; email != nil {
+		data.Email = types.StringValue(email.(string))
+	} else {
+		data.Email = types.StringNull()
+	}
+
+	// orgAccess attribute
+	if orgAccess := inlineRespValue["orgAccess"]; orgAccess != nil {
+		data.OrgAccess = types.StringValue(orgAccess.(string))
+	} else {
+		data.OrgAccess = types.StringNull()
+	}
+
+	// accountStatus attribute
+	if accountStatus := inlineRespValue["accountStatus"]; accountStatus != nil {
+		data.AccountStatus = types.StringValue(accountStatus.(string))
+	} else {
+		data.AccountStatus = types.StringNull()
+	}
+
+	// twoFactorAuthEnabled attribute
+	if twoFactorAuthEnabled := inlineRespValue["twoFactorAuthEnabled"]; twoFactorAuthEnabled != nil {
+		data.TwoFactorAuthEnabled = types.BoolValue(twoFactorAuthEnabled.(bool))
+	} else {
+		data.TwoFactorAuthEnabled = types.BoolNull()
+	}
+
+	// hasApiKey attribute
+	if hasApiKey := inlineRespValue["hasApiKey"]; hasApiKey != nil {
+		data.HasApiKey = types.BoolValue(hasApiKey.(bool))
+	} else {
+		data.HasApiKey = types.BoolNull()
+	}
+
+	// lastActive attribute
+	if lastActive := inlineRespValue["lastActive"]; lastActive != nil {
+		data.LastActive = types.StringValue(lastActive.(string))
+	} else {
+		data.LastActive = types.StringNull()
+	}
+
+	// tags attribute
+	if tags := inlineRespValue["tags"]; tags != nil {
+		for _, tv := range tags.([]interface{}) {
+			var tag OrganizationsAdminResourceModelTag
+			_ = json.Unmarshal([]byte(tv.(string)), &tag)
+			data.Tags = append(data.Tags, tag)
+		}
+	} else {
+		data.Tags = nil
+	}
+
+	// networks attribute
+	if networks := inlineRespValue["networks"]; networks != nil {
+		for _, tv := range networks.([]interface{}) {
+			var network OrganizationsAdminResourceModelNetwork
+			_ = json.Unmarshal([]byte(tv.(string)), &network)
+			data.Networks = append(data.Networks, network)
+		}
+	} else {
+		data.Networks = nil
+	}
+
+	// authenticationMethod attribute
+	if authenticationMethod := inlineRespValue["authenticationMethod"]; authenticationMethod != nil {
+		data.AuthenticationMethod = types.StringValue(authenticationMethod.(string))
+	} else {
+		data.AuthenticationMethod = types.StringNull()
+	}
+
+	return data
+}
+
 func (r *OrganizationsAdminResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 	idParts := strings.Split(req.ID, ",")
 	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
 		resp.Diagnostics.AddError(
 			"Unexpected Import Identifier",
-			fmt.Sprintf("Expected import identifier with format: id,email. Got: %q", req.ID),
+			fmt.Sprintf("Expected import identifier with format: organization_id, admin_id. Got: %q", req.ID),
 		)
 		return
 	}
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), idParts[0])...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("email"), idParts[1])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("organization_id"), idParts[0])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("admin_id"), idParts[1])...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
-}
-
-// Convert to Struct Admin Data
-func convertToAdminData(inlineResp map[string]interface{}) (AdminResourceInfo, error) {
-
-	var adminData AdminResourceInfo
-	// Convert map to json string
-	jsongetStr, err := json.Marshal(inlineResp)
-	if err != nil {
-		return adminData, err
-
-	}
-	// Convert json string to struct
-	if err := json.Unmarshal(jsongetStr, &adminData); err != nil {
-		return adminData, err
-	}
-
-	return adminData, err
-
-}
-
-// Convert to Struct Admin Data List
-func convertToAdminDataList(inlineResp []map[string]interface{}) ([]AdminResourceInfo, error) {
-
-	var adminDataList []AdminResourceInfo
-	// Convert map to json string
-	jsongetStr, err := json.Marshal(inlineResp)
-	if err != nil {
-		return adminDataList, err
-
-	}
-	// Convert json string to struct
-	if err := json.Unmarshal(jsongetStr, &adminDataList); err != nil {
-		return adminDataList, err
-	}
-
-	return adminDataList, err
-
 }

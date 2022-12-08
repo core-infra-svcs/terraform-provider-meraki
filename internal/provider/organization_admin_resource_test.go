@@ -11,13 +11,28 @@ func TestAccOrganizationsAdminResource(t *testing.T) {
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
+
+			// Create test organization
+			{
+				Config: testAccOrganizationsAdminResourceConfigCreateOrg,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
+					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_meraki_organization_admin"),
+				),
+			},
+
 			// Create and Read testing
 			{
 				Config: testAccOrganizationsAdminResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-
-					// TODO - Check return data matches expected result
-					resource.TestCheckResourceAttr("meraki_organizations_admin.testAdmin", "name", "testAdmin1234666889666"),
+					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "name", "testAdmin"),
+					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "email", "meraki_organizations_admin_test@example.com"),
+					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "org_access", "read-only"),
+					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "authentication_method", "Email"),
+					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "tags.0.tag", "west"),
+					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "tags.0.access", "read-only"),
+					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "networks.0.id", "N_784752235069332413"),
+					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "networks.0.access", "read-only"),
 				),
 			},
 
@@ -25,40 +40,49 @@ func TestAccOrganizationsAdminResource(t *testing.T) {
 			{
 				Config: testUpdatedAccOrganizationsAdminResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					// Verify first order item updated
-					resource.TestCheckResourceAttr("meraki_organizations_admin.testAdmin", "name", "testAdmin1234666889666"),
+					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "tags.1.tag", "east"),
+					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "tags.1.access", "read-only"),
+					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "networks.1.id", "N_784752235069332414"),
+					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "networks.1.access", "read-only"),
 				),
 			},
 
-			// ImportState testing
-			{
-				ResourceName:      "meraki_organizations_admin.testAdmin",
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateId:     "1232821,test20226668890101666@gmail.com",
-			},
+			// TODO - ImportState testing - This only works when hard-coded organizationId + adminId.
+			/*
+				{
+						ResourceName:      "meraki_organizations_admin.test",
+						ImportState:       true,
+						ImportStateVerify: false,
+						ImportStateId:     "657525545596096508, 657525545596237587",
+					},
+			*/
 
 			// Delete testing automatically occurs in TestCase
 		},
 	})
 }
 
+const testAccOrganizationsAdminResourceConfigCreateOrg = `
+ resource "meraki_organization" "test" {
+ 	name = "test_meraki_organization_admin"
+ 	api_enabled = true
+ }
+ `
+
 const testAccOrganizationsAdminResourceConfig = `
-resource "meraki_organizations_admin" "testAdmin" {
-	id          = "1232821"
-	name        = "testAdmin1234666889666"
-	email       = "test20226668890101666@gmail.com"
-	orgaccess   = "read-only"
-    tags        = [
-		          {
-			       tag = "west"
-			       access = "read-only"
-		          },
-                  {
-			        tag = "east"
-			        access = "read-only"
-		          }
-	              ]
+resource "meraki_organization" "test" {}
+
+resource "meraki_organizations_admin" "test" {
+	organization_id = resource.meraki_organization.test.organization_id
+	name        = "testAdmin"
+	email       = "meraki_organizations_admin_test@example.com"
+	org_access   = "read-only"
+	authentication_method = "Email"
+    tags = [
+			  {
+			   tag = "west"
+			   access = "read-only"
+			  }]
     networks    = [{
                   id = "N_784752235069332413"
                   access = "read-only"
@@ -66,27 +90,30 @@ resource "meraki_organizations_admin" "testAdmin" {
 }
 `
 const testUpdatedAccOrganizationsAdminResourceConfig = `
-resource "meraki_organizations_admin" "testAdmin" {
-	id          = "1232821"
-	name        = "testAdmin1234666889666"
-	email       = "test20226668890101666@gmail.com"
-	orgaccess   = "read-only"
+resource "meraki_organization" "test" {}
 
-	networks = [{
-	  id = "N_784752235069332413"
-	  access = "read-only"
-	}]
-	
-	tags        = [
-		{
-			tag = "west"
-			access = "read-only"
-		},
-		{
-			 tag = "east"
-			 access = "read-only"
-		}
-	     ]
-				
-	}
+resource "meraki_organizations_admin" "test" {
+	organization_id = resource.meraki_organization.test.organization_id
+	name        = "testAdmin"
+	email       = "meraki_organizations_admin_test@example.com"
+	org_access   = "read-only"
+	authentication_method = "Email"
+    tags = [
+			{
+				tag = "west"
+				access = "read-only"
+			},
+			{
+				tag = "east"
+				access = "read-only"
+			  }]
+    networks    = [{
+                  id = "N_784752235069332413"
+                  access = "read-only"
+                },
+				{
+                  id = "N_784752235069332414"
+                  access = "read-only"
+                }]
+}
 `

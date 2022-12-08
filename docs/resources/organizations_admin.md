@@ -17,32 +17,33 @@ Organization Admin resource - Manage the admins for an organization
 
 ### Required
 
-- `email` (String) Email of the dashboard administrator
-- `id` (String) meraki organization Id
-- `name` (String) name of the dashboard administrator
-- `networks` (Attributes List) list of networks that the dashboard administrator has privileges on. (see [below for nested schema](#nestedatt--networks))
-- `orgaccess` (String) Organization Access
-- `tags` (Attributes List) list of tags that the dashboard administrator has privileges on. (see [below for nested schema](#nestedatt--tags))
+- `organization_id` (String) The Id of the organization
 
 ### Optional
 
-- `adminid` (String) id of dashboard administrator
-- `authentication_method` (String) Authentication method
+- `account_status` (String) Account Status
+- `admin_id` (String) id of dashboard administrator
+- `authentication_method` (String) Authentication method must be one of: 'Email' or 'Cisco SecureX or 'Sign-On'.
+- `email` (String) Email of the dashboard administrator
+- `has_api_key` (Boolean) Api key exists or not
+- `last_active` (String) Last Time Active
+- `name` (String) name of the dashboard administrator
+- `networks` (Attributes List) The list of networks that the dashboard administrator has privileges on. (see [below for nested schema](#nestedatt--networks))
+- `org_access` (String) Organization Access
+- `tags` (Attributes List) list of tags that the dashboard administrator has privileges on. (see [below for nested schema](#nestedatt--tags))
+- `two_factor_auth_enabled` (Boolean) Two Factor Auth Enabled or Not
 
 ### Read-Only
 
-- `account_status` (String) Account Status
-- `has_api_key` (Boolean) Api key exists or not
-- `last_active` (String) Last Time Active
-- `two_factor_auth_enabled` (Boolean) Two Factor Auth Enabled or Not
+- `id` (String) Example identifier
 
 <a id="nestedatt--networks"></a>
 ### Nested Schema for `networks`
 
 Optional:
 
-- `access` (String) administrator network access
-- `id` (String) administrator network id
+- `access` (String) network access
+- `id` (String) The network id
 
 
 <a id="nestedatt--tags"></a>
@@ -50,7 +51,7 @@ Optional:
 
 Optional:
 
-- `access` (String) administrator tag access
-- `tag` (String) administrator tag
+- `access` (String) access
+- `tag` (String) tag
 
 
