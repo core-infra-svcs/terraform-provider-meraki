@@ -2,7 +2,6 @@ package provider
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
@@ -45,10 +44,10 @@ type OrganizationAdaptivePolicyAclsDataSourceModel struct {
 }
 
 type OrganizationAdaptivePolicyAclsDataSourceModelRules struct {
-	Policy   string  `tfsdk:"policy"`
-	Protocol string  `tfsdk:"protocol"`
-	SrcPort  *string `tfsdk:"src_port"`
-	DstPort  *string `tfsdk:"dst_port"`
+	Policy   types.String `tfsdk:"policy"`
+	Protocol types.String `tfsdk:"protocol"`
+	SrcPort  types.String `tfsdk:"src_port"`
+	DstPort  types.String `tfsdk:"dst_port"`
 }
 
 func (d *OrganizationsAdaptivePolicyAclsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -147,10 +146,11 @@ func (d *OrganizationsAdaptivePolicyAclsDataSource) GetSchema(ctx context.Contex
 						Description: "An ordered array of the adaptive policy ACL rules.",
 						Optional:    true,
 						Computed:    true,
+						// Type: types.ListType{ElemType: types.SetType{ElemType: types.StringType}},
 						Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
 							"policy": {
 								Description:         "'allow' or 'deny' traffic specified by this rule.",
-								MarkdownDescription: "",
+								MarkdownDescription: "'allow' or 'deny' traffic specified by this rule.",
 								Type:                types.StringType,
 								Required:            false,
 								Optional:            true,
@@ -163,7 +163,7 @@ func (d *OrganizationsAdaptivePolicyAclsDataSource) GetSchema(ctx context.Contex
 							},
 							"protocol": {
 								Description:         "The type of protocol (must be 'tcp', 'udp', 'icmp' or 'any').",
-								MarkdownDescription: "",
+								MarkdownDescription: "The type of protocol (must be 'tcp', 'udp', 'icmp' or 'any').",
 								Type:                types.StringType,
 								Required:            false,
 								Optional:            true,
@@ -176,7 +176,7 @@ func (d *OrganizationsAdaptivePolicyAclsDataSource) GetSchema(ctx context.Contex
 							},
 							"src_port": {
 								Description:         "Source port. Must be in the format of single port: '1', port list: '1,2' or port range: '1-10', and in the range of 1-65535, or 'any'. Default is 'any'.",
-								MarkdownDescription: "",
+								MarkdownDescription: "Source port. Must be in the format of single port: '1', port list: '1,2' or port range: '1-10', and in the range of 1-65535, or 'any'. Default is 'any'.",
 								Type:                types.StringType,
 								Required:            false,
 								Optional:            true,
@@ -189,7 +189,7 @@ func (d *OrganizationsAdaptivePolicyAclsDataSource) GetSchema(ctx context.Contex
 							},
 							"dst_port": {
 								Description:         "Destination port. Must be in the format of single port: '1', port list: '1,2' or port range: '1-10', and in the range of 1-65535, or 'any'. Default is 'any'.",
-								MarkdownDescription: "",
+								MarkdownDescription: "Destination port. Must be in the format of single port: '1', port list: '1,2' or port range: '1-10', and in the range of 1-65535, or 'any'. Default is 'any'.",
 								Type:                types.StringType,
 								Required:            false,
 								Optional:            true,
@@ -201,6 +201,32 @@ func (d *OrganizationsAdaptivePolicyAclsDataSource) GetSchema(ctx context.Contex
 								PlanModifiers:       nil,
 							},
 						})},
+					"created_at": {
+						Description:         "rule created timestamp",
+						MarkdownDescription: "",
+						Type:                types.StringType,
+						Required:            false,
+						Optional:            true,
+						Computed:            true,
+						Sensitive:           false,
+						Attributes:          nil,
+						DeprecationMessage:  "",
+						Validators:          nil,
+						PlanModifiers:       nil,
+					},
+					"updated_at": {
+						Description:         "last updated timestamp",
+						MarkdownDescription: "",
+						Type:                types.StringType,
+						Required:            false,
+						Optional:            true,
+						Computed:            true,
+						Sensitive:           false,
+						Attributes:          nil,
+						DeprecationMessage:  "",
+						Validators:          nil,
+						PlanModifiers:       nil,
+					},
 				})},
 		},
 	}, nil
@@ -269,67 +295,87 @@ func (d *OrganizationsAdaptivePolicyAclsDataSource) Read(ctx context.Context, re
 	// Save data into Terraform state
 	data.Id = types.StringValue("example-id")
 
-	// acls attribute
-	if acls := inlineResp; acls != nil {
+	// adaptivePolicies attribute
+	if adaptivePolicies := inlineResp; adaptivePolicies != nil {
 
-		for _, inlineRespValue := range acls {
-			var acl OrganizationAdaptivePolicyAclsDataSourceModel
+		for _, inlineRespValue := range adaptivePolicies {
+			var adaptivePolicy OrganizationAdaptivePolicyAclsDataSourceModel
 
-			// aclId attribute
-			if aclId := inlineRespValue["aclId"]; aclId != nil {
-				acl.AclId = types.StringValue(aclId.(string))
+			// id attribute
+			if id := inlineRespValue["aclId"]; id != nil {
+				adaptivePolicy.AclId = types.StringValue(id.(string))
 			} else {
-				acl.AclId = types.StringNull()
-			}
-
-			// name attribute
-			if name := inlineRespValue["name"]; name != nil {
-				acl.Name = types.StringValue(name.(string))
-			} else {
-				acl.Name = types.StringNull()
+				adaptivePolicy.AclId = types.StringNull()
 			}
 
 			// description attribute
 			if description := inlineRespValue["description"]; description != nil {
-				acl.Description = types.StringValue(description.(string))
+				adaptivePolicy.Description = types.StringValue(description.(string))
 			} else {
-				acl.Description = types.StringNull()
+				adaptivePolicy.Description = types.StringNull()
 			}
 
 			// ipVersion attribute
 			if ipVersion := inlineRespValue["ipVersion"]; ipVersion != nil {
-				acl.IpVersion = types.StringValue(ipVersion.(string))
+				adaptivePolicy.IpVersion = types.StringValue(ipVersion.(string))
 			} else {
-				acl.IpVersion = types.StringNull()
+				adaptivePolicy.IpVersion = types.StringNull()
 			}
 
 			// rules attribute
 			if rules := inlineRespValue["rules"]; rules != nil {
-				for _, r := range rules.([]interface{}) {
-					var rule OrganizationAdaptivePolicyAclsDataSourceModelRules
-					_ = json.Unmarshal([]byte(r.(string)), &rule)
-					acl.Rules = append(acl.Rules, rule)
+				for _, v := range rules.([]interface{}) {
+					rule := v.(map[string]interface{})
+					var ruleResult OrganizationAdaptivePolicyAclsDataSourceModelRules
+
+					// policy attribute
+					if policy := rule["policy"]; policy != nil {
+						ruleResult.Policy = types.StringValue(policy.(string))
+					} else {
+						ruleResult.Policy = types.StringNull()
+					}
+
+					// protocol attribute
+					if protocol := rule["protocol"]; protocol != nil {
+						ruleResult.Protocol = types.StringValue(protocol.(string))
+					} else {
+						ruleResult.Protocol = types.StringNull()
+					}
+
+					// srcPort attribute
+					if srcPort := rule["srcPort"]; srcPort != nil {
+						ruleResult.SrcPort = types.StringValue(srcPort.(string))
+					} else {
+						ruleResult.SrcPort = types.StringNull()
+					}
+
+					// dstPort attribute
+					if dstPort := rule["dstPort"]; dstPort != nil {
+						ruleResult.DstPort = types.StringValue(dstPort.(string))
+					} else {
+						ruleResult.DstPort = types.StringNull()
+					}
+					adaptivePolicy.Rules = append(adaptivePolicy.Rules, ruleResult)
 				}
-			} else {
-				acl.Rules = nil
+
 			}
 
-			// createdAt attribute
+			// updatedAt attribute
 			if createdAt := inlineRespValue["createdAt"]; createdAt != nil {
-				acl.CreatedAt = types.StringValue(createdAt.(string))
+				adaptivePolicy.CreatedAt = types.StringValue(createdAt.(string))
 			} else {
-				acl.CreatedAt = types.StringNull()
+				adaptivePolicy.CreatedAt = types.StringNull()
 			}
 
 			// updatedAt attribute
 			if updatedAt := inlineRespValue["updatedAt"]; updatedAt != nil {
-				acl.UpdatedAt = types.StringValue(updatedAt.(string))
+				adaptivePolicy.UpdatedAt = types.StringValue(updatedAt.(string))
 			} else {
-				acl.UpdatedAt = types.StringNull()
+				adaptivePolicy.UpdatedAt = types.StringNull()
 			}
 
-			// append acl to list of acls
-			data.List = append(data.List, acl)
+			// append adaptivePolicy to list of adaptivePolicies
+			data.List = append(data.List, adaptivePolicy)
 		}
 
 	}
