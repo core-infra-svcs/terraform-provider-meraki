@@ -6,75 +6,115 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccOrganizationsAdaptivepolicyAclResource(t *testing.T) {
+func TestAccOrganizationsAdaptivePolicyAclResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
+
+			// Create test organization
+			{
+				Config: testAccOrganizationsAdaptivePolicyAclResourceConfigCreateOrganization,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
+					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_meraki_organizations_adaptive_policy_acl"),
+				),
+			},
+
 			// Create and Read testing
 			{
-				Config: testAccOrganizationsAdaptivepolicyAclResourceConfig,
+				Config: testAccOrganizationsAdaptivePolicyAclResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("meraki_organizations_adaptive_policy_acl.test", "id", "example-id"),
+					resource.TestCheckResourceAttr("meraki_organizations_adaptive_policy_acl.test", "name", "Block sensitive web traffic"),
+					resource.TestCheckResourceAttr("meraki_organizations_adaptive_policy_acl.test", "description", "Blocks sensitive web traffic"),
+					resource.TestCheckResourceAttr("meraki_organizations_adaptive_policy_acl.test", "ip_version", "ipv6"),
 
-					resource.TestCheckResourceAttr("meraki_organizations_adaptivePolicy_acl.testAcl", "name", "testacl2"),
+					resource.TestCheckResourceAttr("meraki_organizations_adaptive_policy_acl.test", "rules.#", "1"),
+					resource.TestCheckResourceAttr("meraki_organizations_adaptive_policy_acl.test", "rules.0.policy", "deny"),
+					resource.TestCheckResourceAttr("meraki_organizations_adaptive_policy_acl.test", "rules.0.protocol", "tcp"),
+					resource.TestCheckResourceAttr("meraki_organizations_adaptive_policy_acl.test", "rules.0.src_port", "1,33"),
+					resource.TestCheckResourceAttr("meraki_organizations_adaptive_policy_acl.test", "rules.0.dst_port", "22-30"),
 				),
 			},
 
 			// Update testing
 			{
-				Config: testUpdatedAccOrganizationsAdaptivepolicyAclResourceConfig,
+				Config: testAccOrganizationsAdaptivePolicyAclResourceConfigUpdate,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					// Verify first order item updated
-					resource.TestCheckResourceAttr("meraki_organizations_adaptivePolicy_acl.testAcl", "description", "Blocks sensitive web traffic sets"),
+
+					resource.TestCheckResourceAttr("meraki_organizations_adaptive_policy_acl.test", "rules.#", "2"),
+					resource.TestCheckResourceAttr("meraki_organizations_adaptive_policy_acl.test", "rules.1.policy", "allow"),
+					resource.TestCheckResourceAttr("meraki_organizations_adaptive_policy_acl.test", "rules.1.protocol", "any"),
+					resource.TestCheckResourceAttr("meraki_organizations_adaptive_policy_acl.test", "rules.1.src_port", "any"),
+					resource.TestCheckResourceAttr("meraki_organizations_adaptive_policy_acl.test", "rules.1.dst_port", "any"),
 				),
 			},
 
-			// ImportState testing
-			{
-				ResourceName:      "meraki_organizations_adaptivePolicy_acl.testAcl",
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateId:     "784752235069308981,testacl2",
-			},
+			// TODO - ImportState testing
+			/*
+				{
+						ResourceName:      "meraki_organizations_adaptive_policy_acl.test",
+						ImportState:       true,
+						ImportStateVerify: true,
+						ImportStateId:     "1234567890, 00000111111",
+					},
+			*/
 
 			// Delete testing automatically occurs in TestCase
 		},
 	})
 }
 
+const testAccOrganizationsAdaptivePolicyAclResourceConfigCreateOrganization = `
+ resource "meraki_organization" "test" {
+ 	name = "test_meraki_organizations_adaptive_policy_acl"
+ 	api_enabled = true
+ }
+ `
+
 // Config for create and read
-const testAccOrganizationsAdaptivepolicyAclResourceConfig = `
-resource "meraki_organizations_adaptivePolicy_acl" "testAcl" {
-	id          = "784752235069308981"
-	name        = "testacl2"
+const testAccOrganizationsAdaptivePolicyAclResourceConfig = `
+resource "meraki_organization" "test" {}
+
+resource "meraki_organizations_adaptive_policy_acl" "test" {
+	organization_id          = resource.meraki_organization.test.organization_id
+	name = "Block sensitive web traffic"
 	description = "Blocks sensitive web traffic"
-	ipversion   = "ipv6"
-	rules       = [      
-                  {
-                   policy = "allow"
-                   protocol = "any"
-                   srcport = "any"
-                   dstport = "any"
-                  }
-                  ]  
+	ip_version   = "ipv6"
+	rules = [      
+		{
+			"policy": "deny",
+			"protocol": "tcp",
+			"src_port": "1,33",
+			"dst_port": "22-30"
+		}
+	]  
   }
 `
 
 // Config for update
-const testUpdatedAccOrganizationsAdaptivepolicyAclResourceConfig = `
-resource "meraki_organizations_adaptivePolicy_acl" "testAcl" {
-	id          = "784752235069308981"
-	name        = "testacl2"
-	description = "Blocks sensitive web traffic sets"
-	ipversion   = "ipv6"
-	rules       = [
-				  {
-					policy = "allow"
-					protocol = "any"
-					srcport = "any"
-					dstport = "any"
-				  }
-				  ] 
-  
+const testAccOrganizationsAdaptivePolicyAclResourceConfigUpdate = `
+resource "meraki_organization" "test" {}
+
+resource "meraki_organizations_adaptive_policy_acl" "test" {
+	organization_id          = resource.meraki_organization.test.organization_id
+	name = "Block sensitive web traffic"
+	description = "Blocks sensitive web traffic"
+	ip_version   = "ipv6"
+	rules = [      
+		{
+			"policy": "deny",
+			"protocol": "tcp",
+			"src_port": "1,33",
+			"dst_port": "22-30"
+		},
+		{
+			"policy": "allow",
+			"protocol": "any",
+			"src_port": "any",
+			"dst_port": "any"
+		}
+	]  
   }
 `
