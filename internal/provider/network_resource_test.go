@@ -12,6 +12,16 @@ func TestAccOrganizationsNetworkResource(t *testing.T) {
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
+
+			// Create test organization
+			{
+				Config: testAccOrganizationsNetworkResourceConfigCreateOrganization,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
+					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_meraki_network.test"),
+				),
+			},
+
 			// Create and Read testing (network)
 			{
 				Config: testAccOrganizationsNetworkResourceConfig,
@@ -19,8 +29,12 @@ func TestAccOrganizationsNetworkResource(t *testing.T) {
 					resource.TestCheckResourceAttr("meraki_network.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_network.test", "name", "Main Office"),
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
-					//resource.TestCheckResourceAttr("meraki_network.test", "product_types", "[\"appliance\", \"switch\", \"wireless\"]"),
-					//resource.TestCheckResourceAttr("meraki_network.test", "enrollment_string", "my-enrollment-string"),
+					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
+					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
+					resource.TestCheckResourceAttr("meraki_network.test", "product_types.#", "3"),
+					resource.TestCheckResourceAttr("meraki_network.test", "product_types.0", "appliance"),
+					resource.TestCheckResourceAttr("meraki_network.test", "product_types.1", "switch"),
+					resource.TestCheckResourceAttr("meraki_network.test", "product_types.2", "wireless"),
 					resource.TestCheckResourceAttr("meraki_network.test", "notes", "Additional description of the network"),
 				),
 			},
@@ -29,17 +43,10 @@ func TestAccOrganizationsNetworkResource(t *testing.T) {
 			{
 				Config: testAccOrganizationsNetworkResourceConfigUpdate,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "id", "example-id"),
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "Main Office"),
-					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
-
-					// this checks the number of tags
-					//resource.TestCheckResourceAttr("data.meraki_network.product_tags", "list.#", "2"),
-
-					//resource.TestCheckResourceAttr("meraki_network.test", "tags", "[\"tag1\", \"tag2\"]"),
-					//resource.TestCheckResourceAttr("meraki_network.test", "product_types", "[\"appliance\", \"switch\", \"wireless\"]"),
-					//resource.TestCheckResourceAttr("meraki_network.test", "enrollment_string", "my-enrollment-string"),
-					resource.TestCheckResourceAttr("meraki_network.test", "notes", "Additional description of the network"),
+					resource.TestCheckResourceAttr("meraki_network.test", "enrollment_string", "my-enrollment-string-switch"),
+					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "2"),
+					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
+					resource.TestCheckResourceAttr("meraki_network.test", "tags.1", "tag2"),
 				),
 			},
 
@@ -48,38 +55,21 @@ func TestAccOrganizationsNetworkResource(t *testing.T) {
 	})
 }
 
-/*
-const testAccOrganizationResourceConfigOrganization = `
-resource "meraki_organization" "testOrg1" {
-	name = "testOrg1"
-	api_enabled = true
-}
-
-output "testOrg1" {
-  value = resource.meraki_organization.testOrg1.organization_id
-}
-`
-
-resource "meraki_organization" "testOrg" {
-	name = "testOrg1"
-	api_enabled = true
-}
-
-resource "meraki_network" "test" {
-	depends_on = ["meraki_organization.testOrg"]
-	product_types = ["appliance"]
-	organization_id = resource.meraki_organization.testOrg.organization_id
-	name = "Main Office"
-	timezone = "America/Los_Angeles"
-	enrollment_string = "my-enrollment-string"
-	notes = "Additional description of the network"
-}
-
-*/
+const testAccOrganizationsNetworkResourceConfigCreateOrganization = `
+ resource "meraki_organization" "test" {
+ 	name = "test_meraki_network.test"
+ 	api_enabled = true
+ }
+ `
 
 const testAccOrganizationsNetworkResourceConfig = `
+resource "meraki_organization" "test" {}
+
 resource "meraki_network" "test" {
-	product_types = ["appliance", "switch"]
+	depends_on = ["meraki_organization.test"]
+	organization_id = resource.meraki_organization.test.organization_id
+	product_types = ["appliance", "switch", "wireless"]
+	tags = ["tag1"]
 	name = "Main Office"
 	timezone = "America/Los_Angeles"
 	notes = "Additional description of the network"
@@ -87,9 +77,15 @@ resource "meraki_network" "test" {
 `
 
 const testAccOrganizationsNetworkResourceConfigUpdate = `
+resource "meraki_organization" "test" {}
+
 resource "meraki_network" "test" {
-	name = "Main Office"
-	timezone = "America/Los_Angeles"
-	notes = "Additional description of the network"
+	depends_on = ["meraki_organization.test"]
+	product_types = ["appliance", "switch", "wireless"]
+	tags = ["tag1", "tag2"]
+	name = "Main Office-2"
+	enrollment_string = "my-enrollment-string-switch"
+	timezone = "America/Chicago"
+	notes = "Additional description of the network-2"
 }
 `

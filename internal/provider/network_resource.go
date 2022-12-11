@@ -5,7 +5,6 @@ import (
 	"fmt"
 	apiclient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -30,18 +29,18 @@ type NetworkResource struct {
 
 // NetworkResourceModel describes the resource data model.
 type NetworkResourceModel struct {
-	Id                      types.String `tfsdk:"id"`
-	EnrollmentString        types.String `tfsdk:"enrollment_string"`
-	NetworkId               types.String `tfsdk:"network_id"`
-	IsBoundToConfigTemplate types.Bool   `tfsdk:"is_bound_to_config_template"`
-	Name                    types.String `tfsdk:"name"`
-	Notes                   types.String `tfsdk:"notes"`
-	OrganizationId          types.String `tfsdk:"organization_id"`
-	ProductTypes            types.Set    `tfsdk:"product_types"`
-	Tags                    types.Set    `tfsdk:"tags"`
-	Timezone                types.String `tfsdk:"timezone"`
-	Url                     types.String `tfsdk:"url"`
-	CopyFromNetworkId       types.String `tfsdk:"copy_from_network_id"`
+	Id                      types.String   `tfsdk:"id"`
+	NetworkId               types.String   `tfsdk:"network_id"`
+	OrganizationId          types.String   `tfsdk:"organization_id"`
+	Name                    types.String   `tfsdk:"name"`
+	ProductTypes            []types.String `tfsdk:"product_types"`
+	Timezone                types.String   `tfsdk:"timezone"`
+	Tags                    []types.String `tfsdk:"tags"`
+	EnrollmentString        types.String   `tfsdk:"enrollment_string"`
+	Url                     types.String   `tfsdk:"url"`
+	Notes                   types.String   `tfsdk:"notes"`
+	IsBoundToConfigTemplate types.Bool     `tfsdk:"is_bound_to_config_template"`
+	CopyFromNetworkId       types.String   `tfsdk:"copy_from_network_id"`
 }
 
 func (r *NetworkResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -102,7 +101,7 @@ func (r *NetworkResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Dia
 			"product_types": {
 				Description:         "List of the product types that the network supports",
 				MarkdownDescription: "List of the product types that the network supports",
-				Type:                types.SetType{ElemType: types.StringType},
+				Type:                types.ListType{ElemType: types.StringType},
 				Required:            false,
 				Optional:            true,
 				Computed:            true,
@@ -128,7 +127,7 @@ func (r *NetworkResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Dia
 			"tags": {
 				Description:         "Network tags",
 				MarkdownDescription: "Network tags",
-				Type:                types.SetType{ElemType: types.StringType},
+				Type:                types.ListType{ElemType: types.StringType},
 				Required:            false,
 				Optional:            true,
 				Computed:            true,
@@ -243,34 +242,19 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	var productTypes []string
+	var validProductTypes = []string{"appliance", "switch", "wireless", "systemsManager", "camera", "cellularGateway", "sensor"}
 
 	// ProductTypes
-	if data.ProductTypes.IsNull() != true {
-
-		for _, attribute := range data.ProductTypes.Elements() {
-			product := strings.Trim(attribute.String(), "\"") // attr.Value string wrapped in double quotes...
-			switch product {
-			case "appliance":
-				productTypes = append(productTypes, "appliance")
-			case "switch":
-				productTypes = append(productTypes, "switch")
-			case "systemsManager":
-				productTypes = append(productTypes, "systemsManager")
-			case "camera":
-				productTypes = append(productTypes, "camera")
-			case "cellularGateway":
-				productTypes = append(productTypes, "cellularGateway")
-			case "sensor":
-				productTypes = append(productTypes, "sensor")
-			default:
-				resp.Diagnostics.AddError("Invalid Entry", fmt.Sprintf("The input: %s, is not a valid product type", attribute.String()))
-
+	for _, product := range data.ProductTypes {
+		for _, productType := range validProductTypes {
+			if product.ValueString() == productType {
+				productTypes = append(productTypes, productType)
 			}
 		}
 	}
 
 	// check for product types input
-	if len(productTypes) < 1 {
+	if len(validProductTypes) < 1 {
 		resp.Diagnostics.AddError("Missing required input product_types", fmt.Sprintf("Must be one of 'wireless', "+
 			"'appliance','switch', 'systemsManager', 'camera', 'cellularGateway' or 'sensor'"))
 	}
@@ -285,13 +269,11 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 	createOrganizationNetwork.SetTimeZone(data.Timezone.ValueString())
 
 	// Tags
-	if data.Tags.IsNull() != true {
-		var tags []string
-		for _, attribute := range data.Tags.Elements() {
-			tags = append(tags, attribute.String())
-		}
-		createOrganizationNetwork.SetTags(tags)
+	var tags []string
+	for _, attribute := range data.Tags {
+		tags = append(tags, attribute.String())
 	}
+	createOrganizationNetwork.SetTags(tags)
 
 	createOrganizationNetwork.SetNotes(data.Notes.ValueString())
 
@@ -329,42 +311,31 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 	// save inlineResp data into Terraform state.
 	data.Id = types.StringValue("example-id")
 	data.NetworkId = types.StringValue(inlineResp.GetId())
-	data.OrganizationId = types.StringValue(inlineResp.GetOrganizationId())
 	data.Name = types.StringValue(inlineResp.GetName())
 
 	// product types attribute
-	if products := inlineResp.ProductTypes; products != nil {
-		var productList []attr.Value
-		for _, v := range products {
-			product := types.StringValue(v)
-			productList = append(productList, product)
-		}
-
-		data.ProductTypes, _ = types.SetValue(types.StringType, productList)
-	} else {
-		data.ProductTypes = types.SetNull(types.StringType)
+	data.ProductTypes = nil
+	for _, product := range inlineResp.ProductTypes {
+		data.ProductTypes = append(data.ProductTypes, types.StringValue(product))
 	}
 
 	data.Timezone = types.StringValue(inlineResp.GetTimeZone())
 
 	// tags attribute
-	if tags := inlineResp.Tags; tags != nil {
-		var tagList []attr.Value
-		for _, v := range tags {
-			tag := types.StringValue(v)
-			tagList = append(tagList, tag)
-		}
-
-		data.Tags, _ = types.SetValue(types.StringType, tagList)
-	} else {
-		data.Tags = types.SetNull(types.StringType)
+	data.Tags = nil
+	for _, tag := range inlineResp.Tags {
+		trimmedTag := strings.Trim(tag, "\"")                        // BUG: string wrapped in double quotes...
+		data.Tags = append(data.Tags, types.StringValue(trimmedTag)) //
 	}
-
 	data.EnrollmentString = types.StringValue(inlineResp.GetEnrollmentString())
+
 	data.Url = types.StringValue(inlineResp.GetUrl())
 	data.Notes = types.StringValue(inlineResp.GetNotes())
 	data.IsBoundToConfigTemplate = types.BoolValue(inlineResp.GetIsBoundToConfigTemplate())
-	data.CopyFromNetworkId = types.StringNull()
+
+	if len(data.CopyFromNetworkId.ValueString()) < 1 {
+		data.CopyFromNetworkId = types.StringNull()
+	}
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -380,7 +351,7 @@ func (r *NetworkResource) Read(ctx context.Context, req resource.ReadRequest, re
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	// check for required parameters
-	if len(data.NetworkId.ValueString()) < 1 {
+	if len(data.NetworkId.ValueString()) == 0 {
 		resp.Diagnostics.AddError("Missing network_Id", fmt.Sprintf("network_id: %s", data.NetworkId.ValueString()))
 		return
 	}
@@ -417,31 +388,18 @@ func (r *NetworkResource) Read(ctx context.Context, req resource.ReadRequest, re
 	data.Name = types.StringValue(inlineResp.GetName())
 
 	// product types attribute
-	if products := inlineResp.ProductTypes; products != nil {
-		var productList []attr.Value
-		for _, v := range products {
-			product := types.StringValue(v)
-			productList = append(productList, product)
-		}
-
-		data.ProductTypes, _ = types.SetValue(types.StringType, productList)
-	} else {
-		data.ProductTypes = types.SetNull(types.StringType)
+	data.ProductTypes = nil
+	for _, product := range inlineResp.ProductTypes {
+		data.ProductTypes = append(data.ProductTypes, types.StringValue(product))
 	}
 
 	data.Timezone = types.StringValue(inlineResp.GetTimeZone())
 
 	// tags attribute
-	if tags := inlineResp.Tags; tags != nil {
-		var tagList []attr.Value
-		for _, v := range tags {
-			tag := types.StringValue(v)
-			tagList = append(tagList, tag)
-		}
-
-		data.Tags, _ = types.SetValue(types.StringType, tagList)
-	} else {
-		data.Tags = types.SetNull(types.StringType)
+	data.Tags = nil
+	for _, tag := range inlineResp.Tags {
+		trimmedTag := strings.Trim(tag, "\"")                        // BUG: string wrapped in double quotes...
+		data.Tags = append(data.Tags, types.StringValue(trimmedTag)) //
 	}
 
 	data.EnrollmentString = types.StringValue(inlineResp.GetEnrollmentString())
@@ -459,20 +417,24 @@ func (r *NetworkResource) Read(ctx context.Context, req resource.ReadRequest, re
 
 func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var data *NetworkResourceModel
+	var stateData *NetworkResourceModel
 
-	// Read Terraform plan data
+	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
-	// check state data to retrieve required values
-	if len(data.NetworkId.ValueString()) < 1 {
-		var stateData *NetworkResourceModel
-		resp.Diagnostics.Append(req.State.Get(ctx, &stateData)...)
+	// Read Terraform state data into the model
+	resp.Diagnostics.Append(req.State.Get(ctx, &stateData)...)
+
+	// check for required parameters
+	if len(data.NetworkId.ValueString()) == 0 {
 		data.NetworkId = stateData.NetworkId
 	}
 
-	// check for required parameters
-	if len(data.NetworkId.ValueString()) < 1 {
+	if len(data.NetworkId.ValueString()) == 0 {
 		resp.Diagnostics.AddError("Missing network_Id", fmt.Sprintf("network_id: %s", data.NetworkId.ValueString()))
+	}
+
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -482,18 +444,14 @@ func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest
 	updateNetwork.SetTimeZone(data.Timezone.ValueString())
 
 	// Tags
-	if data.Tags.IsNull() != true {
-		var tags []string
-		for _, attribute := range data.Tags.Elements() {
-			tags = append(tags, attribute.String())
-		}
-		updateNetwork.SetTags(tags)
+	var tags []string
+	for _, attribute := range data.Tags {
+		tags = append(tags, attribute.String())
 	}
+	updateNetwork.SetTags(tags)
 
 	// check for enrollment state
-	if len(data.EnrollmentString.ValueString()) > 4 {
-		updateNetwork.SetEnrollmentString(data.EnrollmentString.ValueString())
-	}
+	updateNetwork.SetEnrollmentString(data.EnrollmentString.ValueString())
 
 	updateNetwork.SetNotes(data.Notes.ValueString())
 
@@ -530,31 +488,15 @@ func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest
 	data.Name = types.StringValue(inlineResp.GetName())
 
 	// product types attribute
-	if products := inlineResp.ProductTypes; products != nil {
-		var productList []attr.Value
-		for _, v := range products {
-			product := types.StringValue(v)
-			productList = append(productList, product)
-		}
-
-		data.ProductTypes, _ = types.SetValue(types.StringType, productList)
-	} else {
-		data.ProductTypes = types.SetNull(types.StringType)
-	}
+	data.ProductTypes = stateData.ProductTypes
 
 	data.Timezone = types.StringValue(inlineResp.GetTimeZone())
 
 	// tags attribute
-	if tags := inlineResp.Tags; tags != nil {
-		var tagList []attr.Value
-		for _, v := range tags {
-			tag := types.StringValue(v)
-			tagList = append(tagList, tag)
-		}
-
-		data.Tags, _ = types.SetValue(types.StringType, tagList)
-	} else {
-		data.Tags = types.SetNull(types.StringType)
+	data.Tags = nil
+	for _, tag := range inlineResp.Tags {
+		trimmedTag := strings.Trim(tag, "\"")                        // BUG: string wrapped in double quotes...
+		data.Tags = append(data.Tags, types.StringValue(trimmedTag)) //
 	}
 
 	data.EnrollmentString = types.StringValue(inlineResp.GetEnrollmentString())
@@ -617,4 +559,17 @@ func (r *NetworkResource) Delete(ctx context.Context, req resource.DeleteRequest
 
 func (r *NetworkResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	idParts := strings.Split(req.ID, ",")
+	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: organization_id, network_id. Got: %q", req.ID),
+		)
+		return
+	}
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("organization_id"), idParts[0])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("network_id"), idParts[1])...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }
