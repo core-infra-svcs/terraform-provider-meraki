@@ -102,6 +102,7 @@ func (p *ScaffoldingProvider) Resources(ctx context.Context) []func() resource.R
 		NewOrganizationsSamlIdpResource,
 		NewOrganizationsAdminResource,
 		NewOrganizationsAdaptivePolicyAclResource,
+		NewDevicesResource,
 	}
 }
 
