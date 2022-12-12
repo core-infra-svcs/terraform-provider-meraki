@@ -17,7 +17,7 @@ func TestAccOrganizationsAdaptivePolicyAclResource(t *testing.T) {
 				Config: testAccOrganizationsAdaptivePolicyAclResourceConfigCreateOrganization,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
-					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_meraki_organizations_adaptive_policy_acl"),
+					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test-acc-meraki-organizations-adaptive-policy-acl"),
 				),
 			},
 
@@ -68,7 +68,7 @@ func TestAccOrganizationsAdaptivePolicyAclResource(t *testing.T) {
 
 const testAccOrganizationsAdaptivePolicyAclResourceConfigCreateOrganization = `
  resource "meraki_organization" "test" {
- 	name = "test_meraki_organizations_adaptive_policy_acl"
+ 	name = "test-acc-meraki-organizations-adaptive-policy-acl"
  	api_enabled = true
  }
  `

@@ -16,7 +16,7 @@ func TestAccOrganizationsDataSource(t *testing.T) {
 				Config: testAccOrganizationsDataSourceConfigCreateOrganization,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
-					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_meraki_organizations"),
+					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test-acc-meraki-organizations"),
 				),
 			},
 
@@ -26,7 +26,7 @@ func TestAccOrganizationsDataSource(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("data.meraki_organizations.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("data.meraki_organizations.test", "list.#", "1"),
-					resource.TestCheckResourceAttr("data.meraki_organizations.test", "list.1.name", "test_meraki_organizations"),
+					resource.TestCheckResourceAttr("data.meraki_organizations.test", "list.1.name", "test-acc-meraki-organizations"),
 					resource.TestCheckResourceAttr("data.meraki_organizations.test", "list.1.api_enabled", "true"),
 				),
 			},
@@ -36,7 +36,7 @@ func TestAccOrganizationsDataSource(t *testing.T) {
 
 const testAccOrganizationsDataSourceConfigCreateOrganization = `
  resource "meraki_organization" "test" {
- 	name = "test_meraki_organizations"
+ 	name = "test-acc-meraki-organizations"
  	api_enabled = true
  }
  `

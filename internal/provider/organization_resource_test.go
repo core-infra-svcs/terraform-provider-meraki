@@ -17,7 +17,7 @@ func TestAccOrganizationResource(t *testing.T) {
 			{
 				Config: testAccOrganizationResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organization.test", "name", "testOrg1"),
+					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test-acc-meraki-organization"),
 					resource.TestCheckResourceAttr("meraki_organization.test", "api_enabled", "true"),
 					resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
 				),
@@ -27,7 +27,7 @@ func TestAccOrganizationResource(t *testing.T) {
 			{
 				Config: testAccOrganizationResourceConfigUpdate,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organization.test", "name", "testOrg2"),
+					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test-acc-meraki-organization-update"),
 					resource.TestCheckResourceAttr("meraki_organization.test", "api_enabled", "true"),
 					resource.TestCheckResourceAttr("meraki_organization.test", "management_details_name", "MSP ID"),
 				),
@@ -40,14 +40,14 @@ func TestAccOrganizationResource(t *testing.T) {
 
 const testAccOrganizationResourceConfig = `
 resource "meraki_organization" "test" {
-	name = "testOrg1"
+	name = "test-acc-meraki-organization"
 	api_enabled = true
 }
 `
 
 const testAccOrganizationResourceConfigUpdate = `
 resource "meraki_organization" "test" {
-	name = "testOrg2"
+	name = "test-acc-meraki-organization-update"
 	api_enabled = true
 	management_details_name = "MSP ID"
 	management_details_value = "123456"
