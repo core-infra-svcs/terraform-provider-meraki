@@ -70,6 +70,9 @@ resource "meraki_organization" "test" {
 /* TODO - Create admin to complete test coverage
 const testAccOrganizationsAdminsDataSourceConfigCreateAdmin = `
 resource "meraki_organization_admin" "test" {
+	depends_on = [
+    	resource.meraki_organization.test
+  	]
 	name = "test_admin"
 	email = "test_admin@example.com"
 }

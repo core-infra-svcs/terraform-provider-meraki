@@ -47,6 +47,9 @@ resource "meraki_organization" "test" {
 
 const testAccOrganizationResourceConfigUpdate = `
 resource "meraki_organization" "test" {
+	depends_on = [
+    	resource.meraki_organization.test
+  	]
 	name = "test-acc-meraki-organization-update"
 	api_enabled = true
 	management_details_name = "MSP ID"

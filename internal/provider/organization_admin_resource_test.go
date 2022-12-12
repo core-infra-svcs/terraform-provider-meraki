@@ -93,6 +93,9 @@ const testUpdatedAccOrganizationsAdminResourceConfig = `
 resource "meraki_organization" "test" {}
 
 resource "meraki_organizations_admin" "test" {
+	depends_on = [
+    	resource.meraki_organization.test
+  	]
 	organization_id = resource.meraki_organization.test.organization_id
 	name        = "testAdmin"
 	email       = "meraki_organizations_admin_test@example.com"

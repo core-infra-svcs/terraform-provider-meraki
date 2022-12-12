@@ -69,6 +69,9 @@ const testAccOrganizationsSamlIdpsDataSourceConfigUpdateOrganizationSaml = `
 resource "meraki_organization" "test" {
 }
 resource "meraki_organization_saml" "test" {
+	depends_on = [
+    	resource.meraki_organization.test
+  	]
 	organization_id = resource.meraki_organization.test.organization_id
 	enabled = true
 }
@@ -78,6 +81,9 @@ const testAccOrganizationsSamlIdpsDataSourceConfigCreateSamlIdp = `
 resource "meraki_organization" "test" {
 }
  resource "meraki_organizations_saml_idp" "test" {
+	depends_on = [
+    	resource.meraki_organization.test
+  	]
 	organization_id = resource.meraki_organization.test.organization_id
 	slo_logout_url = "https://sbuxforyou.com"
 	x_509_cert_sha1_fingerprint = "00:11:22:33:44:55:66:77:88:99:00:11:22:33:44:55:66:77:88:24"

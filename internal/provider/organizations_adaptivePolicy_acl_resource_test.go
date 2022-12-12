@@ -78,6 +78,9 @@ const testAccOrganizationsAdaptivePolicyAclResourceConfig = `
 resource "meraki_organization" "test" {}
 
 resource "meraki_organizations_adaptive_policy_acl" "test" {
+	depends_on = [
+    	resource.meraki_organization.test
+  	]
 	organization_id          = resource.meraki_organization.test.organization_id
 	name = "Block sensitive web traffic"
 	description = "Blocks sensitive web traffic"
@@ -98,6 +101,9 @@ const testAccOrganizationsAdaptivePolicyAclResourceConfigUpdate = `
 resource "meraki_organization" "test" {}
 
 resource "meraki_organizations_adaptive_policy_acl" "test" {
+	depends_on = [
+    	resource.meraki_organization.test
+  	]
 	organization_id = resource.meraki_organization.test.organization_id
 	name = "Block sensitive web traffic"
 	description = "Blocks sensitive web traffic"
