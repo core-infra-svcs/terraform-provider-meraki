@@ -1,9 +1,8 @@
 package provider
 
 import (
-	"testing"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"testing"
 )
 
 func TestAccOrganizationsAdaptivePolicyAclsDataSource(t *testing.T) {
@@ -11,18 +10,19 @@ func TestAccOrganizationsAdaptivePolicyAclsDataSource(t *testing.T) {
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			// Create test organization
+
+			// Create test Organization
 			{
-				Config: testAccOrganizationsAdaptivePolicyAclsDataSourceConfigCreateOrg,
+				Config: testAccOrganizationsAdaptivePolicyAclsDataSourceConfigCreateOrganization,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_meraki_organizations_admin_adaptive_policy_acls"),
 				),
 			},
 
-			// Create an adaptive policy acl
+			// Create OrganizationsAdaptivePolicyAcl
 			{
-				Config: testAccOrganizationsAdaptivePolicyAclsDataSourceConfigCreateAcl,
+				Config: testAccOrganizationsAdaptivePolicyAclsDataSourceConfigCreatePolicyAcl,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_organizations_adaptive_policy_acl.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_organizations_adaptive_policy_acl.test", "name", "Block sensitive web traffic"),
@@ -37,9 +37,9 @@ func TestAccOrganizationsAdaptivePolicyAclsDataSource(t *testing.T) {
 				),
 			},
 
-			// Read an adaptive policy acl
+			// Read OrganizationsAdaptivePolicyAcls
 			{
-				Config: testAccOrganizationsAdaptivePolicyAclsDataSourceConfig,
+				Config: testAccOrganizationsAdaptivePolicyAclsDataSourceConfigRead,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("data.meraki_organizations_adaptive_policy_acls.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("data.meraki_organizations_adaptive_policy_acls.test", "list.#", "1"),
@@ -53,15 +53,14 @@ func TestAccOrganizationsAdaptivePolicyAclsDataSource(t *testing.T) {
 	})
 }
 
-const testAccOrganizationsAdaptivePolicyAclsDataSourceConfigCreateOrg = `
+const testAccOrganizationsAdaptivePolicyAclsDataSourceConfigCreateOrganization = `
 resource "meraki_organization" "test" {
 	name = "test_meraki_organizations_admin_adaptive_policy_acls"
 	api_enabled = true
 }
 `
 
-// Create an adaptive policy acl
-const testAccOrganizationsAdaptivePolicyAclsDataSourceConfigCreateAcl = `
+const testAccOrganizationsAdaptivePolicyAclsDataSourceConfigCreatePolicyAcl = `
 resource "meraki_organization" "test" {}
 
 resource "meraki_organizations_adaptive_policy_acl" "test" {
@@ -80,7 +79,7 @@ resource "meraki_organizations_adaptive_policy_acl" "test" {
   }
 `
 
-const testAccOrganizationsAdaptivePolicyAclsDataSourceConfig = `
+const testAccOrganizationsAdaptivePolicyAclsDataSourceConfigRead = `
 resource "meraki_organization" "test" {}
 
 data "meraki_organizations_adaptive_policy_acls" "test" {

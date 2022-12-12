@@ -10,25 +10,38 @@ func TestAccOrganizationsDataSource(t *testing.T) {
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			// Read testing
+
+			// Create test Organization
 			{
-				Config: testAccOrganizationsDataSourceConfig,
+				Config: testAccOrganizationsDataSourceConfigCreateOrganization,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("data.meraki_organizations.list", "id", "example-id"),
+					resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
+					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_meraki_organizations"),
+				),
+			},
 
-					// this checks the number of organizations available to the API user.
-					resource.TestCheckResourceAttr("data.meraki_organizations.list", "list.#", "1"),
-
-					// Verify data inside a returned meraki organization by attribute element value
-					//resource.TestCheckResourceAttr("data.meraki_organizations.list", "list.0.name", "DextersLab"),
-					//resource.TestCheckResourceAttr("data.meraki_organizations.list", "list.0.api_enabled", "true"),
+			// Read OrganizationsDataSource
+			{
+				Config: testAccOrganizationsDataSourceConfigRead,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("data.meraki_organizations.test", "id", "example-id"),
+					resource.TestCheckResourceAttr("data.meraki_organizations.test", "list.#", "1"),
+					resource.TestCheckResourceAttr("data.meraki_organizations.test", "list.1.name", "test_meraki_organizations"),
+					resource.TestCheckResourceAttr("data.meraki_organizations.test", "list.1.api_enabled", "true"),
 				),
 			},
 		},
 	})
 }
 
-const testAccOrganizationsDataSourceConfig = `
-data "meraki_organizations" "list" {
+const testAccOrganizationsDataSourceConfigCreateOrganization = `
+ resource "meraki_organization" "test" {
+ 	name = "test_meraki_organizations"
+ 	api_enabled = true
+ }
+ `
+
+const testAccOrganizationsDataSourceConfigRead = `
+data "meraki_organizations" "test" {
 }
 `

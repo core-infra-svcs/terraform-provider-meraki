@@ -11,9 +11,9 @@ func TestAccOrganizationsAdminsDataSource(t *testing.T) {
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 
-			// Create test organization
+			// Create test Organization
 			{
-				Config: testAccOrganizationsAdminsDataSourceConfigCreateOrg,
+				Config: testAccOrganizationsAdminsDataSourceConfigCreateOrganizations,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_meraki_organizations_admins"),
@@ -60,7 +60,7 @@ func TestAccOrganizationsAdminsDataSource(t *testing.T) {
 	})
 }
 
-const testAccOrganizationsAdminsDataSourceConfigCreateOrg = `
+const testAccOrganizationsAdminsDataSourceConfigCreateOrganizations = `
 resource "meraki_organization" "test" {
 	name = "test_meraki_organizations_admins"
 	api_enabled = true

@@ -12,9 +12,9 @@ func TestAccOrganizationsSamlIdpResource(t *testing.T) {
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 
-			// Create test organization
+			// Create test Organization
 			{
-				Config: testAccOrganizationsSamlIdpResourceConfigCreateOrg,
+				Config: testAccOrganizationsSamlIdpResourceConfigCreateOrganization,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_meraki_organizations_saml_idp"),
@@ -32,7 +32,7 @@ func TestAccOrganizationsSamlIdpResource(t *testing.T) {
 
 			// Create and Read Idp test
 			{
-				Config: testAccOrganizationsSamlIdpResourceConfig,
+				Config: testAccOrganizationsSamlIdpResourceConfigCreateIdp,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_organizations_saml_idp.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_organizations_saml_idp.test", "slo_logout_url", "https://sbuxforyou.com"),
@@ -57,7 +57,7 @@ func TestAccOrganizationsSamlIdpResource(t *testing.T) {
 	})
 }
 
-const testAccOrganizationsSamlIdpResourceConfigCreateOrg = `
+const testAccOrganizationsSamlIdpResourceConfigCreateOrganization = `
  resource "meraki_organization" "test" {
  	name = "test_meraki_organizations_saml_idp"
  	api_enabled = true
@@ -73,7 +73,7 @@ resource "meraki_organization_saml" "test" {
 }
 `
 
-const testAccOrganizationsSamlIdpResourceConfig = `
+const testAccOrganizationsSamlIdpResourceConfigCreateIdp = `
 resource "meraki_organization" "test" {
 }
  resource "meraki_organizations_saml_idp" "test" {
