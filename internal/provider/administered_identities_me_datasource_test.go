@@ -12,9 +12,10 @@ func TestAccAdministeredIdentitiesMeDataSource(t *testing.T) {
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			// Read testing
+
+			// Read AdministeredIdentitiesMe
 			{
-				Config: testAccAdministeredIdentitiesMeDataSourceConfig,
+				Config: testAccAdministeredIdentitiesMeDataSourceConfigCreate,
 				Check: resource.ComposeAggregateTestCheckFunc(
 
 					//resource.TestCheckResourceAttr("data.meraki_administered_identities_me.test", "name", ""),
@@ -41,8 +42,7 @@ func TestAccAdministeredIdentitiesMeDataSource(t *testing.T) {
 	})
 }
 
-const testAccAdministeredIdentitiesMeDataSourceConfig = `
+const testAccAdministeredIdentitiesMeDataSourceConfigCreate = `
 data "meraki_administered_identities_me" "test" {
-    
 }
 `

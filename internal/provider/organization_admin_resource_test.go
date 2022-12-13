@@ -17,7 +17,7 @@ func TestAccOrganizationsAdminResource(t *testing.T) {
 				Config: testAccOrganizationsAdminResourceConfigCreateOrg,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
-					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_meraki_organization_admin"),
+					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test-acc-meraki-organizations-admin"),
 				),
 			},
 
@@ -64,7 +64,7 @@ func TestAccOrganizationsAdminResource(t *testing.T) {
 
 const testAccOrganizationsAdminResourceConfigCreateOrg = `
  resource "meraki_organization" "test" {
- 	name = "test_meraki_organization_admin"
+ 	name = "test-acc-meraki-organizations-admin"
  	api_enabled = true
  }
  `
@@ -93,6 +93,9 @@ const testUpdatedAccOrganizationsAdminResourceConfig = `
 resource "meraki_organization" "test" {}
 
 resource "meraki_organizations_admin" "test" {
+	depends_on = [
+    	resource.meraki_organization.test
+  	]
 	organization_id = resource.meraki_organization.test.organization_id
 	name        = "testAdmin"
 	email       = "meraki_organizations_admin_test@example.com"

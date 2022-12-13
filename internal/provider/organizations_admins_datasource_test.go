@@ -11,12 +11,12 @@ func TestAccOrganizationsAdminsDataSource(t *testing.T) {
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 
-			// Create test organization
+			// Create test Organization
 			{
-				Config: testAccOrganizationsAdminsDataSourceConfigCreateOrg,
+				Config: testAccOrganizationsAdminsDataSourceConfigCreateOrganizations,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
-					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_meraki_organizations_admins"),
+					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test-acc-meraki-organizations-admins"),
 				),
 			},
 
@@ -60,9 +60,9 @@ func TestAccOrganizationsAdminsDataSource(t *testing.T) {
 	})
 }
 
-const testAccOrganizationsAdminsDataSourceConfigCreateOrg = `
+const testAccOrganizationsAdminsDataSourceConfigCreateOrganizations = `
 resource "meraki_organization" "test" {
-	name = "test_meraki_organizations_admins"
+	name = "test-acc-meraki-organizations-admins"
 	api_enabled = true
 }
 `
@@ -70,6 +70,9 @@ resource "meraki_organization" "test" {
 /* TODO - Create admin to complete test coverage
 const testAccOrganizationsAdminsDataSourceConfigCreateAdmin = `
 resource "meraki_organization_admin" "test" {
+	depends_on = [
+    	resource.meraki_organization.test
+  	]
 	name = "test_admin"
 	email = "test_admin@example.com"
 }
