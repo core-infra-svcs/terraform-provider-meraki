@@ -47,6 +47,9 @@ resource "meraki_organization" "test" {
 }
 
 resource "meraki_organization_saml" "test" {
+	depends_on = [
+    	resource.meraki_organization.test
+  	]
 	organization_id = resource.meraki_organization.test.organization_id
 	enabled = true
 }

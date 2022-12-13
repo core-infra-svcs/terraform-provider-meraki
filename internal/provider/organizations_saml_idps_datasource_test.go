@@ -11,27 +11,27 @@ func TestAccOrganizationsSamlIdpsDataSource(t *testing.T) {
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 
-			// Create test organization
+			// Create test Organization
 			{
-				Config: testAccOrganizationsSamlIdpsResourceConfigCreateOrg,
+				Config: testAccOrganizationsSamlIdpsDataSourceConfigCreateOrganization,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
-					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_meraki_organizations_saml_idps"),
+					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test-acc-meraki-organizations-saml-idps"),
 				),
 			},
 
-			// Enable SAML on organization test
+			// Enable SAML on test Organization
 			{
-				Config: testAccOrganizationsSamlIdpsResourceConfigSaml,
+				Config: testAccOrganizationsSamlIdpsDataSourceConfigUpdateOrganizationSaml,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_organization_saml.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_organization_saml.test", "enabled", "true"),
 				),
 			},
 
-			// Create and Read Idp test
+			// Create and Read OrganizationsSamlIdp
 			{
-				Config: testAccOrganizationsSamlIdpsResourceConfig,
+				Config: testAccOrganizationsSamlIdpsDataSourceConfigCreateSamlIdp,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_organizations_saml_idp.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_organizations_saml_idp.test", "slo_logout_url", "https://sbuxforyou.com"),
@@ -39,7 +39,7 @@ func TestAccOrganizationsSamlIdpsDataSource(t *testing.T) {
 				),
 			},
 
-			// Read Idps testing
+			// Read OrganizationsSamlIdps
 			{
 				Config: testAccOrganizationsSamlIdpsDataSourceConfigRead,
 				Check: resource.ComposeAggregateTestCheckFunc(
@@ -58,26 +58,32 @@ func TestAccOrganizationsSamlIdpsDataSource(t *testing.T) {
 	})
 }
 
-const testAccOrganizationsSamlIdpsResourceConfigCreateOrg = `
+const testAccOrganizationsSamlIdpsDataSourceConfigCreateOrganization = `
  resource "meraki_organization" "test" {
- 	name = "test_meraki_organizations_saml_idps"
+ 	name = "test-acc-meraki-organizations-saml-idps"
  	api_enabled = true
  }
  `
 
-const testAccOrganizationsSamlIdpsResourceConfigSaml = `
+const testAccOrganizationsSamlIdpsDataSourceConfigUpdateOrganizationSaml = `
 resource "meraki_organization" "test" {
 }
 resource "meraki_organization_saml" "test" {
+	depends_on = [
+    	resource.meraki_organization.test
+  	]
 	organization_id = resource.meraki_organization.test.organization_id
 	enabled = true
 }
 `
 
-const testAccOrganizationsSamlIdpsResourceConfig = `
+const testAccOrganizationsSamlIdpsDataSourceConfigCreateSamlIdp = `
 resource "meraki_organization" "test" {
 }
  resource "meraki_organizations_saml_idp" "test" {
+	depends_on = [
+    	resource.meraki_organization.test
+  	]
 	organization_id = resource.meraki_organization.test.organization_id
 	slo_logout_url = "https://sbuxforyou.com"
 	x_509_cert_sha1_fingerprint = "00:11:22:33:44:55:66:77:88:99:00:11:22:33:44:55:66:77:88:24"
