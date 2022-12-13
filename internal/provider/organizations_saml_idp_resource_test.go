@@ -12,12 +12,12 @@ func TestAccOrganizationsSamlIdpResource(t *testing.T) {
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 
-			// Create test organization
+			// Create test Organization
 			{
-				Config: testAccOrganizationsSamlIdpResourceConfigCreateOrg,
+				Config: testAccOrganizationsSamlIdpResourceConfigCreateOrganization,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
-					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_meraki_organizations_saml_idp"),
+					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test-acc-meraki-organizations-saml-idp"),
 				),
 			},
 
@@ -32,7 +32,7 @@ func TestAccOrganizationsSamlIdpResource(t *testing.T) {
 
 			// Create and Read Idp test
 			{
-				Config: testAccOrganizationsSamlIdpResourceConfig,
+				Config: testAccOrganizationsSamlIdpResourceConfigCreateIdp,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_organizations_saml_idp.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_organizations_saml_idp.test", "slo_logout_url", "https://sbuxforyou.com"),
@@ -57,9 +57,9 @@ func TestAccOrganizationsSamlIdpResource(t *testing.T) {
 	})
 }
 
-const testAccOrganizationsSamlIdpResourceConfigCreateOrg = `
+const testAccOrganizationsSamlIdpResourceConfigCreateOrganization = `
  resource "meraki_organization" "test" {
- 	name = "test_meraki_organizations_saml_idp"
+ 	name = "test-acc-meraki-organizations-saml-idp"
  	api_enabled = true
  }
  `
@@ -68,15 +68,21 @@ const testAccOrganizationsSamlIdpResourceConfigSaml = `
 resource "meraki_organization" "test" {
 }
 resource "meraki_organization_saml" "test" {
+	depends_on = [
+    	resource.meraki_organization.test
+  	]
 	organization_id = resource.meraki_organization.test.organization_id
 	enabled = true
 }
 `
 
-const testAccOrganizationsSamlIdpResourceConfig = `
+const testAccOrganizationsSamlIdpResourceConfigCreateIdp = `
 resource "meraki_organization" "test" {
 }
  resource "meraki_organizations_saml_idp" "test" {
+	depends_on = [
+    	resource.meraki_organization.test
+  	]
 	organization_id = resource.meraki_organization.test.organization_id
 	slo_logout_url = "https://sbuxforyou.com"
 	x_509_cert_sha1_fingerprint = "00:11:22:33:44:55:66:77:88:99:00:11:22:33:44:55:66:77:88:24"
@@ -88,6 +94,9 @@ resource "meraki_organization" "test" {
 }
 
 resource "meraki_organizations_saml_idp" "test" {
+	depends_on = [
+    	resource.meraki_organization.test
+  	]
 	organization_id = resource.meraki_organization.test.organization_id
 	slo_logout_url = "https://sbuxforyouandme.com"
 	x_509_cert_sha1_fingerprint = "00:11:22:33:44:55:66:77:88:99:00:11:22:33:44:55:66:77:88:55"
