@@ -15,12 +15,12 @@ func TestAccDevicesResourceSecurityAppliance(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Create and Read testing
 			{
-				Config: testAccDevicesResourceConfig(os.Getenv("TF_MERAKI_MX_SERIAL")),
+				Config: testAccDevicesResourceConfig(os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
 				Check: resource.ComposeAggregateTestCheckFunc(
 
 					// TODO - Check return data matches expected result
 					resource.TestCheckResourceAttr("meraki_devices.test", "id", "example-id"),
-					resource.TestCheckResourceAttr("meraki_devices.test", "serial", os.Getenv("TF_MERAKI_MX_SERIAL")),
+					resource.TestCheckResourceAttr("meraki_devices.test", "serial", os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
 				),
 			},
 			// Update testing
@@ -28,7 +28,7 @@ func TestAccDevicesResourceSecurityAppliance(t *testing.T) {
 				Config: testAccDevicesResourceConfigUpdate(os.Getenv("TF_MERAKI_MX_SERIAL")),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_devices.test", "name", "My AP"),
-					resource.TestCheckResourceAttr("meraki_devices.test", "serial", os.Getenv("TF_MERAKI_MX_SERIAL")),
+					resource.TestCheckResourceAttr("meraki_devices.test", "serial", os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
 					resource.TestCheckResourceAttr("meraki_devices.test", "model", "MX67C-NA"),
 				),
 			},
