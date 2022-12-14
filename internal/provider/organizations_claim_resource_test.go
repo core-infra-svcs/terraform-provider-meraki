@@ -63,9 +63,12 @@ func TestAccOrganizationsClaimResource(t *testing.T) {
 				),
 			},
 
-			//	TODO - organizations_licences_seats (Remove Licenses)
+			//	TODO - organizations_licence (Remove Licenses)
+			// deviceSerial	string	The serial number of the device to assign this license to.
+			//Set this to null to unassign the license. If a different license is already active on the device,
+			//this parameter will control queueing/dequeuing this license.
 
-			// TODO - organizations_inventory_claim (Remove Serials)
+			// TODO - organizations_inventory_release (Remove Serials)
 
 			// Delete testing automatically occurs in TestCase
 		},
