@@ -113,6 +113,8 @@ func (p *ScaffoldingProvider) DataSources(ctx context.Context) []func() datasour
 		NewOrganizationsAdminsDataSource,
 		NewOrganizationsSamlIdpsDataSource,
 		NewOrganizationsAdaptivePolicyAclsDataSource,
+
+		NewOrganizationsNetworksDataSource,
 	}
 }
 
