@@ -35,3 +35,4 @@ website/vendor
 *.winfile eol=crlf
 examples/terraform.tfvars
 examples/meraki_vars.auto.tf
+/dexterslab/

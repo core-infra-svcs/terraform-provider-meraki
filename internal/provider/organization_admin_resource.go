@@ -4,22 +4,28 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"strings"
 
-	apiclient "github.com/core-infra-svcs/dashboard-api-go/client"
+	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ resource.Resource = &OrganizationsAdminResource{}
-var _ resource.ResourceWithImportState = &OrganizationsAdminResource{}
+var (
+	_ resource.Resource                = &OrganizationsAdminResource{}
+	_ resource.ResourceWithConfigure   = &OrganizationsAdminResource{}
+	_ resource.ResourceWithImportState = &OrganizationsAdminResource{}
+)
 
 func NewOrganizationsAdminResource() resource.Resource {
 	return &OrganizationsAdminResource{}
@@ -27,7 +33,7 @@ func NewOrganizationsAdminResource() resource.Resource {
 
 // OrganizationsAdminResource defines the resource implementation.
 type OrganizationsAdminResource struct {
-	client *apiclient.APIClient
+	client *openApiClient.APIClient
 }
 
 // OrganizationsAdminResourceModel describes the resource data model.
@@ -61,222 +67,129 @@ func (r *OrganizationsAdminResource) Metadata(ctx context.Context, req resource.
 	resp.TypeName = req.ProviderTypeName + "_organizations_admin"
 }
 
-func (r *OrganizationsAdminResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
-		// This description is used by the documentation generator and the language server.
-		MarkdownDescription: "Organization Admin resource - Manage the admins for an organization",
-		Attributes: map[string]tfsdk.Attribute{
-			"id": {
-				Description:         "Example identifier",
+func (r *OrganizationsAdminResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		MarkdownDescription: "Manage the dashboard administrators in this organization",
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Computed:            true,
 				MarkdownDescription: "Example identifier",
-				Type:                types.StringType,
-				Required:            false,
-				Optional:            false,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
+			"organization_id": schema.StringAttribute{
+				MarkdownDescription: "Organization ID",
+				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(8, 31),
+				},
 			},
-			"organization_id": {
-				Description:         "Organization Id",
-				MarkdownDescription: "The Id of the organization",
-				Type:                types.StringType,
-				Required:            true,
-				Optional:            false,
-				Computed:            false,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
+			"admin_id": schema.StringAttribute{
+				MarkdownDescription: "Admin ID",
+				Optional:            true,
+				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(8, 31),
+				},
 			},
-			"admin_id": {
-				Description:         "id of dashboard administrator",
+			"name": schema.StringAttribute{
+				MarkdownDescription: "The name of the dashboard administrator",
+				Optional:            true,
+				Computed:            true,
+			},
+			"email": schema.StringAttribute{
+				MarkdownDescription: "The email of the dashboard administrator. This attribute can not be updated.",
+				Optional:            true,
+				Computed:            true,
+			},
+			"org_access": schema.StringAttribute{
+				MarkdownDescription: "The privilege of the dashboard administrator on the organization. Can be one of 'full', 'read-only', 'enterprise' or 'none'",
+				Optional:            true,
+				Computed:            true,
+				Validators: []validator.String{
+					stringvalidator.ExactlyOneOf(
+						path.MatchRoot("full"),
+						path.MatchRoot("read-only"),
+						path.MatchRoot("enterprise"),
+						path.MatchRoot("none"),
+					),
+				},
+			},
+			"account_status": schema.StringAttribute{
 				MarkdownDescription: "",
-				Type:                types.StringType,
-				Required:            false,
 				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
 			},
-			"name": {
-				Description:         "name of the dashboard administrator",
+			"two_factor_auth_enabled": schema.BoolAttribute{
 				MarkdownDescription: "",
-				Type:                types.StringType,
-				Required:            false,
 				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
 			},
-			"email": {
-				Description:         "Email of the dashboard administrator",
+			"has_api_key": schema.BoolAttribute{
 				MarkdownDescription: "",
-				Type:                types.StringType,
-				Required:            false,
 				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
 			},
-			"org_access": {
-				Description:         "Organization Access",
+			"last_active": schema.StringAttribute{
 				MarkdownDescription: "",
-				Type:                types.StringType,
-				Required:            false,
 				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
 			},
-			"account_status": {
-				Description:         "Account Status",
-				MarkdownDescription: "",
-				Type:                types.StringType,
-				Required:            false,
-				Optional:            true,
-				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
-			},
-			"two_factor_auth_enabled": {
-				Description:         "Two Factor Auth Enabled or Not",
-				MarkdownDescription: "",
-				Type:                types.BoolType,
-				Required:            false,
-				Optional:            true,
-				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
-			},
-			"has_api_key": {
-				Description:         "Api key exists or not",
-				MarkdownDescription: "",
-				Type:                types.BoolType,
-				Required:            false,
-				Optional:            true,
-				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
-			},
-			"last_active": {
-				Description:         "Last Time Active",
-				MarkdownDescription: "",
-				Type:                types.StringType,
-				Required:            false,
-				Optional:            true,
-				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
-			},
-			"tags": {
-				Description:         "list of tags that the dashboard administrator has privileges on.",
-				MarkdownDescription: "list of tags that the dashboard administrator has privileges on.",
-				Computed:            true,
-				Optional:            true,
-				Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-					"tag": {
-						Description:         "tag",
-						MarkdownDescription: "tag",
-						Type:                types.StringType,
-						Required:            false,
-						Optional:            true,
-						Computed:            true,
-						Sensitive:           false,
-						Attributes:          nil,
-						DeprecationMessage:  "",
-						Validators:          nil,
-						PlanModifiers:       nil,
+			"tags": schema.ListNestedAttribute{
+				Description: "The list of tags that the dashboard administrator has privileges on",
+				Optional:    true,
+				Computed:    true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"tag": schema.StringAttribute{
+							MarkdownDescription: "",
+							Optional:            true,
+						},
+						"access": schema.StringAttribute{
+							MarkdownDescription: "",
+							Optional:            true,
+						},
 					},
-					"access": {
-						Description:         "access",
-						MarkdownDescription: "access",
-						Type:                types.StringType,
-						Required:            false,
-						Optional:            true,
-						Computed:            true,
-						Sensitive:           false,
-						Attributes:          nil,
-						DeprecationMessage:  "",
-						Validators:          nil,
-						PlanModifiers:       nil,
+				},
+			},
+			"networks": schema.ListNestedAttribute{
+				Description: "The list of networks that the dashboard administrator has privileges on",
+				Optional:    true,
+				Computed:    true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"id": schema.StringAttribute{
+							MarkdownDescription: "",
+							Optional:            true,
+						},
+						"access": schema.StringAttribute{
+							MarkdownDescription: "",
+							Optional:            true,
+						},
 					},
-				})},
-			"networks": {
-				Description:         "The list of networks that the dashboard administrator has privileges on.",
-				MarkdownDescription: "The list of networks that the dashboard administrator has privileges on.",
-				Computed:            true,
-				Optional:            true,
-				Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-					"id": {
-						Description:         "The network id",
-						MarkdownDescription: "The network id",
-						Type:                types.StringType,
-						Required:            false,
-						Optional:            true,
-						Computed:            true,
-						Sensitive:           false,
-						Attributes:          nil,
-						DeprecationMessage:  "",
-						Validators:          nil,
-						PlanModifiers:       nil,
-					},
-					"access": {
-						Description:         "network access",
-						MarkdownDescription: "network access",
-						Type:                types.StringType,
-						Required:            false,
-						Optional:            true,
-						Computed:            true,
-						Sensitive:           false,
-						Attributes:          nil,
-						DeprecationMessage:  "",
-						Validators:          nil,
-						PlanModifiers:       nil,
-					},
-				})},
-			"authentication_method": {
-				Description:         "Authentication method must be one of: 'Email' or 'Cisco SecureX or 'Sign-On'. ",
-				MarkdownDescription: "Authentication method must be one of: 'Email' or 'Cisco SecureX or 'Sign-On'.",
-				Type:                types.StringType,
-				Required:            false,
+				},
+			},
+			"authentication_method": schema.StringAttribute{
+				MarkdownDescription: "The method of authentication the user will use to sign in to the Meraki dashboard. Can be one of 'Email' or 'Cisco SecureX Sign-On'. The default is Email authentication",
 				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
+				Validators: []validator.String{
+					stringvalidator.ExactlyOneOf(
+						path.MatchRoot("Email"),
+						path.MatchRoot("Cisco SecureX Sign-On"),
+					),
+				},
 			},
 		},
-	}, nil
+	}
 }
 
 func (r *OrganizationsAdminResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -285,7 +198,7 @@ func (r *OrganizationsAdminResource) Configure(ctx context.Context, req resource
 		return
 	}
 
-	client, ok := req.ProviderData.(*apiclient.APIClient)
+	client, ok := req.ProviderData.(*openApiClient.APIClient)
 
 	if !ok {
 		resp.Diagnostics.AddError(
@@ -305,27 +218,21 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
-	// Check for required parameters
-	if len(data.OrgId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing OrganizationId", fmt.Sprintf("Value: %s", data.OrgId.ValueString()))
-		return
-	}
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Creating and Validating Payload for Creating Administrator
-	createOrganizationAdmin := *apiclient.NewInlineObject176(
+	createOrganizationAdmin := *openApiClient.NewInlineObject176(
 		data.Email.ValueString(),
 		data.Name.ValueString(),
 		data.OrgAccess.ValueString())
 
 	// Tags
 	if len(data.Tags) < 0 {
-		var tags []apiclient.OrganizationsOrganizationIdAdminsTags
+		var tags []openApiClient.OrganizationsOrganizationIdAdminsTags
 		for _, attribute := range data.Tags {
-			var tag apiclient.OrganizationsOrganizationIdAdminsTags
+			var tag openApiClient.OrganizationsOrganizationIdAdminsTags
 			tag.Tag = attribute.Tag.ValueString()
 			tag.Access = attribute.Tag.ValueString()
 			tags = append(tags, tag)
@@ -335,9 +242,9 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 
 	// Networks
 	if len(data.Networks) < 0 {
-		var networks []apiclient.OrganizationsOrganizationIdAdminsNetworks
+		var networks []openApiClient.OrganizationsOrganizationIdAdminsNetworks
 		for _, attribute := range data.Networks {
-			var network apiclient.OrganizationsOrganizationIdAdminsNetworks
+			var network openApiClient.OrganizationsOrganizationIdAdminsNetworks
 			network.Id = attribute.Id.ValueString()
 			network.Access = attribute.Access.ValueString()
 			networks = append(networks, network)
@@ -357,6 +264,11 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 		)
 	}
 
+	// collect diagnostics
+	if httpResp != nil {
+		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+	}
+
 	// Check for API success response code
 	if httpResp.StatusCode != 201 {
 		resp.Diagnostics.AddError(
@@ -364,9 +276,6 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
 	}
-
-	// collect diagnostics
-	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
@@ -388,17 +297,6 @@ func (r *OrganizationsAdminResource) Read(ctx context.Context, req resource.Read
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-	// Check for required parameters
-	if len(data.OrgId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing OrganizationId", fmt.Sprintf("Value: %s", data.OrgId.ValueString()))
-		return
-	}
-
-	if len(data.AdminId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing AdminId", fmt.Sprintf("Value: %s", data.AdminId.ValueString()))
-		return
-	}
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -411,6 +309,11 @@ func (r *OrganizationsAdminResource) Read(ctx context.Context, req resource.Read
 		)
 	}
 
+	// collect diagnostics
+	if httpResp != nil {
+		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+	}
+
 	// Check for API success inlineResp code
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
@@ -419,12 +322,11 @@ func (r *OrganizationsAdminResource) Read(ctx context.Context, req resource.Read
 		)
 	}
 
-	// collect diagnostics
-	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
-
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
+	} else {
+		resp.Diagnostics.Append()
 	}
 
 	// get admin
@@ -444,24 +346,9 @@ func (r *OrganizationsAdminResource) Read(ctx context.Context, req resource.Read
 
 func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var data *OrganizationsAdminResourceModel
-	var stateData *OrganizationsAdminResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-
-	// Read Terraform state data into the model
-	resp.Diagnostics.Append(req.State.Get(ctx, &stateData)...)
-
-	// Check for required parameters
-	if len(data.OrgId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing OrganizationId", fmt.Sprintf("Value: %s", data.OrgId.ValueString()))
-		return
-	}
-
-	// Check state for required attribute
-	if len(data.AdminId.ValueString()) < 1 {
-		data.AdminId = stateData.AdminId
-	}
 
 	if len(data.AdminId.ValueString()) < 1 {
 		resp.Diagnostics.AddError("Missing AdminId", fmt.Sprintf("AdminId: %s", data.AdminId.ValueString()))
@@ -473,15 +360,15 @@ func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.Up
 	}
 
 	// Creating and Validating Payload for Creating Administrator
-	updateOrganizationAdmin := *apiclient.NewInlineObject177()
+	updateOrganizationAdmin := *openApiClient.NewInlineObject177()
 	updateOrganizationAdmin.SetName(data.Name.ValueString())
 	updateOrganizationAdmin.SetOrgAccess(data.OrgAccess.ValueString())
 
 	// Tags
 	if len(data.Tags) < 0 {
-		var tags []apiclient.OrganizationsOrganizationIdAdminsTags
+		var tags []openApiClient.OrganizationsOrganizationIdAdminsTags
 		for _, attribute := range data.Tags {
-			var tag apiclient.OrganizationsOrganizationIdAdminsTags
+			var tag openApiClient.OrganizationsOrganizationIdAdminsTags
 			tag.Tag = attribute.Tag.ValueString()
 			tag.Access = attribute.Tag.ValueString()
 			tags = append(tags, tag)
@@ -491,9 +378,9 @@ func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.Up
 
 	// Networks
 	if len(data.Networks) < 0 {
-		var networks []apiclient.OrganizationsOrganizationIdAdminsNetworks
+		var networks []openApiClient.OrganizationsOrganizationIdAdminsNetworks
 		for _, attribute := range data.Networks {
-			var network apiclient.OrganizationsOrganizationIdAdminsNetworks
+			var network openApiClient.OrganizationsOrganizationIdAdminsNetworks
 			network.Id = attribute.Id.ValueString()
 			network.Access = attribute.Access.ValueString()
 			networks = append(networks, network)
@@ -509,6 +396,11 @@ func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.Up
 		)
 	}
 
+	// collect diagnostics
+	if httpResp != nil {
+		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+	}
+
 	// Check for API success response code
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
@@ -516,9 +408,6 @@ func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.Up
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
 	}
-
-	// collect diagnostics
-	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
@@ -537,17 +426,6 @@ func (r *OrganizationsAdminResource) Delete(ctx context.Context, req resource.De
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-	// Check for required parameters
-	if len(data.OrgId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing OrganizationId", fmt.Sprintf("Value: %s", data.OrgId.ValueString()))
-		return
-	}
-
-	if len(data.AdminId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing AdminId", fmt.Sprintf("Value: %s", data.AdminId.ValueString()))
-		return
-	}
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -560,6 +438,11 @@ func (r *OrganizationsAdminResource) Delete(ctx context.Context, req resource.De
 		)
 	}
 
+	// collect diagnostics
+	if httpResp != nil {
+		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+	}
+
 	// Check for API success response code
 	if httpResp.StatusCode != 204 {
 		resp.Diagnostics.AddError(
@@ -568,12 +451,11 @@ func (r *OrganizationsAdminResource) Delete(ctx context.Context, req resource.De
 		)
 	}
 
-	// collect diagnostics
-	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
-
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
+	} else {
+		resp.Diagnostics.Append()
 	}
 
 	resp.State.RemoveResource(ctx)

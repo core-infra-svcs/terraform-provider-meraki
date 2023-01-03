@@ -17,17 +17,29 @@ func TestAccOrganizationResource(t *testing.T) {
 			{
 				Config: testAccOrganizationResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test-acc-meraki-organization"),
+					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_acc_meraki_organization"),
 					resource.TestCheckResourceAttr("meraki_organization.test", "api_enabled", "true"),
-					resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
 				),
 			},
+
+			// TODO - ImportState testing - Currently this only works with a hard-coded organizationId
+			/*
+				// ImportState testing
+					{
+						ResourceName:      "meraki_organization.test",
+						ImportState:       true,
+						ImportStateVerify: true,
+						// ImportStateVerifyIgnore: []string{"id"},
+						// ImportStateId:     "${ORG_ID}",
+					},
+
+			*/
 
 			// Update testing
 			{
 				Config: testAccOrganizationResourceConfigUpdate,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test-acc-meraki-organization-update"),
+					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_acc_meraki_organization_update"),
 					resource.TestCheckResourceAttr("meraki_organization.test", "api_enabled", "true"),
 					resource.TestCheckResourceAttr("meraki_organization.test", "management_details_name", "MSP ID"),
 				),
@@ -40,17 +52,14 @@ func TestAccOrganizationResource(t *testing.T) {
 
 const testAccOrganizationResourceConfig = `
 resource "meraki_organization" "test" {
-	name = "test-acc-meraki-organization"
+	name = "test_acc_meraki_organization"
 	api_enabled = true
 }
 `
 
 const testAccOrganizationResourceConfigUpdate = `
 resource "meraki_organization" "test" {
-	depends_on = [
-    	resource.meraki_organization.test
-  	]
-	name = "test-acc-meraki-organization-update"
+	name = "test_acc_meraki_organization_update"
 	api_enabled = true
 	management_details_name = "MSP ID"
 	management_details_value = "123456"

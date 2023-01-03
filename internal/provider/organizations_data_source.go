@@ -5,9 +5,11 @@ import (
 	"fmt"
 	apiclient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -33,7 +35,7 @@ type OrganizationsDataSourceModel struct {
 // OrganizationDataSourceModel describes the data source data model.
 type OrganizationDataSourceModel struct {
 	ApiEnabled     types.Bool   `tfsdk:"api_enabled"`
-	CloudRegion    types.String `tfsdk:"cloud_region"`
+	CloudRegion    types.String `tfsdk:"cloud_region_name"`
 	OrgId          types.String `tfsdk:"organization_id"`
 	LicensingModel types.String `tfsdk:"licensing_model"`
 	Name           types.String `tfsdk:"name"`
@@ -44,103 +46,57 @@ func (d *OrganizationsDataSource) Metadata(ctx context.Context, req datasource.M
 	resp.TypeName = req.ProviderTypeName + "_organizations"
 }
 
-func (d *OrganizationsDataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
-		// This description is used by the documentation generator and the language server.
-		MarkdownDescription: "Organizations data source",
+func (d *OrganizationsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		Description: "List the organizations that the user has privileges on",
 
-		Attributes: map[string]tfsdk.Attribute{
-			"id": {
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
 				MarkdownDescription: "Example identifier",
-				Type:                types.StringType,
 				Computed:            true,
 			},
-			"list": {
-				MarkdownDescription: "List of organizations",
-				Optional:            true,
-				Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-					"api_enabled": {
-						Description:         "Enable API access",
-						MarkdownDescription: "Enable API access",
-						Type:                types.BoolType,
-						Required:            false,
-						Optional:            true,
-						Computed:            true,
-						Sensitive:           false,
-						Attributes:          nil,
-						DeprecationMessage:  "",
-						Validators:          nil,
-						PlanModifiers:       nil,
+			"list": schema.ListNestedAttribute{
+				Optional:    true,
+				Computed:    true,
+				Description: "",
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"api_enabled": schema.BoolAttribute{
+							MarkdownDescription: "Enable API access",
+							Optional:            true,
+						},
+						"cloud_region_name": schema.StringAttribute{
+							MarkdownDescription: "Name of region",
+							Optional:            true,
+						},
+						"organization_id": schema.StringAttribute{
+							MarkdownDescription: "Organization ID",
+							Optional:            true,
+						},
+						"licensing_model": schema.StringAttribute{
+							MarkdownDescription: "Organization licensing model. Can be 'co-term', 'per-device', or 'subscription'.",
+							Optional:            true,
+							Validators: []validator.String{
+								stringvalidator.ExactlyOneOf(
+									path.MatchRoot("co-term"),
+									path.MatchRoot("per-device"),
+									path.MatchRoot("subscription"),
+								),
+							},
+						},
+						"name": schema.StringAttribute{
+							MarkdownDescription: "\"Organization name",
+							Optional:            true,
+						},
+						"url": schema.StringAttribute{
+							MarkdownDescription: "\"Organization URL",
+							Optional:            true,
+						},
 					},
-					"cloud_region": {
-						Description:         "Region info",
-						MarkdownDescription: "Region info",
-						Type:                types.StringType,
-						Required:            false,
-						Optional:            true,
-						Computed:            true,
-						Sensitive:           false,
-						Attributes:          nil,
-						DeprecationMessage:  "",
-						Validators:          nil,
-						PlanModifiers:       nil,
-					},
-					"organization_id": {
-						Description:         "Organization ID",
-						MarkdownDescription: "Organization ID",
-						Type:                types.StringType,
-						Required:            false,
-						Optional:            true,
-						Computed:            true,
-						Sensitive:           false,
-						Attributes:          nil,
-						DeprecationMessage:  "",
-						Validators:          nil,
-						PlanModifiers:       nil,
-					},
-					"licensing_model": {
-						Description:         "Organization licensing model. Can be 'co-term', 'per-device', or 'subscription'.",
-						MarkdownDescription: "Organization licensing model. Can be 'co-term', 'per-device', or 'subscription'.",
-						Type:                types.StringType,
-						Required:            false,
-						Optional:            true,
-						Computed:            true,
-						Sensitive:           false,
-						Attributes:          nil,
-						DeprecationMessage:  "",
-						Validators:          nil,
-						PlanModifiers:       nil,
-					},
-					"name": {
-						Description:         "Organization name",
-						MarkdownDescription: "Organization name",
-						Type:                types.StringType,
-						Required:            false,
-						Optional:            true,
-						Computed:            true,
-						Sensitive:           false,
-						Attributes:          nil,
-						DeprecationMessage:  "",
-						Validators:          nil,
-						PlanModifiers:       nil,
-					},
-					"url": {
-						Description:         "Organization URL",
-						MarkdownDescription: "Organization URL",
-						Type:                types.StringType,
-						Required:            false,
-						Optional:            true,
-						Computed:            true,
-						Sensitive:           false,
-						Attributes:          nil,
-						DeprecationMessage:  "",
-						Validators:          nil,
-						PlanModifiers:       nil,
-					},
-				}),
+				},
 			},
 		},
-	}, nil
+	}
 }
 
 func (d *OrganizationsDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
@@ -195,6 +151,8 @@ func (d *OrganizationsDataSource) Read(ctx context.Context, req datasource.ReadR
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
+	} else {
+		resp.Diagnostics.Append()
 	}
 
 	// save inlineResp data into Terraform state.

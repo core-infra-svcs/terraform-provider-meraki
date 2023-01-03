@@ -4,20 +4,26 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	apiclient "github.com/core-infra-svcs/dashboard-api-go/client"
+	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"io"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ resource.Resource = &OrganizationsSamlIdpResource{}
-var _ resource.ResourceWithImportState = &OrganizationsSamlIdpResource{}
+var (
+	_ resource.Resource                = &OrganizationsSamlIdpResource{}
+	_ resource.ResourceWithConfigure   = &OrganizationsSamlIdpResource{}
+	_ resource.ResourceWithImportState = &OrganizationsSamlIdpResource{}
+)
 
 func NewOrganizationsSamlIdpResource() resource.Resource {
 	return &OrganizationsSamlIdpResource{}
@@ -25,7 +31,7 @@ func NewOrganizationsSamlIdpResource() resource.Resource {
 
 // OrganizationsSamlIdpResource defines the resource implementation.
 type OrganizationsSamlIdpResource struct {
-	client *apiclient.APIClient
+	client *openApiClient.APIClient
 }
 
 // OrganizationsSamlIdpResourceModel describes the resource data model.
@@ -42,87 +48,57 @@ func (r *OrganizationsSamlIdpResource) Metadata(ctx context.Context, req resourc
 	resp.TypeName = req.ProviderTypeName + "_organizations_saml_idp"
 }
 
-func (r *OrganizationsSamlIdpResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
-		MarkdownDescription: "OrganizationsSamlIdp resource - Update a SAML IdP in your organization",
-		Attributes: map[string]tfsdk.Attribute{
-			"id": {
-				Computed:            true,
-				Required:            false,
-				Optional:            false,
-				MarkdownDescription: "Example identifier",
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					resource.UseStateForUnknown(),
+func (r *OrganizationsSamlIdpResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		Description: "Manage the SAML IdPs in your organization",
+
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Computed:    true,
+				Description: "Example identifier",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
 				},
-				Type: types.StringType,
 			},
-			"organization_id": {
-				Description:         "Organization ID",
+			"organization_id": schema.StringAttribute{
 				MarkdownDescription: "Organization ID",
-				Type:                types.StringType,
-				Required:            true,
-				Optional:            false,
-				Computed:            false,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
-			},
-			"consumer_url": {
-				Description:         "URL that is consuming SAML Identity Provider (IdP)",
-				MarkdownDescription: "URL that is consuming SAML Identity Provider (IdP)",
-				Type:                types.StringType,
-				Required:            false,
 				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(8, 31),
+				},
 			},
-			"idp_id": {
-				Description:         "ID associated with the SAML Identity Provider (IdP)",
+			"consumer_url": schema.StringAttribute{
+				Description: "URL that is consuming SAML Identity Provider (IdP)",
+				Optional:    true,
+				Computed:    true,
+			},
+			"idp_id": schema.StringAttribute{
 				MarkdownDescription: "ID associated with the SAML Identity Provider (IdP)",
-				Type:                types.StringType,
-				Required:            false,
 				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(8, 31),
+				},
 			},
-			"slo_logout_url": {
-				Description:         "Dashboard will redirect users to this URL when they sign out.",
+			"slo_logout_url": schema.StringAttribute{
 				MarkdownDescription: "Dashboard will redirect users to this URL when they sign out.",
-				Type:                types.StringType,
-				Required:            false,
-				Optional:            true,
-				Computed:            false,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
-			},
-			"x_509_cert_sha1_fingerprint": {
-				Description:         "Fingerprint (SHA1) of the SAML certificate provided by your Identity Provider (IdP). This will be used for encryption / validation.",
-				MarkdownDescription: "Fingerprint (SHA1) of the SAML certificate provided by your Identity Provider (IdP). This will be used for encryption / validation.",
-				Type:                types.StringType,
-				Required:            false,
 				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
+			},
+			"x_509_cert_sha1_fingerprint": schema.StringAttribute{
+				MarkdownDescription: "Fingerprint (SHA1) of the SAML certificate provided by your Identity Provider (IdP). This will be used for encryption / validation.",
+				Optional:            true,
+				Computed:            true,
 			},
 		},
-	}, nil
+	}
 }
 
 func (r *OrganizationsSamlIdpResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -131,7 +107,7 @@ func (r *OrganizationsSamlIdpResource) Configure(ctx context.Context, req resour
 		return
 	}
 
-	client, ok := req.ProviderData.(*apiclient.APIClient)
+	client, ok := req.ProviderData.(*openApiClient.APIClient)
 
 	if !ok {
 		resp.Diagnostics.AddError(
@@ -154,14 +130,8 @@ func (r *OrganizationsSamlIdpResource) Create(ctx context.Context, req resource.
 		return
 	}
 
-	// Check for required parameters
-	if len(data.OrganizationId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing organization Id", fmt.Sprintf("Id: %s", data.OrganizationId.ValueString()))
-		return
-	}
-
 	// Create HTTP request body
-	createOrganizationsSamlIdp := *apiclient.NewInlineObject214(data.X509CertSha1Fingerprint.ValueString())
+	createOrganizationsSamlIdp := *openApiClient.NewInlineObject214(data.X509CertSha1Fingerprint.ValueString())
 	createOrganizationsSamlIdp.SetSloLogoutUrl(data.SloLogoutUrl.ValueString())
 
 	// Initialize provider client and make API call
@@ -171,13 +141,18 @@ func (r *OrganizationsSamlIdpResource) Create(ctx context.Context, req resource.
 	}
 
 	// unmarshal http body into inlineResp object
-	var inlineResp *apiclient.InlineResponse20095
+	var inlineResp *openApiClient.InlineResponse20095
 	body, _ := io.ReadAll(httpResp.Body)
 	if err = json.Unmarshal(body, &inlineResp); err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to unmarshal JSON into typed response",
 			fmt.Sprintf("%v", err.Error()),
 		)
+	}
+
+	// collect diagnostics
+	if httpResp != nil {
+		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 	}
 
 	// Check for API success response code
@@ -188,12 +163,11 @@ func (r *OrganizationsSamlIdpResource) Create(ctx context.Context, req resource.
 		)
 	}
 
-	// collect diagnostics
-	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
-
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
+	} else {
+		resp.Diagnostics.Append()
 	}
 
 	// save into the Terraform state.
@@ -216,18 +190,6 @@ func (r *OrganizationsSamlIdpResource) Read(ctx context.Context, req resource.Re
 	// Read Terraform state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-	// check for required parameters
-	if len(data.OrganizationId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing organization_Id", fmt.Sprintf("organization_id: %s", data.OrganizationId.ValueString()))
-		return
-	}
-
-	// check for required parameters
-	if len(data.IdpId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing saml idp id", fmt.Sprintf("idp_id: %s", data.IdpId.ValueString()))
-		return
-	}
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -241,6 +203,11 @@ func (r *OrganizationsSamlIdpResource) Read(ctx context.Context, req resource.Re
 		)
 	}
 
+	// collect diagnostics
+	if httpResp != nil {
+		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+	}
+
 	// Check for API success inlineResp code
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
@@ -249,12 +216,11 @@ func (r *OrganizationsSamlIdpResource) Read(ctx context.Context, req resource.Re
 		)
 	}
 
-	// collect diagnostics
-	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
-
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
+	} else {
+		resp.Diagnostics.Append()
 	}
 
 	data.Id = types.StringValue("example-id")
@@ -272,32 +238,12 @@ func (r *OrganizationsSamlIdpResource) Read(ctx context.Context, req resource.Re
 
 func (r *OrganizationsSamlIdpResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var data *OrganizationsSamlIdpResourceModel
-	var stateData *OrganizationsSamlIdpResourceModel
 
 	// Read Terraform plan data
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
-	// Read Terraform state data into the model
-	resp.Diagnostics.Append(req.State.Get(ctx, &stateData)...)
-
-	// Check for required parameters
-	if len(data.OrganizationId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing organization_Id", fmt.Sprintf("organization_id: %s", data.OrganizationId.ValueString()))
-		return
-	}
-
-	// Check state for required attribute
-	if len(data.IdpId.ValueString()) < 1 {
-		data.IdpId = stateData.IdpId
-	}
-
-	if len(data.IdpId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing Idp Id", fmt.Sprintf("IdpId: %s", data.IdpId.ValueString()))
-		return
-	}
-
 	// Create HTTP request body
-	updateOrganizationsSamlIdp := apiclient.NewInlineObject215()
+	updateOrganizationsSamlIdp := openApiClient.NewInlineObject215()
 	updateOrganizationsSamlIdp.SetX509certSha1Fingerprint(data.X509CertSha1Fingerprint.ValueString())
 	updateOrganizationsSamlIdp.SetSloLogoutUrl(data.SloLogoutUrl.ValueString())
 
@@ -309,13 +255,18 @@ func (r *OrganizationsSamlIdpResource) Update(ctx context.Context, req resource.
 	}
 
 	// unmarshal http body into inlineResp object
-	var inlineResp *apiclient.InlineResponse20095
+	var inlineResp *openApiClient.InlineResponse20095
 	body, _ := io.ReadAll(httpResp.Body)
 	if err = json.Unmarshal(body, &inlineResp); err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to unmarshal JSON into typed response",
 			fmt.Sprintf("%v", err.Error()),
 		)
+	}
+
+	// collect diagnostics
+	if httpResp != nil {
+		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 	}
 
 	// Check for API success response code
@@ -326,12 +277,11 @@ func (r *OrganizationsSamlIdpResource) Update(ctx context.Context, req resource.
 		)
 	}
 
-	// collect diagnostics
-	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
-
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
+	} else {
+		resp.Diagnostics.Append()
 	}
 
 	data.Id = types.StringValue("example-id")
@@ -353,17 +303,6 @@ func (r *OrganizationsSamlIdpResource) Delete(ctx context.Context, req resource.
 	// Read Terraform state data
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-	// check for required parameters
-	if len(data.OrganizationId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing organization_Id", fmt.Sprintf("organization_id: %s", data.OrganizationId.ValueString()))
-		return
-	}
-
-	if len(data.IdpId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing Idp Id", fmt.Sprintf("IdpId: %s", data.IdpId.ValueString()))
-		return
-	}
-
 	// Initialize provider client and make API call
 	httpResp, err := r.client.SamlApi.DeleteOrganizationSamlIdp(context.Background(), data.OrganizationId.ValueString(), data.IdpId.ValueString()).Execute()
 	if err != nil {
@@ -371,6 +310,11 @@ func (r *OrganizationsSamlIdpResource) Delete(ctx context.Context, req resource.
 			"Failed to delete resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+	}
+
+	// collect diagnostics
+	if httpResp != nil {
+		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 	}
 
 	// Check for API success response code
@@ -381,12 +325,11 @@ func (r *OrganizationsSamlIdpResource) Delete(ctx context.Context, req resource.
 		)
 	}
 
-	// collect diagnostics
-	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
-
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
+	} else {
+		resp.Diagnostics.Append()
 	}
 
 	// Remove from state

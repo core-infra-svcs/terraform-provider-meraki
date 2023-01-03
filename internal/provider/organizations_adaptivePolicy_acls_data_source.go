@@ -5,9 +5,11 @@ import (
 	"fmt"
 	apiclient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -53,182 +55,86 @@ func (d *OrganizationsAdaptivePolicyAclsDataSource) Metadata(ctx context.Context
 	resp.TypeName = req.ProviderTypeName + "_organizations_adaptive_policy_acls"
 }
 
-func (d *OrganizationsAdaptivePolicyAclsDataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
+func (d *OrganizationsAdaptivePolicyAclsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		MarkdownDescription: "List adaptive policy ACLs in a organization",
 
-		MarkdownDescription: "OrganizationsAdaptivePolicyAcls data source - get all list of  acls in an organization",
-		Attributes: map[string]tfsdk.Attribute{
-
-			"id": {
-				Description:         "Example identifier",
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
 				MarkdownDescription: "Example identifier",
-				Type:                types.StringType,
-				Required:            false,
-				Optional:            false,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
 			},
-			"organization_id": {
-				Description:         "Organization Id",
-				MarkdownDescription: "The Id of the organization",
-				Type:                types.StringType,
-				Required:            true,
-				Optional:            false,
-				Computed:            false,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
-			},
-			"list": {
-				MarkdownDescription: "List of organization acls",
+			"organization_id": schema.StringAttribute{
+				MarkdownDescription: "Organization ID",
 				Optional:            true,
-				Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-					"acl_id": {
-						Description:         "Acl ID",
-						MarkdownDescription: "",
-						Type:                types.StringType,
-						Required:            false,
-						Optional:            true,
-						Computed:            true,
-						Sensitive:           false,
-						Attributes:          nil,
-						DeprecationMessage:  "",
-						Validators:          nil,
-						PlanModifiers:       nil,
-					},
-					"name": {
-						Description:         "Name of the adaptive policy ACL",
-						MarkdownDescription: "",
-						Type:                types.StringType,
-						Required:            false,
-						Optional:            true,
-						Computed:            true,
-						Sensitive:           false,
-						Attributes:          nil,
-						DeprecationMessage:  "",
-						Validators:          nil,
-						PlanModifiers:       nil,
-					},
-					"description": {
-						Description:         "Description of the adaptive policy ACL",
-						MarkdownDescription: "",
-						Type:                types.StringType,
-						Required:            false,
-						Optional:            true,
-						Computed:            true,
-						Sensitive:           false,
-						Attributes:          nil,
-						DeprecationMessage:  "",
-						Validators:          nil,
-						PlanModifiers:       nil,
-					},
-					"ip_version": {
-						Description:         "IP version of adaptive policy ACL. One of: any, ipv4 or ipv6",
-						MarkdownDescription: "",
-						Type:                types.StringType,
-						Required:            false,
-						Optional:            true,
-						Computed:            true,
-						Sensitive:           false,
-						Attributes:          nil,
-						DeprecationMessage:  "",
-						Validators:          nil,
-						PlanModifiers:       nil,
-					},
-					"rules": {
-						Description: "An ordered array of the adaptive policy ACL rules.",
-						Optional:    true,
-						Computed:    true,
-						// Type: types.ListType{ElemType: types.SetType{ElemType: types.StringType}},
-						Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-							"policy": {
-								Description:         "'allow' or 'deny' traffic specified by this rule.",
-								MarkdownDescription: "'allow' or 'deny' traffic specified by this rule.",
-								Type:                types.StringType,
-								Required:            false,
-								Optional:            true,
-								Computed:            true,
-								Sensitive:           false,
-								Attributes:          nil,
-								DeprecationMessage:  "",
-								Validators:          nil,
-								PlanModifiers:       nil,
+			},
+			"list": schema.ListNestedAttribute{
+				Optional:    true,
+				Computed:    true,
+				Description: "",
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"acl_id": schema.StringAttribute{
+							MarkdownDescription: "ACL ID",
+							Optional:            true,
+						},
+						"name": schema.StringAttribute{
+							MarkdownDescription: "Name of the adaptive policy ACL",
+							Optional:            true,
+						},
+						"description": schema.StringAttribute{
+							MarkdownDescription: "Description of the adaptive policy ACL",
+							Optional:            true,
+						},
+						"ip_version": schema.StringAttribute{
+							MarkdownDescription: "IP version of adaptive policy ACL. One of: 'any', 'ipv4' or 'ipv6",
+							Optional:            true,
+							Validators: []validator.String{
+								stringvalidator.ExactlyOneOf(
+									path.MatchRoot("any"),
+									path.MatchRoot("ipv4"),
+									path.MatchRoot("ipv6"),
+								),
 							},
-							"protocol": {
-								Description:         "The type of protocol (must be 'tcp', 'udp', 'icmp' or 'any').",
-								MarkdownDescription: "The type of protocol (must be 'tcp', 'udp', 'icmp' or 'any').",
-								Type:                types.StringType,
-								Required:            false,
-								Optional:            true,
-								Computed:            true,
-								Sensitive:           false,
-								Attributes:          nil,
-								DeprecationMessage:  "",
-								Validators:          nil,
-								PlanModifiers:       nil,
+						},
+						"rules": schema.ListNestedAttribute{
+							Description: "An ordered array of the adaptive policy ACL rules. An empty array will clear the rules.",
+							Optional:    true,
+							Computed:    true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"policy": schema.StringAttribute{
+										MarkdownDescription: "",
+										Optional:            true,
+									},
+									"protocol": schema.StringAttribute{
+										MarkdownDescription: "",
+										Optional:            true,
+									},
+									"src_port": schema.StringAttribute{
+										MarkdownDescription: "",
+										Optional:            true,
+									},
+									"dst_port": schema.StringAttribute{
+										MarkdownDescription: "",
+										Optional:            true,
+									},
+								},
 							},
-							"src_port": {
-								Description:         "Source port. Must be in the format of single port: '1', port list: '1,2' or port range: '1-10', and in the range of 1-65535, or 'any'. Default is 'any'.",
-								MarkdownDescription: "Source port. Must be in the format of single port: '1', port list: '1,2' or port range: '1-10', and in the range of 1-65535, or 'any'. Default is 'any'.",
-								Type:                types.StringType,
-								Required:            false,
-								Optional:            true,
-								Computed:            true,
-								Sensitive:           false,
-								Attributes:          nil,
-								DeprecationMessage:  "",
-								Validators:          nil,
-								PlanModifiers:       nil,
-							},
-							"dst_port": {
-								Description:         "Destination port. Must be in the format of single port: '1', port list: '1,2' or port range: '1-10', and in the range of 1-65535, or 'any'. Default is 'any'.",
-								MarkdownDescription: "Destination port. Must be in the format of single port: '1', port list: '1,2' or port range: '1-10', and in the range of 1-65535, or 'any'. Default is 'any'.",
-								Type:                types.StringType,
-								Required:            false,
-								Optional:            true,
-								Computed:            true,
-								Sensitive:           false,
-								Attributes:          nil,
-								DeprecationMessage:  "",
-								Validators:          nil,
-								PlanModifiers:       nil,
-							},
-						})},
-					"created_at": {
-						Description:         "rule created timestamp",
-						MarkdownDescription: "",
-						Type:                types.StringType,
-						Required:            false,
-						Optional:            true,
-						Computed:            true,
-						Sensitive:           false,
-						Attributes:          nil,
-						DeprecationMessage:  "",
-						Validators:          nil,
-						PlanModifiers:       nil,
+						},
+						"created_at": schema.StringAttribute{
+							MarkdownDescription: "",
+							Optional:            true,
+						},
+						"updated_at": schema.StringAttribute{
+							MarkdownDescription: "",
+							Optional:            true,
+						},
 					},
-					"updated_at": {
-						Description:         "last updated timestamp",
-						MarkdownDescription: "",
-						Type:                types.StringType,
-						Required:            false,
-						Optional:            true,
-						Computed:            true,
-						Sensitive:           false,
-						Attributes:          nil,
-						DeprecationMessage:  "",
-						Validators:          nil,
-						PlanModifiers:       nil,
-					},
-				})},
+				},
+			},
 		},
-	}, nil
+	}
 }
 
 func (d *OrganizationsAdaptivePolicyAclsDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
