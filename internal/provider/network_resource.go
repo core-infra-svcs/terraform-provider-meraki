@@ -449,9 +449,11 @@ func (r *NetworkResource) Delete(ctx context.Context, req resource.DeleteRequest
 	// Read Terraform state data
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-	// retry request as too many delete requests throw 400 error
-	retries := 10
+	// HTTP DELETE METHOD does not leverage the retry-after header and throws 400 errors.
+	retries := 100 // This is the only way to ensure a scaled result.
 	wait := 1
+	var deletedFromMerakiPortal bool
+	deletedFromMerakiPortal = false
 
 	for retries > 0 {
 
@@ -480,10 +482,7 @@ func (r *NetworkResource) Delete(ctx context.Context, req resource.DeleteRequest
 				resp.Diagnostics.Append()
 			}
 
-			resp.State.RemoveResource(ctx)
-
-			// Write logs using the tflog package
-			tflog.Trace(ctx, "removed resource")
+			deletedFromMerakiPortal = true
 
 			// escape loop
 			break
@@ -495,8 +494,22 @@ func (r *NetworkResource) Delete(ctx context.Context, req resource.DeleteRequest
 
 			// exponential wait
 			time.Sleep(time.Duration(wait) * time.Second)
-			wait += 1 * 2
+			wait += 1
 		}
+	}
+
+	// Check if deleted from Meraki Portal was successful
+	if deletedFromMerakiPortal == true {
+		resp.State.RemoveResource(ctx)
+
+		// Write logs using the tflog package
+		tflog.Trace(ctx, "removed resource")
+	} else {
+		resp.Diagnostics.AddError(
+			"Failed to delete resource",
+			"Failed to delete resource",
+		)
+		return
 	}
 
 }
