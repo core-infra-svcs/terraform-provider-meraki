@@ -52,8 +52,7 @@ func (d *OrganizationsDataSource) Schema(ctx context.Context, req datasource.Sch
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				MarkdownDescription: "Example identifier",
-				Computed:            true,
+				Computed: true,
 			},
 			"list": schema.ListNestedAttribute{
 				Optional:    true,

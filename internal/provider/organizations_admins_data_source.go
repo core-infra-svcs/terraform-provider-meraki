@@ -69,8 +69,7 @@ func (d *OrganizationsAdminsDataSource) Schema(ctx context.Context, req datasour
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				MarkdownDescription: "Example identifier",
-				Computed:            true,
+				Computed: true,
 			},
 			"organization_id": schema.StringAttribute{
 				MarkdownDescription: "Organization ID",

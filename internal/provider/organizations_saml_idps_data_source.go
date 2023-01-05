@@ -47,8 +47,7 @@ func (d *OrganizationsSamlIdpsDataSource) Schema(ctx context.Context, req dataso
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				MarkdownDescription: "Example identifier",
-				Computed:            true,
+				Computed: true,
 			},
 			"organization_id": schema.StringAttribute{
 				MarkdownDescription: "Organization ID",

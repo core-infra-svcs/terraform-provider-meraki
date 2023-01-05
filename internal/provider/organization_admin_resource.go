@@ -4,20 +4,18 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
+	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"strings"
-
-	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
-
-	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
-	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"strings"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -72,11 +70,7 @@ func (r *OrganizationsAdminResource) Schema(ctx context.Context, req resource.Sc
 		MarkdownDescription: "Manage the dashboard administrators in this organization",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "Example identifier",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
+				Computed: true,
 			},
 			"organization_id": schema.StringAttribute{
 				MarkdownDescription: "Organization ID",
@@ -115,12 +109,8 @@ func (r *OrganizationsAdminResource) Schema(ctx context.Context, req resource.Sc
 				Optional:            true,
 				Computed:            true,
 				Validators: []validator.String{
-					stringvalidator.ExactlyOneOf(
-						path.MatchRoot("full"),
-						path.MatchRoot("read-only"),
-						path.MatchRoot("enterprise"),
-						path.MatchRoot("none"),
-					),
+					stringvalidator.OneOf([]string{"full", "read-only", "enterprise", "none"}...),
+					stringvalidator.LengthAtLeast(4),
 				},
 			},
 			"account_status": schema.StringAttribute{
@@ -143,7 +133,7 @@ func (r *OrganizationsAdminResource) Schema(ctx context.Context, req resource.Sc
 				Optional:            true,
 				Computed:            true,
 			},
-			"tags": schema.ListNestedAttribute{
+			"tags": schema.SetNestedAttribute{
 				Description: "The list of tags that the dashboard administrator has privileges on",
 				Optional:    true,
 				Computed:    true,
@@ -160,7 +150,7 @@ func (r *OrganizationsAdminResource) Schema(ctx context.Context, req resource.Sc
 					},
 				},
 			},
-			"networks": schema.ListNestedAttribute{
+			"networks": schema.SetNestedAttribute{
 				Description: "The list of networks that the dashboard administrator has privileges on",
 				Optional:    true,
 				Computed:    true,
@@ -182,10 +172,9 @@ func (r *OrganizationsAdminResource) Schema(ctx context.Context, req resource.Sc
 				Optional:            true,
 				Computed:            true,
 				Validators: []validator.String{
-					stringvalidator.ExactlyOneOf(
-						path.MatchRoot("Email"),
-						path.MatchRoot("Cisco SecureX Sign-On"),
-					),
+
+					stringvalidator.OneOf([]string{"Email", "Cisco SecureX Sign-On"}...),
+					stringvalidator.LengthAtLeast(5),
 				},
 			},
 		},
@@ -234,7 +223,7 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 		for _, attribute := range data.Tags {
 			var tag openApiClient.OrganizationsOrganizationIdAdminsTags
 			tag.Tag = attribute.Tag.ValueString()
-			tag.Access = attribute.Tag.ValueString()
+			tag.Access = attribute.Access.ValueString()
 			tags = append(tags, tag)
 		}
 		createOrganizationAdmin.SetTags(tags)
@@ -285,6 +274,7 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 
 	// Save data into Terraform state
 	extractHttpResponseOrganizationAdminResource(ctx, inlineResp, data)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
@@ -329,7 +319,7 @@ func (r *OrganizationsAdminResource) Read(ctx context.Context, req resource.Read
 		resp.Diagnostics.Append()
 	}
 
-	// get admin
+	// There is no single GET ADMIN endpoint, so we must GET a list of all admins and search by adminId.
 	for _, admin := range inlineResp {
 
 		// Match id found in tf state
@@ -349,11 +339,6 @@ func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.Up
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-
-	if len(data.AdminId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing AdminId", fmt.Sprintf("AdminId: %s", data.AdminId.ValueString()))
-		return
-	}
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -462,69 +447,22 @@ func (r *OrganizationsAdminResource) Delete(ctx context.Context, req resource.De
 
 }
 
-func extractHttpResponseOrganizationAdminResource(ctx context.Context, inlineRespValue map[string]interface{}, data *OrganizationsAdminResourceModel) *OrganizationsAdminResourceModel {
+func extractHttpResponseOrganizationAdminResource(ctx context.Context, inlineResp map[string]interface{}, data *OrganizationsAdminResourceModel) *OrganizationsAdminResourceModel {
 
 	// save into the Terraform state
 	data.Id = types.StringValue("example-id")
-
-	// id attribute
-	if id := inlineRespValue["id"]; id != nil {
-		data.AdminId = types.StringValue(id.(string))
-	} else {
-		data.AdminId = types.StringNull()
-	}
-
-	// name attribute
-	if name := inlineRespValue["name"]; name != nil {
-		data.Name = types.StringValue(name.(string))
-	} else {
-		data.Name = types.StringNull()
-	}
-
-	// email attribute
-	if email := inlineRespValue["email"]; email != nil {
-		data.Email = types.StringValue(email.(string))
-	} else {
-		data.Email = types.StringNull()
-	}
-
-	// orgAccess attribute
-	if orgAccess := inlineRespValue["orgAccess"]; orgAccess != nil {
-		data.OrgAccess = types.StringValue(orgAccess.(string))
-	} else {
-		data.OrgAccess = types.StringNull()
-	}
-
-	// accountStatus attribute
-	if accountStatus := inlineRespValue["accountStatus"]; accountStatus != nil {
-		data.AccountStatus = types.StringValue(accountStatus.(string))
-	} else {
-		data.AccountStatus = types.StringNull()
-	}
-
-	// twoFactorAuthEnabled attribute
-	if twoFactorAuthEnabled := inlineRespValue["twoFactorAuthEnabled"]; twoFactorAuthEnabled != nil {
-		data.TwoFactorAuthEnabled = types.BoolValue(twoFactorAuthEnabled.(bool))
-	} else {
-		data.TwoFactorAuthEnabled = types.BoolNull()
-	}
-
-	// hasApiKey attribute
-	if hasApiKey := inlineRespValue["hasApiKey"]; hasApiKey != nil {
-		data.HasApiKey = types.BoolValue(hasApiKey.(bool))
-	} else {
-		data.HasApiKey = types.BoolNull()
-	}
-
-	// lastActive attribute
-	if lastActive := inlineRespValue["lastActive"]; lastActive != nil {
-		data.LastActive = types.StringValue(lastActive.(string))
-	} else {
-		data.LastActive = types.StringNull()
-	}
+	data.AdminId = tools.MapStringValue(inlineResp, "id")
+	data.Name = tools.MapStringValue(inlineResp, "name")
+	data.Email = tools.MapStringValue(inlineResp, "email")
+	data.OrgAccess = tools.MapStringValue(inlineResp, "orgAccess")
+	data.AccountStatus = tools.MapStringValue(inlineResp, "accountStatus")
+	data.TwoFactorAuthEnabled = tools.MapBoolValue(inlineResp, "twoFactorAuthEnabled")
+	data.HasApiKey = tools.MapBoolValue(inlineResp, "hasApiKey")
+	data.LastActive = tools.MapStringValue(inlineResp, "lastActive")
+	data.AuthenticationMethod = tools.MapStringValue(inlineResp, "authenticationMethod")
 
 	// tags attribute
-	if tags := inlineRespValue["tags"]; tags != nil {
+	if tags := inlineResp["tags"]; tags != nil {
 		for _, tv := range tags.([]interface{}) {
 			var tag OrganizationsAdminResourceModelTag
 			_ = json.Unmarshal([]byte(tv.(string)), &tag)
@@ -535,7 +473,7 @@ func extractHttpResponseOrganizationAdminResource(ctx context.Context, inlineRes
 	}
 
 	// networks attribute
-	if networks := inlineRespValue["networks"]; networks != nil {
+	if networks := inlineResp["networks"]; networks != nil {
 		for _, tv := range networks.([]interface{}) {
 			var network OrganizationsAdminResourceModelNetwork
 			_ = json.Unmarshal([]byte(tv.(string)), &network)
@@ -543,13 +481,6 @@ func extractHttpResponseOrganizationAdminResource(ctx context.Context, inlineRes
 		}
 	} else {
 		data.Networks = nil
-	}
-
-	// authenticationMethod attribute
-	if authenticationMethod := inlineRespValue["authenticationMethod"]; authenticationMethod != nil {
-		data.AuthenticationMethod = types.StringValue(authenticationMethod.(string))
-	} else {
-		data.AuthenticationMethod = types.StringNull()
 	}
 
 	return data

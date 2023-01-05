@@ -98,9 +98,9 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Validators: []validator.Set{
 					setvalidator.ValueStringsAre(
 						stringvalidator.OneOf([]string{"appliance", "switch", "wireless", "systemsManager", "camera", "cellularGateway", "sensor"}...),
+						stringvalidator.LengthAtLeast(5),
 					),
 				},
-				PlanModifiers: nil,
 			},
 			"timezone": schema.StringAttribute{
 				MarkdownDescription: "Timezone of the network",
@@ -191,12 +191,6 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 		productTypes = append(productTypes, pt)
 	}
 	createOrganizationNetwork.SetProductTypes(productTypes)
-
-	// check for product types input
-	if len(createOrganizationNetwork.GetProductTypes()) < 1 {
-		resp.Diagnostics.AddError("Missing required input product_types", fmt.Sprintf("Must be one of 'wireless', "+
-			"'appliance','switch', 'systemsManager', 'camera', 'cellularGateway' or 'sensor'"))
-	}
 
 	if resp.Diagnostics.HasError() {
 		return

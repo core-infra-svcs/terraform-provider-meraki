@@ -46,8 +46,7 @@ func (d *AdministeredIdentitiesMeDataSource) Schema(ctx context.Context, req dat
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				MarkdownDescription: "Example identifier",
-				Computed:            true,
+				Computed: true,
 			},
 			"name": schema.StringAttribute{
 				MarkdownDescription: "Username",
