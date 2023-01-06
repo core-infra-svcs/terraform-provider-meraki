@@ -141,7 +141,9 @@ func (d *OrganizationsDataSource) Read(ctx context.Context, req datasource.ReadR
 	}
 
 	// collect diagnostics
-	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+	if httpResp != nil {
+		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+	}
 
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {

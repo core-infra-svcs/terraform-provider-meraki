@@ -177,7 +177,9 @@ func (d *OrganizationsAdaptivePolicyAclsDataSource) Read(ctx context.Context, re
 	}
 
 	// collect diagnostics
-	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+	if httpResp != nil {
+		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+	}
 
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {

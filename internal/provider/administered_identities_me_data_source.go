@@ -133,7 +133,9 @@ func (d *AdministeredIdentitiesMeDataSource) Read(ctx context.Context, req datas
 	}
 
 	// collect diagnostics
-	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+	if httpResp != nil {
+		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+	}
 
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
