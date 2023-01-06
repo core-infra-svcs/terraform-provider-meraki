@@ -3,7 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
-	apiclient "github.com/core-infra-svcs/dashboard-api-go/client"
+	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -21,7 +21,7 @@ func NewAdministeredIdentitiesMeDataSource() datasource.DataSource {
 
 // AdministeredIdentitiesMeDataSource defines the data source implementation.
 type AdministeredIdentitiesMeDataSource struct {
-	client *apiclient.APIClient
+	client *openApiClient.APIClient
 }
 
 // AdministeredIdentitiesMeDataSourceModel describes the data source data model.
@@ -93,7 +93,7 @@ func (d *AdministeredIdentitiesMeDataSource) Configure(ctx context.Context, req 
 		return
 	}
 
-	client, ok := req.ProviderData.(*apiclient.APIClient)
+	client, ok := req.ProviderData.(*openApiClient.APIClient)
 
 	if !ok {
 		resp.Diagnostics.AddError(

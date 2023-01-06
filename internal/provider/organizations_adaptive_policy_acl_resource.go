@@ -6,6 +6,7 @@ import (
 	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -102,11 +103,8 @@ func (r *OrganizationsAdaptivePolicyAclResource) Schema(ctx context.Context, req
 				Optional:            true,
 				Computed:            true,
 				Validators: []validator.String{
-					stringvalidator.ExactlyOneOf(
-						path.MatchRoot("any"),
-						path.MatchRoot("ipv4"),
-						path.MatchRoot("ipv6"),
-					),
+					stringvalidator.OneOf([]string{"any", "ipv4", "ipv6"}...),
+					stringvalidator.LengthAtLeast(3),
 				},
 			},
 			"rules": schema.ListNestedAttribute{
@@ -231,7 +229,7 @@ func (r *OrganizationsAdaptivePolicyAclResource) Create(ctx context.Context, req
 	}
 
 	// Save data into Terraform state
-	extractHttpResponseOrganizationAdaptivePolicyAclResource(ctx, inlineResp, data)
+	extractHttpResponseOrganizationAdaptivePolicyAclResource(ctx, inlineResp, data, &resp.Diagnostics)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
@@ -276,7 +274,7 @@ func (r *OrganizationsAdaptivePolicyAclResource) Read(ctx context.Context, req r
 	}
 
 	// Save data into Terraform state
-	extractHttpResponseOrganizationAdaptivePolicyAclResource(ctx, inlineResp, data)
+	extractHttpResponseOrganizationAdaptivePolicyAclResource(ctx, inlineResp, data, &resp.Diagnostics)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 }
@@ -343,7 +341,7 @@ func (r *OrganizationsAdaptivePolicyAclResource) Update(ctx context.Context, req
 	}
 
 	// Save data into Terraform state
-	extractHttpResponseOrganizationAdaptivePolicyAclResource(ctx, inlineResp, data)
+	extractHttpResponseOrganizationAdaptivePolicyAclResource(ctx, inlineResp, data, &resp.Diagnostics)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
@@ -389,34 +387,17 @@ func (r *OrganizationsAdaptivePolicyAclResource) Delete(ctx context.Context, req
 	resp.State.RemoveResource(ctx)
 }
 
-func extractHttpResponseOrganizationAdaptivePolicyAclResource(ctx context.Context, inlineRespValue map[string]interface{}, data *OrganizationsAdaptivePolicyAclResourceModel) *OrganizationsAdaptivePolicyAclResourceModel {
+func extractHttpResponseOrganizationAdaptivePolicyAclResource(ctx context.Context, inlineResp map[string]interface{}, data *OrganizationsAdaptivePolicyAclResourceModel, diags *diag.Diagnostics) *OrganizationsAdaptivePolicyAclResourceModel {
 
 	// save into the Terraform state
 	data.Id = types.StringValue("example-id")
+	data.AclId = tools.MapStringValue(inlineResp, "aclId", diags)
+	data.Description = tools.MapStringValue(inlineResp, "description", diags)
+	data.IpVersion = tools.MapStringValue(inlineResp, "ipVersion", diags)
 
-	// id attribute
-	if id := inlineRespValue["aclId"]; id != nil {
-		data.AclId = types.StringValue(id.(string))
-	} else {
-		data.AclId = types.StringNull()
-	}
-
-	// description attribute
-	if description := inlineRespValue["description"]; description != nil {
-		data.Description = types.StringValue(description.(string))
-	} else {
-		data.Description = types.StringNull()
-	}
-
-	// ipVersion attribute
-	if ipVersion := inlineRespValue["ipVersion"]; ipVersion != nil {
-		data.IpVersion = types.StringValue(ipVersion.(string))
-	} else {
-		data.IpVersion = types.StringNull()
-	}
-
+	// TODO - use tools.Map funcs for nested rules data
 	// rules attribute
-	if rules := inlineRespValue["rules"]; rules != nil {
+	if rules := inlineResp["rules"]; rules != nil {
 		data.Rules = nil // prevents duplicate rule entries
 		for _, v := range rules.([]interface{}) {
 			rule := v.(map[string]interface{})
@@ -454,19 +435,8 @@ func extractHttpResponseOrganizationAdaptivePolicyAclResource(ctx context.Contex
 
 	}
 
-	// updatedAt attribute
-	if createdAt := inlineRespValue["createdAt"]; createdAt != nil {
-		data.CreatedAt = types.StringValue(createdAt.(string))
-	} else {
-		data.CreatedAt = types.StringNull()
-	}
-
-	// updatedAt attribute
-	if updatedAt := inlineRespValue["updatedAt"]; updatedAt != nil {
-		data.UpdatedAt = types.StringValue(updatedAt.(string))
-	} else {
-		data.UpdatedAt = types.StringNull()
-	}
+	data.CreatedAt = tools.MapStringValue(inlineResp, "createdAt", diags)
+	data.UpdatedAt = tools.MapStringValue(inlineResp, "updatedAt", diags)
 
 	return data
 }

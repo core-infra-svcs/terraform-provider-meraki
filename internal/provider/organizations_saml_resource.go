@@ -149,12 +149,6 @@ func (r *OrganizationSamlResource) Read(ctx context.Context, req resource.ReadRe
 	// Read Terraform state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-	// Check for required parameters
-	if len(data.OrganizationId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing organization Id", fmt.Sprintf("Id: %s", data.OrganizationId.ValueString()))
-		return
-	}
-
 	// Initialize provider client and make API call
 	inlineResp, httpResp, err := r.client.SamlApi.GetOrganizationSaml(context.Background(), data.OrganizationId.ValueString()).Execute()
 	if err != nil {

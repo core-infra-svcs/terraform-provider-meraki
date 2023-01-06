@@ -36,6 +36,16 @@ func TestAccOrganizationsAdminResource(t *testing.T) {
 				),
 			},
 
+			// TODO - ImportState testing - This only works when hard-coded organizationId + adminId.
+			/*
+				{
+						ResourceName:      "meraki_organizations_admin.test",
+						ImportState:       true,
+						ImportStateVerify: false,
+						ImportStateId:     "657525545596096508, 657525545596237587",
+					},
+			*/
+
 			// Update testing
 			{
 				Config: testUpdatedAccOrganizationsAdminResourceConfig,
@@ -46,16 +56,6 @@ func TestAccOrganizationsAdminResource(t *testing.T) {
 					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "networks.1.access", "read-only"),
 				),
 			},
-
-			// TODO - ImportState testing - This only works when hard-coded organizationId + adminId.
-			/*
-				{
-						ResourceName:      "meraki_organizations_admin.test",
-						ImportState:       true,
-						ImportStateVerify: false,
-						ImportStateId:     "657525545596096508, 657525545596237587",
-					},
-			*/
 
 			// Delete testing automatically occurs in TestCase
 			// This test can result in orphaned resources as organizations cannot be deleted with admins still present.

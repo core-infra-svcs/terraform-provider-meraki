@@ -7,6 +7,7 @@ import (
 	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -273,7 +274,7 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 	}
 
 	// Save data into Terraform state
-	extractHttpResponseOrganizationAdminResource(ctx, inlineResp, data)
+	extractHttpResponseOrganizationAdminResource(ctx, inlineResp, data, &resp.Diagnostics)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -326,7 +327,7 @@ func (r *OrganizationsAdminResource) Read(ctx context.Context, req resource.Read
 		if adminId := admin["id"]; adminId == data.AdminId.ValueString() {
 
 			// Save data into Terraform state
-			extractHttpResponseOrganizationAdminResource(ctx, admin, data)
+			extractHttpResponseOrganizationAdminResource(ctx, admin, data, &resp.Diagnostics)
 		}
 	}
 
@@ -401,7 +402,7 @@ func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.Up
 	}
 
 	// Save data into Terraform state
-	extractHttpResponseOrganizationAdminResource(ctx, inlineResp, data)
+	extractHttpResponseOrganizationAdminResource(ctx, inlineResp, data, &resp.Diagnostics)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -447,20 +448,21 @@ func (r *OrganizationsAdminResource) Delete(ctx context.Context, req resource.De
 
 }
 
-func extractHttpResponseOrganizationAdminResource(ctx context.Context, inlineResp map[string]interface{}, data *OrganizationsAdminResourceModel) *OrganizationsAdminResourceModel {
+func extractHttpResponseOrganizationAdminResource(ctx context.Context, inlineResp map[string]interface{}, data *OrganizationsAdminResourceModel, diags *diag.Diagnostics) *OrganizationsAdminResourceModel {
 
 	// save into the Terraform state
 	data.Id = types.StringValue("example-id")
-	data.AdminId = tools.MapStringValue(inlineResp, "id")
-	data.Name = tools.MapStringValue(inlineResp, "name")
-	data.Email = tools.MapStringValue(inlineResp, "email")
-	data.OrgAccess = tools.MapStringValue(inlineResp, "orgAccess")
-	data.AccountStatus = tools.MapStringValue(inlineResp, "accountStatus")
-	data.TwoFactorAuthEnabled = tools.MapBoolValue(inlineResp, "twoFactorAuthEnabled")
-	data.HasApiKey = tools.MapBoolValue(inlineResp, "hasApiKey")
-	data.LastActive = tools.MapStringValue(inlineResp, "lastActive")
-	data.AuthenticationMethod = tools.MapStringValue(inlineResp, "authenticationMethod")
+	data.AdminId = tools.MapStringValue(inlineResp, "id", diags)
+	data.Name = tools.MapStringValue(inlineResp, "name", diags)
+	data.Email = tools.MapStringValue(inlineResp, "email", diags)
+	data.OrgAccess = tools.MapStringValue(inlineResp, "orgAccess", diags)
+	data.AccountStatus = tools.MapStringValue(inlineResp, "accountStatus", diags)
+	data.TwoFactorAuthEnabled = tools.MapBoolValue(inlineResp, "twoFactorAuthEnabled", diags)
+	data.HasApiKey = tools.MapBoolValue(inlineResp, "hasApiKey", diags)
+	data.LastActive = tools.MapStringValue(inlineResp, "lastActive", diags)
+	data.AuthenticationMethod = tools.MapStringValue(inlineResp, "authenticationMethod", diags)
 
+	// TODO - use tools.Map funcs for nested tags/networks data
 	// tags attribute
 	if tags := inlineResp["tags"]; tags != nil {
 		for _, tv := range tags.([]interface{}) {

@@ -3,12 +3,11 @@ package provider
 import (
 	"context"
 	"fmt"
-	apiclient "github.com/core-infra-svcs/dashboard-api-go/client"
+	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -23,7 +22,7 @@ func NewOrganizationsAdaptivePolicyAclsDataSource() datasource.DataSource {
 
 // OrganizationsAdaptivePolicyAclsDataSource defines the data source implementation.
 type OrganizationsAdaptivePolicyAclsDataSource struct {
-	client *apiclient.APIClient
+	client *openApiClient.APIClient
 }
 
 // OrganizationsAdaptivePolicyAclsDataSourceModel describes the data source data model.
@@ -66,6 +65,9 @@ func (d *OrganizationsAdaptivePolicyAclsDataSource) Schema(ctx context.Context, 
 			"organization_id": schema.StringAttribute{
 				MarkdownDescription: "Organization ID",
 				Optional:            true,
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(8, 31),
+				},
 			},
 			"list": schema.ListNestedAttribute{
 				Optional:    true,
@@ -88,13 +90,6 @@ func (d *OrganizationsAdaptivePolicyAclsDataSource) Schema(ctx context.Context, 
 						"ip_version": schema.StringAttribute{
 							MarkdownDescription: "IP version of adaptive policy ACL. One of: 'any', 'ipv4' or 'ipv6",
 							Optional:            true,
-							Validators: []validator.String{
-								stringvalidator.ExactlyOneOf(
-									path.MatchRoot("any"),
-									path.MatchRoot("ipv4"),
-									path.MatchRoot("ipv6"),
-								),
-							},
 						},
 						"rules": schema.ListNestedAttribute{
 							Description: "An ordered array of the adaptive policy ACL rules. An empty array will clear the rules.",
@@ -142,7 +137,7 @@ func (d *OrganizationsAdaptivePolicyAclsDataSource) Configure(ctx context.Contex
 		return
 	}
 
-	client, ok := req.ProviderData.(*apiclient.APIClient)
+	client, ok := req.ProviderData.(*openApiClient.APIClient)
 
 	if !ok {
 		resp.Diagnostics.AddError(
@@ -160,12 +155,6 @@ func (d *OrganizationsAdaptivePolicyAclsDataSource) Read(ctx context.Context, re
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
-
-	// Check for required parameters
-	if len(data.OrgId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing organizationId", fmt.Sprintf("Value: %s", data.OrgId.ValueString()))
-		return
-	}
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -206,26 +195,11 @@ func (d *OrganizationsAdaptivePolicyAclsDataSource) Read(ctx context.Context, re
 			var adaptivePolicy OrganizationAdaptivePolicyAclsDataSourceModel
 
 			// id attribute
-			if id := inlineRespValue["aclId"]; id != nil {
-				adaptivePolicy.AclId = types.StringValue(id.(string))
-			} else {
-				adaptivePolicy.AclId = types.StringNull()
-			}
+			adaptivePolicy.AclId = tools.MapStringValue(inlineRespValue, "aclId", &resp.Diagnostics)
+			adaptivePolicy.Description = tools.MapStringValue(inlineRespValue, "description", &resp.Diagnostics)
+			adaptivePolicy.IpVersion = tools.MapStringValue(inlineRespValue, "ipVersion", &resp.Diagnostics)
 
-			// description attribute
-			if description := inlineRespValue["description"]; description != nil {
-				adaptivePolicy.Description = types.StringValue(description.(string))
-			} else {
-				adaptivePolicy.Description = types.StringNull()
-			}
-
-			// ipVersion attribute
-			if ipVersion := inlineRespValue["ipVersion"]; ipVersion != nil {
-				adaptivePolicy.IpVersion = types.StringValue(ipVersion.(string))
-			} else {
-				adaptivePolicy.IpVersion = types.StringNull()
-			}
-
+			// TODO - use tools.Map funcs for nested rules data
 			// rules attribute
 			if rules := inlineRespValue["rules"]; rules != nil {
 				for _, v := range rules.([]interface{}) {
@@ -261,22 +235,10 @@ func (d *OrganizationsAdaptivePolicyAclsDataSource) Read(ctx context.Context, re
 					}
 					adaptivePolicy.Rules = append(adaptivePolicy.Rules, ruleResult)
 				}
-
 			}
 
-			// updatedAt attribute
-			if createdAt := inlineRespValue["createdAt"]; createdAt != nil {
-				adaptivePolicy.CreatedAt = types.StringValue(createdAt.(string))
-			} else {
-				adaptivePolicy.CreatedAt = types.StringNull()
-			}
-
-			// updatedAt attribute
-			if updatedAt := inlineRespValue["updatedAt"]; updatedAt != nil {
-				adaptivePolicy.UpdatedAt = types.StringValue(updatedAt.(string))
-			} else {
-				adaptivePolicy.UpdatedAt = types.StringNull()
-			}
+			adaptivePolicy.CreatedAt = tools.MapStringValue(inlineRespValue, "createdAt", &resp.Diagnostics)
+			adaptivePolicy.UpdatedAt = tools.MapStringValue(inlineRespValue, "updatedAt", &resp.Diagnostics)
 
 			// append adaptivePolicy to list of adaptivePolicies
 			data.List = append(data.List, adaptivePolicy)

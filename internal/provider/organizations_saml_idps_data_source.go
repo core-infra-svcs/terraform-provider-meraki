@@ -3,10 +3,12 @@ package provider
 import (
 	"context"
 	"fmt"
-	apiclient "github.com/core-infra-svcs/dashboard-api-go/client"
+	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -20,7 +22,7 @@ func NewOrganizationsSamlIdpsDataSource() datasource.DataSource {
 
 // OrganizationsSamlIdpsDataSource defines the data source implementation.
 type OrganizationsSamlIdpsDataSource struct {
-	client *apiclient.APIClient
+	client *openApiClient.APIClient
 }
 
 type OrganizationsSamlIdpsDataSourceModel struct {
@@ -52,6 +54,10 @@ func (d *OrganizationsSamlIdpsDataSource) Schema(ctx context.Context, req dataso
 			"organization_id": schema.StringAttribute{
 				MarkdownDescription: "Organization ID",
 				Optional:            true,
+				Computed:            true,
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(8, 31),
+				},
 			},
 			"list": schema.ListNestedAttribute{
 				Optional:    true,
@@ -88,7 +94,7 @@ func (d *OrganizationsSamlIdpsDataSource) Configure(ctx context.Context, req dat
 		return
 	}
 
-	client, ok := req.ProviderData.(*apiclient.APIClient)
+	client, ok := req.ProviderData.(*openApiClient.APIClient)
 
 	if !ok {
 		resp.Diagnostics.AddError(
