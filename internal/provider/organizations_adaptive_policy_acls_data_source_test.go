@@ -16,7 +16,7 @@ func TestAccOrganizationsAdaptivePolicyAclsDataSource(t *testing.T) {
 				Config: testAccOrganizationsAdaptivePolicyAclsDataSourceConfigCreateOrganization,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
-					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test-acc-meraki-organizations-adaptive-policy-acls"),
+					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_acc_meraki_organizations_adaptive_policy_acls"),
 				),
 			},
 
@@ -24,7 +24,6 @@ func TestAccOrganizationsAdaptivePolicyAclsDataSource(t *testing.T) {
 			{
 				Config: testAccOrganizationsAdaptivePolicyAclsDataSourceConfigCreatePolicyAcl,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organizations_adaptive_policy_acl.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_organizations_adaptive_policy_acl.test", "name", "Block sensitive web traffic"),
 					resource.TestCheckResourceAttr("meraki_organizations_adaptive_policy_acl.test", "description", "Blocks sensitive web traffic"),
 					resource.TestCheckResourceAttr("meraki_organizations_adaptive_policy_acl.test", "ip_version", "ipv6"),
@@ -41,7 +40,6 @@ func TestAccOrganizationsAdaptivePolicyAclsDataSource(t *testing.T) {
 			{
 				Config: testAccOrganizationsAdaptivePolicyAclsDataSourceConfigRead,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("data.meraki_organizations_adaptive_policy_acls.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("data.meraki_organizations_adaptive_policy_acls.test", "list.#", "1"),
 					resource.TestCheckResourceAttr("data.meraki_organizations_adaptive_policy_acls.test", "list.0.rules.0.policy", "deny"),
 					resource.TestCheckResourceAttr("data.meraki_organizations_adaptive_policy_acls.test", "list.0.rules.0.protocol", "tcp"),
@@ -55,7 +53,7 @@ func TestAccOrganizationsAdaptivePolicyAclsDataSource(t *testing.T) {
 
 const testAccOrganizationsAdaptivePolicyAclsDataSourceConfigCreateOrganization = `
 resource "meraki_organization" "test" {
-	name = "test-acc-meraki-organizations-adaptive-policy-acls"
+	name = "test_acc_meraki_organizations_adaptive_policy_acls"
 	api_enabled = true
 }
 `

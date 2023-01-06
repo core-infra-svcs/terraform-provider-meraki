@@ -3,11 +3,10 @@ package provider
 import (
 	"context"
 	"fmt"
-	apiclient "github.com/core-infra-svcs/dashboard-api-go/client"
+	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"time"
@@ -22,7 +21,7 @@ func NewAdministeredIdentitiesMeDataSource() datasource.DataSource {
 
 // AdministeredIdentitiesMeDataSource defines the data source implementation.
 type AdministeredIdentitiesMeDataSource struct {
-	client *apiclient.APIClient
+	client *openApiClient.APIClient
 }
 
 // AdministeredIdentitiesMeDataSourceModel describes the data source data model.
@@ -41,110 +40,51 @@ func (d *AdministeredIdentitiesMeDataSource) Metadata(ctx context.Context, req d
 	resp.TypeName = req.ProviderTypeName + "_administered_identities_me"
 }
 
-func (d *AdministeredIdentitiesMeDataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
-		MarkdownDescription: "AdministeredIdentitiesMe data source - Returns the identity of the current user",
-		Attributes: map[string]tfsdk.Attribute{
+func (d *AdministeredIdentitiesMeDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		MarkdownDescription: "Returns the identity of the current user",
 
-			"id": {
-				MarkdownDescription: "Example identifier",
-				Type:                types.StringType,
-				Computed:            true,
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Computed: true,
 			},
-
-			"authentication_api_key_created": {
-				Description:         "API authentication Key",
-				MarkdownDescription: "",
-				Type:                types.BoolType,
-				Required:            false,
+			"name": schema.StringAttribute{
+				MarkdownDescription: "Username",
 				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
 			},
-			"authentication_mode": {
-				Description:         "Authentication mode",
-				MarkdownDescription: "",
-				Type:                types.StringType,
-				Required:            false,
+			"email": schema.StringAttribute{
+				MarkdownDescription: "User email",
 				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
 			},
-			"authentication_saml_enabled": {
-				Description:         "SAML authentication",
-				MarkdownDescription: "",
-				Type:                types.BoolType,
-				Required:            false,
+			"last_used_dashboard_at": schema.StringAttribute{
+				MarkdownDescription: "Last seen active on Dashboard UI",
 				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
 			},
-			"authentication_two_factor_enabled": {
-				Description:         "TwoFactor authentication",
-				MarkdownDescription: "",
-				Type:                types.BoolType,
-				Required:            false,
+			"authentication_mode": schema.StringAttribute{
+				MarkdownDescription: "Authentication mode",
 				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
 			},
-			"email": {
-				Description:         "User email",
-				MarkdownDescription: "",
-				Type:                types.StringType,
-				Required:            false,
+			"authentication_api_key_created": schema.BoolAttribute{
+				MarkdownDescription: "If API key is created for this user",
 				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
 			},
-			"last_used_dashboard_at": {
-				Description:         "Last seen active on Dashboard UI",
-				MarkdownDescription: "",
-				Type:                types.StringType,
-				Required:            false,
+			"authentication_two_factor_enabled": schema.BoolAttribute{
+				MarkdownDescription: "If twoFactor authentication is enabled for this user",
 				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
 			},
-			"name": {
-				Description:         "Username",
-				MarkdownDescription: "",
-				Type:                types.StringType,
-				Required:            false,
+			"authentication_saml_enabled": schema.BoolAttribute{
+				MarkdownDescription: "If SAML authentication is enabled for this user",
 				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
 			},
 		},
-	}, nil
+	}
 }
 
 func (d *AdministeredIdentitiesMeDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
@@ -153,7 +93,7 @@ func (d *AdministeredIdentitiesMeDataSource) Configure(ctx context.Context, req 
 		return
 	}
 
-	client, ok := req.ProviderData.(*apiclient.APIClient)
+	client, ok := req.ProviderData.(*openApiClient.APIClient)
 
 	if !ok {
 		resp.Diagnostics.AddError(
@@ -198,6 +138,8 @@ func (d *AdministeredIdentitiesMeDataSource) Read(ctx context.Context, req datas
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
+	} else {
+		resp.Diagnostics.Append()
 	}
 
 	data.Id = types.StringValue("example-id")
@@ -206,8 +148,8 @@ func (d *AdministeredIdentitiesMeDataSource) Read(ctx context.Context, req datas
 	data.LastUsedDashboardAt = types.StringValue(inlineResp.GetLastUsedDashboardAt().Format(time.RFC3339))
 	data.AuthenticationMode = types.StringValue(inlineResp.Authentication.GetMode())
 	data.AuthenticationApiKeyCreated = types.BoolValue(inlineResp.Authentication.Api.Key.GetCreated())
-	data.AuthenticationSaml = types.BoolValue(inlineResp.Authentication.Saml.GetEnabled())
 	data.AuthenticationTwofactor = types.BoolValue(inlineResp.Authentication.TwoFactor.GetEnabled())
+	data.AuthenticationSaml = types.BoolValue(inlineResp.Authentication.Saml.GetEnabled())
 
 	// Write logs using the tflog package
 	tflog.Trace(ctx, "read a data source")

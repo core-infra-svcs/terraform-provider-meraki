@@ -3,11 +3,12 @@ package provider
 import (
 	"context"
 	"fmt"
-	apiclient "github.com/core-infra-svcs/dashboard-api-go/client"
+	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -21,7 +22,7 @@ func NewOrganizationsSamlIdpsDataSource() datasource.DataSource {
 
 // OrganizationsSamlIdpsDataSource defines the data source implementation.
 type OrganizationsSamlIdpsDataSource struct {
-	client *apiclient.APIClient
+	client *openApiClient.APIClient
 }
 
 type OrganizationsSamlIdpsDataSourceModel struct {
@@ -42,97 +43,49 @@ func (d *OrganizationsSamlIdpsDataSource) Metadata(ctx context.Context, req data
 	resp.TypeName = req.ProviderTypeName + "_organizations_saml_idps"
 }
 
-func (d *OrganizationsSamlIdpsDataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
-		MarkdownDescription: "OrganizationsSamlIdps data source - ",
-		Attributes: map[string]tfsdk.Attribute{
-			"id": {
-				Description:         "Example identifier needed for terraform",
-				MarkdownDescription: "Example identifier needed for terraform",
-				Type:                types.StringType,
-				Required:            false,
-				Optional:            false,
-				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
+func (d *OrganizationsSamlIdpsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		MarkdownDescription: "List the SAML IdPs in your organization.",
+
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Computed: true,
 			},
-			"organization_id": {
-				Description:         "Organization ID",
+			"organization_id": schema.StringAttribute{
 				MarkdownDescription: "Organization ID",
-				Type:                types.StringType,
-				Required:            true,
-				Optional:            false,
-				Computed:            false,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
-			},
-			"list": {
-				Description:         "List of Saml IDPs",
-				MarkdownDescription: "List of Saml IDPs",
 				Optional:            true,
-				Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-					"consumer_url": {
-						Description:         "URL that is consuming SAML Identity Provider (IdP)",
-						MarkdownDescription: "URL that is consuming SAML Identity Provider (IdP)",
-						Type:                types.StringType,
-						Required:            false,
-						Optional:            true,
-						Computed:            true,
-						Sensitive:           false,
-						Attributes:          nil,
-						DeprecationMessage:  "",
-						Validators:          nil,
-						PlanModifiers:       nil,
+				Computed:            true,
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(8, 31),
+				},
+			},
+			"list": schema.ListNestedAttribute{
+				Optional:    true,
+				Computed:    true,
+				Description: "",
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"consumer_url": schema.StringAttribute{
+							MarkdownDescription: "URL that is consuming SAML Identity Provider (IdP)",
+							Optional:            true,
+						},
+						"idp_id": schema.StringAttribute{
+							MarkdownDescription: "ID associated with the SAML Identity Provider (IdP)",
+							Optional:            true,
+						},
+						"slo_logout_url": schema.StringAttribute{
+							MarkdownDescription: "Dashboard will redirect users to this URL when they sign out.",
+							Optional:            true,
+						},
+						"x_509_cert_sha1_fingerprint": schema.StringAttribute{
+							MarkdownDescription: "Fingerprint (SHA1) of the SAML certificate provided by your Identity Provider (IdP). This will be used for encryption / validation.",
+							Optional:            true,
+						},
 					},
-					"idp_id": {
-						Description:         "ID associated with the SAML Identity Provider (IdP)",
-						MarkdownDescription: "ID associated with the SAML Identity Provider (IdP)",
-						Type:                types.StringType,
-						Required:            false,
-						Optional:            true,
-						Computed:            true,
-						Sensitive:           false,
-						Attributes:          nil,
-						DeprecationMessage:  "",
-						Validators:          nil,
-						PlanModifiers:       nil,
-					},
-					"slo_logout_url": {
-						Description:         "Dashboard will redirect users to this URL when they sign out.",
-						MarkdownDescription: "Dashboard will redirect users to this URL when they sign out.",
-						Type:                types.StringType,
-						Required:            false,
-						Optional:            true,
-						Computed:            true,
-						Sensitive:           false,
-						Attributes:          nil,
-						DeprecationMessage:  "",
-						Validators:          nil,
-						PlanModifiers:       nil,
-					},
-					"x_509_cert_sha1_fingerprint": {
-						Description:         "Fingerprint (SHA1) of the SAML certificate provided by your Identity Provider (IdP). This will be used for encryption / validation.",
-						MarkdownDescription: "Fingerprint (SHA1) of the SAML certificate provided by your Identity Provider (IdP). This will be used for encryption / validation.",
-						Type:                types.StringType,
-						Required:            false,
-						Optional:            true,
-						Computed:            true,
-						Sensitive:           false,
-						Attributes:          nil,
-						DeprecationMessage:  "",
-						Validators:          nil,
-						PlanModifiers:       nil,
-					},
-				}),
+				},
 			},
 		},
-	}, nil
+	}
 }
 
 func (d *OrganizationsSamlIdpsDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
@@ -141,7 +94,7 @@ func (d *OrganizationsSamlIdpsDataSource) Configure(ctx context.Context, req dat
 		return
 	}
 
-	client, ok := req.ProviderData.(*apiclient.APIClient)
+	client, ok := req.ProviderData.(*openApiClient.APIClient)
 
 	if !ok {
 		resp.Diagnostics.AddError(
@@ -187,6 +140,8 @@ func (d *OrganizationsSamlIdpsDataSource) Read(ctx context.Context, req datasour
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
+	} else {
+		resp.Diagnostics.Append()
 	}
 
 	// save inlineResp data into Terraform state.

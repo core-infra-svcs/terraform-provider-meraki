@@ -38,6 +38,16 @@ func TestAccOrganizationsAdaptivePolicyAclResource(t *testing.T) {
 				),
 			},
 
+			// TODO - ImportState testing
+			/*
+				{
+						ResourceName:      "meraki_organizations_adaptive_policy_acl.test",
+						ImportState:       true,
+						ImportStateVerify: true,
+						ImportStateId:     "1234567890, 00000111111",
+					},
+			*/
+
 			// Update testing
 			{
 				Config: testAccOrganizationsAdaptivePolicyAclResourceConfigUpdate,
@@ -50,16 +60,6 @@ func TestAccOrganizationsAdaptivePolicyAclResource(t *testing.T) {
 					resource.TestCheckResourceAttr("meraki_organizations_adaptive_policy_acl.test", "rules.1.dst_port", "any"),
 				),
 			},
-
-			// TODO - ImportState testing
-			/*
-				{
-						ResourceName:      "meraki_organizations_adaptive_policy_acl.test",
-						ImportState:       true,
-						ImportStateVerify: true,
-						ImportStateId:     "1234567890, 00000111111",
-					},
-			*/
 
 			// Delete testing automatically occurs in TestCase
 		},

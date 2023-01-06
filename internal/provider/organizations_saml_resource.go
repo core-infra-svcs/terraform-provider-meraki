@@ -3,19 +3,25 @@ package provider
 import (
 	"context"
 	"fmt"
-	apiclient "github.com/core-infra-svcs/dashboard-api-go/client"
+	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ resource.Resource = &OrganizationSamlResource{}
-var _ resource.ResourceWithImportState = &OrganizationSamlResource{}
+var (
+	_ resource.Resource                = &OrganizationSamlResource{}
+	_ resource.ResourceWithConfigure   = &OrganizationSamlResource{}
+	_ resource.ResourceWithImportState = &OrganizationSamlResource{}
+)
 
 func NewOrganizationSamlResource() resource.Resource {
 	return &OrganizationSamlResource{}
@@ -23,7 +29,7 @@ func NewOrganizationSamlResource() resource.Resource {
 
 // OrganizationSamlResource defines the resource implementation.
 type OrganizationSamlResource struct {
-	client *apiclient.APIClient
+	client *openApiClient.APIClient
 }
 
 // OrganizationSamlResourceModel describes the resource data model.
@@ -37,48 +43,31 @@ func (r *OrganizationSamlResource) Metadata(ctx context.Context, req resource.Me
 	resp.TypeName = req.ProviderTypeName + "_organization_saml"
 }
 
-func (r *OrganizationSamlResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
-		MarkdownDescription: "OrganizationSaml resource - Enable or disable a SAML in your organization",
-		Attributes: map[string]tfsdk.Attribute{
-			"id": {
-				Computed:            true,
-				Required:            false,
-				Optional:            false,
-				MarkdownDescription: "Example identifier",
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					resource.UseStateForUnknown(),
-				},
-				Type: types.StringType,
+func (r *OrganizationSamlResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		Description: "Manage the SAML SSO enabled settings for an organization.",
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Computed: true,
 			},
-			"organization_id": {
-				Description:         "Organization ID",
+			"organization_id": schema.StringAttribute{
 				MarkdownDescription: "Organization ID",
-				Type:                types.StringType,
-				Required:            true,
-				Optional:            false,
-				Computed:            false,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
-			},
-			"enabled": {
-				Description:         "Boolean for updating SAML SSO enabled settings.",
-				MarkdownDescription: "Boolean for updating SAML SSO enabled settings.",
-				Type:                types.BoolType,
-				Required:            false,
 				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(8, 31),
+				},
+			},
+			"enabled": schema.BoolAttribute{
+				MarkdownDescription: "Toggle depicting if SAML SSO settings are enabled",
+				Optional:            true,
+				Computed:            true,
 			},
 		},
-	}, nil
+	}
 }
 
 func (r *OrganizationSamlResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -87,7 +76,7 @@ func (r *OrganizationSamlResource) Configure(ctx context.Context, req resource.C
 		return
 	}
 
-	client, ok := req.ProviderData.(*apiclient.APIClient)
+	client, ok := req.ProviderData.(*openApiClient.APIClient)
 
 	if !ok {
 		resp.Diagnostics.AddError(
@@ -110,19 +99,8 @@ func (r *OrganizationSamlResource) Create(ctx context.Context, req resource.Crea
 		return
 	}
 
-	// Check for required parameters
-	if len(data.OrganizationId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing organization Id", fmt.Sprintf("Id: %s", data.OrganizationId.ValueString()))
-		return
-	}
-
-	if len(data.OrganizationId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing Enabled Status", fmt.Sprintf("Enabled: %v", data.Enabled.ValueBool()))
-		return
-	}
-
 	// Create HTTP request body
-	enableOrganizationSaml := *apiclient.NewInlineObject213()
+	enableOrganizationSaml := *openApiClient.NewInlineObject213()
 	enableOrganizationSaml.SetEnabled(data.Enabled.ValueBool())
 
 	// Initialize provider client and make API call
@@ -134,6 +112,11 @@ func (r *OrganizationSamlResource) Create(ctx context.Context, req resource.Crea
 		)
 	}
 
+	// collect diagnostics
+	if httpResp != nil {
+		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+	}
+
 	// Check for API success response code
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
@@ -142,12 +125,11 @@ func (r *OrganizationSamlResource) Create(ctx context.Context, req resource.Crea
 		)
 	}
 
-	// collect diagnostics
-	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
-
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
+	} else {
+		resp.Diagnostics.Append()
 	}
 
 	// save into the Terraform state.
@@ -166,12 +148,6 @@ func (r *OrganizationSamlResource) Read(ctx context.Context, req resource.ReadRe
 
 	// Read Terraform state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
-
-	// Check for required parameters
-	if len(data.OrganizationId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing organization Id", fmt.Sprintf("Id: %s", data.OrganizationId.ValueString()))
-		return
-	}
 
 	// Initialize provider client and make API call
 	inlineResp, httpResp, err := r.client.SamlApi.GetOrganizationSaml(context.Background(), data.OrganizationId.ValueString()).Execute()
@@ -196,6 +172,8 @@ func (r *OrganizationSamlResource) Read(ctx context.Context, req resource.ReadRe
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
+	} else {
+		resp.Diagnostics.Append()
 	}
 
 	// save into the Terraform state.
@@ -215,19 +193,8 @@ func (r *OrganizationSamlResource) Update(ctx context.Context, req resource.Upda
 	// Read Terraform plan data
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
-	// Check for required parameters
-	if len(data.OrganizationId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing organization Id", fmt.Sprintf("Id: %s", data.OrganizationId.ValueString()))
-		return
-	}
-
-	if len(data.OrganizationId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing Enabled Status", fmt.Sprintf("Enabled: %v", data.Enabled.ValueBool()))
-		return
-	}
-
 	// Create HTTP request body
-	enableOrganizationSaml := *apiclient.NewInlineObject213()
+	enableOrganizationSaml := *openApiClient.NewInlineObject213()
 	enableOrganizationSaml.SetEnabled(data.Enabled.ValueBool())
 
 	// Initialize provider client and make API call
@@ -239,6 +206,11 @@ func (r *OrganizationSamlResource) Update(ctx context.Context, req resource.Upda
 		)
 	}
 
+	// collect diagnostics
+	if httpResp != nil {
+		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+	}
+
 	// Check for API success response code
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
@@ -247,12 +219,11 @@ func (r *OrganizationSamlResource) Update(ctx context.Context, req resource.Upda
 		)
 	}
 
-	// collect diagnostics
-	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
-
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
+	} else {
+		resp.Diagnostics.Append()
 	}
 
 	// save into the Terraform state.
