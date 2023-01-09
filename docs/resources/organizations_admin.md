@@ -24,15 +24,15 @@ Manage the dashboard administrators in this organization
 - `has_api_key` (Boolean)
 - `last_active` (String)
 - `name` (String) The name of the dashboard administrator
-- `networks` (Attributes List) The list of networks that the dashboard administrator has privileges on (see [below for nested schema](#nestedatt--networks))
+- `networks` (Attributes Set) The list of networks that the dashboard administrator has privileges on (see [below for nested schema](#nestedatt--networks))
 - `org_access` (String) The privilege of the dashboard administrator on the organization. Can be one of 'full', 'read-only', 'enterprise' or 'none'
 - `organization_id` (String) Organization ID
-- `tags` (Attributes List) The list of tags that the dashboard administrator has privileges on (see [below for nested schema](#nestedatt--tags))
+- `tags` (Attributes Set) The list of tags that the dashboard administrator has privileges on (see [below for nested schema](#nestedatt--tags))
 - `two_factor_auth_enabled` (Boolean)
 
 ### Read-Only
 
-- `id` (String) Example identifier
+- `id` (String) The ID of this resource.
 
 <a id="nestedatt--networks"></a>
 ### Nested Schema for `networks`

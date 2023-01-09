@@ -25,6 +25,6 @@ Manage the SAML IdPs in your organization
 
 ### Read-Only
 
-- `id` (String) Example identifier
+- `id` (String) The ID of this resource.
 
 

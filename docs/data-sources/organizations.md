@@ -21,7 +21,7 @@ List the organizations that the user has privileges on
 
 ### Read-Only
 
-- `id` (String) Example identifier
+- `id` (String) The ID of this resource.
 
 <a id="nestedatt--list"></a>
 ### Nested Schema for `list`
@@ -31,8 +31,8 @@ Optional:
 - `api_enabled` (Boolean) Enable API access
 - `cloud_region_name` (String) Name of region
 - `licensing_model` (String) Organization licensing model. Can be 'co-term', 'per-device', or 'subscription'.
-- `name` (String) "Organization name
+- `name` (String) Organization name
 - `organization_id` (String) Organization ID
-- `url` (String) "Organization URL
+- `url` (String) Organization URL
 
 

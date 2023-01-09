@@ -17,12 +17,12 @@ List the dashboard administrators in this organization
 
 ### Optional
 
-- `list` (Attributes List) (see [below for nested schema](#nestedatt--list))
+- `list` (Attributes Set) (see [below for nested schema](#nestedatt--list))
 - `organization_id` (String) Organization ID
 
 ### Read-Only
 
-- `id` (String) Example identifier
+- `id` (String) The ID of this resource.
 
 <a id="nestedatt--list"></a>
 ### Nested Schema for `list`
@@ -30,15 +30,15 @@ List the dashboard administrators in this organization
 Optional:
 
 - `account_status` (String)
-- `admin_id` (String) Admin ID
 - `authentication_method` (String) The method of authentication the user will use to sign in to the Meraki dashboard. Can be one of 'Email' or 'Cisco SecureX Sign-On'. The default is Email authentication
 - `email` (String) The email of the dashboard administrator. This attribute can not be updated.
 - `has_api_key` (Boolean)
+- `id` (String) Admin ID
 - `last_active` (String)
 - `name` (String) The name of the dashboard administrator
-- `networks` (Attributes List) The list of networks that the dashboard administrator has privileges on (see [below for nested schema](#nestedatt--list--networks))
+- `networks` (Attributes Set) The list of networks that the dashboard administrator has privileges on (see [below for nested schema](#nestedatt--list--networks))
 - `org_access` (String) The privilege of the dashboard administrator on the organization. Can be one of 'full', 'read-only', 'enterprise' or 'none'
-- `tags` (Attributes List) The list of tags that the dashboard administrator has privileges on (see [below for nested schema](#nestedatt--list--tags))
+- `tags` (Attributes Set) The list of tags that the dashboard administrator has privileges on (see [below for nested schema](#nestedatt--list--tags))
 - `two_factor_auth_enabled` (Boolean)
 
 <a id="nestedatt--list--networks"></a>

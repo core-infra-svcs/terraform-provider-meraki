@@ -22,7 +22,7 @@ List the SAML IdPs in your organization.
 
 ### Read-Only
 
-- `id` (String) Example identifier
+- `id` (String) The ID of this resource.
 
 <a id="nestedatt--list"></a>
 ### Nested Schema for `list`

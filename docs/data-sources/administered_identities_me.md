@@ -27,6 +27,6 @@ Returns the identity of the current user
 
 ### Read-Only
 
-- `id` (String) Example identifier
+- `id` (String) The ID of this resource.
 
 
