@@ -13,8 +13,19 @@ description: |-
 ## Example Usage
 
 ```terraform
-provider "scaffolding" {
+terraform {
+  required_providers {
+    meraki = {
+      source = "core-infra-svcs/meraki"
+    }
+  }
+}
+
+provider "meraki" {
   # example configuration here
+  api_key  = var.MERAKI_DASHBOARD_API_KEY
+  base_url = var.MERAKI_DASHBOARD_API_URL
+
 }
 ```
 
@@ -23,5 +34,5 @@ provider "scaffolding" {
 
 ### Optional
 
-- `apikey` (String, Sensitive)
-- `baseurl` (String)
+- `api_key` (String) Meraki Dashboard API Key
+- `base_url` (String) The API version must be specified in the URL:Example: `api.meraki.comFor organizations hosted in the China dashboard, use: `api.meraki.cn`Defaults to `api.meraki.com`.

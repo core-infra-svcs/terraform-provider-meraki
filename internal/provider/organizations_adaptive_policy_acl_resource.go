@@ -3,22 +3,27 @@ package provider
 import (
 	"context"
 	"fmt"
-	"strings"
-
-	apiclient "github.com/core-infra-svcs/dashboard-api-go/client"
-
+	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"strings"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ resource.Resource = &OrganizationsAdaptivePolicyAclResource{}
-var _ resource.ResourceWithImportState = &OrganizationsAdaptivePolicyAclResource{}
+var (
+	_ resource.Resource                = &OrganizationsAdaptivePolicyAclResource{}
+	_ resource.ResourceWithConfigure   = &OrganizationsAdaptivePolicyAclResource{}
+	_ resource.ResourceWithImportState = &OrganizationsAdaptivePolicyAclResource{}
+)
 
 func NewOrganizationsAdaptivePolicyAclResource() resource.Resource {
 	return &OrganizationsAdaptivePolicyAclResource{}
@@ -26,7 +31,7 @@ func NewOrganizationsAdaptivePolicyAclResource() resource.Resource {
 
 // OrganizationsAdaptivePolicyAclResource defines the resource implementation.
 type OrganizationsAdaptivePolicyAclResource struct {
-	client *apiclient.APIClient
+	client *openApiClient.APIClient
 }
 
 // OrganizationsAdaptivePolicyAclResourceModel describes the resource data model.
@@ -54,177 +59,95 @@ func (r *OrganizationsAdaptivePolicyAclResource) Metadata(ctx context.Context, r
 	resp.TypeName = req.ProviderTypeName + "_organizations_adaptive_policy_acl"
 }
 
-func (r *OrganizationsAdaptivePolicyAclResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
-		// This description is used by the documentation generator and the language server.
-		MarkdownDescription: "OrganizationsAdaptivePolicyAcl resource  Manage the acls for an organization",
-		Attributes: map[string]tfsdk.Attribute{
-
-			"id": {
-				Description:         "Example identifier",
-				MarkdownDescription: "Example identifier",
-				Type:                types.StringType,
-				Required:            false,
-				Optional:            false,
-				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
+func (r *OrganizationsAdaptivePolicyAclResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		Description: "Manage adaptive policy ACLs in a organization",
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Computed: true,
 			},
-			"organization_id": {
-				Description:         "Organization Id",
-				MarkdownDescription: "The Id of the organization",
-				Type:                types.StringType,
-				Required:            true,
-				Optional:            false,
-				Computed:            false,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
-			},
-			"acl_id": {
-				Description:         "Acl ID",
-				MarkdownDescription: "",
-				Type:                types.StringType,
-				Required:            false,
+			"organization_id": schema.StringAttribute{
+				MarkdownDescription: "Organization ID",
 				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(8, 31),
+				},
 			},
-			"name": {
-				Description:         "Name of the adaptive policy ACL",
-				MarkdownDescription: "",
-				Type:                types.StringType,
-				Required:            false,
+			"acl_id": schema.StringAttribute{
+				MarkdownDescription: "ACL ID",
 				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(4, 31),
+				},
 			},
-			"description": {
-				Description:         "Description of the adaptive policy ACL",
-				MarkdownDescription: "",
-				Type:                types.StringType,
-				Required:            false,
+			"name": schema.StringAttribute{
+				MarkdownDescription: "Name of the adaptive policy ACL",
 				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
 			},
-			"ip_version": {
-				Description:         "IP version of adaptive policy ACL. One of: any, ipv4 or ipv6",
-				MarkdownDescription: "",
-				Type:                types.StringType,
-				Required:            false,
+			"description": schema.StringAttribute{
+				MarkdownDescription: "Description of the adaptive policy ACL",
 				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
 			},
-			"rules": {
-				Description: "An ordered array of the adaptive policy ACL rules.",
+			"ip_version": schema.StringAttribute{
+				MarkdownDescription: "IP version of adaptive policy ACL. One of: 'any', 'ipv4' or 'ipv6",
+				Optional:            true,
+				Computed:            true,
+				Validators: []validator.String{
+					stringvalidator.OneOf([]string{"any", "ipv4", "ipv6"}...),
+					stringvalidator.LengthAtLeast(3),
+				},
+			},
+			"rules": schema.ListNestedAttribute{
+				Description: "An ordered array of the adaptive policy ACL rules. An empty array will clear the rules.",
 				Optional:    true,
 				Computed:    true,
-				// Type: types.ListType{ElemType: types.SetType{ElemType: types.StringType}},
-				Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-					"policy": {
-						Description:         "'allow' or 'deny' traffic specified by this rule.",
-						MarkdownDescription: "'allow' or 'deny' traffic specified by this rule.",
-						Type:                types.StringType,
-						Required:            false,
-						Optional:            true,
-						Computed:            true,
-						Sensitive:           false,
-						Attributes:          nil,
-						DeprecationMessage:  "",
-						Validators:          nil,
-						PlanModifiers:       nil,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"policy": schema.StringAttribute{
+							MarkdownDescription: "",
+							Optional:            true,
+							Computed:            true,
+						},
+						"protocol": schema.StringAttribute{
+							MarkdownDescription: "",
+							Optional:            true,
+							Computed:            true,
+						},
+						"src_port": schema.StringAttribute{
+							MarkdownDescription: "",
+							Optional:            true,
+							Computed:            true,
+						},
+						"dst_port": schema.StringAttribute{
+							MarkdownDescription: "",
+							Optional:            true,
+							Computed:            true,
+						},
 					},
-					"protocol": {
-						Description:         "The type of protocol (must be 'tcp', 'udp', 'icmp' or 'any').",
-						MarkdownDescription: "The type of protocol (must be 'tcp', 'udp', 'icmp' or 'any').",
-						Type:                types.StringType,
-						Required:            false,
-						Optional:            true,
-						Computed:            true,
-						Sensitive:           false,
-						Attributes:          nil,
-						DeprecationMessage:  "",
-						Validators:          nil,
-						PlanModifiers:       nil,
-					},
-					"src_port": {
-						Description:         "Source port. Must be in the format of single port: '1', port list: '1,2' or port range: '1-10', and in the range of 1-65535, or 'any'. Default is 'any'.",
-						MarkdownDescription: "Source port. Must be in the format of single port: '1', port list: '1,2' or port range: '1-10', and in the range of 1-65535, or 'any'. Default is 'any'.",
-						Type:                types.StringType,
-						Required:            false,
-						Optional:            true,
-						Computed:            true,
-						Sensitive:           false,
-						Attributes:          nil,
-						DeprecationMessage:  "",
-						Validators:          nil,
-						PlanModifiers:       nil,
-					},
-					"dst_port": {
-						Description:         "Destination port. Must be in the format of single port: '1', port list: '1,2' or port range: '1-10', and in the range of 1-65535, or 'any'. Default is 'any'.",
-						MarkdownDescription: "Destination port. Must be in the format of single port: '1', port list: '1,2' or port range: '1-10', and in the range of 1-65535, or 'any'. Default is 'any'.",
-						Type:                types.StringType,
-						Required:            false,
-						Optional:            true,
-						Computed:            true,
-						Sensitive:           false,
-						Attributes:          nil,
-						DeprecationMessage:  "",
-						Validators:          nil,
-						PlanModifiers:       nil,
-					},
-				})},
-			"created_at": {
-				Description:         "rule created timestamp",
-				MarkdownDescription: "",
-				Type:                types.StringType,
-				Required:            false,
-				Optional:            true,
-				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
+				},
 			},
-			"updated_at": {
-				Description:         "last updated timestamp",
+			"created_at": schema.StringAttribute{
 				MarkdownDescription: "",
-				Type:                types.StringType,
-				Required:            false,
 				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
+			},
+			"updated_at": schema.StringAttribute{
+				MarkdownDescription: "",
+				Optional:            true,
+				Computed:            true,
 			},
 		},
-	}, nil
+	}
 }
 
 func (r *OrganizationsAdaptivePolicyAclResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -233,7 +156,7 @@ func (r *OrganizationsAdaptivePolicyAclResource) Configure(ctx context.Context, 
 		return
 	}
 
-	client, ok := req.ProviderData.(*apiclient.APIClient)
+	client, ok := req.ProviderData.(*openApiClient.APIClient)
 
 	if !ok {
 		resp.Diagnostics.AddError(
@@ -253,20 +176,15 @@ func (r *OrganizationsAdaptivePolicyAclResource) Create(ctx context.Context, req
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
-	// Check for required parameters
-	if len(data.OrgId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing organizationId on create", fmt.Sprintf("Value: %s", data.OrgId.ValueString()))
-	}
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// rules
-	var rules []apiclient.OrganizationsOrganizationIdAdaptivePolicyAclsRules
+	var rules []openApiClient.OrganizationsOrganizationIdAdaptivePolicyAclsRules
 	for _, attribute := range data.Rules {
 
-		var rule apiclient.OrganizationsOrganizationIdAdaptivePolicyAclsRules
+		var rule openApiClient.OrganizationsOrganizationIdAdaptivePolicyAclsRules
 		rule.Protocol = attribute.Protocol.ValueString()
 		rule.Policy = attribute.Policy.ValueString()
 
@@ -280,7 +198,7 @@ func (r *OrganizationsAdaptivePolicyAclResource) Create(ctx context.Context, req
 	}
 
 	// payload
-	createOrganizationsAdaptivePolicyAcl := *apiclient.NewInlineObject169(data.Name.ValueString(), rules, data.IpVersion.ValueString())
+	createOrganizationsAdaptivePolicyAcl := *openApiClient.NewInlineObject169(data.Name.ValueString(), rules, data.IpVersion.ValueString())
 	createOrganizationsAdaptivePolicyAcl.SetDescription(data.Description.ValueString())
 
 	inlineResp, httpResp, err := r.client.OrganizationsApi.CreateOrganizationAdaptivePolicyAcl(context.Background(), data.OrgId.ValueString()).CreateOrganizationAdaptivePolicyAcl(createOrganizationsAdaptivePolicyAcl).Execute()
@@ -290,6 +208,12 @@ func (r *OrganizationsAdaptivePolicyAclResource) Create(ctx context.Context, req
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
+
+	// collect diagnostics
+	if httpResp != nil {
+		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+	}
+
 	// Check for API success response code
 	if httpResp.StatusCode != 201 {
 		resp.Diagnostics.AddError(
@@ -298,9 +222,6 @@ func (r *OrganizationsAdaptivePolicyAclResource) Create(ctx context.Context, req
 		)
 	}
 
-	// collect diagnostics
-	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
-
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
@@ -308,7 +229,7 @@ func (r *OrganizationsAdaptivePolicyAclResource) Create(ctx context.Context, req
 	}
 
 	// Save data into Terraform state
-	extractHttpResponseOrganizationAdaptivePolicyAclResource(ctx, inlineResp, data)
+	extractHttpResponseOrganizationAdaptivePolicyAclResource(ctx, inlineResp, data, &resp.Diagnostics)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
@@ -320,15 +241,6 @@ func (r *OrganizationsAdaptivePolicyAclResource) Read(ctx context.Context, req r
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
-
-	// Check for required parameters
-	if len(data.OrgId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing organizationId on read", fmt.Sprintf("Value: %s", data.OrgId.ValueString()))
-	}
-
-	if len(data.AclId.ValueString()) == 0 {
-		resp.Diagnostics.AddError("Missing acl Id on read", fmt.Sprintf("Value: %v", data.AclId.ValueString()))
-	}
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -342,6 +254,11 @@ func (r *OrganizationsAdaptivePolicyAclResource) Read(ctx context.Context, req r
 		)
 	}
 
+	// collect diagnostics
+	if httpResp != nil {
+		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+	}
+
 	// Check for API success inlineResp code
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
@@ -350,9 +267,6 @@ func (r *OrganizationsAdaptivePolicyAclResource) Read(ctx context.Context, req r
 		)
 	}
 
-	// collect diagnostics
-	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
-
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
@@ -360,45 +274,26 @@ func (r *OrganizationsAdaptivePolicyAclResource) Read(ctx context.Context, req r
 	}
 
 	// Save data into Terraform state
-	extractHttpResponseOrganizationAdaptivePolicyAclResource(ctx, inlineResp, data)
+	extractHttpResponseOrganizationAdaptivePolicyAclResource(ctx, inlineResp, data, &resp.Diagnostics)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 }
 
 func (r *OrganizationsAdaptivePolicyAclResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var data *OrganizationsAdaptivePolicyAclResourceModel
-	var stateData *OrganizationsAdaptivePolicyAclResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-
-	// Read Terraform state data into the model
-	resp.Diagnostics.Append(req.State.Get(ctx, &stateData)...)
-
-	// Check for required parameters
-	if len(data.OrgId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing organizationId on Update", fmt.Sprintf("Value: %s", data.OrgId.ValueString()))
-	}
-
-	// Check state data if missing from plan
-	if len(data.AclId.ValueString()) < 1 {
-		data.AclId = stateData.AclId
-	}
-
-	if len(data.AclId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing AclId on update", fmt.Sprintf("AclId: %s", data.AclId.ValueString()))
-		return
-	}
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// rules
-	var rules []apiclient.OrganizationsOrganizationIdAdaptivePolicyAclsRules
+	var rules []openApiClient.OrganizationsOrganizationIdAdaptivePolicyAclsRules
 	for _, attribute := range data.Rules {
 
-		var rule apiclient.OrganizationsOrganizationIdAdaptivePolicyAclsRules
+		var rule openApiClient.OrganizationsOrganizationIdAdaptivePolicyAclsRules
 		rule.Protocol = attribute.Protocol.ValueString()
 		rule.Policy = attribute.Policy.ValueString()
 
@@ -412,7 +307,7 @@ func (r *OrganizationsAdaptivePolicyAclResource) Update(ctx context.Context, req
 	}
 
 	// payload
-	createOrganizationsAdaptivePolicyAcl := *apiclient.NewInlineObject170()
+	createOrganizationsAdaptivePolicyAcl := *openApiClient.NewInlineObject170()
 	createOrganizationsAdaptivePolicyAcl.SetName(data.Name.ValueString())
 	createOrganizationsAdaptivePolicyAcl.SetDescription(data.Description.ValueString())
 	createOrganizationsAdaptivePolicyAcl.SetRules(rules)
@@ -426,6 +321,11 @@ func (r *OrganizationsAdaptivePolicyAclResource) Update(ctx context.Context, req
 		)
 	}
 
+	// collect diagnostics
+	if httpResp != nil {
+		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+	}
+
 	// Check for API success response code
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
@@ -434,9 +334,6 @@ func (r *OrganizationsAdaptivePolicyAclResource) Update(ctx context.Context, req
 		)
 	}
 
-	// collect diagnostics
-	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
-
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
@@ -444,7 +341,7 @@ func (r *OrganizationsAdaptivePolicyAclResource) Update(ctx context.Context, req
 	}
 
 	// Save data into Terraform state
-	extractHttpResponseOrganizationAdaptivePolicyAclResource(ctx, inlineResp, data)
+	extractHttpResponseOrganizationAdaptivePolicyAclResource(ctx, inlineResp, data, &resp.Diagnostics)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
@@ -456,15 +353,6 @@ func (r *OrganizationsAdaptivePolicyAclResource) Delete(ctx context.Context, req
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
-
-	// Check for required parameters
-	if len(data.OrgId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing organizationId on Delete", fmt.Sprintf("Value: %s", data.OrgId.ValueString()))
-	}
-
-	if len(data.AclId.ValueString()) == 0 {
-		resp.Diagnostics.AddError("Missing acl Id on delete", fmt.Sprintf("Value: %v", data.AclId.ValueString()))
-	}
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -478,6 +366,11 @@ func (r *OrganizationsAdaptivePolicyAclResource) Delete(ctx context.Context, req
 		)
 	}
 
+	// collect diagnostics
+	if httpResp != nil {
+		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+	}
+
 	// Check for API success response code
 	if httpResp.StatusCode != 204 {
 		resp.Diagnostics.AddError(
@@ -485,9 +378,6 @@ func (r *OrganizationsAdaptivePolicyAclResource) Delete(ctx context.Context, req
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
 	}
-
-	// collect diagnostics
-	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
@@ -497,34 +387,17 @@ func (r *OrganizationsAdaptivePolicyAclResource) Delete(ctx context.Context, req
 	resp.State.RemoveResource(ctx)
 }
 
-func extractHttpResponseOrganizationAdaptivePolicyAclResource(ctx context.Context, inlineRespValue map[string]interface{}, data *OrganizationsAdaptivePolicyAclResourceModel) *OrganizationsAdaptivePolicyAclResourceModel {
+func extractHttpResponseOrganizationAdaptivePolicyAclResource(ctx context.Context, inlineResp map[string]interface{}, data *OrganizationsAdaptivePolicyAclResourceModel, diags *diag.Diagnostics) *OrganizationsAdaptivePolicyAclResourceModel {
 
 	// save into the Terraform state
 	data.Id = types.StringValue("example-id")
+	data.AclId = tools.MapStringValue(inlineResp, "aclId", diags)
+	data.Description = tools.MapStringValue(inlineResp, "description", diags)
+	data.IpVersion = tools.MapStringValue(inlineResp, "ipVersion", diags)
 
-	// id attribute
-	if id := inlineRespValue["aclId"]; id != nil {
-		data.AclId = types.StringValue(id.(string))
-	} else {
-		data.AclId = types.StringNull()
-	}
-
-	// description attribute
-	if description := inlineRespValue["description"]; description != nil {
-		data.Description = types.StringValue(description.(string))
-	} else {
-		data.Description = types.StringNull()
-	}
-
-	// ipVersion attribute
-	if ipVersion := inlineRespValue["ipVersion"]; ipVersion != nil {
-		data.IpVersion = types.StringValue(ipVersion.(string))
-	} else {
-		data.IpVersion = types.StringNull()
-	}
-
+	// TODO - use tools.Map funcs for nested rules data
 	// rules attribute
-	if rules := inlineRespValue["rules"]; rules != nil {
+	if rules := inlineResp["rules"]; rules != nil {
 		data.Rules = nil // prevents duplicate rule entries
 		for _, v := range rules.([]interface{}) {
 			rule := v.(map[string]interface{})
@@ -562,19 +435,8 @@ func extractHttpResponseOrganizationAdaptivePolicyAclResource(ctx context.Contex
 
 	}
 
-	// updatedAt attribute
-	if createdAt := inlineRespValue["createdAt"]; createdAt != nil {
-		data.CreatedAt = types.StringValue(createdAt.(string))
-	} else {
-		data.CreatedAt = types.StringNull()
-	}
-
-	// updatedAt attribute
-	if updatedAt := inlineRespValue["updatedAt"]; updatedAt != nil {
-		data.UpdatedAt = types.StringValue(updatedAt.(string))
-	} else {
-		data.UpdatedAt = types.StringNull()
-	}
+	data.CreatedAt = tools.MapStringValue(inlineResp, "createdAt", diags)
+	data.UpdatedAt = tools.MapStringValue(inlineResp, "updatedAt", diags)
 
 	return data
 }

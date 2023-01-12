@@ -3,19 +3,25 @@ package provider
 import (
 	"context"
 	"fmt"
-	apiclient "github.com/core-infra-svcs/dashboard-api-go/client"
+	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ resource.Resource = &OrganizationResource{}
-var _ resource.ResourceWithImportState = &OrganizationResource{}
+var (
+	_ resource.Resource                = &OrganizationResource{}
+	_ resource.ResourceWithConfigure   = &OrganizationResource{}
+	_ resource.ResourceWithImportState = &OrganizationResource{}
+)
 
 func NewOrganizationResource() resource.Resource {
 	return &OrganizationResource{}
@@ -23,16 +29,16 @@ func NewOrganizationResource() resource.Resource {
 
 // OrganizationResource defines the resource implementation.
 type OrganizationResource struct {
-	client *apiclient.APIClient
+	client *openApiClient.APIClient
 }
 
 // OrganizationResourceModel describes the resource data model.
 type OrganizationResourceModel struct {
+	Id                     types.String `tfsdk:"id"`
 	ApiEnabled             types.Bool   `tfsdk:"api_enabled"`
-	CloudRegion            types.String `tfsdk:"cloud_region"`
+	CloudRegionName        types.String `tfsdk:"cloud_region_name"`
 	ManagementDetailsName  types.String `tfsdk:"management_details_name"`
 	ManagementDetailsValue types.String `tfsdk:"management_details_value"`
-	Id                     types.String `tfsdk:"id"`
 	OrgId                  types.String `tfsdk:"organization_id"`
 	LicensingModel         types.String `tfsdk:"licensing_model"`
 	Name                   types.String `tfsdk:"name"`
@@ -43,127 +49,65 @@ func (r *OrganizationResource) Metadata(ctx context.Context, req resource.Metada
 	resp.TypeName = req.ProviderTypeName + "_organization"
 }
 
-func (r *OrganizationResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
-		// This description is used by the documentation generator and the language server.
-		MarkdownDescription: "Organization resource - Manage the organizations that the user has privileges on",
-		Attributes: map[string]tfsdk.Attribute{
-			"api_enabled": {
-				Description:         "Enable API access",
-				MarkdownDescription: "API-specific settings",
-				Type:                types.BoolType,
-				Required:            false,
+func (r *OrganizationResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		MarkdownDescription: "Manage the organizations that the user has privileges on",
+
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Computed: true,
+			},
+			"api_enabled": schema.BoolAttribute{
+				MarkdownDescription: "Enable API access",
 				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
 			},
-			"cloud_region": {
-				Description:         "Region info",
-				MarkdownDescription: "",
-				Type:                types.StringType,
-				Required:            false,
+			"cloud_region_name": schema.StringAttribute{
+				MarkdownDescription: "Name of region",
 				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
 			},
-			"id": {
+			"organization_id": schema.StringAttribute{
+				MarkdownDescription: "Organization ID",
+				Optional:            true,
 				Computed:            true,
-				MarkdownDescription: "Example identifier",
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					resource.UseStateForUnknown(),
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
 				},
-				Type: types.StringType,
-			},
-			"organization_id": {
-				Description:         "Organization Id",
-				MarkdownDescription: "The Id of the organization",
-				Type:                types.StringType,
-				Required:            false,
-				Optional:            true,
-				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					resource.UseStateForUnknown(),
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(8, 31),
 				},
 			},
-			"licensing_model": {
-				Description:         "Organization licensing model. Can be 'co-term', 'per-device', or 'subscription'.",
-				MarkdownDescription: "",
-				Type:                types.StringType,
-				Required:            false,
+			"licensing_model": schema.StringAttribute{
+				MarkdownDescription: "Organization licensing model. Can be 'co-term', 'per-device', or 'subscription'.",
 				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
+				Validators: []validator.String{
+					stringvalidator.OneOf([]string{"co-term", "per-device", "subscription"}...),
+				},
 			},
-			"management_details_name": {
-				Description:         "The name of the organization's management system",
-				MarkdownDescription: "The name of the organization's management system",
-				Type:                types.StringType,
-				Required:            false,
+			"management_details_name": schema.StringAttribute{
+				MarkdownDescription: "Name of management data",
 				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
 			},
-			"management_details_value": {
-				Description:         "Information about the organization's management system",
-				MarkdownDescription: "Information about the organization's management system",
-				Type:                types.StringType,
-				Required:            false,
+			"management_details_value": schema.StringAttribute{
+				MarkdownDescription: "Value of management data",
 				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
 			},
-			"name": {
-				Description:         "Organization name",
-				MarkdownDescription: "The name of the organization",
-				Type:                types.StringType,
-				Required:            false,
+			"name": schema.StringAttribute{
+				MarkdownDescription: "Organization name",
 				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
 			},
-			"url": {
-				Description:         "Organization URL",
-				MarkdownDescription: "",
-				Type:                types.StringType,
-				Required:            false,
+			"url": schema.StringAttribute{
+				MarkdownDescription: "Organization URL",
 				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
 			},
 		},
-	}, nil
+	}
 }
 
 func (r *OrganizationResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -172,14 +116,13 @@ func (r *OrganizationResource) Configure(ctx context.Context, req resource.Confi
 		return
 	}
 
-	client, ok := req.ProviderData.(*apiclient.APIClient)
+	client, ok := req.ProviderData.(*openApiClient.APIClient)
 
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
 			fmt.Sprintf("Expected *http.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
-
 		return
 	}
 
@@ -196,17 +139,17 @@ func (r *OrganizationResource) Create(ctx context.Context, req resource.CreateRe
 	}
 
 	// Create HTTP request body
-	createOrganization := *apiclient.NewInlineObject165(data.Name.ValueString())
+	createOrganization := *openApiClient.NewInlineObject165(data.Name.ValueString())
 
 	// Set management details
 	var name = data.ManagementDetailsName.ValueString()
 	var value = data.ManagementDetailsValue.ValueString()
-	detail := apiclient.OrganizationsManagementDetails{
+	detail := openApiClient.OrganizationsManagementDetails{
 		Name:  &name,
 		Value: &value,
 	}
-	details := []apiclient.OrganizationsManagementDetails{detail}
-	organizationsManagement := apiclient.OrganizationsManagement{Details: details}
+	details := []openApiClient.OrganizationsManagementDetails{detail}
+	organizationsManagement := openApiClient.OrganizationsManagement{Details: details}
 	createOrganization.SetManagement(organizationsManagement)
 
 	// Initialize provider client and make API call
@@ -218,6 +161,11 @@ func (r *OrganizationResource) Create(ctx context.Context, req resource.CreateRe
 		)
 	}
 
+	// collect diagnostics
+	if httpResp != nil {
+		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+	}
+
 	// Check for API success response code
 	if httpResp.StatusCode != 201 {
 		resp.Diagnostics.AddError(
@@ -226,21 +174,18 @@ func (r *OrganizationResource) Create(ctx context.Context, req resource.CreateRe
 		)
 	}
 
-	// collect diagnostics
-	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
-
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
+	} else {
+		resp.Diagnostics.Append()
 	}
-
-	resp.Diagnostics.Append()
 
 	// save into the Terraform state.
 	data.Id = types.StringValue("example-id")
 	data.OrgId = types.StringValue(inlineResp.GetId())
 	data.Name = types.StringValue(inlineResp.GetName())
-	data.CloudRegion = types.StringValue(inlineResp.Cloud.Region.GetName())
+	data.CloudRegionName = types.StringValue(inlineResp.Cloud.Region.GetName())
 	data.Url = types.StringValue(inlineResp.GetUrl())
 	data.ApiEnabled = types.BoolValue(inlineResp.Api.GetEnabled())
 	data.LicensingModel = types.StringValue(inlineResp.Licensing.GetModel())
@@ -281,12 +226,6 @@ func (r *OrganizationResource) Read(ctx context.Context, req resource.ReadReques
 	// Read Terraform state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-	// check for required parameters
-	if len(data.OrgId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing organization_Id", fmt.Sprintf("org_id: %s", data.OrgId.ValueString()))
-		return
-	}
-
 	// Initialize provider client and make API call
 	inlineResp, httpResp, err := r.client.OrganizationsApi.GetOrganization(context.Background(), data.OrgId.ValueString()).Execute()
 	if err != nil {
@@ -294,6 +233,11 @@ func (r *OrganizationResource) Read(ctx context.Context, req resource.ReadReques
 			"Failed to read resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+	}
+
+	// collect diagnostics
+	if httpResp != nil {
+		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 	}
 
 	// Check for API success inlineResp code
@@ -304,19 +248,18 @@ func (r *OrganizationResource) Read(ctx context.Context, req resource.ReadReques
 		)
 	}
 
-	// collect diagnostics
-	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
-
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
+	} else {
+		resp.Diagnostics.Append()
 	}
 
 	// save inlineResp data into Terraform state.
 	data.Id = types.StringValue("example-id")
 	data.OrgId = types.StringValue(inlineResp.GetId())
 	data.Name = types.StringValue(inlineResp.GetName())
-	data.CloudRegion = types.StringValue(inlineResp.Cloud.Region.GetName())
+	data.CloudRegionName = types.StringValue(inlineResp.Cloud.Region.GetName())
 	data.Url = types.StringValue(inlineResp.GetUrl())
 	data.ApiEnabled = types.BoolValue(inlineResp.Api.GetEnabled())
 	data.LicensingModel = types.StringValue(inlineResp.Licensing.GetModel())
@@ -356,30 +299,24 @@ func (r *OrganizationResource) Update(ctx context.Context, req resource.UpdateRe
 	// Read Terraform plan data
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
-	// Check for required parameters
-	if len(data.OrgId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing organization_Id", fmt.Sprintf("org_id: %s", data.OrgId.ValueString()))
-		return
-	}
-
 	// Create HTTP request body
-	updateOrganization := apiclient.NewInlineObject166()
+	updateOrganization := openApiClient.NewInlineObject166()
 	updateOrganization.SetName(data.Name.ValueString())
 
 	// Set enabled attribute
 	var enabled = data.ApiEnabled.ValueBool()
-	Api := apiclient.OrganizationsOrganizationIdApi{Enabled: &enabled}
+	Api := openApiClient.OrganizationsOrganizationIdApi{Enabled: &enabled}
 	updateOrganization.SetApi(Api)
 
 	// Set management details
 	var name = data.ManagementDetailsName.ValueString()
 	var value = data.ManagementDetailsValue.ValueString()
-	detail := apiclient.OrganizationsManagementDetails{
+	detail := openApiClient.OrganizationsManagementDetails{
 		Name:  &name,
 		Value: &value,
 	}
-	details := []apiclient.OrganizationsManagementDetails{detail}
-	organizationsManagement := apiclient.OrganizationsManagement{Details: details}
+	details := []openApiClient.OrganizationsManagementDetails{detail}
+	organizationsManagement := openApiClient.OrganizationsManagement{Details: details}
 	updateOrganization.SetManagement(organizationsManagement)
 
 	// Initialize provider client and make API call
@@ -392,6 +329,11 @@ func (r *OrganizationResource) Update(ctx context.Context, req resource.UpdateRe
 		)
 	}
 
+	// collect diagnostics
+	if httpResp != nil {
+		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+	}
+
 	// Check for API success response code
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
@@ -400,19 +342,18 @@ func (r *OrganizationResource) Update(ctx context.Context, req resource.UpdateRe
 		)
 	}
 
-	// collect diagnostics
-	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
-
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
+	} else {
+		resp.Diagnostics.Append()
 	}
 
 	// save inlineResp data into Terraform state
 	data.Id = types.StringValue("example-id")
 	data.OrgId = types.StringValue(inlineResp.GetId())
 	data.Name = types.StringValue(inlineResp.GetName())
-	data.CloudRegion = types.StringValue(inlineResp.Cloud.Region.GetName())
+	data.CloudRegionName = types.StringValue(inlineResp.Cloud.Region.GetName())
 	data.Url = types.StringValue(inlineResp.GetUrl())
 	data.ApiEnabled = types.BoolValue(inlineResp.Api.GetEnabled())
 	data.LicensingModel = types.StringValue(inlineResp.Licensing.GetModel())
@@ -452,12 +393,6 @@ func (r *OrganizationResource) Delete(ctx context.Context, req resource.DeleteRe
 	// Read Terraform state data
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-	// check for required parameters
-	if len(data.OrgId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing organization_Id", fmt.Sprintf("org_id: %s", data.OrgId.ValueString()))
-		return
-	}
-
 	// Initialize provider client and make API call
 	httpResp, err := r.client.OrganizationsApi.DeleteOrganization(context.Background(), data.OrgId.ValueString()).Execute()
 	if err != nil {
@@ -465,6 +400,11 @@ func (r *OrganizationResource) Delete(ctx context.Context, req resource.DeleteRe
 			"Failed to delete resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+	}
+
+	// collect diagnostics
+	if httpResp != nil {
+		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 	}
 
 	// Check for API success response code
@@ -475,12 +415,11 @@ func (r *OrganizationResource) Delete(ctx context.Context, req resource.DeleteRe
 		)
 	}
 
-	// collect diagnostics
-	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
-
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
+	} else {
+		resp.Diagnostics.Append()
 	}
 
 	// Remove from state
@@ -493,4 +432,5 @@ func (r *OrganizationResource) Delete(ctx context.Context, req resource.DeleteRe
 
 func (r *OrganizationResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("organization_id"), req.ID)...)
 }

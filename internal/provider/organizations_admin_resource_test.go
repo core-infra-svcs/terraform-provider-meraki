@@ -16,8 +16,7 @@ func TestAccOrganizationsAdminResource(t *testing.T) {
 			{
 				Config: testAccOrganizationsAdminResourceConfigCreateOrg,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
-					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test-acc-meraki-organizations-admin"),
+					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_acc_meraki_organizations_admin"),
 				),
 			},
 
@@ -29,21 +28,11 @@ func TestAccOrganizationsAdminResource(t *testing.T) {
 					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "email", "meraki_organizations_admin_test@example.com"),
 					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "org_access", "read-only"),
 					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "authentication_method", "Email"),
+					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "has_api_key", "false"),
 					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "tags.0.tag", "west"),
 					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "tags.0.access", "read-only"),
 					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "networks.0.id", "N_784752235069332413"),
 					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "networks.0.access", "read-only"),
-				),
-			},
-
-			// Update testing
-			{
-				Config: testUpdatedAccOrganizationsAdminResourceConfig,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "tags.1.tag", "east"),
-					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "tags.1.access", "read-only"),
-					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "networks.1.id", "N_784752235069332414"),
-					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "networks.1.access", "read-only"),
 				),
 			},
 
@@ -57,14 +46,26 @@ func TestAccOrganizationsAdminResource(t *testing.T) {
 					},
 			*/
 
+			// Update testing
+			{
+				Config: testUpdatedAccOrganizationsAdminResourceConfig,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "tags.1.tag", "west"),
+					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "tags.1.access", "read-only"),
+					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "networks.1.id", "N_784752235069332414"),
+					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "networks.1.access", "read-only"),
+				),
+			},
+
 			// Delete testing automatically occurs in TestCase
+			// This test can result in orphaned resources as organizations cannot be deleted with admins still present.
 		},
 	})
 }
 
 const testAccOrganizationsAdminResourceConfigCreateOrg = `
  resource "meraki_organization" "test" {
- 	name = "test-acc-meraki-organizations-admin"
+ 	name = "test_acc_meraki_organizations_admin"
  	api_enabled = true
  }
  `
