@@ -1,10 +1,14 @@
 package tools
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"strconv"
 )
 
@@ -46,35 +50,104 @@ func MapBoolValue(m map[string]interface{}, key string, diags *diag.Diagnostics)
 	return result
 }
 
-// TODO - MapCustomStructValue - Extracts data from an interface using generics to return a custom type
-func MapCustomStructValue[T any](m map[string]interface{}, key string, diags *diag.Diagnostics) T {
+// MerakiBoolType -
+type MerakiBoolType struct {
+	basetypes.BoolType
+}
 
-	var results T // fmt.Println(reflect.TypeOf(results))
+func (mst MerakiBoolType) Equal(o attr.Type) bool {
+	_, ok := o.(MerakiBoolType)
+	return ok
+}
 
-	// string value
-	if d := m[key]; d != nil {
+func (mst MerakiBoolType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+	val, err := mst.BoolType.ValueFromTerraform(ctx, in)
 
-		if _, ok := d.(string); ok {
-			_ = json.Unmarshal([]byte(d.(string)), &results)
-		} else {
-			diags.AddWarning(
-				"String extraction error",
-				fmt.Sprintf("Failed to extract attribute %s from API response: %s", key, d))
-		}
+	return MerakiBool{BoolValue: val.(types.Bool)}, err
+}
+
+type MerakiBool struct {
+	basetypes.BoolValue
+}
+
+func (m MerakiBool) Type(_ context.Context) attr.Type {
+	return MerakiBoolType{}
+}
+
+func (m MerakiBool) Equal(value attr.Value) bool {
+	if v, ok := value.(basetypes.BoolValue); ok {
+		return m.BoolValue.Equal(v)
 	}
 
-	/*
-		   // Current Method
-			if networks := inlineRespValue["networks"]; networks != nil {
-				for _, tv := range networks.([]interface{}) {
-					var network OrganizationsAdminResourceModelNetwork
-					_ = json.Unmarshal([]byte(tv.(string)), &network)
-					data.Networks = append(data.Networks, network)
-				}
-			} else {
-				data.Networks = nil
-			}
-	*/
+	v, ok := value.(MerakiBool)
+	if !ok {
+		return false
+	}
 
-	return results
+	return m.BoolValue.Equal(v.BoolValue)
+}
+
+func (m *MerakiBool) UnmarshalJSON(bytes []byte) error {
+	m.BoolValue = types.BoolNull()
+
+	var b *bool
+	if err := json.Unmarshal(bytes, &b); err != nil {
+		return err
+	}
+
+	if b != nil {
+		m.BoolValue = types.BoolValue(*b)
+	}
+	return nil
+}
+
+// MerakiStringType -
+type MerakiStringType struct {
+	basetypes.StringType
+}
+
+func (mst MerakiStringType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+	val, err := mst.StringType.ValueFromTerraform(ctx, in)
+
+	return MerakiString{StringValue: val.(types.String)}, err
+}
+
+func (mst MerakiStringType) Equal(o attr.Type) bool {
+	_, ok := o.(MerakiStringType)
+	return ok
+}
+
+type MerakiString struct {
+	basetypes.StringValue
+}
+
+func (m *MerakiString) UnmarshalJSON(bytes []byte) error {
+	m.StringValue = types.StringNull()
+
+	var b *string
+	if err := json.Unmarshal(bytes, &b); err != nil {
+		return err
+	}
+
+	if b != nil {
+		m.StringValue = types.StringValue(*b)
+	}
+	return nil
+}
+
+func (m MerakiString) Type(_ context.Context) attr.Type {
+	return MerakiStringType{}
+}
+
+func (m MerakiString) Equal(value attr.Value) bool {
+	if v, ok := value.(basetypes.StringValue); ok {
+		return m.StringValue.Equal(v)
+	}
+
+	v, ok := value.(MerakiString)
+	if !ok {
+		return false
+	}
+
+	return m.StringValue.Equal(v.StringValue)
 }

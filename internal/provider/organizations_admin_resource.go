@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"strings"
 )
@@ -38,28 +39,28 @@ type OrganizationsAdminResource struct {
 // OrganizationsAdminResourceModel describes the resource data model.
 type OrganizationsAdminResourceModel struct {
 	Id                   types.String                             `tfsdk:"id"`
-	OrgId                types.String                             `tfsdk:"organization_id"`
-	AdminId              types.String                             `tfsdk:"admin_id"`
-	Name                 types.String                             `tfsdk:"name"`
-	Email                types.String                             `tfsdk:"email"`
-	OrgAccess            types.String                             `tfsdk:"org_access"`
-	AccountStatus        types.String                             `tfsdk:"account_status"`
-	TwoFactorAuthEnabled types.Bool                               `tfsdk:"two_factor_auth_enabled"`
-	HasApiKey            types.Bool                               `tfsdk:"has_api_key"`
-	LastActive           types.String                             `tfsdk:"last_active"`
+	OrgId                tools.MerakiString                       `tfsdk:"organization_id"`
+	AdminId              tools.MerakiString                       `tfsdk:"admin_id" json:"id"`
+	Name                 tools.MerakiString                       `tfsdk:"name"`
+	Email                tools.MerakiString                       `tfsdk:"email"`
+	OrgAccess            tools.MerakiString                       `tfsdk:"org_access"`
+	AccountStatus        tools.MerakiString                       `tfsdk:"account_status"`
+	TwoFactorAuthEnabled tools.MerakiBool                         `tfsdk:"two_factor_auth_enabled"`
+	HasApiKey            tools.MerakiBool                         `tfsdk:"has_api_key"`
+	LastActive           tools.MerakiString                       `tfsdk:"last_active"`
 	Tags                 []OrganizationsAdminResourceModelTag     `tfsdk:"tags"`
 	Networks             []OrganizationsAdminResourceModelNetwork `tfsdk:"networks"`
-	AuthenticationMethod types.String                             `tfsdk:"authentication_method"`
+	AuthenticationMethod tools.MerakiString                       `tfsdk:"authentication_method"`
 }
 
 type OrganizationsAdminResourceModelNetwork struct {
-	Id     types.String `tfsdk:"id"`
-	Access types.String `tfsdk:"access"`
+	Id     tools.MerakiString `tfsdk:"id"`
+	Access tools.MerakiString `tfsdk:"access"`
 }
 
 type OrganizationsAdminResourceModelTag struct {
-	Tag    types.String `tfsdk:"tag"`
-	Access types.String `tfsdk:"access"`
+	Tag    tools.MerakiString `tfsdk:"tag"`
+	Access tools.MerakiString `tfsdk:"access"`
 }
 
 func (r *OrganizationsAdminResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -77,6 +78,9 @@ func (r *OrganizationsAdminResource) Schema(ctx context.Context, req resource.Sc
 				MarkdownDescription: "Organization ID",
 				Optional:            true,
 				Computed:            true,
+				CustomType: tools.MerakiStringType{
+					types.StringType,
+				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -88,6 +92,9 @@ func (r *OrganizationsAdminResource) Schema(ctx context.Context, req resource.Sc
 				MarkdownDescription: "Admin ID",
 				Optional:            true,
 				Computed:            true,
+				CustomType: tools.MerakiStringType{
+					types.StringType,
+				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -99,16 +106,25 @@ func (r *OrganizationsAdminResource) Schema(ctx context.Context, req resource.Sc
 				MarkdownDescription: "The name of the dashboard administrator",
 				Optional:            true,
 				Computed:            true,
+				CustomType: tools.MerakiStringType{
+					types.StringType,
+				},
 			},
 			"email": schema.StringAttribute{
 				MarkdownDescription: "The email of the dashboard administrator. This attribute can not be updated.",
 				Optional:            true,
 				Computed:            true,
+				CustomType: tools.MerakiStringType{
+					types.StringType,
+				},
 			},
 			"org_access": schema.StringAttribute{
 				MarkdownDescription: "The privilege of the dashboard administrator on the organization. Can be one of 'full', 'read-only', 'enterprise' or 'none'",
 				Optional:            true,
 				Computed:            true,
+				CustomType: tools.MerakiStringType{
+					types.StringType,
+				},
 				Validators: []validator.String{
 					stringvalidator.OneOf([]string{"full", "read-only", "enterprise", "none"}...),
 					stringvalidator.LengthAtLeast(4),
@@ -118,21 +134,33 @@ func (r *OrganizationsAdminResource) Schema(ctx context.Context, req resource.Sc
 				MarkdownDescription: "",
 				Optional:            true,
 				Computed:            true,
+				CustomType: tools.MerakiStringType{
+					types.StringType,
+				},
 			},
 			"two_factor_auth_enabled": schema.BoolAttribute{
 				MarkdownDescription: "",
 				Optional:            true,
 				Computed:            true,
+				CustomType: tools.MerakiBoolType{
+					types.BoolType,
+				},
 			},
 			"has_api_key": schema.BoolAttribute{
 				MarkdownDescription: "",
 				Optional:            true,
 				Computed:            true,
+				CustomType: tools.MerakiBoolType{
+					types.BoolType,
+				},
 			},
 			"last_active": schema.StringAttribute{
 				MarkdownDescription: "",
 				Optional:            true,
 				Computed:            true,
+				CustomType: tools.MerakiStringType{
+					types.StringType,
+				},
 			},
 			"tags": schema.SetNestedAttribute{
 				Description: "The list of tags that the dashboard administrator has privileges on",
@@ -143,10 +171,18 @@ func (r *OrganizationsAdminResource) Schema(ctx context.Context, req resource.Sc
 						"tag": schema.StringAttribute{
 							MarkdownDescription: "",
 							Optional:            true,
+							Computed:            true,
+							CustomType: tools.MerakiStringType{
+								basetypes.StringType{},
+							},
 						},
 						"access": schema.StringAttribute{
 							MarkdownDescription: "",
 							Optional:            true,
+							Computed:            true,
+							CustomType: tools.MerakiStringType{
+								basetypes.StringType{},
+							},
 						},
 					},
 				},
@@ -160,10 +196,18 @@ func (r *OrganizationsAdminResource) Schema(ctx context.Context, req resource.Sc
 						"id": schema.StringAttribute{
 							MarkdownDescription: "",
 							Optional:            true,
+							Computed:            true,
+							CustomType: tools.MerakiStringType{
+								basetypes.StringType{},
+							},
 						},
 						"access": schema.StringAttribute{
 							MarkdownDescription: "",
 							Optional:            true,
+							Computed:            true,
+							CustomType: tools.MerakiStringType{
+								basetypes.StringType{},
+							},
 						},
 					},
 				},
@@ -172,6 +216,9 @@ func (r *OrganizationsAdminResource) Schema(ctx context.Context, req resource.Sc
 				MarkdownDescription: "The method of authentication the user will use to sign in to the Meraki dashboard. Can be one of 'Email' or 'Cisco SecureX Sign-On'. The default is Email authentication",
 				Optional:            true,
 				Computed:            true,
+				CustomType: tools.MerakiStringType{
+					types.StringType,
+				},
 				Validators: []validator.String{
 
 					stringvalidator.OneOf([]string{"Email", "Cisco SecureX Sign-On"}...),
@@ -451,39 +498,59 @@ func (r *OrganizationsAdminResource) Delete(ctx context.Context, req resource.De
 func extractHttpResponseOrganizationAdminResource(ctx context.Context, inlineResp map[string]interface{}, data *OrganizationsAdminResourceModel, diags *diag.Diagnostics) *OrganizationsAdminResourceModel {
 
 	// save into the Terraform state
+	/*
+		data.Id = types.StringValue("example-id")
+			data.AdminId = tools.MapStringValue(inlineResp, "id", diags)
+			data.Name = tools.MapStringValue(inlineResp, "name", diags)
+			data.Email = tools.MapStringValue(inlineResp, "email", diags)
+			data.OrgAccess = tools.MapStringValue(inlineResp, "orgAccess", diags)
+			data.AccountStatus = tools.MapStringValue(inlineResp, "accountStatus", diags)
+			data.TwoFactorAuthEnabled = tools.MapBoolValue(inlineResp, "twoFactorAuthEnabled", diags)
+			data.HasApiKey = tools.MapBoolValue(inlineResp, "hasApiKey", diags)
+			data.LastActive = tools.MapStringValue(inlineResp, "lastActive", diags)
+			data.AuthenticationMethod = tools.MapStringValue(inlineResp, "authenticationMethod", diags)
+
+
+		// TODO - use tools.Map funcs for nested tags/networks data
+			// tags attribute
+			if tags := inlineResp["tags"]; tags != nil {
+				for _, tv := range tags.([]interface{}) {
+					var tag OrganizationsAdminResourceModelTag
+					_ = json.Unmarshal([]byte(tv.(string)), &tag)
+					data.Tags = append(data.Tags, tag)
+				}
+			} else {
+				data.Tags = nil
+			}
+
+			// networks attribute
+			if networks := inlineResp["networks"]; networks != nil {
+				for _, tv := range networks.([]interface{}) {
+					var network OrganizationsAdminResourceModelNetwork
+					_ = json.Unmarshal([]byte(tv.(string)), &network)
+					data.Networks = append(data.Networks, network)
+				}
+			} else {
+				data.Networks = nil
+			}
+	*/
+
+	// TODO - temp
+	b, err := json.Marshal(inlineResp)
+	if err != nil {
+		diags.AddError(
+			"b",
+			fmt.Sprintf("%v", err),
+		)
+	}
+	if err := json.Unmarshal([]byte(b), &data); err != nil {
+		diags.AddError(
+			"b -> a",
+			fmt.Sprintf("Unmarshal error%v", err),
+		)
+	}
+
 	data.Id = types.StringValue("example-id")
-	data.AdminId = tools.MapStringValue(inlineResp, "id", diags)
-	data.Name = tools.MapStringValue(inlineResp, "name", diags)
-	data.Email = tools.MapStringValue(inlineResp, "email", diags)
-	data.OrgAccess = tools.MapStringValue(inlineResp, "orgAccess", diags)
-	data.AccountStatus = tools.MapStringValue(inlineResp, "accountStatus", diags)
-	data.TwoFactorAuthEnabled = tools.MapBoolValue(inlineResp, "twoFactorAuthEnabled", diags)
-	data.HasApiKey = tools.MapBoolValue(inlineResp, "hasApiKey", diags)
-	data.LastActive = tools.MapStringValue(inlineResp, "lastActive", diags)
-	data.AuthenticationMethod = tools.MapStringValue(inlineResp, "authenticationMethod", diags)
-
-	// TODO - use tools.Map funcs for nested tags/networks data
-	// tags attribute
-	if tags := inlineResp["tags"]; tags != nil {
-		for _, tv := range tags.([]interface{}) {
-			var tag OrganizationsAdminResourceModelTag
-			_ = json.Unmarshal([]byte(tv.(string)), &tag)
-			data.Tags = append(data.Tags, tag)
-		}
-	} else {
-		data.Tags = nil
-	}
-
-	// networks attribute
-	if networks := inlineResp["networks"]; networks != nil {
-		for _, tv := range networks.([]interface{}) {
-			var network OrganizationsAdminResourceModelNetwork
-			_ = json.Unmarshal([]byte(tv.(string)), &network)
-			data.Networks = append(data.Networks, network)
-		}
-	} else {
-		data.Networks = nil
-	}
 
 	return data
 }
