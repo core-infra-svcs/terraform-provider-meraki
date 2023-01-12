@@ -4,21 +4,29 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	apiclient "github.com/core-infra-svcs/dashboard-api-go/client"
+
+	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"strconv"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ resource.Resource = &DevicesResource{}
-var _ resource.ResourceWithImportState = &DevicesResource{}
+var (
+	_ resource.Resource                = &DevicesResource{}
+	_ resource.ResourceWithConfigure   = &DevicesResource{}
+	_ resource.ResourceWithImportState = &DevicesResource{}
+)
 
 func NewDevicesResource() resource.Resource {
 	return &DevicesResource{}
@@ -26,7 +34,7 @@ func NewDevicesResource() resource.Resource {
 
 // DevicesResource defines the resource implementation.
 type DevicesResource struct {
-	client *apiclient.APIClient
+	client *openApiClient.APIClient
 }
 
 // DevicesResourceModel describes the resource data model.
@@ -59,290 +67,136 @@ func (r *DevicesResource) Metadata(ctx context.Context, req resource.MetadataReq
 	resp.TypeName = req.ProviderTypeName + "_devices"
 }
 
-func (r *DevicesResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
-		MarkdownDescription: "Devices resource - Update the attributes of a device",
-		Attributes: map[string]tfsdk.Attribute{
-			"id": {
-				Computed:            true,
-				Type:                types.StringType,
-				MarkdownDescription: "Example identifier",
-				PlanModifiers: tfsdk.AttributePlanModifiers{
-					resource.UseStateForUnknown(),
+func (r *DevicesResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		Description: "Manage the networks that the user has privileges on in an organization",
+
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Computed: true,
+			},
+			"serial": schema.StringAttribute{
+				MarkdownDescription: "The devices serial number",
+				Required:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(8, 31),
 				},
 			},
-			"serial": {
-				Description:         "The devices serial number",
-				MarkdownDescription: "The devices serial number",
-				Type:                types.StringType,
-				Required:            true,
-				Optional:            false,
-				Computed:            false,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
-			},
-			"name": {
-				Description:         "The name of a device",
+			"name": schema.StringAttribute{
 				MarkdownDescription: "The name of a device",
-				Type:                types.StringType,
-				Required:            false,
 				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
 			},
-			"tags": {
-				Description:         "The list of tags of a device",
-				MarkdownDescription: "The list of tags of a device",
-				Type:                types.SetType{ElemType: types.StringType},
-				Required:            false,
-				Optional:            true,
-				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
+			"tags": schema.SetAttribute{
+				Description: "Network tags",
+				ElementType: types.StringType,
+				Computed:    true,
+				Optional:    true,
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.UseStateForUnknown(),
+				},
 			},
-			"lat": {
-				Description:         "The latitude of a device",
+			"lat": schema.StringAttribute{
 				MarkdownDescription: "The latitude of a device",
-				Type:                types.StringType,
-				Required:            false,
 				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
 			},
-			"lng": {
-				Description:         "The longitude of a device",
+			"lng": schema.StringAttribute{
 				MarkdownDescription: "The longitude of a device",
-				Type:                types.StringType,
-				Required:            false,
 				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
 			},
-			"address": {
-				Description:         "The address of a device",
+			"address": schema.StringAttribute{
 				MarkdownDescription: "The address of a device",
-				Type:                types.StringType,
-				Required:            false,
 				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
 			},
-			"notes": {
-				Description:         "The notes for the device. String. Limited to 255 characters.",
-				MarkdownDescription: "The notes for the device. String. Limited to 255 characters.",
-				Type:                types.StringType,
-				Required:            false,
+			"notes": schema.StringAttribute{
+				MarkdownDescription: "Notes for the network",
 				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
 			},
-			"move_map_marker": {
-				Description:         "Whether or not to set the latitude and longitude of a device based on the new address. Only applies when lat and lng are not specified.",
+			"move_map_marker": schema.BoolAttribute{
 				MarkdownDescription: "Whether or not to set the latitude and longitude of a device based on the new address. Only applies when lat and lng are not specified.",
-				Type:                types.BoolType,
-				Required:            false,
 				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
 			},
-			"switch_profile_id": {
-				Description:         "The ID of a switch profile to bind to the device (for available switch profiles, see the 'Switch Profiles' endpoint). Use null to unbind the switch device from the current profile. For a device to be bindable to a switch profile, it must (1) be a switch, and (2) belong to a network that is bound to a configuration template.",
+			"switch_profile_id": schema.StringAttribute{
 				MarkdownDescription: "The ID of a switch profile to bind to the device (for available switch profiles, see the 'Switch Profiles' endpoint). Use null to unbind the switch device from the current profile. For a device to be bindable to a switch profile, it must (1) be a switch, and (2) belong to a network that is bound to a configuration template.",
-				Type:                types.StringType,
-				Required:            false,
 				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
 			},
-			"floor_plan_id": {
-				Description:         "The floor plan to associate to this device. null disassociates the device from the floor plan.",
+			"floor_plan_id": schema.StringAttribute{
 				MarkdownDescription: "The floor plan to associate to this device. null disassociates the device from the floor plan.",
-				Type:                types.StringType,
-				Required:            false,
 				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
 			},
-			"mac": {
-				Description:         "The mac address of a device",
+			"mac": schema.StringAttribute{
 				MarkdownDescription: "The mac address of a device",
-				Type:                types.StringType,
-				Required:            false,
-				Optional:            false,
+				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
 			},
-			"model": {
-				Description:         "The model of a device",
+			"model": schema.StringAttribute{
 				MarkdownDescription: "The model of a device",
-				Type:                types.StringType,
-				Required:            false,
-				Optional:            false,
+				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
 			},
-			"lan_ip": {
-				Description:         "The ipv4 lan ip of a device",
-				MarkdownDescription: "The  ipv4 lan ip of a device",
-				Type:                types.StringType,
-				Required:            false,
-				Optional:            false,
+			"lan_ip": schema.StringAttribute{
+				MarkdownDescription: "The ipv4 lan ip of a device",
+				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
 			},
-			"firmware": {
-				Description:         "The firmware version of a device",
+			"firmware": schema.StringAttribute{
 				MarkdownDescription: "The firmware version of a device",
-				Type:                types.StringType,
-				Required:            false,
-				Optional:            false,
+				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
 			},
-			"url": {
-				Description:         "The url for the network associated with the device.",
+			"url": schema.StringAttribute{
 				MarkdownDescription: "The url for the network associated with the device.",
-				Type:                types.StringType,
-				Required:            false,
-				Optional:            false,
+				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
 			},
-			"wan1ip": {
-				Description:         "IP of Wan interface 1",
+			"wan1ip": schema.StringAttribute{
 				MarkdownDescription: "IP of Wan interface 1",
-				Type:                types.StringType,
-				Required:            false,
-				Optional:            false,
+				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
 			},
-			"wan2ip": {
-				Description:         "IP of Wan interface 2",
+			"wan2ip": schema.StringAttribute{
 				MarkdownDescription: "IP of Wan interface 2",
-				Type:                types.StringType,
-				Required:            false,
-				Optional:            false,
+				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
 			},
-			"network_id": {
-				Description:         "The networkId of a device",
-				MarkdownDescription: "The networkId of a device",
-				Type:                types.StringType,
-				Required:            false,
-				Optional:            false,
+			"network_id": schema.StringAttribute{
+				MarkdownDescription: "Network ID",
+				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(8, 31),
+				},
 			},
-			"beacon_id_params_uuid": {
-				Description:         "The beacon id params uuid of a device",
-				MarkdownDescription: "The name of a device",
-				Type:                types.StringType,
-				Required:            false,
-				Optional:            false,
+			"beacon_id_params_uuid": schema.StringAttribute{
+				MarkdownDescription: "The beacon id params uuid of a device",
+				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
 			},
-			"beacon_id_params_major": {
-				Description:         "The beacon id params major of a device",
+			"beacon_id_params_major": schema.StringAttribute{
 				MarkdownDescription: "The beacon id params major of a device",
-				Type:                types.Int64Type,
-				Required:            false,
-				Optional:            false,
+				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
 			},
-			"beacon_id_params_minor": {
-				Description:         "The beacon id params minor of a device",
+			"beacon_id_params_minor": schema.StringAttribute{
 				MarkdownDescription: "The beacon id params minor of a device",
-				Type:                types.Int64Type,
-				Required:            false,
-				Optional:            false,
+				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
 			},
 		},
-	}, nil
+	}
 }
 
 func (r *DevicesResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -351,7 +205,7 @@ func (r *DevicesResource) Configure(ctx context.Context, req resource.ConfigureR
 		return
 	}
 
-	client, ok := req.ProviderData.(*apiclient.APIClient)
+	client, ok := req.ProviderData.(*openApiClient.APIClient)
 
 	if !ok {
 		resp.Diagnostics.AddError(
@@ -479,7 +333,7 @@ func (r *DevicesResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 
 	// Create HTTP request body
-	updateDevice := apiclient.NewInlineObject()
+	updateDevice := openApiClient.NewInlineObject()
 
 	// Name
 	updateDevice.SetName(data.Name.ValueString())
@@ -571,7 +425,7 @@ func (r *DevicesResource) Delete(ctx context.Context, req resource.DeleteRequest
 	}
 
 	// Create HTTP request body
-	deleteDevice := apiclient.NewInlineObject()
+	deleteDevice := openApiClient.NewInlineObject()
 
 	// Name
 	deleteDevice.SetAddress("")
