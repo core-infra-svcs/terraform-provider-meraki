@@ -27,7 +27,7 @@ func TestAccOrganizationsNetworksDataSource(t *testing.T) {
 					resource.TestCheckResourceAttr("meraki_network.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_network.test", "name", "Main Office"),
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
-					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
+					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "2"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
 					resource.TestCheckResourceAttr("meraki_network.test", "product_types.#", "3"),
 					resource.TestCheckResourceAttr("meraki_network.test", "product_types.0", "appliance"),
@@ -44,7 +44,6 @@ func TestAccOrganizationsNetworksDataSource(t *testing.T) {
 					resource.TestCheckResourceAttr("data.meraki_organizations.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("data.meraki_organizations.test", "list.#", "1"),
 					resource.TestCheckResourceAttr("data.meraki_organizations.test", "list.1.name", "Main Office"),
-
 				),
 			},
 
@@ -67,7 +66,7 @@ resource "meraki_network" "test" {
 	depends_on = ["meraki_organization.test"]
 	organization_id = resource.meraki_organization.test.organization_id
 	product_types = ["appliance", "switch", "wireless"]
-	tags = ["tag1"]
+	tags = ["tag1", "tag2"]
 	name = "Main Office"
 	timezone = "America/Los_Angeles"
 	notes = "Additional description of the network"
@@ -78,6 +77,9 @@ const testAccOrganizationsNetworksDataSourceConfigRead = `
 resource "meraki_organization" "test" {}
 
 data "meraki_organizations_networks" "test" {
+	depends_on = ["meraki_organization.test"]
 	organization_id = resource.meraki_organization.test.organization_id
+	tags_filter_type = "withAnyTags"
+	tags = ["tag1", "tag2"]
 }
 `

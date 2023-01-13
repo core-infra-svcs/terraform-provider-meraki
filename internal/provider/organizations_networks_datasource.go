@@ -3,11 +3,12 @@ package provider
 import (
 	"context"
 	"fmt"
-	apiclient "github.com/core-infra-svcs/dashboard-api-go/client"
+	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -21,7 +22,7 @@ func NewOrganizationsNetworksDataSource() datasource.DataSource {
 
 // OrganizationsNetworksDataSource defines the data source implementation.
 type OrganizationsNetworksDataSource struct {
-	client *apiclient.APIClient
+	client *openApiClient.APIClient
 }
 
 // OrganizationsNetworksDataSourceModel describes the data source data model.
@@ -30,8 +31,8 @@ type OrganizationsNetworksDataSourceModel struct {
 	OrgId                   types.String                               `tfsdk:"organization_id"`             // path var
 	ConfigTemplateId        types.String                               `tfsdk:"config_template_id"`          // query params
 	IsBoundToConfigTemplate types.Bool                                 `tfsdk:"is_bound_to_config_template"` // query params
-	Tags                    []OrganizationsNetworksDataSourceModelTag  `tfsdk:"tags"`                        // query params
-	TagsFilterType          types.String                               `tfsdk:"tagsFilterType"`              // query params
+	Tags                    []types.String                             `tfsdk:"tags"`                        // query params
+	TagsFilterType          types.String                               `tfsdk:"tags_filter_type"`            // query params
 	List                    []OrganizationsNetworksDataSourceModelList `tfsdk:"list"`
 }
 
@@ -56,232 +57,131 @@ func (d *OrganizationsNetworksDataSource) Metadata(ctx context.Context, req data
 	resp.TypeName = req.ProviderTypeName + "_organizations_networks"
 }
 
-func (d *OrganizationsNetworksDataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
-		MarkdownDescription: "OrganizationsNetworks resource - ",
-		Attributes: map[string]tfsdk.Attribute{
-			"id": {
-				Description:         "Example identifier",
-				MarkdownDescription: "Example identifier",
-				Type:                types.StringType,
-				Required:            false,
-				Optional:            false,
-				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
+func (d *OrganizationsNetworksDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		MarkdownDescription: "",
+
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Computed: true,
 			},
-			"organization_id": {
-				Description:         "Organization ID",
+			"organization_id": schema.StringAttribute{
 				MarkdownDescription: "Organization ID",
-				Type:                types.StringType,
-				Required:            false,
-				Optional:            true,
-				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
+				Required:            true,
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(8, 31),
+				},
 			},
-			"config_template_id": {
-				Description:         "config_template_id",
+			"config_template_id": schema.StringAttribute{
 				MarkdownDescription: "config_template_id",
-				Type:                types.StringType,
-				Required:            false,
 				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
 			},
-			"is_bound_to_config_template": {
-				Description:         "is_bound_to_config_template",
-				MarkdownDescription: "is_bound_to_config_template",
-				Type:                types.StringType,
-				Required:            false,
+			"is_bound_to_config_template": schema.StringAttribute{
+				MarkdownDescription: "",
 				Optional:            true,
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
 			},
-			"tags": {
-				Description:         "list of tags",
-				MarkdownDescription: "list of tags",
-				Computed:            true,
-				Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-					"tag": {
-						Description:         "tag",
-						MarkdownDescription: "tag",
-						Type:                types.StringType,
-						Required:            false,
-						Optional:            true,
-						Computed:            true,
-						Sensitive:           false,
-						Attributes:          nil,
-						DeprecationMessage:  "",
-						Validators:          nil,
-						PlanModifiers:       nil,
-					},
-				})},
-			"tagsFilterType": {
-				Description:         "tagsFilterType",
-				MarkdownDescription: "tagsFilterType",
-				Type:                types.StringType,
-				Required:            false,
-				Optional:            true,
-				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
+			"tags": schema.SetAttribute{
+				Description: "Network tags",
+				ElementType: types.StringType,
+				Optional:    true,
+				Computed:    true,
 			},
-			"list": {
-				MarkdownDescription: "OrganizationsNetworksResourceModelList of networks",
+			"tags_filter_type": schema.StringAttribute{
+				MarkdownDescription: "",
 				Optional:            true,
-				Attributes: tfsdk.SetNestedAttributes(map[string]tfsdk.Attribute{
-					"id": {
-						Description:         "network_id",
-						MarkdownDescription: "network_id",
-						Type:                types.StringType,
-						Required:            false,
-						Optional:            false,
-						Computed:            true,
-						Sensitive:           false,
-						Attributes:          nil,
-						DeprecationMessage:  "",
-						Validators:          nil,
-						PlanModifiers:       nil,
+				Computed:            true,
+			},
+			"list": schema.ListNestedAttribute{
+				Optional:    true,
+				Computed:    true,
+				Description: "",
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"id": schema.StringAttribute{
+							MarkdownDescription: "",
+							Optional:            true,
+						},
+						"organization_id": schema.StringAttribute{
+							MarkdownDescription: "",
+							Optional:            true,
+						},
+						"name": schema.StringAttribute{
+							MarkdownDescription: "",
+							Optional:            true,
+						},
+						"product_types": schema.StringAttribute{
+							MarkdownDescription: "",
+							Optional:            true,
+						},
+						"time_zone": schema.StringAttribute{
+							MarkdownDescription: "",
+							Optional:            true,
+						},
+						"tags": schema.SetAttribute{
+							Description: "Network tags",
+							ElementType: types.StringType,
+							Computed:    true,
+							Optional:    true,
+						},
+						"enrollment_string": schema.StringAttribute{
+							MarkdownDescription: "",
+							Optional:            true,
+						},
+						"url": schema.StringAttribute{
+							MarkdownDescription: "",
+							Optional:            true,
+						},
+						"notes": schema.StringAttribute{
+							MarkdownDescription: "",
+							Optional:            true,
+						},
+						"is_bound_to_config_template": schema.BoolAttribute{
+							MarkdownDescription: "",
+							Optional:            true,
+						},
 					},
-					"organization_id": {
-						Description:         "Organization ID",
-						MarkdownDescription: "Organization ID",
-						Type:                types.StringType,
-						Required:            false,
-						Optional:            true,
-						Computed:            true,
-						Sensitive:           false,
-						Attributes:          nil,
-						DeprecationMessage:  "",
-						Validators:          nil,
-						PlanModifiers:       nil,
-					},
-					"name": {
-						Description:         "network name",
-						MarkdownDescription: "network name",
-						Type:                types.StringType,
-						Required:            false,
-						Optional:            true,
-						Computed:            true,
-						Sensitive:           false,
-						Attributes:          nil,
-						DeprecationMessage:  "",
-						Validators:          nil,
-						PlanModifiers:       nil,
-					},
-					"product_types": {
-						Description:         "product_types",
-						MarkdownDescription: "product_types",
-						Type:                types.ListType{ElemType: types.StringType},
-						Required:            false,
-						Optional:            true,
-						Computed:            true,
-						Sensitive:           false,
-						Attributes:          nil,
-						DeprecationMessage:  "",
-						Validators:          nil,
-						PlanModifiers:       nil,
-					},
-					"time_zone": {
-						Description:         "time_zone",
-						MarkdownDescription: "time_zone",
-						Type:                types.StringType,
-						Required:            false,
-						Optional:            true,
-						Computed:            true,
-						Sensitive:           false,
-						Attributes:          nil,
-						DeprecationMessage:  "",
-						Validators:          nil,
-						PlanModifiers:       nil,
-					},
-					"tags": {
-						Description:         "tags",
-						MarkdownDescription: "tags",
-						Type:                types.ListType{ElemType: types.StringType},
-						Required:            false,
-						Optional:            true,
-						Computed:            true,
-						Sensitive:           false,
-						Attributes:          nil,
-						DeprecationMessage:  "",
-						Validators:          nil,
-						PlanModifiers:       nil,
-					},
-					"enrollment_string": {
-						Description:         "enrollment_string",
-						MarkdownDescription: "enrollment_string",
-						Type:                types.StringType,
-						Required:            false,
-						Optional:            true,
-						Computed:            true,
-						Sensitive:           false,
-						Attributes:          nil,
-						DeprecationMessage:  "",
-						Validators:          nil,
-						PlanModifiers:       nil,
-					},
-					"url": {
-						Description:         "URL",
-						MarkdownDescription: "URL",
-						Type:                types.StringType,
-						Required:            false,
-						Optional:            true,
-						Computed:            true,
-						Sensitive:           false,
-						Attributes:          nil,
-						DeprecationMessage:  "",
-						Validators:          nil,
-						PlanModifiers:       nil,
-					},
-					"notes": {
-						Description:         "notes",
-						MarkdownDescription: "notes",
-						Type:                types.StringType,
-						Required:            false,
-						Optional:            true,
-						Computed:            true,
-						Sensitive:           false,
-						Attributes:          nil,
-						DeprecationMessage:  "",
-						Validators:          nil,
-						PlanModifiers:       nil,
-					},
-					"is_bound_to_config_template": {
-						Description:         "is_bound_to_config_template",
-						MarkdownDescription: "is_bound_to_config_template",
-						Type:                types.BoolType,
-						Required:            false,
-						Optional:            true,
-						Computed:            true,
-						Sensitive:           false,
-						Attributes:          nil,
-						DeprecationMessage:  "",
-						Validators:          nil,
-						PlanModifiers:       nil,
-					},
-				}),
+				},
+			},
+
+			"name": schema.StringAttribute{
+				MarkdownDescription: "Username",
+				Optional:            true,
+				Computed:            true,
+			},
+			"email": schema.StringAttribute{
+				MarkdownDescription: "User email",
+				Optional:            true,
+				Computed:            true,
+			},
+			"last_used_dashboard_at": schema.StringAttribute{
+				MarkdownDescription: "Last seen active on Dashboard UI",
+				Optional:            true,
+				Computed:            true,
+			},
+			"authentication_mode": schema.StringAttribute{
+				MarkdownDescription: "Authentication mode",
+				Optional:            true,
+				Computed:            true,
+			},
+			"authentication_api_key_created": schema.BoolAttribute{
+				MarkdownDescription: "If API key is created for this user",
+				Optional:            true,
+				Computed:            true,
+			},
+			"authentication_two_factor_enabled": schema.BoolAttribute{
+				MarkdownDescription: "If twoFactor authentication is enabled for this user",
+				Optional:            true,
+				Computed:            true,
+			},
+			"authentication_saml_enabled": schema.BoolAttribute{
+				MarkdownDescription: "If SAML authentication is enabled for this user",
+				Optional:            true,
+				Computed:            true,
 			},
 		},
-	}, nil
+	}
 }
 
 func (d *OrganizationsNetworksDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
@@ -290,7 +190,7 @@ func (d *OrganizationsNetworksDataSource) Configure(ctx context.Context, req dat
 		return
 	}
 
-	client, ok := req.ProviderData.(*apiclient.APIClient)
+	client, ok := req.ProviderData.(*openApiClient.APIClient)
 
 	if !ok {
 		resp.Diagnostics.AddError(
@@ -309,42 +209,32 @@ func (d *OrganizationsNetworksDataSource) Read(ctx context.Context, req datasour
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
-	// Check for required parameters
-	if len(data.OrgId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing OrganizationId", fmt.Sprintf("Value: %s", data.OrgId.ValueString()))
-		return
-	}
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Tags
 	var tags []string
-	if len(data.Tags) < 0 {
-		for _, tag := range data.Tags {
-			tags = append(tags, tag.Tag.ValueString())
-		}
+	for _, tag := range data.Tags {
+		tags = append(tags, fmt.Sprintf("%s", tag.ValueString()))
 	}
 
-	perPage := int32(100000) // int32 | The number of entries per page returned. Acceptable range is 3 - 100000. Default is 1000. (optional)
-	startingAfter := ""      // string | A token used by the server to indicate the start of the page. Often this is a timestamp or an ID but it is not limited to those. This parameter should not be defined by client applications. The link for the first, last, prev, or next page in the HTTP Link header should define it. (optional)
-	endingBefore := ""       // string | A token used by the server to indicate the end of the page. Often this is a timestamp or an ID but it is not limited to those. This parameter should not be defined by client applications. The link for the first, last, prev, or next page in the HTTP Link header should define it. (optional)
+	var t []string
+	tagsFilterType := "tagsFilterType_example"
 
-	// TODO -- PAGINATION
+	// Pagination is not required for this data source as it is not a good design practice to have 10,000 networks in a single organization.
 	inlineResp, httpResp, err := d.client.OrganizationsApi.GetOrganizationNetworks(context.Background(),
 		data.OrgId.ValueString()).ConfigTemplateId(data.ConfigTemplateId.ValueString()).IsBoundToConfigTemplate(
-		data.IsBoundToConfigTemplate.ValueBool()).Tags(tags).TagsFilterType(
-		data.TagsFilterType.ValueString()).PerPage(perPage).StartingAfter(
-		startingAfter).EndingBefore(endingBefore).Execute()
+		data.IsBoundToConfigTemplate.ValueBool()).Tags(t).TagsFilterType(
+		tagsFilterType).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
+			"Failed to read datasource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
 
-	// Check for API success response code
+	// Check for API success inlineResp code
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
@@ -353,12 +243,15 @@ func (d *OrganizationsNetworksDataSource) Read(ctx context.Context, req datasour
 	}
 
 	// collect diagnostics
-	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+	if httpResp != nil {
+		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+	}
 
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
-		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
 		return
+	} else {
+		resp.Diagnostics.Append()
 	}
 
 	// save inlineResp data into Terraform state.
@@ -376,18 +269,16 @@ func (d *OrganizationsNetworksDataSource) Read(ctx context.Context, req datasour
 		for _, productType := range network.ProductTypes {
 			productTypes = append(productTypes, types.StringValue(productType))
 		}
-
 		result.ProductTypes = productTypes
 
 		result.TimeZone = types.StringValue(network.GetTimeZone())
 
 		// Tags
-		var tags []types.String
-		for _, tag := range network.ProductTypes {
-			tags = append(tags, types.StringValue(tag))
+		var resultsTags []types.String
+		for _, tag := range network.Tags {
+			resultsTags = append(resultsTags, types.StringValue(tag))
 		}
-
-		result.Tags = tags
+		result.Tags = resultsTags
 
 		result.EnrollmentString = types.StringValue(network.GetEnrollmentString())
 		result.Url = types.StringValue(network.GetUrl())
