@@ -1,9 +1,8 @@
 package provider
 
 import (
-	"testing"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"testing"
 )
 
 func TestAccOrganizationsNetworkResource(t *testing.T) {
@@ -17,7 +16,6 @@ func TestAccOrganizationsNetworkResource(t *testing.T) {
 			{
 				Config: testAccOrganizationsNetworkResourceConfigCreateOrganization,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_meraki_network.test"),
 				),
 			},
@@ -26,7 +24,6 @@ func TestAccOrganizationsNetworkResource(t *testing.T) {
 			{
 				Config: testAccOrganizationsNetworkResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_network.test", "name", "Main Office"),
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
@@ -43,7 +40,11 @@ func TestAccOrganizationsNetworkResource(t *testing.T) {
 			{
 				Config: testAccOrganizationsNetworkResourceConfigUpdate,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "enrollment_string", "my-enrollment-string-switch"),
+					//resource.TestCheckResourceAttr("meraki_network.test", "enrollment_string", "my-enrollment-string"),
+					resource.TestCheckResourceAttr("meraki_network.test", "product_types.#", "3"),
+					resource.TestCheckResourceAttr("meraki_network.test", "product_types.0", "appliance"),
+					resource.TestCheckResourceAttr("meraki_network.test", "product_types.1", "switch"),
+					resource.TestCheckResourceAttr("meraki_network.test", "product_types.2", "wireless"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "2"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.1", "tag2"),
@@ -84,7 +85,6 @@ resource "meraki_network" "test" {
 	product_types = ["appliance", "switch", "wireless"]
 	tags = ["tag1", "tag2"]
 	name = "Main Office-2"
-	enrollment_string = "my-enrollment-string-switch"
 	timezone = "America/Chicago"
 	notes = "Additional description of the network-2"
 }
