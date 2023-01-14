@@ -5,6 +5,7 @@ import (
 	"fmt"
 	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -28,29 +29,30 @@ type OrganizationsNetworksDataSource struct {
 // OrganizationsNetworksDataSourceModel describes the data source data model.
 type OrganizationsNetworksDataSourceModel struct {
 	Id                      types.String                               `tfsdk:"id"`
-	OrgId                   types.String                               `tfsdk:"organization_id"`             // path var
-	ConfigTemplateId        types.String                               `tfsdk:"config_template_id"`          // query params
-	IsBoundToConfigTemplate types.Bool                                 `tfsdk:"is_bound_to_config_template"` // query params
-	Tags                    []types.String                             `tfsdk:"tags"`                        // query params
-	TagsFilterType          types.String                               `tfsdk:"tags_filter_type"`            // query params
+	OrgId                   types.String                               `tfsdk:"organization_id"`
+	ConfigTemplateId        types.String                               `tfsdk:"config_template_id"`
+	IsBoundToConfigTemplate types.Bool                                 `tfsdk:"is_bound_to_config_template"`
+	Tags                    types.Set                                  `tfsdk:"tags"`
+	TagsFilterType          types.String                               `tfsdk:"tags_filter_type"`
 	List                    []OrganizationsNetworksDataSourceModelList `tfsdk:"list"`
+
+	// Pagination is not enabled as it is not advisable to have 10,000 networks in a single organization.
+	//PerPage                 types.String  `tfsdk:"perPage"`
+	//StartingAfter           types.String  `tfsdk:"startingAfter"`
+	//EndingBefore            types.String  `tfsdk:"endingBefore"`
 }
 
 type OrganizationsNetworksDataSourceModelList struct {
 	Id                      types.String   `tfsdk:"id"`
-	OrganizationId          types.String   `tfsdk:"organizationId"`
+	OrganizationId          types.String   `tfsdk:"organization_id" json:"organizationId"`
 	Name                    types.String   `tfsdk:"name"`
-	ProductTypes            []types.String `tfsdk:"product_types"`
-	TimeZone                types.String   `tfsdk:"time_zone"`
+	ProductTypes            []types.String `tfsdk:"product_types" json:"productTypes"`
+	TimeZone                types.String   `tfsdk:"time_zone" json:"timeZone"`
 	Tags                    []types.String `tfsdk:"tags"`
-	EnrollmentString        types.String   `tfsdk:"enrollment_string"`
+	EnrollmentString        types.String   `tfsdk:"enrollment_string"  json:"enrollmentString"`
 	Url                     types.String   `tfsdk:"url"`
 	Notes                   types.String   `tfsdk:"notes"`
-	isBoundToConfigTemplate types.Bool     `tfsdk:"is_bound_to_config_template"`
-}
-
-type OrganizationsNetworksDataSourceModelTag struct {
-	Tag types.String `tfsdk:"tag"`
+	isBoundToConfigTemplate types.Bool     `tfsdk:"is_bound_to_config_template" json:"isBoundToConfigTemplate"`
 }
 
 func (d *OrganizationsNetworksDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -77,7 +79,7 @@ func (d *OrganizationsNetworksDataSource) Schema(ctx context.Context, req dataso
 				Optional:            true,
 				Computed:            true,
 			},
-			"is_bound_to_config_template": schema.StringAttribute{
+			"is_bound_to_config_template": schema.BoolAttribute{
 				MarkdownDescription: "",
 				Optional:            true,
 				Computed:            true,
@@ -104,20 +106,32 @@ func (d *OrganizationsNetworksDataSource) Schema(ctx context.Context, req dataso
 							Optional:            true,
 						},
 						"organization_id": schema.StringAttribute{
-							MarkdownDescription: "",
+							MarkdownDescription: "Organization ID",
 							Optional:            true,
+							Computed:            true,
+							Validators: []validator.String{
+								stringvalidator.LengthBetween(8, 31),
+							},
 						},
 						"name": schema.StringAttribute{
-							MarkdownDescription: "",
+							MarkdownDescription: "Network name",
 							Optional:            true,
+							Computed:            true,
 						},
-						"product_types": schema.StringAttribute{
-							MarkdownDescription: "",
-							Optional:            true,
+						"product_types": schema.SetAttribute{
+							ElementType: types.StringType,
+							Required:    true,
+							Validators: []validator.Set{
+								setvalidator.ValueStringsAre(
+									stringvalidator.OneOf([]string{"appliance", "switch", "wireless", "systemsManager", "camera", "cellularGateway", "sensor"}...),
+									stringvalidator.LengthAtLeast(5),
+								),
+							},
 						},
-						"time_zone": schema.StringAttribute{
-							MarkdownDescription: "",
+						"timezone": schema.StringAttribute{
+							MarkdownDescription: "Timezone of the network",
 							Optional:            true,
+							Computed:            true,
 						},
 						"tags": schema.SetAttribute{
 							Description: "Network tags",
@@ -126,20 +140,28 @@ func (d *OrganizationsNetworksDataSource) Schema(ctx context.Context, req dataso
 							Optional:    true,
 						},
 						"enrollment_string": schema.StringAttribute{
-							MarkdownDescription: "",
+							MarkdownDescription: "A unique identifier which can be used for device enrollment or easy access through the Meraki SM Registration page or the Self Service Portal. Once enabled, a network enrollment strings can be changed but they cannot be deleted.",
 							Optional:            true,
+							Computed:            true,
+							Validators: []validator.String{
+								stringvalidator.NoneOf([]string{";", ":", "@", "=", "&", "$", "!", "‘", "“", ",", "?", ".", "(", ")", "{", "}", "[", "]", "\\", "*", "+", "/", "#", "<", ">", "|", "^", "%"}...),
+								stringvalidator.LengthBetween(4, 50),
+							},
 						},
 						"url": schema.StringAttribute{
-							MarkdownDescription: "",
+							MarkdownDescription: "URL to the network Dashboard UI",
 							Optional:            true,
+							Computed:            true,
 						},
 						"notes": schema.StringAttribute{
-							MarkdownDescription: "",
+							MarkdownDescription: "Notes for the network",
 							Optional:            true,
+							Computed:            true,
 						},
 						"is_bound_to_config_template": schema.BoolAttribute{
-							MarkdownDescription: "",
+							MarkdownDescription: "If the network is bound to a config template",
 							Optional:            true,
+							Computed:            true,
 						},
 					},
 				},
@@ -215,18 +237,33 @@ func (d *OrganizationsNetworksDataSource) Read(ctx context.Context, req datasour
 
 	// Tags
 	var tags []string
-	for _, tag := range data.Tags {
-		tags = append(tags, fmt.Sprintf("%s", tag.ValueString()))
+	if !data.Tags.IsUnknown() {
+		for _, attribute := range data.Tags.Elements() {
+			tags = append(tags, attribute.String())
+		}
 	}
 
-	var t []string
-	tagsFilterType := "tagsFilterType_example"
+	// tagsFilterType
+	var tagsFilterType string
+	if !data.TagsFilterType.IsUnknown() {
+		tagsFilterType = data.TagsFilterType.ValueString()
+	}
 
-	// Pagination is not required for this data source as it is not a good design practice to have 10,000 networks in a single organization.
+	// configTemplateId
+	var configTemplateId string
+	if !data.ConfigTemplateId.IsUnknown() {
+		configTemplateId = data.ConfigTemplateId.ValueString()
+	}
+
+	//
+	var isBoundToConfigTemplate bool
+	if !data.IsBoundToConfigTemplate.IsUnknown() {
+		isBoundToConfigTemplate = data.IsBoundToConfigTemplate.ValueBool()
+	}
+
 	inlineResp, httpResp, err := d.client.OrganizationsApi.GetOrganizationNetworks(context.Background(),
-		data.OrgId.ValueString()).ConfigTemplateId(data.ConfigTemplateId.ValueString()).IsBoundToConfigTemplate(
-		data.IsBoundToConfigTemplate.ValueBool()).Tags(t).TagsFilterType(
-		tagsFilterType).Execute()
+		data.OrgId.ValueString()).ConfigTemplateId(configTemplateId).IsBoundToConfigTemplate(isBoundToConfigTemplate).Tags(tags).TagsFilterType(
+		tagsFilterType).PerPage(10000).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to read datasource",
