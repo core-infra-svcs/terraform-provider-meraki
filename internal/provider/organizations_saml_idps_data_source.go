@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontype"
@@ -27,7 +28,7 @@ type OrganizationsSamlIdpsDataSource struct {
 }
 
 type OrganizationsSamlIdpsDataSourceModel struct {
-	Id             jsontype.String                       `tfsdk:"id"`
+	Id             types.String                          `tfsdk:"id"`
 	OrganizationId jsontype.String                       `tfsdk:"organization_id"`
 	List           []OrganizationsSamlIdpDataSourceModel `tfsdk:"list"`
 }
@@ -56,6 +57,7 @@ func (d *OrganizationsSamlIdpsDataSource) Schema(ctx context.Context, req dataso
 				MarkdownDescription: "Organization ID",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontype.StringType,
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(8, 31),
 				},
@@ -69,18 +71,22 @@ func (d *OrganizationsSamlIdpsDataSource) Schema(ctx context.Context, req dataso
 						"consumer_url": schema.StringAttribute{
 							MarkdownDescription: "URL that is consuming SAML Identity Provider (IdP)",
 							Optional:            true,
+							CustomType:          jsontype.StringType,
 						},
 						"idp_id": schema.StringAttribute{
 							MarkdownDescription: "ID associated with the SAML Identity Provider (IdP)",
 							Optional:            true,
+							CustomType:          jsontype.StringType,
 						},
 						"slo_logout_url": schema.StringAttribute{
 							MarkdownDescription: "Dashboard will redirect users to this URL when they sign out.",
 							Optional:            true,
+							CustomType:          jsontype.StringType,
 						},
 						"x_509_cert_sha1_fingerprint": schema.StringAttribute{
 							MarkdownDescription: "Fingerprint (SHA1) of the SAML certificate provided by your Identity Provider (IdP). This will be used for encryption / validation.",
 							Optional:            true,
+							CustomType:          jsontype.StringType,
 						},
 					},
 				},
@@ -148,7 +154,7 @@ func (d *OrganizationsSamlIdpsDataSource) Read(ctx context.Context, req datasour
 	}
 
 	// save inlineResp data into Terraform state.
-	data.Id = jsontype.StringValue("example-id")
+	data.Id = types.StringValue("example-id")
 
 	if resp.Diagnostics.HasError() {
 		return

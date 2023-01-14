@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontype"
@@ -35,7 +36,7 @@ type OrganizationResource struct {
 
 // OrganizationResourceModel describes the resource data model.
 type OrganizationResourceModel struct {
-	Id                     jsontype.String `tfsdk:"id"`
+	Id                     types.String    `tfsdk:"id"`
 	ApiEnabled             jsontype.Bool   `tfsdk:"api_enabled"`
 	CloudRegionName        jsontype.String `tfsdk:"cloud_region_name"`
 	ManagementDetailsName  jsontype.String `tfsdk:"management_details_name"`
@@ -62,16 +63,19 @@ func (r *OrganizationResource) Schema(ctx context.Context, req resource.SchemaRe
 				MarkdownDescription: "Enable API access",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontype.BoolType,
 			},
 			"cloud_region_name": schema.StringAttribute{
 				MarkdownDescription: "Name of region",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontype.StringType,
 			},
 			"organization_id": schema.StringAttribute{
 				MarkdownDescription: "Organization ID",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontype.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -83,6 +87,7 @@ func (r *OrganizationResource) Schema(ctx context.Context, req resource.SchemaRe
 				MarkdownDescription: "Organization licensing model. Can be 'co-term', 'per-device', or 'subscription'.",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontype.StringType,
 				Validators: []validator.String{
 					stringvalidator.OneOf([]string{"co-term", "per-device", "subscription"}...),
 				},
@@ -91,21 +96,25 @@ func (r *OrganizationResource) Schema(ctx context.Context, req resource.SchemaRe
 				MarkdownDescription: "Name of management data",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontype.StringType,
 			},
 			"management_details_value": schema.StringAttribute{
 				MarkdownDescription: "Value of management data",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontype.StringType,
 			},
 			"name": schema.StringAttribute{
 				MarkdownDescription: "Organization name",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontype.StringType,
 			},
 			"url": schema.StringAttribute{
 				MarkdownDescription: "Organization URL",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontype.StringType,
 			},
 		},
 	}
@@ -183,7 +192,7 @@ func (r *OrganizationResource) Create(ctx context.Context, req resource.CreateRe
 	}
 
 	// save into the Terraform state.
-	data.Id = jsontype.StringValue("example-id")
+	data.Id = types.StringValue("example-id")
 	data.OrgId = jsontype.StringValue(inlineResp.GetId())
 	data.Name = jsontype.StringValue(inlineResp.GetName())
 	data.CloudRegionName = jsontype.StringValue(inlineResp.Cloud.Region.GetName())
@@ -257,7 +266,7 @@ func (r *OrganizationResource) Read(ctx context.Context, req resource.ReadReques
 	}
 
 	// save inlineResp data into Terraform state.
-	data.Id = jsontype.StringValue("example-id")
+	data.Id = types.StringValue("example-id")
 	data.OrgId = jsontype.StringValue(inlineResp.GetId())
 	data.Name = jsontype.StringValue(inlineResp.GetName())
 	data.CloudRegionName = jsontype.StringValue(inlineResp.Cloud.Region.GetName())
@@ -351,7 +360,7 @@ func (r *OrganizationResource) Update(ctx context.Context, req resource.UpdateRe
 	}
 
 	// save inlineResp data into Terraform state
-	data.Id = jsontype.StringValue("example-id")
+	data.Id = types.StringValue("example-id")
 	data.OrgId = jsontype.StringValue(inlineResp.GetId())
 	data.Name = jsontype.StringValue(inlineResp.GetName())
 	data.CloudRegionName = jsontype.StringValue(inlineResp.Cloud.Region.GetName())

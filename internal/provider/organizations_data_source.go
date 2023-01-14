@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontype"
@@ -28,7 +29,7 @@ type OrganizationsDataSource struct {
 
 // OrganizationsDataSourceModel describes the data source data model.
 type OrganizationsDataSourceModel struct {
-	Id   jsontype.String               `tfsdk:"id"`
+	Id   types.String                  `tfsdk:"id"`
 	List []OrganizationDataSourceModel `tfsdk:"list"`
 }
 
@@ -63,18 +64,22 @@ func (d *OrganizationsDataSource) Schema(ctx context.Context, req datasource.Sch
 						"api_enabled": schema.BoolAttribute{
 							MarkdownDescription: "Enable API access",
 							Optional:            true,
+							CustomType:          jsontype.BoolType,
 						},
 						"cloud_region_name": schema.StringAttribute{
 							MarkdownDescription: "Name of region",
 							Optional:            true,
+							CustomType:          jsontype.StringType,
 						},
 						"organization_id": schema.StringAttribute{
 							MarkdownDescription: "Organization ID",
 							Optional:            true,
+							CustomType:          jsontype.StringType,
 						},
 						"licensing_model": schema.StringAttribute{
 							MarkdownDescription: "Organization licensing model. Can be 'co-term', 'per-device', or 'subscription'.",
 							Optional:            true,
+							CustomType:          jsontype.StringType,
 							Validators: []validator.String{
 								stringvalidator.OneOf([]string{"co-term", "per-device", "subscription"}...),
 								stringvalidator.LengthAtLeast(7),
@@ -83,10 +88,12 @@ func (d *OrganizationsDataSource) Schema(ctx context.Context, req datasource.Sch
 						"name": schema.StringAttribute{
 							MarkdownDescription: "Organization name",
 							Optional:            true,
+							CustomType:          jsontype.StringType,
 						},
 						"url": schema.StringAttribute{
 							MarkdownDescription: "Organization URL",
 							Optional:            true,
+							CustomType:          jsontype.StringType,
 						},
 					},
 				},
@@ -154,7 +161,7 @@ func (d *OrganizationsDataSource) Read(ctx context.Context, req datasource.ReadR
 	}
 
 	// save inlineResp data into Terraform state.
-	data.Id = jsontype.StringValue("example-id")
+	data.Id = types.StringValue("example-id")
 
 	for _, organization := range inlineResp {
 		var result OrganizationDataSourceModel

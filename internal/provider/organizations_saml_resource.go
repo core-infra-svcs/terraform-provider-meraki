@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontype"
@@ -35,7 +36,7 @@ type OrganizationSamlResource struct {
 
 // OrganizationSamlResourceModel describes the resource data model.
 type OrganizationSamlResourceModel struct {
-	Id             jsontype.String `tfsdk:"id"`
+	Id             types.String    `tfsdk:"id"`
 	OrganizationId jsontype.String `tfsdk:"organization_id"`
 	Enabled        jsontype.Bool   `tfsdk:"enabled"`
 }
@@ -55,6 +56,7 @@ func (r *OrganizationSamlResource) Schema(ctx context.Context, req resource.Sche
 				MarkdownDescription: "Organization ID",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontype.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -66,6 +68,7 @@ func (r *OrganizationSamlResource) Schema(ctx context.Context, req resource.Sche
 				MarkdownDescription: "Toggle depicting if SAML SSO settings are enabled",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontype.BoolType,
 			},
 		},
 	}
@@ -134,7 +137,7 @@ func (r *OrganizationSamlResource) Create(ctx context.Context, req resource.Crea
 	}
 
 	// save into the Terraform state.
-	data.Id = jsontype.StringValue("example-id")
+	data.Id = types.StringValue("example-id")
 	data.Enabled = jsontype.BoolValue(inlineResp.GetEnabled())
 
 	// Save data into Terraform state
@@ -180,7 +183,7 @@ func (r *OrganizationSamlResource) Read(ctx context.Context, req resource.ReadRe
 	}
 
 	// save into the Terraform state.
-	data.Id = jsontype.StringValue("example-id")
+	data.Id = types.StringValue("example-id")
 	data.Enabled = jsontype.BoolValue(inlineResp.GetEnabled())
 
 	// Save updated data into Terraform state
@@ -230,7 +233,7 @@ func (r *OrganizationSamlResource) Update(ctx context.Context, req resource.Upda
 	}
 
 	// save into the Terraform state.
-	data.Id = jsontype.StringValue("example-id")
+	data.Id = types.StringValue("example-id")
 	data.Enabled = jsontype.BoolValue(inlineResp.GetEnabled())
 
 	// Save updated data into Terraform state

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"io"
 
 	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
@@ -37,7 +38,7 @@ type OrganizationsSamlIdpResource struct {
 
 // OrganizationsSamlIdpResourceModel describes the resource data model.
 type OrganizationsSamlIdpResourceModel struct {
-	Id                      jsontype.String `tfsdk:"id"`
+	Id                      types.String    `tfsdk:"id"`
 	OrganizationId          jsontype.String `tfsdk:"organization_id"`
 	ConsumerUrl             jsontype.String `tfsdk:"consumer_url"`
 	IdpId                   jsontype.String `tfsdk:"idp_id"`
@@ -61,6 +62,7 @@ func (r *OrganizationsSamlIdpResource) Schema(ctx context.Context, req resource.
 				MarkdownDescription: "Organization ID",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontype.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -72,11 +74,13 @@ func (r *OrganizationsSamlIdpResource) Schema(ctx context.Context, req resource.
 				Description: "URL that is consuming SAML Identity Provider (IdP)",
 				Optional:    true,
 				Computed:    true,
+				CustomType:  jsontype.StringType,
 			},
 			"idp_id": schema.StringAttribute{
 				MarkdownDescription: "ID associated with the SAML Identity Provider (IdP)",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontype.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -88,11 +92,13 @@ func (r *OrganizationsSamlIdpResource) Schema(ctx context.Context, req resource.
 				MarkdownDescription: "Dashboard will redirect users to this URL when they sign out.",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontype.StringType,
 			},
 			"x_509_cert_sha1_fingerprint": schema.StringAttribute{
 				MarkdownDescription: "Fingerprint (SHA1) of the SAML certificate provided by your Identity Provider (IdP). This will be used for encryption / validation.",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontype.StringType,
 			},
 		},
 	}
@@ -168,7 +174,7 @@ func (r *OrganizationsSamlIdpResource) Create(ctx context.Context, req resource.
 	}
 
 	// save into the Terraform state.
-	data.Id = jsontype.StringValue("example-id")
+	data.Id = types.StringValue("example-id")
 	data.IdpId = jsontype.StringValue(inlineResp.GetIdpId())
 	data.ConsumerUrl = jsontype.StringValue(inlineResp.GetConsumerUrl())
 	data.SloLogoutUrl = jsontype.StringValue(inlineResp.GetSloLogoutUrl())
@@ -220,7 +226,7 @@ func (r *OrganizationsSamlIdpResource) Read(ctx context.Context, req resource.Re
 		resp.Diagnostics.Append()
 	}
 
-	data.Id = jsontype.StringValue("example-id")
+	data.Id = types.StringValue("example-id")
 	data.IdpId = jsontype.StringValue(inlineResp.GetIdpId())
 	data.ConsumerUrl = jsontype.StringValue(inlineResp.GetConsumerUrl())
 	data.SloLogoutUrl = jsontype.StringValue(inlineResp.GetSloLogoutUrl())
@@ -281,7 +287,7 @@ func (r *OrganizationsSamlIdpResource) Update(ctx context.Context, req resource.
 		resp.Diagnostics.Append()
 	}
 
-	data.Id = jsontype.StringValue("example-id")
+	data.Id = types.StringValue("example-id")
 	data.IdpId = jsontype.StringValue(inlineResp.GetIdpId())
 	data.ConsumerUrl = jsontype.StringValue(inlineResp.GetConsumerUrl())
 	data.SloLogoutUrl = jsontype.StringValue(inlineResp.GetSloLogoutUrl())

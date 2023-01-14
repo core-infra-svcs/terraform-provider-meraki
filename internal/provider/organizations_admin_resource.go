@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"strings"
 
 	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
@@ -38,29 +39,29 @@ type OrganizationsAdminResource struct {
 
 // OrganizationsAdminResourceModel describes the resource data model.
 type OrganizationsAdminResourceModel struct {
-	Id                   jsontype.String                          `tfsdk:"id"`
-	OrgId                jsontype.String                          `tfsdk:"organization_id"`
-	AdminId              jsontype.String                          `tfsdk:"admin_id" json:"id"`
-	Name                 jsontype.String                          `tfsdk:"name"`
-	Email                jsontype.String                          `tfsdk:"email"`
-	OrgAccess            jsontype.String                          `tfsdk:"org_access"`
-	AccountStatus        jsontype.String                          `tfsdk:"account_status"`
-	TwoFactorAuthEnabled jsontype.Bool                            `tfsdk:"two_factor_auth_enabled"`
-	HasApiKey            jsontype.Bool                            `tfsdk:"has_api_key"`
-	LastActive           jsontype.String                          `tfsdk:"last_active"`
-	Tags                 []OrganizationsAdminResourceModelTag     `tfsdk:"tags"`
-	Networks             []OrganizationsAdminResourceModelNetwork `tfsdk:"networks"`
-	AuthenticationMethod jsontype.String                          `tfsdk:"authentication_method"`
+	Id                   types.String                  `tfsdk:"id"`
+	OrgId                jsontype.String               `tfsdk:"organization_id" json:"organizationId"`
+	AdminId              jsontype.String               `tfsdk:"admin_id" json:"id"`
+	Name                 jsontype.String               `tfsdk:"name"`
+	Email                jsontype.String               `tfsdk:"email"`
+	OrgAccess            jsontype.String               `tfsdk:"org_access" json:"orgAccess"`
+	AccountStatus        jsontype.String               `tfsdk:"account_status" json:"accountStatus"`
+	TwoFactorAuthEnabled jsontype.Bool                 `tfsdk:"two_factor_auth_enabled" json:"twoFactorAuthEnabled"`
+	HasApiKey            jsontype.Bool                 `tfsdk:"has_api_key" json:"hasApiKey"`
+	LastActive           jsontype.String               `tfsdk:"last_active" json:"lastActive"`
+	Tags                 jsontype.Set[jsontype.String] `tfsdk:"tags" json:"tags"`
+	Networks             jsontype.Set[jsontype.String] `tfsdk:"networks" json:"networks"`
+	AuthenticationMethod jsontype.String               `tfsdk:"authentication_method" json:"authenticationMethod"`
 }
 
 type OrganizationsAdminResourceModelNetwork struct {
-	Id     jsontype.String `tfsdk:"id"`
-	Access jsontype.String `tfsdk:"access"`
+	Id     jsontype.String `tfsdk:"id" json:"id"`
+	Access jsontype.String `tfsdk:"access" json:"access"`
 }
 
 type OrganizationsAdminResourceModelTag struct {
-	Tag    jsontype.String `tfsdk:"tag"`
-	Access jsontype.String `tfsdk:"access"`
+	Tag    jsontype.String `tfsdk:"tag" json:"tag"`
+	Access jsontype.String `tfsdk:"access" json:"access"`
 }
 
 func (r *OrganizationsAdminResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -237,25 +238,27 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 		data.Name.ValueString(),
 		data.OrgAccess.ValueString())
 
-	// Tags
-	if len(data.Tags) < 0 {
+	// TODO - Tags
+	if !data.Tags.IsUnknown() {
 		var tags []openApiClient.OrganizationsOrganizationIdAdminsTags
-		for _, attribute := range data.Tags {
+		for _, attribute := range data.Tags.Elements() {
 			var tag openApiClient.OrganizationsOrganizationIdAdminsTags
-			tag.Tag = attribute.Tag.ValueString()
-			tag.Access = attribute.Access.ValueString()
+			fmt.Println(attribute)
+			//tag.Tag = attribute.Tag.ValueString()
+			//tag.Access = attribute.Access.ValueString()
 			tags = append(tags, tag)
 		}
 		createOrganizationAdmin.SetTags(tags)
 	}
 
-	// Networks
-	if len(data.Networks) < 0 {
+	// TODO - Networks
+	if !data.Networks.IsUnknown() {
 		var networks []openApiClient.OrganizationsOrganizationIdAdminsNetworks
-		for _, attribute := range data.Networks {
+		for _, attribute := range data.Networks.Elements() {
 			var network openApiClient.OrganizationsOrganizationIdAdminsNetworks
-			network.Id = attribute.Id.ValueString()
-			network.Access = attribute.Access.ValueString()
+			fmt.Println(attribute)
+			//network.Id = attribute.Id.ValueString()
+			//network.Access = attribute.Access.ValueString()
 			networks = append(networks, network)
 		}
 		createOrganizationAdmin.SetNetworks(networks)
@@ -369,25 +372,27 @@ func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.Up
 	updateOrganizationAdmin.SetName(data.Name.ValueString())
 	updateOrganizationAdmin.SetOrgAccess(data.OrgAccess.ValueString())
 
-	// Tags
-	if len(data.Tags) < 0 {
+	// TODO - Tags
+	if !data.Tags.IsUnknown() {
 		var tags []openApiClient.OrganizationsOrganizationIdAdminsTags
-		for _, attribute := range data.Tags {
+		for _, attribute := range data.Tags.Elements() {
 			var tag openApiClient.OrganizationsOrganizationIdAdminsTags
-			tag.Tag = attribute.Tag.ValueString()
-			tag.Access = attribute.Tag.ValueString()
+			fmt.Println(attribute)
+			//tag.Tag = attribute.Tag.ValueString()
+			//tag.Access = attribute.Access.ValueString()
 			tags = append(tags, tag)
 		}
 		updateOrganizationAdmin.SetTags(tags)
 	}
 
-	// Networks
-	if len(data.Networks) < 0 {
+	// TODO - Networks
+	if !data.Networks.IsUnknown() {
 		var networks []openApiClient.OrganizationsOrganizationIdAdminsNetworks
-		for _, attribute := range data.Networks {
+		for _, attribute := range data.Networks.Elements() {
 			var network openApiClient.OrganizationsOrganizationIdAdminsNetworks
-			network.Id = attribute.Id.ValueString()
-			network.Access = attribute.Access.ValueString()
+			fmt.Println(attribute)
+			//network.Id = attribute.Id.ValueString()
+			//network.Access = attribute.Access.ValueString()
 			networks = append(networks, network)
 		}
 		updateOrganizationAdmin.SetNetworks(networks)
@@ -482,8 +487,6 @@ func extractHttpResponseOrganizationAdminResource(ctx context.Context, inlineRes
 			data.LastActive = tools.MapStringValue(inlineResp, "lastActive", diags)
 			data.AuthenticationMethod = tools.MapStringValue(inlineResp, "authenticationMethod", diags)
 
-
-		// TODO - use tools.Map funcs for nested tags/networks data
 			// tags attribute
 			if tags := inlineResp["tags"]; tags != nil {
 				for _, tv := range tags.([]interface{}) {
@@ -507,7 +510,7 @@ func extractHttpResponseOrganizationAdminResource(ctx context.Context, inlineRes
 			}
 	*/
 
-	// TODO - temp
+	// TODO - Workaround until json.RawMessage is implemented in HTTP client
 	b, err := json.Marshal(inlineResp)
 	if err != nil {
 		diags.AddError(
@@ -515,14 +518,14 @@ func extractHttpResponseOrganizationAdminResource(ctx context.Context, inlineRes
 			fmt.Sprintf("%v", err),
 		)
 	}
-	if err := json.Unmarshal([]byte(b), &data); err != nil {
+	if err := json.Unmarshal(b, &data); err != nil {
 		diags.AddError(
 			"b -> a",
 			fmt.Sprintf("Unmarshal error%v", err),
 		)
 	}
 
-	data.Id = jsontype.StringValue("example-id")
+	data.Id = types.StringValue("example-id")
 
 	return data
 }

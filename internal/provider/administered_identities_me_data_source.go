@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"time"
 
 	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
@@ -27,7 +28,7 @@ type AdministeredIdentitiesMeDataSource struct {
 
 // AdministeredIdentitiesMeDataSourceModel describes the data source data model.
 type AdministeredIdentitiesMeDataSourceModel struct {
-	Id                          jsontype.String `tfsdk:"id"`
+	Id                          types.String    `tfsdk:"id"`
 	AuthenticationApiKeyCreated jsontype.Bool   `tfsdk:"authentication_api_key_created"`
 	AuthenticationMode          jsontype.String `tfsdk:"authentication_mode"`
 	AuthenticationSaml          jsontype.Bool   `tfsdk:"authentication_saml_enabled"`
@@ -53,36 +54,43 @@ func (d *AdministeredIdentitiesMeDataSource) Schema(ctx context.Context, req dat
 				MarkdownDescription: "Username",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontype.StringType,
 			},
 			"email": schema.StringAttribute{
 				MarkdownDescription: "User email",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontype.StringType,
 			},
 			"last_used_dashboard_at": schema.StringAttribute{
 				MarkdownDescription: "Last seen active on Dashboard UI",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontype.StringType,
 			},
 			"authentication_mode": schema.StringAttribute{
 				MarkdownDescription: "Authentication mode",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontype.StringType,
 			},
 			"authentication_api_key_created": schema.BoolAttribute{
 				MarkdownDescription: "If API key is created for this user",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontype.BoolType,
 			},
 			"authentication_two_factor_enabled": schema.BoolAttribute{
 				MarkdownDescription: "If twoFactor authentication is enabled for this user",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontype.BoolType,
 			},
 			"authentication_saml_enabled": schema.BoolAttribute{
 				MarkdownDescription: "If SAML authentication is enabled for this user",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontype.BoolType,
 			},
 		},
 	}
@@ -145,7 +153,7 @@ func (d *AdministeredIdentitiesMeDataSource) Read(ctx context.Context, req datas
 		resp.Diagnostics.Append()
 	}
 
-	data.Id = jsontype.StringValue("example-id")
+	data.Id = types.StringValue("example-id")
 	data.Name = jsontype.StringValue(inlineResp.GetName())
 	data.Email = jsontype.StringValue(inlineResp.GetEmail())
 	data.LastUsedDashboardAt = jsontype.StringValue(inlineResp.GetLastUsedDashboardAt().Format(time.RFC3339))

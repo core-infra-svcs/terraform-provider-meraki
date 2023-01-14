@@ -40,7 +40,7 @@ type NetworkResource struct {
 
 // NetworkResourceModel describes the resource data model.
 type NetworkResourceModel struct {
-	Id                      jsontype.String               `tfsdk:"id"`
+	Id                      types.String                  `tfsdk:"id"`
 	NetworkId               jsontype.String               `tfsdk:"network_id"`
 	OrganizationId          jsontype.String               `tfsdk:"organization_id"`
 	Name                    jsontype.String               `tfsdk:"name"`
@@ -70,6 +70,7 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 				MarkdownDescription: "Network ID",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontype.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -81,6 +82,7 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 				MarkdownDescription: "Organization ID",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontype.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -92,6 +94,7 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 				MarkdownDescription: "Network name",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontype.StringType,
 			},
 			"product_types": schema.SetAttribute{
 				ElementType: types.StringType,
@@ -107,6 +110,7 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 				MarkdownDescription: "Timezone of the network",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontype.StringType,
 			},
 			"tags": schema.SetAttribute{
 				Description: "Network tags",
@@ -121,6 +125,7 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 				MarkdownDescription: "A unique identifier which can be used for device enrollment or easy access through the Meraki SM Registration page or the Self Service Portal. Once enabled, a network enrollment strings can be changed but they cannot be deleted.",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontype.StringType,
 				Validators: []validator.String{
 					stringvalidator.NoneOf([]string{";", ":", "@", "=", "&", "$", "!", "‘", "“", ",", "?", ".", "(", ")", "{", "}", "[", "]", "\\", "*", "+", "/", "#", "<", ">", "|", "^", "%"}...),
 					stringvalidator.LengthBetween(4, 50),
@@ -130,21 +135,25 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 				MarkdownDescription: "URL to the network Dashboard UI",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontype.StringType,
 			},
 			"notes": schema.StringAttribute{
 				MarkdownDescription: "Notes for the network",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontype.StringType,
 			},
 			"is_bound_to_config_template": schema.BoolAttribute{
 				MarkdownDescription: "If the network is bound to a config template",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontype.BoolType,
 			},
 			"copy_from_network_id": schema.StringAttribute{
 				MarkdownDescription: "The ID of the network to copy configuration from. Other provided parameters will override the copied configuration, except type which must match this network's type exactly.",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontype.StringType,
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(8, 31),
 				},
@@ -248,7 +257,7 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	// save inlineResp data into Terraform state.
-	data.Id = jsontype.StringValue("example-id")
+	data.Id = types.StringValue("example-id")
 	data.NetworkId = jsontype.StringValue(inlineResp.GetId())
 	data.Name = jsontype.StringValue(inlineResp.GetName())
 	data.Timezone = jsontype.StringValue(inlineResp.GetTimeZone())
@@ -314,7 +323,7 @@ func (r *NetworkResource) Read(ctx context.Context, req resource.ReadRequest, re
 	}
 
 	// save inlineResp data into Terraform state.
-	data.Id = jsontype.StringValue("example-id")
+	data.Id = types.StringValue("example-id")
 	data.NetworkId = jsontype.StringValue(inlineResp.GetId())
 	data.OrganizationId = jsontype.StringValue(inlineResp.GetOrganizationId())
 	data.Name = jsontype.StringValue(inlineResp.GetName())
@@ -407,7 +416,7 @@ func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 
 	// save inlineResp data into Terraform state.
-	data.Id = jsontype.StringValue("example-id")
+	data.Id = types.StringValue("example-id")
 	data.NetworkId = jsontype.StringValue(inlineResp.GetId())
 	data.OrganizationId = jsontype.StringValue(inlineResp.GetOrganizationId())
 	data.Name = jsontype.StringValue(inlineResp.GetName())
