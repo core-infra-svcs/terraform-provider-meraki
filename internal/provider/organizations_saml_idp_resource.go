@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+
 	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -15,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"io"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -167,11 +168,11 @@ func (r *OrganizationsSamlIdpResource) Create(ctx context.Context, req resource.
 	}
 
 	// save into the Terraform state.
-	data.Id = types.StringValue("example-id")
-	data.IdpId = types.StringValue(inlineResp.GetIdpId())
-	data.ConsumerUrl = types.StringValue(inlineResp.GetConsumerUrl())
-	data.SloLogoutUrl = types.StringValue(inlineResp.GetSloLogoutUrl())
-	data.X509CertSha1Fingerprint = types.StringValue(inlineResp.GetX509certSha1Fingerprint())
+	data.Id = jsontype.StringValue("example-id")
+	data.IdpId = jsontype.StringValue(inlineResp.GetIdpId())
+	data.ConsumerUrl = jsontype.StringValue(inlineResp.GetConsumerUrl())
+	data.SloLogoutUrl = jsontype.StringValue(inlineResp.GetSloLogoutUrl())
+	data.X509CertSha1Fingerprint = jsontype.StringValue(inlineResp.GetX509certSha1Fingerprint())
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -219,11 +220,11 @@ func (r *OrganizationsSamlIdpResource) Read(ctx context.Context, req resource.Re
 		resp.Diagnostics.Append()
 	}
 
-	data.Id = types.StringValue("example-id")
-	data.IdpId = types.StringValue(inlineResp.GetIdpId())
-	data.ConsumerUrl = types.StringValue(inlineResp.GetConsumerUrl())
-	data.SloLogoutUrl = types.StringValue(inlineResp.GetSloLogoutUrl())
-	data.X509CertSha1Fingerprint = types.StringValue(inlineResp.GetX509certSha1Fingerprint())
+	data.Id = jsontype.StringValue("example-id")
+	data.IdpId = jsontype.StringValue(inlineResp.GetIdpId())
+	data.ConsumerUrl = jsontype.StringValue(inlineResp.GetConsumerUrl())
+	data.SloLogoutUrl = jsontype.StringValue(inlineResp.GetSloLogoutUrl())
+	data.X509CertSha1Fingerprint = jsontype.StringValue(inlineResp.GetX509certSha1Fingerprint())
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -280,11 +281,11 @@ func (r *OrganizationsSamlIdpResource) Update(ctx context.Context, req resource.
 		resp.Diagnostics.Append()
 	}
 
-	data.Id = types.StringValue("example-id")
-	data.IdpId = types.StringValue(inlineResp.GetIdpId())
-	data.ConsumerUrl = types.StringValue(inlineResp.GetConsumerUrl())
-	data.SloLogoutUrl = types.StringValue(inlineResp.GetSloLogoutUrl())
-	data.X509CertSha1Fingerprint = types.StringValue(inlineResp.GetX509certSha1Fingerprint())
+	data.Id = jsontype.StringValue("example-id")
+	data.IdpId = jsontype.StringValue(inlineResp.GetIdpId())
+	data.ConsumerUrl = jsontype.StringValue(inlineResp.GetConsumerUrl())
+	data.SloLogoutUrl = jsontype.StringValue(inlineResp.GetSloLogoutUrl())
+	data.X509CertSha1Fingerprint = jsontype.StringValue(inlineResp.GetX509certSha1Fingerprint())
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

@@ -3,13 +3,14 @@ package provider
 import (
 	"context"
 	"fmt"
+	"time"
+
 	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"time"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -144,11 +145,11 @@ func (d *AdministeredIdentitiesMeDataSource) Read(ctx context.Context, req datas
 		resp.Diagnostics.Append()
 	}
 
-	data.Id = types.StringValue("example-id")
-	data.Name = types.StringValue(inlineResp.GetName())
-	data.Email = types.StringValue(inlineResp.GetEmail())
-	data.LastUsedDashboardAt = types.StringValue(inlineResp.GetLastUsedDashboardAt().Format(time.RFC3339))
-	data.AuthenticationMode = types.StringValue(inlineResp.Authentication.GetMode())
+	data.Id = jsontype.StringValue("example-id")
+	data.Name = jsontype.StringValue(inlineResp.GetName())
+	data.Email = jsontype.StringValue(inlineResp.GetEmail())
+	data.LastUsedDashboardAt = jsontype.StringValue(inlineResp.GetLastUsedDashboardAt().Format(time.RFC3339))
+	data.AuthenticationMode = jsontype.StringValue(inlineResp.Authentication.GetMode())
 	data.AuthenticationApiKeyCreated = types.BoolValue(inlineResp.Authentication.Api.Key.GetCreated())
 	data.AuthenticationTwofactor = types.BoolValue(inlineResp.Authentication.TwoFactor.GetEnabled())
 	data.AuthenticationSaml = types.BoolValue(inlineResp.Authentication.Saml.GetEnabled())

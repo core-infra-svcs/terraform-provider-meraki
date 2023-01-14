@@ -3,7 +3,9 @@ package provider
 import (
 	"context"
 	"fmt"
+
 	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontype"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -12,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
@@ -34,9 +35,9 @@ type OrganizationSamlResource struct {
 
 // OrganizationSamlResourceModel describes the resource data model.
 type OrganizationSamlResourceModel struct {
-	Id             types.String `tfsdk:"id"`
-	OrganizationId types.String `tfsdk:"organization_id"`
-	Enabled        types.Bool   `tfsdk:"enabled"`
+	Id             jsontype.String `tfsdk:"id"`
+	OrganizationId jsontype.String `tfsdk:"organization_id"`
+	Enabled        jsontype.Bool   `tfsdk:"enabled"`
 }
 
 func (r *OrganizationSamlResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -133,8 +134,8 @@ func (r *OrganizationSamlResource) Create(ctx context.Context, req resource.Crea
 	}
 
 	// save into the Terraform state.
-	data.Id = types.StringValue("example-id")
-	data.Enabled = types.BoolValue(inlineResp.GetEnabled())
+	data.Id = jsontype.StringValue("example-id")
+	data.Enabled = jsontype.BoolValue(inlineResp.GetEnabled())
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -179,8 +180,8 @@ func (r *OrganizationSamlResource) Read(ctx context.Context, req resource.ReadRe
 	}
 
 	// save into the Terraform state.
-	data.Id = types.StringValue("example-id")
-	data.Enabled = types.BoolValue(inlineResp.GetEnabled())
+	data.Id = jsontype.StringValue("example-id")
+	data.Enabled = jsontype.BoolValue(inlineResp.GetEnabled())
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -229,8 +230,8 @@ func (r *OrganizationSamlResource) Update(ctx context.Context, req resource.Upda
 	}
 
 	// save into the Terraform state.
-	data.Id = types.StringValue("example-id")
-	data.Enabled = types.BoolValue(inlineResp.GetEnabled())
+	data.Id = jsontype.StringValue("example-id")
+	data.Enabled = jsontype.BoolValue(inlineResp.GetEnabled())
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

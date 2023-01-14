@@ -4,13 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+
 	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontype"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
@@ -28,34 +29,34 @@ type OrganizationsAdminsDataSource struct {
 
 // OrganizationsAdminsDataSourceModel describes the data source data model.
 type OrganizationsAdminsDataSourceModel struct {
-	Id    types.String                        `tfsdk:"id"`
-	OrgId types.String                        `tfsdk:"organization_id"`
+	Id    jsontype.String                     `tfsdk:"id"`
+	OrgId jsontype.String                     `tfsdk:"organization_id"`
 	List  []OrganizationAdminsDataSourceModel `tfsdk:"list"`
 }
 
 // OrganizationAdminsDataSourceModel describes the data source data model.
 type OrganizationAdminsDataSourceModel struct {
-	Id                   types.String                               `tfsdk:"id"`
-	Name                 types.String                               `tfsdk:"name"`
-	Email                types.String                               `tfsdk:"email"`
-	OrgAccess            types.String                               `tfsdk:"org_access"`
-	AccountStatus        types.String                               `tfsdk:"account_status"`
-	TwoFactorAuthEnabled types.Bool                                 `tfsdk:"two_factor_auth_enabled"`
-	HasApiKey            types.Bool                                 `tfsdk:"has_api_key"`
-	LastActive           types.String                               `tfsdk:"last_active"`
+	Id                   jsontype.String                            `tfsdk:"id"`
+	Name                 jsontype.String                            `tfsdk:"name"`
+	Email                jsontype.String                            `tfsdk:"email"`
+	OrgAccess            jsontype.String                            `tfsdk:"org_access"`
+	AccountStatus        jsontype.String                            `tfsdk:"account_status"`
+	TwoFactorAuthEnabled jsontype.Bool                              `tfsdk:"two_factor_auth_enabled"`
+	HasApiKey            jsontype.Bool                              `tfsdk:"has_api_key"`
+	LastActive           jsontype.String                            `tfsdk:"last_active"`
 	Tags                 []OrganizationAdminsDataSourceModelTag     `tfsdk:"tags"`
 	Networks             []OrganizationAdminsDataSourceModelNetwork `tfsdk:"networks"`
-	AuthenticationMethod types.String                               `tfsdk:"authentication_method"`
+	AuthenticationMethod jsontype.String                            `tfsdk:"authentication_method"`
 }
 
 type OrganizationAdminsDataSourceModelNetwork struct {
-	Id     types.String `tfsdk:"id"`
-	Access types.String `tfsdk:"access"`
+	Id     jsontype.String `tfsdk:"id"`
+	Access jsontype.String `tfsdk:"access"`
 }
 
 type OrganizationAdminsDataSourceModelTag struct {
-	Tag    types.String `tfsdk:"tag"`
-	Access types.String `tfsdk:"access"`
+	Tag    jsontype.String `tfsdk:"tag"`
+	Access jsontype.String `tfsdk:"access"`
 }
 
 func (d *OrganizationsAdminsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -218,7 +219,7 @@ func (d *OrganizationsAdminsDataSource) Read(ctx context.Context, req datasource
 	}
 
 	// Save data into Terraform state
-	data.Id = types.StringValue("example-id")
+	data.Id = jsontype.StringValue("example-id")
 
 	// admins attribute
 	if admins := inlineResp; admins != nil {

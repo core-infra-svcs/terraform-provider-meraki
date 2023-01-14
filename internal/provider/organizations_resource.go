@@ -3,7 +3,9 @@ package provider
 import (
 	"context"
 	"fmt"
+
 	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontype"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -12,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
@@ -34,15 +35,15 @@ type OrganizationResource struct {
 
 // OrganizationResourceModel describes the resource data model.
 type OrganizationResourceModel struct {
-	Id                     types.String `tfsdk:"id"`
-	ApiEnabled             types.Bool   `tfsdk:"api_enabled"`
-	CloudRegionName        types.String `tfsdk:"cloud_region_name"`
-	ManagementDetailsName  types.String `tfsdk:"management_details_name"`
-	ManagementDetailsValue types.String `tfsdk:"management_details_value"`
-	OrgId                  types.String `tfsdk:"organization_id"`
-	LicensingModel         types.String `tfsdk:"licensing_model"`
-	Name                   types.String `tfsdk:"name"`
-	Url                    types.String `tfsdk:"url"`
+	Id                     jsontype.String `tfsdk:"id"`
+	ApiEnabled             jsontype.Bool   `tfsdk:"api_enabled"`
+	CloudRegionName        jsontype.String `tfsdk:"cloud_region_name"`
+	ManagementDetailsName  jsontype.String `tfsdk:"management_details_name"`
+	ManagementDetailsValue jsontype.String `tfsdk:"management_details_value"`
+	OrgId                  jsontype.String `tfsdk:"organization_id"`
+	LicensingModel         jsontype.String `tfsdk:"licensing_model"`
+	Name                   jsontype.String `tfsdk:"name"`
+	Url                    jsontype.String `tfsdk:"url"`
 }
 
 func (r *OrganizationResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -182,13 +183,13 @@ func (r *OrganizationResource) Create(ctx context.Context, req resource.CreateRe
 	}
 
 	// save into the Terraform state.
-	data.Id = types.StringValue("example-id")
-	data.OrgId = types.StringValue(inlineResp.GetId())
-	data.Name = types.StringValue(inlineResp.GetName())
-	data.CloudRegionName = types.StringValue(inlineResp.Cloud.Region.GetName())
-	data.Url = types.StringValue(inlineResp.GetUrl())
-	data.ApiEnabled = types.BoolValue(inlineResp.Api.GetEnabled())
-	data.LicensingModel = types.StringValue(inlineResp.Licensing.GetModel())
+	data.Id = jsontype.StringValue("example-id")
+	data.OrgId = jsontype.StringValue(inlineResp.GetId())
+	data.Name = jsontype.StringValue(inlineResp.GetName())
+	data.CloudRegionName = jsontype.StringValue(inlineResp.Cloud.Region.GetName())
+	data.Url = jsontype.StringValue(inlineResp.GetUrl())
+	data.ApiEnabled = jsontype.BoolValue(inlineResp.Api.GetEnabled())
+	data.LicensingModel = jsontype.StringValue(inlineResp.Licensing.GetModel())
 
 	// Management Details Response
 	if len(inlineResp.Management.Details) > 0 {
@@ -196,21 +197,21 @@ func (r *OrganizationResource) Create(ctx context.Context, req resource.CreateRe
 
 		// name attribute
 		if managementDetailName := responseDetails[0].GetName(); responseDetails[0].HasName() == true {
-			data.ManagementDetailsName = types.StringValue(managementDetailName)
+			data.ManagementDetailsName = jsontype.StringValue(managementDetailName)
 		} else {
-			data.ManagementDetailsName = types.StringNull()
+			data.ManagementDetailsName = jsontype.StringNull()
 		}
 
 		// Value attribute
 		if managementDetailValue := responseDetails[0].GetValue(); responseDetails[0].HasValue() == true {
-			data.ManagementDetailsValue = types.StringValue(managementDetailValue)
+			data.ManagementDetailsValue = jsontype.StringValue(managementDetailValue)
 		} else {
-			data.ManagementDetailsValue = types.StringNull()
+			data.ManagementDetailsValue = jsontype.StringNull()
 		}
 
 	} else {
-		data.ManagementDetailsName = types.StringNull()
-		data.ManagementDetailsValue = types.StringNull()
+		data.ManagementDetailsName = jsontype.StringNull()
+		data.ManagementDetailsValue = jsontype.StringNull()
 	}
 
 	// Save data into Terraform state
@@ -256,13 +257,13 @@ func (r *OrganizationResource) Read(ctx context.Context, req resource.ReadReques
 	}
 
 	// save inlineResp data into Terraform state.
-	data.Id = types.StringValue("example-id")
-	data.OrgId = types.StringValue(inlineResp.GetId())
-	data.Name = types.StringValue(inlineResp.GetName())
-	data.CloudRegionName = types.StringValue(inlineResp.Cloud.Region.GetName())
-	data.Url = types.StringValue(inlineResp.GetUrl())
-	data.ApiEnabled = types.BoolValue(inlineResp.Api.GetEnabled())
-	data.LicensingModel = types.StringValue(inlineResp.Licensing.GetModel())
+	data.Id = jsontype.StringValue("example-id")
+	data.OrgId = jsontype.StringValue(inlineResp.GetId())
+	data.Name = jsontype.StringValue(inlineResp.GetName())
+	data.CloudRegionName = jsontype.StringValue(inlineResp.Cloud.Region.GetName())
+	data.Url = jsontype.StringValue(inlineResp.GetUrl())
+	data.ApiEnabled = jsontype.BoolValue(inlineResp.Api.GetEnabled())
+	data.LicensingModel = jsontype.StringValue(inlineResp.Licensing.GetModel())
 
 	// Management Details Response
 	if len(inlineResp.Management.Details) > 0 {
@@ -270,20 +271,20 @@ func (r *OrganizationResource) Read(ctx context.Context, req resource.ReadReques
 
 		// name attribute
 		if managementDetailName := responseDetails[0].GetName(); responseDetails[0].HasName() == true {
-			data.ManagementDetailsName = types.StringValue(managementDetailName)
+			data.ManagementDetailsName = jsontype.StringValue(managementDetailName)
 		} else {
-			data.ManagementDetailsName = types.StringNull()
+			data.ManagementDetailsName = jsontype.StringNull()
 		}
 
 		// Value attribute
 		if managementDetailValue := responseDetails[0].GetValue(); responseDetails[0].HasValue() == true {
-			data.ManagementDetailsValue = types.StringValue(managementDetailValue)
+			data.ManagementDetailsValue = jsontype.StringValue(managementDetailValue)
 		} else {
-			data.ManagementDetailsValue = types.StringNull()
+			data.ManagementDetailsValue = jsontype.StringNull()
 		}
 	} else {
-		data.ManagementDetailsName = types.StringNull()
-		data.ManagementDetailsValue = types.StringNull()
+		data.ManagementDetailsName = jsontype.StringNull()
+		data.ManagementDetailsValue = jsontype.StringNull()
 	}
 
 	// Save updated data into Terraform state
@@ -350,13 +351,13 @@ func (r *OrganizationResource) Update(ctx context.Context, req resource.UpdateRe
 	}
 
 	// save inlineResp data into Terraform state
-	data.Id = types.StringValue("example-id")
-	data.OrgId = types.StringValue(inlineResp.GetId())
-	data.Name = types.StringValue(inlineResp.GetName())
-	data.CloudRegionName = types.StringValue(inlineResp.Cloud.Region.GetName())
-	data.Url = types.StringValue(inlineResp.GetUrl())
-	data.ApiEnabled = types.BoolValue(inlineResp.Api.GetEnabled())
-	data.LicensingModel = types.StringValue(inlineResp.Licensing.GetModel())
+	data.Id = jsontype.StringValue("example-id")
+	data.OrgId = jsontype.StringValue(inlineResp.GetId())
+	data.Name = jsontype.StringValue(inlineResp.GetName())
+	data.CloudRegionName = jsontype.StringValue(inlineResp.Cloud.Region.GetName())
+	data.Url = jsontype.StringValue(inlineResp.GetUrl())
+	data.ApiEnabled = jsontype.BoolValue(inlineResp.Api.GetEnabled())
+	data.LicensingModel = jsontype.StringValue(inlineResp.Licensing.GetModel())
 
 	// Management Details Response
 	if len(inlineResp.Management.Details) > 0 {
@@ -364,20 +365,20 @@ func (r *OrganizationResource) Update(ctx context.Context, req resource.UpdateRe
 
 		// name attribute
 		if managementDetailName := responseDetails[0].GetName(); responseDetails[0].HasName() == true {
-			data.ManagementDetailsName = types.StringValue(managementDetailName)
+			data.ManagementDetailsName = jsontype.StringValue(managementDetailName)
 		} else {
-			data.ManagementDetailsName = types.StringNull()
+			data.ManagementDetailsName = jsontype.StringNull()
 		}
 
 		// Value attribute
 		if managementDetailValue := responseDetails[0].GetValue(); responseDetails[0].HasValue() == true {
-			data.ManagementDetailsValue = types.StringValue(managementDetailValue)
+			data.ManagementDetailsValue = jsontype.StringValue(managementDetailValue)
 		} else {
-			data.ManagementDetailsValue = types.StringNull()
+			data.ManagementDetailsValue = jsontype.StringNull()
 		}
 	} else {
-		data.ManagementDetailsName = types.StringNull()
-		data.ManagementDetailsValue = types.StringNull()
+		data.ManagementDetailsName = jsontype.StringNull()
+		data.ManagementDetailsValue = jsontype.StringNull()
 	}
 
 	// Save updated data into Terraform state

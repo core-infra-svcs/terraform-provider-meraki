@@ -3,13 +3,14 @@ package provider
 import (
 	"context"
 	"fmt"
+
 	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontype"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
@@ -27,27 +28,27 @@ type OrganizationsAdaptivePolicyAclsDataSource struct {
 
 // OrganizationsAdaptivePolicyAclsDataSourceModel describes the data source data model.
 type OrganizationsAdaptivePolicyAclsDataSourceModel struct {
-	Id    types.String                                    `tfsdk:"id"`
-	OrgId types.String                                    `tfsdk:"organization_id"`
+	Id    jsontype.String                                 `tfsdk:"id"`
+	OrgId jsontype.String                                 `tfsdk:"organization_id"`
 	List  []OrganizationAdaptivePolicyAclsDataSourceModel `tfsdk:"list"`
 }
 
 // OrganizationAdaptivePolicyAclsDataSourceModel describes the acl data source data model.
 type OrganizationAdaptivePolicyAclsDataSourceModel struct {
-	AclId       types.String                                         `tfsdk:"acl_id"`
-	Name        types.String                                         `tfsdk:"name"`
-	Description types.String                                         `tfsdk:"description"`
-	IpVersion   types.String                                         `tfsdk:"ip_version"`
+	AclId       jsontype.String                                      `tfsdk:"acl_id"`
+	Name        jsontype.String                                      `tfsdk:"name"`
+	Description jsontype.String                                      `tfsdk:"description"`
+	IpVersion   jsontype.String                                      `tfsdk:"ip_version"`
 	Rules       []OrganizationAdaptivePolicyAclsDataSourceModelRules `tfsdk:"rules"`
-	CreatedAt   types.String                                         `tfsdk:"created_at"`
-	UpdatedAt   types.String                                         `tfsdk:"updated_at"`
+	CreatedAt   jsontype.String                                      `tfsdk:"created_at"`
+	UpdatedAt   jsontype.String                                      `tfsdk:"updated_at"`
 }
 
 type OrganizationAdaptivePolicyAclsDataSourceModelRules struct {
-	Policy   types.String `tfsdk:"policy"`
-	Protocol types.String `tfsdk:"protocol"`
-	SrcPort  types.String `tfsdk:"src_port"`
-	DstPort  types.String `tfsdk:"dst_port"`
+	Policy   jsontype.String `tfsdk:"policy"`
+	Protocol jsontype.String `tfsdk:"protocol"`
+	SrcPort  jsontype.String `tfsdk:"src_port"`
+	DstPort  jsontype.String `tfsdk:"dst_port"`
 }
 
 func (d *OrganizationsAdaptivePolicyAclsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -188,7 +189,7 @@ func (d *OrganizationsAdaptivePolicyAclsDataSource) Read(ctx context.Context, re
 	}
 
 	// Save data into Terraform state
-	data.Id = types.StringValue("example-id")
+	data.Id = jsontype.StringValue("example-id")
 
 	// adaptivePolicies attribute
 	if adaptivePolicies := inlineResp; adaptivePolicies != nil {
@@ -210,30 +211,30 @@ func (d *OrganizationsAdaptivePolicyAclsDataSource) Read(ctx context.Context, re
 
 					// policy attribute
 					if policy := rule["policy"]; policy != nil {
-						ruleResult.Policy = types.StringValue(policy.(string))
+						ruleResult.Policy = jsontype.StringValue(policy.(string))
 					} else {
-						ruleResult.Policy = types.StringNull()
+						ruleResult.Policy = jsontype.StringNull()
 					}
 
 					// protocol attribute
 					if protocol := rule["protocol"]; protocol != nil {
-						ruleResult.Protocol = types.StringValue(protocol.(string))
+						ruleResult.Protocol = jsontype.StringValue(protocol.(string))
 					} else {
-						ruleResult.Protocol = types.StringNull()
+						ruleResult.Protocol = jsontype.StringNull()
 					}
 
 					// srcPort attribute
 					if srcPort := rule["srcPort"]; srcPort != nil {
-						ruleResult.SrcPort = types.StringValue(srcPort.(string))
+						ruleResult.SrcPort = jsontype.StringValue(srcPort.(string))
 					} else {
-						ruleResult.SrcPort = types.StringNull()
+						ruleResult.SrcPort = jsontype.StringNull()
 					}
 
 					// dstPort attribute
 					if dstPort := rule["dstPort"]; dstPort != nil {
-						ruleResult.DstPort = types.StringValue(dstPort.(string))
+						ruleResult.DstPort = jsontype.StringValue(dstPort.(string))
 					} else {
-						ruleResult.DstPort = types.StringNull()
+						ruleResult.DstPort = jsontype.StringNull()
 					}
 					adaptivePolicy.Rules = append(adaptivePolicy.Rules, ruleResult)
 				}

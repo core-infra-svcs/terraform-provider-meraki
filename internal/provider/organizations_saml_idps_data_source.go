@@ -3,13 +3,14 @@ package provider
 import (
 	"context"
 	"fmt"
+
 	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontype"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
@@ -26,17 +27,17 @@ type OrganizationsSamlIdpsDataSource struct {
 }
 
 type OrganizationsSamlIdpsDataSourceModel struct {
-	Id             types.String                          `tfsdk:"id"`
-	OrganizationId types.String                          `tfsdk:"organization_id"`
+	Id             jsontype.String                       `tfsdk:"id"`
+	OrganizationId jsontype.String                       `tfsdk:"organization_id"`
 	List           []OrganizationsSamlIdpDataSourceModel `tfsdk:"list"`
 }
 
 // OrganizationsSamlIdpDataSourceModel describes the data source data model.
 type OrganizationsSamlIdpDataSourceModel struct {
-	ConsumerUrl             types.String `tfsdk:"consumer_url"`
-	IdpId                   types.String `tfsdk:"idp_id"`
-	SloLogOutUrl            types.String `tfsdk:"slo_logout_url"`
-	X509CertSha1FingerPrint types.String `tfsdk:"x_509_cert_sha1_fingerprint"`
+	ConsumerUrl             jsontype.String `tfsdk:"consumer_url"`
+	IdpId                   jsontype.String `tfsdk:"idp_id"`
+	SloLogOutUrl            jsontype.String `tfsdk:"slo_logout_url"`
+	X509CertSha1FingerPrint jsontype.String `tfsdk:"x_509_cert_sha1_fingerprint"`
 }
 
 func (d *OrganizationsSamlIdpsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -147,7 +148,7 @@ func (d *OrganizationsSamlIdpsDataSource) Read(ctx context.Context, req datasour
 	}
 
 	// save inlineResp data into Terraform state.
-	data.Id = types.StringValue("example-id")
+	data.Id = jsontype.StringValue("example-id")
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -156,10 +157,10 @@ func (d *OrganizationsSamlIdpsDataSource) Read(ctx context.Context, req datasour
 	for _, samlIdp := range inlineResp {
 		var result OrganizationsSamlIdpDataSourceModel
 
-		result.IdpId = types.StringValue(samlIdp.GetIdpId())
-		result.ConsumerUrl = types.StringValue(samlIdp.GetConsumerUrl())
-		result.SloLogOutUrl = types.StringValue(samlIdp.GetSloLogoutUrl())
-		result.X509CertSha1FingerPrint = types.StringValue(samlIdp.GetX509certSha1Fingerprint())
+		result.IdpId = jsontype.StringValue(samlIdp.GetIdpId())
+		result.ConsumerUrl = jsontype.StringValue(samlIdp.GetConsumerUrl())
+		result.SloLogOutUrl = jsontype.StringValue(samlIdp.GetSloLogoutUrl())
+		result.X509CertSha1FingerPrint = jsontype.StringValue(samlIdp.GetX509certSha1Fingerprint())
 		data.List = append(data.List, result)
 	}
 
