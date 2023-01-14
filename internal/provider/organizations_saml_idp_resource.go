@@ -7,6 +7,7 @@ import (
 	"io"
 
 	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontype"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -15,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
@@ -37,12 +37,12 @@ type OrganizationsSamlIdpResource struct {
 
 // OrganizationsSamlIdpResourceModel describes the resource data model.
 type OrganizationsSamlIdpResourceModel struct {
-	Id                      types.String `tfsdk:"id"`
-	OrganizationId          types.String `tfsdk:"organization_id"`
-	ConsumerUrl             types.String `tfsdk:"consumer_url"`
-	IdpId                   types.String `tfsdk:"idp_id"`
-	SloLogoutUrl            types.String `tfsdk:"slo_logout_url"`
-	X509CertSha1Fingerprint types.String `tfsdk:"x_509_cert_sha1_fingerprint"`
+	Id                      jsontype.String `tfsdk:"id"`
+	OrganizationId          jsontype.String `tfsdk:"organization_id"`
+	ConsumerUrl             jsontype.String `tfsdk:"consumer_url"`
+	IdpId                   jsontype.String `tfsdk:"idp_id"`
+	SloLogoutUrl            jsontype.String `tfsdk:"slo_logout_url"`
+	X509CertSha1Fingerprint jsontype.String `tfsdk:"x_509_cert_sha1_fingerprint"`
 }
 
 func (r *OrganizationsSamlIdpResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {

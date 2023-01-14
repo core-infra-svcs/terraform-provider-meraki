@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
@@ -35,12 +34,12 @@ type OrganizationsDataSourceModel struct {
 
 // OrganizationDataSourceModel describes the data source data model.
 type OrganizationDataSourceModel struct {
-	ApiEnabled     types.Bool   `tfsdk:"api_enabled"`
-	CloudRegion    types.String `tfsdk:"cloud_region_name"`
-	OrgId          types.String `tfsdk:"organization_id"`
-	LicensingModel types.String `tfsdk:"licensing_model"`
-	Name           types.String `tfsdk:"name"`
-	Url            types.String `tfsdk:"url"`
+	ApiEnabled     jsontype.Bool   `tfsdk:"api_enabled"`
+	CloudRegion    jsontype.String `tfsdk:"cloud_region_name"`
+	OrgId          jsontype.String `tfsdk:"organization_id"`
+	LicensingModel jsontype.String `tfsdk:"licensing_model"`
+	Name           jsontype.String `tfsdk:"name"`
+	Url            jsontype.String `tfsdk:"url"`
 }
 
 func (d *OrganizationsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -163,7 +162,7 @@ func (d *OrganizationsDataSource) Read(ctx context.Context, req datasource.ReadR
 		result.OrgId = jsontype.StringValue(organization.GetId())
 		result.Name = jsontype.StringValue(organization.GetName())
 		result.Url = jsontype.StringValue(organization.GetUrl())
-		result.ApiEnabled = types.BoolValue(*organization.GetApi().Enabled)
+		result.ApiEnabled = jsontype.BoolValue(*organization.GetApi().Enabled)
 		result.LicensingModel = jsontype.StringValue(*organization.GetLicensing().Model)
 		result.CloudRegion = jsontype.StringValue(organization.Cloud.Region.GetName())
 
