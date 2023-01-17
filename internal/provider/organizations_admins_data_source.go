@@ -37,7 +37,7 @@ type OrganizationsAdminsDataSourceModel struct {
 
 // OrganizationAdminsDataSourceModel describes the data source data model.
 type OrganizationAdminsDataSourceModel struct {
-	Id                   types.String                               `tfsdk:"id" json:"id"`
+	Id                   jsontype.String                            `tfsdk:"id" json:"id"`
 	Name                 jsontype.String                            `tfsdk:"name"`
 	Email                jsontype.String                            `tfsdk:"email"`
 	OrgAccess            jsontype.String                            `tfsdk:"org_access" json:"orgAccess"`
@@ -233,69 +233,68 @@ func (d *OrganizationsAdminsDataSource) Read(ctx context.Context, req datasource
 		return
 	}
 
-	/*
-		// Save data into Terraform state
-			data.Id = types.StringValue("example-id")
+	// Save data into Terraform state
+	data.Id = types.StringValue("example-id")
 
-			// admins attribute
-			if admins := inlineResp; admins != nil {
+	// admins attribute
+	if admins := inlineResp; admins != nil {
 
-				for _, inlineRespValue := range admins {
-					var admin OrganizationAdminsDataSourceModel
+		for _, inlineRespValue := range admins {
+			var admin OrganizationAdminsDataSourceModel
 
-					admin.Id = tools.MapStringValue(inlineRespValue, "id", &resp.Diagnostics)
-					admin.Name = tools.MapStringValue(inlineRespValue, "name", &resp.Diagnostics)
-					admin.Email = tools.MapStringValue(inlineRespValue, "email", &resp.Diagnostics)
-					admin.OrgAccess = tools.MapStringValue(inlineRespValue, "orgAccess", &resp.Diagnostics)
-					admin.AccountStatus = tools.MapStringValue(inlineRespValue, "accountStatus", &resp.Diagnostics)
-					admin.TwoFactorAuthEnabled = tools.MapBoolValue(inlineRespValue, "twoFactorAuthEnabled", &resp.Diagnostics)
-					admin.HasApiKey = tools.MapBoolValue(inlineRespValue, "hasApiKey", &resp.Diagnostics)
-					admin.LastActive = tools.MapStringValue(inlineRespValue, "lastActive", &resp.Diagnostics)
-					admin.AuthenticationMethod = tools.MapStringValue(inlineRespValue, "authenticationMethod", &resp.Diagnostics)
+			admin.Id = tools.MapStringValue(inlineRespValue, "id", &resp.Diagnostics)
+			admin.Name = tools.MapStringValue(inlineRespValue, "name", &resp.Diagnostics)
+			admin.Email = tools.MapStringValue(inlineRespValue, "email", &resp.Diagnostics)
+			admin.OrgAccess = tools.MapStringValue(inlineRespValue, "orgAccess", &resp.Diagnostics)
+			admin.AccountStatus = tools.MapStringValue(inlineRespValue, "accountStatus", &resp.Diagnostics)
+			admin.TwoFactorAuthEnabled = tools.MapBoolValue(inlineRespValue, "twoFactorAuthEnabled", &resp.Diagnostics)
+			admin.HasApiKey = tools.MapBoolValue(inlineRespValue, "hasApiKey", &resp.Diagnostics)
+			admin.LastActive = tools.MapStringValue(inlineRespValue, "lastActive", &resp.Diagnostics)
+			admin.AuthenticationMethod = tools.MapStringValue(inlineRespValue, "authenticationMethod", &resp.Diagnostics)
 
-					// tags attribute
-					if tags := inlineRespValue["tags"]; tags != nil {
-						for _, tv := range tags.([]interface{}) {
-							var tag OrganizationAdminsDataSourceModelTag
-							_ = json.Unmarshal([]byte(tv.(string)), &tag)
-							admin.Tags = append(admin.Tags, tag)
-						}
-					} else {
-						admin.Tags = nil
-					}
-
-					// networks attribute
-					if networks := inlineRespValue["networks"]; networks != nil {
-						for _, tv := range networks.([]interface{}) {
-							var network OrganizationAdminsDataSourceModelNetwork
-							_ = json.Unmarshal([]byte(tv.(string)), &network)
-							admin.Networks = append(admin.Networks, network)
-						}
-					} else {
-						admin.Networks = nil
-					}
-
-					// append admin to list of admins
-					data.List = append(data.List, admin)
+			// tags attribute
+			if tags := inlineRespValue["tags"]; tags != nil {
+				for _, tv := range tags.([]interface{}) {
+					var tag OrganizationAdminsDataSourceModelTag
+					_ = json.Unmarshal([]byte(tv.(string)), &tag)
+					admin.Tags = append(admin.Tags, tag)
 				}
+			} else {
+				admin.Tags = nil
 			}
 
-	*/
+			// networks attribute
+			if networks := inlineRespValue["networks"]; networks != nil {
+				for _, tv := range networks.([]interface{}) {
+					var network OrganizationAdminsDataSourceModelNetwork
+					_ = json.Unmarshal([]byte(tv.(string)), &network)
+					admin.Networks = append(admin.Networks, network)
+				}
+			} else {
+				admin.Networks = nil
+			}
 
-	// TODO - Workaround until json.RawMessage is implemented in HTTP client
-	b, err := json.Marshal(inlineResp)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"b",
-			fmt.Sprintf("%v", err),
-		)
+			// append admin to list of admins
+			data.List = append(data.List, admin)
+		}
 	}
-	if err := json.Unmarshal([]byte(b), &data); err != nil {
-		resp.Diagnostics.AddError(
-			"b -> a",
-			fmt.Sprintf("Unmarshal error%v", err),
-		)
-	}
+
+	/*
+		// TODO - Workaround until json.RawMessage is implemented in HTTP client
+			b, err := json.Marshal(inlineResp)
+			if err != nil {
+				resp.Diagnostics.AddError(
+					"b",
+					fmt.Sprintf("%v", err),
+				)
+			}
+			if err := json.Unmarshal([]byte(b), &data); err != nil {
+				resp.Diagnostics.AddError(
+					"b -> a",
+					fmt.Sprintf("Unmarshal error%v", err),
+				)
+			}
+	*/
 
 	data.Id = types.StringValue("example-id")
 

@@ -2,7 +2,6 @@ package provider
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -201,85 +200,87 @@ func (d *OrganizationsAdaptivePolicyAclsDataSource) Read(ctx context.Context, re
 		return
 	}
 
-	/*
-		// Save data into Terraform state
-			data.Id = types.StringValue("example-id")
+	// Save data into Terraform state
+	data.Id = types.StringValue("example-id")
 
-			// adaptivePolicies attribute
-			if adaptivePolicies := inlineResp; adaptivePolicies != nil {
+	// adaptivePolicies attribute
+	if adaptivePolicies := inlineResp; adaptivePolicies != nil {
 
-				for _, inlineRespValue := range adaptivePolicies {
-					var adaptivePolicy OrganizationAdaptivePolicyAclsDataSourceModel
+		for _, inlineRespValue := range adaptivePolicies {
+			var adaptivePolicy OrganizationAdaptivePolicyAclsDataSourceModel
 
-					// id attribute
-					adaptivePolicy.AclId = tools.MapStringValue(inlineRespValue, "aclId", &resp.Diagnostics)
-					adaptivePolicy.Description = tools.MapStringValue(inlineRespValue, "description", &resp.Diagnostics)
-					adaptivePolicy.IpVersion = tools.MapStringValue(inlineRespValue, "ipVersion", &resp.Diagnostics)
+			// id attribute
+			adaptivePolicy.AclId = tools.MapStringValue(inlineRespValue, "aclId", &resp.Diagnostics)
+			adaptivePolicy.Description = tools.MapStringValue(inlineRespValue, "description", &resp.Diagnostics)
+			adaptivePolicy.IpVersion = tools.MapStringValue(inlineRespValue, "ipVersion", &resp.Diagnostics)
 
-					// TODO - use tools.Map funcs for nested rules data
-					// rules attribute
-					if rules := inlineRespValue["rules"]; rules != nil {
-						for _, v := range rules.([]interface{}) {
-							rule := v.(map[string]interface{})
-							var ruleResult OrganizationAdaptivePolicyAclsDataSourceModelRules
+			// TODO - use tools.Map funcs for nested rules data
+			// rules attribute
+			if rules := inlineRespValue["rules"]; rules != nil {
+				for _, v := range rules.([]interface{}) {
+					rule := v.(map[string]interface{})
+					var ruleResult OrganizationAdaptivePolicyAclsDataSourceModelRules
 
-							// policy attribute
-							if policy := rule["policy"]; policy != nil {
-								ruleResult.Policy = jsontype.StringValue(policy.(string))
-							} else {
-								ruleResult.Policy = jsontype.StringNull()
-							}
-
-							// protocol attribute
-							if protocol := rule["protocol"]; protocol != nil {
-								ruleResult.Protocol = jsontype.StringValue(protocol.(string))
-							} else {
-								ruleResult.Protocol = jsontype.StringNull()
-							}
-
-							// srcPort attribute
-							if srcPort := rule["srcPort"]; srcPort != nil {
-								ruleResult.SrcPort = jsontype.StringValue(srcPort.(string))
-							} else {
-								ruleResult.SrcPort = jsontype.StringNull()
-							}
-
-							// dstPort attribute
-							if dstPort := rule["dstPort"]; dstPort != nil {
-								ruleResult.DstPort = jsontype.StringValue(dstPort.(string))
-							} else {
-								ruleResult.DstPort = jsontype.StringNull()
-							}
-							adaptivePolicy.Rules = append(adaptivePolicy.Rules, ruleResult)
-						}
+					// policy attribute
+					if policy := rule["policy"]; policy != nil {
+						ruleResult.Policy = jsontype.StringValue(policy.(string))
+					} else {
+						ruleResult.Policy = jsontype.StringNull()
 					}
 
-					adaptivePolicy.CreatedAt = tools.MapStringValue(inlineRespValue, "createdAt", &resp.Diagnostics)
-					adaptivePolicy.UpdatedAt = tools.MapStringValue(inlineRespValue, "updatedAt", &resp.Diagnostics)
+					// protocol attribute
+					if protocol := rule["protocol"]; protocol != nil {
+						ruleResult.Protocol = jsontype.StringValue(protocol.(string))
+					} else {
+						ruleResult.Protocol = jsontype.StringNull()
+					}
 
-					// append adaptivePolicy to list of adaptivePolicies
-					data.List = append(data.List, adaptivePolicy)
+					// srcPort attribute
+					if srcPort := rule["srcPort"]; srcPort != nil {
+						ruleResult.SrcPort = jsontype.StringValue(srcPort.(string))
+					} else {
+						ruleResult.SrcPort = jsontype.StringNull()
+					}
+
+					// dstPort attribute
+					if dstPort := rule["dstPort"]; dstPort != nil {
+						ruleResult.DstPort = jsontype.StringValue(dstPort.(string))
+					} else {
+						ruleResult.DstPort = jsontype.StringNull()
+					}
+					adaptivePolicy.Rules = append(adaptivePolicy.Rules, ruleResult)
 				}
-
 			}
+
+			adaptivePolicy.CreatedAt = tools.MapStringValue(inlineRespValue, "createdAt", &resp.Diagnostics)
+			adaptivePolicy.UpdatedAt = tools.MapStringValue(inlineRespValue, "updatedAt", &resp.Diagnostics)
+
+			// append adaptivePolicy to list of adaptivePolicies
+			data.List = append(data.List, adaptivePolicy)
+		}
+
+	}
+
+	/*
+
+		// TODO - Workaround until json.RawMessage is implemented in HTTP client
+			b, err := json.Marshal(inlineResp)
+			if err != nil {
+				resp.Diagnostics.AddError(
+					"b",
+					fmt.Sprintf("%v", err),
+				)
+			}
+			if err := json.Unmarshal([]byte(b), &data); err != nil {
+				resp.Diagnostics.AddError(
+					"b -> a",
+					fmt.Sprintf("Unmarshal error%v", err),
+				)
+			}
+
+		data.Id = types.StringValue("example-id")
+
 	*/
-
-	// TODO - Workaround until json.RawMessage is implemented in HTTP client
-	b, err := json.Marshal(inlineResp)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"b",
-			fmt.Sprintf("%v", err),
-		)
-	}
-	if err := json.Unmarshal([]byte(b), &data); err != nil {
-		resp.Diagnostics.AddError(
-			"b -> a",
-			fmt.Sprintf("Unmarshal error%v", err),
-		)
-	}
-
-	data.Id = types.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 

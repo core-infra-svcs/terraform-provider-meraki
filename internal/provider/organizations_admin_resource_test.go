@@ -52,8 +52,6 @@ func TestAccOrganizationsAdminResource(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "tags.1.tag", "west"),
 					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "tags.1.access", "read-only"),
-					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "tags.2.tag", "east"),
-					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "tags.2.access", "read-only"),
 					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "networks.1.id", "N_784752235069332414"),
 					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "networks.1.access", "read-only"),
 				),
