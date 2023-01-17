@@ -3,7 +3,6 @@ package provider
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"strings"
 	"time"
 
@@ -41,18 +40,18 @@ type NetworkResource struct {
 
 // NetworkResourceModel describes the resource data model.
 type NetworkResourceModel struct {
-	Id                      types.String    `tfsdk:"id"`
-	NetworkId               jsontype.String `tfsdk:"network_id" json:"id"`
-	OrganizationId          jsontype.String `tfsdk:"organization_id" json:"organizationId"`
-	Name                    jsontype.String `tfsdk:"name"`
-	ProductTypes            types.Set       `tfsdk:"product_types" json:"productTypes"`
-	Timezone                jsontype.String `tfsdk:"timezone" json:"timeZone"`
-	Tags                    types.Set       `tfsdk:"tags"`
-	EnrollmentString        jsontype.String `tfsdk:"enrollment_string" json:"enrollmentString"`
-	Url                     jsontype.String `tfsdk:"url"`
-	Notes                   jsontype.String `tfsdk:"notes"`
-	IsBoundToConfigTemplate jsontype.Bool   `tfsdk:"is_bound_to_config_template" json:"isBoundToConfigTemplate"`
-	CopyFromNetworkId       jsontype.String `tfsdk:"copy_from_network_id" json:"copyFromNetworkId"`
+	Id                      types.String                  `tfsdk:"id"`
+	NetworkId               jsontype.String               `tfsdk:"network_id" json:"id"`
+	OrganizationId          jsontype.String               `tfsdk:"organization_id" json:"organizationId"`
+	Name                    jsontype.String               `tfsdk:"name"`
+	ProductTypes            jsontype.Set[jsontype.String] `tfsdk:"product_types" json:"productTypes"`
+	Timezone                jsontype.String               `tfsdk:"timezone" json:"timeZone"`
+	Tags                    types.Set                     `tfsdk:"tags"`
+	EnrollmentString        jsontype.String               `tfsdk:"enrollment_string" json:"enrollmentString"`
+	Url                     jsontype.String               `tfsdk:"url"`
+	Notes                   jsontype.String               `tfsdk:"notes"`
+	IsBoundToConfigTemplate jsontype.Bool                 `tfsdk:"is_bound_to_config_template" json:"isBoundToConfigTemplate"`
+	CopyFromNetworkId       jsontype.String               `tfsdk:"copy_from_network_id" json:"copyFromNetworkId"`
 }
 
 func (r *NetworkResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -98,9 +97,9 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 				CustomType:          jsontype.StringType,
 			},
 			"product_types": schema.SetAttribute{
-				ElementType: types.StringType,
-				//CustomType:  jsontype.SetType,
-				Required: true,
+				//ElementType: types.StringType,
+				CustomType: jsontype.SetType[jsontype.String](),
+				Required:   true,
 				Validators: []validator.Set{
 					setvalidator.ValueStringsAre(
 						stringvalidator.OneOf([]string{"appliance", "switch", "wireless", "systemsManager", "camera", "cellularGateway", "sensor"}...),
@@ -271,11 +270,11 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 
 	// product types attribute
 	if inlineResp.ProductTypes != nil {
-		var pt []attr.Value
+		var pt []jsontype.String
 		for _, productTypeResp := range inlineResp.ProductTypes {
-			pt = append(pt, types.StringValue(productTypeResp))
+			pt = append(pt, jsontype.StringValue(productTypeResp))
 		}
-		data.ProductTypes, _ = types.SetValue(types.StringType, pt)
+		data.ProductTypes = jsontype.SetValue(pt)
 	}
 
 	if data.CopyFromNetworkId.IsUnknown() {
@@ -337,11 +336,11 @@ func (r *NetworkResource) Read(ctx context.Context, req resource.ReadRequest, re
 
 	// product types attribute
 	if inlineResp.ProductTypes != nil {
-		var pt []attr.Value
+		var pt []jsontype.String
 		for _, productTypeResp := range inlineResp.ProductTypes {
-			pt = append(pt, types.StringValue(productTypeResp))
+			pt = append(pt, jsontype.StringValue(productTypeResp))
 		}
-		data.ProductTypes, _ = types.SetValue(types.StringType, pt)
+		data.ProductTypes = jsontype.SetValue(pt)
 	}
 
 	if data.CopyFromNetworkId.IsUnknown() {
@@ -425,11 +424,11 @@ func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest
 
 	// product types attribute
 	if inlineResp.ProductTypes != nil {
-		var pt []attr.Value
+		var pt []jsontype.String
 		for _, productTypeResp := range inlineResp.ProductTypes {
-			pt = append(pt, types.StringValue(productTypeResp))
+			pt = append(pt, jsontype.StringValue(productTypeResp))
 		}
-		data.ProductTypes, _ = types.SetValue(types.StringType, pt)
+		data.ProductTypes = jsontype.SetValue(pt)
 	}
 
 	data.Timezone = jsontype.StringValue(inlineResp.GetTimeZone())

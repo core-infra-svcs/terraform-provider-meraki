@@ -47,3 +47,25 @@ func (mst stringType) Equal(o attr.Type) bool {
 	_, ok := o.(stringType)
 	return ok
 }
+
+func SetType[T JsonValue]() setType[T] {
+	return setType[T]{}
+}
+
+type setType[T JsonValue] struct {
+	types.SetType
+}
+
+func (st setType[T]) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+	val, err := st.SetType.ValueFromTerraform(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+
+	return Set[T]{val.(types.Set)}, nil
+}
+
+func (st setType[T]) Equal(o attr.Type) bool {
+	_, ok := o.(setType[T])
+	return ok
+}

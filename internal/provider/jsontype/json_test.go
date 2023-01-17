@@ -51,3 +51,7 @@ func TestString_UnmarshalJSON(t *testing.T) {
 		})
 	}
 }
+
+func TestSet_UnmarshalJSON(t *testing.T) {
+
+}

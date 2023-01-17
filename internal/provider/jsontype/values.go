@@ -42,16 +42,18 @@ func (s String) Type(_ context.Context) attr.Type {
 }
 
 func (s String) Equal(value attr.Value) bool {
-	if v, ok := value.(basetypes.StringValue); ok {
-		return s.StringValue.Equal(v)
-	}
+	var bv basetypes.StringValue
 
-	v, ok := value.(String)
-	if !ok {
+	switch val := value.(type) {
+	case basetypes.StringValue:
+		bv = val
+	case String:
+		bv = val.StringValue
+	default:
 		return false
 	}
 
-	return s.StringValue.Equal(v.StringValue)
+	return s.StringValue.Equal(bv)
 }
 
 func StringNull() String {
@@ -69,16 +71,18 @@ func (b Bool) Type(_ context.Context) attr.Type {
 }
 
 func (b Bool) Equal(value attr.Value) bool {
-	if v, ok := value.(basetypes.BoolValue); ok {
-		return b.BoolValue.Equal(v)
-	}
+	var bv basetypes.BoolValue
 
-	v, ok := value.(Bool)
-	if !ok {
+	switch val := value.(type) {
+	case basetypes.BoolValue:
+		bv = val
+	case Bool:
+		bv = val.BoolValue
+	default:
 		return false
 	}
 
-	return b.BoolValue.Equal(v.BoolValue)
+	return b.BoolValue.Equal(bv)
 }
 
 func (b *Bool) UnmarshalJSON(bytes []byte) error {
@@ -129,7 +133,6 @@ func SetValue[T JsonValue](vals []T) Set[T] {
 	return Set[T]{
 		types.SetValueMust(item.Type(ctx), mapToAttrs(vals)),
 	}
-
 }
 
 func (s *Set[T]) UnmarshalJSON(bytes []byte) error {
@@ -138,6 +141,8 @@ func (s *Set[T]) UnmarshalJSON(bytes []byte) error {
 		return err
 	}
 
+	// Note, this has a limitation that any attr.Value needs to have a
+	// non-nil zero value and will panic if any type doesn't conform
 	var item T
 	ctx := context.Background()
 
