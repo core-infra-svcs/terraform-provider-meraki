@@ -2,12 +2,32 @@ package jsontype
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
+
+var Int64Type = int64Type{
+	Int64Type: types.Int64Type,
+}
+
+type int64Type struct {
+	basetypes.Int64Type
+}
+
+func (i64 int64Type) Equal(o attr.Type) bool {
+	_, ok := o.(int64Type)
+	return ok
+}
+
+func (i64 int64Type) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+	val, err := i64.Int64Type.ValueFromTerraform(ctx, in)
+
+	return Int64{Int64Value: val.(types.Int64)}, err
+}
 
 var BoolType = boolType{
 	BoolType: types.BoolType,
@@ -49,7 +69,12 @@ func (mst stringType) Equal(o attr.Type) bool {
 }
 
 func SetType[T JsonValue]() setType[T] {
-	return setType[T]{}
+	var v T
+	return setType[T]{
+		SetType: types.SetType{
+			ElemType: v.Type(context.Background()),
+		},
+	}
 }
 
 type setType[T JsonValue] struct {
@@ -62,10 +87,29 @@ func (st setType[T]) ValueFromTerraform(ctx context.Context, in tftypes.Value) (
 		return nil, err
 	}
 
+	set := val.(types.Set)
+
+	var item T
+	if it, et := item.Type(ctx), set.ElementType(ctx); !it.Equal(et) {
+		return nil, fmt.Errorf("expected type: %T received %T", it, et)
+	}
+
 	return Set[T]{val.(types.Set)}, nil
 }
 
 func (st setType[T]) Equal(o attr.Type) bool {
-	_, ok := o.(setType[T])
-	return ok
+	var base attr.Type
+
+	switch typ := o.(type) {
+	case setType[T]:
+		base = typ.SetType
+	case types.SetType:
+		base = typ
+	default:
+		return false
+	}
+
+	base.String()
+	fmt.Printf("base %s, %s\n", base.String(), st.SetType.String())
+	return st.SetType.Equal(base)
 }

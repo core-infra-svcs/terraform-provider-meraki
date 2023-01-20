@@ -1,7 +1,9 @@
 package jsontype
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 	"testing"
 )
 
@@ -53,5 +55,17 @@ func TestString_UnmarshalJSON(t *testing.T) {
 }
 
 func TestSet_UnmarshalJSON(t *testing.T) {
+	const test = `["a", "b", "c"]`
+	var s Set[String]
+	if err := json.Unmarshal([]byte(test), &s); err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
 
+	ctx := context.Background()
+	fmt.Println(s.ElementType(ctx))
+
+	sType, expectedType := s.Type(ctx), SetType[String]()
+	if !sType.Equal(expectedType) {
+		t.Fatalf("expected test set to be type %T received %T", expectedType, sType)
+	}
 }
