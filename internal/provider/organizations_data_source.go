@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
@@ -27,18 +27,18 @@ type OrganizationsDataSource struct {
 
 // OrganizationsDataSourceModel describes the data source data model.
 type OrganizationsDataSourceModel struct {
-	Id   types.String                  `tfsdk:"id"`
+	Id   jsontypes.String              `tfsdk:"id"`
 	List []OrganizationDataSourceModel `tfsdk:"list"`
 }
 
 // OrganizationDataSourceModel describes the data source data model.
 type OrganizationDataSourceModel struct {
-	ApiEnabled     types.Bool   `tfsdk:"api_enabled"`
-	CloudRegion    types.String `tfsdk:"cloud_region_name"`
-	OrgId          types.String `tfsdk:"organization_id"`
-	LicensingModel types.String `tfsdk:"licensing_model"`
-	Name           types.String `tfsdk:"name"`
-	Url            types.String `tfsdk:"url"`
+	ApiEnabled     jsontypes.Bool   `tfsdk:"api_enabled"`
+	CloudRegion    jsontypes.String `tfsdk:"cloud_region_name"`
+	OrgId          jsontypes.String `tfsdk:"organization_id"`
+	LicensingModel jsontypes.String `tfsdk:"licensing_model"`
+	Name           jsontypes.String `tfsdk:"name"`
+	Url            jsontypes.String `tfsdk:"url"`
 }
 
 func (d *OrganizationsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -51,7 +51,8 @@ func (d *OrganizationsDataSource) Schema(ctx context.Context, req datasource.Sch
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed: true,
+				Computed:   true,
+				CustomType: jsontypes.StringType,
 			},
 			"list": schema.ListNestedAttribute{
 				Optional:    true,
@@ -62,18 +63,22 @@ func (d *OrganizationsDataSource) Schema(ctx context.Context, req datasource.Sch
 						"api_enabled": schema.BoolAttribute{
 							MarkdownDescription: "Enable API access",
 							Optional:            true,
+							CustomType:          jsontypes.BoolType,
 						},
 						"cloud_region_name": schema.StringAttribute{
 							MarkdownDescription: "Name of region",
 							Optional:            true,
+							CustomType:          jsontypes.StringType,
 						},
 						"organization_id": schema.StringAttribute{
 							MarkdownDescription: "Organization ID",
 							Optional:            true,
+							CustomType:          jsontypes.StringType,
 						},
 						"licensing_model": schema.StringAttribute{
 							MarkdownDescription: "Organization licensing model. Can be 'co-term', 'per-device', or 'subscription'.",
 							Optional:            true,
+							CustomType:          jsontypes.StringType,
 							Validators: []validator.String{
 								stringvalidator.OneOf([]string{"co-term", "per-device", "subscription"}...),
 								stringvalidator.LengthAtLeast(7),
@@ -82,10 +87,12 @@ func (d *OrganizationsDataSource) Schema(ctx context.Context, req datasource.Sch
 						"name": schema.StringAttribute{
 							MarkdownDescription: "Organization name",
 							Optional:            true,
+							CustomType:          jsontypes.StringType,
 						},
 						"url": schema.StringAttribute{
 							MarkdownDescription: "Organization URL",
 							Optional:            true,
+							CustomType:          jsontypes.StringType,
 						},
 					},
 				},
@@ -153,17 +160,17 @@ func (d *OrganizationsDataSource) Read(ctx context.Context, req datasource.ReadR
 	}
 
 	// save inlineResp data into Terraform state.
-	data.Id = types.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	for _, organization := range inlineResp {
 		var result OrganizationDataSourceModel
 
-		result.OrgId = types.StringValue(organization.GetId())
-		result.Name = types.StringValue(organization.GetName())
-		result.Url = types.StringValue(organization.GetUrl())
-		result.ApiEnabled = types.BoolValue(*organization.GetApi().Enabled)
-		result.LicensingModel = types.StringValue(*organization.GetLicensing().Model)
-		result.CloudRegion = types.StringValue(organization.Cloud.Region.GetName())
+		result.OrgId = jsontypes.StringValue(organization.GetId())
+		result.Name = jsontypes.StringValue(organization.GetName())
+		result.Url = jsontypes.StringValue(organization.GetUrl())
+		result.ApiEnabled = jsontypes.BoolValue(*organization.GetApi().Enabled)
+		result.LicensingModel = jsontypes.StringValue(*organization.GetLicensing().Model)
+		result.CloudRegion = jsontypes.StringValue(organization.Cloud.Region.GetName())
 
 		data.List = append(data.List, result)
 	}

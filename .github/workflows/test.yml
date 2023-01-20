@@ -55,8 +55,6 @@ jobs:
       matrix:
         # list whatever Terraform versions here you would like to support
         terraform:
-          - '1.0.*'
-          - '1.1.*'
           - '1.2.*'
     steps:
       - uses: actions/checkout@v3
@@ -71,6 +69,7 @@ jobs:
       - run: go mod download
       - env:
           TF_ACC: "1"
-          MERAKI_DASHBOARD_API_KEY: ${{ secrets.GITHUB_MERAKI_DASHBOARD_API_KEY }}
+          # Turning this off until we get a sweeper...
+          #MERAKI_DASHBOARD_API_KEY: ${{ secrets.MERAKI_DASHBOARD_API_KEY }}
         run: go test -v -cover ./internal/provider/
         timeout-minutes: 10

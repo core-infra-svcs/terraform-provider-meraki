@@ -3,13 +3,15 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"time"
+
 	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"time"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -26,14 +28,14 @@ type AdministeredIdentitiesMeDataSource struct {
 
 // AdministeredIdentitiesMeDataSourceModel describes the data source data model.
 type AdministeredIdentitiesMeDataSourceModel struct {
-	Id                          types.String `tfsdk:"id"`
-	AuthenticationApiKeyCreated types.Bool   `tfsdk:"authentication_api_key_created"`
-	AuthenticationMode          types.String `tfsdk:"authentication_mode"`
-	AuthenticationSaml          types.Bool   `tfsdk:"authentication_saml_enabled"`
-	AuthenticationTwofactor     types.Bool   `tfsdk:"authentication_two_factor_enabled"`
-	Email                       types.String `tfsdk:"email"`
-	LastUsedDashboardAt         types.String `tfsdk:"last_used_dashboard_at"`
-	Name                        types.String `tfsdk:"name"`
+	Id                          types.String     `tfsdk:"id"`
+	AuthenticationApiKeyCreated jsontypes.Bool   `tfsdk:"authentication_api_key_created"`
+	AuthenticationMode          jsontypes.String `tfsdk:"authentication_mode"`
+	AuthenticationSaml          jsontypes.Bool   `tfsdk:"authentication_saml_enabled"`
+	AuthenticationTwofactor     jsontypes.Bool   `tfsdk:"authentication_two_factor_enabled"`
+	Email                       jsontypes.String `tfsdk:"email"`
+	LastUsedDashboardAt         jsontypes.String `tfsdk:"last_used_dashboard_at"`
+	Name                        jsontypes.String `tfsdk:"name"`
 }
 
 func (d *AdministeredIdentitiesMeDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -52,36 +54,43 @@ func (d *AdministeredIdentitiesMeDataSource) Schema(ctx context.Context, req dat
 				MarkdownDescription: "Username",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontypes.StringType,
 			},
 			"email": schema.StringAttribute{
 				MarkdownDescription: "User email",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontypes.StringType,
 			},
 			"last_used_dashboard_at": schema.StringAttribute{
 				MarkdownDescription: "Last seen active on Dashboard UI",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontypes.StringType,
 			},
 			"authentication_mode": schema.StringAttribute{
 				MarkdownDescription: "Authentication mode",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontypes.StringType,
 			},
 			"authentication_api_key_created": schema.BoolAttribute{
 				MarkdownDescription: "If API key is created for this user",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontypes.BoolType,
 			},
 			"authentication_two_factor_enabled": schema.BoolAttribute{
 				MarkdownDescription: "If twoFactor authentication is enabled for this user",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontypes.BoolType,
 			},
 			"authentication_saml_enabled": schema.BoolAttribute{
 				MarkdownDescription: "If SAML authentication is enabled for this user",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontypes.BoolType,
 			},
 		},
 	}
@@ -145,13 +154,13 @@ func (d *AdministeredIdentitiesMeDataSource) Read(ctx context.Context, req datas
 	}
 
 	data.Id = types.StringValue("example-id")
-	data.Name = types.StringValue(inlineResp.GetName())
-	data.Email = types.StringValue(inlineResp.GetEmail())
-	data.LastUsedDashboardAt = types.StringValue(inlineResp.GetLastUsedDashboardAt().Format(time.RFC3339))
-	data.AuthenticationMode = types.StringValue(inlineResp.Authentication.GetMode())
-	data.AuthenticationApiKeyCreated = types.BoolValue(inlineResp.Authentication.Api.Key.GetCreated())
-	data.AuthenticationTwofactor = types.BoolValue(inlineResp.Authentication.TwoFactor.GetEnabled())
-	data.AuthenticationSaml = types.BoolValue(inlineResp.Authentication.Saml.GetEnabled())
+	data.Name = jsontypes.StringValue(inlineResp.GetName())
+	data.Email = jsontypes.StringValue(inlineResp.GetEmail())
+	data.LastUsedDashboardAt = jsontypes.StringValue(inlineResp.GetLastUsedDashboardAt().Format(time.RFC3339))
+	data.AuthenticationMode = jsontypes.StringValue(inlineResp.Authentication.GetMode())
+	data.AuthenticationApiKeyCreated = jsontypes.BoolValue(inlineResp.Authentication.Api.Key.GetCreated())
+	data.AuthenticationTwofactor = jsontypes.BoolValue(inlineResp.Authentication.TwoFactor.GetEnabled())
+	data.AuthenticationSaml = jsontypes.BoolValue(inlineResp.Authentication.Saml.GetEnabled())
 
 	// Write logs using the tflog package
 	tflog.Trace(ctx, "read a data source")
