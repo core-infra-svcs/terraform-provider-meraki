@@ -17,7 +17,7 @@ func TestAccOrganizationSamlResource(t *testing.T) {
 				Config: testAccOrganizationSamlResourceConfigCreateOrg,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
-					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_meraki_organization_saml"),
+					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_acc_meraki_organization_saml"),
 				),
 			},
 
@@ -37,7 +37,7 @@ func TestAccOrganizationSamlResource(t *testing.T) {
 
 const testAccOrganizationSamlResourceConfigCreateOrg = `
  resource "meraki_organization" "test" {
- 	name = "test_meraki_organization_saml"
+ 	name = "test_acc_meraki_organization_saml"
  	api_enabled = true
  }
  `

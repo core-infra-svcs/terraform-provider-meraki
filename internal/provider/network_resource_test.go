@@ -16,7 +16,7 @@ func TestAccOrganizationsNetworkResource(t *testing.T) {
 			{
 				Config: testAccOrganizationsNetworkResourceConfigCreateOrganization,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_meraki_network.test"),
+					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_acc_meraki_network.test"),
 				),
 			},
 
@@ -58,7 +58,7 @@ func TestAccOrganizationsNetworkResource(t *testing.T) {
 
 const testAccOrganizationsNetworkResourceConfigCreateOrganization = `
  resource "meraki_organization" "test" {
- 	name = "test_meraki_network.test"
+ 	name = "test_acc_meraki_network.test"
  	api_enabled = true
  }
  `
