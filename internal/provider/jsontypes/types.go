@@ -1,4 +1,4 @@
-package jsontype
+package jsontypes
 
 import (
 	"context"
@@ -110,6 +110,5 @@ func (st setType[T]) Equal(o attr.Type) bool {
 	}
 
 	base.String()
-	fmt.Printf("base %s, %s\n", base.String(), st.SetType.String())
 	return st.SetType.Equal(base)
 }

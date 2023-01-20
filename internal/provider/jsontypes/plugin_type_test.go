@@ -1,4 +1,4 @@
-package jsontype
+package jsontypes
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"

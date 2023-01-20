@@ -7,7 +7,7 @@ import (
 	"time"
 
 	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
-	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontype"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -28,14 +28,14 @@ type AdministeredIdentitiesMeDataSource struct {
 
 // AdministeredIdentitiesMeDataSourceModel describes the data source data model.
 type AdministeredIdentitiesMeDataSourceModel struct {
-	Id                          types.String    `tfsdk:"id"`
-	AuthenticationApiKeyCreated jsontype.Bool   `tfsdk:"authentication_api_key_created"`
-	AuthenticationMode          jsontype.String `tfsdk:"authentication_mode"`
-	AuthenticationSaml          jsontype.Bool   `tfsdk:"authentication_saml_enabled"`
-	AuthenticationTwofactor     jsontype.Bool   `tfsdk:"authentication_two_factor_enabled"`
-	Email                       jsontype.String `tfsdk:"email"`
-	LastUsedDashboardAt         jsontype.String `tfsdk:"last_used_dashboard_at"`
-	Name                        jsontype.String `tfsdk:"name"`
+	Id                          types.String     `tfsdk:"id"`
+	AuthenticationApiKeyCreated jsontypes.Bool   `tfsdk:"authentication_api_key_created"`
+	AuthenticationMode          jsontypes.String `tfsdk:"authentication_mode"`
+	AuthenticationSaml          jsontypes.Bool   `tfsdk:"authentication_saml_enabled"`
+	AuthenticationTwofactor     jsontypes.Bool   `tfsdk:"authentication_two_factor_enabled"`
+	Email                       jsontypes.String `tfsdk:"email"`
+	LastUsedDashboardAt         jsontypes.String `tfsdk:"last_used_dashboard_at"`
+	Name                        jsontypes.String `tfsdk:"name"`
 }
 
 func (d *AdministeredIdentitiesMeDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -54,43 +54,43 @@ func (d *AdministeredIdentitiesMeDataSource) Schema(ctx context.Context, req dat
 				MarkdownDescription: "Username",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontype.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"email": schema.StringAttribute{
 				MarkdownDescription: "User email",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontype.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"last_used_dashboard_at": schema.StringAttribute{
 				MarkdownDescription: "Last seen active on Dashboard UI",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontype.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"authentication_mode": schema.StringAttribute{
 				MarkdownDescription: "Authentication mode",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontype.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"authentication_api_key_created": schema.BoolAttribute{
 				MarkdownDescription: "If API key is created for this user",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontype.BoolType,
+				CustomType:          jsontypes.BoolType,
 			},
 			"authentication_two_factor_enabled": schema.BoolAttribute{
 				MarkdownDescription: "If twoFactor authentication is enabled for this user",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontype.BoolType,
+				CustomType:          jsontypes.BoolType,
 			},
 			"authentication_saml_enabled": schema.BoolAttribute{
 				MarkdownDescription: "If SAML authentication is enabled for this user",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontype.BoolType,
+				CustomType:          jsontypes.BoolType,
 			},
 		},
 	}
@@ -154,13 +154,13 @@ func (d *AdministeredIdentitiesMeDataSource) Read(ctx context.Context, req datas
 	}
 
 	data.Id = types.StringValue("example-id")
-	data.Name = jsontype.StringValue(inlineResp.GetName())
-	data.Email = jsontype.StringValue(inlineResp.GetEmail())
-	data.LastUsedDashboardAt = jsontype.StringValue(inlineResp.GetLastUsedDashboardAt().Format(time.RFC3339))
-	data.AuthenticationMode = jsontype.StringValue(inlineResp.Authentication.GetMode())
-	data.AuthenticationApiKeyCreated = jsontype.BoolValue(inlineResp.Authentication.Api.Key.GetCreated())
-	data.AuthenticationTwofactor = jsontype.BoolValue(inlineResp.Authentication.TwoFactor.GetEnabled())
-	data.AuthenticationSaml = jsontype.BoolValue(inlineResp.Authentication.Saml.GetEnabled())
+	data.Name = jsontypes.StringValue(inlineResp.GetName())
+	data.Email = jsontypes.StringValue(inlineResp.GetEmail())
+	data.LastUsedDashboardAt = jsontypes.StringValue(inlineResp.GetLastUsedDashboardAt().Format(time.RFC3339))
+	data.AuthenticationMode = jsontypes.StringValue(inlineResp.Authentication.GetMode())
+	data.AuthenticationApiKeyCreated = jsontypes.BoolValue(inlineResp.Authentication.Api.Key.GetCreated())
+	data.AuthenticationTwofactor = jsontypes.BoolValue(inlineResp.Authentication.TwoFactor.GetEnabled())
+	data.AuthenticationSaml = jsontypes.BoolValue(inlineResp.Authentication.Saml.GetEnabled())
 
 	// Write logs using the tflog package
 	tflog.Trace(ctx, "read a data source")

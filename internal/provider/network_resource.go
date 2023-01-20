@@ -7,7 +7,7 @@ import (
 	"time"
 
 	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
-	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontype"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -40,18 +40,18 @@ type NetworkResource struct {
 
 // NetworkResourceModel describes the resource data model.
 type NetworkResourceModel struct {
-	Id                      types.String                  `tfsdk:"id"`
-	NetworkId               jsontype.String               `tfsdk:"network_id" json:"id"`
-	OrganizationId          jsontype.String               `tfsdk:"organization_id" json:"organizationId"`
-	Name                    jsontype.String               `tfsdk:"name"`
-	ProductTypes            jsontype.Set[jsontype.String] `tfsdk:"product_types" json:"productTypes"`
-	Timezone                jsontype.String               `tfsdk:"timezone" json:"timeZone"`
-	Tags                    jsontype.Set[jsontype.String] `tfsdk:"tags"`
-	EnrollmentString        jsontype.String               `tfsdk:"enrollment_string" json:"enrollmentString"`
-	Url                     jsontype.String               `tfsdk:"url"`
-	Notes                   jsontype.String               `tfsdk:"notes"`
-	IsBoundToConfigTemplate jsontype.Bool                 `tfsdk:"is_bound_to_config_template" json:"isBoundToConfigTemplate"`
-	CopyFromNetworkId       jsontype.String               `tfsdk:"copy_from_network_id" json:"copyFromNetworkId"`
+	Id                      types.String                    `tfsdk:"id"`
+	NetworkId               jsontypes.String                `tfsdk:"network_id" json:"id"`
+	OrganizationId          jsontypes.String                `tfsdk:"organization_id" json:"organizationId"`
+	Name                    jsontypes.String                `tfsdk:"name"`
+	ProductTypes            jsontypes.Set[jsontypes.String] `tfsdk:"product_types" json:"productTypes"`
+	Timezone                jsontypes.String                `tfsdk:"timezone" json:"timeZone"`
+	Tags                    jsontypes.Set[jsontypes.String] `tfsdk:"tags"`
+	EnrollmentString        jsontypes.String                `tfsdk:"enrollment_string" json:"enrollmentString"`
+	Url                     jsontypes.String                `tfsdk:"url"`
+	Notes                   jsontypes.String                `tfsdk:"notes"`
+	IsBoundToConfigTemplate jsontypes.Bool                  `tfsdk:"is_bound_to_config_template" json:"isBoundToConfigTemplate"`
+	CopyFromNetworkId       jsontypes.String                `tfsdk:"copy_from_network_id" json:"copyFromNetworkId"`
 }
 
 func (r *NetworkResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -70,7 +70,7 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 				MarkdownDescription: "Network ID",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontype.StringType,
+				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -82,7 +82,7 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 				MarkdownDescription: "Organization ID",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontype.StringType,
+				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -94,11 +94,11 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 				MarkdownDescription: "Network name",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontype.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"product_types": schema.SetAttribute{
 				//ElementType: types.StringType,
-				CustomType: jsontype.SetType[jsontype.String](),
+				CustomType: jsontypes.SetType[jsontypes.String](),
 				Required:   true,
 				Validators: []validator.Set{
 					setvalidator.ValueStringsAre(
@@ -111,12 +111,12 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 				MarkdownDescription: "Timezone of the network",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontype.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"tags": schema.SetAttribute{
 				Description: "Network tags",
-				ElementType: jsontype.StringType,
-				CustomType:  jsontype.SetType[jsontype.String](),
+				ElementType: jsontypes.StringType,
+				CustomType:  jsontypes.SetType[jsontypes.String](),
 				Computed:    true,
 				Optional:    true,
 				PlanModifiers: []planmodifier.Set{
@@ -127,7 +127,7 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 				MarkdownDescription: "A unique identifier which can be used for device enrollment or easy access through the Meraki SM Registration page or the Self Service Portal. Once enabled, a network enrollment strings can be changed but they cannot be deleted.",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontype.StringType,
+				CustomType:          jsontypes.StringType,
 				Validators: []validator.String{
 					stringvalidator.NoneOf([]string{";", ":", "@", "=", "&", "$", "!", "‘", "“", ",", "?", ".", "(", ")", "{", "}", "[", "]", "\\", "*", "+", "/", "#", "<", ">", "|", "^", "%"}...),
 					stringvalidator.LengthBetween(4, 50),
@@ -137,25 +137,25 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 				MarkdownDescription: "URL to the network Dashboard UI",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontype.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"notes": schema.StringAttribute{
 				MarkdownDescription: "Notes for the network",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontype.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"is_bound_to_config_template": schema.BoolAttribute{
 				MarkdownDescription: "If the network is bound to a config template",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontype.BoolType,
+				CustomType:          jsontypes.BoolType,
 			},
 			"copy_from_network_id": schema.StringAttribute{
 				MarkdownDescription: "The ID of the network to copy configuration from. Other provided parameters will override the copied configuration, except type which must match this network's type exactly.",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontype.StringType,
+				CustomType:          jsontypes.StringType,
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(8, 31),
 				},
@@ -260,25 +260,25 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 
 	// save inlineResp data into Terraform state.
 	data.Id = types.StringValue("example-id")
-	data.NetworkId = jsontype.StringValue(inlineResp.GetId())
-	data.Name = jsontype.StringValue(inlineResp.GetName())
-	data.Timezone = jsontype.StringValue(inlineResp.GetTimeZone())
-	data.EnrollmentString = jsontype.StringValue(inlineResp.GetEnrollmentString())
-	data.Url = jsontype.StringValue(inlineResp.GetUrl())
-	data.Notes = jsontype.StringValue(inlineResp.GetNotes())
-	data.IsBoundToConfigTemplate = jsontype.BoolValue(inlineResp.GetIsBoundToConfigTemplate())
+	data.NetworkId = jsontypes.StringValue(inlineResp.GetId())
+	data.Name = jsontypes.StringValue(inlineResp.GetName())
+	data.Timezone = jsontypes.StringValue(inlineResp.GetTimeZone())
+	data.EnrollmentString = jsontypes.StringValue(inlineResp.GetEnrollmentString())
+	data.Url = jsontypes.StringValue(inlineResp.GetUrl())
+	data.Notes = jsontypes.StringValue(inlineResp.GetNotes())
+	data.IsBoundToConfigTemplate = jsontypes.BoolValue(inlineResp.GetIsBoundToConfigTemplate())
 
 	// product types attribute
 	if inlineResp.ProductTypes != nil {
-		var pt []jsontype.String
+		var pt []jsontypes.String
 		for _, productTypeResp := range inlineResp.ProductTypes {
-			pt = append(pt, jsontype.StringValue(productTypeResp))
+			pt = append(pt, jsontypes.StringValue(productTypeResp))
 		}
-		data.ProductTypes = jsontype.SetValue(pt)
+		data.ProductTypes = jsontypes.SetValue(pt)
 	}
 
 	if data.CopyFromNetworkId.IsUnknown() {
-		data.CopyFromNetworkId = jsontype.StringNull()
+		data.CopyFromNetworkId = jsontypes.StringNull()
 	}
 
 	// Save data into Terraform state
@@ -325,26 +325,26 @@ func (r *NetworkResource) Read(ctx context.Context, req resource.ReadRequest, re
 
 	// save inlineResp data into Terraform state.
 	data.Id = types.StringValue("example-id")
-	data.NetworkId = jsontype.StringValue(inlineResp.GetId())
-	data.OrganizationId = jsontype.StringValue(inlineResp.GetOrganizationId())
-	data.Name = jsontype.StringValue(inlineResp.GetName())
-	data.Timezone = jsontype.StringValue(inlineResp.GetTimeZone())
-	data.EnrollmentString = jsontype.StringValue(inlineResp.GetEnrollmentString())
-	data.Url = jsontype.StringValue(inlineResp.GetUrl())
-	data.Notes = jsontype.StringValue(inlineResp.GetNotes())
-	data.IsBoundToConfigTemplate = jsontype.BoolValue(inlineResp.GetIsBoundToConfigTemplate())
+	data.NetworkId = jsontypes.StringValue(inlineResp.GetId())
+	data.OrganizationId = jsontypes.StringValue(inlineResp.GetOrganizationId())
+	data.Name = jsontypes.StringValue(inlineResp.GetName())
+	data.Timezone = jsontypes.StringValue(inlineResp.GetTimeZone())
+	data.EnrollmentString = jsontypes.StringValue(inlineResp.GetEnrollmentString())
+	data.Url = jsontypes.StringValue(inlineResp.GetUrl())
+	data.Notes = jsontypes.StringValue(inlineResp.GetNotes())
+	data.IsBoundToConfigTemplate = jsontypes.BoolValue(inlineResp.GetIsBoundToConfigTemplate())
 
 	// product types attribute
 	if inlineResp.ProductTypes != nil {
-		var pt []jsontype.String
+		var pt []jsontypes.String
 		for _, productTypeResp := range inlineResp.ProductTypes {
-			pt = append(pt, jsontype.StringValue(productTypeResp))
+			pt = append(pt, jsontypes.StringValue(productTypeResp))
 		}
-		data.ProductTypes = jsontype.SetValue(pt)
+		data.ProductTypes = jsontypes.SetValue(pt)
 	}
 
 	if data.CopyFromNetworkId.IsUnknown() {
-		data.CopyFromNetworkId = jsontype.StringNull()
+		data.CopyFromNetworkId = jsontypes.StringNull()
 	}
 
 	// Save updated data into Terraform state
@@ -418,28 +418,28 @@ func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest
 
 	// save inlineResp data into Terraform state.
 	data.Id = types.StringValue("example-id")
-	data.NetworkId = jsontype.StringValue(inlineResp.GetId())
-	data.OrganizationId = jsontype.StringValue(inlineResp.GetOrganizationId())
-	data.Name = jsontype.StringValue(inlineResp.GetName())
+	data.NetworkId = jsontypes.StringValue(inlineResp.GetId())
+	data.OrganizationId = jsontypes.StringValue(inlineResp.GetOrganizationId())
+	data.Name = jsontypes.StringValue(inlineResp.GetName())
 
 	// product types attribute
 	if inlineResp.ProductTypes != nil {
-		var pt []jsontype.String
+		var pt []jsontypes.String
 		for _, productTypeResp := range inlineResp.ProductTypes {
-			pt = append(pt, jsontype.StringValue(productTypeResp))
+			pt = append(pt, jsontypes.StringValue(productTypeResp))
 		}
-		data.ProductTypes = jsontype.SetValue(pt)
+		data.ProductTypes = jsontypes.SetValue(pt)
 	}
 
-	data.Timezone = jsontype.StringValue(inlineResp.GetTimeZone())
+	data.Timezone = jsontypes.StringValue(inlineResp.GetTimeZone())
 
-	data.EnrollmentString = jsontype.StringValue(inlineResp.GetEnrollmentString())
-	data.Url = jsontype.StringValue(inlineResp.GetUrl())
-	data.Notes = jsontype.StringValue(inlineResp.GetNotes())
-	data.IsBoundToConfigTemplate = jsontype.BoolValue(inlineResp.GetIsBoundToConfigTemplate())
+	data.EnrollmentString = jsontypes.StringValue(inlineResp.GetEnrollmentString())
+	data.Url = jsontypes.StringValue(inlineResp.GetUrl())
+	data.Notes = jsontypes.StringValue(inlineResp.GetNotes())
+	data.IsBoundToConfigTemplate = jsontypes.BoolValue(inlineResp.GetIsBoundToConfigTemplate())
 
 	if data.CopyFromNetworkId.IsUnknown() {
-		data.CopyFromNetworkId = jsontype.StringNull()
+		data.CopyFromNetworkId = jsontypes.StringNull()
 	}
 
 	// Save updated data into Terraform state

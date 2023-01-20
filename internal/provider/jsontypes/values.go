@@ -1,4 +1,4 @@
-package jsontype
+package jsontypes
 
 import (
 	"context"

@@ -8,7 +8,7 @@ import (
 	"io"
 
 	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
-	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontype"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -38,12 +38,12 @@ type OrganizationsSamlIdpResource struct {
 
 // OrganizationsSamlIdpResourceModel describes the resource data model.
 type OrganizationsSamlIdpResourceModel struct {
-	Id                      types.String    `tfsdk:"id"`
-	OrganizationId          jsontype.String `tfsdk:"organization_id"`
-	ConsumerUrl             jsontype.String `tfsdk:"consumer_url"`
-	IdpId                   jsontype.String `tfsdk:"idp_id"`
-	SloLogoutUrl            jsontype.String `tfsdk:"slo_logout_url"`
-	X509CertSha1Fingerprint jsontype.String `tfsdk:"x_509_cert_sha1_fingerprint"`
+	Id                      types.String     `tfsdk:"id"`
+	OrganizationId          jsontypes.String `tfsdk:"organization_id"`
+	ConsumerUrl             jsontypes.String `tfsdk:"consumer_url"`
+	IdpId                   jsontypes.String `tfsdk:"idp_id"`
+	SloLogoutUrl            jsontypes.String `tfsdk:"slo_logout_url"`
+	X509CertSha1Fingerprint jsontypes.String `tfsdk:"x_509_cert_sha1_fingerprint"`
 }
 
 func (r *OrganizationsSamlIdpResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -62,7 +62,7 @@ func (r *OrganizationsSamlIdpResource) Schema(ctx context.Context, req resource.
 				MarkdownDescription: "Organization ID",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontype.StringType,
+				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -74,13 +74,13 @@ func (r *OrganizationsSamlIdpResource) Schema(ctx context.Context, req resource.
 				Description: "URL that is consuming SAML Identity Provider (IdP)",
 				Optional:    true,
 				Computed:    true,
-				CustomType:  jsontype.StringType,
+				CustomType:  jsontypes.StringType,
 			},
 			"idp_id": schema.StringAttribute{
 				MarkdownDescription: "ID associated with the SAML Identity Provider (IdP)",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontype.StringType,
+				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -92,13 +92,13 @@ func (r *OrganizationsSamlIdpResource) Schema(ctx context.Context, req resource.
 				MarkdownDescription: "Dashboard will redirect users to this URL when they sign out.",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontype.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"x_509_cert_sha1_fingerprint": schema.StringAttribute{
 				MarkdownDescription: "Fingerprint (SHA1) of the SAML certificate provided by your Identity Provider (IdP). This will be used for encryption / validation.",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontype.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 		},
 	}
@@ -175,10 +175,10 @@ func (r *OrganizationsSamlIdpResource) Create(ctx context.Context, req resource.
 
 	// save into the Terraform state.
 	data.Id = types.StringValue("example-id")
-	data.IdpId = jsontype.StringValue(inlineResp.GetIdpId())
-	data.ConsumerUrl = jsontype.StringValue(inlineResp.GetConsumerUrl())
-	data.SloLogoutUrl = jsontype.StringValue(inlineResp.GetSloLogoutUrl())
-	data.X509CertSha1Fingerprint = jsontype.StringValue(inlineResp.GetX509certSha1Fingerprint())
+	data.IdpId = jsontypes.StringValue(inlineResp.GetIdpId())
+	data.ConsumerUrl = jsontypes.StringValue(inlineResp.GetConsumerUrl())
+	data.SloLogoutUrl = jsontypes.StringValue(inlineResp.GetSloLogoutUrl())
+	data.X509CertSha1Fingerprint = jsontypes.StringValue(inlineResp.GetX509certSha1Fingerprint())
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -227,10 +227,10 @@ func (r *OrganizationsSamlIdpResource) Read(ctx context.Context, req resource.Re
 	}
 
 	data.Id = types.StringValue("example-id")
-	data.IdpId = jsontype.StringValue(inlineResp.GetIdpId())
-	data.ConsumerUrl = jsontype.StringValue(inlineResp.GetConsumerUrl())
-	data.SloLogoutUrl = jsontype.StringValue(inlineResp.GetSloLogoutUrl())
-	data.X509CertSha1Fingerprint = jsontype.StringValue(inlineResp.GetX509certSha1Fingerprint())
+	data.IdpId = jsontypes.StringValue(inlineResp.GetIdpId())
+	data.ConsumerUrl = jsontypes.StringValue(inlineResp.GetConsumerUrl())
+	data.SloLogoutUrl = jsontypes.StringValue(inlineResp.GetSloLogoutUrl())
+	data.X509CertSha1Fingerprint = jsontypes.StringValue(inlineResp.GetX509certSha1Fingerprint())
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -288,10 +288,10 @@ func (r *OrganizationsSamlIdpResource) Update(ctx context.Context, req resource.
 	}
 
 	data.Id = types.StringValue("example-id")
-	data.IdpId = jsontype.StringValue(inlineResp.GetIdpId())
-	data.ConsumerUrl = jsontype.StringValue(inlineResp.GetConsumerUrl())
-	data.SloLogoutUrl = jsontype.StringValue(inlineResp.GetSloLogoutUrl())
-	data.X509CertSha1Fingerprint = jsontype.StringValue(inlineResp.GetX509certSha1Fingerprint())
+	data.IdpId = jsontypes.StringValue(inlineResp.GetIdpId())
+	data.ConsumerUrl = jsontypes.StringValue(inlineResp.GetConsumerUrl())
+	data.SloLogoutUrl = jsontypes.StringValue(inlineResp.GetSloLogoutUrl())
+	data.X509CertSha1Fingerprint = jsontypes.StringValue(inlineResp.GetX509certSha1Fingerprint())
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
