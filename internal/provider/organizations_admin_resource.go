@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"strings"
 
 	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
@@ -39,7 +38,7 @@ type OrganizationsAdminResource struct {
 
 // OrganizationsAdminResourceModel describes the resource data model.
 type OrganizationsAdminResourceModel struct {
-	Id                   types.String                             `tfsdk:"id"`
+	Id                   jsontype.String                          `tfsdk:"id"`
 	OrgId                jsontype.String                          `tfsdk:"organization_id" json:"organizationId"`
 	AdminId              jsontype.String                          `tfsdk:"admin_id" json:"id"`
 	Name                 jsontype.String                          `tfsdk:"name"`
@@ -73,7 +72,8 @@ func (r *OrganizationsAdminResource) Schema(ctx context.Context, req resource.Sc
 		MarkdownDescription: "Manage the dashboard administrators in this organization",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed: true,
+				CustomType: jsontype.StringType,
+				Computed:   true,
 			},
 			"organization_id": schema.StringAttribute{
 				MarkdownDescription: "Organization ID",
@@ -239,7 +239,7 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 		data.OrgAccess.ValueString())
 
 	// Tags
-	if len(data.Tags) < 0 {
+	if len(data.Tags) > 0 {
 		var tags []openApiClient.OrganizationsOrganizationIdAdminsTags
 		for _, attribute := range data.Tags {
 			var tag openApiClient.OrganizationsOrganizationIdAdminsTags
@@ -251,7 +251,7 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 	}
 
 	// Networks
-	if len(data.Networks) < 0 {
+	if len(data.Networks) > 0 {
 		var networks []openApiClient.OrganizationsOrganizationIdAdminsNetworks
 		for _, attribute := range data.Networks {
 			var network openApiClient.OrganizationsOrganizationIdAdminsNetworks
@@ -266,6 +266,7 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 		createOrganizationAdmin.SetAuthenticationMethod(data.AuthenticationMethod.ValueString())
 	}
 
+	fmt.Printf("%#v\n", createOrganizationAdmin)
 	inlineResp, httpResp, err := r.client.AdminsApi.CreateOrganizationAdmin(context.Background(), data.OrgId.ValueString()).CreateOrganizationAdmin(createOrganizationAdmin).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -371,7 +372,7 @@ func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.Up
 	updateOrganizationAdmin.SetOrgAccess(data.OrgAccess.ValueString())
 
 	// Tags
-	if len(data.Tags) < 0 {
+	if len(data.Tags) > 0 {
 		var tags []openApiClient.OrganizationsOrganizationIdAdminsTags
 		for _, attribute := range data.Tags {
 			var tag openApiClient.OrganizationsOrganizationIdAdminsTags
@@ -383,7 +384,7 @@ func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.Up
 	}
 
 	// Networks
-	if len(data.Networks) < 0 {
+	if len(data.Networks) > 0 {
 		var networks []openApiClient.OrganizationsOrganizationIdAdminsNetworks
 		for _, attribute := range data.Networks {
 			var network openApiClient.OrganizationsOrganizationIdAdminsNetworks
@@ -470,58 +471,58 @@ func (r *OrganizationsAdminResource) Delete(ctx context.Context, req resource.De
 
 func extractHttpResponseOrganizationAdminResource(ctx context.Context, inlineResp map[string]interface{}, data *OrganizationsAdminResourceModel, diags *diag.Diagnostics) *OrganizationsAdminResourceModel {
 
-	// save into the Terraform state
-	data.Id = types.StringValue("example-id")
-	data.AdminId = tools.MapStringValue(inlineResp, "id", diags)
-	data.Name = tools.MapStringValue(inlineResp, "name", diags)
-	data.Email = tools.MapStringValue(inlineResp, "email", diags)
-	data.OrgAccess = tools.MapStringValue(inlineResp, "orgAccess", diags)
-	data.AccountStatus = tools.MapStringValue(inlineResp, "accountStatus", diags)
-	data.TwoFactorAuthEnabled = tools.MapBoolValue(inlineResp, "twoFactorAuthEnabled", diags)
-	data.HasApiKey = tools.MapBoolValue(inlineResp, "hasApiKey", diags)
-	data.LastActive = tools.MapStringValue(inlineResp, "lastActive", diags)
-	data.AuthenticationMethod = tools.MapStringValue(inlineResp, "authenticationMethod", diags)
+	//// save into the Terraform state
+	//data.Id = jsontype.StringValue("example-id")
+	//data.AdminId = tools.MapStringValue(inlineResp, "id", diags)
+	//data.Name = tools.MapStringValue(inlineResp, "name", diags)
+	//data.Email = tools.MapStringValue(inlineResp, "email", diags)
+	//data.OrgAccess = tools.MapStringValue(inlineResp, "orgAccess", diags)
+	//data.AccountStatus = tools.MapStringValue(inlineResp, "accountStatus", diags)
+	//data.TwoFactorAuthEnabled = tools.MapBoolValue(inlineResp, "twoFactorAuthEnabled", diags)
+	//data.HasApiKey = tools.MapBoolValue(inlineResp, "hasApiKey", diags)
+	//data.LastActive = tools.MapStringValue(inlineResp, "lastActive", diags)
+	//data.AuthenticationMethod = tools.MapStringValue(inlineResp, "authenticationMethod", diags)
+	//
+	//// tags attribute
+	//if tags := inlineResp["tags"]; tags != nil {
+	//	for _, tv := range tags.([]interface{}) {
+	//		var tag OrganizationsAdminResourceModelTag
+	//		_ = json.Unmarshal([]byte(tv.(string)), &tag)
+	//		data.Tags = append(data.Tags, tag)
+	//	}
+	//} else {
+	//	data.Tags = nil
+	//}
+	//
+	//// networks attribute
+	//if networks := inlineResp["networks"]; networks != nil {
+	//	for _, tv := range networks.([]interface{}) {
+	//		var network OrganizationsAdminResourceModelNetwork
+	//		_ = json.Unmarshal([]byte(tv.(string)), &network)
+	//		data.Networks = append(data.Networks, network)
+	//	}
+	//} else {
+	//	data.Networks = nil
+	//}
 
-	// tags attribute
-	if tags := inlineResp["tags"]; tags != nil {
-		for _, tv := range tags.([]interface{}) {
-			var tag OrganizationsAdminResourceModelTag
-			_ = json.Unmarshal([]byte(tv.(string)), &tag)
-			data.Tags = append(data.Tags, tag)
-		}
-	} else {
-		data.Tags = nil
+	// TODO - Workaround until json.RawMessage is implemented in HTTP client
+	b, err := json.Marshal(inlineResp)
+	if err != nil {
+		diags.AddError(
+			"b",
+			fmt.Sprintf("%v", err),
+		)
+	}
+	fmt.Println(string(b))
+
+	if err := json.Unmarshal(b, &data); err != nil {
+		diags.AddError(
+			"b -> a",
+			fmt.Sprintf("Unmarshal error%v", err),
+		)
 	}
 
-	// networks attribute
-	if networks := inlineResp["networks"]; networks != nil {
-		for _, tv := range networks.([]interface{}) {
-			var network OrganizationsAdminResourceModelNetwork
-			_ = json.Unmarshal([]byte(tv.(string)), &network)
-			data.Networks = append(data.Networks, network)
-		}
-	} else {
-		data.Networks = nil
-	}
-
-	/*
-		// TODO - Workaround until json.RawMessage is implemented in HTTP client
-			b, err := json.Marshal(inlineResp)
-			if err != nil {
-				diags.AddError(
-					"b",
-					fmt.Sprintf("%v", err),
-				)
-			}
-			if err := json.Unmarshal(b, &data); err != nil {
-				diags.AddError(
-					"b -> a",
-					fmt.Sprintf("Unmarshal error%v", err),
-				)
-			}
-
-			data.Id = types.StringValue("example-id")
-	*/
+	data.Id = jsontype.StringValue("example-id")
 
 	return data
 }

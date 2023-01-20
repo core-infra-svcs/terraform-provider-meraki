@@ -46,7 +46,7 @@ type NetworkResourceModel struct {
 	Name                    jsontype.String               `tfsdk:"name"`
 	ProductTypes            jsontype.Set[jsontype.String] `tfsdk:"product_types" json:"productTypes"`
 	Timezone                jsontype.String               `tfsdk:"timezone" json:"timeZone"`
-	Tags                    types.Set                     `tfsdk:"tags"`
+	Tags                    jsontype.Set[jsontype.String] `tfsdk:"tags"`
 	EnrollmentString        jsontype.String               `tfsdk:"enrollment_string" json:"enrollmentString"`
 	Url                     jsontype.String               `tfsdk:"url"`
 	Notes                   jsontype.String               `tfsdk:"notes"`
@@ -115,10 +115,10 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 			},
 			"tags": schema.SetAttribute{
 				Description: "Network tags",
-				ElementType: types.StringType,
-				//CustomType:  jsontype.SetType,
-				Computed: true,
-				Optional: true,
+				ElementType: jsontype.StringType,
+				CustomType:  jsontype.SetType[jsontype.String](),
+				Computed:    true,
+				Optional:    true,
 				PlanModifiers: []planmodifier.Set{
 					setplanmodifier.UseStateForUnknown(),
 				},
