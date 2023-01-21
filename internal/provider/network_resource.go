@@ -505,7 +505,7 @@ func (r *NetworkResource) Delete(ctx context.Context, req resource.DeleteRequest
 	}
 
 	// Check if deleted from Meraki Portal was successful
-	if deletedFromMerakiPortal == true {
+	if deletedFromMerakiPortal {
 		resp.State.RemoveResource(ctx)
 
 		// Write logs using the tflog package

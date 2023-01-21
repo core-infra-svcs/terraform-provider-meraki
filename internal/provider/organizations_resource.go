@@ -205,14 +205,14 @@ func (r *OrganizationResource) Create(ctx context.Context, req resource.CreateRe
 		responseDetails := inlineResp.Management.GetDetails()
 
 		// name attribute
-		if managementDetailName := responseDetails[0].GetName(); responseDetails[0].HasName() == true {
+		if managementDetailName := responseDetails[0].GetName(); responseDetails[0].HasName() {
 			data.ManagementDetailsName = jsontypes.StringValue(managementDetailName)
 		} else {
 			data.ManagementDetailsName = jsontypes.StringNull()
 		}
 
 		// Value attribute
-		if managementDetailValue := responseDetails[0].GetValue(); responseDetails[0].HasValue() == true {
+		if managementDetailValue := responseDetails[0].GetValue(); responseDetails[0].HasValue() {
 			data.ManagementDetailsValue = jsontypes.StringValue(managementDetailValue)
 		} else {
 			data.ManagementDetailsValue = jsontypes.StringNull()
@@ -279,14 +279,14 @@ func (r *OrganizationResource) Read(ctx context.Context, req resource.ReadReques
 		responseDetails := inlineResp.Management.GetDetails()
 
 		// name attribute
-		if managementDetailName := responseDetails[0].GetName(); responseDetails[0].HasName() == true {
+		if managementDetailName := responseDetails[0].GetName(); responseDetails[0].HasName() {
 			data.ManagementDetailsName = jsontypes.StringValue(managementDetailName)
 		} else {
 			data.ManagementDetailsName = jsontypes.StringNull()
 		}
 
 		// Value attribute
-		if managementDetailValue := responseDetails[0].GetValue(); responseDetails[0].HasValue() == true {
+		if managementDetailValue := responseDetails[0].GetValue(); responseDetails[0].HasValue() {
 			data.ManagementDetailsValue = jsontypes.StringValue(managementDetailValue)
 		} else {
 			data.ManagementDetailsValue = jsontypes.StringNull()
@@ -373,14 +373,14 @@ func (r *OrganizationResource) Update(ctx context.Context, req resource.UpdateRe
 		responseDetails := inlineResp.Management.GetDetails()
 
 		// name attribute
-		if managementDetailName := responseDetails[0].GetName(); responseDetails[0].HasName() == true {
+		if managementDetailName := responseDetails[0].GetName(); responseDetails[0].HasName() {
 			data.ManagementDetailsName = jsontypes.StringValue(managementDetailName)
 		} else {
 			data.ManagementDetailsName = jsontypes.StringNull()
 		}
 
 		// Value attribute
-		if managementDetailValue := responseDetails[0].GetValue(); responseDetails[0].HasValue() == true {
+		if managementDetailValue := responseDetails[0].GetValue(); responseDetails[0].HasValue() {
 			data.ManagementDetailsValue = jsontypes.StringValue(managementDetailValue)
 		} else {
 			data.ManagementDetailsValue = jsontypes.StringNull()

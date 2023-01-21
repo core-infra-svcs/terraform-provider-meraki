@@ -262,7 +262,7 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 		createOrganizationAdmin.SetNetworks(networks)
 	}
 
-	if data.AuthenticationMethod.IsNull() != true {
+	if !data.AuthenticationMethod.IsNull() {
 		createOrganizationAdmin.SetAuthenticationMethod(data.AuthenticationMethod.ValueString())
 	}
 
