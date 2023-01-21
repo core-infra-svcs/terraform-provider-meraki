@@ -2,8 +2,13 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"strings"
+
 	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -13,9 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"strings"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -37,22 +40,22 @@ type OrganizationsAdaptivePolicyAclResource struct {
 // OrganizationsAdaptivePolicyAclResourceModel describes the resource data model.
 type OrganizationsAdaptivePolicyAclResourceModel struct {
 	Id          types.String                         `tfsdk:"id"`
-	OrgId       types.String                         `tfsdk:"organization_id"`
-	AclId       types.String                         `tfsdk:"acl_id"`
-	Name        types.String                         `tfsdk:"name"`
-	Description types.String                         `tfsdk:"description"`
-	IpVersion   types.String                         `tfsdk:"ip_version"`
+	OrgId       jsontypes.String                     `tfsdk:"organization_id" json:"organizationId"`
+	AclId       jsontypes.String                     `tfsdk:"acl_id" json:"aclId"`
+	Name        jsontypes.String                     `tfsdk:"name"`
+	Description jsontypes.String                     `tfsdk:"description"`
+	IpVersion   jsontypes.String                     `tfsdk:"ip_version" json:"ipVersion"`
 	Rules       []OrganizationsAdaptivePolicyAclRule `tfsdk:"rules"`
-	CreatedAt   types.String                         `tfsdk:"created_at"`
-	UpdatedAt   types.String                         `tfsdk:"updated_at"`
+	CreatedAt   jsontypes.String                     `tfsdk:"created_at" json:"createdAt"`
+	UpdatedAt   jsontypes.String                     `tfsdk:"updated_at" json:"updatedAt"`
 }
 
 // OrganizationsAdaptivePolicyAclRule  describes the rules data model
 type OrganizationsAdaptivePolicyAclRule struct {
-	Policy   types.String `tfsdk:"policy"`
-	Protocol types.String `tfsdk:"protocol"`
-	SrcPort  types.String `tfsdk:"src_port"`
-	DstPort  types.String `tfsdk:"dst_port"`
+	Policy   jsontypes.String `tfsdk:"policy"`
+	Protocol jsontypes.String `tfsdk:"protocol"`
+	SrcPort  jsontypes.String `tfsdk:"src_port" json:"srcPort"`
+	DstPort  jsontypes.String `tfsdk:"dst_port" json:"dstPort"`
 }
 
 func (r *OrganizationsAdaptivePolicyAclResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -70,6 +73,7 @@ func (r *OrganizationsAdaptivePolicyAclResource) Schema(ctx context.Context, req
 				MarkdownDescription: "Organization ID",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -81,6 +85,7 @@ func (r *OrganizationsAdaptivePolicyAclResource) Schema(ctx context.Context, req
 				MarkdownDescription: "ACL ID",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -92,16 +97,19 @@ func (r *OrganizationsAdaptivePolicyAclResource) Schema(ctx context.Context, req
 				MarkdownDescription: "Name of the adaptive policy ACL",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontypes.StringType,
 			},
 			"description": schema.StringAttribute{
 				MarkdownDescription: "Description of the adaptive policy ACL",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontypes.StringType,
 			},
 			"ip_version": schema.StringAttribute{
 				MarkdownDescription: "IP version of adaptive policy ACL. One of: 'any', 'ipv4' or 'ipv6",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontypes.StringType,
 				Validators: []validator.String{
 					stringvalidator.OneOf([]string{"any", "ipv4", "ipv6"}...),
 					stringvalidator.LengthAtLeast(3),
@@ -117,21 +125,25 @@ func (r *OrganizationsAdaptivePolicyAclResource) Schema(ctx context.Context, req
 							MarkdownDescription: "",
 							Optional:            true,
 							Computed:            true,
+							CustomType:          jsontypes.StringType,
 						},
 						"protocol": schema.StringAttribute{
 							MarkdownDescription: "",
 							Optional:            true,
 							Computed:            true,
+							CustomType:          jsontypes.StringType,
 						},
 						"src_port": schema.StringAttribute{
 							MarkdownDescription: "",
 							Optional:            true,
 							Computed:            true,
+							CustomType:          jsontypes.StringType,
 						},
 						"dst_port": schema.StringAttribute{
 							MarkdownDescription: "",
 							Optional:            true,
 							Computed:            true,
+							CustomType:          jsontypes.StringType,
 						},
 					},
 				},
@@ -140,11 +152,13 @@ func (r *OrganizationsAdaptivePolicyAclResource) Schema(ctx context.Context, req
 				MarkdownDescription: "",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontypes.StringType,
 			},
 			"updated_at": schema.StringAttribute{
 				MarkdownDescription: "",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontypes.StringType,
 			},
 		},
 	}
@@ -389,54 +403,22 @@ func (r *OrganizationsAdaptivePolicyAclResource) Delete(ctx context.Context, req
 
 func extractHttpResponseOrganizationAdaptivePolicyAclResource(ctx context.Context, inlineResp map[string]interface{}, data *OrganizationsAdaptivePolicyAclResourceModel, diags *diag.Diagnostics) *OrganizationsAdaptivePolicyAclResourceModel {
 
-	// save into the Terraform state
-	data.Id = types.StringValue("example-id")
-	data.AclId = tools.MapStringValue(inlineResp, "aclId", diags)
-	data.Description = tools.MapStringValue(inlineResp, "description", diags)
-	data.IpVersion = tools.MapStringValue(inlineResp, "ipVersion", diags)
-
-	// TODO - use tools.Map funcs for nested rules data
-	// rules attribute
-	if rules := inlineResp["rules"]; rules != nil {
-		data.Rules = nil // prevents duplicate rule entries
-		for _, v := range rules.([]interface{}) {
-			rule := v.(map[string]interface{})
-			var ruleResult OrganizationsAdaptivePolicyAclRule
-
-			// policy attribute
-			if policy := rule["policy"]; policy != nil {
-				ruleResult.Policy = types.StringValue(policy.(string))
-			} else {
-				ruleResult.Policy = types.StringNull()
-			}
-
-			// protocol attribute
-			if protocol := rule["protocol"]; protocol != nil {
-				ruleResult.Protocol = types.StringValue(protocol.(string))
-			} else {
-				ruleResult.Protocol = types.StringNull()
-			}
-
-			// srcPort attribute
-			if srcPort := rule["srcPort"]; srcPort != nil {
-				ruleResult.SrcPort = types.StringValue(srcPort.(string))
-			} else {
-				ruleResult.SrcPort = types.StringNull()
-			}
-
-			// dstPort attribute
-			if dstPort := rule["dstPort"]; dstPort != nil {
-				ruleResult.DstPort = types.StringValue(dstPort.(string))
-			} else {
-				ruleResult.DstPort = types.StringNull()
-			}
-			data.Rules = append(data.Rules, ruleResult)
-		}
-
+	// TODO - Workaround until json.RawMessage is implemented in HTTP client
+	b, err := json.Marshal(inlineResp)
+	if err != nil {
+		diags.AddError(
+			"Failed to marshal API response",
+			fmt.Sprintf("%v", err),
+		)
+	}
+	if err := json.Unmarshal([]byte(b), &data); err != nil {
+		diags.AddError(
+			"Failed to unmarshal API response",
+			fmt.Sprintf("Unmarshal error%v", err),
+		)
 	}
 
-	data.CreatedAt = tools.MapStringValue(inlineResp, "createdAt", diags)
-	data.UpdatedAt = tools.MapStringValue(inlineResp, "updatedAt", diags)
+	data.Id = types.StringValue("example-id")
 
 	return data
 }

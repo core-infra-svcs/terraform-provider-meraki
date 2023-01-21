@@ -2,14 +2,15 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
@@ -27,27 +28,27 @@ type OrganizationsAdaptivePolicyAclsDataSource struct {
 
 // OrganizationsAdaptivePolicyAclsDataSourceModel describes the data source data model.
 type OrganizationsAdaptivePolicyAclsDataSourceModel struct {
-	Id    types.String                                    `tfsdk:"id"`
-	OrgId types.String                                    `tfsdk:"organization_id"`
+	Id    jsontypes.String                                `tfsdk:"id"`
+	OrgId jsontypes.String                                `tfsdk:"organization_id"`
 	List  []OrganizationAdaptivePolicyAclsDataSourceModel `tfsdk:"list"`
 }
 
 // OrganizationAdaptivePolicyAclsDataSourceModel describes the acl data source data model.
 type OrganizationAdaptivePolicyAclsDataSourceModel struct {
-	AclId       types.String                                         `tfsdk:"acl_id"`
-	Name        types.String                                         `tfsdk:"name"`
-	Description types.String                                         `tfsdk:"description"`
-	IpVersion   types.String                                         `tfsdk:"ip_version"`
+	AclId       jsontypes.String                                     `tfsdk:"acl_id" json:"AclId"`
+	Name        jsontypes.String                                     `tfsdk:"name"`
+	Description jsontypes.String                                     `tfsdk:"description"`
+	IpVersion   jsontypes.String                                     `tfsdk:"ip_version" json:"IpVersion"`
 	Rules       []OrganizationAdaptivePolicyAclsDataSourceModelRules `tfsdk:"rules"`
-	CreatedAt   types.String                                         `tfsdk:"created_at"`
-	UpdatedAt   types.String                                         `tfsdk:"updated_at"`
+	CreatedAt   jsontypes.String                                     `tfsdk:"created_at" json:"createdAt"`
+	UpdatedAt   jsontypes.String                                     `tfsdk:"updated_at" json:"updatedAt"`
 }
 
 type OrganizationAdaptivePolicyAclsDataSourceModelRules struct {
-	Policy   types.String `tfsdk:"policy"`
-	Protocol types.String `tfsdk:"protocol"`
-	SrcPort  types.String `tfsdk:"src_port"`
-	DstPort  types.String `tfsdk:"dst_port"`
+	Policy   jsontypes.String `tfsdk:"policy"`
+	Protocol jsontypes.String `tfsdk:"protocol"`
+	SrcPort  jsontypes.String `tfsdk:"src_port" json:"srcPort"`
+	DstPort  jsontypes.String `tfsdk:"dst_port" json:"dstPort"`
 }
 
 func (d *OrganizationsAdaptivePolicyAclsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -60,11 +61,13 @@ func (d *OrganizationsAdaptivePolicyAclsDataSource) Schema(ctx context.Context, 
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed: true,
+				Computed:   true,
+				CustomType: jsontypes.StringType,
 			},
 			"organization_id": schema.StringAttribute{
 				MarkdownDescription: "Organization ID",
 				Optional:            true,
+				CustomType:          jsontypes.StringType,
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(8, 31),
 				},
@@ -78,18 +81,22 @@ func (d *OrganizationsAdaptivePolicyAclsDataSource) Schema(ctx context.Context, 
 						"acl_id": schema.StringAttribute{
 							MarkdownDescription: "ACL ID",
 							Optional:            true,
+							CustomType:          jsontypes.StringType,
 						},
 						"name": schema.StringAttribute{
 							MarkdownDescription: "Name of the adaptive policy ACL",
 							Optional:            true,
+							CustomType:          jsontypes.StringType,
 						},
 						"description": schema.StringAttribute{
 							MarkdownDescription: "Description of the adaptive policy ACL",
 							Optional:            true,
+							CustomType:          jsontypes.StringType,
 						},
 						"ip_version": schema.StringAttribute{
 							MarkdownDescription: "IP version of adaptive policy ACL. One of: 'any', 'ipv4' or 'ipv6",
 							Optional:            true,
+							CustomType:          jsontypes.StringType,
 						},
 						"rules": schema.ListNestedAttribute{
 							Description: "An ordered array of the adaptive policy ACL rules. An empty array will clear the rules.",
@@ -100,18 +107,22 @@ func (d *OrganizationsAdaptivePolicyAclsDataSource) Schema(ctx context.Context, 
 									"policy": schema.StringAttribute{
 										MarkdownDescription: "",
 										Optional:            true,
+										CustomType:          jsontypes.StringType,
 									},
 									"protocol": schema.StringAttribute{
 										MarkdownDescription: "",
 										Optional:            true,
+										CustomType:          jsontypes.StringType,
 									},
 									"src_port": schema.StringAttribute{
 										MarkdownDescription: "",
 										Optional:            true,
+										CustomType:          jsontypes.StringType,
 									},
 									"dst_port": schema.StringAttribute{
 										MarkdownDescription: "",
 										Optional:            true,
+										CustomType:          jsontypes.StringType,
 									},
 								},
 							},
@@ -119,10 +130,12 @@ func (d *OrganizationsAdaptivePolicyAclsDataSource) Schema(ctx context.Context, 
 						"created_at": schema.StringAttribute{
 							MarkdownDescription: "",
 							Optional:            true,
+							CustomType:          jsontypes.StringType,
 						},
 						"updated_at": schema.StringAttribute{
 							MarkdownDescription: "",
 							Optional:            true,
+							CustomType:          jsontypes.StringType,
 						},
 					},
 				},
@@ -188,7 +201,7 @@ func (d *OrganizationsAdaptivePolicyAclsDataSource) Read(ctx context.Context, re
 	}
 
 	// Save data into Terraform state
-	data.Id = types.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	// adaptivePolicies attribute
 	if adaptivePolicies := inlineResp; adaptivePolicies != nil {
@@ -196,51 +209,20 @@ func (d *OrganizationsAdaptivePolicyAclsDataSource) Read(ctx context.Context, re
 		for _, inlineRespValue := range adaptivePolicies {
 			var adaptivePolicy OrganizationAdaptivePolicyAclsDataSourceModel
 
-			// id attribute
-			adaptivePolicy.AclId = tools.MapStringValue(inlineRespValue, "aclId", &resp.Diagnostics)
-			adaptivePolicy.Description = tools.MapStringValue(inlineRespValue, "description", &resp.Diagnostics)
-			adaptivePolicy.IpVersion = tools.MapStringValue(inlineRespValue, "ipVersion", &resp.Diagnostics)
-
-			// TODO - use tools.Map funcs for nested rules data
-			// rules attribute
-			if rules := inlineRespValue["rules"]; rules != nil {
-				for _, v := range rules.([]interface{}) {
-					rule := v.(map[string]interface{})
-					var ruleResult OrganizationAdaptivePolicyAclsDataSourceModelRules
-
-					// policy attribute
-					if policy := rule["policy"]; policy != nil {
-						ruleResult.Policy = types.StringValue(policy.(string))
-					} else {
-						ruleResult.Policy = types.StringNull()
-					}
-
-					// protocol attribute
-					if protocol := rule["protocol"]; protocol != nil {
-						ruleResult.Protocol = types.StringValue(protocol.(string))
-					} else {
-						ruleResult.Protocol = types.StringNull()
-					}
-
-					// srcPort attribute
-					if srcPort := rule["srcPort"]; srcPort != nil {
-						ruleResult.SrcPort = types.StringValue(srcPort.(string))
-					} else {
-						ruleResult.SrcPort = types.StringNull()
-					}
-
-					// dstPort attribute
-					if dstPort := rule["dstPort"]; dstPort != nil {
-						ruleResult.DstPort = types.StringValue(dstPort.(string))
-					} else {
-						ruleResult.DstPort = types.StringNull()
-					}
-					adaptivePolicy.Rules = append(adaptivePolicy.Rules, ruleResult)
-				}
+			// TODO - Workaround until json.RawMessage is implemented in HTTP client
+			b, err := json.Marshal(inlineRespValue)
+			if err != nil {
+				resp.Diagnostics.AddError(
+					"Failed to marshal API response",
+					fmt.Sprintf("%v", err),
+				)
 			}
-
-			adaptivePolicy.CreatedAt = tools.MapStringValue(inlineRespValue, "createdAt", &resp.Diagnostics)
-			adaptivePolicy.UpdatedAt = tools.MapStringValue(inlineRespValue, "updatedAt", &resp.Diagnostics)
+			if err := json.Unmarshal(b, &adaptivePolicy); err != nil {
+				resp.Diagnostics.AddError(
+					"Failed to unmarshal API response",
+					fmt.Sprintf("Unmarshal error%v", err),
+				)
+			}
 
 			// append adaptivePolicy to list of adaptivePolicies
 			data.List = append(data.List, adaptivePolicy)
