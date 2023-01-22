@@ -2,6 +2,9 @@ package provider
 
 import (
 	"context"
+	"os"
+	"regexp"
+
 	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -10,8 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"os"
-	"regexp"
 )
 
 // Ensure CiscoMerakiProvider satisfies various provider interfaces.
@@ -159,6 +160,7 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		NewOrganizationsAdminResource,
 		NewOrganizationsAdaptivePolicyAclResource,
 		NewNetworkResource,
+		NewOrganizationsSnmpResource,
 	}
 }
 
