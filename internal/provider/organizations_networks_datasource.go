@@ -28,31 +28,27 @@ type OrganizationsNetworksDataSource struct {
 
 // OrganizationsNetworksDataSourceModel describes the data source data model.
 type OrganizationsNetworksDataSourceModel struct {
-	Id                      types.String                               `tfsdk:"id"`
-	OrgId                   types.String                               `tfsdk:"organization_id"`
-	ConfigTemplateId        types.String                               `tfsdk:"config_template_id"`
-	IsBoundToConfigTemplate types.Bool                                 `tfsdk:"is_bound_to_config_template"`
-	Tags                    types.Set                                  `tfsdk:"tags"`
-	TagsFilterType          types.String                               `tfsdk:"tags_filter_type"`
-	List                    []OrganizationsNetworksDataSourceModelList `tfsdk:"list"`
+	Id                      types.String `tfsdk:"id"`
+	OrgId                   types.String `tfsdk:"organization_id"`
+	ConfigTemplateId        types.String `tfsdk:"config_template_id"`
+	IsBoundToConfigTemplate types.Bool   `tfsdk:"is_bound_to_config_template"`
+	Tags                    types.Set    `tfsdk:"tags"`
+	TagsFilterType          types.String `tfsdk:"tags_filter_type"`
 
-	// Pagination is not enabled as it is not advisable to have 10,000 networks in a single organization.
-	//PerPage                 types.String  `tfsdk:"perPage"`
-	//StartingAfter           types.String  `tfsdk:"startingAfter"`
-	//EndingBefore            types.String  `tfsdk:"endingBefore"`
+	List []OrganizationsNetworksDataSourceModelList `tfsdk:"list"`
 }
 
 type OrganizationsNetworksDataSourceModelList struct {
-	Id                      types.String   `tfsdk:"id"`
-	OrganizationId          types.String   `tfsdk:"organization_id" json:"organizationId"`
-	Name                    types.String   `tfsdk:"name"`
-	ProductTypes            []types.String `tfsdk:"product_types" json:"productTypes"`
-	TimeZone                types.String   `tfsdk:"time_zone" json:"timeZone"`
-	Tags                    []types.String `tfsdk:"tags"`
-	EnrollmentString        types.String   `tfsdk:"enrollment_string"  json:"enrollmentString"`
-	Url                     types.String   `tfsdk:"url"`
-	Notes                   types.String   `tfsdk:"notes"`
-	isBoundToConfigTemplate types.Bool     `tfsdk:"is_bound_to_config_template" json:"isBoundToConfigTemplate"`
+	Id                      types.String `tfsdk:"id" json:"id"`
+	OrganizationId          types.String `tfsdk:"organization_id" json:"organizationId"`
+	Name                    types.String `tfsdk:"name" json:"name"`
+	ProductTypes            types.Set    `tfsdk:"product_types" json:"productTypes"`
+	TimeZone                types.String `tfsdk:"time_zone" json:"timeZone"`
+	Tags                    types.Set    `tfsdk:"tags" json:"tags"`
+	EnrollmentString        types.String `tfsdk:"enrollment_string"  json:"enrollmentString"`
+	Url                     types.String `tfsdk:"url" json:"url"`
+	Notes                   types.String `tfsdk:"notes" json:"notes"`
+	isBoundToConfigTemplate types.Bool   `tfsdk:"is_bound_to_config_template" json:"isBoundToConfigTemplate"`
 }
 
 func (d *OrganizationsNetworksDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -62,7 +58,6 @@ func (d *OrganizationsNetworksDataSource) Metadata(ctx context.Context, req data
 func (d *OrganizationsNetworksDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "",
-
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
@@ -87,8 +82,8 @@ func (d *OrganizationsNetworksDataSource) Schema(ctx context.Context, req dataso
 			"tags": schema.SetAttribute{
 				Description: "Network tags",
 				ElementType: types.StringType,
-				Optional:    true,
 				Computed:    true,
+				Optional:    true,
 			},
 			"tags_filter_type": schema.StringAttribute{
 				MarkdownDescription: "",
@@ -104,6 +99,7 @@ func (d *OrganizationsNetworksDataSource) Schema(ctx context.Context, req dataso
 						"id": schema.StringAttribute{
 							MarkdownDescription: "",
 							Optional:            true,
+							Computed:            true,
 						},
 						"organization_id": schema.StringAttribute{
 							MarkdownDescription: "Organization ID",
@@ -120,7 +116,8 @@ func (d *OrganizationsNetworksDataSource) Schema(ctx context.Context, req dataso
 						},
 						"product_types": schema.SetAttribute{
 							ElementType: types.StringType,
-							Required:    true,
+							Optional:    true,
+							Computed:    true,
 							Validators: []validator.Set{
 								setvalidator.ValueStringsAre(
 									stringvalidator.OneOf([]string{"appliance", "switch", "wireless", "systemsManager", "camera", "cellularGateway", "sensor"}...),
@@ -166,42 +163,6 @@ func (d *OrganizationsNetworksDataSource) Schema(ctx context.Context, req dataso
 					},
 				},
 			},
-
-			"name": schema.StringAttribute{
-				MarkdownDescription: "Username",
-				Optional:            true,
-				Computed:            true,
-			},
-			"email": schema.StringAttribute{
-				MarkdownDescription: "User email",
-				Optional:            true,
-				Computed:            true,
-			},
-			"last_used_dashboard_at": schema.StringAttribute{
-				MarkdownDescription: "Last seen active on Dashboard UI",
-				Optional:            true,
-				Computed:            true,
-			},
-			"authentication_mode": schema.StringAttribute{
-				MarkdownDescription: "Authentication mode",
-				Optional:            true,
-				Computed:            true,
-			},
-			"authentication_api_key_created": schema.BoolAttribute{
-				MarkdownDescription: "If API key is created for this user",
-				Optional:            true,
-				Computed:            true,
-			},
-			"authentication_two_factor_enabled": schema.BoolAttribute{
-				MarkdownDescription: "If twoFactor authentication is enabled for this user",
-				Optional:            true,
-				Computed:            true,
-			},
-			"authentication_saml_enabled": schema.BoolAttribute{
-				MarkdownDescription: "If SAML authentication is enabled for this user",
-				Optional:            true,
-				Computed:            true,
-			},
 		},
 	}
 }
@@ -235,41 +196,46 @@ func (d *OrganizationsNetworksDataSource) Read(ctx context.Context, req datasour
 		return
 	}
 
-	// Tags
-	var tags []string
-	if !data.Tags.IsUnknown() {
-		for _, attribute := range data.Tags.Elements() {
-			tags = append(tags, attribute.String())
+	/*
+
+		// Tags
+		tags := []string{""} // []string | An optional parameter to filter networks by tags. The filtering is case-sensitive. If tags are included, 'tagsFilterType' should also be included (see below). (optional)
+		if !data.Tags.IsUnknown() {
+			tags = append(tags, data.Tags.String())
 		}
-	}
 
-	// tagsFilterType
-	var tagsFilterType string
-	if !data.TagsFilterType.IsUnknown() {
-		tagsFilterType = data.TagsFilterType.ValueString()
-	}
+		// tagsFilterType
+		tagsFilterType := "" // string | An optional parameter of value 'withAnyTags' or 'withAllTags' to indicate whether to return networks which contain ANY or ALL of the included tags. If no type is included, 'withAnyTags' will be selected. (optional)
+		if !data.TagsFilterType.IsUnknown() {
+			tagsFilterType = data.TagsFilterType.ValueString()
+		}
 
-	// configTemplateId
-	var configTemplateId string
-	if !data.ConfigTemplateId.IsUnknown() {
-		configTemplateId = data.ConfigTemplateId.ValueString()
-	}
+		// configTemplateId
+		configTemplateId := "" // string | An optional parameter that is the ID of a config template. Will return all networks bound to that template. (optional)
+		if !data.ConfigTemplateId.IsUnknown() {
+			configTemplateId = data.ConfigTemplateId.ValueString()
+		}
 
-	//
-	var isBoundToConfigTemplate bool
-	if !data.IsBoundToConfigTemplate.IsUnknown() {
-		isBoundToConfigTemplate = data.IsBoundToConfigTemplate.ValueBool()
-	}
+		//
+		isBoundToConfigTemplate := false // bool | An optional parameter to filter config template bound networks. If configTemplateId is set, this cannot be false. (optional)
+		if data.IsBoundToConfigTemplate.ValueBool() {
+			isBoundToConfigTemplate = data.IsBoundToConfigTemplate.ValueBool()
+		}
 
+	*/
+
+	perPage := int32(100000) // int32 | The number of entries per page returned. Acceptable range is 3 - 100000. Default is 1000. (optional)
 	inlineResp, httpResp, err := d.client.OrganizationsApi.GetOrganizationNetworks(context.Background(),
-		data.OrgId.ValueString()).ConfigTemplateId(configTemplateId).IsBoundToConfigTemplate(isBoundToConfigTemplate).Tags(tags).TagsFilterType(
-		tagsFilterType).PerPage(10000).Execute()
+		data.OrgId.ValueString()).PerPage(perPage).Execute()
+	// .ConfigTemplateId(configTemplateId).IsBoundToConfigTemplate(isBoundToConfigTemplate).Tags(tags).TagsFilterType(tagsFilterType)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to read datasource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
+
+	fmt.Printf("%v#", inlineResp)
 
 	// Check for API success inlineResp code
 	if httpResp.StatusCode != 200 {
@@ -293,37 +259,44 @@ func (d *OrganizationsNetworksDataSource) Read(ctx context.Context, req datasour
 
 	// save inlineResp data into Terraform state.
 	data.Id = types.StringValue("example-id")
+	/*
+		for _, network := range inlineResp {
+			var result OrganizationsNetworksDataSourceModelList
 
-	for _, network := range inlineResp {
-		var result OrganizationsNetworksDataSourceModelList
+			result.Id = types.StringValue(network.GetId())
+			result.OrganizationId = types.StringValue(network.GetOrganizationId())
+			result.Name = types.StringValue(network.GetName())
+			result.TimeZone = types.StringValue(network.GetTimeZone())
 
-		result.Id = types.StringValue(network.GetId())
-		result.OrganizationId = types.StringValue(network.GetOrganizationId())
-		result.Name = types.StringValue(network.GetName())
 
-		// ProductTypes
-		var productTypes []types.String
-		for _, productType := range network.ProductTypes {
-			productTypes = append(productTypes, types.StringValue(productType))
+				// product types attribute
+					if network.ProductTypes != nil {
+						var pt []attr.Value
+						for _, productTypeResp := range network.ProductTypes {
+							pt = append(pt, types.StringValue(productTypeResp))
+						}
+						result.ProductTypes, _ = types.SetValue(types.StringType, pt)
+					}
+
+					// tags attribute
+					if network.Tags != nil {
+						var t []attr.Value
+						for _, TagsTypeResp := range network.Tags {
+							t = append(t, types.StringValue(TagsTypeResp))
+						}
+						result.Tags, _ = types.SetValue(types.StringType, t)
+					}
+
+
+			result.EnrollmentString = types.StringValue(network.GetEnrollmentString())
+			result.Url = types.StringValue(network.GetUrl())
+			result.Notes = types.StringValue(network.GetNotes())
+			result.isBoundToConfigTemplate = types.BoolValue(network.GetIsBoundToConfigTemplate())
+
+			data.List = append(data.List, result)
 		}
-		result.ProductTypes = productTypes
 
-		result.TimeZone = types.StringValue(network.GetTimeZone())
-
-		// Tags
-		var resultsTags []types.String
-		for _, tag := range network.Tags {
-			resultsTags = append(resultsTags, types.StringValue(tag))
-		}
-		result.Tags = resultsTags
-
-		result.EnrollmentString = types.StringValue(network.GetEnrollmentString())
-		result.Url = types.StringValue(network.GetUrl())
-		result.Notes = types.StringValue(network.GetNotes())
-		result.isBoundToConfigTemplate = types.BoolValue(network.GetIsBoundToConfigTemplate())
-
-		data.List = append(data.List, result)
-	}
+	*/
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
