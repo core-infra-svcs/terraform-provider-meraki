@@ -149,7 +149,7 @@ resource "meraki_organizations_saml_role" "test" {
 	]
 	organization_id = resource.meraki_organization.test.organization_id
 	role = "testrole"
-	org_access = "read-only"
+	org_access = "none"
 	tags = [{
 		tag = "west"
 		access = "read-only"

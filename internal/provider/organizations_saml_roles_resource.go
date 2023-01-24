@@ -80,6 +80,9 @@ func (r *OrganizationsSamlrolesResource) Schema(ctx context.Context, req resourc
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(8, 31),
+				},
 			},
 			"role": schema.StringAttribute{
 				MarkdownDescription: "The role of the SAML administrator",
@@ -102,10 +105,12 @@ func (r *OrganizationsSamlrolesResource) Schema(ctx context.Context, req resourc
 						"tag": schema.StringAttribute{
 							MarkdownDescription: "",
 							Optional:            true,
+							Computed:            true,
 						},
 						"access": schema.StringAttribute{
 							MarkdownDescription: "",
 							Optional:            true,
+							Computed:            true,
 						},
 					},
 				},
@@ -119,10 +124,12 @@ func (r *OrganizationsSamlrolesResource) Schema(ctx context.Context, req resourc
 						"id": schema.StringAttribute{
 							MarkdownDescription: "",
 							Optional:            true,
+							Computed:            true,
 						},
 						"access": schema.StringAttribute{
 							MarkdownDescription: "",
 							Optional:            true,
+							Computed:            true,
 						},
 					},
 				},
@@ -157,11 +164,6 @@ func (r *OrganizationsSamlrolesResource) Create(ctx context.Context, req resourc
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
-	if len(data.OrgId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing OrganizationId", fmt.Sprintf("Value: %s", data.OrgId.ValueString()))
-		return
-	}
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -169,7 +171,6 @@ func (r *OrganizationsSamlrolesResource) Create(ctx context.Context, req resourc
 	createOrganizationSamlRole := *openApiClient.NewInlineObject216(data.Role.ValueString(), data.OrgAccess.ValueString())
 
 	// Tags
-
 	if len(data.Tags) > 0 {
 		var tags []openApiClient.OrganizationsOrganizationIdSamlRolesTags
 		for _, attribute := range data.Tags {
@@ -221,6 +222,7 @@ func (r *OrganizationsSamlrolesResource) Create(ctx context.Context, req resourc
 		return
 	}
 
+	// Save data into Terraform state
 	extractHttpResponseOrganizationSamlRoleResource(ctx, inlineResp, data)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -235,16 +237,6 @@ func (r *OrganizationsSamlrolesResource) Read(ctx context.Context, req resource.
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-	if len(data.OrgId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing OrganizationId", fmt.Sprintf("Value: %s", data.OrgId.ValueString()))
-		return
-	}
-
-	if len(data.RoleId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing RoleId", fmt.Sprintf("Value: %s", data.RoleId.ValueString()))
-		return
-	}
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -257,6 +249,12 @@ func (r *OrganizationsSamlrolesResource) Read(ctx context.Context, req resource.
 		)
 	}
 
+	// collect diagnostics
+	if httpResp != nil {
+		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+	}
+
+	// Check for API success inlineResp code
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
@@ -264,16 +262,14 @@ func (r *OrganizationsSamlrolesResource) Read(ctx context.Context, req resource.
 		)
 	}
 
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
-	}
-
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
+	} else {
+		resp.Diagnostics.Append()
 	}
 
+	// Save data into Terraform state
 	extractHttpResponseOrganizationSamlRoleResource(ctx, inlineResp, data)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -292,21 +288,6 @@ func (r *OrganizationsSamlrolesResource) Update(ctx context.Context, req resourc
 
 	// Read Terraform state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &stateData)...)
-
-	if len(data.OrgId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing OrganizationId", fmt.Sprintf("Value: %s", data.OrgId.ValueString()))
-		return
-	}
-
-	// Check state for required attribute
-	if len(data.RoleId.ValueString()) < 1 {
-		data.RoleId = stateData.RoleId
-	}
-
-	if len(data.RoleId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing AdminId", fmt.Sprintf("RoleId: %s", data.RoleId.ValueString()))
-		return
-	}
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -348,16 +329,16 @@ func (r *OrganizationsSamlrolesResource) Update(ctx context.Context, req resourc
 		)
 	}
 
+	// collect diagnostics
+	if httpResp != nil {
+		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+	}
+
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 	}
 
 	// Check for errors after diagnostics collected
@@ -407,16 +388,6 @@ func (r *OrganizationsSamlrolesResource) Delete(ctx context.Context, req resourc
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-	if len(data.OrgId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing OrganizationId", fmt.Sprintf("Value: %s", data.OrgId.ValueString()))
-		return
-	}
-
-	if len(data.RoleId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing RoleId", fmt.Sprintf("Value: %s", data.RoleId.ValueString()))
-		return
-	}
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -429,6 +400,11 @@ func (r *OrganizationsSamlrolesResource) Delete(ctx context.Context, req resourc
 		)
 	}
 
+	// collect diagnostics
+	if httpResp != nil {
+		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+	}
+
 	if httpResp.StatusCode != 204 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
@@ -436,14 +412,11 @@ func (r *OrganizationsSamlrolesResource) Delete(ctx context.Context, req resourc
 		)
 	}
 
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
-	}
-
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
+	} else {
+		resp.Diagnostics.Append()
 	}
 
 	resp.State.RemoveResource(ctx)
