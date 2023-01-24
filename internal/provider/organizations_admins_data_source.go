@@ -206,7 +206,7 @@ func (d *OrganizationsAdminsDataSource) Read(ctx context.Context, req datasource
 		return
 	}
 
-	inlineResp, httpResp, err := d.client.AdminsApi.GetOrganizationAdmins(context.Background(), data.OrgId.ValueString()).Execute()
+	_, httpResp, err := d.client.AdminsApi.GetOrganizationAdmins(context.Background(), data.OrgId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to read datasource",
@@ -235,33 +235,11 @@ func (d *OrganizationsAdminsDataSource) Read(ctx context.Context, req datasource
 
 	// Save data into Terraform state
 	data.Id = types.StringValue("example-id")
-
-	// admins attribute
-	if admins := inlineResp; admins != nil {
-
-		for _, inlineRespValue := range admins {
-			var admin OrganizationAdminsDataSourceModel
-
-			// TODO - Workaround until json.RawMessage is implemented in HTTP client
-			b, err := json.Marshal(inlineRespValue)
-			if err != nil {
-				resp.Diagnostics.AddError(
-					"Failed to marshal API response",
-					fmt.Sprintf("%v", err),
-				)
-			}
-
-			if err := json.Unmarshal(b, &admin); err != nil {
-				resp.Diagnostics.AddError(
-					"Failed to unmarshal API response",
-					fmt.Sprintf("Unmarshal error%v", err),
-				)
-			}
-
-			data.List = append(data.List, admin)
-
-		}
+	var admins []OrganizationAdminsDataSourceModel
+	if err := json.NewDecoder(httpResp.Body).Decode(&admins); err != nil {
+		return
 	}
+	data.List = admins
 
 	data.Id = types.StringValue("example-id")
 

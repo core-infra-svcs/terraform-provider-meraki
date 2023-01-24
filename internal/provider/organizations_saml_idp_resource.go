@@ -4,9 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"io"
-
 	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
@@ -17,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
@@ -150,16 +148,6 @@ func (r *OrganizationsSamlIdpResource) Create(ctx context.Context, req resource.
 		return
 	}
 
-	// unmarshal http body into inlineResp object
-	var inlineResp *openApiClient.InlineResponse20095
-	body, _ := io.ReadAll(httpResp.Body)
-	if err = json.Unmarshal(body, &inlineResp); err != nil {
-		resp.Diagnostics.AddError(
-			"Failed to unmarshal JSON into typed response",
-			fmt.Sprintf("%v", err.Error()),
-		)
-	}
-
 	// collect diagnostics
 	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 
@@ -180,10 +168,13 @@ func (r *OrganizationsSamlIdpResource) Create(ctx context.Context, req resource.
 
 	// save into the Terraform state.
 	data.Id = types.StringValue("example-id")
-	data.IdpId = jsontypes.StringValue(inlineResp.GetIdpId())
-	data.ConsumerUrl = jsontypes.StringValue(inlineResp.GetConsumerUrl())
-	data.SloLogoutUrl = jsontypes.StringValue(inlineResp.GetSloLogoutUrl())
-	data.X509CertSha1Fingerprint = jsontypes.StringValue(inlineResp.GetX509certSha1Fingerprint())
+	if err = json.NewDecoder(httpResp.Body).Decode(&data); err != nil {
+		resp.Diagnostics.AddError(
+			"Unexpected JSON decode issue:",
+			fmt.Sprintf("%s", err),
+		)
+		return
+	}
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -203,7 +194,7 @@ func (r *OrganizationsSamlIdpResource) Read(ctx context.Context, req resource.Re
 	}
 
 	// Initialize provider client and make API call
-	inlineResp, httpResp, err := r.client.SamlApi.GetOrganizationSamlIdp(context.Background(), data.OrganizationId.ValueString(), data.IdpId.ValueString()).Execute()
+	_, httpResp, err := r.client.SamlApi.GetOrganizationSamlIdp(context.Background(), data.OrganizationId.ValueString(), data.IdpId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to read resource",
@@ -232,10 +223,13 @@ func (r *OrganizationsSamlIdpResource) Read(ctx context.Context, req resource.Re
 	}
 
 	data.Id = types.StringValue("example-id")
-	data.IdpId = jsontypes.StringValue(inlineResp.GetIdpId())
-	data.ConsumerUrl = jsontypes.StringValue(inlineResp.GetConsumerUrl())
-	data.SloLogoutUrl = jsontypes.StringValue(inlineResp.GetSloLogoutUrl())
-	data.X509CertSha1Fingerprint = jsontypes.StringValue(inlineResp.GetX509certSha1Fingerprint())
+	if err = json.NewDecoder(httpResp.Body).Decode(&data); err != nil {
+		resp.Diagnostics.AddError(
+			"Unexpected JSON decode issue:",
+			fmt.Sprintf("%s", err),
+		)
+		return
+	}
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -269,16 +263,6 @@ func (r *OrganizationsSamlIdpResource) Update(ctx context.Context, req resource.
 		return
 	}
 
-	// unmarshal http body into inlineResp object
-	var inlineResp *openApiClient.InlineResponse20095
-	body, _ := io.ReadAll(httpResp.Body)
-	if err = json.Unmarshal(body, &inlineResp); err != nil {
-		resp.Diagnostics.AddError(
-			"Failed to unmarshal JSON into typed response",
-			fmt.Sprintf("%v", err.Error()),
-		)
-	}
-
 	// collect diagnostics
 	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 
@@ -297,11 +281,14 @@ func (r *OrganizationsSamlIdpResource) Update(ctx context.Context, req resource.
 		resp.Diagnostics.Append()
 	}
 
+	if err = json.NewDecoder(httpResp.Body).Decode(&data); err != nil {
+		resp.Diagnostics.AddError(
+			"Unexpected JSON decode issue:",
+			fmt.Sprintf("%s", err),
+		)
+		return
+	}
 	data.Id = types.StringValue("example-id")
-	data.IdpId = jsontypes.StringValue(inlineResp.GetIdpId())
-	data.ConsumerUrl = jsontypes.StringValue(inlineResp.GetConsumerUrl())
-	data.SloLogoutUrl = jsontypes.StringValue(inlineResp.GetSloLogoutUrl())
-	data.X509CertSha1Fingerprint = jsontypes.StringValue(inlineResp.GetX509certSha1Fingerprint())
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

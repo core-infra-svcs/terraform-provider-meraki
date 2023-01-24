@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
@@ -131,7 +132,7 @@ func (d *OrganizationsDataSource) Read(ctx context.Context, req datasource.ReadR
 	}
 
 	// Initialize provider client and make API call
-	inlineResp, httpResp, err := d.client.OrganizationsApi.GetOrganizations(context.Background()).Execute()
+	_, httpResp, err := d.client.OrganizationsApi.GetOrganizations(context.Background()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to read datasource",
@@ -160,20 +161,15 @@ func (d *OrganizationsDataSource) Read(ctx context.Context, req datasource.ReadR
 	}
 
 	// save inlineResp data into Terraform state.
-	data.Id = jsontypes.StringValue("example-id")
-
-	for _, organization := range inlineResp {
-		var result OrganizationDataSourceModel
-
-		result.OrgId = jsontypes.StringValue(organization.GetId())
-		result.Name = jsontypes.StringValue(organization.GetName())
-		result.Url = jsontypes.StringValue(organization.GetUrl())
-		result.ApiEnabled = jsontypes.BoolValue(*organization.GetApi().Enabled)
-		result.LicensingModel = jsontypes.StringValue(*organization.GetLicensing().Model)
-		result.CloudRegion = jsontypes.StringValue(organization.Cloud.Region.GetName())
-
-		data.List = append(data.List, result)
+	if err = json.NewDecoder(httpResp.Body).Decode(&data.List); err != nil {
+		resp.Diagnostics.AddError(
+			"Unexpected JSON decode issue:",
+			fmt.Sprintf("%s", err),
+		)
+		return
 	}
+
+	data.Id = jsontypes.StringValue("example-id")
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

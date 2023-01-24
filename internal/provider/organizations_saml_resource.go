@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -108,7 +109,7 @@ func (r *OrganizationSamlResource) Create(ctx context.Context, req resource.Crea
 	enableOrganizationSaml.SetEnabled(data.Enabled.ValueBool())
 
 	// Initialize provider client and make API call
-	inlineResp, httpResp, err := r.client.SamlApi.UpdateOrganizationSaml(context.Background(), data.OrganizationId.ValueString()).UpdateOrganizationSaml(enableOrganizationSaml).Execute()
+	_, httpResp, err := r.client.SamlApi.UpdateOrganizationSaml(context.Background(), data.OrganizationId.ValueString()).UpdateOrganizationSaml(enableOrganizationSaml).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to create resource",
@@ -138,7 +139,13 @@ func (r *OrganizationSamlResource) Create(ctx context.Context, req resource.Crea
 
 	// save into the Terraform state.
 	data.Id = types.StringValue("example-id")
-	data.Enabled = jsontypes.BoolValue(inlineResp.GetEnabled())
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"Unexpected JSON decode issue:",
+			fmt.Sprintf("%s", err),
+		)
+		return
+	}
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -154,7 +161,7 @@ func (r *OrganizationSamlResource) Read(ctx context.Context, req resource.ReadRe
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	// Initialize provider client and make API call
-	inlineResp, httpResp, err := r.client.SamlApi.GetOrganizationSaml(context.Background(), data.OrganizationId.ValueString()).Execute()
+	_, httpResp, err := r.client.SamlApi.GetOrganizationSaml(context.Background(), data.OrganizationId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to read resource",
@@ -184,7 +191,13 @@ func (r *OrganizationSamlResource) Read(ctx context.Context, req resource.ReadRe
 
 	// save into the Terraform state.
 	data.Id = types.StringValue("example-id")
-	data.Enabled = jsontypes.BoolValue(inlineResp.GetEnabled())
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"Unexpected JSON decode issue:",
+			fmt.Sprintf("%s", err),
+		)
+		return
+	}
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -204,7 +217,7 @@ func (r *OrganizationSamlResource) Update(ctx context.Context, req resource.Upda
 	enableOrganizationSaml.SetEnabled(data.Enabled.ValueBool())
 
 	// Initialize provider client and make API call
-	inlineResp, httpResp, err := r.client.SamlApi.UpdateOrganizationSaml(context.Background(), data.OrganizationId.ValueString()).UpdateOrganizationSaml(enableOrganizationSaml).Execute()
+	_, httpResp, err := r.client.SamlApi.UpdateOrganizationSaml(context.Background(), data.OrganizationId.ValueString()).UpdateOrganizationSaml(enableOrganizationSaml).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to update resource",
@@ -234,7 +247,13 @@ func (r *OrganizationSamlResource) Update(ctx context.Context, req resource.Upda
 
 	// save into the Terraform state.
 	data.Id = types.StringValue("example-id")
-	data.Enabled = jsontypes.BoolValue(inlineResp.GetEnabled())
+	if err = json.NewDecoder(httpResp.Body).Decode(&data); err != nil {
+		resp.Diagnostics.AddError(
+			"Unexpected JSON decode issue:",
+			fmt.Sprintf("%s", err),
+		)
+		return
+	}
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

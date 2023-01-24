@@ -2,15 +2,14 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
-
 	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
@@ -125,12 +124,13 @@ func (d *AdministeredIdentitiesMeDataSource) Read(ctx context.Context, req datas
 		return
 	}
 
-	inlineResp, httpResp, err := d.client.AdministeredApi.GetAdministeredIdentitiesMe(context.Background()).Execute()
+	_, httpResp, err := d.client.AdministeredApi.GetAdministeredIdentitiesMe(context.Background()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to read datasource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// Check for API success inlineResp code
@@ -142,25 +142,16 @@ func (d *AdministeredIdentitiesMeDataSource) Read(ctx context.Context, req datas
 	}
 
 	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
-	}
-
+	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
-	} else {
-		resp.Diagnostics.Append()
 	}
 
+	if err = json.NewDecoder(httpResp.Body).Decode(&data); err != nil {
+		return
+	}
 	data.Id = types.StringValue("example-id")
-	data.Name = jsontypes.StringValue(inlineResp.GetName())
-	data.Email = jsontypes.StringValue(inlineResp.GetEmail())
-	data.LastUsedDashboardAt = jsontypes.StringValue(inlineResp.GetLastUsedDashboardAt().Format(time.RFC3339))
-	data.AuthenticationMode = jsontypes.StringValue(inlineResp.Authentication.GetMode())
-	data.AuthenticationApiKeyCreated = jsontypes.BoolValue(inlineResp.Authentication.Api.Key.GetCreated())
-	data.AuthenticationTwofactor = jsontypes.BoolValue(inlineResp.Authentication.TwoFactor.GetEnabled())
-	data.AuthenticationSaml = jsontypes.BoolValue(inlineResp.Authentication.Saml.GetEnabled())
 
 	// Write logs using the tflog package
 	tflog.Trace(ctx, "read a data source")

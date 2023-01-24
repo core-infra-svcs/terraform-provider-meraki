@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -230,7 +231,7 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	// Initialize provider client and make API call
-	inlineResp, httpResp, err := r.client.OrganizationsApi.CreateOrganizationNetwork(ctx, data.OrganizationId.ValueString()).CreateOrganizationNetwork(*createOrganizationNetwork).Execute()
+	_, httpResp, err := r.client.OrganizationsApi.CreateOrganizationNetwork(ctx, data.OrganizationId.ValueString()).CreateOrganizationNetwork(*createOrganizationNetwork).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to create resource",
@@ -259,27 +260,14 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	// save inlineResp data into Terraform state.
+	if err = json.NewDecoder(httpResp.Body).Decode(&data); err != nil {
+		resp.Diagnostics.AddError(
+			"Unexpected JSON decode issue:",
+			fmt.Sprintf("%s", err),
+		)
+		return
+	}
 	data.Id = types.StringValue("example-id")
-	data.NetworkId = jsontypes.StringValue(inlineResp.GetId())
-	data.Name = jsontypes.StringValue(inlineResp.GetName())
-	data.Timezone = jsontypes.StringValue(inlineResp.GetTimeZone())
-	data.EnrollmentString = jsontypes.StringValue(inlineResp.GetEnrollmentString())
-	data.Url = jsontypes.StringValue(inlineResp.GetUrl())
-	data.Notes = jsontypes.StringValue(inlineResp.GetNotes())
-	data.IsBoundToConfigTemplate = jsontypes.BoolValue(inlineResp.GetIsBoundToConfigTemplate())
-
-	// product types attribute
-	if inlineResp.ProductTypes != nil {
-		var pt []jsontypes.String
-		for _, productTypeResp := range inlineResp.ProductTypes {
-			pt = append(pt, jsontypes.StringValue(productTypeResp))
-		}
-		data.ProductTypes = jsontypes.SetValue(pt)
-	}
-
-	if data.CopyFromNetworkId.IsUnknown() {
-		data.CopyFromNetworkId = jsontypes.StringNull()
-	}
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -295,7 +283,7 @@ func (r *NetworkResource) Read(ctx context.Context, req resource.ReadRequest, re
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	// Initialize provider client and make API call
-	inlineResp, httpResp, err := r.client.NetworksApi.GetNetwork(context.Background(), data.NetworkId.ValueString()).Execute()
+	_, httpResp, err := r.client.NetworksApi.GetNetwork(context.Background(), data.NetworkId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to read resource",
@@ -325,26 +313,12 @@ func (r *NetworkResource) Read(ctx context.Context, req resource.ReadRequest, re
 
 	// save inlineResp data into Terraform state.
 	data.Id = types.StringValue("example-id")
-	data.NetworkId = jsontypes.StringValue(inlineResp.GetId())
-	data.OrganizationId = jsontypes.StringValue(inlineResp.GetOrganizationId())
-	data.Name = jsontypes.StringValue(inlineResp.GetName())
-	data.Timezone = jsontypes.StringValue(inlineResp.GetTimeZone())
-	data.EnrollmentString = jsontypes.StringValue(inlineResp.GetEnrollmentString())
-	data.Url = jsontypes.StringValue(inlineResp.GetUrl())
-	data.Notes = jsontypes.StringValue(inlineResp.GetNotes())
-	data.IsBoundToConfigTemplate = jsontypes.BoolValue(inlineResp.GetIsBoundToConfigTemplate())
-
-	// product types attribute
-	if inlineResp.ProductTypes != nil {
-		var pt []jsontypes.String
-		for _, productTypeResp := range inlineResp.ProductTypes {
-			pt = append(pt, jsontypes.StringValue(productTypeResp))
-		}
-		data.ProductTypes = jsontypes.SetValue(pt)
-	}
-
-	if data.CopyFromNetworkId.IsUnknown() {
-		data.CopyFromNetworkId = jsontypes.StringNull()
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"Unexpected JSON decode issue:",
+			fmt.Sprintf("%s", err),
+		)
+		return
 	}
 
 	// Save updated data into Terraform state
@@ -387,7 +361,7 @@ func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest
 	updateNetwork.SetNotes(data.Notes.ValueString())
 
 	// Initialize provider client and make API call
-	inlineResp, httpResp, err := r.client.NetworksApi.UpdateNetwork(context.Background(),
+	_, httpResp, err := r.client.NetworksApi.UpdateNetwork(context.Background(),
 		data.NetworkId.ValueString()).UpdateNetwork(*updateNetwork).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -418,28 +392,9 @@ func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest
 
 	// save inlineResp data into Terraform state.
 	data.Id = types.StringValue("example-id")
-	data.NetworkId = jsontypes.StringValue(inlineResp.GetId())
-	data.OrganizationId = jsontypes.StringValue(inlineResp.GetOrganizationId())
-	data.Name = jsontypes.StringValue(inlineResp.GetName())
 
-	// product types attribute
-	if inlineResp.ProductTypes != nil {
-		var pt []jsontypes.String
-		for _, productTypeResp := range inlineResp.ProductTypes {
-			pt = append(pt, jsontypes.StringValue(productTypeResp))
-		}
-		data.ProductTypes = jsontypes.SetValue(pt)
-	}
-
-	data.Timezone = jsontypes.StringValue(inlineResp.GetTimeZone())
-
-	data.EnrollmentString = jsontypes.StringValue(inlineResp.GetEnrollmentString())
-	data.Url = jsontypes.StringValue(inlineResp.GetUrl())
-	data.Notes = jsontypes.StringValue(inlineResp.GetNotes())
-	data.IsBoundToConfigTemplate = jsontypes.BoolValue(inlineResp.GetIsBoundToConfigTemplate())
-
-	if data.CopyFromNetworkId.IsUnknown() {
-		data.CopyFromNetworkId = jsontypes.StringNull()
+	if err = json.NewDecoder(httpResp.Body).Decode(&data); err != nil {
+		return
 	}
 
 	// Save updated data into Terraform state

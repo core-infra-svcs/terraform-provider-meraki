@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -163,7 +164,7 @@ func (r *OrganizationResource) Create(ctx context.Context, req resource.CreateRe
 	createOrganization.SetManagement(organizationsManagement)
 
 	// Initialize provider client and make API call
-	inlineResp, httpResp, err := r.client.OrganizationsApi.CreateOrganization(context.Background()).CreateOrganization(createOrganization).Execute()
+	_, httpResp, err := r.client.OrganizationsApi.CreateOrganization(context.Background()).CreateOrganization(createOrganization).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to create resource",
@@ -192,36 +193,14 @@ func (r *OrganizationResource) Create(ctx context.Context, req resource.CreateRe
 	}
 
 	// save into the Terraform state.
-	data.Id = types.StringValue("example-id")
-	data.OrgId = jsontypes.StringValue(inlineResp.GetId())
-	data.Name = jsontypes.StringValue(inlineResp.GetName())
-	data.CloudRegionName = jsontypes.StringValue(inlineResp.Cloud.Region.GetName())
-	data.Url = jsontypes.StringValue(inlineResp.GetUrl())
-	data.ApiEnabled = jsontypes.BoolValue(inlineResp.Api.GetEnabled())
-	data.LicensingModel = jsontypes.StringValue(inlineResp.Licensing.GetModel())
-
-	// Management Details Response
-	if len(inlineResp.Management.Details) > 0 {
-		responseDetails := inlineResp.Management.GetDetails()
-
-		// name attribute
-		if managementDetailName := responseDetails[0].GetName(); responseDetails[0].HasName() {
-			data.ManagementDetailsName = jsontypes.StringValue(managementDetailName)
-		} else {
-			data.ManagementDetailsName = jsontypes.StringNull()
-		}
-
-		// Value attribute
-		if managementDetailValue := responseDetails[0].GetValue(); responseDetails[0].HasValue() {
-			data.ManagementDetailsValue = jsontypes.StringValue(managementDetailValue)
-		} else {
-			data.ManagementDetailsValue = jsontypes.StringNull()
-		}
-
-	} else {
-		data.ManagementDetailsName = jsontypes.StringNull()
-		data.ManagementDetailsValue = jsontypes.StringNull()
+	if err = json.NewDecoder(httpResp.Body).Decode(&data); err != nil {
+		resp.Diagnostics.AddError(
+			"Unexpected JSON decode issue:",
+			fmt.Sprintf("%s", err),
+		)
+		return
 	}
+	data.Id = types.StringValue("example-id")
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -237,7 +216,7 @@ func (r *OrganizationResource) Read(ctx context.Context, req resource.ReadReques
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	// Initialize provider client and make API call
-	inlineResp, httpResp, err := r.client.OrganizationsApi.GetOrganization(context.Background(), data.OrgId.ValueString()).Execute()
+	_, httpResp, err := r.client.OrganizationsApi.GetOrganization(context.Background(), data.OrgId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to read resource",
@@ -266,35 +245,14 @@ func (r *OrganizationResource) Read(ctx context.Context, req resource.ReadReques
 	}
 
 	// save inlineResp data into Terraform state.
-	data.Id = types.StringValue("example-id")
-	data.OrgId = jsontypes.StringValue(inlineResp.GetId())
-	data.Name = jsontypes.StringValue(inlineResp.GetName())
-	data.CloudRegionName = jsontypes.StringValue(inlineResp.Cloud.Region.GetName())
-	data.Url = jsontypes.StringValue(inlineResp.GetUrl())
-	data.ApiEnabled = jsontypes.BoolValue(inlineResp.Api.GetEnabled())
-	data.LicensingModel = jsontypes.StringValue(inlineResp.Licensing.GetModel())
-
-	// Management Details Response
-	if len(inlineResp.Management.Details) > 0 {
-		responseDetails := inlineResp.Management.GetDetails()
-
-		// name attribute
-		if managementDetailName := responseDetails[0].GetName(); responseDetails[0].HasName() {
-			data.ManagementDetailsName = jsontypes.StringValue(managementDetailName)
-		} else {
-			data.ManagementDetailsName = jsontypes.StringNull()
-		}
-
-		// Value attribute
-		if managementDetailValue := responseDetails[0].GetValue(); responseDetails[0].HasValue() {
-			data.ManagementDetailsValue = jsontypes.StringValue(managementDetailValue)
-		} else {
-			data.ManagementDetailsValue = jsontypes.StringNull()
-		}
-	} else {
-		data.ManagementDetailsName = jsontypes.StringNull()
-		data.ManagementDetailsValue = jsontypes.StringNull()
+	if err = json.NewDecoder(httpResp.Body).Decode(&data); err != nil {
+		resp.Diagnostics.AddError(
+			"Unexpected JSON decode issue:",
+			fmt.Sprintf("%s", err),
+		)
+		return
 	}
+	data.Id = types.StringValue("example-id")
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -330,7 +288,7 @@ func (r *OrganizationResource) Update(ctx context.Context, req resource.UpdateRe
 	updateOrganization.SetManagement(organizationsManagement)
 
 	// Initialize provider client and make API call
-	inlineResp, httpResp, err := r.client.OrganizationsApi.UpdateOrganization(context.Background(),
+	_, httpResp, err := r.client.OrganizationsApi.UpdateOrganization(context.Background(),
 		data.OrgId.ValueString()).UpdateOrganization(*updateOrganization).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -360,35 +318,14 @@ func (r *OrganizationResource) Update(ctx context.Context, req resource.UpdateRe
 	}
 
 	// save inlineResp data into Terraform state
-	data.Id = types.StringValue("example-id")
-	data.OrgId = jsontypes.StringValue(inlineResp.GetId())
-	data.Name = jsontypes.StringValue(inlineResp.GetName())
-	data.CloudRegionName = jsontypes.StringValue(inlineResp.Cloud.Region.GetName())
-	data.Url = jsontypes.StringValue(inlineResp.GetUrl())
-	data.ApiEnabled = jsontypes.BoolValue(inlineResp.Api.GetEnabled())
-	data.LicensingModel = jsontypes.StringValue(inlineResp.Licensing.GetModel())
-
-	// Management Details Response
-	if len(inlineResp.Management.Details) > 0 {
-		responseDetails := inlineResp.Management.GetDetails()
-
-		// name attribute
-		if managementDetailName := responseDetails[0].GetName(); responseDetails[0].HasName() {
-			data.ManagementDetailsName = jsontypes.StringValue(managementDetailName)
-		} else {
-			data.ManagementDetailsName = jsontypes.StringNull()
-		}
-
-		// Value attribute
-		if managementDetailValue := responseDetails[0].GetValue(); responseDetails[0].HasValue() {
-			data.ManagementDetailsValue = jsontypes.StringValue(managementDetailValue)
-		} else {
-			data.ManagementDetailsValue = jsontypes.StringNull()
-		}
-	} else {
-		data.ManagementDetailsName = jsontypes.StringNull()
-		data.ManagementDetailsValue = jsontypes.StringNull()
+	if err = json.NewDecoder(httpResp.Body).Decode(&data); err != nil {
+		resp.Diagnostics.AddError(
+			"Unexpected JSON decode issue:",
+			fmt.Sprintf("%s", err),
+		)
+		return
 	}
+	data.Id = types.StringValue("example-id")
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

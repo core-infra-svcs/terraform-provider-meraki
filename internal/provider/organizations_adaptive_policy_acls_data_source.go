@@ -173,7 +173,7 @@ func (d *OrganizationsAdaptivePolicyAclsDataSource) Read(ctx context.Context, re
 		return
 	}
 
-	inlineResp, httpResp, err := d.client.OrganizationsApi.GetOrganizationAdaptivePolicyAcls(context.Background(), data.OrgId.ValueString()).Execute()
+	_, httpResp, err := d.client.OrganizationsApi.GetOrganizationAdaptivePolicyAcls(context.Background(), data.OrgId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to read datasource",
@@ -203,32 +203,11 @@ func (d *OrganizationsAdaptivePolicyAclsDataSource) Read(ctx context.Context, re
 	// Save data into Terraform state
 	data.Id = jsontypes.StringValue("example-id")
 
-	// adaptivePolicies attribute
-	if adaptivePolicies := inlineResp; adaptivePolicies != nil {
-
-		for _, inlineRespValue := range adaptivePolicies {
-			var adaptivePolicy OrganizationAdaptivePolicyAclsDataSourceModel
-
-			// TODO - Workaround until json.RawMessage is implemented in HTTP client
-			b, err := json.Marshal(inlineRespValue)
-			if err != nil {
-				resp.Diagnostics.AddError(
-					"Failed to marshal API response",
-					fmt.Sprintf("%v", err),
-				)
-			}
-			if err := json.Unmarshal(b, &adaptivePolicy); err != nil {
-				resp.Diagnostics.AddError(
-					"Failed to unmarshal API response",
-					fmt.Sprintf("Unmarshal error%v", err),
-				)
-			}
-
-			// append adaptivePolicy to list of adaptivePolicies
-			data.List = append(data.List, adaptivePolicy)
-		}
-
+	var adaptivePolicies []OrganizationAdaptivePolicyAclsDataSourceModel
+	if err := json.NewDecoder(httpResp.Body).Decode(&adaptivePolicies); err != nil {
+		return
 	}
+	data.List = adaptivePolicies
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
