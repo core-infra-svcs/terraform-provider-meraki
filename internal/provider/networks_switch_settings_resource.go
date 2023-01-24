@@ -7,9 +7,13 @@ import (
 
 	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -51,12 +55,17 @@ func (r *NetworksSwitchSettingsResource) Schema(ctx context.Context, req resourc
 
 			"id": schema.StringAttribute{
 				MarkdownDescription: "Example identifier",
-				Optional:            true,
 				Computed:            true,
 			},
 			"network_id": schema.StringAttribute{
 				MarkdownDescription: "Network Id",
 				Required:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(8, 31),
+				},
 			},
 			"vlan": schema.Float64Attribute{
 				MarkdownDescription: "Management VLAN",
@@ -64,18 +73,16 @@ func (r *NetworksSwitchSettingsResource) Schema(ctx context.Context, req resourc
 				Computed:            true,
 			},
 			"use_combined_power": schema.BoolAttribute{
-				MarkdownDescription: "The use Combined Power as the default behavior of secondary power supplies on supported devices.",
+				MarkdownDescription: "The use combined Power as the default behavior of secondary power supplies on supported devices.",
 				Optional:            true,
 				Computed:            true,
 			},
 			"power_exceptions": schema.SetNestedAttribute{
-				Description:         "Exceptions on a per switch basis to &quot;useCombinedPower&quot;",
-				MarkdownDescription: "Exceptions on a per switch basis to &quot;useCombinedPower&quot;",
-				Optional:            true,
+				Description: "Exceptions on a per switch basis to &quot;useCombinedPower&quot;",
+				Optional:    true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"serial": schema.StringAttribute{
-
 							MarkdownDescription: "Serial number of the switch",
 							Computed:            true,
 							Optional:            true,
@@ -118,11 +125,6 @@ func (r *NetworksSwitchSettingsResource) Create(ctx context.Context, req resourc
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
-	if len(data.NetworkId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing NetworkId", fmt.Sprintf("Value: %s", data.NetworkId.ValueString()))
-		return
-	}
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -149,6 +151,11 @@ func (r *NetworksSwitchSettingsResource) Create(ctx context.Context, req resourc
 		)
 	}
 
+	// collect diagnostics
+	if httpResp != nil {
+		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+	}
+
 	// Check for API success response code
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
@@ -156,9 +163,6 @@ func (r *NetworksSwitchSettingsResource) Create(ctx context.Context, req resourc
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
 	}
-
-	// collect diagnostics
-	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
@@ -181,11 +185,6 @@ func (r *NetworksSwitchSettingsResource) Read(ctx context.Context, req resource.
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-	if len(data.NetworkId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing NetworkId", fmt.Sprintf("Value: %s", data.NetworkId.ValueString()))
-		return
-	}
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -198,6 +197,11 @@ func (r *NetworksSwitchSettingsResource) Read(ctx context.Context, req resource.
 		)
 	}
 
+	// collect diagnostics
+	if httpResp != nil {
+		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+	}
+
 	// Check for API success response code
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
@@ -206,12 +210,11 @@ func (r *NetworksSwitchSettingsResource) Read(ctx context.Context, req resource.
 		)
 	}
 
-	// collect diagnostics
-	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
-
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
+	} else {
+		resp.Diagnostics.Append()
 	}
 
 	// save into the Terraform state.
@@ -226,18 +229,9 @@ func (r *NetworksSwitchSettingsResource) Read(ctx context.Context, req resource.
 func (r *NetworksSwitchSettingsResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 
 	var data *NetworksSwitchSettingsResourceModel
-	var stateData *NetworksSwitchSettingsResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-
-	// Read Terraform state data into the model
-	resp.Diagnostics.Append(req.State.Get(ctx, &stateData)...)
-
-	if len(data.NetworkId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing NetworkId", fmt.Sprintf("Value: %s", data.NetworkId.ValueString()))
-		return
-	}
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -265,6 +259,11 @@ func (r *NetworksSwitchSettingsResource) Update(ctx context.Context, req resourc
 		)
 	}
 
+	// collect diagnostics
+	if httpResp != nil {
+		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+	}
+
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
@@ -272,15 +271,13 @@ func (r *NetworksSwitchSettingsResource) Update(ctx context.Context, req resourc
 		)
 	}
 
-	// collect diagnostics
-	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
-
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
 		return
 	}
 
+	// Save data into Terraform state
 	extractHttpResponseNetworkSwitchSettingsResource(ctx, inlineResp, data)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
