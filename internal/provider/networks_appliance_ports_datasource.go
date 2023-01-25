@@ -103,6 +103,10 @@ func (d *NetworksAppliancePortsDataSource) Schema(ctx context.Context, req datas
 							MarkdownDescription: "The type of the port: 'access' or 'trunk'.",
 							Optional:            true,
 							Computed:            true,
+							Validators: []validator.String{
+								stringvalidator.OneOf([]string{"access", "trunk"}...),
+								stringvalidator.LengthAtLeast(4),
+							},
 						},
 						"vlan": schema.Int64Attribute{
 							MarkdownDescription: "Native VLAN when the port is in Trunk mode. Access VLAN when the port is in Access mode.",
@@ -141,11 +145,6 @@ func (d *NetworksAppliancePortsDataSource) Read(ctx context.Context, req datasou
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
-	if len(data.NetworkId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing NetworkId", fmt.Sprintf("Value: %s", data.NetworkId.ValueString()))
-		return
-	}
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -158,17 +157,17 @@ func (d *NetworksAppliancePortsDataSource) Read(ctx context.Context, req datasou
 		)
 	}
 
+	// collect diagnostics
+	if httpResp != nil {
+		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+	}
+
 	// Check for API success inlineResp code
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 	}
 
 	// Check for errors after diagnostics collected
