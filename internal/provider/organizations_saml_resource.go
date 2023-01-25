@@ -132,8 +132,6 @@ func (r *OrganizationSamlResource) Create(ctx context.Context, req resource.Crea
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
-	} else {
-		resp.Diagnostics.Append()
 	}
 
 	// save into the Terraform state.
@@ -178,8 +176,6 @@ func (r *OrganizationSamlResource) Read(ctx context.Context, req resource.ReadRe
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
-	} else {
-		resp.Diagnostics.Append()
 	}
 
 	// save into the Terraform state.
@@ -228,8 +224,6 @@ func (r *OrganizationSamlResource) Update(ctx context.Context, req resource.Upda
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
-	} else {
-		resp.Diagnostics.Append()
 	}
 
 	// save into the Terraform state.

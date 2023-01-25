@@ -187,8 +187,6 @@ func (r *OrganizationResource) Create(ctx context.Context, req resource.CreateRe
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
-	} else {
-		resp.Diagnostics.Append()
 	}
 
 	// save into the Terraform state.
@@ -261,8 +259,6 @@ func (r *OrganizationResource) Read(ctx context.Context, req resource.ReadReques
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
-	} else {
-		resp.Diagnostics.Append()
 	}
 
 	// save inlineResp data into Terraform state.
@@ -355,8 +351,6 @@ func (r *OrganizationResource) Update(ctx context.Context, req resource.UpdateRe
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
-	} else {
-		resp.Diagnostics.Append()
 	}
 
 	// save inlineResp data into Terraform state
@@ -428,8 +422,6 @@ func (r *OrganizationResource) Delete(ctx context.Context, req resource.DeleteRe
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
-	} else {
-		resp.Diagnostics.Append()
 	}
 
 	// Remove from state

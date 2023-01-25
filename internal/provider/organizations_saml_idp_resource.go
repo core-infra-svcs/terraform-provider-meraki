@@ -174,8 +174,6 @@ func (r *OrganizationsSamlIdpResource) Create(ctx context.Context, req resource.
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
-	} else {
-		resp.Diagnostics.Append()
 	}
 
 	// save into the Terraform state.
@@ -227,8 +225,6 @@ func (r *OrganizationsSamlIdpResource) Read(ctx context.Context, req resource.Re
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
-	} else {
-		resp.Diagnostics.Append()
 	}
 
 	data.Id = types.StringValue("example-id")
@@ -293,8 +289,6 @@ func (r *OrganizationsSamlIdpResource) Update(ctx context.Context, req resource.
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
-	} else {
-		resp.Diagnostics.Append()
 	}
 
 	data.Id = types.StringValue("example-id")
@@ -341,8 +335,6 @@ func (r *OrganizationsSamlIdpResource) Delete(ctx context.Context, req resource.
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
-	} else {
-		resp.Diagnostics.Append()
 	}
 
 	// Remove from state

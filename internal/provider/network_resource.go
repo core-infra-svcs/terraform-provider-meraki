@@ -254,8 +254,6 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
-	} else {
-		resp.Diagnostics.Append()
 	}
 
 	// save inlineResp data into Terraform state.
@@ -319,8 +317,6 @@ func (r *NetworkResource) Read(ctx context.Context, req resource.ReadRequest, re
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
-	} else {
-		resp.Diagnostics.Append()
 	}
 
 	// save inlineResp data into Terraform state.
@@ -412,8 +408,6 @@ func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
-	} else {
-		resp.Diagnostics.Append()
 	}
 
 	// save inlineResp data into Terraform state.
@@ -484,8 +478,6 @@ func (r *NetworkResource) Delete(ctx context.Context, req resource.DeleteRequest
 			// Check for errors after diagnostics collected
 			if resp.Diagnostics.HasError() {
 				return
-			} else {
-				resp.Diagnostics.Append()
 			}
 
 			deletedFromMerakiPortal = true

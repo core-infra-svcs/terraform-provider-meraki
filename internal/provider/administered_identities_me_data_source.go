@@ -149,8 +149,6 @@ func (d *AdministeredIdentitiesMeDataSource) Read(ctx context.Context, req datas
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
-	} else {
-		resp.Diagnostics.Append()
 	}
 
 	data.Id = types.StringValue("example-id")

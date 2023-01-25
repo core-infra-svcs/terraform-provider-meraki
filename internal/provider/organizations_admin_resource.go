@@ -336,8 +336,6 @@ func (r *OrganizationsAdminResource) Read(ctx context.Context, req resource.Read
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
-	} else {
-		resp.Diagnostics.Append()
 	}
 
 	// There is no single GET ADMIN endpoint, so we must GET a list of all admins and search by adminId.
@@ -460,8 +458,6 @@ func (r *OrganizationsAdminResource) Delete(ctx context.Context, req resource.De
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
-	} else {
-		resp.Diagnostics.Append()
 	}
 
 	resp.State.RemoveResource(ctx)
