@@ -139,8 +139,16 @@ func (r *OrganizationsSamlIdpResource) Create(ctx context.Context, req resource.
 
 	// Initialize provider client and make API call
 	_, httpResp, err := r.client.SamlApi.CreateOrganizationSamlIdp(context.Background(), data.OrganizationId.ValueString()).CreateOrganizationSamlIdp(createOrganizationsSamlIdp).Execute()
+	//nolint:staticcheck
 	if err != nil {
 		// BUG - HTTP Client is unable to unmarshal data into typed response []client.InlineResponse20095, returns empty
+	}
+	if httpResp == nil {
+		resp.Diagnostics.AddError(
+			"Failed to get http response",
+			fmt.Sprintf("%v", err.Error()),
+		)
+		return
 	}
 
 	// unmarshal http body into inlineResp object
@@ -151,12 +159,11 @@ func (r *OrganizationsSamlIdpResource) Create(ctx context.Context, req resource.
 			"Failed to unmarshal JSON into typed response",
 			fmt.Sprintf("%v", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
-	}
+	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 
 	// Check for API success response code
 	if httpResp.StatusCode != 201 {
@@ -169,8 +176,6 @@ func (r *OrganizationsSamlIdpResource) Create(ctx context.Context, req resource.
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
-	} else {
-		resp.Diagnostics.Append()
 	}
 
 	// save into the Terraform state.
@@ -204,6 +209,7 @@ func (r *OrganizationsSamlIdpResource) Read(ctx context.Context, req resource.Re
 			"Failed to read resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
@@ -222,8 +228,6 @@ func (r *OrganizationsSamlIdpResource) Read(ctx context.Context, req resource.Re
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
-	} else {
-		resp.Diagnostics.Append()
 	}
 
 	data.Id = types.StringValue("example-id")
@@ -253,8 +257,17 @@ func (r *OrganizationsSamlIdpResource) Update(ctx context.Context, req resource.
 	// Initialize provider client and make API call
 	_, httpResp, err := r.client.SamlApi.UpdateOrganizationSamlIdp(context.Background(),
 		data.OrganizationId.ValueString(), data.IdpId.ValueString()).UpdateOrganizationSamlIdp(*updateOrganizationsSamlIdp).Execute()
+
+	//nolint:staticcheck
 	if err != nil {
 		// BUG - HTTP Client is unable to unmarshal data into typed response []client.InlineResponse20095, returns empty
+	}
+	if httpResp == nil {
+		resp.Diagnostics.AddError(
+			"Failed to get http response",
+			fmt.Sprintf("%v", err.Error()),
+		)
+		return
 	}
 
 	// unmarshal http body into inlineResp object
@@ -265,12 +278,11 @@ func (r *OrganizationsSamlIdpResource) Update(ctx context.Context, req resource.
 			"Failed to unmarshal JSON into typed response",
 			fmt.Sprintf("%v", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
-	}
+	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 
 	// Check for API success response code
 	if httpResp.StatusCode != 200 {
@@ -283,8 +295,6 @@ func (r *OrganizationsSamlIdpResource) Update(ctx context.Context, req resource.
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
-	} else {
-		resp.Diagnostics.Append()
 	}
 
 	data.Id = types.StringValue("example-id")
@@ -313,6 +323,7 @@ func (r *OrganizationsSamlIdpResource) Delete(ctx context.Context, req resource.
 			"Failed to delete resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
@@ -331,8 +342,6 @@ func (r *OrganizationsSamlIdpResource) Delete(ctx context.Context, req resource.
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
-	} else {
-		resp.Diagnostics.Append()
 	}
 
 	// Remove from state

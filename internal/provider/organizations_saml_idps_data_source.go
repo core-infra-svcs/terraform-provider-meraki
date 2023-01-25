@@ -131,6 +131,7 @@ func (d *OrganizationsSamlIdpsDataSource) Read(ctx context.Context, req datasour
 			"Failed to read datasource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// Check for API success inlineResp code
@@ -149,8 +150,6 @@ func (d *OrganizationsSamlIdpsDataSource) Read(ctx context.Context, req datasour
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
-	} else {
-		resp.Diagnostics.Append()
 	}
 
 	// save inlineResp data into Terraform state.

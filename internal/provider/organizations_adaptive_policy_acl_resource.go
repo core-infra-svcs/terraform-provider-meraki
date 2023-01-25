@@ -221,12 +221,11 @@ func (r *OrganizationsAdaptivePolicyAclResource) Create(ctx context.Context, req
 			"Failed to create resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
-	}
+	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 
 	// Check for API success response code
 	if httpResp.StatusCode != 201 {
@@ -234,6 +233,7 @@ func (r *OrganizationsAdaptivePolicyAclResource) Create(ctx context.Context, req
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
+		return
 	}
 
 	// Check for errors after diagnostics collected
@@ -266,12 +266,11 @@ func (r *OrganizationsAdaptivePolicyAclResource) Read(ctx context.Context, req r
 			"Failed to read resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
-	}
+	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 
 	// Check for API success inlineResp code
 	if httpResp.StatusCode != 200 {
@@ -279,6 +278,7 @@ func (r *OrganizationsAdaptivePolicyAclResource) Read(ctx context.Context, req r
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
+		return
 	}
 
 	// Check for errors after diagnostics collected
@@ -333,12 +333,11 @@ func (r *OrganizationsAdaptivePolicyAclResource) Update(ctx context.Context, req
 			"Failed to update resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
-	}
+	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 
 	// Check for API success response code
 	if httpResp.StatusCode != 200 {
@@ -346,6 +345,7 @@ func (r *OrganizationsAdaptivePolicyAclResource) Update(ctx context.Context, req
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
+		return
 	}
 
 	// Check for errors after diagnostics collected
@@ -378,6 +378,7 @@ func (r *OrganizationsAdaptivePolicyAclResource) Delete(ctx context.Context, req
 			"Failed to delete resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
@@ -391,6 +392,7 @@ func (r *OrganizationsAdaptivePolicyAclResource) Delete(ctx context.Context, req
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
+		return
 	}
 
 	// Check for errors after diagnostics collected
@@ -410,12 +412,14 @@ func extractHttpResponseOrganizationAdaptivePolicyAclResource(ctx context.Contex
 			"Failed to marshal API response",
 			fmt.Sprintf("%v", err),
 		)
+		return nil
 	}
 	if err := json.Unmarshal([]byte(b), &data); err != nil {
 		diags.AddError(
 			"Failed to unmarshal API response",
 			fmt.Sprintf("Unmarshal error%v", err),
 		)
+		return nil
 	}
 
 	data.Id = types.StringValue("example-id")

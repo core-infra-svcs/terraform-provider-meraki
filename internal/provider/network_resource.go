@@ -236,6 +236,7 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 			"Failed to create resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
@@ -249,13 +250,12 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
+		return
 	}
 
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
-	} else {
-		resp.Diagnostics.Append()
 	}
 
 	// save inlineResp data into Terraform state.
@@ -301,6 +301,7 @@ func (r *NetworkResource) Read(ctx context.Context, req resource.ReadRequest, re
 			"Failed to read resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
@@ -314,13 +315,12 @@ func (r *NetworkResource) Read(ctx context.Context, req resource.ReadRequest, re
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
+		return
 	}
 
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
-	} else {
-		resp.Diagnostics.Append()
 	}
 
 	// save inlineResp data into Terraform state.
@@ -394,6 +394,7 @@ func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest
 			"Failed to update resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
@@ -407,13 +408,12 @@ func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
+		return
 	}
 
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
-	} else {
-		resp.Diagnostics.Append()
 	}
 
 	// save inlineResp data into Terraform state.
@@ -474,6 +474,7 @@ func (r *NetworkResource) Delete(ctx context.Context, req resource.DeleteRequest
 					"Failed to delete resource",
 					fmt.Sprintf("%v\n", err.Error()),
 				)
+				return
 			}
 
 			// collect diagnostics
@@ -484,8 +485,6 @@ func (r *NetworkResource) Delete(ctx context.Context, req resource.DeleteRequest
 			// Check for errors after diagnostics collected
 			if resp.Diagnostics.HasError() {
 				return
-			} else {
-				resp.Diagnostics.Append()
 			}
 
 			deletedFromMerakiPortal = true
@@ -505,7 +504,7 @@ func (r *NetworkResource) Delete(ctx context.Context, req resource.DeleteRequest
 	}
 
 	// Check if deleted from Meraki Portal was successful
-	if deletedFromMerakiPortal == true {
+	if deletedFromMerakiPortal {
 		resp.State.RemoveResource(ctx)
 
 		// Write logs using the tflog package

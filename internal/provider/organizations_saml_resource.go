@@ -114,6 +114,7 @@ func (r *OrganizationSamlResource) Create(ctx context.Context, req resource.Crea
 			"Failed to create resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
@@ -132,8 +133,6 @@ func (r *OrganizationSamlResource) Create(ctx context.Context, req resource.Crea
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
-	} else {
-		resp.Diagnostics.Append()
 	}
 
 	// save into the Terraform state.
@@ -160,6 +159,7 @@ func (r *OrganizationSamlResource) Read(ctx context.Context, req resource.ReadRe
 			"Failed to read resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// Check for API success response code
@@ -178,8 +178,6 @@ func (r *OrganizationSamlResource) Read(ctx context.Context, req resource.ReadRe
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
-	} else {
-		resp.Diagnostics.Append()
 	}
 
 	// save into the Terraform state.
@@ -210,6 +208,7 @@ func (r *OrganizationSamlResource) Update(ctx context.Context, req resource.Upda
 			"Failed to update resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
@@ -228,8 +227,6 @@ func (r *OrganizationSamlResource) Update(ctx context.Context, req resource.Upda
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
-	} else {
-		resp.Diagnostics.Append()
 	}
 
 	// save into the Terraform state.
