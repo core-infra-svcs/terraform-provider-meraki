@@ -212,6 +212,7 @@ func (d *OrganizationsAdminsDataSource) Read(ctx context.Context, req datasource
 			"Failed to read datasource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// Check for API success inlineResp code
@@ -249,6 +250,7 @@ func (d *OrganizationsAdminsDataSource) Read(ctx context.Context, req datasource
 					"Failed to marshal API response",
 					fmt.Sprintf("%v", err),
 				)
+				return
 			}
 
 			if err := json.Unmarshal(b, &admin); err != nil {
@@ -256,6 +258,7 @@ func (d *OrganizationsAdminsDataSource) Read(ctx context.Context, req datasource
 					"Failed to unmarshal API response",
 					fmt.Sprintf("Unmarshal error%v", err),
 				)
+				return
 			}
 
 			data.List = append(data.List, admin)

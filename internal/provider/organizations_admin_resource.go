@@ -272,6 +272,7 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 			"Failed to create resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
@@ -285,6 +286,7 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
+		return
 	}
 
 	// Check for errors after diagnostics collected
@@ -318,6 +320,7 @@ func (r *OrganizationsAdminResource) Read(ctx context.Context, req resource.Read
 			"Failed to read resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
@@ -398,6 +401,7 @@ func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.Up
 			"Failed to update resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
@@ -440,6 +444,7 @@ func (r *OrganizationsAdminResource) Delete(ctx context.Context, req resource.De
 			"Failed to delete resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
@@ -473,6 +478,7 @@ func extractHttpResponseOrganizationAdminResource(ctx context.Context, inlineRes
 			"Failed to marshal API response",
 			fmt.Sprintf("%v", err),
 		)
+		return nil
 	}
 
 	if err := json.Unmarshal(b, &data); err != nil {
@@ -480,6 +486,7 @@ func extractHttpResponseOrganizationAdminResource(ctx context.Context, inlineRes
 			"Failed to unmarshal API response",
 			fmt.Sprintf("Unmarshal error%v", err),
 		)
+		return nil
 	}
 
 	data.Id = jsontypes.StringValue("example-id")

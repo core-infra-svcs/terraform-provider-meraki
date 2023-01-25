@@ -179,6 +179,7 @@ func (d *OrganizationsAdaptivePolicyAclsDataSource) Read(ctx context.Context, re
 			"Failed to read datasource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// Check for API success inlineResp code
@@ -187,6 +188,7 @@ func (d *OrganizationsAdaptivePolicyAclsDataSource) Read(ctx context.Context, re
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
+		return
 	}
 
 	// collect diagnostics
@@ -216,12 +218,14 @@ func (d *OrganizationsAdaptivePolicyAclsDataSource) Read(ctx context.Context, re
 					"Failed to marshal API response",
 					fmt.Sprintf("%v", err),
 				)
+				return
 			}
 			if err := json.Unmarshal(b, &adaptivePolicy); err != nil {
 				resp.Diagnostics.AddError(
 					"Failed to unmarshal API response",
 					fmt.Sprintf("Unmarshal error%v", err),
 				)
+				return
 			}
 
 			// append adaptivePolicy to list of adaptivePolicies

@@ -169,6 +169,7 @@ func (r *OrganizationResource) Create(ctx context.Context, req resource.CreateRe
 			"Failed to create resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
@@ -241,6 +242,7 @@ func (r *OrganizationResource) Read(ctx context.Context, req resource.ReadReques
 			"Failed to read resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
@@ -333,6 +335,7 @@ func (r *OrganizationResource) Update(ctx context.Context, req resource.UpdateRe
 			"Failed to update resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
@@ -404,6 +407,7 @@ func (r *OrganizationResource) Delete(ctx context.Context, req resource.DeleteRe
 			"Failed to delete resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics

@@ -236,6 +236,7 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 			"Failed to create resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
@@ -249,6 +250,7 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
+		return
 	}
 
 	// Check for errors after diagnostics collected
@@ -299,6 +301,7 @@ func (r *NetworkResource) Read(ctx context.Context, req resource.ReadRequest, re
 			"Failed to read resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
@@ -312,6 +315,7 @@ func (r *NetworkResource) Read(ctx context.Context, req resource.ReadRequest, re
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
+		return
 	}
 
 	// Check for errors after diagnostics collected
@@ -390,6 +394,7 @@ func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest
 			"Failed to update resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
@@ -403,6 +408,7 @@ func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
+		return
 	}
 
 	// Check for errors after diagnostics collected
@@ -468,6 +474,7 @@ func (r *NetworkResource) Delete(ctx context.Context, req resource.DeleteRequest
 					"Failed to delete resource",
 					fmt.Sprintf("%v\n", err.Error()),
 				)
+				return
 			}
 
 			// collect diagnostics

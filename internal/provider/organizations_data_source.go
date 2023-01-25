@@ -137,6 +137,7 @@ func (d *OrganizationsDataSource) Read(ctx context.Context, req datasource.ReadR
 			"Failed to read datasource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// Check for API success inlineResp code
@@ -145,6 +146,7 @@ func (d *OrganizationsDataSource) Read(ctx context.Context, req datasource.ReadR
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
+		return
 	}
 
 	// collect diagnostics

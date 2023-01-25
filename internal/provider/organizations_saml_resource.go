@@ -114,6 +114,7 @@ func (r *OrganizationSamlResource) Create(ctx context.Context, req resource.Crea
 			"Failed to create resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
@@ -158,6 +159,7 @@ func (r *OrganizationSamlResource) Read(ctx context.Context, req resource.ReadRe
 			"Failed to read resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// Check for API success response code
@@ -206,6 +208,7 @@ func (r *OrganizationSamlResource) Update(ctx context.Context, req resource.Upda
 			"Failed to update resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics

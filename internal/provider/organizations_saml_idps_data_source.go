@@ -131,6 +131,7 @@ func (d *OrganizationsSamlIdpsDataSource) Read(ctx context.Context, req datasour
 			"Failed to read datasource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// Check for API success inlineResp code

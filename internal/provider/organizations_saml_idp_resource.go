@@ -158,6 +158,7 @@ func (r *OrganizationsSamlIdpResource) Create(ctx context.Context, req resource.
 			"Failed to unmarshal JSON into typed response",
 			fmt.Sprintf("%v", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
@@ -207,6 +208,7 @@ func (r *OrganizationsSamlIdpResource) Read(ctx context.Context, req resource.Re
 			"Failed to read resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
@@ -273,6 +275,7 @@ func (r *OrganizationsSamlIdpResource) Update(ctx context.Context, req resource.
 			"Failed to unmarshal JSON into typed response",
 			fmt.Sprintf("%v", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
@@ -317,6 +320,7 @@ func (r *OrganizationsSamlIdpResource) Delete(ctx context.Context, req resource.
 			"Failed to delete resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
