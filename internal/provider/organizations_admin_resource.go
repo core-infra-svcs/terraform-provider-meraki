@@ -266,18 +266,17 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 		createOrganizationAdmin.SetAuthenticationMethod(data.AuthenticationMethod.ValueString())
 	}
 
-	inlineResp, httpResp, err := r.client.AdminsApi.CreateOrganizationAdmin(context.Background(), data.OrgId.ValueString()).CreateOrganizationAdmin(createOrganizationAdmin).Execute()
+	_, httpResp, err := r.client.AdminsApi.CreateOrganizationAdmin(context.Background(), data.OrgId.ValueString()).CreateOrganizationAdmin(createOrganizationAdmin).Execute()
+	if httpResp != nil {
+		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+	}
+
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to create resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 		return
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 	}
 
 	// Check for API success response code
@@ -296,7 +295,13 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 	}
 
 	// Save data into Terraform state
-	extractHttpResponseOrganizationAdminResource(ctx, inlineResp, data, &resp.Diagnostics)
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -314,18 +319,17 @@ func (r *OrganizationsAdminResource) Read(ctx context.Context, req resource.Read
 		return
 	}
 
-	inlineResp, httpResp, err := r.client.AdminsApi.GetOrganizationAdmins(context.Background(), data.OrgId.ValueString()).Execute()
+	_, httpResp, err := r.client.AdminsApi.GetOrganizationAdmins(context.Background(), data.OrgId.ValueString()).Execute()
+	if httpResp != nil {
+		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+	}
+
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to read resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 		return
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 	}
 
 	// Check for API success inlineResp code
@@ -341,14 +345,21 @@ func (r *OrganizationsAdminResource) Read(ctx context.Context, req resource.Read
 		return
 	}
 
+	var admins []OrganizationsAdminResourceModel
+	if err = json.NewDecoder(httpResp.Body).Decode(&admins); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
+	}
+
 	// There is no single GET ADMIN endpoint, so we must GET a list of all admins and search by adminId.
-	for _, admin := range inlineResp {
-
+	for _, admin := range admins {
 		// Match id found in tf state
-		if adminId := admin["id"]; adminId == data.AdminId.ValueString() {
-
-			// Save data into Terraform state
-			extractHttpResponseOrganizationAdminResource(ctx, admin, data, &resp.Diagnostics)
+		if admin.AdminId.ValueString() == data.AdminId.ValueString() {
+			data = &admin
+			break
 		}
 	}
 
@@ -395,18 +406,17 @@ func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.Up
 		updateOrganizationAdmin.SetNetworks(networks)
 	}
 
-	inlineResp, httpResp, err := r.client.AdminsApi.UpdateOrganizationAdmin(context.Background(), data.OrgId.ValueString(), data.AdminId.ValueString()).UpdateOrganizationAdmin(updateOrganizationAdmin).Execute()
+	_, httpResp, err := r.client.AdminsApi.UpdateOrganizationAdmin(context.Background(), data.OrgId.ValueString(), data.AdminId.ValueString()).UpdateOrganizationAdmin(updateOrganizationAdmin).Execute()
+	if httpResp != nil {
+		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+	}
+
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to update resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 		return
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 	}
 
 	// Check for API success response code
@@ -424,7 +434,13 @@ func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.Up
 	}
 
 	// Save data into Terraform state
-	extractHttpResponseOrganizationAdminResource(ctx, inlineResp, data, &resp.Diagnostics)
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
+	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -439,17 +455,16 @@ func (r *OrganizationsAdminResource) Delete(ctx context.Context, req resource.De
 	}
 
 	httpResp, err := r.client.AdminsApi.DeleteOrganizationAdmin(context.Background(), data.OrgId.ValueString(), data.AdminId.ValueString()).Execute()
+	if httpResp != nil {
+		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+	}
+
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to delete resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 		return
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 	}
 
 	// Check for API success response code
