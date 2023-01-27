@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -28,19 +29,19 @@ type NetworksAppliancePortsDataSource struct {
 
 type NetworksAppliancePortsDataSourceListModel struct {
 	Id        types.String                            `tfsdk:"id"`
-	NetworkId types.String                            `tfsdk:"network_id"`
+	NetworkId jsontypes.String                        `tfsdk:"network_id"`
 	List      []NetworksAppliancePortsDataSourceModel `tfsdk:"list"`
 }
 
 // NetworksAppliancePortsDataSourceModel describes the data source data model.
 type NetworksAppliancePortsDataSourceModel struct {
-	Accesspolicy        types.String `tfsdk:"access_policy"`
-	Allowedvlans        types.String `tfsdk:"allowed_vlans"`
-	Dropuntaggedtraffic types.Bool   `tfsdk:"drop_untagged_traffic"`
-	Enabled             types.Bool   `tfsdk:"enabled"`
-	Number              types.Int64  `tfsdk:"number"`
-	Type                types.String `tfsdk:"type"`
-	Vlan                types.Int64  `tfsdk:"vlan"`
+	Accesspolicy        jsontypes.String `tfsdk:"access_policy" json:"access_policy"`
+	Allowedvlans        jsontypes.String `tfsdk:"allowed_vlans" json:"allowed_vlans"`
+	Dropuntaggedtraffic jsontypes.Bool   `tfsdk:"drop_untagged_traffic" json:"drop_untagged_traffic"`
+	Enabled             jsontypes.Bool   `tfsdk:"enabled" json:"enabled"`
+	Number              types.Int64      `tfsdk:"number"`
+	Type                jsontypes.String `tfsdk:"type" json:"type"`
+	Vlan                types.Int64      `tfsdk:"vlan"`
 }
 
 func (d *NetworksAppliancePortsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -62,6 +63,7 @@ func (d *NetworksAppliancePortsDataSource) Schema(ctx context.Context, req datas
 			"network_id": schema.StringAttribute{
 				MarkdownDescription: "Network Id",
 				Required:            true,
+				CustomType:          jsontypes.StringType,
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(8, 31),
 				},
@@ -77,11 +79,13 @@ func (d *NetworksAppliancePortsDataSource) Schema(ctx context.Context, req datas
 							MarkdownDescription: "The name of the policy. Only applicable to Access ports.",
 							Optional:            true,
 							Computed:            true,
+							CustomType:          jsontypes.StringType,
 						},
 						"allowed_vlans": schema.StringAttribute{
 							MarkdownDescription: "Comma-delimited list of the VLAN ID's allowed on the port, or 'all' to permit all VLAN's on the port.",
 							Optional:            true,
 							Computed:            true,
+							CustomType:          jsontypes.StringType,
 						},
 						"drop_untagged_traffic": schema.BoolAttribute{
 							MarkdownDescription: "Whether the trunk port can drop all untagged traffic.",
@@ -93,6 +97,7 @@ func (d *NetworksAppliancePortsDataSource) Schema(ctx context.Context, req datas
 							MarkdownDescription: "The status of the port",
 							Optional:            true,
 							Computed:            true,
+							CustomType:          jsontypes.BoolType,
 						},
 						"number": schema.Int64Attribute{
 							MarkdownDescription: "Number of the port",
@@ -180,13 +185,14 @@ func (d *NetworksAppliancePortsDataSource) Read(ctx context.Context, req datasou
 	data.Id = types.StringValue("example-id")
 	for _, appliance_port := range inlineResp {
 		var result NetworksAppliancePortsDataSourceModel
-		result.Accesspolicy = types.StringValue(appliance_port.GetAccessPolicy())
-		result.Allowedvlans = types.StringValue(appliance_port.GetAllowedVlans())
-		result.Dropuntaggedtraffic = types.BoolValue(appliance_port.GetDropUntaggedTraffic())
-		result.Type = types.StringValue(appliance_port.GetType())
+		result.Accesspolicy = jsontypes.StringValue(appliance_port.GetAccessPolicy())
+		result.Allowedvlans = jsontypes.StringValue(appliance_port.GetAllowedVlans())
+		result.Dropuntaggedtraffic = jsontypes.BoolValue(appliance_port.GetDropUntaggedTraffic())
+		result.Type = jsontypes.StringValue(appliance_port.GetType())
 		result.Number = types.Int64Value(int64(appliance_port.GetNumber()))
 		result.Vlan = types.Int64Value(int64(appliance_port.GetVlan()))
-		result.Enabled = types.BoolValue(appliance_port.GetEnabled())
+		result.Enabled = jsontypes.BoolValue(appliance_port.GetEnabled())
+		result.Number = types.Int64Value(int64(appliance_port.GetNumber()))
 		data.List = append(data.List, result)
 	}
 

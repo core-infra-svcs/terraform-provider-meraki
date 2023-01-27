@@ -160,7 +160,6 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		NewOrganizationsAdminResource,
 		NewOrganizationsAdaptivePolicyAclResource,
 		NewNetworkResource,
-		NewOrganizationsSnmpResource,
 	}
 }
 
