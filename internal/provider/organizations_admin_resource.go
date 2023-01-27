@@ -10,14 +10,12 @@ import (
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -262,21 +260,22 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 		createOrganizationAdmin.SetNetworks(networks)
 	}
 
-	if data.AuthenticationMethod.IsNull() != true {
+	if !data.AuthenticationMethod.IsNull() {
 		createOrganizationAdmin.SetAuthenticationMethod(data.AuthenticationMethod.ValueString())
 	}
 
-	inlineResp, httpResp, err := r.client.AdminsApi.CreateOrganizationAdmin(context.Background(), data.OrgId.ValueString()).CreateOrganizationAdmin(createOrganizationAdmin).Execute()
+	_, httpResp, err := r.client.AdminsApi.CreateOrganizationAdmin(context.Background(), data.OrgId.ValueString()).CreateOrganizationAdmin(createOrganizationAdmin).Execute()
+	// collect diagnostics
+	if httpResp != nil {
+		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+	}
+
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to create resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code
@@ -285,6 +284,7 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
+		return
 	}
 
 	// Check for errors after diagnostics collected
@@ -294,12 +294,18 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 	}
 
 	// Save data into Terraform state
-	extractHttpResponseOrganizationAdminResource(ctx, inlineResp, data, &resp.Diagnostics)
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
+	}
+
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
-	// Write logs using the tflog package
-	tflog.Trace(ctx, "create resource")
 }
 
 func (r *OrganizationsAdminResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -312,12 +318,13 @@ func (r *OrganizationsAdminResource) Read(ctx context.Context, req resource.Read
 		return
 	}
 
-	inlineResp, httpResp, err := r.client.AdminsApi.GetOrganizationAdmins(context.Background(), data.OrgId.ValueString()).Execute()
+	_, httpResp, err := r.client.AdminsApi.GetOrganizationAdmins(context.Background(), data.OrgId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to read resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
@@ -331,28 +338,34 @@ func (r *OrganizationsAdminResource) Read(ctx context.Context, req resource.Read
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
+		return
 	}
 
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
-	} else {
-		resp.Diagnostics.Append()
+	}
+
+	var admins []OrganizationsAdminResourceModel
+	if err = json.NewDecoder(httpResp.Body).Decode(&admins); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
 	}
 
 	// There is no single GET ADMIN endpoint, so we must GET a list of all admins and search by adminId.
-	for _, admin := range inlineResp {
-
+	for _, admin := range admins {
 		// Match id found in tf state
-		if adminId := admin["id"]; adminId == data.AdminId.ValueString() {
+		if admin.AdminId.ValueString() == data.AdminId.ValueString() {
+			admin.Id = jsontypes.StringValue("example-id")
+			admin.OrgId = data.OrgId // this value does not exist in the api response
 
-			// Save data into Terraform state
-			extractHttpResponseOrganizationAdminResource(ctx, admin, data, &resp.Diagnostics)
+			// Save updated data into Terraform state
+			resp.Diagnostics.Append(resp.State.Set(ctx, &admin)...)
 		}
 	}
-
-	// Save updated data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -394,12 +407,13 @@ func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.Up
 		updateOrganizationAdmin.SetNetworks(networks)
 	}
 
-	inlineResp, httpResp, err := r.client.AdminsApi.UpdateOrganizationAdmin(context.Background(), data.OrgId.ValueString(), data.AdminId.ValueString()).UpdateOrganizationAdmin(updateOrganizationAdmin).Execute()
+	_, httpResp, err := r.client.AdminsApi.UpdateOrganizationAdmin(context.Background(), data.OrgId.ValueString(), data.AdminId.ValueString()).UpdateOrganizationAdmin(updateOrganizationAdmin).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to update resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
@@ -413,6 +427,7 @@ func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.Up
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
+		return
 	}
 
 	// Check for errors after diagnostics collected
@@ -422,7 +437,17 @@ func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.Up
 	}
 
 	// Save data into Terraform state
-	extractHttpResponseOrganizationAdminResource(ctx, inlineResp, data, &resp.Diagnostics)
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
+	}
+
+	data.Id = jsontypes.StringValue("example-id")
+
+	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -437,16 +462,16 @@ func (r *OrganizationsAdminResource) Delete(ctx context.Context, req resource.De
 	}
 
 	httpResp, err := r.client.AdminsApi.DeleteOrganizationAdmin(context.Background(), data.OrgId.ValueString(), data.AdminId.ValueString()).Execute()
+	if httpResp != nil {
+		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+	}
+
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to delete resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code
@@ -460,35 +485,10 @@ func (r *OrganizationsAdminResource) Delete(ctx context.Context, req resource.De
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
-	} else {
-		resp.Diagnostics.Append()
 	}
 
 	resp.State.RemoveResource(ctx)
 
-}
-
-func extractHttpResponseOrganizationAdminResource(ctx context.Context, inlineResp map[string]interface{}, data *OrganizationsAdminResourceModel, diags *diag.Diagnostics) *OrganizationsAdminResourceModel {
-
-	// TODO - Workaround until json.RawMessage is implemented in HTTP client
-	b, err := json.Marshal(inlineResp)
-	if err != nil {
-		diags.AddError(
-			"Failed to marshal API response",
-			fmt.Sprintf("%v", err),
-		)
-	}
-
-	if err := json.Unmarshal(b, &data); err != nil {
-		diags.AddError(
-			"Failed to unmarshal API response",
-			fmt.Sprintf("Unmarshal error%v", err),
-		)
-	}
-
-	data.Id = jsontypes.StringValue("example-id")
-
-	return data
 }
 
 func (r *OrganizationsAdminResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
