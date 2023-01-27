@@ -11,7 +11,6 @@ import (
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -215,7 +214,7 @@ func (r *OrganizationsAdaptivePolicyAclResource) Create(ctx context.Context, req
 	createOrganizationsAdaptivePolicyAcl := *openApiClient.NewInlineObject169(data.Name.ValueString(), rules, data.IpVersion.ValueString())
 	createOrganizationsAdaptivePolicyAcl.SetDescription(data.Description.ValueString())
 
-	inlineResp, httpResp, err := r.client.OrganizationsApi.CreateOrganizationAdaptivePolicyAcl(context.Background(), data.OrgId.ValueString()).CreateOrganizationAdaptivePolicyAcl(createOrganizationsAdaptivePolicyAcl).Execute()
+	_, httpResp, err := r.client.OrganizationsApi.CreateOrganizationAdaptivePolicyAcl(context.Background(), data.OrgId.ValueString()).CreateOrganizationAdaptivePolicyAcl(createOrganizationsAdaptivePolicyAcl).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to create resource",
@@ -243,7 +242,15 @@ func (r *OrganizationsAdaptivePolicyAclResource) Create(ctx context.Context, req
 	}
 
 	// Save data into Terraform state
-	extractHttpResponseOrganizationAdaptivePolicyAclResource(ctx, inlineResp, data, &resp.Diagnostics)
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
+	}
+	data.Id = types.StringValue("example-id")
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
@@ -260,7 +267,7 @@ func (r *OrganizationsAdaptivePolicyAclResource) Read(ctx context.Context, req r
 		return
 	}
 
-	inlineResp, httpResp, err := r.client.OrganizationsApi.GetOrganizationAdaptivePolicyAcl(context.Background(), data.OrgId.ValueString(), data.AclId.ValueString()).Execute()
+	_, httpResp, err := r.client.OrganizationsApi.GetOrganizationAdaptivePolicyAcl(context.Background(), data.OrgId.ValueString(), data.AclId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to read resource",
@@ -288,9 +295,16 @@ func (r *OrganizationsAdaptivePolicyAclResource) Read(ctx context.Context, req r
 	}
 
 	// Save data into Terraform state
-	extractHttpResponseOrganizationAdaptivePolicyAclResource(ctx, inlineResp, data, &resp.Diagnostics)
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
+	}
+	data.Id = types.StringValue("example-id")
 
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (r *OrganizationsAdaptivePolicyAclResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -327,7 +341,7 @@ func (r *OrganizationsAdaptivePolicyAclResource) Update(ctx context.Context, req
 	createOrganizationsAdaptivePolicyAcl.SetRules(rules)
 	createOrganizationsAdaptivePolicyAcl.SetIpVersion(data.IpVersion.ValueString())
 
-	inlineResp, httpResp, err := r.client.OrganizationsApi.UpdateOrganizationAdaptivePolicyAcl(context.Background(), data.OrgId.ValueString(), data.AclId.ValueString()).UpdateOrganizationAdaptivePolicyAcl(createOrganizationsAdaptivePolicyAcl).Execute()
+	_, httpResp, err := r.client.OrganizationsApi.UpdateOrganizationAdaptivePolicyAcl(context.Background(), data.OrgId.ValueString(), data.AclId.ValueString()).UpdateOrganizationAdaptivePolicyAcl(createOrganizationsAdaptivePolicyAcl).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to update resource",
@@ -355,7 +369,15 @@ func (r *OrganizationsAdaptivePolicyAclResource) Update(ctx context.Context, req
 	}
 
 	// Save data into Terraform state
-	extractHttpResponseOrganizationAdaptivePolicyAclResource(ctx, inlineResp, data, &resp.Diagnostics)
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
+	}
+	data.Id = types.StringValue("example-id")
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
@@ -401,30 +423,6 @@ func (r *OrganizationsAdaptivePolicyAclResource) Delete(ctx context.Context, req
 		return
 	}
 	resp.State.RemoveResource(ctx)
-}
-
-func extractHttpResponseOrganizationAdaptivePolicyAclResource(ctx context.Context, inlineResp map[string]interface{}, data *OrganizationsAdaptivePolicyAclResourceModel, diags *diag.Diagnostics) *OrganizationsAdaptivePolicyAclResourceModel {
-
-	// TODO - Workaround until json.RawMessage is implemented in HTTP client
-	b, err := json.Marshal(inlineResp)
-	if err != nil {
-		diags.AddError(
-			"Failed to marshal API response",
-			fmt.Sprintf("%v", err),
-		)
-		return nil
-	}
-	if err := json.Unmarshal([]byte(b), &data); err != nil {
-		diags.AddError(
-			"Failed to unmarshal API response",
-			fmt.Sprintf("Unmarshal error%v", err),
-		)
-		return nil
-	}
-
-	data.Id = types.StringValue("example-id")
-
-	return data
 }
 
 func (r *OrganizationsAdaptivePolicyAclResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
