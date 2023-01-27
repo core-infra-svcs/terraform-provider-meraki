@@ -41,7 +41,7 @@ func TestAccOrganizationsAdminResource(t *testing.T) {
 				Config: testAccOrganizationsAdminResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "name", "testAdmin"),
-					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "email", "meraki_organizations_admin_test@example.com"),
+					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "email", "meraki_organizations_admin_test1@example.com"),
 					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "org_access", "read-only"),
 					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "authentication_method", "Email"),
 					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "has_api_key", "false"),
@@ -110,7 +110,7 @@ resource "meraki_organizations_admin" "test" {
 	depends_on = ["meraki_organization.test", "meraki_network.test"]
 	organization_id = resource.meraki_organization.test.organization_id
 	name        = "testAdmin"
-	email       = "meraki_organizations_admin_test@example.com"
+	email       = "meraki_organizations_admin_test1@example.com"
 	org_access   = "read-only"
 	authentication_method = "Email"
     tags = [
@@ -136,7 +136,7 @@ resource "meraki_organizations_admin" "test" {
 	depends_on = ["meraki_organization.test", "meraki_network.test"]
 	organization_id = resource.meraki_organization.test.organization_id
 	name        = "testAdmin"
-	email       = "meraki_organizations_admin_test@example.com"
+	email       = "meraki_organizations_admin_test1@example.com"
 	org_access   = "read-only"
 	authentication_method = "Email"
     tags = [
