@@ -50,6 +50,12 @@ func (i Int64) Equal(value attr.Value) bool {
 	return i.Int64Value.Equal(bv)
 }
 
+func Int64Value(v int64) Int64 {
+	return Int64{
+		Int64Value: types.Int64Value(v),
+	}
+}
+
 type String struct {
 	basetypes.StringValue
 }
