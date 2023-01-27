@@ -56,6 +56,12 @@ func Int64Value(v int64) Int64 {
 	}
 }
 
+func Int64Null() Int64 {
+	return Int64{
+		Int64Value: types.Int64Null(),
+	}
+}
+
 type String struct {
 	basetypes.StringValue
 }
