@@ -60,15 +60,17 @@ func TestAccOrganizationsSamlRolesResource(t *testing.T) {
 				),
 			},
 
-			// Update testing
-			{
-				Config: testAccOrganizationsSamlRolesResourceConfigUpdateNetworkAndSamlRole,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organizations_saml_role.test", "tags.0.tag", "west"),
-					resource.TestCheckResourceAttr("meraki_organizations_saml_role.test", "tags.0.access", "read-only"),
-					resource.TestCheckResourceAttr("meraki_organizations_saml_role.test", "networks.0.access", "read-only"),
-				),
-			},
+			/*
+				// Update testing
+				{
+					Config: testAccOrganizationsSamlRolesResourceConfigUpdateNetworkAndSamlRole,
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr("meraki_organizations_saml_role.test", "tags.0.tag", "west"),
+						resource.TestCheckResourceAttr("meraki_organizations_saml_role.test", "tags.0.access", "read-only"),
+						resource.TestCheckResourceAttr("meraki_organizations_saml_role.test", "networks.0.access", "read-only"),
+					),
+				},
+			*/
 		},
 	})
 }

@@ -2,10 +2,12 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 
 	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -14,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
@@ -33,23 +34,23 @@ type OrganizationsSamlrolesResource struct {
 
 // OrganizationsSamlrolesResourceModel describes the resource data model.
 type OrganizationsSamlrolesResourceModel struct {
-	Id        types.String                                `tfsdk:"id"`
-	OrgId     types.String                                `tfsdk:"organization_id"`
-	RoleId    types.String                                `tfsdk:"role_id"`
-	Role      types.String                                `tfsdk:"role"`
-	OrgAccess types.String                                `tfsdk:"org_access"`
-	Tags      []OrganizationsSamlRoleResourceModelTag     `tfsdk:"tags"`
-	Networks  []OrganizationsSamlRoleResourceModelNetwork `tfsdk:"networks"`
-}
-
-type OrganizationsSamlRoleResourceModelNetwork struct {
-	Id     types.String `tfsdk:"id"`
-	Access types.String `tfsdk:"access"`
+	Id        jsontypes.String                            `tfsdk:"id"`
+	OrgId     jsontypes.String                            `tfsdk:"organization_id" json:"organization_id"`
+	RoleId    jsontypes.String                            `tfsdk:"role_id" json:"id"`
+	Role      jsontypes.String                            `tfsdk:"role" json:"role"`
+	OrgAccess jsontypes.String                            `tfsdk:"org_access" json:"org_access"`
+	Tags      []OrganizationsSamlRoleResourceModelTag     `tfsdk:"tags" json:"tags"`
+	Networks  []OrganizationsSamlRoleResourceModelNetwork `tfsdk:"networks" json:"networks"`
 }
 
 type OrganizationsSamlRoleResourceModelTag struct {
-	Tag    types.String `tfsdk:"tag"`
-	Access types.String `tfsdk:"access"`
+	Tag    jsontypes.String `tfsdk:"tag" json:"tag"`
+	Access jsontypes.String `tfsdk:"access" json:"access"`
+}
+
+type OrganizationsSamlRoleResourceModelNetwork struct {
+	Id     jsontypes.String `tfsdk:"id" json:"id"`
+	Access jsontypes.String `tfsdk:"access" json:"access"`
 }
 
 func (r *OrganizationsSamlrolesResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -61,11 +62,13 @@ func (r *OrganizationsSamlrolesResource) Schema(ctx context.Context, req resourc
 		MarkdownDescription: "Manage the saml roles in this organization",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed: true,
+				Computed:   true,
+				CustomType: jsontypes.StringType,
 			},
 			"organization_id": schema.StringAttribute{
 				MarkdownDescription: "Organization ID",
 				Required:            true,
+				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -77,6 +80,7 @@ func (r *OrganizationsSamlrolesResource) Schema(ctx context.Context, req resourc
 				MarkdownDescription: "Saml Role ID",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -87,10 +91,12 @@ func (r *OrganizationsSamlrolesResource) Schema(ctx context.Context, req resourc
 			"role": schema.StringAttribute{
 				MarkdownDescription: "The role of the SAML administrator",
 				Required:            true,
+				CustomType:          jsontypes.StringType,
 			},
 			"org_access": schema.StringAttribute{
 				MarkdownDescription: "The privilege of the SAML administrator on the organization. Can be one of 'none', 'read-only', 'full' or 'enterprise'",
 				Required:            true,
+				CustomType:          jsontypes.StringType,
 				Validators: []validator.String{
 					stringvalidator.OneOf([]string{"full", "read-only", "enterprise", "none"}...),
 					stringvalidator.LengthAtLeast(4),
@@ -106,11 +112,13 @@ func (r *OrganizationsSamlrolesResource) Schema(ctx context.Context, req resourc
 							MarkdownDescription: "",
 							Optional:            true,
 							Computed:            true,
+							CustomType:          jsontypes.StringType,
 						},
 						"access": schema.StringAttribute{
 							MarkdownDescription: "",
 							Optional:            true,
 							Computed:            true,
+							CustomType:          jsontypes.StringType,
 						},
 					},
 				},
@@ -125,11 +133,13 @@ func (r *OrganizationsSamlrolesResource) Schema(ctx context.Context, req resourc
 							MarkdownDescription: "",
 							Optional:            true,
 							Computed:            true,
+							CustomType:          jsontypes.StringType,
 						},
 						"access": schema.StringAttribute{
 							MarkdownDescription: "",
 							Optional:            true,
 							Computed:            true,
+							CustomType:          jsontypes.StringType,
 						},
 					},
 				},
@@ -223,7 +233,17 @@ func (r *OrganizationsSamlrolesResource) Create(ctx context.Context, req resourc
 	}
 
 	// Save data into Terraform state
-	extractHttpResponseOrganizationSamlRoleResource(ctx, inlineResp, data)
+	if err = json.NewDecoder(httpResp.Body).Decode(&data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
+	}
+
+	fmt.Println(data)
+
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -241,7 +261,7 @@ func (r *OrganizationsSamlrolesResource) Read(ctx context.Context, req resource.
 		return
 	}
 
-	inlineResp, httpResp, err := r.client.OrganizationsApi.GetOrganizationSamlRole(ctx, data.OrgId.ValueString(), data.RoleId.ValueString()).Execute()
+	_, httpResp, err := r.client.OrganizationsApi.GetOrganizationSamlRole(ctx, data.OrgId.ValueString(), data.RoleId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to read resource",
@@ -270,7 +290,16 @@ func (r *OrganizationsSamlrolesResource) Read(ctx context.Context, req resource.
 	}
 
 	// Save data into Terraform state
-	extractHttpResponseOrganizationSamlRoleResource(ctx, inlineResp, data)
+
+	if err = json.NewDecoder(httpResp.Body).Decode(&data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
+	}
+
+	fmt.Println(data)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -281,13 +310,9 @@ func (r *OrganizationsSamlrolesResource) Read(ctx context.Context, req resource.
 func (r *OrganizationsSamlrolesResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 
 	var data *OrganizationsSamlrolesResourceModel
-	var stateData *OrganizationsSamlrolesResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-
-	// Read Terraform state data into the model
-	resp.Diagnostics.Append(req.State.Get(ctx, &stateData)...)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -321,7 +346,7 @@ func (r *OrganizationsSamlrolesResource) Update(ctx context.Context, req resourc
 		updateOrganizationSamlRole.SetNetworks(networks)
 	}
 
-	inlineResp, httpResp, err := r.client.OrganizationsApi.UpdateOrganizationSamlRole(context.Background(), data.OrgId.ValueString(), data.RoleId.ValueString()).UpdateOrganizationSamlRole(updateOrganizationSamlRole).Execute()
+	_, httpResp, err := r.client.OrganizationsApi.UpdateOrganizationSamlRole(context.Background(), data.OrgId.ValueString(), data.RoleId.ValueString()).UpdateOrganizationSamlRole(updateOrganizationSamlRole).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to update resource",
@@ -347,35 +372,19 @@ func (r *OrganizationsSamlrolesResource) Update(ctx context.Context, req resourc
 		return
 	}
 
-	data.Id = types.StringValue("example-id")
-	data.OrgId = types.StringValue(inlineResp.GetId())
-	data.RoleId = types.StringValue(inlineResp.GetId())
-	data.Role = types.StringValue(inlineResp.GetRole())
-	data.OrgAccess = types.StringValue(inlineResp.GetOrgAccess())
-
-	// tags attribute
-	if tags := inlineResp.Tags; tags != nil {
-		for _, tv := range tags {
-			var tag OrganizationsSamlRoleResourceModelTag
-			tag.Tag = types.StringValue(*tv.Tag)
-			tag.Access = types.StringValue(*tv.Access)
-			data.Tags = append(data.Tags, tag)
-		}
-	} else {
-		data.Tags = nil
+	// Save data into Terraform state
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
 	}
 
-	// networks attribute
-	if networks := inlineResp.Networks; networks != nil {
-		for _, nw := range networks {
-			var network OrganizationsSamlRoleResourceModelNetwork
-			network.Id = types.StringValue(*nw.Id)
-			network.Access = types.StringValue(*nw.Access)
-			data.Networks = append(data.Networks, network)
-		}
-	} else {
-		data.Networks = nil
-	}
+	fmt.Println(data)
+
+	data.Id = jsontypes.StringValue("example-id")
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
@@ -445,6 +454,7 @@ func (r *OrganizationsSamlrolesResource) ImportState(ctx context.Context, req re
 	}
 }
 
+/*
 func extractHttpResponseOrganizationSamlRoleResource(ctx context.Context, inlineRespValue map[string]interface{}, data *OrganizationsSamlrolesResourceModel) *OrganizationsSamlrolesResourceModel {
 	// save into the Terraform state
 	data.Id = types.StringValue("example-id")
@@ -520,3 +530,4 @@ func extractHttpResponseOrganizationSamlRoleResource(ctx context.Context, inline
 
 	return data
 }
+*/
