@@ -21,16 +21,9 @@ description: |-
 
 ### Optional
 
-- `authentication_api_key_created` (Boolean) If API key is created for this user
-- `authentication_mode` (String) Authentication mode
-- `authentication_saml_enabled` (Boolean) If SAML authentication is enabled for this user
-- `authentication_two_factor_enabled` (Boolean) If twoFactor authentication is enabled for this user
 - `config_template_id` (String) config_template_id
-- `email` (String) User email
 - `is_bound_to_config_template` (Boolean)
-- `last_used_dashboard_at` (String) Last seen active on Dashboard UI
-- `list` (Attributes List) (see [below for nested schema](#nestedatt--list))
-- `name` (String) Username
+- `list` (Attributes Set) (see [below for nested schema](#nestedatt--list))
 - `tags` (Set of String) Network tags
 - `tags_filter_type` (String)
 
@@ -41,18 +34,15 @@ description: |-
 <a id="nestedatt--list"></a>
 ### Nested Schema for `list`
 
-Required:
-
-- `product_types` (Set of String)
-
 Optional:
 
 - `enrollment_string` (String) A unique identifier which can be used for device enrollment or easy access through the Meraki SM Registration page or the Self Service Portal. Once enabled, a network enrollment strings can be changed but they cannot be deleted.
-- `id` (String)
 - `is_bound_to_config_template` (Boolean) If the network is bound to a config template
 - `name` (String) Network name
+- `network_id` (String) Network ID
 - `notes` (String) Notes for the network
 - `organization_id` (String) Organization ID
+- `product_types` (Set of String)
 - `tags` (Set of String) Network tags
 - `timezone` (String) Timezone of the network
 - `url` (String) URL to the network Dashboard UI

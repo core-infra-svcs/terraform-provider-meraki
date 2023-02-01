@@ -43,7 +43,16 @@ func TestAccOrganizationsNetworksDataSource(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("data.meraki_organizations_networks.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("data.meraki_organizations_networks.test", "list.#", "1"),
-					resource.TestCheckResourceAttr("data.meraki_organizations_networks.test", "list.1.name", "Main Office"),
+					resource.TestCheckResourceAttr("data.meraki_organizations_networks.test", "list.0.name", "Main Office"),
+
+					resource.TestCheckResourceAttr("data.meraki_organizations_networks.test", "list.0.timezone", "America/Los_Angeles"),
+					resource.TestCheckResourceAttr("data.meraki_organizations_networks.test", "list.0.tags.#", "2"),
+					resource.TestCheckResourceAttr("data.meraki_organizations_networks.test", "list.0.tags.0", "tag1"),
+					resource.TestCheckResourceAttr("data.meraki_organizations_networks.test", "list.0.product_types.#", "3"),
+					resource.TestCheckResourceAttr("data.meraki_organizations_networks.test", "list.0.product_types.0", "appliance"),
+					resource.TestCheckResourceAttr("data.meraki_organizations_networks.test", "list.0.product_types.1", "switch"),
+					resource.TestCheckResourceAttr("data.meraki_organizations_networks.test", "list.0.product_types.2", "wireless"),
+					resource.TestCheckResourceAttr("data.meraki_organizations_networks.test", "list.0.notes", "Additional description of the network"),
 				),
 			},
 			// Delete testing automatically occurs in TestCase
