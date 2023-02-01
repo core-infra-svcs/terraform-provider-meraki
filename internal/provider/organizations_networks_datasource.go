@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
+
 	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
@@ -13,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"strings"
 )
 
 // Ensure provider defined jsontypes fully satisfy framework interfaces
@@ -115,7 +116,7 @@ func (d *OrganizationsNetworksDataSource) Schema(ctx context.Context, req dataso
 				Description: "",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
-						"id": schema.StringAttribute{
+						"network_id": schema.StringAttribute{
 							MarkdownDescription: "Network ID",
 							Optional:            true,
 							Computed:            true,
