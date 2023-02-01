@@ -46,7 +46,6 @@ func TestAccOrganizationsNetworksDataSource(t *testing.T) {
 					resource.TestCheckResourceAttr("data.meraki_organizations_networks.test", "list.1.name", "Main Office"),
 				),
 			},
-
 			// Delete testing automatically occurs in TestCase
 		},
 	})
@@ -76,10 +75,13 @@ resource "meraki_network" "test" {
 const testAccOrganizationsNetworksDataSourceConfigRead = `
 resource "meraki_organization" "test" {}
 
-data "meraki_organizations_networks" "test" {
-	depends_on = ["meraki_organization.test"]
+resource "meraki_network" "test" {
 	organization_id = resource.meraki_organization.test.organization_id
-	tags_filter_type = "withAnyTags"
-	tags = ["tag1", "tag2"]
+	product_types = ["appliance", "switch", "wireless"]
+}
+
+data "meraki_organizations_networks" "test" {
+	depends_on = ["meraki_organization.test", meraki_network.test]
+	organization_id = resource.meraki_organization.test.organization_id
 }
 `

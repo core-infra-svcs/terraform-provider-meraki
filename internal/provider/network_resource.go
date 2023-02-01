@@ -63,7 +63,7 @@ type NetworkResourceModel struct {
 	EnrollmentString        jsontypes.String                `tfsdk:"enrollment_string" json:"enrollmentString"`
 	Url                     jsontypes.String                `tfsdk:"url"`
 	Notes                   jsontypes.String                `tfsdk:"notes"`
-	IsBoundToConfigTemplate jsontypes.Bool                  `tfsdk:"is_bound_to_config_template" json:"isBoundToConfigTemplate"`
+	IsBoundToConfigTemplate jsontypes.Bool                  `tfsdk:"is_bound_to_config_template" json:"IsBoundToConfigTemplate"`
 	CopyFromNetworkId       jsontypes.String                `tfsdk:"copy_from_network_id" json:"copyFromNetworkId"`
 }
 
