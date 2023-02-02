@@ -165,6 +165,7 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 func (p *CiscoMerakiProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		NewOrganizationsDataSource,
+		NewOrganizationsNetworksDataSource,
 		NewAdministeredIdentitiesMeDataSource,
 		NewOrganizationsAdminsDataSource,
 		NewOrganizationsSamlIdpsDataSource,
