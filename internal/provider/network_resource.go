@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
@@ -21,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	openApiClient "github.com/meraki/dashboard-api-go/client"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -206,7 +206,7 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	// Create HTTP request body
-	createOrganizationNetwork := openApiClient.NewInlineObject207(data.Name.ValueString(), nil)
+	createOrganizationNetwork := openApiClient.NewInlineObject209(data.Name.ValueString(), nil)
 	createOrganizationNetwork.SetTimeZone(data.Timezone.ValueString())
 
 	// ProductTypes
@@ -358,7 +358,7 @@ func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 
 	// Create HTTP request body
-	updateNetwork := openApiClient.NewInlineObject25()
+	updateNetwork := openApiClient.NewInlineObject26()
 	updateNetwork.SetName(data.Name.ValueString())
 	updateNetwork.SetTimeZone(data.Timezone.ValueString())
 

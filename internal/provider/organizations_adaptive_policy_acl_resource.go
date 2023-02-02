@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"strings"
 
-	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -18,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	openApiClient "github.com/meraki/dashboard-api-go/client"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -211,7 +211,7 @@ func (r *OrganizationsAdaptivePolicyAclResource) Create(ctx context.Context, req
 	}
 
 	// payload
-	createOrganizationsAdaptivePolicyAcl := *openApiClient.NewInlineObject169(data.Name.ValueString(), rules, data.IpVersion.ValueString())
+	createOrganizationsAdaptivePolicyAcl := *openApiClient.NewInlineObject170(data.Name.ValueString(), rules, data.IpVersion.ValueString())
 	createOrganizationsAdaptivePolicyAcl.SetDescription(data.Description.ValueString())
 
 	_, httpResp, err := r.client.OrganizationsApi.CreateOrganizationAdaptivePolicyAcl(context.Background(), data.OrgId.ValueString()).CreateOrganizationAdaptivePolicyAcl(createOrganizationsAdaptivePolicyAcl).Execute()
@@ -335,7 +335,7 @@ func (r *OrganizationsAdaptivePolicyAclResource) Update(ctx context.Context, req
 	}
 
 	// payload
-	createOrganizationsAdaptivePolicyAcl := *openApiClient.NewInlineObject170()
+	createOrganizationsAdaptivePolicyAcl := *openApiClient.NewInlineObject171()
 	createOrganizationsAdaptivePolicyAcl.SetName(data.Name.ValueString())
 	createOrganizationsAdaptivePolicyAcl.SetDescription(data.Description.ValueString())
 	createOrganizationsAdaptivePolicyAcl.SetRules(rules)

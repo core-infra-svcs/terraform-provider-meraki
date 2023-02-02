@@ -3,13 +3,13 @@ module github.com/core-infra-svcs/terraform-provider-meraki
 go 1.18
 
 require (
-	github.com/core-infra-svcs/dashboard-api-go/client v0.0.0-20221109014918-49f7e260c3f5
 	github.com/hashicorp/terraform-plugin-docs v0.13.0
 	github.com/hashicorp/terraform-plugin-framework v1.1.1
 	github.com/hashicorp/terraform-plugin-framework-validators v0.9.0
 	github.com/hashicorp/terraform-plugin-go v0.14.3
 	github.com/hashicorp/terraform-plugin-log v0.7.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.24.1
+	github.com/meraki/dashboard-api-go/client v0.0.0-20230202023709-4c70e810f317
 )
 
 require (

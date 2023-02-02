@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -16,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	openApiClient "github.com/meraki/dashboard-api-go/client"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -149,7 +149,7 @@ func (r *OrganizationResource) Create(ctx context.Context, req resource.CreateRe
 	}
 
 	// Create HTTP request body
-	createOrganization := *openApiClient.NewInlineObject165(data.Name.ValueString())
+	createOrganization := *openApiClient.NewInlineObject166(data.Name.ValueString())
 
 	// Set management details
 	var name = data.ManagementDetailsName.ValueString()
@@ -308,7 +308,7 @@ func (r *OrganizationResource) Update(ctx context.Context, req resource.UpdateRe
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	// Create HTTP request body
-	updateOrganization := openApiClient.NewInlineObject166()
+	updateOrganization := openApiClient.NewInlineObject167()
 	updateOrganization.SetName(data.Name.ValueString())
 
 	// Set enabled attribute
