@@ -72,3 +72,5 @@ require (
 	google.golang.org/grpc v1.51.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 )
+
+replace github.com/hashicorp/terraform-plugin-framework v1.1.1 => github.com/core-infra-svcs/terraform-plugin-framework v0.0.0-20230202010344-7d3c6c800b95
