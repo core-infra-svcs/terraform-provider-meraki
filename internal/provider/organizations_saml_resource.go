@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -16,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	openApiClient "github.com/meraki/dashboard-api-go/client"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -104,7 +104,7 @@ func (r *OrganizationSamlResource) Create(ctx context.Context, req resource.Crea
 	}
 
 	// Create HTTP request body
-	enableOrganizationSaml := *openApiClient.NewInlineObject213()
+	enableOrganizationSaml := *openApiClient.NewInlineObject215()
 	enableOrganizationSaml.SetEnabled(data.Enabled.ValueBool())
 
 	// Initialize provider client and make API call
@@ -198,7 +198,7 @@ func (r *OrganizationSamlResource) Update(ctx context.Context, req resource.Upda
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	// Create HTTP request body
-	enableOrganizationSaml := *openApiClient.NewInlineObject213()
+	enableOrganizationSaml := *openApiClient.NewInlineObject215()
 	enableOrganizationSaml.SetEnabled(data.Enabled.ValueBool())
 
 	// Initialize provider client and make API call

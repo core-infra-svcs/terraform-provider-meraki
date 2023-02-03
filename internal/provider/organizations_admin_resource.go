@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strings"
 
-	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -16,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	openApiClient "github.com/meraki/dashboard-api-go/client"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -231,7 +231,7 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 	}
 
 	// Creating and Validating Payload for Creating Administrator
-	createOrganizationAdmin := *openApiClient.NewInlineObject176(
+	createOrganizationAdmin := *openApiClient.NewInlineObject177(
 		data.Email.ValueString(),
 		data.Name.ValueString(),
 		data.OrgAccess.ValueString())
@@ -379,7 +379,7 @@ func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.Up
 	}
 
 	// Creating and Validating Payload for Creating Administrator
-	updateOrganizationAdmin := *openApiClient.NewInlineObject177()
+	updateOrganizationAdmin := *openApiClient.NewInlineObject178()
 	updateOrganizationAdmin.SetName(data.Name.ValueString())
 	updateOrganizationAdmin.SetOrgAccess(data.OrgAccess.ValueString())
 
