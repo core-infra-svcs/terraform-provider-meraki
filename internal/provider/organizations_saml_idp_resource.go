@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -16,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	openApiClient "github.com/meraki/dashboard-api-go/client"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -132,7 +132,7 @@ func (r *OrganizationsSamlIdpResource) Create(ctx context.Context, req resource.
 	}
 
 	// Create HTTP request body
-	createOrganizationsSamlIdp := *openApiClient.NewInlineObject214(data.X509CertSha1Fingerprint.ValueString())
+	createOrganizationsSamlIdp := *openApiClient.NewInlineObject216(data.X509CertSha1Fingerprint.ValueString())
 	createOrganizationsSamlIdp.SetSloLogoutUrl(data.SloLogoutUrl.ValueString())
 
 	// Initialize provider client and make API call
@@ -241,7 +241,7 @@ func (r *OrganizationsSamlIdpResource) Update(ctx context.Context, req resource.
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	// Create HTTP request body
-	updateOrganizationsSamlIdp := openApiClient.NewInlineObject215()
+	updateOrganizationsSamlIdp := openApiClient.NewInlineObject217()
 	updateOrganizationsSamlIdp.SetX509certSha1Fingerprint(data.X509CertSha1Fingerprint.ValueString())
 	updateOrganizationsSamlIdp.SetSloLogoutUrl(data.SloLogoutUrl.ValueString())
 
