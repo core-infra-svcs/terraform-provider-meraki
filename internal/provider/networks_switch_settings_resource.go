@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -33,15 +34,15 @@ type NetworksSwitchSettingsResource struct {
 
 // NetworksSwitchSettingsResourceModel describes the resource data model.
 type NetworksSwitchSettingsResourceModel struct {
-	Id               types.String                                         `tfsdk:"id"`
-	NetworkId        types.String                                         `tfsdk:"network_id"`
-	Vlan             types.Float64                                        `tfsdk:"vlan"`
-	UseCombinedPower types.Bool                                           `tfsdk:"use_combined_power"`
-	PowerExceptions  []NetworksSwitchSettingsResourceModelPowerExceptions `tfsdk:"power_exceptions"`
+	Id               jsontypes.String                                     `tfsdk:"id"`
+	NetworkId        jsontypes.String                                     `tfsdk:"network_id" json:"network_id"`
+	Vlan             types.Float64                                        `tfsdk:"vlan" json:"vlan"`
+	UseCombinedPower jsontypes.Bool                                       `tfsdk:"use_combined_power" json:"useCombinedPower"`
+	PowerExceptions  []NetworksSwitchSettingsResourceModelPowerExceptions `tfsdk:"power_exceptions" json:"powerExceptions"`
 }
 type NetworksSwitchSettingsResourceModelPowerExceptions struct {
-	Serial    types.String `tfsdk:"serial"`
-	PowerType types.String `tfsdk:"power_type"`
+	Serial    jsontypes.String `tfsdk:"serial" json:"serial"`
+	PowerType jsontypes.String `tfsdk:"power_type" json:"powerType"`
 }
 
 func (r *NetworksSwitchSettingsResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -56,10 +57,12 @@ func (r *NetworksSwitchSettingsResource) Schema(ctx context.Context, req resourc
 			"id": schema.StringAttribute{
 				MarkdownDescription: "Example identifier",
 				Computed:            true,
+				CustomType:          jsontypes.StringType,
 			},
 			"network_id": schema.StringAttribute{
 				MarkdownDescription: "Network Id",
 				Required:            true,
+				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -76,6 +79,7 @@ func (r *NetworksSwitchSettingsResource) Schema(ctx context.Context, req resourc
 				MarkdownDescription: "The use combined Power as the default behavior of secondary power supplies on supported devices.",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontypes.BoolType,
 			},
 			"power_exceptions": schema.SetNestedAttribute{
 				Description: "Exceptions on a per switch basis to &quot;useCombinedPower&quot;",
@@ -86,11 +90,13 @@ func (r *NetworksSwitchSettingsResource) Schema(ctx context.Context, req resourc
 							MarkdownDescription: "Serial number of the switch",
 							Computed:            true,
 							Optional:            true,
+							CustomType:          jsontypes.StringType,
 						},
 						"power_type": schema.StringAttribute{
 							MarkdownDescription: "Per switch exception (combined, redundant, useNetworkSetting)",
 							Computed:            true,
 							Optional:            true,
+							CustomType:          jsontypes.StringType,
 						},
 					},
 				},
@@ -143,7 +149,7 @@ func (r *NetworksSwitchSettingsResource) Create(ctx context.Context, req resourc
 		updateNetworksSwitchSettings.SetPowerExceptions(powerExceptions)
 	}
 
-	inlineResp, httpResp, err := r.client.SettingsApi.UpdateNetworkSwitchSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchSettings(updateNetworksSwitchSettings).Execute()
+	_, httpResp, err := r.client.SettingsApi.UpdateNetworkSwitchSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchSettings(updateNetworksSwitchSettings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to update resource",
@@ -170,8 +176,16 @@ func (r *NetworksSwitchSettingsResource) Create(ctx context.Context, req resourc
 		return
 	}
 
-	// save into the Terraform state.
-	extractHttpResponseNetworkSwitchSettingsResource(ctx, inlineResp, data)
+	// Save data into Terraform state
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
+	}
+
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -189,7 +203,7 @@ func (r *NetworksSwitchSettingsResource) Read(ctx context.Context, req resource.
 		return
 	}
 
-	inlineResp, httpResp, err := r.client.SettingsApi.GetNetworkSwitchSettings(context.Background(), data.NetworkId.ValueString()).Execute()
+	_, httpResp, err := r.client.SettingsApi.GetNetworkSwitchSettings(context.Background(), data.NetworkId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to get resource",
@@ -217,8 +231,16 @@ func (r *NetworksSwitchSettingsResource) Read(ctx context.Context, req resource.
 		resp.Diagnostics.Append()
 	}
 
-	// save into the Terraform state.
-	extractHttpResponseNetworkSwitchSettingsResource(ctx, inlineResp, data)
+	// Save data into Terraform state
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
+	}
+
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -251,7 +273,7 @@ func (r *NetworksSwitchSettingsResource) Update(ctx context.Context, req resourc
 		updateNetworksSwitchSettings.SetPowerExceptions(powerExceptions)
 	}
 
-	inlineResp, httpResp, err := r.client.SettingsApi.UpdateNetworkSwitchSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchSettings(updateNetworksSwitchSettings).Execute()
+	_, httpResp, err := r.client.SettingsApi.UpdateNetworkSwitchSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchSettings(updateNetworksSwitchSettings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to update resource",
@@ -278,7 +300,15 @@ func (r *NetworksSwitchSettingsResource) Update(ctx context.Context, req resourc
 	}
 
 	// Save data into Terraform state
-	extractHttpResponseNetworkSwitchSettingsResource(ctx, inlineResp, data)
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
+	}
+
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -290,35 +320,6 @@ func (r *NetworksSwitchSettingsResource) Delete(ctx context.Context, req resourc
 
 	// No Delete for Network Switch Settings
 
-}
-
-func extractHttpResponseNetworkSwitchSettingsResource(ctx context.Context, inlineRespValue map[string]interface{}, data *NetworksSwitchSettingsResourceModel) *NetworksSwitchSettingsResourceModel {
-
-	data.Id = types.StringValue("example-id")
-
-	if vlan := inlineRespValue["vlan"]; vlan != nil {
-		data.Vlan = types.Float64Value(vlan.(float64))
-	} else {
-		data.Vlan = types.Float64Null()
-	}
-
-	if useCombinedPower := inlineRespValue["useCombinedPower"]; useCombinedPower != nil {
-		data.UseCombinedPower = types.BoolValue(useCombinedPower.(bool))
-	} else {
-		data.UseCombinedPower = types.BoolNull()
-	}
-
-	if powerExceptions := inlineRespValue["powerExceptions"]; powerExceptions != nil {
-		for _, tv := range powerExceptions.([]interface{}) {
-			var powerException NetworksSwitchSettingsResourceModelPowerExceptions
-			_ = json.Unmarshal([]byte(tv.(string)), &powerException)
-			data.PowerExceptions = append(data.PowerExceptions, powerException)
-		}
-	} else {
-		data.PowerExceptions = nil
-	}
-
-	return data
 }
 
 func (r *NetworksSwitchSettingsResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
