@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strings"
 
-	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -17,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	openApiClient "github.com/meraki/dashboard-api-go/client"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -176,7 +176,7 @@ func (r *OrganizationsSamlrolesResource) Create(ctx context.Context, req resourc
 		return
 	}
 
-	createOrganizationSamlRole := *openApiClient.NewInlineObject216(data.Role.ValueString(), data.OrgAccess.ValueString())
+	createOrganizationSamlRole := *openApiClient.NewInlineObject218(data.Role.ValueString(), data.OrgAccess.ValueString())
 
 	// Tags
 	if len(data.Tags) > 0 {
@@ -312,7 +312,7 @@ func (r *OrganizationsSamlrolesResource) Update(ctx context.Context, req resourc
 		return
 	}
 
-	updateOrganizationSamlRole := *openApiClient.NewInlineObject217()
+	updateOrganizationSamlRole := *openApiClient.NewInlineObject219()
 	updateOrganizationSamlRole.SetRole(data.Role.ValueString())
 	updateOrganizationSamlRole.SetOrgAccess(data.OrgAccess.ValueString())
 
@@ -445,4 +445,3 @@ func (r *OrganizationsSamlrolesResource) ImportState(ctx context.Context, req re
 		return
 	}
 }
-
