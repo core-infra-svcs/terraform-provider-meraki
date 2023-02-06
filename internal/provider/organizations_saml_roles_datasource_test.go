@@ -32,7 +32,7 @@ func TestAccOrganizationsSamlRolesDataSource(t *testing.T) {
 
 			// Create and Read Network and Organization Saml Role
 			{
-				Config: testAccOrganizationsSamlRolesDataSourceConfigCreateNetworkAndSamlRole,
+				Config: testAccOrganizationsSamlRolesDataSourceConfigCreateNetwork,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_network.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_network.test", "name", "Main Office"),
@@ -44,6 +44,13 @@ func TestAccOrganizationsSamlRolesDataSource(t *testing.T) {
 					resource.TestCheckResourceAttr("meraki_network.test", "product_types.1", "switch"),
 					resource.TestCheckResourceAttr("meraki_network.test", "product_types.2", "wireless"),
 					resource.TestCheckResourceAttr("meraki_network.test", "notes", "Additional description of the network"),
+				),
+			},
+
+			// Create and Read Network and Organization Saml Role
+			{
+				Config: testAccOrganizationsSamlRolesDataSourceConfigCreateSamlRole,
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_organizations_saml_role.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_organizations_saml_role.test", "role", "testrole"),
 					resource.TestCheckResourceAttr("meraki_organizations_saml_role.test", "org_access", "read-only"),
@@ -91,7 +98,7 @@ resource "meraki_organization_saml" "test" {
 }
 `
 
-const testAccOrganizationsSamlRolesDataSourceConfigCreateNetworkAndSamlRole = `
+const testAccOrganizationsSamlRolesDataSourceConfigCreateNetwork = `
 
 resource "meraki_organization" "test" {}
 
@@ -104,6 +111,17 @@ resource "meraki_network" "test" {
 	timezone = "America/Los_Angeles"
 	notes = "Additional description of the network"
 }
+`
+
+const testAccOrganizationsSamlRolesDataSourceConfigCreateSamlRole = `
+
+resource "meraki_organization" "test" {}
+
+resource "meraki_network" "test" {
+	organization_id = resource.meraki_organization.test.organization_id
+	product_types = ["appliance", "switch", "wireless"]
+}
+
 resource "meraki_organizations_saml_role" "test" {	
     depends_on = [
 		resource.meraki_organization.test,
