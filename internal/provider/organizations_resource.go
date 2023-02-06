@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -16,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	openApiClient "github.com/meraki/dashboard-api-go/client"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -149,7 +149,7 @@ func (r *OrganizationResource) Create(ctx context.Context, req resource.CreateRe
 	}
 
 	// Create HTTP request body
-	createOrganization := *openApiClient.NewInlineObject165(data.Name.ValueString())
+	createOrganization := *openApiClient.NewInlineObject166(data.Name.ValueString())
 
 	// Set management details
 	var name = data.ManagementDetailsName.ValueString()
@@ -169,6 +169,7 @@ func (r *OrganizationResource) Create(ctx context.Context, req resource.CreateRe
 			"Failed to create resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
@@ -187,8 +188,6 @@ func (r *OrganizationResource) Create(ctx context.Context, req resource.CreateRe
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
-	} else {
-		resp.Diagnostics.Append()
 	}
 
 	// save into the Terraform state.
@@ -205,14 +204,14 @@ func (r *OrganizationResource) Create(ctx context.Context, req resource.CreateRe
 		responseDetails := inlineResp.Management.GetDetails()
 
 		// name attribute
-		if managementDetailName := responseDetails[0].GetName(); responseDetails[0].HasName() == true {
+		if managementDetailName := responseDetails[0].GetName(); responseDetails[0].HasName() {
 			data.ManagementDetailsName = jsontypes.StringValue(managementDetailName)
 		} else {
 			data.ManagementDetailsName = jsontypes.StringNull()
 		}
 
 		// Value attribute
-		if managementDetailValue := responseDetails[0].GetValue(); responseDetails[0].HasValue() == true {
+		if managementDetailValue := responseDetails[0].GetValue(); responseDetails[0].HasValue() {
 			data.ManagementDetailsValue = jsontypes.StringValue(managementDetailValue)
 		} else {
 			data.ManagementDetailsValue = jsontypes.StringNull()
@@ -243,6 +242,7 @@ func (r *OrganizationResource) Read(ctx context.Context, req resource.ReadReques
 			"Failed to read resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
@@ -261,8 +261,6 @@ func (r *OrganizationResource) Read(ctx context.Context, req resource.ReadReques
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
-	} else {
-		resp.Diagnostics.Append()
 	}
 
 	// save inlineResp data into Terraform state.
@@ -279,14 +277,14 @@ func (r *OrganizationResource) Read(ctx context.Context, req resource.ReadReques
 		responseDetails := inlineResp.Management.GetDetails()
 
 		// name attribute
-		if managementDetailName := responseDetails[0].GetName(); responseDetails[0].HasName() == true {
+		if managementDetailName := responseDetails[0].GetName(); responseDetails[0].HasName() {
 			data.ManagementDetailsName = jsontypes.StringValue(managementDetailName)
 		} else {
 			data.ManagementDetailsName = jsontypes.StringNull()
 		}
 
 		// Value attribute
-		if managementDetailValue := responseDetails[0].GetValue(); responseDetails[0].HasValue() == true {
+		if managementDetailValue := responseDetails[0].GetValue(); responseDetails[0].HasValue() {
 			data.ManagementDetailsValue = jsontypes.StringValue(managementDetailValue)
 		} else {
 			data.ManagementDetailsValue = jsontypes.StringNull()
@@ -310,7 +308,7 @@ func (r *OrganizationResource) Update(ctx context.Context, req resource.UpdateRe
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	// Create HTTP request body
-	updateOrganization := openApiClient.NewInlineObject166()
+	updateOrganization := openApiClient.NewInlineObject167()
 	updateOrganization.SetName(data.Name.ValueString())
 
 	// Set enabled attribute
@@ -337,6 +335,7 @@ func (r *OrganizationResource) Update(ctx context.Context, req resource.UpdateRe
 			"Failed to update resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
@@ -355,8 +354,6 @@ func (r *OrganizationResource) Update(ctx context.Context, req resource.UpdateRe
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
-	} else {
-		resp.Diagnostics.Append()
 	}
 
 	// save inlineResp data into Terraform state
@@ -373,14 +370,14 @@ func (r *OrganizationResource) Update(ctx context.Context, req resource.UpdateRe
 		responseDetails := inlineResp.Management.GetDetails()
 
 		// name attribute
-		if managementDetailName := responseDetails[0].GetName(); responseDetails[0].HasName() == true {
+		if managementDetailName := responseDetails[0].GetName(); responseDetails[0].HasName() {
 			data.ManagementDetailsName = jsontypes.StringValue(managementDetailName)
 		} else {
 			data.ManagementDetailsName = jsontypes.StringNull()
 		}
 
 		// Value attribute
-		if managementDetailValue := responseDetails[0].GetValue(); responseDetails[0].HasValue() == true {
+		if managementDetailValue := responseDetails[0].GetValue(); responseDetails[0].HasValue() {
 			data.ManagementDetailsValue = jsontypes.StringValue(managementDetailValue)
 		} else {
 			data.ManagementDetailsValue = jsontypes.StringNull()
@@ -410,6 +407,7 @@ func (r *OrganizationResource) Delete(ctx context.Context, req resource.DeleteRe
 			"Failed to delete resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
@@ -428,8 +426,6 @@ func (r *OrganizationResource) Delete(ctx context.Context, req resource.DeleteRe
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
-	} else {
-		resp.Diagnostics.Append()
 	}
 
 	// Remove from state
