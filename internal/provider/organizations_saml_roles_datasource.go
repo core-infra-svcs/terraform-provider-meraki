@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
 )
@@ -38,20 +37,20 @@ type OrganizationsSamlRolesDataSourceModel struct {
 // OrganizationSamlRoleDataSourceModel describes the data source data model.
 type OrganizationSamlRoleDataSourceModel struct {
 	Id        jsontypes.String                              `tfsdk:"id"`
-	Role      jsontypes.String                              `tfsdk:"role"`
-	OrgAccess jsontypes.String                              `tfsdk:"org_access"`
-	Tags      []OrganizationsSamlRoleDataSourceModelTag     `tfsdk:"tags"`
-	Networks  []OrganizationsSamlRoleDataSourceModelNetwork `tfsdk:"networks"`
+	Role      jsontypes.String                              `tfsdk:"role" json:"role"`
+	OrgAccess jsontypes.String                              `tfsdk:"org_access" json:"orgAccess"`
+	Tags      []OrganizationsSamlRoleDataSourceModelTag     `tfsdk:"tags" json:"tags"`
+	Networks  []OrganizationsSamlRoleDataSourceModelNetwork `tfsdk:"networks" json:"networks"`
 }
 
 type OrganizationsSamlRoleDataSourceModelNetwork struct {
-	Id     types.String `tfsdk:"id"`
-	Access types.String `tfsdk:"access"`
+	Id     jsontypes.String `tfsdk:"id" json:"id"`
+	Access jsontypes.String `tfsdk:"access" json:"access"`
 }
 
 type OrganizationsSamlRoleDataSourceModelTag struct {
-	Tag    types.String `tfsdk:"tag"`
-	Access types.String `tfsdk:"access"`
+	Tag    jsontypes.String `tfsdk:"tag" json:"tag"`
+	Access jsontypes.String `tfsdk:"access" json:"access"`
 }
 
 func (d *OrganizationsSamlRolesDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
