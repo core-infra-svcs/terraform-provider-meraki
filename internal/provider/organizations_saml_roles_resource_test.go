@@ -54,23 +54,17 @@ func TestAccOrganizationsSamlRolesResource(t *testing.T) {
 					resource.TestCheckResourceAttr("meraki_organizations_saml_role.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_organizations_saml_role.test", "role", "testrole"),
 					resource.TestCheckResourceAttr("meraki_organizations_saml_role.test", "org_access", "read-only"),
-					resource.TestCheckResourceAttr("meraki_organizations_saml_role.test", "tags.0.tag", "west"),
-					resource.TestCheckResourceAttr("meraki_organizations_saml_role.test", "tags.0.access", "read-only"),
 					resource.TestCheckResourceAttr("meraki_organizations_saml_role.test", "networks.0.access", "read-only"),
 				),
 			},
 
-			/*
-				// Update testing
-				{
-					Config: testAccOrganizationsSamlRolesResourceConfigUpdateNetworkAndSamlRole,
-					Check: resource.ComposeAggregateTestCheckFunc(
-						resource.TestCheckResourceAttr("meraki_organizations_saml_role.test", "tags.0.tag", "west"),
-						resource.TestCheckResourceAttr("meraki_organizations_saml_role.test", "tags.0.access", "read-only"),
-						resource.TestCheckResourceAttr("meraki_organizations_saml_role.test", "networks.0.access", "read-only"),
-					),
-				},
-			*/
+			// Update testing
+			{
+				Config: testAccOrganizationsSamlRolesResourceConfigUpdateNetworkAndSamlRole,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("meraki_organizations_saml_role.test", "networks.0.access", "read-only"),
+				),
+			},
 		},
 	})
 }
@@ -125,10 +119,6 @@ resource "meraki_organizations_saml_role" "test" {
 	organization_id = resource.meraki_organization.test.organization_id
 	role = "testrole"
 	org_access = "read-only"
-	tags = [{
-		tag = "west"
-		access = "read-only"
-	}]
 	networks = [{
 		id = resource.meraki_network.test.network_id
 		access = "read-only"
@@ -152,10 +142,6 @@ resource "meraki_organizations_saml_role" "test" {
 	organization_id = resource.meraki_organization.test.organization_id
 	role = "testrole"
 	org_access = "none"
-	tags = [{
-		tag = "west"
-		access = "read-only"
-	}]
 	networks = [{
 		id = resource.meraki_network.test.network_id
 		access = "read-only"

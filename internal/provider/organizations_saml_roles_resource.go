@@ -105,7 +105,6 @@ func (r *OrganizationsSamlrolesResource) Schema(ctx context.Context, req resourc
 			"tags": schema.SetNestedAttribute{
 				Description: "The list of tags that the SAML administrator has privleges on.",
 				Optional:    true,
-				Computed:    true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"tag": schema.StringAttribute{
@@ -126,7 +125,6 @@ func (r *OrganizationsSamlrolesResource) Schema(ctx context.Context, req resourc
 			"networks": schema.SetNestedAttribute{
 				Description: "The list of networks that the SAML administrator has privileges on.",
 				Optional:    true,
-				Computed:    true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"id": schema.StringAttribute{
@@ -204,7 +202,7 @@ func (r *OrganizationsSamlrolesResource) Create(ctx context.Context, req resourc
 		createOrganizationSamlRole.SetNetworks(networks)
 	}
 
-	inlineResp, httpResp, err := r.client.OrganizationsApi.CreateOrganizationSamlRole(context.Background(), data.OrgId.ValueString()).CreateOrganizationSamlRole(createOrganizationSamlRole).Execute()
+	_, httpResp, err := r.client.OrganizationsApi.CreateOrganizationSamlRole(context.Background(), data.OrgId.ValueString()).CreateOrganizationSamlRole(createOrganizationSamlRole).Execute()
 
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -217,8 +215,9 @@ func (r *OrganizationsSamlrolesResource) Create(ctx context.Context, req resourc
 	if httpResp.StatusCode != 201 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
-			fmt.Sprintf("%v%v", httpResp.StatusCode, inlineResp),
+			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
+		return
 	}
 
 	// collect diagnostics
@@ -240,8 +239,6 @@ func (r *OrganizationsSamlrolesResource) Create(ctx context.Context, req resourc
 		)
 		return
 	}
-
-	fmt.Println(data)
 
 	data.Id = jsontypes.StringValue("example-id")
 
@@ -290,7 +287,6 @@ func (r *OrganizationsSamlrolesResource) Read(ctx context.Context, req resource.
 	}
 
 	// Save data into Terraform state
-
 	if err = json.NewDecoder(httpResp.Body).Decode(&data); err != nil {
 		resp.Diagnostics.AddError(
 			"JSON decoding error",
@@ -298,8 +294,6 @@ func (r *OrganizationsSamlrolesResource) Read(ctx context.Context, req resource.
 		)
 		return
 	}
-
-	fmt.Println(data)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -380,8 +374,6 @@ func (r *OrganizationsSamlrolesResource) Update(ctx context.Context, req resourc
 		)
 		return
 	}
-
-	fmt.Println(data)
 
 	data.Id = jsontypes.StringValue("example-id")
 
