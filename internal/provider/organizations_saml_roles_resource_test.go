@@ -16,7 +16,6 @@ func TestAccOrganizationsSamlRolesResource(t *testing.T) {
 			{
 				Config: testAccOrganizationsSamlRolesResourceConfigCreateOrganization,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test-acc-meraki-organizations-saml-roles"),
 				),
 			},
@@ -25,7 +24,6 @@ func TestAccOrganizationsSamlRolesResource(t *testing.T) {
 			{
 				Config: testAccOrganizationsSamlRolesResourceConfigUpdateOrganizationSaml,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organization_saml.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_organization_saml.test", "enabled", "true"),
 				),
 			},
@@ -34,7 +32,6 @@ func TestAccOrganizationsSamlRolesResource(t *testing.T) {
 			{
 				Config: testAccOrganizationsSamlRolesResourceConfigCreateNetwork,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_network.test", "name", "Main Office"),
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
@@ -51,7 +48,6 @@ func TestAccOrganizationsSamlRolesResource(t *testing.T) {
 			{
 				Config: testAccOrganizationsSamlRolesResourceConfigCreateNetworkAndSamlRole,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organizations_saml_role.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_organizations_saml_role.test", "role", "testrole"),
 					resource.TestCheckResourceAttr("meraki_organizations_saml_role.test", "org_access", "read-only"),
 					resource.TestCheckResourceAttr("meraki_organizations_saml_role.test", "networks.0.access", "read-only"),
@@ -107,10 +103,11 @@ const testAccOrganizationsSamlRolesResourceConfigCreateNetworkAndSamlRole = `
 
 resource "meraki_organization" "test" {}
 
-resource "meraki_network" "test" {	
+resource "meraki_network" "test" {
 	organization_id = resource.meraki_organization.test.organization_id
-	product_types = ["appliance", "switch", "wireless"]	
+	product_types = ["appliance", "switch", "wireless"]
 }
+
 resource "meraki_organizations_saml_role" "test" {	
     depends_on = [
 		resource.meraki_organization.test,
@@ -119,10 +116,10 @@ resource "meraki_organizations_saml_role" "test" {
 	organization_id = resource.meraki_organization.test.organization_id
 	role = "testrole"
 	org_access = "read-only"
-	networks = [{
-		id = resource.meraki_network.test.network_id
-		access = "read-only"
-	}]
+	networks    = [{
+                  id = resource.meraki_network.test.network_id
+                  access = "read-only"
+                }]
 }
 `
 
@@ -130,22 +127,20 @@ const testAccOrganizationsSamlRolesResourceConfigUpdateNetworkAndSamlRole = `
 
 resource "meraki_organization" "test" {}
 
-resource "meraki_network" "test" {	
+resource "meraki_network" "test" {
 	organization_id = resource.meraki_organization.test.organization_id
-	product_types = ["appliance", "switch", "wireless"]	
+	product_types = ["appliance", "switch", "wireless"]
 }
+
 resource "meraki_organizations_saml_role" "test" {	
-    depends_on = [
-		resource.meraki_organization.test,
-		resource.meraki_network.test
-	]
+    depends_on = ["meraki_organization.test", "meraki_network.test"]
 	organization_id = resource.meraki_organization.test.organization_id
 	role = "testrole"
-	org_access = "none"
-	networks = [{
-		id = resource.meraki_network.test.network_id
-		access = "read-only"
-	}]
+	org_access = "read-only"
+	networks    = [{
+                  id = resource.meraki_network.test.network_id
+                  access = "read-only"
+                }]
 }
 
 

@@ -12,7 +12,6 @@ import (
 	openApiClient "github.com/meraki/dashboard-api-go/client"
 	"os"
 	"regexp"
-
 )
 
 // Ensure CiscoMerakiProvider satisfies various provider interfaces.
@@ -160,7 +159,7 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		NewOrganizationsAdminResource,
 		NewOrganizationsAdaptivePolicyAclResource,
 		NewNetworkResource,
-		NewOrganizationsSamlrolesResource,
+		NewOrganizationsSamlRolesResource,
 	}
 }
 

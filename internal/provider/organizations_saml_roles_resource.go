@@ -20,20 +20,20 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ resource.Resource = &OrganizationsSamlrolesResource{}
-var _ resource.ResourceWithImportState = &OrganizationsSamlrolesResource{}
+var _ resource.Resource = &OrganizationsSamlRolesResource{}
+var _ resource.ResourceWithImportState = &OrganizationsSamlRolesResource{}
 
-func NewOrganizationsSamlrolesResource() resource.Resource {
-	return &OrganizationsSamlrolesResource{}
+func NewOrganizationsSamlRolesResource() resource.Resource {
+	return &OrganizationsSamlRolesResource{}
 }
 
-// OrganizationsSamlrolesResource defines the resource implementation.
-type OrganizationsSamlrolesResource struct {
+// OrganizationsSamlRolesResource defines the resource implementation.
+type OrganizationsSamlRolesResource struct {
 	client *openApiClient.APIClient
 }
 
-// OrganizationsSamlrolesResourceModel describes the resource data model.
-type OrganizationsSamlrolesResourceModel struct {
+// OrganizationsSamlRolesResourceModel describes the resource data model.
+type OrganizationsSamlRolesResourceModel struct {
 	Id        jsontypes.String                            `tfsdk:"id"`
 	OrgId     jsontypes.String                            `tfsdk:"organization_id" json:"organization_id"`
 	RoleId    jsontypes.String                            `tfsdk:"role_id" json:"id"`
@@ -53,11 +53,11 @@ type OrganizationsSamlRoleResourceModelNetwork struct {
 	Access jsontypes.String `tfsdk:"access" json:"access"`
 }
 
-func (r *OrganizationsSamlrolesResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *OrganizationsSamlRolesResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_organizations_saml_role"
 }
 
-func (r *OrganizationsSamlrolesResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *OrganizationsSamlRolesResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manage the saml roles in this organization",
 		Attributes: map[string]schema.Attribute{
@@ -146,7 +146,7 @@ func (r *OrganizationsSamlrolesResource) Schema(ctx context.Context, req resourc
 	}
 }
 
-func (r *OrganizationsSamlrolesResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *OrganizationsSamlRolesResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -166,8 +166,8 @@ func (r *OrganizationsSamlrolesResource) Configure(ctx context.Context, req reso
 	r.client = client
 }
 
-func (r *OrganizationsSamlrolesResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *OrganizationsSamlrolesResourceModel
+func (r *OrganizationsSamlRolesResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *OrganizationsSamlRolesResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -248,8 +248,8 @@ func (r *OrganizationsSamlrolesResource) Create(ctx context.Context, req resourc
 	tflog.Trace(ctx, "create resource")
 }
 
-func (r *OrganizationsSamlrolesResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *OrganizationsSamlrolesResourceModel
+func (r *OrganizationsSamlRolesResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *OrganizationsSamlRolesResourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -295,15 +295,17 @@ func (r *OrganizationsSamlrolesResource) Read(ctx context.Context, req resource.
 		return
 	}
 
+	data.Id = jsontypes.StringValue("example-id")
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
 	tflog.Trace(ctx, "read resource")
 }
 
-func (r *OrganizationsSamlrolesResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *OrganizationsSamlRolesResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 
-	var data *OrganizationsSamlrolesResourceModel
+	var data *OrganizationsSamlRolesResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -383,8 +385,8 @@ func (r *OrganizationsSamlrolesResource) Update(ctx context.Context, req resourc
 	tflog.Trace(ctx, "updated resource")
 }
 
-func (r *OrganizationsSamlrolesResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data *OrganizationsSamlrolesResourceModel
+func (r *OrganizationsSamlRolesResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data *OrganizationsSamlRolesResourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -427,7 +429,7 @@ func (r *OrganizationsSamlrolesResource) Delete(ctx context.Context, req resourc
 
 }
 
-func (r *OrganizationsSamlrolesResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *OrganizationsSamlRolesResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 
 	idParts := strings.Split(req.ID, ",")
