@@ -2,11 +2,11 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
 
-	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	openApiClient "github.com/meraki/dashboard-api-go/client"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -38,6 +39,18 @@ type NetworkResource struct {
 	client *openApiClient.APIClient
 }
 
+type Tag string
+
+func (t *Tag) UnmarshalJSON(b []byte) error {
+	var s string
+	if err := json.Unmarshal(b, &s); err != nil {
+		return err
+	}
+
+	*t = Tag(strings.Trim(s, `"`))
+	return nil
+}
+
 // NetworkResourceModel describes the resource data model.
 type NetworkResourceModel struct {
 	Id                      types.String                    `tfsdk:"id"`
@@ -46,11 +59,11 @@ type NetworkResourceModel struct {
 	Name                    jsontypes.String                `tfsdk:"name"`
 	ProductTypes            jsontypes.Set[jsontypes.String] `tfsdk:"product_types" json:"productTypes"`
 	Timezone                jsontypes.String                `tfsdk:"timezone" json:"timeZone"`
-	Tags                    jsontypes.Set[jsontypes.String] `tfsdk:"tags"`
+	Tags                    []Tag                           `tfsdk:"tags"`
 	EnrollmentString        jsontypes.String                `tfsdk:"enrollment_string" json:"enrollmentString"`
 	Url                     jsontypes.String                `tfsdk:"url"`
 	Notes                   jsontypes.String                `tfsdk:"notes"`
-	IsBoundToConfigTemplate jsontypes.Bool                  `tfsdk:"is_bound_to_config_template" json:"isBoundToConfigTemplate"`
+	IsBoundToConfigTemplate jsontypes.Bool                  `tfsdk:"is_bound_to_config_template" json:"IsBoundToConfigTemplate"`
 	CopyFromNetworkId       jsontypes.String                `tfsdk:"copy_from_network_id" json:"copyFromNetworkId"`
 }
 
@@ -193,7 +206,7 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	// Create HTTP request body
-	createOrganizationNetwork := openApiClient.NewInlineObject207(data.Name.ValueString(), nil)
+	createOrganizationNetwork := openApiClient.NewInlineObject209(data.Name.ValueString(), nil)
 	createOrganizationNetwork.SetTimeZone(data.Timezone.ValueString())
 
 	// ProductTypes
@@ -211,10 +224,10 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 	createOrganizationNetwork.SetProductTypes(productTypes)
 
 	// Tags
-	if !data.Tags.IsUnknown() {
+	if len(data.Tags) > 0 {
 		var tags []string
-		for _, attribute := range data.Tags.Elements() {
-			tags = append(tags, attribute.String())
+		for _, attribute := range data.Tags {
+			tags = append(tags, string(attribute))
 		}
 		createOrganizationNetwork.SetTags(tags)
 	}
@@ -230,12 +243,13 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	// Initialize provider client and make API call
-	inlineResp, httpResp, err := r.client.OrganizationsApi.CreateOrganizationNetwork(ctx, data.OrganizationId.ValueString()).CreateOrganizationNetwork(*createOrganizationNetwork).Execute()
+	_, httpResp, err := r.client.OrganizationsApi.CreateOrganizationNetwork(ctx, data.OrganizationId.ValueString()).CreateOrganizationNetwork(*createOrganizationNetwork).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to create resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
@@ -249,33 +263,23 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
+		return
 	}
 
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
-	} else {
-		resp.Diagnostics.Append()
 	}
 
 	// save inlineResp data into Terraform state.
-	data.Id = types.StringValue("example-id")
-	data.NetworkId = jsontypes.StringValue(inlineResp.GetId())
-	data.Name = jsontypes.StringValue(inlineResp.GetName())
-	data.Timezone = jsontypes.StringValue(inlineResp.GetTimeZone())
-	data.EnrollmentString = jsontypes.StringValue(inlineResp.GetEnrollmentString())
-	data.Url = jsontypes.StringValue(inlineResp.GetUrl())
-	data.Notes = jsontypes.StringValue(inlineResp.GetNotes())
-	data.IsBoundToConfigTemplate = jsontypes.BoolValue(inlineResp.GetIsBoundToConfigTemplate())
-
-	// product types attribute
-	if inlineResp.ProductTypes != nil {
-		var pt []jsontypes.String
-		for _, productTypeResp := range inlineResp.ProductTypes {
-			pt = append(pt, jsontypes.StringValue(productTypeResp))
-		}
-		data.ProductTypes = jsontypes.SetValue(pt)
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON Decode issue",
+			fmt.Sprintf("%v", httpResp.StatusCode),
+		)
+		return
 	}
+	data.Id = types.StringValue("example-id")
 
 	if data.CopyFromNetworkId.IsUnknown() {
 		data.CopyFromNetworkId = jsontypes.StringNull()
@@ -295,12 +299,13 @@ func (r *NetworkResource) Read(ctx context.Context, req resource.ReadRequest, re
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	// Initialize provider client and make API call
-	inlineResp, httpResp, err := r.client.NetworksApi.GetNetwork(context.Background(), data.NetworkId.ValueString()).Execute()
+	_, httpResp, err := r.client.NetworksApi.GetNetwork(context.Background(), data.NetworkId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to read resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
@@ -314,34 +319,22 @@ func (r *NetworkResource) Read(ctx context.Context, req resource.ReadRequest, re
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
+		return
 	}
 
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
-	} else {
-		resp.Diagnostics.Append()
 	}
-
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON Decode issue",
+			fmt.Sprintf("%v", httpResp.StatusCode),
+		)
+		return
+	}
 	// save inlineResp data into Terraform state.
 	data.Id = types.StringValue("example-id")
-	data.NetworkId = jsontypes.StringValue(inlineResp.GetId())
-	data.OrganizationId = jsontypes.StringValue(inlineResp.GetOrganizationId())
-	data.Name = jsontypes.StringValue(inlineResp.GetName())
-	data.Timezone = jsontypes.StringValue(inlineResp.GetTimeZone())
-	data.EnrollmentString = jsontypes.StringValue(inlineResp.GetEnrollmentString())
-	data.Url = jsontypes.StringValue(inlineResp.GetUrl())
-	data.Notes = jsontypes.StringValue(inlineResp.GetNotes())
-	data.IsBoundToConfigTemplate = jsontypes.BoolValue(inlineResp.GetIsBoundToConfigTemplate())
-
-	// product types attribute
-	if inlineResp.ProductTypes != nil {
-		var pt []jsontypes.String
-		for _, productTypeResp := range inlineResp.ProductTypes {
-			pt = append(pt, jsontypes.StringValue(productTypeResp))
-		}
-		data.ProductTypes = jsontypes.SetValue(pt)
-	}
 
 	if data.CopyFromNetworkId.IsUnknown() {
 		data.CopyFromNetworkId = jsontypes.StringNull()
@@ -365,15 +358,15 @@ func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 
 	// Create HTTP request body
-	updateNetwork := openApiClient.NewInlineObject25()
+	updateNetwork := openApiClient.NewInlineObject26()
 	updateNetwork.SetName(data.Name.ValueString())
 	updateNetwork.SetTimeZone(data.Timezone.ValueString())
 
 	// Tags
-	if !data.Tags.IsUnknown() {
+	if len(data.Tags) > 0 {
 		var tags []string
-		for _, attribute := range data.Tags.Elements() {
-			tags = append(tags, attribute.String())
+		for _, attribute := range data.Tags {
+			tags = append(tags, string(attribute))
 		}
 		updateNetwork.SetTags(tags)
 	}
@@ -387,13 +380,14 @@ func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest
 	updateNetwork.SetNotes(data.Notes.ValueString())
 
 	// Initialize provider client and make API call
-	inlineResp, httpResp, err := r.client.NetworksApi.UpdateNetwork(context.Background(),
+	_, httpResp, err := r.client.NetworksApi.UpdateNetwork(context.Background(),
 		data.NetworkId.ValueString()).UpdateNetwork(*updateNetwork).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to update resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
@@ -407,37 +401,23 @@ func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
+		return
 	}
 
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
-	} else {
-		resp.Diagnostics.Append()
 	}
 
 	// save inlineResp data into Terraform state.
-	data.Id = types.StringValue("example-id")
-	data.NetworkId = jsontypes.StringValue(inlineResp.GetId())
-	data.OrganizationId = jsontypes.StringValue(inlineResp.GetOrganizationId())
-	data.Name = jsontypes.StringValue(inlineResp.GetName())
-
-	// product types attribute
-	if inlineResp.ProductTypes != nil {
-		var pt []jsontypes.String
-		for _, productTypeResp := range inlineResp.ProductTypes {
-			pt = append(pt, jsontypes.StringValue(productTypeResp))
-		}
-		data.ProductTypes = jsontypes.SetValue(pt)
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON Decode issue",
+			fmt.Sprintf("%v", httpResp.StatusCode),
+		)
+		return
 	}
-
-	data.Timezone = jsontypes.StringValue(inlineResp.GetTimeZone())
-
-	data.EnrollmentString = jsontypes.StringValue(inlineResp.GetEnrollmentString())
-	data.Url = jsontypes.StringValue(inlineResp.GetUrl())
-	data.Notes = jsontypes.StringValue(inlineResp.GetNotes())
-	data.IsBoundToConfigTemplate = jsontypes.BoolValue(inlineResp.GetIsBoundToConfigTemplate())
-
+	data.Id = types.StringValue("example-id")
 	if data.CopyFromNetworkId.IsUnknown() {
 		data.CopyFromNetworkId = jsontypes.StringNull()
 	}
@@ -474,6 +454,7 @@ func (r *NetworkResource) Delete(ctx context.Context, req resource.DeleteRequest
 					"Failed to delete resource",
 					fmt.Sprintf("%v\n", err.Error()),
 				)
+				return
 			}
 
 			// collect diagnostics
@@ -484,8 +465,6 @@ func (r *NetworkResource) Delete(ctx context.Context, req resource.DeleteRequest
 			// Check for errors after diagnostics collected
 			if resp.Diagnostics.HasError() {
 				return
-			} else {
-				resp.Diagnostics.Append()
 			}
 
 			deletedFromMerakiPortal = true
@@ -505,7 +484,7 @@ func (r *NetworkResource) Delete(ctx context.Context, req resource.DeleteRequest
 	}
 
 	// Check if deleted from Meraki Portal was successful
-	if deletedFromMerakiPortal == true {
+	if deletedFromMerakiPortal {
 		resp.State.RemoveResource(ctx)
 
 		// Write logs using the tflog package

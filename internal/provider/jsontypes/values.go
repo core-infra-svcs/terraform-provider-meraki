@@ -83,7 +83,6 @@ func (f Float64) Equal(value attr.Value) bool {
 	default:
 		return false
 	}
-
 	return f.Float64Value.Equal(bv)
 }
 
@@ -96,6 +95,18 @@ func Float64Value(v float64) Float64 {
 func Float64Null() Float64 {
 	return Float64{
 		Float64Value: types.Float64Null(),
+    }
+}    
+
+func Int64Value(v int64) Int64 {
+	return Int64{
+		Int64Value: types.Int64Value(v),
+	}
+}
+
+func Int64Null() Int64 {
+	return Int64{
+		Int64Value: types.Int64Null(),
 	}
 }
 

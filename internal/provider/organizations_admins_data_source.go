@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -14,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	openApiClient "github.com/meraki/dashboard-api-go/client"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -206,12 +206,17 @@ func (d *OrganizationsAdminsDataSource) Read(ctx context.Context, req datasource
 		return
 	}
 
-	inlineResp, httpResp, err := d.client.AdminsApi.GetOrganizationAdmins(context.Background(), data.OrgId.ValueString()).Execute()
+	_, httpResp, err := d.client.AdminsApi.GetOrganizationAdmins(context.Background(), data.OrgId.ValueString()).Execute()
+	if httpResp != nil {
+		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+	}
+
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to read datasource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// Check for API success inlineResp code
@@ -222,11 +227,6 @@ func (d *OrganizationsAdminsDataSource) Read(ctx context.Context, req datasource
 		)
 	}
 
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
-	}
-
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		resp.Diagnostics.AddError("State Data", fmt.Sprintf("\n%s", data))
@@ -235,32 +235,12 @@ func (d *OrganizationsAdminsDataSource) Read(ctx context.Context, req datasource
 
 	// Save data into Terraform state
 	data.Id = types.StringValue("example-id")
-
-	// admins attribute
-	if admins := inlineResp; admins != nil {
-
-		for _, inlineRespValue := range admins {
-			var admin OrganizationAdminsDataSourceModel
-
-			// TODO - Workaround until json.RawMessage is implemented in HTTP client
-			b, err := json.Marshal(inlineRespValue)
-			if err != nil {
-				resp.Diagnostics.AddError(
-					"Failed to marshal API response",
-					fmt.Sprintf("%v", err),
-				)
-			}
-
-			if err := json.Unmarshal(b, &admin); err != nil {
-				resp.Diagnostics.AddError(
-					"Failed to unmarshal API response",
-					fmt.Sprintf("Unmarshal error%v", err),
-				)
-			}
-
-			data.List = append(data.List, admin)
-
-		}
+	if err = json.NewDecoder(httpResp.Body).Decode(&data.List); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
 	}
 
 	data.Id = types.StringValue("example-id")

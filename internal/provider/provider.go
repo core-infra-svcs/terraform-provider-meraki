@@ -5,7 +5,6 @@ import (
 	"os"
 	"regexp"
 
-	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -13,6 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	openApiClient "github.com/meraki/dashboard-api-go/client"
+
 )
 
 // Ensure CiscoMerakiProvider satisfies various provider interfaces.
@@ -161,16 +162,21 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		NewOrganizationsAdaptivePolicyAclResource,
 		NewNetworkResource,
 		NewNetworksSwitchSettingsResource,
+		NewNetworkResource,
+		NewOrganizationsSamlRolesResource,
+
 	}
 }
 
 func (p *CiscoMerakiProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		NewOrganizationsDataSource,
+		NewOrganizationsNetworksDataSource,
 		NewAdministeredIdentitiesMeDataSource,
 		NewOrganizationsAdminsDataSource,
 		NewOrganizationsSamlIdpsDataSource,
 		NewOrganizationsAdaptivePolicyAclsDataSource,
+		NewOrganizationsSamlRolesDataSource,
 	}
 }
 

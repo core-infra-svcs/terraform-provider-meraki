@@ -128,6 +128,5 @@ func (st setType[T]) Equal(o attr.Type) bool {
 		return false
 	}
 
-	base.String()
 	return st.SetType.Equal(base)
 }

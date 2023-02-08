@@ -2,10 +2,10 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	openApiClient "github.com/meraki/dashboard-api-go/client"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -125,12 +126,13 @@ func (d *OrganizationsSamlIdpsDataSource) Read(ctx context.Context, req datasour
 	}
 
 	// Initialize provider client and make API call
-	inlineResp, httpResp, err := d.client.OrganizationsApi.GetOrganizationSamlIdps(context.Background(), data.OrganizationId.ValueString()).Execute()
+	_, httpResp, err := d.client.OrganizationsApi.GetOrganizationSamlIdps(context.Background(), data.OrganizationId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to read datasource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// Check for API success inlineResp code
@@ -149,8 +151,6 @@ func (d *OrganizationsSamlIdpsDataSource) Read(ctx context.Context, req datasour
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
-	} else {
-		resp.Diagnostics.Append()
 	}
 
 	// save inlineResp data into Terraform state.
@@ -160,14 +160,12 @@ func (d *OrganizationsSamlIdpsDataSource) Read(ctx context.Context, req datasour
 		return
 	}
 
-	for _, samlIdp := range inlineResp {
-		var result OrganizationsSamlIdpDataSourceModel
-
-		result.IdpId = jsontypes.StringValue(samlIdp.GetIdpId())
-		result.ConsumerUrl = jsontypes.StringValue(samlIdp.GetConsumerUrl())
-		result.SloLogOutUrl = jsontypes.StringValue(samlIdp.GetSloLogoutUrl())
-		result.X509CertSha1FingerPrint = jsontypes.StringValue(samlIdp.GetX509certSha1Fingerprint())
-		data.List = append(data.List, result)
+	if err = json.NewDecoder(httpResp.Body).Decode(&data.List); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
 	}
 
 	// Save data into Terraform state
