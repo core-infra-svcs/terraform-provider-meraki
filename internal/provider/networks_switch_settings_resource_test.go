@@ -78,6 +78,7 @@ resource "meraki_networks_switch_settings" "test" {
       network_id = resource.meraki_network.test.network_id
 	  vlan = 100
 	  use_combined_power = true
+	  power_exceptions = []
 	 
 }
 `

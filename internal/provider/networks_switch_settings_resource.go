@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
@@ -36,7 +35,7 @@ type NetworksSwitchSettingsResource struct {
 type NetworksSwitchSettingsResourceModel struct {
 	Id               jsontypes.String                                     `tfsdk:"id"`
 	NetworkId        jsontypes.String                                     `tfsdk:"network_id" json:"network_id"`
-	Vlan             types.Float64                                        `tfsdk:"vlan" json:"vlan"`
+	Vlan             jsontypes.Float64                                    `tfsdk:"vlan" json:"vlan"`
 	UseCombinedPower jsontypes.Bool                                       `tfsdk:"use_combined_power" json:"useCombinedPower"`
 	PowerExceptions  []NetworksSwitchSettingsResourceModelPowerExceptions `tfsdk:"power_exceptions" json:"powerExceptions"`
 }
@@ -74,6 +73,7 @@ func (r *NetworksSwitchSettingsResource) Schema(ctx context.Context, req resourc
 				MarkdownDescription: "Management VLAN",
 				Optional:            true,
 				Computed:            true,
+				CustomType:          jsontypes.Float64Type,
 			},
 			"use_combined_power": schema.BoolAttribute{
 				MarkdownDescription: "The use combined Power as the default behavior of secondary power supplies on supported devices.",
@@ -81,21 +81,21 @@ func (r *NetworksSwitchSettingsResource) Schema(ctx context.Context, req resourc
 				Computed:            true,
 				CustomType:          jsontypes.BoolType,
 			},
-			"power_exceptions": schema.SetNestedAttribute{
+			"power_exceptions": schema.ListNestedAttribute{
 				Description: "Exceptions on a per switch basis to &quot;useCombinedPower&quot;",
-				Optional:    true,
+				Required:    true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"serial": schema.StringAttribute{
 							MarkdownDescription: "Serial number of the switch",
-							Computed:            true,
 							Optional:            true,
+							Computed:            true,
 							CustomType:          jsontypes.StringType,
 						},
 						"power_type": schema.StringAttribute{
 							MarkdownDescription: "Per switch exception (combined, redundant, useNetworkSetting)",
-							Computed:            true,
 							Optional:            true,
+							Computed:            true,
 							CustomType:          jsontypes.StringType,
 						},
 					},
@@ -138,6 +138,7 @@ func (r *NetworksSwitchSettingsResource) Create(ctx context.Context, req resourc
 	updateNetworksSwitchSettings := *openApiClient.NewInlineObject127()
 	updateNetworksSwitchSettings.SetUseCombinedPower(data.UseCombinedPower.ValueBool())
 	updateNetworksSwitchSettings.SetVlan(int32(data.Vlan.ValueFloat64()))
+
 	if len(data.PowerExceptions) > 0 {
 		var powerExceptions []openApiClient.NetworksNetworkIdSwitchSettingsPowerExceptions
 		for _, attribute := range data.PowerExceptions {
@@ -147,8 +148,9 @@ func (r *NetworksSwitchSettingsResource) Create(ctx context.Context, req resourc
 			powerExceptions = append(powerExceptions, powerException)
 		}
 		updateNetworksSwitchSettings.SetPowerExceptions(powerExceptions)
+	} else {
+		data.PowerExceptions = nil
 	}
-
 	_, httpResp, err := r.client.SettingsApi.UpdateNetworkSwitchSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchSettings(updateNetworksSwitchSettings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -184,6 +186,7 @@ func (r *NetworksSwitchSettingsResource) Create(ctx context.Context, req resourc
 		)
 		return
 	}
+	fmt.Println(data)
 
 	data.Id = jsontypes.StringValue("example-id")
 
@@ -262,6 +265,7 @@ func (r *NetworksSwitchSettingsResource) Update(ctx context.Context, req resourc
 	updateNetworksSwitchSettings := *openApiClient.NewInlineObject127()
 	updateNetworksSwitchSettings.SetUseCombinedPower(data.UseCombinedPower.ValueBool())
 	updateNetworksSwitchSettings.SetVlan(int32(data.Vlan.ValueFloat64()))
+
 	if len(data.PowerExceptions) > 0 {
 		var powerExceptions []openApiClient.NetworksNetworkIdSwitchSettingsPowerExceptions
 		for _, attribute := range data.PowerExceptions {
@@ -271,6 +275,8 @@ func (r *NetworksSwitchSettingsResource) Update(ctx context.Context, req resourc
 			powerExceptions = append(powerExceptions, powerException)
 		}
 		updateNetworksSwitchSettings.SetPowerExceptions(powerExceptions)
+	} else {
+		data.PowerExceptions = nil
 	}
 
 	_, httpResp, err := r.client.SettingsApi.UpdateNetworkSwitchSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchSettings(updateNetworksSwitchSettings).Execute()
@@ -309,6 +315,7 @@ func (r *NetworksSwitchSettingsResource) Update(ctx context.Context, req resourc
 	}
 
 	data.Id = jsontypes.StringValue("example-id")
+	fmt.Println(data)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 

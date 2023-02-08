@@ -18,13 +18,16 @@ NetworksSwitchSettings resource for updating network switch settings.
 ### Required
 
 - `network_id` (String) Network Id
+- `power_exceptions` (Attributes List) Exceptions on a per switch basis to &quot;useCombinedPower&quot; (see [below for nested schema](#nestedatt--power_exceptions))
 
 ### Optional
 
-- `id` (String) Example identifier
-- `power_exceptions` (Attributes Set) Exceptions on a per switch basis to &quot;useCombinedPower&quot; (see [below for nested schema](#nestedatt--power_exceptions))
-- `use_combined_power` (Boolean) The use Combined Power as the default behavior of secondary power supplies on supported devices.
+- `use_combined_power` (Boolean) The use combined Power as the default behavior of secondary power supplies on supported devices.
 - `vlan` (Number) Management VLAN
+
+### Read-Only
+
+- `id` (String) Example identifier
 
 <a id="nestedatt--power_exceptions"></a>
 ### Nested Schema for `power_exceptions`
