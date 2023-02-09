@@ -4,10 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"io"
-
-	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -17,7 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	openApiClient "github.com/meraki/dashboard-api-go/client"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -134,29 +132,25 @@ func (r *OrganizationsSamlIdpResource) Create(ctx context.Context, req resource.
 	}
 
 	// Create HTTP request body
-	createOrganizationsSamlIdp := *openApiClient.NewInlineObject214(data.X509CertSha1Fingerprint.ValueString())
+	createOrganizationsSamlIdp := *openApiClient.NewInlineObject216(data.X509CertSha1Fingerprint.ValueString())
 	createOrganizationsSamlIdp.SetSloLogoutUrl(data.SloLogoutUrl.ValueString())
 
 	// Initialize provider client and make API call
 	_, httpResp, err := r.client.SamlApi.CreateOrganizationSamlIdp(context.Background(), data.OrganizationId.ValueString()).CreateOrganizationSamlIdp(createOrganizationsSamlIdp).Execute()
+	//nolint:staticcheck
 	if err != nil {
 		// BUG - HTTP Client is unable to unmarshal data into typed response []client.InlineResponse20095, returns empty
 	}
-
-	// unmarshal http body into inlineResp object
-	var inlineResp *openApiClient.InlineResponse20095
-	body, _ := io.ReadAll(httpResp.Body)
-	if err = json.Unmarshal(body, &inlineResp); err != nil {
+	if httpResp == nil {
 		resp.Diagnostics.AddError(
-			"Failed to unmarshal JSON into typed response",
+			"Failed to get http response",
 			fmt.Sprintf("%v", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
-	}
+	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 
 	// Check for API success response code
 	if httpResp.StatusCode != 201 {
@@ -169,16 +163,17 @@ func (r *OrganizationsSamlIdpResource) Create(ctx context.Context, req resource.
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
-	} else {
-		resp.Diagnostics.Append()
 	}
 
 	// save into the Terraform state.
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
+	}
 	data.Id = types.StringValue("example-id")
-	data.IdpId = jsontypes.StringValue(inlineResp.GetIdpId())
-	data.ConsumerUrl = jsontypes.StringValue(inlineResp.GetConsumerUrl())
-	data.SloLogoutUrl = jsontypes.StringValue(inlineResp.GetSloLogoutUrl())
-	data.X509CertSha1Fingerprint = jsontypes.StringValue(inlineResp.GetX509certSha1Fingerprint())
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -198,12 +193,13 @@ func (r *OrganizationsSamlIdpResource) Read(ctx context.Context, req resource.Re
 	}
 
 	// Initialize provider client and make API call
-	inlineResp, httpResp, err := r.client.SamlApi.GetOrganizationSamlIdp(context.Background(), data.OrganizationId.ValueString(), data.IdpId.ValueString()).Execute()
+	_, httpResp, err := r.client.SamlApi.GetOrganizationSamlIdp(context.Background(), data.OrganizationId.ValueString(), data.IdpId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to read resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
@@ -222,16 +218,15 @@ func (r *OrganizationsSamlIdpResource) Read(ctx context.Context, req resource.Re
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
-	} else {
-		resp.Diagnostics.Append()
 	}
-
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
+	}
 	data.Id = types.StringValue("example-id")
-	data.IdpId = jsontypes.StringValue(inlineResp.GetIdpId())
-	data.ConsumerUrl = jsontypes.StringValue(inlineResp.GetConsumerUrl())
-	data.SloLogoutUrl = jsontypes.StringValue(inlineResp.GetSloLogoutUrl())
-	data.X509CertSha1Fingerprint = jsontypes.StringValue(inlineResp.GetX509certSha1Fingerprint())
-
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -246,31 +241,28 @@ func (r *OrganizationsSamlIdpResource) Update(ctx context.Context, req resource.
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	// Create HTTP request body
-	updateOrganizationsSamlIdp := openApiClient.NewInlineObject215()
+	updateOrganizationsSamlIdp := openApiClient.NewInlineObject217()
 	updateOrganizationsSamlIdp.SetX509certSha1Fingerprint(data.X509CertSha1Fingerprint.ValueString())
 	updateOrganizationsSamlIdp.SetSloLogoutUrl(data.SloLogoutUrl.ValueString())
 
 	// Initialize provider client and make API call
 	_, httpResp, err := r.client.SamlApi.UpdateOrganizationSamlIdp(context.Background(),
 		data.OrganizationId.ValueString(), data.IdpId.ValueString()).UpdateOrganizationSamlIdp(*updateOrganizationsSamlIdp).Execute()
+
+	//nolint:staticcheck
 	if err != nil {
 		// BUG - HTTP Client is unable to unmarshal data into typed response []client.InlineResponse20095, returns empty
 	}
-
-	// unmarshal http body into inlineResp object
-	var inlineResp *openApiClient.InlineResponse20095
-	body, _ := io.ReadAll(httpResp.Body)
-	if err = json.Unmarshal(body, &inlineResp); err != nil {
+	if httpResp == nil {
 		resp.Diagnostics.AddError(
-			"Failed to unmarshal JSON into typed response",
+			"Failed to get http response",
 			fmt.Sprintf("%v", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
-	}
+	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 
 	// Check for API success response code
 	if httpResp.StatusCode != 200 {
@@ -283,15 +275,16 @@ func (r *OrganizationsSamlIdpResource) Update(ctx context.Context, req resource.
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
-	} else {
-		resp.Diagnostics.Append()
 	}
 
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
+	}
 	data.Id = types.StringValue("example-id")
-	data.IdpId = jsontypes.StringValue(inlineResp.GetIdpId())
-	data.ConsumerUrl = jsontypes.StringValue(inlineResp.GetConsumerUrl())
-	data.SloLogoutUrl = jsontypes.StringValue(inlineResp.GetSloLogoutUrl())
-	data.X509CertSha1Fingerprint = jsontypes.StringValue(inlineResp.GetX509certSha1Fingerprint())
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -313,6 +306,7 @@ func (r *OrganizationsSamlIdpResource) Delete(ctx context.Context, req resource.
 			"Failed to delete resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
@@ -331,8 +325,6 @@ func (r *OrganizationsSamlIdpResource) Delete(ctx context.Context, req resource.
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
-	} else {
-		resp.Diagnostics.Append()
 	}
 
 	// Remove from state

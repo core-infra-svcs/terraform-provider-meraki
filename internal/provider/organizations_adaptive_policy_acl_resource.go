@@ -7,11 +7,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"strings"
 
-	openApiClient "github.com/core-infra-svcs/dashboard-api-go/client"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -19,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	openApiClient "github.com/meraki/dashboard-api-go/client"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -212,21 +211,20 @@ func (r *OrganizationsAdaptivePolicyAclResource) Create(ctx context.Context, req
 	}
 
 	// payload
-	createOrganizationsAdaptivePolicyAcl := *openApiClient.NewInlineObject169(data.Name.ValueString(), rules, data.IpVersion.ValueString())
+	createOrganizationsAdaptivePolicyAcl := *openApiClient.NewInlineObject170(data.Name.ValueString(), rules, data.IpVersion.ValueString())
 	createOrganizationsAdaptivePolicyAcl.SetDescription(data.Description.ValueString())
 
-	inlineResp, httpResp, err := r.client.OrganizationsApi.CreateOrganizationAdaptivePolicyAcl(context.Background(), data.OrgId.ValueString()).CreateOrganizationAdaptivePolicyAcl(createOrganizationsAdaptivePolicyAcl).Execute()
+	_, httpResp, err := r.client.OrganizationsApi.CreateOrganizationAdaptivePolicyAcl(context.Background(), data.OrgId.ValueString()).CreateOrganizationAdaptivePolicyAcl(createOrganizationsAdaptivePolicyAcl).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to create resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
-	}
+	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 
 	// Check for API success response code
 	if httpResp.StatusCode != 201 {
@@ -234,6 +232,7 @@ func (r *OrganizationsAdaptivePolicyAclResource) Create(ctx context.Context, req
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
+		return
 	}
 
 	// Check for errors after diagnostics collected
@@ -243,7 +242,15 @@ func (r *OrganizationsAdaptivePolicyAclResource) Create(ctx context.Context, req
 	}
 
 	// Save data into Terraform state
-	extractHttpResponseOrganizationAdaptivePolicyAclResource(ctx, inlineResp, data, &resp.Diagnostics)
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
+	}
+	data.Id = types.StringValue("example-id")
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
@@ -260,18 +267,17 @@ func (r *OrganizationsAdaptivePolicyAclResource) Read(ctx context.Context, req r
 		return
 	}
 
-	inlineResp, httpResp, err := r.client.OrganizationsApi.GetOrganizationAdaptivePolicyAcl(context.Background(), data.OrgId.ValueString(), data.AclId.ValueString()).Execute()
+	_, httpResp, err := r.client.OrganizationsApi.GetOrganizationAdaptivePolicyAcl(context.Background(), data.OrgId.ValueString(), data.AclId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to read resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
-	}
+	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 
 	// Check for API success inlineResp code
 	if httpResp.StatusCode != 200 {
@@ -279,6 +285,7 @@ func (r *OrganizationsAdaptivePolicyAclResource) Read(ctx context.Context, req r
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
+		return
 	}
 
 	// Check for errors after diagnostics collected
@@ -288,9 +295,16 @@ func (r *OrganizationsAdaptivePolicyAclResource) Read(ctx context.Context, req r
 	}
 
 	// Save data into Terraform state
-	extractHttpResponseOrganizationAdaptivePolicyAclResource(ctx, inlineResp, data, &resp.Diagnostics)
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
+	}
+	data.Id = types.StringValue("example-id")
 
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (r *OrganizationsAdaptivePolicyAclResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -321,24 +335,23 @@ func (r *OrganizationsAdaptivePolicyAclResource) Update(ctx context.Context, req
 	}
 
 	// payload
-	createOrganizationsAdaptivePolicyAcl := *openApiClient.NewInlineObject170()
+	createOrganizationsAdaptivePolicyAcl := *openApiClient.NewInlineObject171()
 	createOrganizationsAdaptivePolicyAcl.SetName(data.Name.ValueString())
 	createOrganizationsAdaptivePolicyAcl.SetDescription(data.Description.ValueString())
 	createOrganizationsAdaptivePolicyAcl.SetRules(rules)
 	createOrganizationsAdaptivePolicyAcl.SetIpVersion(data.IpVersion.ValueString())
 
-	inlineResp, httpResp, err := r.client.OrganizationsApi.UpdateOrganizationAdaptivePolicyAcl(context.Background(), data.OrgId.ValueString(), data.AclId.ValueString()).UpdateOrganizationAdaptivePolicyAcl(createOrganizationsAdaptivePolicyAcl).Execute()
+	_, httpResp, err := r.client.OrganizationsApi.UpdateOrganizationAdaptivePolicyAcl(context.Background(), data.OrgId.ValueString(), data.AclId.ValueString()).UpdateOrganizationAdaptivePolicyAcl(createOrganizationsAdaptivePolicyAcl).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to update resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
-	}
+	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 
 	// Check for API success response code
 	if httpResp.StatusCode != 200 {
@@ -346,6 +359,7 @@ func (r *OrganizationsAdaptivePolicyAclResource) Update(ctx context.Context, req
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
+		return
 	}
 
 	// Check for errors after diagnostics collected
@@ -355,7 +369,15 @@ func (r *OrganizationsAdaptivePolicyAclResource) Update(ctx context.Context, req
 	}
 
 	// Save data into Terraform state
-	extractHttpResponseOrganizationAdaptivePolicyAclResource(ctx, inlineResp, data, &resp.Diagnostics)
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
+	}
+	data.Id = types.StringValue("example-id")
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
@@ -378,6 +400,7 @@ func (r *OrganizationsAdaptivePolicyAclResource) Delete(ctx context.Context, req
 			"Failed to delete resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
+		return
 	}
 
 	// collect diagnostics
@@ -391,6 +414,7 @@ func (r *OrganizationsAdaptivePolicyAclResource) Delete(ctx context.Context, req
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
+		return
 	}
 
 	// Check for errors after diagnostics collected
@@ -399,28 +423,6 @@ func (r *OrganizationsAdaptivePolicyAclResource) Delete(ctx context.Context, req
 		return
 	}
 	resp.State.RemoveResource(ctx)
-}
-
-func extractHttpResponseOrganizationAdaptivePolicyAclResource(ctx context.Context, inlineResp map[string]interface{}, data *OrganizationsAdaptivePolicyAclResourceModel, diags *diag.Diagnostics) *OrganizationsAdaptivePolicyAclResourceModel {
-
-	// TODO - Workaround until json.RawMessage is implemented in HTTP client
-	b, err := json.Marshal(inlineResp)
-	if err != nil {
-		diags.AddError(
-			"Failed to marshal API response",
-			fmt.Sprintf("%v", err),
-		)
-	}
-	if err := json.Unmarshal([]byte(b), &data); err != nil {
-		diags.AddError(
-			"Failed to unmarshal API response",
-			fmt.Sprintf("Unmarshal error%v", err),
-		)
-	}
-
-	data.Id = types.StringValue("example-id")
-
-	return data
 }
 
 func (r *OrganizationsAdaptivePolicyAclResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
