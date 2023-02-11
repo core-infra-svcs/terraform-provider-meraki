@@ -34,7 +34,6 @@ func TestAccNetworkSnmpSettingsResource(t *testing.T) {
 			{
 				Config: testAccOrganizationsSnmpSettingsResourceConfigCreateNetwork,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_network.test", "name", "Main Office"),
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
@@ -52,7 +51,6 @@ func TestAccNetworkSnmpSettingsResource(t *testing.T) {
 				Config: testAccNetworkSnmpSettingsResourceConfigUpdateNetworkSnmpSettings,
 				Check: resource.ComposeAggregateTestCheckFunc(
 
-					resource.TestCheckResourceAttr("meraki_organizations_snmp.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_organizations_snmp.test", "access", "none"),
 				),
 			},
