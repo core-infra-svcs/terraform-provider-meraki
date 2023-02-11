@@ -29,6 +29,25 @@ func (i64 int64Type) ValueFromTerraform(ctx context.Context, in tftypes.Value) (
 	return Int64{Int64Value: val.(types.Int64)}, err
 }
 
+var Float64Type = float64Type{
+	Float64Type: types.Float64Type,
+}
+
+type float64Type struct {
+	basetypes.Float64Type
+}
+
+func (f64 float64Type) Equal(o attr.Type) bool {
+	_, ok := o.(float64Type)
+	return ok
+}
+
+func (f64 float64Type) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+	val, err := f64.Float64Type.ValueFromTerraform(ctx, in)
+
+	return Float64{Float64Value: val.(types.Float64)}, err
+}
+
 var BoolType = boolType{
 	BoolType: types.BoolType,
 }
