@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -318,17 +317,8 @@ func (r *OrganizationsSnmpResource) Delete(ctx context.Context, req resource.Del
 	}
 
 	updateNetworkSnmp := *openApiClient.NewInlineObject107()
-	updateNetworkSnmp.SetAccess(data.Access.ValueString())
-	if len(data.Users) > 0 {
-		var usersData []openApiClient.NetworksNetworkIdSnmpUsers
-		for _, user := range data.Users {
-			var userData openApiClient.NetworksNetworkIdSnmpUsers
-			userData.Username = user.Username.ValueString()
-			userData.Passphrase = user.Passphrase.ValueString()
-			usersData = append(usersData, userData)
-		}
-		updateNetworkSnmp.SetUsers(usersData)
-	}
+	updateNetworkSnmp.SetAccess("none")
+	updateNetworkSnmp.SetUsers(nil)
 
 	_, httpResp, err := r.client.NetworksApi.UpdateNetworkSnmp(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSnmp(updateNetworkSnmp).Execute()
 	if err != nil {
@@ -365,8 +355,6 @@ func (r *OrganizationsSnmpResource) Delete(ctx context.Context, req resource.Del
 		)
 		return
 	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	resp.State.RemoveResource(ctx)
 
