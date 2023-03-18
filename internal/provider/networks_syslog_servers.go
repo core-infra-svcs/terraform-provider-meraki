@@ -38,9 +38,9 @@ type NetworksSyslogServersResourceModel struct {
 }
 
 type Server struct {
-	Host  string   `tfsdk:"host"`
-	Port  int64    `tfsdk:"port"`
-	Roles []string `tfsdk:"roles"`
+	Host  jsontypes.String   `tfsdk:"host"`
+	Port  jsontypes.Int64    `tfsdk:"port"`
+	Roles []jsontypes.String `tfsdk:"roles"`
 }
 
 func (r *NetworksSyslogServersResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -77,14 +77,16 @@ func (r *NetworksSyslogServersResource) Schema(ctx context.Context, req resource
 							MarkdownDescription: "",
 							Optional:            true,
 							Computed:            true,
+							CustomType:          jsontypes.StringType,
 						},
 						"port": schema.Int64Attribute{
 							MarkdownDescription: "",
 							Optional:            true,
 							Computed:            true,
+							CustomType:          jsontypes.Int64Type,
 						},
 						"roles": schema.SetAttribute{
-							Description: "Network tags",
+							Description: "roles",
 							ElementType: jsontypes.StringType,
 							CustomType:  jsontypes.SetType[jsontypes.String](),
 							Computed:    true,
@@ -126,22 +128,25 @@ func (r *NetworksSyslogServersResource) Create(ctx context.Context, req resource
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	var s []openApiClient.NetworksNetworkIdSyslogServersServers
+	var servers []openApiClient.NetworksNetworkIdSyslogServersServers
 
 	// Servers
 	if len(data.Servers) > 0 {
 
 		for _, attribute := range data.Servers {
-			var t openApiClient.NetworksNetworkIdSyslogServersServers
-			t.Host = attribute.Host
-			t.Port = int32(attribute.Port)
-			t.Roles = attribute.Roles
-			s = append(s, t)
+			var server openApiClient.NetworksNetworkIdSyslogServersServers
+			server.Host = attribute.Host.ValueString()
+			server.Port = int32(attribute.Port.ValueInt64())
+			for _, role := range attribute.Roles {
+				server.Roles = append(server.Roles, role.String())
+			}
+
+			servers = append(servers, server)
 		}
 
 	}
 
-	updateNetworkNetflow := *openApiClient.NewInlineObject139(s)
+	updateNetworkNetflow := *openApiClient.NewInlineObject139(servers)
 
 	inlineResp, httpResp, err := r.client.NetworksApi.UpdateNetworkSyslogServers(ctx, data.NetworkId.ValueString()).UpdateNetworkSyslogServers(updateNetworkNetflow).Execute()
 	if err != nil {
@@ -171,11 +176,13 @@ func (r *NetworksSyslogServersResource) Create(ctx context.Context, req resource
 	}
 
 	for _, attribute := range inlineResp.GetServers() {
-		var se Server
-		se.Host = *attribute.Host
-		se.Port = int64(*attribute.Port)
-		se.Roles = attribute.Roles
-		data.Servers = append(data.Servers, se)
+		var server Server
+		server.Host = jsontypes.StringValue(*attribute.Host)
+		server.Port = jsontypes.Int64Value(int64(*attribute.Port))
+		for _, role := range attribute.Roles {
+			server.Roles = append(server.Roles, jsontypes.StringValue(role))
+		}
+		data.Servers = append(data.Servers, server)
 	}
 
 	data.Id = jsontypes.StringValue("example-id")
@@ -226,11 +233,13 @@ func (r *NetworksSyslogServersResource) Read(ctx context.Context, req resource.R
 	}
 
 	for _, attribute := range inlineResp.GetServers() {
-		var se Server
-		se.Host = *attribute.Host
-		se.Port = int64(*attribute.Port)
-		se.Roles = attribute.Roles
-		data.Servers = append(data.Servers, se)
+		var server Server
+		server.Host = jsontypes.StringValue(*attribute.Host)
+		server.Port = jsontypes.Int64Value(int64(*attribute.Port))
+		for _, role := range attribute.Roles {
+			server.Roles = append(server.Roles, jsontypes.StringValue(role))
+		}
+		data.Servers = append(data.Servers, server)
 	}
 
 	data.Id = jsontypes.StringValue("example-id")
@@ -251,22 +260,25 @@ func (r *NetworksSyslogServersResource) Update(ctx context.Context, req resource
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	var s []openApiClient.NetworksNetworkIdSyslogServersServers
+	var servers []openApiClient.NetworksNetworkIdSyslogServersServers
 
 	// Servers
 	if len(data.Servers) > 0 {
 
 		for _, attribute := range data.Servers {
-			var t openApiClient.NetworksNetworkIdSyslogServersServers
-			t.Host = attribute.Host
-			t.Port = int32(attribute.Port)
-			t.Roles = attribute.Roles
-			s = append(s, t)
+			var server openApiClient.NetworksNetworkIdSyslogServersServers
+			server.Host = attribute.Host.ValueString()
+			server.Port = int32(attribute.Port.ValueInt64())
+			for _, role := range attribute.Roles {
+				server.Roles = append(server.Roles, role.String())
+			}
+
+			servers = append(servers, server)
 		}
 
 	}
 
-	updateNetworkNetflow := *openApiClient.NewInlineObject139(s)
+	updateNetworkNetflow := *openApiClient.NewInlineObject139(servers)
 
 	inlineResp, httpResp, err := r.client.NetworksApi.UpdateNetworkSyslogServers(ctx, data.NetworkId.ValueString()).UpdateNetworkSyslogServers(updateNetworkNetflow).Execute()
 	if err != nil {
@@ -296,11 +308,13 @@ func (r *NetworksSyslogServersResource) Update(ctx context.Context, req resource
 	}
 
 	for _, attribute := range inlineResp.GetServers() {
-		var se Server
-		se.Host = *attribute.Host
-		se.Port = int64(*attribute.Port)
-		se.Roles = attribute.Roles
-		data.Servers = append(data.Servers, se)
+		var server Server
+		server.Host = jsontypes.StringValue(*attribute.Host)
+		server.Port = jsontypes.Int64Value(int64(*attribute.Port))
+		for _, role := range attribute.Roles {
+			server.Roles = append(server.Roles, jsontypes.StringValue(role))
+		}
+		data.Servers = append(data.Servers, server)
 	}
 
 	data.Id = jsontypes.StringValue("example-id")
@@ -319,21 +333,24 @@ func (r *NetworksSyslogServersResource) Delete(ctx context.Context, req resource
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	var s []openApiClient.NetworksNetworkIdSyslogServersServers
+	var servers []openApiClient.NetworksNetworkIdSyslogServersServers
 
 	// Servers
 	if len(data.Servers) > 0 {
 
 		for _, attribute := range data.Servers {
-			var t openApiClient.NetworksNetworkIdSyslogServersServers
-			t.Host = attribute.Host
-			t.Port = int32(attribute.Port)
-			t.Roles = attribute.Roles
-			s = append(s, t)
+			var server openApiClient.NetworksNetworkIdSyslogServersServers
+			server.Host = attribute.Host.ValueString()
+			server.Port = int32(attribute.Port.ValueInt64())
+			for _, role := range attribute.Roles {
+				server.Roles = append(server.Roles, role.String())
+			}
+
+			servers = append(servers, server)
 		}
 	}
 
-	updateNetworkNetflow := *openApiClient.NewInlineObject139(s)
+	updateNetworkNetflow := *openApiClient.NewInlineObject139(servers)
 
 	inlineResp, httpResp, err := r.client.NetworksApi.UpdateNetworkSyslogServers(ctx, data.NetworkId.ValueString()).UpdateNetworkSyslogServers(updateNetworkNetflow).Execute()
 	if err != nil {
@@ -363,12 +380,15 @@ func (r *NetworksSyslogServersResource) Delete(ctx context.Context, req resource
 	}
 
 	for _, attribute := range inlineResp.GetServers() {
-		var se Server
-		se.Host = *attribute.Host
-		se.Port = int64(*attribute.Port)
-		se.Roles = attribute.Roles
-		data.Servers = append(data.Servers, se)
+		var server Server
+		server.Host = jsontypes.StringValue(*attribute.Host)
+		server.Port = jsontypes.Int64Value(int64(*attribute.Port))
+		for _, role := range attribute.Roles {
+			server.Roles = append(server.Roles, jsontypes.StringValue(role))
+		}
+		data.Servers = append(data.Servers, server)
 	}
+
 	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

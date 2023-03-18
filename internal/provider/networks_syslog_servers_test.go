@@ -14,7 +14,7 @@ func TestAccNetworksSyslogServersResource(t *testing.T) {
 
 			// Create test Organization
 			{
-				Config: testAccNetworksNetFlowResourceConfigCreateOrganization,
+				Config: testAccNetworksSyslogServersResourceConfigCreateOrganization,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_acc_meraki_organizations_networks_syslog_servers"),
 				),
@@ -32,7 +32,7 @@ func TestAccNetworksSyslogServersResource(t *testing.T) {
 
 			// Create and Read Network.
 			{
-				Config: testAccNetworksNetFlowResourceConfigCreateNetwork,
+				Config: testAccNetworksSyslogServersResourceConfigCreateNetwork,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_network.test", "name", "Main Office"),
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
@@ -48,22 +48,26 @@ func TestAccNetworksSyslogServersResource(t *testing.T) {
 
 			// Update and Read Networks Syslog Servers.
 			{
-				Config: testAccNetFlowResourceConfigUpdateNetworkNetFlowSettings,
-				Check:  resource.ComposeAggregateTestCheckFunc(
-				//resource.TestCheckResourceAttr("meraki_networks_syslog_servers", "mode", "basic"),
+				Config: testAccSyslogServersResourceConfigUpdateNetworkSyslogServersSettings,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("meraki_networks_syslog_servers.test", "servers.#", "1"),
+					resource.TestCheckResourceAttr("meraki_networks_syslog_servers.test", "servers.0.host", "1.2.3.4"),
+					resource.TestCheckResourceAttr("meraki_networks_syslog_servers.test", "servers.0.port", "443"),
+					resource.TestCheckResourceAttr("meraki_networks_syslog_servers.test", "servers.0.roles.0", "Wireless event log"),
+					resource.TestCheckResourceAttr("meraki_networks_syslog_servers.test", "servers.0.roles.1", "URLs"),
 				),
 			},
 		},
 	})
 }
 
-const testAccNetworksNetFlowResourceConfigCreateOrganization = `
+const testAccNetworksSyslogServersResourceConfigCreateOrganization = `
  resource "meraki_organization" "test" {
  	name = "test_acc_meraki_organizations_networks_syslog_servers"
  	api_enabled = true
  } 
  `
-const testAccNetworksNetFlowResourceConfigCreateNetwork = `
+const testAccNetworksSyslogServersResourceConfigCreateNetwork = `
 resource "meraki_organization" "test" {}
  resource "meraki_network" "test" {
 	depends_on = [resource.meraki_organization.test]
@@ -76,7 +80,7 @@ resource "meraki_organization" "test" {}
 }
  `
 
-const testAccNetFlowResourceConfigUpdateNetworkNetFlowSettings = `
+const testAccSyslogServersResourceConfigUpdateNetworkSyslogServersSettings = `
 resource "meraki_organization" "test" {}
 resource "meraki_network" "test" {
 	depends_on = [resource.meraki_organization.test]

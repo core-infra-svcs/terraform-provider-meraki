@@ -31,6 +31,6 @@ Optional:
 
 - `host` (String)
 - `port` (Number)
-- `roles` (Set of String) Network tags
+- `roles` (Set of String) roles
 
 
