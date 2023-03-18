@@ -139,7 +139,9 @@ func (r *OrganizationsSamlIdpResource) Create(ctx context.Context, req resource.
 	// Initialize provider client and make API call
 	_, httpResp, err := r.client.SamlApi.CreateOrganizationSamlIdp(context.Background(), data.OrganizationId.ValueString()).CreateOrganizationSamlIdp(createOrganizationsSamlIdp).Execute()
 	//nolint:staticcheck
-
+	if err != nil {
+		// BUG - HTTP Client is unable to unmarshal data into typed response []client.InlineResponse20095, returns empty
+	}
 	if httpResp == nil {
 		resp.Diagnostics.AddError(
 			"Failed to get http response",
@@ -249,7 +251,9 @@ func (r *OrganizationsSamlIdpResource) Update(ctx context.Context, req resource.
 		data.OrganizationId.ValueString(), data.IdpId.ValueString()).UpdateOrganizationSamlIdp(*updateOrganizationsSamlIdp).Execute()
 
 	//nolint:staticcheck
-
+	if err != nil {
+		// BUG - HTTP Client is unable to unmarshal data into typed response []client.InlineResponse20095, returns empty
+	}
 	if httpResp == nil {
 		resp.Diagnostics.AddError(
 			"Failed to get http response",
