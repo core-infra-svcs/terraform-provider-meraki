@@ -97,147 +97,38 @@ resource "meraki_networks_group_policy" "test" {
       network_id = resource.meraki_network.test.network_id
 	  name = "testpolicy"
 	  splash_auth_settings = "network default"
-	  bandwidth = {
-		settings = "network default" 
-		bandwidth_limits = {
-			limit_down = 567
-			limit_up = 879
-		}
-	}
-	bonjour_forwarding = {
-        settings = "custom"
-        rules = [
+	  bandwidth_settings = "network default" 
+	  bandwidth_limit_down = 567
+	  bandwidth_limit_up = 879
+      bonjour_forwarding_rules = [
             {
                 description = "A simple bonjour rule"
                 vlan_id = 1
                 services = [ "All Services" ]
             }
         ]
-    }
-	content_filtering = {
-        allowed_url_patterns = {}
-		blocked_url_categories = {}
-		blocked_url_patterns = {}
-    }
-
-	scheduling =  {
-        enabled = true
-        monday = {
-            active = true
-            from = "9:00"
-            to = "17:00"
-        },
-        tuesday = {
-            active = true
-            from = "9:00"
-            to = "17:00"
-           
-        }
-        wednesday = {
-			active = true
-            from = "9:00"
-            to = "17:00"
-        }
-        thursday = {
-            active = true
-            from = "9:00"
-            to = "17:00"
-        }
-        friday = {
-			active = true
-            from = "9:00"
-            to = "17:00"
-        }
-        saturday = {
-            active = true
-            from = "9:00"
-            to = "17:00"
-        }
-        sunday = {
-            active = true
-            from = "9:00"
-            to = "17:00"
-        }
-    }
-
-	vlan_tagging = {
-        settings = "custom"
-        vlan_id =  "1"
-    }
-
-	firewall_and_traffic_shaping =  {
-        settings = "custom"
-        traffic_shaping_rules = [
-            {
-                definitions = [
-                    {
-                        type = "host"
-                        value = "google.com"
-                    },
-                    {
-                        type = "port"
-                        value ="9090"
-                    },
-                    {
-                        type = "ipRange"
-                        value = "192.1.0.0"
-                    },
-                    {
-                        type = "ipRange"
-                        value = "192.1.0.0/16"
-                    },
-                    {
-                        type = "ipRange"
-                        value = "10.1.0.0/16:80"
-                    },
-                    {
-                        type = "localNet"
-                        value = "192.168.0.0/16"
-                    }
-                ]
-                per_client_bandwidth_limits = {
-                    settings = "custom"
-                    bandwidth_limits = {
-                        limit_up = 1000000
-                        limit_down = 1000000
-                    }
-                }
-                dscp_tag_value = 0
-                pcp_tag_value = 0
-            }
-        ]
-        l3_firewall_rules = [
-            {
-                comment = "Allow TCP traffic to subnet with HTTP servers."
-                policy = "allow"
-                protocol = "tcp"
-                dest_port =  "443"
-                dest_cidr = "192.168.1.0"
-            }
-        ]
-        l7_firewall_rules = [
-            {
-                policy = "deny"
-                type = "host"
-                value = "google.com"
-            },
-            {
-                policy = "deny"
-                type = "port"
-                value = "23"
-            },
-            {
-                policy = "deny"
-                type = "ipRange"
-                value = "10.11.12.00"
-            },
-            {
-                policy = "deny"
-                type = "ipRange"
-                value = "10.11.12.00"
-            }
-        ]
-    }
+      bonjour_forwarding_settings = "network default"  
+      vlan_tagging_settings = "custom" 
+      vlan_tagging_vlan_id =  "1"
+      scheduling_enabled = true 
+      scheduling_friday_active = true  
+      scheduling_friday_from = "09:00"
+      scheduling_friday_to = "17:00"
+     content_filtering_allowed_url_patterns_settings = "network default"
+	 url_patterns = []
+	 content_filtering_blocked_url_categories_settings = "network default"
+	 categories = []
+	 content_filtering_blocked_url_patterns_settings = "network default"
+	 blocked_url_patterns = []
+      
+       
+        
+    
+       
+    
+    
+		
+	
 
 	 
 	  
@@ -252,151 +143,33 @@ resource "meraki_network" "test" {
 	product_types = ["appliance", "switch", "wireless"]
 }
 resource "meraki_networks_group_policy" "test" {
-	  depends_on = [resource.meraki_network.test, resource.meraki_organization.test]
-      network_id = resource.meraki_network.test.network_id
-	  name = "testpolicy"
-	  splash_auth_settings = "network default"
-	  bandwidth = {
-		settings = "network default" 
-		bandwidth_limits = {
-			limit_down = 567
-			limit_up = 879
-		}
-	}
-	bonjour_forwarding = {
-        settings = "custom"
-        rules = [
-            {
-                description = "A simple bonjour rule"
-                vlan_id = 1
-                services = [ "All Services" ]
-            }
-        ]
-    }
-	content_filtering = {
-        allowed_url_patterns = {}
-		blocked_url_categories = {}
-		blocked_url_patterns = {}
-    }
-
-	scheduling =  {
-        enabled = true
-        monday = {
-            active = true
-            from = "9:00"
-            to = "17:00"
-        },
-        tuesday = {
-            active = true
-            from = "9:00"
-            to = "17:00"
-           
-        }
-        wednesday = {
-			active = true
-            from = "9:00"
-            to = "17:00"
-        }
-        thursday = {
-            active = true
-            from = "9:00"
-            to = "17:00"
-        }
-        friday = {
-			active = true
-            from = "9:00"
-            to = "17:00"
-        }
-        saturday = {
-            active = true
-            from = "9:00"
-            to = "17:00"
-        }
-        sunday = {
-            active = true
-            from = "9:00"
-            to = "17:00"
-        }
-    }
-
-	vlan_tagging = {
-        settings = "custom"
-        vlan_id =  "1"
-    }
-
-	firewall_and_traffic_shaping =  {
-        settings = "custom"
-        traffic_shaping_rules = [
-            {
-                definitions = [
-                    {
-                        type = "host"
-                        value = "google.com"
-                    },
-                    {
-                        type = "port"
-                        value ="9090"
-                    },
-                    {
-                        type = "ipRange"
-                        value = "192.1.0.0"
-                    },
-                    {
-                        type = "ipRange"
-                        value = "192.1.0.0/16"
-                    },
-                    {
-                        type = "ipRange"
-                        value = "10.1.0.0/16:80"
-                    },
-                    {
-                        type = "localNet"
-                        value = "192.168.0.0/16"
-                    }
-                ]
-                per_client_bandwidth_limits = {
-                    settings = "custom"
-                    bandwidth_limits = {
-                        limit_up = 1000000
-                        limit_down = 1000000
-                    }
-                }
-                dscp_tag_value = 0
-                pcp_tag_value = 0
-            }
-        ]
-        l3_firewall_rules = [
-            {
-                comment = "Allow TCP traffic to subnet with HTTP servers."
-                policy = "allow"
-                protocol = "tcp"
-                dest_port =  "443"
-                dest_cidr = "192.168.1.0"
-            }
-        ]
-        l7_firewall_rules = [
-            {
-                policy = "deny"
-                type = "host"
-                value = "google.com"
-            },
-            {
-                policy = "deny"
-                type = "port"
-                value = "23"
-            },
-            {
-                policy = "deny"
-                type = "ipRange"
-                value = "10.11.12.00"
-            },
-            {
-                policy = "deny"
-                type = "ipRange"
-                value = "10.11.12.00"
-            }
-        ]
-    }
+    depends_on = [resource.meraki_network.test, resource.meraki_organization.test]
+    network_id = resource.meraki_network.test.network_id
+    name = "testpolicy"
+    splash_auth_settings = "network default"
+    bandwidth_settings = "network default" 
+    bandwidth_limit_down = 567
+    bandwidth_limit_up = 879
+    bonjour_forwarding_rules = [
+          {
+              description = "A simple bonjour rule"
+              vlan_id = 1
+              services = [ "All Services" ]
+          }
+      ]
+    bonjour_forwarding_settings = "network default"  
+    vlan_tagging_settings = "custom" 
+    vlan_tagging_vlan_id =  "1"
+    scheduling_enabled = true 
+    scheduling_friday_active = true  
+    scheduling_friday_from = "09:00"
+    scheduling_friday_to = "17:00"
+   content_filtering_allowed_url_patterns_settings = "network default"
+   url_patterns = []
+   content_filtering_blocked_url_categories_settings = "network default"
+   categories = []
+   content_filtering_blocked_url_patterns_settings = "network default"
+   blocked_url_patterns = []
 
 	 
 	  
