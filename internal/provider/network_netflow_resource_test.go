@@ -16,7 +16,7 @@ func TestAccNetworksNetFlowResource(t *testing.T) {
 			{
 				Config: testAccNetworksNetFlowResourceConfigCreateOrganization,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_acc_meraki_organizations_networks_traffic_analysis"),
+					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_acc_meraki_organizations_networks_netflow"),
 				),
 			},
 
@@ -50,7 +50,7 @@ func TestAccNetworksNetFlowResource(t *testing.T) {
 			{
 				Config: testAccNetFlowResourceConfigUpdateNetworkNetFlowSettings,
 				Check:  resource.ComposeAggregateTestCheckFunc(
-				//resource.TestCheckResourceAttr("meraki_networks_traffic_analysis.test", "mode", "basic"),
+				//resource.TestCheckResourceAttr("meraki_networks_netflow.test", "reporting_enabled", "true"),
 				),
 			},
 		},
@@ -59,7 +59,7 @@ func TestAccNetworksNetFlowResource(t *testing.T) {
 
 const testAccNetworksNetFlowResourceConfigCreateOrganization = `
  resource "meraki_organization" "test" {
- 	name = "test_acc_meraki_organizations_networks_traffic_analysis"
+ 	name = "test_acc_meraki_organizations_networks_netflow"
  	api_enabled = true
  } 
  `
