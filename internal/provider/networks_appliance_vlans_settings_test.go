@@ -46,7 +46,7 @@ func TestAccNetworkApplianceVlansSettingsResource(t *testing.T) {
 				),
 			},
 
-			// Update and Read Network Appliance Vlans Settings.
+			// Update and Read Networks Appliance Vlans Settings.
 			{
 				Config: testAccNetworkApplianceVlansSettingsResourceConfigUpdateNetworkApplianceVlansSettings,
 				Check: resource.ComposeAggregateTestCheckFunc(
