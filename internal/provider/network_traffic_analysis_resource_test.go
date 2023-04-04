@@ -23,7 +23,7 @@ func TestAccNetworksTrafficAnalysisResource(t *testing.T) {
 			// TODO - ImportState testing - This only works when hard-coded networkId.
 			/*
 				{
-					ResourceName:      "meraki_networks_switch_settings.test",
+					ResourceName:      "meraki_networks_traffic_analysis.test",
 					ImportState:       true,
 					ImportStateVerify: false,
 					ImportStateId:     "657525545596096508",
@@ -48,7 +48,7 @@ func TestAccNetworksTrafficAnalysisResource(t *testing.T) {
 
 			// Update and Read Networks Traffic Analysis.
 			{
-				Config: testAccNetworksTrafficAnalysisResourceConfigUpdateNetworkSettings,
+				Config: testAccNetworksTrafficAnalysisResourceConfigUpdateNetworksTrafficAnalysis,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_networks_traffic_analysis.test", "mode", "basic"),
 				),
@@ -76,7 +76,7 @@ resource "meraki_organization" "test" {}
 }
  `
 
-const testAccNetworksTrafficAnalysisResourceConfigUpdateNetworkSettings = `
+const testAccNetworksTrafficAnalysisResourceConfigUpdateNetworksTrafficAnalysis = `
 resource "meraki_organization" "test" {}
 resource "meraki_network" "test" {
 	depends_on = [resource.meraki_organization.test]
