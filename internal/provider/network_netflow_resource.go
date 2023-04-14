@@ -48,7 +48,7 @@ func (r *NetworksNetflowResource) Metadata(ctx context.Context, req resource.Met
 
 func (r *NetworksNetflowResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "NetworksNetflow resource for updating networks netflow resource.",
+		MarkdownDescription: "NetworksNetflow resource for updating networks netflow.",
 		Attributes: map[string]schema.Attribute{
 
 			"id": schema.StringAttribute{
@@ -69,8 +69,7 @@ func (r *NetworksNetflowResource) Schema(ctx context.Context, req resource.Schem
 			},
 			"reporting_enabled": schema.BoolAttribute{
 				MarkdownDescription: "Boolean indicating whether NetFlow traffic reporting is enabled (true) or disabled (false).",
-				Optional:            true,
-				Computed:            true,
+				Required:            true,
 				CustomType:          jsontypes.BoolType,
 			},
 			"collector_ip": schema.StringAttribute{
@@ -132,11 +131,21 @@ func (r *NetworksNetflowResource) Create(ctx context.Context, req resource.Creat
 	}
 
 	updateNetworkNetflow := *openApiClient.NewInlineObject93()
-	updateNetworkNetflow.SetCollectorIp(data.Id.ValueString())
-	updateNetworkNetflow.SetReportingEnabled(data.ReportingEnabled.ValueBool())
-	updateNetworkNetflow.SetCollectorPort(int32(data.CollectorPort.ValueInt64()))
-	updateNetworkNetflow.SetEtaEnabled(data.EtaEnabled.ValueBool())
-	updateNetworkNetflow.SetEtaDstPort(int32(data.EtaDstPort.ValueInt64()))
+	if !data.CollectorIp.IsUnknown() {
+		updateNetworkNetflow.SetCollectorIp(data.Id.ValueString())
+	}
+	if !data.ReportingEnabled.IsUnknown() {
+		updateNetworkNetflow.SetReportingEnabled(data.ReportingEnabled.ValueBool())
+	}
+	if !data.CollectorPort.IsUnknown() {
+		updateNetworkNetflow.SetCollectorPort(int32(data.CollectorPort.ValueInt64()))
+	}
+	if !data.EtaEnabled.IsUnknown() {
+		updateNetworkNetflow.SetEtaEnabled(data.EtaEnabled.ValueBool())
+	}
+	if !data.EtaDstPort.IsUnknown() {
+		updateNetworkNetflow.SetEtaDstPort(int32(data.EtaDstPort.ValueInt64()))
+	}
 
 	_, httpResp, err := r.client.NetworksApi.UpdateNetworkNetflow(ctx, data.NetworkId.ValueString()).UpdateNetworkNetflow(updateNetworkNetflow).Execute()
 	if err != nil {
@@ -175,6 +184,19 @@ func (r *NetworksNetflowResource) Create(ctx context.Context, req resource.Creat
 	}
 
 	data.Id = jsontypes.StringValue("example-id")
+	if data.CollectorIp.IsUnknown() {
+		data.CollectorIp = jsontypes.StringNull()
+	}
+	if data.CollectorPort.IsUnknown() {
+		data.CollectorPort = jsontypes.Int64Null()
+	}
+
+	if data.EtaDstPort.IsUnknown() {
+		data.EtaDstPort = jsontypes.Int64Null()
+	}
+	if data.EtaEnabled.IsUnknown() {
+		data.EtaEnabled = jsontypes.BoolNull()
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -249,11 +271,21 @@ func (r *NetworksNetflowResource) Update(ctx context.Context, req resource.Updat
 	}
 
 	updateNetworkNetflow := *openApiClient.NewInlineObject93()
-	updateNetworkNetflow.SetCollectorIp(data.Id.ValueString())
-	updateNetworkNetflow.SetReportingEnabled(data.ReportingEnabled.ValueBool())
-	updateNetworkNetflow.SetCollectorPort(int32(data.CollectorPort.ValueInt64()))
-	updateNetworkNetflow.SetEtaEnabled(data.EtaEnabled.ValueBool())
-	updateNetworkNetflow.SetEtaDstPort(int32(data.EtaDstPort.ValueInt64()))
+	if !data.CollectorIp.IsUnknown() {
+		updateNetworkNetflow.SetCollectorIp(data.Id.ValueString())
+	}
+	if !data.ReportingEnabled.IsUnknown() {
+		updateNetworkNetflow.SetReportingEnabled(data.ReportingEnabled.ValueBool())
+	}
+	if !data.CollectorPort.IsUnknown() {
+		updateNetworkNetflow.SetCollectorPort(int32(data.CollectorPort.ValueInt64()))
+	}
+	if !data.EtaEnabled.IsUnknown() {
+		updateNetworkNetflow.SetEtaEnabled(data.EtaEnabled.ValueBool())
+	}
+	if !data.EtaDstPort.IsUnknown() {
+		updateNetworkNetflow.SetEtaDstPort(int32(data.EtaDstPort.ValueInt64()))
+	}
 
 	_, httpResp, err := r.client.NetworksApi.UpdateNetworkNetflow(ctx, data.NetworkId.ValueString()).UpdateNetworkNetflow(updateNetworkNetflow).Execute()
 	if err != nil {
@@ -292,6 +324,19 @@ func (r *NetworksNetflowResource) Update(ctx context.Context, req resource.Updat
 	}
 
 	data.Id = jsontypes.StringValue("example-id")
+	if data.CollectorIp.IsUnknown() {
+		data.CollectorIp = jsontypes.StringNull()
+	}
+	if data.CollectorPort.IsUnknown() {
+		data.CollectorPort = jsontypes.Int64Null()
+	}
+
+	if data.EtaDstPort.IsUnknown() {
+		data.EtaDstPort = jsontypes.Int64Null()
+	}
+	if data.EtaEnabled.IsUnknown() {
+		data.EtaEnabled = jsontypes.BoolNull()
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -311,11 +356,21 @@ func (r *NetworksNetflowResource) Delete(ctx context.Context, req resource.Delet
 	}
 
 	updateNetworkNetflow := *openApiClient.NewInlineObject93()
-	updateNetworkNetflow.SetCollectorIp(data.Id.ValueString())
-	updateNetworkNetflow.SetReportingEnabled(data.ReportingEnabled.ValueBool())
-	updateNetworkNetflow.SetCollectorPort(int32(data.CollectorPort.ValueInt64()))
-	updateNetworkNetflow.SetEtaEnabled(data.EtaEnabled.ValueBool())
-	updateNetworkNetflow.SetEtaDstPort(int32(data.EtaDstPort.ValueInt64()))
+	if !data.CollectorIp.IsUnknown() {
+		updateNetworkNetflow.SetCollectorIp(data.Id.ValueString())
+	}
+	if !data.ReportingEnabled.IsUnknown() {
+		updateNetworkNetflow.SetReportingEnabled(data.ReportingEnabled.ValueBool())
+	}
+	if !data.CollectorPort.IsUnknown() {
+		updateNetworkNetflow.SetCollectorPort(int32(data.CollectorPort.ValueInt64()))
+	}
+	if !data.EtaEnabled.IsUnknown() {
+		updateNetworkNetflow.SetEtaEnabled(data.EtaEnabled.ValueBool())
+	}
+	if !data.EtaDstPort.IsUnknown() {
+		updateNetworkNetflow.SetEtaDstPort(int32(data.EtaDstPort.ValueInt64()))
+	}
 
 	_, httpResp, err := r.client.NetworksApi.UpdateNetworkNetflow(ctx, data.NetworkId.ValueString()).UpdateNetworkNetflow(updateNetworkNetflow).Execute()
 	if err != nil {
@@ -354,6 +409,19 @@ func (r *NetworksNetflowResource) Delete(ctx context.Context, req resource.Delet
 	}
 
 	data.Id = jsontypes.StringValue("example-id")
+	if data.CollectorIp.IsUnknown() {
+		data.CollectorIp = jsontypes.StringNull()
+	}
+	if data.CollectorPort.IsUnknown() {
+		data.CollectorPort = jsontypes.Int64Null()
+	}
+
+	if data.EtaDstPort.IsUnknown() {
+		data.EtaDstPort = jsontypes.Int64Null()
+	}
+	if data.EtaEnabled.IsUnknown() {
+		data.EtaEnabled = jsontypes.BoolNull()
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 

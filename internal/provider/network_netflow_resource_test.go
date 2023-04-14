@@ -49,8 +49,8 @@ func TestAccNetworksNetFlowResource(t *testing.T) {
 			// Update and Read Networks NetFlow.
 			{
 				Config: testAccNetFlowResourceConfigUpdateNetworkNetFlowSettings,
-				Check:  resource.ComposeAggregateTestCheckFunc(
-				//resource.TestCheckResourceAttr("meraki_networks_netflow.test", "reporting_enabled", "true"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("meraki_networks_netflow.test", "reporting_enabled", "false"),
 				),
 			},
 		},
@@ -86,10 +86,10 @@ resource "meraki_network" "test" {
 resource "meraki_networks_netflow" "test" {
 	  depends_on = [resource.meraki_network.test, resource.meraki_organization.test]
       network_id = resource.meraki_network.test.network_id
-	  reporting_enabled = true
-      collector_ip = "1.2.3.4"
-      collector_port = 443
-      eta_enabled = true
-      eta_dst_port = 443	 
+	  reporting_enabled = false     
+      eta_enabled = false   
+	  collector_ip = "1.2.3.4"
+      collector_port = 443 
+	  eta_dst_port = 443	  
 }
 `

@@ -3,12 +3,12 @@
 page_title: "meraki_networks_netflow Resource - terraform-provider-meraki"
 subcategory: ""
 description: |-
-  NetworksNetflow resource for updating networks netflow resource.
+  NetworksNetflow resource for updating networks netflow.
 ---
 
 # meraki_networks_netflow (Resource)
 
-NetworksNetflow resource for updating networks netflow resource.
+NetworksNetflow resource for updating networks netflow.
 
 
 
@@ -18,6 +18,7 @@ NetworksNetflow resource for updating networks netflow resource.
 ### Required
 
 - `network_id` (String) Network Id
+- `reporting_enabled` (Boolean) Boolean indicating whether NetFlow traffic reporting is enabled (true) or disabled (false).
 
 ### Optional
 
@@ -25,7 +26,6 @@ NetworksNetflow resource for updating networks netflow resource.
 - `collector_port` (Number) The port that the NetFlow collector will be listening on.
 - `eta_dst_port` (Number) The port that the Encrypted Traffic Analytics collector will be listening on.
 - `eta_enabled` (Boolean) Boolean indicating whether Encrypted Traffic Analytics is enabled (true) or disabled (false).
-- `reporting_enabled` (Boolean) Boolean indicating whether NetFlow traffic reporting is enabled (true) or disabled (false).
 
 ### Read-Only
 
