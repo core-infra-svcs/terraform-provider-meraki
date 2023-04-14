@@ -51,6 +51,9 @@ func TestAccNetworksTrafficAnalysisResource(t *testing.T) {
 				Config: testAccNetworksTrafficAnalysisResourceConfigUpdateNetworksTrafficAnalysis,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_networks_traffic_analysis.test", "mode", "basic"),
+					resource.TestCheckResourceAttr("meraki_networks_traffic_analysis.test", "custom_piechart_items.0.name", "Item from hostname"),
+					resource.TestCheckResourceAttr("meraki_networks_traffic_analysis.test", "custom_piechart_items.0.type", "host"),
+					resource.TestCheckResourceAttr("meraki_networks_traffic_analysis.test", "custom_piechart_items.0.value", "example.com"),
 				),
 			},
 		},
@@ -86,11 +89,13 @@ resource "meraki_networks_traffic_analysis" "test" {
 	  depends_on = [resource.meraki_network.test, resource.meraki_organization.test]
       network_id = resource.meraki_network.test.network_id
 	  mode = "basic"
-	  custom_piechart_items = [{
-		"name": "Item from hostname",
-		"type": "host",
-		"value": "example.com"
-	}]
+	  custom_piechart_items = [
+		{
+			"name": "Item from hostname",
+			"type": "host",
+			"value": "example.com"
+		}
+	  ]
 	 
 }
 `

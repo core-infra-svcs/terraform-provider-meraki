@@ -51,7 +51,7 @@ func (r *NetworksTrafficAnalysisResource) Metadata(ctx context.Context, req reso
 
 func (r *NetworksTrafficAnalysisResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "NetworksTrafficAnalysis resource for updating networks traffic analysis resource.",
+		MarkdownDescription: "NetworksTrafficAnalysis resource for updating networks traffic analysis.",
 		Attributes: map[string]schema.Attribute{
 
 			"id": schema.StringAttribute{
@@ -72,8 +72,7 @@ func (r *NetworksTrafficAnalysisResource) Schema(ctx context.Context, req resour
 			},
 			"mode": schema.StringAttribute{
 				MarkdownDescription: "The traffic analysis mode for the network. Can be one of 'disabled' (do not collect traffic types) 'basic' (collect generic traffic categories), or 'detailed' (collect destination hostnames)",
-				Optional:            true,
-				Computed:            true,
+				Required:            true,
 				CustomType:          jsontypes.StringType,
 				Validators: []validator.String{
 					stringvalidator.OneOf([]string{"disabled", "basic", "detailed"}...),
@@ -102,7 +101,7 @@ func (r *NetworksTrafficAnalysisResource) Schema(ctx context.Context, req resour
 							},
 						},
 						"value": schema.StringAttribute{
-							MarkdownDescription: "The value of the custom pie chart item. Valid syntax depends on the signature type of the chart item (see sample request/response for more details).",
+							MarkdownDescription: "The value of the custom pie chart item. Valid syntax depends on the signature type of the chart item.",
 							Optional:            true,
 							Computed:            true,
 							CustomType:          jsontypes.StringType,
