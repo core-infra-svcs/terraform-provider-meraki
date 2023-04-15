@@ -52,6 +52,8 @@ func TestAccNetworkApplianceSettingsResource(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_networks_appliance_settings.test", "client_tracking_method", "MAC address"),
 					resource.TestCheckResourceAttr("meraki_networks_appliance_settings.test", "deployment_mode", "routed"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_settings.test", "dynamic_dns_prefix", "test"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_settings.test", "dynamic_dns_enabled", "true"),
 				),
 			},
 		},

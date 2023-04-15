@@ -19,8 +19,8 @@ NetworksApplianceSettings resource for updating network appliance settings.
 
 - `client_tracking_method` (String) Client tracking method of a network
 - `deployment_mode` (String) Deployment mode of a network
-- `dynamic_dns_enabled` (Boolean) Dynamic DNS url. DDNS must be enabled to update
-- `dynamic_dns_prefix` (String) Dynamic DNS url prefix. DDNS must be enabled to update
+- `dynamic_dns_enabled` (Boolean) Dynamic DNS enabled for Dynamic DNS settings for a network
+- `dynamic_dns_prefix` (String) Dynamic DNS url prefix for Dynamic DNS settings for a network. DDNS must be enabled to update
 - `network_id` (String) Network Id
 
 ### Optional

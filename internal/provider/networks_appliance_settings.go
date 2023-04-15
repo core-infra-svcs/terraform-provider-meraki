@@ -2,7 +2,6 @@ package provider
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
@@ -38,8 +37,8 @@ type NetworksApplianceSettingsResourceModel struct {
 	ClientTrackingMethod jsontypes.String `tfsdk:"client_tracking_method"`
 	DeploymentMode       jsontypes.String `tfsdk:"deployment_mode"`
 	DynamicDnsPrefix     jsontypes.String `tfsdk:"dynamic_dns_prefix"`
-	DynamicDnsUrl        jsontypes.String `tfsdk:"dynamic_dns_url"`
 	DynamicDnsEnabled    jsontypes.Bool   `tfsdk:"dynamic_dns_enabled"`
+	DynamicDnsUrl        jsontypes.String `tfsdk:"dynamic_dns_url"`
 }
 
 func (r *NetworksApplianceSettingsResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -78,19 +77,20 @@ func (r *NetworksApplianceSettingsResource) Schema(ctx context.Context, req reso
 				CustomType:          jsontypes.StringType,
 			},
 			"dynamic_dns_prefix": schema.StringAttribute{
-				MarkdownDescription: "Dynamic DNS url prefix. DDNS must be enabled to update",
+				MarkdownDescription: "Dynamic DNS url prefix for Dynamic DNS settings for a network. DDNS must be enabled to update",
 				Required:            true,
 				CustomType:          jsontypes.StringType,
+			},
+			"dynamic_dns_enabled": schema.BoolAttribute{
+				MarkdownDescription: "Dynamic DNS enabled for Dynamic DNS settings for a network",
+				Required:            true,
+				CustomType:          jsontypes.BoolType,
 			},
 			"dynamic_dns_url": schema.StringAttribute{
 				MarkdownDescription: "Dynamic DNS url. DDNS must be enabled to update",
 				Optional:            true,
+				Computed:            true,
 				CustomType:          jsontypes.StringType,
-			},
-			"dynamic_dns_enabled": schema.BoolAttribute{
-				MarkdownDescription: "Dynamic DNS url. DDNS must be enabled to update",
-				Required:            true,
-				CustomType:          jsontypes.BoolType,
 			},
 		},
 	}
@@ -132,9 +132,9 @@ func (r *NetworksApplianceSettingsResource) Create(ctx context.Context, req reso
 	var v openApiClient.NetworksNetworkIdApplianceSettingsDynamicDns
 	v.SetEnabled(data.DynamicDnsEnabled.ValueBool())
 	v.SetPrefix(data.DynamicDnsPrefix.ValueString())
-
 	updateNetworksApplianceSettings.SetDynamicDns(v)
-	_, httpResp, err := r.client.SettingsApi.UpdateNetworkApplianceSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceSettings(updateNetworksApplianceSettings).Execute()
+
+	inlineResp, httpResp, err := r.client.SettingsApi.UpdateNetworkApplianceSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceSettings(updateNetworksApplianceSettings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to update resource",
@@ -161,15 +161,11 @@ func (r *NetworksApplianceSettingsResource) Create(ctx context.Context, req reso
 		return
 	}
 
-	// Save data into Terraform state
-	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
-		resp.Diagnostics.AddError(
-			"JSON decoding error",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-		return
-	}
-
+	data.ClientTrackingMethod = jsontypes.StringValue(inlineResp.GetClientTrackingMethod())
+	data.DeploymentMode = jsontypes.StringValue(inlineResp.GetDeploymentMode())
+	data.DynamicDnsPrefix = jsontypes.StringValue(inlineResp.DynamicDns.GetPrefix())
+	data.DynamicDnsEnabled = jsontypes.BoolValue(inlineResp.DynamicDns.GetEnabled())
+	data.DynamicDnsUrl = jsontypes.StringValue(inlineResp.DynamicDns.GetUrl())
 	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -188,7 +184,7 @@ func (r *NetworksApplianceSettingsResource) Read(ctx context.Context, req resour
 		return
 	}
 
-	_, httpResp, err := r.client.SettingsApi.GetNetworkApplianceSettings(context.Background(), data.NetworkId.ValueString()).Execute()
+	inlineResp, httpResp, err := r.client.SettingsApi.GetNetworkApplianceSettings(context.Background(), data.NetworkId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to get resource",
@@ -216,15 +212,11 @@ func (r *NetworksApplianceSettingsResource) Read(ctx context.Context, req resour
 		resp.Diagnostics.Append()
 	}
 
-	// Save data into Terraform state
-	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
-		resp.Diagnostics.AddError(
-			"JSON decoding error",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-		return
-	}
-
+	data.ClientTrackingMethod = jsontypes.StringValue(inlineResp.GetClientTrackingMethod())
+	data.DeploymentMode = jsontypes.StringValue(inlineResp.GetDeploymentMode())
+	data.DynamicDnsPrefix = jsontypes.StringValue(inlineResp.DynamicDns.GetPrefix())
+	data.DynamicDnsEnabled = jsontypes.BoolValue(inlineResp.DynamicDns.GetEnabled())
+	data.DynamicDnsUrl = jsontypes.StringValue(inlineResp.DynamicDns.GetUrl())
 	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -250,9 +242,9 @@ func (r *NetworksApplianceSettingsResource) Update(ctx context.Context, req reso
 	var v openApiClient.NetworksNetworkIdApplianceSettingsDynamicDns
 	v.SetEnabled(data.DynamicDnsEnabled.ValueBool())
 	v.SetPrefix(data.DynamicDnsPrefix.ValueString())
-
 	updateNetworksApplianceSettings.SetDynamicDns(v)
-	_, httpResp, err := r.client.SettingsApi.UpdateNetworkApplianceSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceSettings(updateNetworksApplianceSettings).Execute()
+
+	inlineResp, httpResp, err := r.client.SettingsApi.UpdateNetworkApplianceSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceSettings(updateNetworksApplianceSettings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to update resource",
@@ -278,15 +270,11 @@ func (r *NetworksApplianceSettingsResource) Update(ctx context.Context, req reso
 		return
 	}
 
-	// Save data into Terraform state
-	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
-		resp.Diagnostics.AddError(
-			"JSON decoding error",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-		return
-	}
-
+	data.ClientTrackingMethod = jsontypes.StringValue(inlineResp.GetClientTrackingMethod())
+	data.DeploymentMode = jsontypes.StringValue(inlineResp.GetDeploymentMode())
+	data.DynamicDnsPrefix = jsontypes.StringValue(inlineResp.DynamicDns.GetPrefix())
+	data.DynamicDnsEnabled = jsontypes.BoolValue(inlineResp.DynamicDns.GetEnabled())
+	data.DynamicDnsUrl = jsontypes.StringValue(inlineResp.DynamicDns.GetUrl())
 	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -312,9 +300,9 @@ func (r *NetworksApplianceSettingsResource) Delete(ctx context.Context, req reso
 	var v openApiClient.NetworksNetworkIdApplianceSettingsDynamicDns
 	v.SetEnabled(data.DynamicDnsEnabled.ValueBool())
 	v.SetPrefix(data.DynamicDnsPrefix.ValueString())
-
 	updateNetworksApplianceSettings.SetDynamicDns(v)
-	_, httpResp, err := r.client.SettingsApi.UpdateNetworkApplianceSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceSettings(updateNetworksApplianceSettings).Execute()
+
+	inlineResp, httpResp, err := r.client.SettingsApi.UpdateNetworkApplianceSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceSettings(updateNetworksApplianceSettings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to update resource",
@@ -339,14 +327,12 @@ func (r *NetworksApplianceSettingsResource) Delete(ctx context.Context, req reso
 		return
 	}
 
-	// Save data into Terraform state
-	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
-		resp.Diagnostics.AddError(
-			"JSON decoding error",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-		return
-	}
+	data.ClientTrackingMethod = jsontypes.StringValue(inlineResp.GetClientTrackingMethod())
+	data.DeploymentMode = jsontypes.StringValue(inlineResp.GetDeploymentMode())
+	data.DynamicDnsPrefix = jsontypes.StringValue(inlineResp.DynamicDns.GetPrefix())
+	data.DynamicDnsEnabled = jsontypes.BoolValue(inlineResp.DynamicDns.GetEnabled())
+	data.DynamicDnsUrl = jsontypes.StringValue(inlineResp.DynamicDns.GetUrl())
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
