@@ -23,7 +23,7 @@ func TestAccNetworkApplianceSettingsResource(t *testing.T) {
 			// TODO - ImportState testing - This only works when hard-coded networkId.
 			/*
 				{
-					ResourceName:      "meraki_networks_switch_settings.test",
+					ResourceName:      "meraki_networks_appliance_settings.test",
 					ImportState:       true,
 					ImportStateVerify: false,
 					ImportStateId:     "657525545596096508",
