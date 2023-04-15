@@ -3,12 +3,12 @@
 page_title: "meraki_networks_syslog_servers Resource - terraform-provider-meraki"
 subcategory: ""
 description: |-
-  NetworksSyslogServers resource for updating networks syslog servers resource.
+  NetworksSyslogServers resource for updating networks syslog servers.
 ---
 
 # meraki_networks_syslog_servers (Resource)
 
-NetworksSyslogServers resource for updating networks syslog servers resource.
+NetworksSyslogServers resource for updating networks syslog servers.
 
 
 
@@ -29,8 +29,8 @@ NetworksSyslogServers resource for updating networks syslog servers resource.
 
 Optional:
 
-- `host` (String)
-- `port` (Number)
+- `host` (String) The IP address of the syslog server
+- `port` (Number) The port of the syslog server
 - `roles` (Set of String) roles
 
 

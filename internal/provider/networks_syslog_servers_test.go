@@ -51,10 +51,9 @@ func TestAccNetworksSyslogServersResource(t *testing.T) {
 				Config: testAccSyslogServersResourceConfigUpdateNetworkSyslogServersSettings,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_networks_syslog_servers.test", "servers.#", "1"),
-					resource.TestCheckResourceAttr("meraki_networks_syslog_servers.test", "servers.0.host", "1.2.3.4"),
-					resource.TestCheckResourceAttr("meraki_networks_syslog_servers.test", "servers.0.port", "443"),
-					resource.TestCheckResourceAttr("meraki_networks_syslog_servers.test", "servers.0.roles.0", "Wireless event log"),
-					resource.TestCheckResourceAttr("meraki_networks_syslog_servers.test", "servers.0.roles.1", "URLs"),
+					resource.TestCheckResourceAttr("meraki_networks_syslog_servers.test", "servers.0.host", "1.1.1.1"),
+					resource.TestCheckResourceAttr("meraki_networks_syslog_servers.test", "servers.0.port", "514"),
+					resource.TestCheckResourceAttr("meraki_networks_syslog_servers.test", "servers.0.roles.0", "URLs"),
 				),
 			},
 		},
@@ -91,10 +90,9 @@ resource "meraki_networks_syslog_servers" "test" {
 	  depends_on = [resource.meraki_network.test, resource.meraki_organization.test]
       network_id = resource.meraki_network.test.network_id
 	  servers = [{
-		host = "1.2.3.4"
-		port = 443
+		host = "8.8.8.8"
+		port = "564"
 		roles = [
-			"Wireless event log",
 			"URLs"
 		]
 	}] 
