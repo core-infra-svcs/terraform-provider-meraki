@@ -90,11 +90,9 @@ resource "meraki_networks_syslog_servers" "test" {
 	  depends_on = [resource.meraki_network.test, resource.meraki_organization.test]
       network_id = resource.meraki_network.test.network_id
 	  servers = [{
-		host = "8.8.8.8"
-		port = "564"
-		roles = [
-			"URLs"
-		]
+		host = "1.2.3.4"
+		port = "443"
+		roles = ["URLs"]
 	}] 
 }
 `

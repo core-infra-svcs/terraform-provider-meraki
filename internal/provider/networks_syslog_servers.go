@@ -137,17 +137,18 @@ func (r *NetworksSyslogServersResource) Create(ctx context.Context, req resource
 			var server openApiClient.NetworksNetworkIdSyslogServersServers
 			server.SetHost(attribute.Host.ValueString())
 			server.SetPort(int32(attribute.Port.ValueInt64()))
+			var roles []string
 			for _, role := range attribute.Roles {
-				server.Roles = append(server.Roles, role.String())
+				roles = append(roles, role.String())
 
 			}
+			server.SetRoles(roles)
 			servers = append(servers, server)
 		}
 
 	}
 
 	updateSyslogServers := *openApiClient.NewInlineObject139(servers)
-	updateSyslogServers.SetServers(servers)
 
 	inlineResp, httpResp, err := r.client.NetworksApi.UpdateNetworkSyslogServers(ctx, data.NetworkId.ValueString()).UpdateNetworkSyslogServers(updateSyslogServers).Execute()
 	if err != nil {
@@ -179,7 +180,7 @@ func (r *NetworksSyslogServersResource) Create(ctx context.Context, req resource
 	for _, attribute := range inlineResp.GetServers() {
 		var server Server
 		server.Host = jsontypes.StringValue(attribute.GetHost())
-		server.Port = jsontypes.Int64Value(int64(564))
+		server.Port = jsontypes.Int64Value(int64(attribute.GetPort()))
 		for _, role := range attribute.GetRoles() {
 			server.Roles = append(server.Roles, jsontypes.StringValue(role))
 		}
@@ -270,16 +271,17 @@ func (r *NetworksSyslogServersResource) Update(ctx context.Context, req resource
 			var server openApiClient.NetworksNetworkIdSyslogServersServers
 			server.SetHost(attribute.Host.ValueString())
 			server.SetPort(int32(attribute.Port.ValueInt64()))
+			var roles []string
 			for _, role := range attribute.Roles {
-				server.Roles = append(server.Roles, role.String())
+				roles = append(roles, role.String())
+
 			}
+			server.SetRoles(roles)
 			servers = append(servers, server)
 		}
-
 	}
 
 	updateSyslogServers := *openApiClient.NewInlineObject139(servers)
-	updateSyslogServers.SetServers(servers)
 
 	inlineResp, httpResp, err := r.client.NetworksApi.UpdateNetworkSyslogServers(ctx, data.NetworkId.ValueString()).UpdateNetworkSyslogServers(updateSyslogServers).Execute()
 	if err != nil {
@@ -343,15 +345,17 @@ func (r *NetworksSyslogServersResource) Delete(ctx context.Context, req resource
 			var server openApiClient.NetworksNetworkIdSyslogServersServers
 			server.SetHost(attribute.Host.ValueString())
 			server.SetPort(int32(attribute.Port.ValueInt64()))
+			var roles []string
 			for _, role := range attribute.Roles {
-				server.Roles = append(server.Roles, role.String())
+				roles = append(roles, role.String())
+
 			}
+			server.SetRoles(roles)
 			servers = append(servers, server)
 		}
 	}
 
 	updateSyslogServers := *openApiClient.NewInlineObject139(servers)
-	updateSyslogServers.SetServers(servers)
 
 	inlineResp, httpResp, err := r.client.NetworksApi.UpdateNetworkSyslogServers(ctx, data.NetworkId.ValueString()).UpdateNetworkSyslogServers(updateSyslogServers).Execute()
 	if err != nil {
