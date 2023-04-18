@@ -17,8 +17,6 @@ import (
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 )
 
-// TODO - DON'T FORGET TO DELETE "TODO" COMMENTS!
-
 // Ensure provider defined types fully satisfy framework interfaces
 var _ datasource.DataSource = &NetworksSwitchAccessPoliciesDataSource{}
 
@@ -39,8 +37,9 @@ type NetworksSwitchesAccessPoliciesDataSourceModel struct {
 }
 
 type NetworkSwitchAccessPolicyRadiusServersDataSourceModelRules struct {
-	Host jsontypes.String `tfsdk:"host"`
-	Port jsontypes.Int64  `tfsdk:"port"`
+	Host   jsontypes.String `tfsdk:"host"`
+	Port   jsontypes.Int64  `tfsdk:"port"`
+	Secret jsontypes.String `tfsdk:"secret"`
 }
 
 // NetworksSwitchAccessPoliciesDataSourceModel describes the data source data model.
@@ -265,7 +264,7 @@ func (d *NetworksSwitchAccessPoliciesDataSource) Read(ctx context.Context, req d
 		return
 	}
 
-	_, httpResp, err := d.client.SwitchApi.GetNetworkSwitchAccessPolicies(ctx, data.Id.ValueString()).Execute()
+	_, httpResp, err := d.client.SwitchApi.GetNetworkSwitchAccessPolicies(ctx, data.NetworkId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to read datasource",
@@ -290,6 +289,8 @@ func (d *NetworksSwitchAccessPoliciesDataSource) Read(ctx context.Context, req d
 		return
 	}
 
+	// Save data into Terraform state
+	data.Id = types.StringValue("example-id")
 	if err = json.NewDecoder(httpResp.Body).Decode(&data.List); err != nil {
 		resp.Diagnostics.AddError(
 			"JSON decoding error",
@@ -297,10 +298,6 @@ func (d *NetworksSwitchAccessPoliciesDataSource) Read(ctx context.Context, req d
 		)
 		return
 	}
-
-	// Save data into Terraform state
-	data.Id = types.StringValue("example-id")
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
