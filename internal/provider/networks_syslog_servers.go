@@ -2,7 +2,9 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
@@ -43,6 +45,16 @@ type Server struct {
 	Roles []jsontypes.String `tfsdk:"roles"`
 }
 
+type Response struct {
+	Servers []OutputServer `tfsdk:"servers"`
+}
+
+type OutputServer struct {
+	Host  string   `json:"host"`
+	Port  int32    `json:"port"`
+	Roles []string `json:"roles"`
+}
+
 func (r *NetworksSyslogServersResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_networks_syslog_servers"
 }
@@ -70,7 +82,8 @@ func (r *NetworksSyslogServersResource) Schema(ctx context.Context, req resource
 			},
 			"servers": schema.SetNestedAttribute{
 				MarkdownDescription: "servers",
-				Required:            true,
+				Optional:            true,
+				Computed:            true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"host": schema.StringAttribute{
@@ -139,7 +152,7 @@ func (r *NetworksSyslogServersResource) Create(ctx context.Context, req resource
 			server.SetPort(int32(attribute.Port.ValueInt64()))
 			var roles []string
 			for _, role := range attribute.Roles {
-				roles = append(roles, role.String())
+				roles = append(roles, role.ValueString())
 
 			}
 			server.SetRoles(roles)
@@ -150,13 +163,7 @@ func (r *NetworksSyslogServersResource) Create(ctx context.Context, req resource
 
 	updateSyslogServers := *openApiClient.NewInlineObject139(servers)
 
-	inlineResp, httpResp, err := r.client.NetworksApi.UpdateNetworkSyslogServers(ctx, data.NetworkId.ValueString()).UpdateNetworkSyslogServers(updateSyslogServers).Execute()
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Failed to update resource",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-	}
+	_, httpResp, _ := r.client.SyslogServersApi.UpdateNetworkSyslogServers(ctx, data.NetworkId.ValueString()).UpdateNetworkSyslogServers(updateSyslogServers).Execute()
 
 	// collect diagnostics
 	if httpResp != nil {
@@ -177,18 +184,29 @@ func (r *NetworksSyslogServersResource) Create(ctx context.Context, req resource
 		return
 	}
 
-	for _, attribute := range inlineResp.GetServers() {
+	responseData, err := ioutil.ReadAll(httpResp.Body)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to update resource",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+	}
+
+	var outputData Response
+	jsonData, _ := json.Marshal(responseData)
+	json.Unmarshal(jsonData, &outputData)
+
+	for _, attribute := range outputData.Servers {
 		var server Server
-		server.Host = jsontypes.StringValue(attribute.GetHost())
-		server.Port = jsontypes.Int64Value(int64(attribute.GetPort()))
-		for _, role := range attribute.GetRoles() {
+		server.Host = jsontypes.StringValue(attribute.Host)
+		server.Port = jsontypes.Int64Value(int64(attribute.Port))
+		for _, role := range attribute.Roles {
 			server.Roles = append(server.Roles, jsontypes.StringValue(role))
 		}
 		data.Servers = append(data.Servers, server)
 	}
 
 	data.Id = jsontypes.StringValue("example-id")
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
@@ -206,13 +224,7 @@ func (r *NetworksSyslogServersResource) Read(ctx context.Context, req resource.R
 		return
 	}
 
-	inlineResp, httpResp, err := r.client.NetworksApi.GetNetworkSyslogServers(ctx, data.NetworkId.ValueString()).Execute()
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Failed to get resource",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-	}
+	_, httpResp, _ := r.client.NetworksApi.GetNetworkSyslogServers(ctx, data.NetworkId.ValueString()).Execute()
 
 	// collect diagnostics
 	if httpResp != nil {
@@ -234,11 +246,23 @@ func (r *NetworksSyslogServersResource) Read(ctx context.Context, req resource.R
 		resp.Diagnostics.Append()
 	}
 
-	for _, attribute := range inlineResp.GetServers() {
+	responseData, err := ioutil.ReadAll(httpResp.Body)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to update resource",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+	}
+
+	var outputData Response
+	jsonData, _ := json.Marshal(responseData)
+	json.Unmarshal(jsonData, &outputData)
+
+	for _, attribute := range outputData.Servers {
 		var server Server
-		server.Host = jsontypes.StringValue(attribute.GetHost())
-		server.Port = jsontypes.Int64Value(int64(attribute.GetPort()))
-		for _, role := range attribute.GetRoles() {
+		server.Host = jsontypes.StringValue(attribute.Host)
+		server.Port = jsontypes.Int64Value(int64(attribute.Port))
+		for _, role := range attribute.Roles {
 			server.Roles = append(server.Roles, jsontypes.StringValue(role))
 		}
 		data.Servers = append(data.Servers, server)
@@ -262,6 +286,7 @@ func (r *NetworksSyslogServersResource) Update(ctx context.Context, req resource
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
 	var servers []openApiClient.NetworksNetworkIdSyslogServersServers
 
 	// Servers
@@ -273,23 +298,18 @@ func (r *NetworksSyslogServersResource) Update(ctx context.Context, req resource
 			server.SetPort(int32(attribute.Port.ValueInt64()))
 			var roles []string
 			for _, role := range attribute.Roles {
-				roles = append(roles, role.String())
+				roles = append(roles, role.ValueString())
 
 			}
 			server.SetRoles(roles)
 			servers = append(servers, server)
 		}
+
 	}
 
 	updateSyslogServers := *openApiClient.NewInlineObject139(servers)
 
-	inlineResp, httpResp, err := r.client.NetworksApi.UpdateNetworkSyslogServers(ctx, data.NetworkId.ValueString()).UpdateNetworkSyslogServers(updateSyslogServers).Execute()
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Failed to update resource",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-	}
+	_, httpResp, _ := r.client.SyslogServersApi.UpdateNetworkSyslogServers(ctx, data.NetworkId.ValueString()).UpdateNetworkSyslogServers(updateSyslogServers).Execute()
 
 	// collect diagnostics
 	if httpResp != nil {
@@ -310,11 +330,23 @@ func (r *NetworksSyslogServersResource) Update(ctx context.Context, req resource
 		return
 	}
 
-	for _, attribute := range inlineResp.GetServers() {
+	responseData, err := ioutil.ReadAll(httpResp.Body)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to update resource",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+	}
+
+	var outputData Response
+	jsonData, _ := json.Marshal(responseData)
+	json.Unmarshal(jsonData, &outputData)
+
+	for _, attribute := range outputData.Servers {
 		var server Server
-		server.Host = jsontypes.StringValue(attribute.GetHost())
-		server.Port = jsontypes.Int64Value(int64(attribute.GetPort()))
-		for _, role := range attribute.GetRoles() {
+		server.Host = jsontypes.StringValue(attribute.Host)
+		server.Port = jsontypes.Int64Value(int64(attribute.Port))
+		for _, role := range attribute.Roles {
 			server.Roles = append(server.Roles, jsontypes.StringValue(role))
 		}
 		data.Servers = append(data.Servers, server)
@@ -336,6 +368,7 @@ func (r *NetworksSyslogServersResource) Delete(ctx context.Context, req resource
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
 	var servers []openApiClient.NetworksNetworkIdSyslogServersServers
 
 	// Servers
@@ -347,23 +380,18 @@ func (r *NetworksSyslogServersResource) Delete(ctx context.Context, req resource
 			server.SetPort(int32(attribute.Port.ValueInt64()))
 			var roles []string
 			for _, role := range attribute.Roles {
-				roles = append(roles, role.String())
+				roles = append(roles, role.ValueString())
 
 			}
 			server.SetRoles(roles)
 			servers = append(servers, server)
 		}
+
 	}
 
 	updateSyslogServers := *openApiClient.NewInlineObject139(servers)
 
-	inlineResp, httpResp, err := r.client.NetworksApi.UpdateNetworkSyslogServers(ctx, data.NetworkId.ValueString()).UpdateNetworkSyslogServers(updateSyslogServers).Execute()
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Failed to update resource",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-	}
+	_, httpResp, _ := r.client.SyslogServersApi.UpdateNetworkSyslogServers(ctx, data.NetworkId.ValueString()).UpdateNetworkSyslogServers(updateSyslogServers).Execute()
 
 	// collect diagnostics
 	if httpResp != nil {
@@ -384,11 +412,23 @@ func (r *NetworksSyslogServersResource) Delete(ctx context.Context, req resource
 		return
 	}
 
-	for _, attribute := range inlineResp.GetServers() {
+	responseData, err := ioutil.ReadAll(httpResp.Body)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to update resource",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+	}
+
+	var outputData Response
+	jsonData, _ := json.Marshal(responseData)
+	json.Unmarshal(jsonData, &outputData)
+
+	for _, attribute := range outputData.Servers {
 		var server Server
-		server.Host = jsontypes.StringValue(attribute.GetHost())
-		server.Port = jsontypes.Int64Value(int64(attribute.GetPort()))
-		for _, role := range attribute.GetRoles() {
+		server.Host = jsontypes.StringValue(attribute.Host)
+		server.Port = jsontypes.Int64Value(int64(attribute.Port))
+		for _, role := range attribute.Roles {
 			server.Roles = append(server.Roles, jsontypes.StringValue(role))
 		}
 		data.Servers = append(data.Servers, server)
