@@ -82,8 +82,7 @@ func (r *NetworksSyslogServersResource) Schema(ctx context.Context, req resource
 			},
 			"servers": schema.SetNestedAttribute{
 				MarkdownDescription: "servers",
-				Optional:            true,
-				Computed:            true,
+				Required:            true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"host": schema.StringAttribute{
