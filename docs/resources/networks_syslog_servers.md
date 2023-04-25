@@ -18,9 +18,6 @@ NetworksSyslogServers resource for updating networks syslog servers.
 ### Required
 
 - `network_id` (String) Network Id
-
-### Optional
-
 - `servers` (Attributes Set) servers (see [below for nested schema](#nestedatt--servers))
 
 ### Read-Only
