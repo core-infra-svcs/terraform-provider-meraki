@@ -59,7 +59,7 @@ func (r *NetworksSwitchSettingsResource) Schema(ctx context.Context, req resourc
 				CustomType:          jsontypes.StringType,
 			},
 			"network_id": schema.StringAttribute{
-				MarkdownDescription: "Network Id",
+				MarkdownDescription: "Network Serial",
 				Required:            true,
 				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{

@@ -416,21 +416,9 @@ func (r *DevicesManagementinterfaceResource) Delete(ctx context.Context, req res
 func (r *DevicesManagementinterfaceResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 
-	/*
-			// TODO - Only use the required attributes for making a READ call in the import statement
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("serial"), req.ID)...)
 
-		    	idParts := strings.Split(req.ID, ",")
-		    	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
-		    		resp.Diagnostics.AddError(
-		    			"Unexpected Import Identifier",
-		    			fmt.Sprintf("Expected import identifier with format: organization_id, admin_id. Got: %q", req.ID),
-		    		)
-		    		return
-		    	}
-		    	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("organization_id"), idParts[0])...)
-		    	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("admin_id"), idParts[1])...)
-		    	if resp.Diagnostics.HasError() {
-		    		return
-		    	}
-	*/
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }
