@@ -22,7 +22,7 @@ NetworksApplianceFirewallL3FirewallRules resource for updating Network Appliance
 
 ### Optional
 
-- `syslog_default_rule` (Boolean) Network ID
+- `syslog_default_rule` (Boolean) Log the special default rule (boolean value - enable only if you've configured a syslog server) (optional)
 
 ### Read-Only
 

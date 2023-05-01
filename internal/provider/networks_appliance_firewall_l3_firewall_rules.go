@@ -74,7 +74,7 @@ func (r *NetworksApplianceFirewallL3FirewallRulesResource) Schema(ctx context.Co
 				},
 			},
 			"syslog_default_rule": schema.BoolAttribute{
-				MarkdownDescription: "Network ID",
+				MarkdownDescription: "Log the special default rule (boolean value - enable only if you've configured a syslog server) (optional)",
 				Optional:            true,
 				CustomType:          jsontypes.BoolType,
 			},
@@ -123,10 +123,10 @@ func (r *NetworksApplianceFirewallL3FirewallRulesResource) Schema(ctx context.Co
 						"syslog_enabled": schema.BoolAttribute{
 							MarkdownDescription: "Log this rule to syslog (true or false, boolean value) - only applicable if a syslog has been configured (optional)",
 							Optional:            true,
-							Computed:            true,
 							CustomType:          jsontypes.BoolType,
 						},
-					}},
+					},
+				},
 			},
 		},
 	}
@@ -169,15 +169,17 @@ func (r *NetworksApplianceFirewallL3FirewallRulesResource) Create(ctx context.Co
 	if len(data.Rules) > 0 {
 		for _, attribute := range data.Rules {
 			var rule openApiClient.NetworksNetworkIdApplianceFirewallCellularFirewallRulesRules
-			rule.SetComment(attribute.Comment.ValueString())
-			rule.SetDestCidr(attribute.DestCidr.ValueString())
-			rule.SetDestPort(attribute.DestPort.ValueString())
-			rule.SetSrcCidr(attribute.SrcCidr.ValueString())
-			rule.SetSrcPort(attribute.SrcPort.ValueString())
-			rule.SetPolicy(attribute.Policy.ValueString())
-			rule.SetProtocol(attribute.Protocol.ValueString())
-			rule.SetSyslogEnabled(attribute.SysLogEnabled.ValueBool())
-			rules = append(rules, rule)
+			if attribute.Comment != jsontypes.StringValue("Default rule") {
+				rule.SetComment(attribute.Comment.ValueString())
+				rule.SetDestCidr(attribute.DestCidr.ValueString())
+				rule.SetDestPort(attribute.DestPort.ValueString())
+				rule.SetSrcCidr(attribute.SrcCidr.ValueString())
+				rule.SetSrcPort(attribute.SrcPort.ValueString())
+				rule.SetPolicy(attribute.Policy.ValueString())
+				rule.SetProtocol(attribute.Protocol.ValueString())
+				rule.SetSyslogEnabled(attribute.SysLogEnabled.ValueBool())
+				rules = append(rules, rule)
+			}
 		}
 	}
 
@@ -296,16 +298,18 @@ func (r *NetworksApplianceFirewallL3FirewallRulesResource) Update(ctx context.Co
 
 	if len(data.Rules) > 0 {
 		for _, attribute := range data.Rules {
-			var rule openApiClient.NetworksNetworkIdApplianceFirewallCellularFirewallRulesRules
-			rule.SetComment(attribute.Comment.ValueString())
-			rule.SetDestCidr(attribute.DestCidr.ValueString())
-			rule.SetDestPort(attribute.DestPort.ValueString())
-			rule.SetSrcCidr(attribute.SrcCidr.ValueString())
-			rule.SetSrcPort(attribute.SrcPort.ValueString())
-			rule.SetPolicy(attribute.Policy.ValueString())
-			rule.SetProtocol(attribute.Protocol.ValueString())
-			rule.SetSyslogEnabled(attribute.SysLogEnabled.ValueBool())
-			rules = append(rules, rule)
+			if attribute.Comment != jsontypes.StringValue("Default rule") {
+				var rule openApiClient.NetworksNetworkIdApplianceFirewallCellularFirewallRulesRules
+				rule.SetComment(attribute.Comment.ValueString())
+				rule.SetDestCidr(attribute.DestCidr.ValueString())
+				rule.SetDestPort(attribute.DestPort.ValueString())
+				rule.SetSrcCidr(attribute.SrcCidr.ValueString())
+				rule.SetSrcPort(attribute.SrcPort.ValueString())
+				rule.SetPolicy(attribute.Policy.ValueString())
+				rule.SetProtocol(attribute.Protocol.ValueString())
+				rule.SetSyslogEnabled(attribute.SysLogEnabled.ValueBool())
+				rules = append(rules, rule)
+			}
 		}
 	}
 
@@ -371,15 +375,17 @@ func (r *NetworksApplianceFirewallL3FirewallRulesResource) Delete(ctx context.Co
 	if len(data.Rules) > 0 {
 		for _, attribute := range data.Rules {
 			var rule openApiClient.NetworksNetworkIdApplianceFirewallCellularFirewallRulesRules
-			rule.SetComment(attribute.Comment.ValueString())
-			rule.SetDestCidr(attribute.DestCidr.ValueString())
-			rule.SetDestPort(attribute.DestPort.ValueString())
-			rule.SetSrcCidr(attribute.SrcCidr.ValueString())
-			rule.SetSrcPort(attribute.SrcPort.ValueString())
-			rule.SetPolicy(attribute.Policy.ValueString())
-			rule.SetProtocol(attribute.Protocol.ValueString())
-			rule.SetSyslogEnabled(attribute.SysLogEnabled.ValueBool())
-			rules = append(rules, rule)
+			if attribute.Comment != jsontypes.StringValue("Default rule") {
+				rule.SetComment(attribute.Comment.ValueString())
+				rule.SetDestCidr(attribute.DestCidr.ValueString())
+				rule.SetDestPort(attribute.DestPort.ValueString())
+				rule.SetSrcCidr(attribute.SrcCidr.ValueString())
+				rule.SetSrcPort(attribute.SrcPort.ValueString())
+				rule.SetPolicy(attribute.Policy.ValueString())
+				rule.SetProtocol(attribute.Protocol.ValueString())
+				rule.SetSyslogEnabled(attribute.SysLogEnabled.ValueBool())
+				rules = append(rules, rule)
+			}
 		}
 	}
 
