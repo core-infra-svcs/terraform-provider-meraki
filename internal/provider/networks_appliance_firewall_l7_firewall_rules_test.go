@@ -8,7 +8,9 @@ import (
 
 func TestAccNetworksApplianceFirewallL7FirewallRulesResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+		},
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 
@@ -69,56 +71,56 @@ func TestAccNetworksApplianceFirewallL7FirewallRulesResource(t *testing.T) {
 }
 
 const testAccNetworksApplianceFirewallL7FirewallRulesResourceConfigCreateOrganization = `
- resource "meraki_organization" "test" {
- 	name = "test_acc_meraki_organizations_networks_appliance_firewall_l7_firewall_rules"
- 	api_enabled = true
- }
- `
-const testAccNetworksApplianceFirewallL7FirewallRulesResourceConfigCreateNetwork = `
-resource "meraki_organization" "test" {}
- resource "meraki_network" "test" {
-	depends_on = [resource.meraki_organization.test]
-	organization_id = resource.meraki_organization.test.organization_id
-	product_types = ["appliance", "switch", "wireless"]
-	tags = ["tag1"]
-	name = "Main Office"
-	timezone = "America/Los_Angeles"
-	notes = "Additional description of the network"
+resource "meraki_organization" "test" {
+    name = "test_acc_meraki_organizations_networks_appliance_firewall_l7_firewall_rules"
+    api_enabled = true
 }
- `
+`
+const testAccNetworksApplianceFirewallL7FirewallRulesResourceConfigCreateNetwork = `
+        resource "meraki_organization" "test" {}
+resource "meraki_network" "test" {
+    depends_on = [resource.meraki_organization.test]
+    organization_id = resource.meraki_organization.test.organization_id
+    product_types = ["appliance", "switch", "wireless"]
+    tags = ["tag1"]
+    name = "Main Office"
+    timezone = "America/Los_Angeles"
+    notes = "Additional description of the network"
+}
+`
 
 const testAccNetworksApplianceFirewallL7FirewallRulesResourceConfigCreateNetworksApplianceFirewallL7FirewallRules = `
- resource "meraki_organization" "test" {}
- 
- resource "meraki_network" "test" {
-	 depends_on = [resource.meraki_organization.test]	
-	 product_types = ["appliance", "switch", "wireless"]	
- }
- 
- resource "meraki_networks_appliance_firewall_l7_firewall_rules" "test" {
-	 depends_on = [resource.meraki_organization.test, resource.meraki_network.test]
-	 network_id = resource.meraki_network.test.network_id
-	 rules = [
-		{
-            policy =  "deny"
-            type = "host"
-            value = "google.com"
-        },
-        {
-            policy = "deny"
-            type = "port"
-            value = "23"
-        },
-        {
-            policy = "deny"
-            type = "ipRange"
-            value = "10.11.12.00/24"
-        },
-        {
-            policy = "deny",
-            type = "ipRange"
-            value = "10.11.12.00/24:5555"
-        }
-	 ]
-	 }
- `
+        resource "meraki_organization" "test" {}
+
+resource "meraki_network" "test" {
+    depends_on = [resource.meraki_organization.test]
+    product_types = ["appliance", "switch", "wireless"]
+}
+
+resource "meraki_networks_appliance_firewall_l7_firewall_rules" "test" {
+    depends_on = [resource.meraki_organization.test, resource.meraki_network.test]
+    network_id = resource.meraki_network.test.network_id
+    rules = [
+    {
+        policy =  "deny"
+        type = "host"
+        value = "google.com"
+    },
+    {
+        policy = "deny"
+        type = "port"
+        value = "23"
+    },
+    {
+        policy = "deny"
+        type = "ipRange"
+        value = "10.11.12.00/24"
+    },
+    {
+        policy = "deny",
+        type = "ipRange"
+        value = "10.11.12.00/24:5555"
+    }
+    ]
+}
+`

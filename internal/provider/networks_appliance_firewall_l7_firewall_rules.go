@@ -89,7 +89,8 @@ func (r *NetworksApplianceFirewallL7FirewallRulesResource) Schema(ctx context.Co
 							Computed:            true,
 							CustomType:          jsontypes.StringType,
 						},
-					}},
+					},
+				},
 			},
 		},
 	}
