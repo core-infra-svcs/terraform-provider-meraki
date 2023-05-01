@@ -126,7 +126,8 @@ func (r *OrganizationsApplianceVpnVpnFirewallRulesResource) Schema(ctx context.C
 							Computed:            true,
 							CustomType:          jsontypes.BoolType,
 						},
-					}},
+					},
+				},
 			},
 		},
 	}
@@ -169,15 +170,17 @@ func (r *OrganizationsApplianceVpnVpnFirewallRulesResource) Create(ctx context.C
 	if len(data.Rules) > 0 {
 		for _, attribute := range data.Rules {
 			var rule openApiClient.OrganizationsOrganizationIdApplianceVpnVpnFirewallRulesRules
-			rule.SetComment(attribute.Comment.ValueString())
-			rule.SetDestCidr(attribute.DestCidr.ValueString())
-			rule.SetDestPort(attribute.DestPort.ValueString())
-			rule.SetSrcCidr(attribute.SrcCidr.ValueString())
-			rule.SetSrcPort(attribute.SrcPort.ValueString())
-			rule.SetPolicy(attribute.Policy.ValueString())
-			rule.SetProtocol(attribute.Protocol.ValueString())
-			rule.SetSyslogEnabled(attribute.SysLogEnabled.ValueBool())
-			rules = append(rules, rule)
+			if attribute.Comment != jsontypes.StringValue("Default rule") {
+				rule.SetComment(attribute.Comment.ValueString())
+				rule.SetDestCidr(attribute.DestCidr.ValueString())
+				rule.SetDestPort(attribute.DestPort.ValueString())
+				rule.SetSrcCidr(attribute.SrcCidr.ValueString())
+				rule.SetSrcPort(attribute.SrcPort.ValueString())
+				rule.SetPolicy(attribute.Policy.ValueString())
+				rule.SetProtocol(attribute.Protocol.ValueString())
+				rule.SetSyslogEnabled(attribute.SysLogEnabled.ValueBool())
+				rules = append(rules, rule)
+			}
 		}
 	}
 
@@ -297,15 +300,17 @@ func (r *OrganizationsApplianceVpnVpnFirewallRulesResource) Update(ctx context.C
 	if len(data.Rules) > 0 {
 		for _, attribute := range data.Rules {
 			var rule openApiClient.OrganizationsOrganizationIdApplianceVpnVpnFirewallRulesRules
-			rule.SetComment(attribute.Comment.ValueString())
-			rule.SetDestCidr(attribute.DestCidr.ValueString())
-			rule.SetDestPort(attribute.DestPort.ValueString())
-			rule.SetSrcCidr(attribute.SrcCidr.ValueString())
-			rule.SetSrcPort(attribute.SrcPort.ValueString())
-			rule.SetPolicy(attribute.Policy.ValueString())
-			rule.SetProtocol(attribute.Protocol.ValueString())
-			rule.SetSyslogEnabled(attribute.SysLogEnabled.ValueBool())
-			rules = append(rules, rule)
+			if attribute.Comment != jsontypes.StringValue("Default rule") {
+				rule.SetComment(attribute.Comment.ValueString())
+				rule.SetDestCidr(attribute.DestCidr.ValueString())
+				rule.SetDestPort(attribute.DestPort.ValueString())
+				rule.SetSrcCidr(attribute.SrcCidr.ValueString())
+				rule.SetSrcPort(attribute.SrcPort.ValueString())
+				rule.SetPolicy(attribute.Policy.ValueString())
+				rule.SetProtocol(attribute.Protocol.ValueString())
+				rule.SetSyslogEnabled(attribute.SysLogEnabled.ValueBool())
+				rules = append(rules, rule)
+			}
 		}
 	}
 
