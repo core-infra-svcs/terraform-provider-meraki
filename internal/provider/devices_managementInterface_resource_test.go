@@ -14,16 +14,16 @@ func TestAccDevicesManagementinterfaceResource(t *testing.T) {
 			{
 				Config: testAccDevicesManagementinterfaceResourceConfigCreate,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("devices_management_interface.test", "id", "example-id"),
-					// resource.TestCheckResourceAttr("devices_management_interface.test", "name", "Block sensitive web traffic"),
-					// resource.TestCheckResourceAttr("devices_management_interface.test", "description", "Blocks sensitive web traffic"),
-					// resource.TestCheckResourceAttr("devices_management_interface.test", "ip_version", "ipv6"),
-
-					// resource.TestCheckResourceAttr("devices_management_interface.test", "rules.#", "1"),
-					// resource.TestCheckResourceAttr("devices_management_interface.test", "rules.0.policy", "deny"),
-					// resource.TestCheckResourceAttr("devices_management_interface.test", "rules.0.protocol", "tcp"),
-					// resource.TestCheckResourceAttr("devices_management_interface.test", "rules.0.src_port", "1,33"),
-					// resource.TestCheckResourceAttr("devices_management_interface.test", "rules.0.dst_port", "22-30"),
+					resource.TestCheckResourceAttr("devices_management_interface.test", "serial", "serial"),
+					resource.TestCheckResourceAttr("devices_management_interface.test", "wan1_wan_enabled", "not configured"),
+					resource.TestCheckResourceAttr("devices_management_interface.test", "wan1_using_static_ip", "true"),
+					resource.TestCheckResourceAttr("devices_management_interface.test", "wan1_static_ip", "1.2.3.4"),
+					resource.TestCheckResourceAttr("devices_management_interface.test", "wan1_static_subnet_mask", "255.255.255.0"),
+					resource.TestCheckResourceAttr("devices_management_interface.test", "wan1_static_gateway_ip", "1.2.3.4"),
+					resource.TestCheckResourceAttr("devices_management_interface.test", "wan1_vlan", "7"),
+					resource.TestCheckResourceAttr("devices_management_interface.test", "wan2_wan_enabled", "enabled"),
+					resource.TestCheckResourceAttr("devices_management_interface.test", "wan2_using_static_ip", "false"),
+					resource.TestCheckResourceAttr("devices_management_interface.test", "wan2_vlan", "2"),
 				),
 			},
 
