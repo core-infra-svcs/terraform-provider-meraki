@@ -18,16 +18,16 @@ DevicesManagementinterface
 ### Optional
 
 - `serial` (String) Serial number
-- `wan1_static_dns` (Attributes List) wan1 static dns (see [below for nested schema](#nestedatt--wan1_static_dns))
-- `wan1_static_gateway_ip` (String) wan1 static gateway ip
-- `wan1_static_ip` (String) wan1 static ip
-- `wan1_static_subnet_mask` (String) wan1 static subnet mask
-- `wan1_using_static_ip` (Boolean) wan1 using static ip
-- `wan1_vlan` (Number) wan1 vlan
-- `wan1_wan_enabled` (String) wan1 wan enabled
-- `wan2_using_static_ip` (Boolean) wan2 using static ip
-- `wan2_vlan` (Number) wan2 vlan
-- `wan2_wan_enabled` (String) wan2 wan enabled
+- `wan1_static_dns` (Attributes List) Up to two DNS IPs. (see [below for nested schema](#nestedatt--wan1_static_dns))
+- `wan1_static_gateway_ip` (String) The IP of the gateway on the WAN.
+- `wan1_static_ip` (String) The IP the device should use on the WAN.
+- `wan1_static_subnet_mask` (String) The subnet mask for the WAN.
+- `wan1_using_static_ip` (Boolean) Configure the interface to have static IP settings or use DHCP.
+- `wan1_vlan` (Number) The VLAN that management traffic should be tagged with. Applies whether usingStaticIp is true or false.
+- `wan1_wan_enabled` (String) Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled', and 'not configured'.
+- `wan2_using_static_ip` (Boolean) Configure the interface to have static IP settings or use DHCP.
+- `wan2_vlan` (Number) The VLAN that management traffic should be tagged with. Applies whether usingStaticIp is true or false.
+- `wan2_wan_enabled` (String) Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled', and 'not configured'.
 
 ### Read-Only
 
