@@ -164,6 +164,12 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		NewNetworksSwitchSettingsResource,
 		NewOrganizationsSnmpResource,
 		NewNetworksSettingsResource,
+<<<<<<< Updated upstream
+=======
+		NewNetworksSwitchAccessPoliciesResource,
+		NewDevicesManagementinterfaceResource,
+		NewNetworksSwitchDscptocosmappingsResource,
+>>>>>>> Stashed changes
 	}
 }
 
