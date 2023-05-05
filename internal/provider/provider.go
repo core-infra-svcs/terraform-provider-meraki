@@ -166,6 +166,7 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		NewNetworksSettingsResource,
 		NewNetworksApplianceFirewallL3FirewallRulesResource,
 		NewNetworksApplianceFirewallL7FirewallRulesResource,
+		NewOrganizationsApplianceVpnVpnFirewallRulesResource,
 	}
 }
 
