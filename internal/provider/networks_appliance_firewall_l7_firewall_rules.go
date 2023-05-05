@@ -33,12 +33,12 @@ type NetworksApplianceFirewallL7FirewallRulesResource struct {
 
 // NetworksApplianceFirewallL7FirewallRulesResourceModel describes the resource data model.
 type NetworksApplianceFirewallL7FirewallRulesResourceModel struct {
-	Id        jsontypes.String `tfsdk:"id"`
-	NetworkId jsontypes.String `tfsdk:"network_id" json:"network_id"`
-	Rules     []Rule           `tfsdk:"rules" json:"rules"`
+	Id        jsontypes.String                                            `tfsdk:"id"`
+	NetworkId jsontypes.String                                            `tfsdk:"network_id" json:"network_id"`
+	Rules     []NetworksApplianceFirewallL7FirewallRulesResourceModelRule `tfsdk:"rules" json:"rules"`
 }
 
-type Rule struct {
+type NetworksApplianceFirewallL7FirewallRulesResourceModelRule struct {
 	Policy jsontypes.String `tfsdk:"policy"`
 	Type   jsontypes.String `tfsdk:"type"`
 	Value  jsontypes.String `tfsdk:"value"`

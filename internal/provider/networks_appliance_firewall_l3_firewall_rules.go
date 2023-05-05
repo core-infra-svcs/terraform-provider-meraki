@@ -33,13 +33,13 @@ type NetworksApplianceFirewallL3FirewallRulesResource struct {
 
 // NetworksApplianceFirewallL3FirewallRulesResourceModel describes the resource data model.
 type NetworksApplianceFirewallL3FirewallRulesResourceModel struct {
-	Id                jsontypes.String `tfsdk:"id"`
-	NetworkId         jsontypes.String `tfsdk:"network_id" json:"network_id"`
-	SyslogDefaultRule jsontypes.Bool   `tfsdk:"syslog_default_rule"`
-	Rules             []Rule           `tfsdk:"rules" json:"rules"`
+	Id                jsontypes.String                                            `tfsdk:"id"`
+	NetworkId         jsontypes.String                                            `tfsdk:"network_id" json:"network_id"`
+	SyslogDefaultRule jsontypes.Bool                                              `tfsdk:"syslog_default_rule"`
+	Rules             []NetworksApplianceFirewallL3FirewallRulesResourceModelRule `tfsdk:"rules" json:"rules"`
 }
 
-type Rule struct {
+type NetworksApplianceFirewallL3FirewallRulesResourceModelRule struct {
 	Comment       jsontypes.String `tfsdk:"comment"`
 	DestCidr      jsontypes.String `tfsdk:"dest_cidr"`
 	DestPort      jsontypes.String `tfsdk:"dest_port"`
