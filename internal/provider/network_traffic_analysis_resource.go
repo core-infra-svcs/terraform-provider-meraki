@@ -163,7 +163,7 @@ func (r *NetworksTrafficAnalysisResource) Create(ctx context.Context, req resour
 	_, httpResp, err := r.client.NetworksApi.UpdateNetworkTrafficAnalysis(ctx, data.NetworkId.ValueString()).UpdateNetworkTrafficAnalysis(updateNetworkTrafficAnalysis).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
+			"Failed to create resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
@@ -217,7 +217,7 @@ func (r *NetworksTrafficAnalysisResource) Read(ctx context.Context, req resource
 	_, httpResp, err := r.client.NetworksApi.GetNetworkTrafficAnalysis(ctx, data.NetworkId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to get resource",
+			"Failed to read resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
@@ -343,26 +343,13 @@ func (r *NetworksTrafficAnalysisResource) Delete(ctx context.Context, req resour
 	}
 
 	updateNetworkTrafficAnalysis := *openApiClient.NewInlineObject140()
-	updateNetworkTrafficAnalysis.SetMode(data.Mode.ValueString())
-
-	if len(data.CustomPieChartItems) > 0 {
-		var customPieChartItems []openApiClient.NetworksNetworkIdTrafficAnalysisCustomPieChartItems
-		for _, attribute := range data.CustomPieChartItems {
-			var customPieChartItem openApiClient.NetworksNetworkIdTrafficAnalysisCustomPieChartItems
-			customPieChartItem.Name = attribute.Name.ValueString()
-			customPieChartItem.Type = attribute.Type.ValueString()
-			customPieChartItem.Value = attribute.Value.ValueString()
-			customPieChartItems = append(customPieChartItems, customPieChartItem)
-		}
-		updateNetworkTrafficAnalysis.SetCustomPieChartItems(customPieChartItems)
-	} else {
-		data.CustomPieChartItems = nil
-	}
+	updateNetworkTrafficAnalysis.SetMode("disabled")
+	updateNetworkTrafficAnalysis.SetCustomPieChartItems(nil)
 
 	_, httpResp, err := r.client.NetworksApi.UpdateNetworkTrafficAnalysis(ctx, data.NetworkId.ValueString()).UpdateNetworkTrafficAnalysis(updateNetworkTrafficAnalysis).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
+			"Failed to delete resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
@@ -385,19 +372,6 @@ func (r *NetworksTrafficAnalysisResource) Delete(ctx context.Context, req resour
 		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
 		return
 	}
-
-	// Save data into Terraform state
-	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
-		resp.Diagnostics.AddError(
-			"JSON decoding error",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-		return
-	}
-
-	data.Id = jsontypes.StringValue("example-id")
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	resp.State.RemoveResource(ctx)
 
