@@ -33,16 +33,16 @@ NetworksApplianceFirewallL3FirewallRules resource for updating Network Appliance
 
 Required:
 
-- `dest_cidr` (String) Comma-separated list of destination IP address(es) (in IP or CIDR notation), fully-qualified domain names (FQDN) or 'any'
+- `dest_cidr` (String) Comma-separated list of destination IP address(es) (in IP or CIDR notation), fully-qualified domain names (FQDN) or 'Any'
 - `policy` (String) 'allow' or 'deny' traffic specified by this rule
-- `protocol` (String) The type of protocol (must be 'tcp', 'udp', 'icmp', 'icmp6' or 'any')
+- `protocol` (String) The type of protocol (must be 'tcp', 'udp', 'icmp', 'icmp6' or 'Any')
 - `src_cidr` (String) Comma-separated list of source IP address(es) (in IP or CIDR notation), or 'any' (note: FQDN not supported for source addresses)
 
 Optional:
 
 - `comment` (String) Description of the rule (optional)
-- `dest_port` (String) Comma-separated list of destination port(s) (integer in the range 1-65535), or 'any'
-- `src_port` (String) Comma-separated list of source port(s) (integer in the range 1-65535), or 'any'
+- `dest_port` (String) Comma-separated list of destination port(s) (integer in the range 1-65535), or 'Any'
+- `src_port` (String) Comma-separated list of source port(s) (integer in the range 1-65535), or 'Any'
 - `syslog_enabled` (Boolean) Log this rule to syslog (true or false, boolean value) - only applicable if a syslog has been configured (optional)
 
 

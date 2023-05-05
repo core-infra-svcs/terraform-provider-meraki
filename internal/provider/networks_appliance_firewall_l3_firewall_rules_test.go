@@ -52,10 +52,14 @@ func TestAccNetworksApplianceFirewallL3FirewallRulesResource(t *testing.T) {
 			{
 				Config: testAccNetworksApplianceFirewallL3FirewallRulesResourceConfigUpdateNetworksApplianceFirewallL3FirewallRules,
 				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("meraki_networks_appliance_firewall_l3_firewall_rules.test", "rules.0.comment", "Allow TCP traffic to subnet with HTTP servers."),
 					resource.TestCheckResourceAttr("meraki_networks_appliance_firewall_l3_firewall_rules.test", "rules.0.policy", "allow"),
 					resource.TestCheckResourceAttr("meraki_networks_appliance_firewall_l3_firewall_rules.test", "rules.0.protocol", "tcp"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_firewall_l3_firewall_rules.test", "rules.0.dest_port", "443"),
 					resource.TestCheckResourceAttr("meraki_networks_appliance_firewall_l3_firewall_rules.test", "rules.0.dest_cidr", "192.168.1.0/24"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_firewall_l3_firewall_rules.test", "rules.0.src_port", "Any"),
 					resource.TestCheckResourceAttr("meraki_networks_appliance_firewall_l3_firewall_rules.test", "rules.0.src_cidr", "Any"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_firewall_l3_firewall_rules.test", "rules.0.syslog_enabled", "false"),
 				),
 			},
 		},

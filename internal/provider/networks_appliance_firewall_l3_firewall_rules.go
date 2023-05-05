@@ -89,12 +89,12 @@ func (r *NetworksApplianceFirewallL3FirewallRulesResource) Schema(ctx context.Co
 							CustomType:          jsontypes.StringType,
 						},
 						"dest_cidr": schema.StringAttribute{
-							MarkdownDescription: "Comma-separated list of destination IP address(es) (in IP or CIDR notation), fully-qualified domain names (FQDN) or 'any'",
+							MarkdownDescription: "Comma-separated list of destination IP address(es) (in IP or CIDR notation), fully-qualified domain names (FQDN) or 'Any'",
 							Required:            true,
 							CustomType:          jsontypes.StringType,
 						},
 						"dest_port": schema.StringAttribute{
-							MarkdownDescription: "Comma-separated list of destination port(s) (integer in the range 1-65535), or 'any'",
+							MarkdownDescription: "Comma-separated list of destination port(s) (integer in the range 1-65535), or 'Any'",
 							Optional:            true,
 							Computed:            true,
 							CustomType:          jsontypes.StringType,
@@ -105,7 +105,7 @@ func (r *NetworksApplianceFirewallL3FirewallRulesResource) Schema(ctx context.Co
 							CustomType:          jsontypes.StringType,
 						},
 						"src_port": schema.StringAttribute{
-							MarkdownDescription: "Comma-separated list of source port(s) (integer in the range 1-65535), or 'any'",
+							MarkdownDescription: "Comma-separated list of source port(s) (integer in the range 1-65535), or 'Any'",
 							Optional:            true,
 							Computed:            true,
 							CustomType:          jsontypes.StringType,
@@ -116,9 +116,12 @@ func (r *NetworksApplianceFirewallL3FirewallRulesResource) Schema(ctx context.Co
 							CustomType:          jsontypes.StringType,
 						},
 						"protocol": schema.StringAttribute{
-							MarkdownDescription: "The type of protocol (must be 'tcp', 'udp', 'icmp', 'icmp6' or 'any')",
+							MarkdownDescription: "The type of protocol (must be 'tcp', 'udp', 'icmp', 'icmp6' or 'Any')",
 							Required:            true,
 							CustomType:          jsontypes.StringType,
+							Validators: []validator.String{
+								stringvalidator.OneOf([]string{"tcp", "udp", "icmp", "icmp6", "Any"}...),
+							},
 						},
 						"syslog_enabled": schema.BoolAttribute{
 							MarkdownDescription: "Log this rule to syslog (true or false, boolean value) - only applicable if a syslog has been configured (optional)",
@@ -225,7 +228,7 @@ func (r *NetworksApplianceFirewallL3FirewallRulesResource) Create(ctx context.Co
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
-	tflog.Trace(ctx, "read resource")
+	tflog.Trace(ctx, "create resource")
 }
 
 func (r *NetworksApplianceFirewallL3FirewallRulesResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -370,31 +373,14 @@ func (r *NetworksApplianceFirewallL3FirewallRulesResource) Delete(ctx context.Co
 	}
 
 	updateNetworkApplianceFirewallL3FirewallRules := *openApiClient.NewInlineObject34()
-	var rules []openApiClient.NetworksNetworkIdApplianceFirewallCellularFirewallRulesRules
 
-	if len(data.Rules) > 0 {
-		for _, attribute := range data.Rules {
-			var rule openApiClient.NetworksNetworkIdApplianceFirewallCellularFirewallRulesRules
-			if attribute.Comment != jsontypes.StringValue("Default rule") {
-				rule.SetComment(attribute.Comment.ValueString())
-				rule.SetDestCidr(attribute.DestCidr.ValueString())
-				rule.SetDestPort(attribute.DestPort.ValueString())
-				rule.SetSrcCidr(attribute.SrcCidr.ValueString())
-				rule.SetSrcPort(attribute.SrcPort.ValueString())
-				rule.SetPolicy(attribute.Policy.ValueString())
-				rule.SetProtocol(attribute.Protocol.ValueString())
-				rule.SetSyslogEnabled(attribute.SysLogEnabled.ValueBool())
-				rules = append(rules, rule)
-			}
-		}
-	}
-
-	updateNetworkApplianceFirewallL3FirewallRules.SetRules(rules)
+	updateNetworkApplianceFirewallL3FirewallRules.Rules = nil
+	updateNetworkApplianceFirewallL3FirewallRules.SetSyslogDefaultRule(false)
 
 	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceFirewallL3FirewallRules(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceFirewallL3FirewallRules(updateNetworkApplianceFirewallL3FirewallRules).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
+			"Failed to delete resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
