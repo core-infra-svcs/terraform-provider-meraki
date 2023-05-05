@@ -52,10 +52,14 @@ func TestAccOrganizationsApplianceVpnVpnFirewallRulesResource(t *testing.T) {
 			{
 				Config: testAccOrganizationsApplianceVpnVpnFirewallRulesResourceConfigUpdateOrganizationsApplianceVpnVpnFirewallRules,
 				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("meraki_organizations_appliance_vpn_vpn_firewall_rules.test", "rules.0.comment", "Allow TCP traffic to subnet with HTTP servers."),
 					resource.TestCheckResourceAttr("meraki_organizations_appliance_vpn_vpn_firewall_rules.test", "rules.0.policy", "allow"),
 					resource.TestCheckResourceAttr("meraki_organizations_appliance_vpn_vpn_firewall_rules.test", "rules.0.protocol", "tcp"),
+					resource.TestCheckResourceAttr("meraki_organizations_appliance_vpn_vpn_firewall_rules.test", "rules.0.dest_port", "443"),
 					resource.TestCheckResourceAttr("meraki_organizations_appliance_vpn_vpn_firewall_rules.test", "rules.0.dest_cidr", "192.168.1.0/24"),
+					resource.TestCheckResourceAttr("meraki_organizations_appliance_vpn_vpn_firewall_rules.test", "rules.0.src_port", "Any"),
 					resource.TestCheckResourceAttr("meraki_organizations_appliance_vpn_vpn_firewall_rules.test", "rules.0.src_cidr", "Any"),
+					resource.TestCheckResourceAttr("meraki_organizations_appliance_vpn_vpn_firewall_rules.test", "rules.0.syslog_enabled", "false"),
 				),
 			},
 		},
@@ -95,7 +99,7 @@ resource "meraki_network" "test" {
 resource "meraki_organizations_appliance_vpn_vpn_firewall_rules" "test" {
     depends_on = [resource.meraki_organization.test,
     resource.meraki_network.test]
-    org_id = resource.meraki_organization.test.organization_id
+    organization_id = resource.meraki_organization.test.organization_id
     rules = [
     {
         comment =  "Allow TCP traffic to subnet with HTTP servers."

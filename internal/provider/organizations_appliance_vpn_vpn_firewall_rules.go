@@ -33,13 +33,13 @@ type OrganizationsApplianceVpnVpnFirewallRulesResource struct {
 
 // OrganizationsApplianceVpnVpnFirewallRulesResourceModel describes the resource data model.
 type OrganizationsApplianceVpnVpnFirewallRulesResourceModel struct {
-	Id                jsontypes.String `tfsdk:"id"`
-	OrganizationId    jsontypes.String `tfsdk:"org_id" json:"org_id"`
-	SyslogDefaultRule jsontypes.Bool   `tfsdk:"syslog_default_rule"`
-	Rules             []Rule           `tfsdk:"rules" json:"rules"`
+	Id                jsontypes.String                                             `tfsdk:"id"`
+	OrganizationId    jsontypes.String                                             `tfsdk:"organization_id" json:"organizationId"`
+	SyslogDefaultRule jsontypes.Bool                                               `tfsdk:"syslog_default_rule"`
+	Rules             []OrganizationsApplianceVpnVpnFirewallRulesResourceModelRule `tfsdk:"rules" json:"rules"`
 }
 
-type Rule struct {
+type OrganizationsApplianceVpnVpnFirewallRulesResourceModelRule struct {
 	Comment       jsontypes.String `tfsdk:"comment"`
 	DestCidr      jsontypes.String `tfsdk:"dest_cidr"`
 	DestPort      jsontypes.String `tfsdk:"dest_port"`
@@ -62,7 +62,7 @@ func (r *OrganizationsApplianceVpnVpnFirewallRulesResource) Schema(ctx context.C
 				Computed:   true,
 				CustomType: jsontypes.StringType,
 			},
-			"org_id": schema.StringAttribute{
+			"organization_id": schema.StringAttribute{
 				MarkdownDescription: "Organization ID",
 				Required:            true,
 				CustomType:          jsontypes.StringType,
@@ -189,7 +189,7 @@ func (r *OrganizationsApplianceVpnVpnFirewallRulesResource) Create(ctx context.C
 	_, httpResp, err := r.client.ApplianceApi.UpdateOrganizationApplianceVpnVpnFirewallRules(context.Background(), data.OrganizationId.ValueString()).UpdateOrganizationApplianceVpnVpnFirewallRules(organizationsApplianceVpnVpnFirewallRules).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
+			"Failed to create resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
@@ -371,29 +371,14 @@ func (r *OrganizationsApplianceVpnVpnFirewallRulesResource) Delete(ctx context.C
 	}
 
 	organizationsApplianceVpnVpnFirewallRules := *openApiClient.NewInlineObject183()
-	var rules []openApiClient.OrganizationsOrganizationIdApplianceVpnVpnFirewallRulesRules
-
-	if len(data.Rules) > 0 {
-		for _, attribute := range data.Rules {
-			var rule openApiClient.OrganizationsOrganizationIdApplianceVpnVpnFirewallRulesRules
-			rule.SetComment(attribute.Comment.ValueString())
-			rule.SetDestCidr(attribute.DestCidr.ValueString())
-			rule.SetDestPort(attribute.DestPort.ValueString())
-			rule.SetSrcCidr(attribute.SrcCidr.ValueString())
-			rule.SetSrcPort(attribute.SrcPort.ValueString())
-			rule.SetPolicy(attribute.Policy.ValueString())
-			rule.SetProtocol(attribute.Protocol.ValueString())
-			rule.SetSyslogEnabled(attribute.SysLogEnabled.ValueBool())
-			rules = append(rules, rule)
-		}
-	}
-
+	rules := []openApiClient.OrganizationsOrganizationIdApplianceVpnVpnFirewallRulesRules{}
 	organizationsApplianceVpnVpnFirewallRules.SetRules(rules)
+	organizationsApplianceVpnVpnFirewallRules.SetSyslogDefaultRule(false)
 
 	_, httpResp, err := r.client.ApplianceApi.UpdateOrganizationApplianceVpnVpnFirewallRules(context.Background(), data.OrganizationId.ValueString()).UpdateOrganizationApplianceVpnVpnFirewallRules(organizationsApplianceVpnVpnFirewallRules).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
+			"Failed to delete resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
@@ -416,19 +401,6 @@ func (r *OrganizationsApplianceVpnVpnFirewallRulesResource) Delete(ctx context.C
 		return
 	}
 
-	// Save data into Terraform state
-	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
-		resp.Diagnostics.AddError(
-			"JSON decoding error",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-		return
-	}
-
-	data.Id = jsontypes.StringValue("example-id")
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 	resp.State.RemoveResource(ctx)
 
 	// Write logs using the tflog package
@@ -438,7 +410,7 @@ func (r *OrganizationsApplianceVpnVpnFirewallRulesResource) Delete(ctx context.C
 func (r *OrganizationsApplianceVpnVpnFirewallRulesResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("network_id"), req.ID)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("organization_id"), req.ID)...)
 
 	if resp.Diagnostics.HasError() {
 		return

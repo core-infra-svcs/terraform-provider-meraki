@@ -17,7 +17,7 @@ OrganizationsApplianceVpnVpnFirewallRules resource for updating Organizations Ap
 
 ### Required
 
-- `org_id` (String) Organization ID
+- `organization_id` (String) Organization ID
 - `rules` (Attributes Set) (see [below for nested schema](#nestedatt--rules))
 
 ### Optional
