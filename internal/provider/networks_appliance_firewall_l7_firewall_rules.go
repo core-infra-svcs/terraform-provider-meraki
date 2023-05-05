@@ -82,6 +82,9 @@ func (r *NetworksApplianceFirewallL7FirewallRulesResource) Schema(ctx context.Co
 							MarkdownDescription: "Type of the L7 rule. One of: 'application', 'applicationCategory', 'host', 'port', 'ipRange'",
 							Required:            true,
 							CustomType:          jsontypes.StringType,
+							Validators: []validator.String{
+								stringvalidator.OneOf([]string{"application", "applicationCategory", "host", "port", "ipRange"}...),
+							},
 						},
 						"value": schema.StringAttribute{
 							MarkdownDescription: "The 'value' of what you want to block. Format of 'value' varies depending on type of the rule. The application categories and application ids can be retrieved from the the 'MX L7 application categories' endpoint. The countries follow the two-letter ISO 3166-1 alpha-2 format.",
@@ -145,7 +148,7 @@ func (r *NetworksApplianceFirewallL7FirewallRulesResource) Create(ctx context.Co
 	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceFirewallL7FirewallRules(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceFirewallL7FirewallRules(updateNetworkApplianceFirewallL7FirewallRules).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
+			"Failed to create resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
@@ -182,7 +185,7 @@ func (r *NetworksApplianceFirewallL7FirewallRulesResource) Create(ctx context.Co
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
-	tflog.Trace(ctx, "read resource")
+	tflog.Trace(ctx, "create resource")
 }
 
 func (r *NetworksApplianceFirewallL7FirewallRulesResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -319,25 +322,14 @@ func (r *NetworksApplianceFirewallL7FirewallRulesResource) Delete(ctx context.Co
 		return
 	}
 
+	rules := []openApiClient.NetworksNetworkIdApplianceFirewallL7FirewallRulesRules{}
 	updateNetworkApplianceFirewallL7FirewallRules := *openApiClient.NewInlineObject35()
-	var rules []openApiClient.NetworksNetworkIdApplianceFirewallL7FirewallRulesRules
-
-	if len(data.Rules) > 0 {
-		for _, attribute := range data.Rules {
-			var rule openApiClient.NetworksNetworkIdApplianceFirewallL7FirewallRulesRules
-			rule.SetPolicy(attribute.Policy.ValueString())
-			rule.SetType(attribute.Type.ValueString())
-			rule.SetValue(attribute.Value.ValueString())
-			rules = append(rules, rule)
-		}
-	}
-
 	updateNetworkApplianceFirewallL7FirewallRules.SetRules(rules)
 
 	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceFirewallL7FirewallRules(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceFirewallL7FirewallRules(updateNetworkApplianceFirewallL7FirewallRules).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
+			"Failed to delete resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
@@ -359,19 +351,6 @@ func (r *NetworksApplianceFirewallL7FirewallRulesResource) Delete(ctx context.Co
 		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%v", data))
 		return
 	}
-
-	// Save data into Terraform state
-	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
-		resp.Diagnostics.AddError(
-			"JSON decoding error",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-		return
-	}
-
-	data.Id = jsontypes.StringValue("example-id")
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	resp.State.RemoveResource(ctx)
 
