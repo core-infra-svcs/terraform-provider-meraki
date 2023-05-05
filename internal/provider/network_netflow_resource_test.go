@@ -51,6 +51,10 @@ func TestAccNetworksNetFlowResource(t *testing.T) {
 				Config: testAccNetFlowResourceConfigUpdateNetworkNetFlowSettings,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_networks_netflow.test", "reporting_enabled", "false"),
+					resource.TestCheckResourceAttr("meraki_networks_netflow.test", "eta_enabled", "false"),
+					resource.TestCheckResourceAttr("meraki_networks_netflow.test", "collector_ip", "1.2.3.4"),
+					resource.TestCheckResourceAttr("meraki_networks_netflow.test", "collector_port", "443"),
+					resource.TestCheckResourceAttr("meraki_networks_netflow.test", "eta_dst_port", "443"),
 				),
 			},
 		},

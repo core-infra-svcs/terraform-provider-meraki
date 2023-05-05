@@ -150,7 +150,7 @@ func (r *NetworksNetflowResource) Create(ctx context.Context, req resource.Creat
 	_, httpResp, err := r.client.NetworksApi.UpdateNetworkNetflow(ctx, data.NetworkId.ValueString()).UpdateNetworkNetflow(updateNetworkNetflow).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
+			"Failed to create resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
@@ -217,7 +217,7 @@ func (r *NetworksNetflowResource) Read(ctx context.Context, req resource.ReadReq
 	_, httpResp, err := r.client.NetworksApi.GetNetworkNetflow(ctx, data.NetworkId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to get resource",
+			"Failed to read resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
@@ -341,7 +341,7 @@ func (r *NetworksNetflowResource) Update(ctx context.Context, req resource.Updat
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
-	tflog.Trace(ctx, "update resource")
+	tflog.Trace(ctx, "updated resource")
 }
 
 func (r *NetworksNetflowResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -356,26 +356,16 @@ func (r *NetworksNetflowResource) Delete(ctx context.Context, req resource.Delet
 	}
 
 	updateNetworkNetflow := *openApiClient.NewInlineObject93()
-	if !data.CollectorIp.IsUnknown() {
-		updateNetworkNetflow.SetCollectorIp(data.Id.ValueString())
-	}
-	if !data.ReportingEnabled.IsUnknown() {
-		updateNetworkNetflow.SetReportingEnabled(data.ReportingEnabled.ValueBool())
-	}
-	if !data.CollectorPort.IsUnknown() {
-		updateNetworkNetflow.SetCollectorPort(int32(data.CollectorPort.ValueInt64()))
-	}
-	if !data.EtaEnabled.IsUnknown() {
-		updateNetworkNetflow.SetEtaEnabled(data.EtaEnabled.ValueBool())
-	}
-	if !data.EtaDstPort.IsUnknown() {
-		updateNetworkNetflow.SetEtaDstPort(int32(data.EtaDstPort.ValueInt64()))
-	}
+	updateNetworkNetflow.SetReportingEnabled(false)
+	updateNetworkNetflow.CollectorPort = nil
+	updateNetworkNetflow.CollectorIp = nil
+	updateNetworkNetflow.SetEtaEnabled(false)
+	updateNetworkNetflow.EtaDstPort = nil
 
 	_, httpResp, err := r.client.NetworksApi.UpdateNetworkNetflow(ctx, data.NetworkId.ValueString()).UpdateNetworkNetflow(updateNetworkNetflow).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
+			"Failed to delete resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
@@ -398,32 +388,6 @@ func (r *NetworksNetflowResource) Delete(ctx context.Context, req resource.Delet
 		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
 		return
 	}
-
-	// Save data into Terraform state
-	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
-		resp.Diagnostics.AddError(
-			"JSON decoding error",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-		return
-	}
-
-	data.Id = jsontypes.StringValue("example-id")
-	if data.CollectorIp.IsUnknown() {
-		data.CollectorIp = jsontypes.StringNull()
-	}
-	if data.CollectorPort.IsUnknown() {
-		data.CollectorPort = jsontypes.Int64Null()
-	}
-
-	if data.EtaDstPort.IsUnknown() {
-		data.EtaDstPort = jsontypes.Int64Null()
-	}
-	if data.EtaEnabled.IsUnknown() {
-		data.EtaEnabled = jsontypes.BoolNull()
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	resp.State.RemoveResource(ctx)
 
