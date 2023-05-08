@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -17,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
+	"strconv"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -34,25 +33,19 @@ type NetworksSyslogServersResource struct {
 
 // NetworksSyslogServersResourceModel describes the resource data model.
 type NetworksSyslogServersResourceModel struct {
-	Id        jsontypes.String `tfsdk:"id"`
-	NetworkId jsontypes.String `tfsdk:"network_id"`
-	Servers   []Server         `tfsdk:"servers"`
+	Id        jsontypes.String                           `tfsdk:"id"`
+	NetworkId jsontypes.String                           `tfsdk:"network_id"`
+	Servers   []NetworksSyslogServersResourceModelServer `tfsdk:"servers"`
 }
 
-type Server struct {
+type NetworksSyslogServersResourceModelServer struct {
 	Host  jsontypes.String   `tfsdk:"host"`
 	Port  jsontypes.Int64    `tfsdk:"port"`
 	Roles []jsontypes.String `tfsdk:"roles"`
 }
 
-type Response struct {
-	Servers []OutputServer `tfsdk:"servers"`
-}
-
-type OutputServer struct {
-	Host  string   `json:"host"`
-	Port  int32    `json:"port"`
-	Roles []string `json:"roles"`
+type NetworksSyslogServersResourceModelResponse struct {
+	Servers []NetworksSyslogServersResourceModelServer `tfsdk:"servers"`
 }
 
 func (r *NetworksSyslogServersResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -148,7 +141,16 @@ func (r *NetworksSyslogServersResource) Create(ctx context.Context, req resource
 		for _, attribute := range data.Servers {
 			var server openApiClient.NetworksNetworkIdSyslogServersServers
 			server.SetHost(attribute.Host.ValueString())
-			server.SetPort(int32(attribute.Port.ValueInt64()))
+
+			parsedStr, err := strconv.ParseInt(attribute.Port.String(), 10, 32)
+			if err != nil {
+				resp.Diagnostics.AddError(
+					"Failed to convert port string to int32 payload",
+					fmt.Sprintf("%v\n", err.Error()),
+				)
+			}
+			server.SetPort(int32(parsedStr))
+
 			var roles []string
 			for _, role := range attribute.Roles {
 				roles = append(roles, role.ValueString())
@@ -162,14 +164,19 @@ func (r *NetworksSyslogServersResource) Create(ctx context.Context, req resource
 
 	updateSyslogServers := *openApiClient.NewInlineObject139(servers)
 
-	_, httpResp, _ := r.client.SyslogServersApi.UpdateNetworkSyslogServers(ctx, data.NetworkId.ValueString()).UpdateNetworkSyslogServers(updateSyslogServers).Execute()
+	_, httpResp, err := r.client.SyslogServersApi.UpdateNetworkSyslogServers(ctx, data.NetworkId.ValueString()).UpdateNetworkSyslogServers(updateSyslogServers).Execute()
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to create resource",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+	}
 
 	// collect diagnostics
 	if httpResp != nil {
 		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 	}
 
-	// Check for API success response code
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
@@ -179,30 +186,17 @@ func (r *NetworksSyslogServersResource) Create(ctx context.Context, req resource
 
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
-		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%v", data))
+		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
 		return
 	}
 
-	responseData, err := ioutil.ReadAll(httpResp.Body)
-	if err != nil {
+	// Save data into Terraform state
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
+			"JSON decoding error",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
-	}
-
-	var outputData Response
-	jsonData, _ := json.Marshal(responseData)
-	json.Unmarshal(jsonData, &outputData)
-
-	for _, attribute := range outputData.Servers {
-		var server Server
-		server.Host = jsontypes.StringValue(attribute.Host)
-		server.Port = jsontypes.Int64Value(int64(attribute.Port))
-		for _, role := range attribute.Roles {
-			server.Roles = append(server.Roles, jsontypes.StringValue(role))
-		}
-		data.Servers = append(data.Servers, server)
+		return
 	}
 
 	data.Id = jsontypes.StringValue("example-id")
@@ -223,14 +217,19 @@ func (r *NetworksSyslogServersResource) Read(ctx context.Context, req resource.R
 		return
 	}
 
-	_, httpResp, _ := r.client.NetworksApi.GetNetworkSyslogServers(ctx, data.NetworkId.ValueString()).Execute()
+	_, httpResp, err := r.client.NetworksApi.GetNetworkSyslogServers(ctx, data.NetworkId.ValueString()).Execute()
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to read resource",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+	}
 
 	// collect diagnostics
 	if httpResp != nil {
 		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 	}
 
-	// Check for API success response code
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
@@ -240,31 +239,17 @@ func (r *NetworksSyslogServersResource) Read(ctx context.Context, req resource.R
 
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
+		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
 		return
-	} else {
-		resp.Diagnostics.Append()
 	}
 
-	responseData, err := ioutil.ReadAll(httpResp.Body)
-	if err != nil {
+	// Save data into Terraform state
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
+			"JSON decoding error",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
-	}
-
-	var outputData Response
-	jsonData, _ := json.Marshal(responseData)
-	json.Unmarshal(jsonData, &outputData)
-
-	for _, attribute := range outputData.Servers {
-		var server Server
-		server.Host = jsontypes.StringValue(attribute.Host)
-		server.Port = jsontypes.Int64Value(int64(attribute.Port))
-		for _, role := range attribute.Roles {
-			server.Roles = append(server.Roles, jsontypes.StringValue(role))
-		}
-		data.Servers = append(data.Servers, server)
+		return
 	}
 
 	data.Id = jsontypes.StringValue("example-id")
@@ -294,7 +279,16 @@ func (r *NetworksSyslogServersResource) Update(ctx context.Context, req resource
 		for _, attribute := range data.Servers {
 			var server openApiClient.NetworksNetworkIdSyslogServersServers
 			server.SetHost(attribute.Host.ValueString())
-			server.SetPort(int32(attribute.Port.ValueInt64()))
+
+			parsedStr, err := strconv.ParseInt(attribute.Port.String(), 10, 32)
+			if err != nil {
+				resp.Diagnostics.AddError(
+					"Failed to convert port string to int32 payload",
+					fmt.Sprintf("%v\n", err.Error()),
+				)
+			}
+			server.SetPort(int32(parsedStr))
+
 			var roles []string
 			for _, role := range attribute.Roles {
 				roles = append(roles, role.ValueString())
@@ -308,14 +302,19 @@ func (r *NetworksSyslogServersResource) Update(ctx context.Context, req resource
 
 	updateSyslogServers := *openApiClient.NewInlineObject139(servers)
 
-	_, httpResp, _ := r.client.SyslogServersApi.UpdateNetworkSyslogServers(ctx, data.NetworkId.ValueString()).UpdateNetworkSyslogServers(updateSyslogServers).Execute()
+	_, httpResp, err := r.client.SyslogServersApi.UpdateNetworkSyslogServers(ctx, data.NetworkId.ValueString()).UpdateNetworkSyslogServers(updateSyslogServers).Execute()
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to update resource",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+	}
 
 	// collect diagnostics
 	if httpResp != nil {
 		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 	}
 
-	// Check for API success response code
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
@@ -325,36 +324,23 @@ func (r *NetworksSyslogServersResource) Update(ctx context.Context, req resource
 
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
-		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%v", data))
+		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
 		return
 	}
 
-	responseData, err := ioutil.ReadAll(httpResp.Body)
-	if err != nil {
+	// Save data into Terraform state
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
+			"JSON decoding error",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
-	}
-
-	var outputData Response
-	jsonData, _ := json.Marshal(responseData)
-	json.Unmarshal(jsonData, &outputData)
-
-	for _, attribute := range outputData.Servers {
-		var server Server
-		server.Host = jsontypes.StringValue(attribute.Host)
-		server.Port = jsontypes.Int64Value(int64(attribute.Port))
-		for _, role := range attribute.Roles {
-			server.Roles = append(server.Roles, jsontypes.StringValue(role))
-		}
-		data.Servers = append(data.Servers, server)
+		return
 	}
 
 	data.Id = jsontypes.StringValue("example-id")
 
 	// Write logs using the tflog package
-	tflog.Trace(ctx, "update resource")
+	tflog.Trace(ctx, "updated resource")
 }
 
 func (r *NetworksSyslogServersResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -368,36 +354,21 @@ func (r *NetworksSyslogServersResource) Delete(ctx context.Context, req resource
 		return
 	}
 
-	var servers []openApiClient.NetworksNetworkIdSyslogServersServers
+	updateSyslogServers := *openApiClient.NewInlineObject139(nil)
 
-	// Servers
-	if len(data.Servers) > 0 {
-
-		for _, attribute := range data.Servers {
-			var server openApiClient.NetworksNetworkIdSyslogServersServers
-			server.SetHost(attribute.Host.ValueString())
-			server.SetPort(int32(attribute.Port.ValueInt64()))
-			var roles []string
-			for _, role := range attribute.Roles {
-				roles = append(roles, role.ValueString())
-
-			}
-			server.SetRoles(roles)
-			servers = append(servers, server)
-		}
-
+	_, httpResp, err := r.client.SyslogServersApi.UpdateNetworkSyslogServers(ctx, data.NetworkId.ValueString()).UpdateNetworkSyslogServers(updateSyslogServers).Execute()
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to delete resource",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
 	}
-
-	updateSyslogServers := *openApiClient.NewInlineObject139(servers)
-
-	_, httpResp, _ := r.client.SyslogServersApi.UpdateNetworkSyslogServers(ctx, data.NetworkId.ValueString()).UpdateNetworkSyslogServers(updateSyslogServers).Execute()
 
 	// collect diagnostics
 	if httpResp != nil {
 		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 	}
 
-	// Check for API success response code
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
@@ -407,35 +378,9 @@ func (r *NetworksSyslogServersResource) Delete(ctx context.Context, req resource
 
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
-		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%v", data))
+		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
 		return
 	}
-
-	responseData, err := ioutil.ReadAll(httpResp.Body)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Failed to update resource",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-	}
-
-	var outputData Response
-	jsonData, _ := json.Marshal(responseData)
-	json.Unmarshal(jsonData, &outputData)
-
-	for _, attribute := range outputData.Servers {
-		var server Server
-		server.Host = jsontypes.StringValue(attribute.Host)
-		server.Port = jsontypes.Int64Value(int64(attribute.Port))
-		for _, role := range attribute.Roles {
-			server.Roles = append(server.Roles, jsontypes.StringValue(role))
-		}
-		data.Servers = append(data.Servers, server)
-	}
-
-	data.Id = jsontypes.StringValue("example-id")
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	resp.State.RemoveResource(ctx)
 
