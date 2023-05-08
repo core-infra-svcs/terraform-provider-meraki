@@ -30,7 +30,7 @@ NetworksSyslogServers resource for updating networks syslog servers.
 Optional:
 
 - `host` (String) The IP address of the syslog server
-- `port` (Number) The port of the syslog server
+- `port` (String) The port of the syslog server
 - `roles` (Set of String) roles
 
 
