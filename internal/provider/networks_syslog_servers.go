@@ -41,7 +41,7 @@ type NetworksSyslogServersResourceModel struct {
 
 type NetworksSyslogServersResourceModelServer struct {
 	Host  jsontypes.String   `tfsdk:"host"`
-	Port  jsontypes.Int64    `tfsdk:"port"`
+	Port  jsontypes.String   `tfsdk:"port"`
 	Roles []jsontypes.String `tfsdk:"roles"`
 }
 
@@ -85,11 +85,11 @@ func (r *NetworksSyslogServersResource) Schema(ctx context.Context, req resource
 							Computed:            true,
 							CustomType:          jsontypes.StringType,
 						},
-						"port": schema.Int64Attribute{
+						"port": schema.StringAttribute{
 							MarkdownDescription: "The port of the syslog server",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes.Int64Type,
+							CustomType:          jsontypes.StringType,
 						},
 						"roles": schema.SetAttribute{
 							Description: "roles",
@@ -143,7 +143,7 @@ func (r *NetworksSyslogServersResource) Create(ctx context.Context, req resource
 			var server openApiClient.NetworksNetworkIdSyslogServersServers
 			server.SetHost(attribute.Host.ValueString())
 
-			parsedStr, err := strconv.ParseInt(attribute.Port.String(), 10, 32)
+			parsedStr, err := strconv.ParseInt(attribute.Port.ValueString(), 10, 32)
 			if err != nil {
 				resp.Diagnostics.AddError(
 					"Failed to convert port string to int32 payload",
@@ -281,7 +281,7 @@ func (r *NetworksSyslogServersResource) Update(ctx context.Context, req resource
 			var server openApiClient.NetworksNetworkIdSyslogServersServers
 			server.SetHost(attribute.Host.ValueString())
 
-			parsedStr, err := strconv.ParseInt(attribute.Port.String(), 10, 32)
+			parsedStr, err := strconv.ParseInt(attribute.Port.ValueString(), 10, 32)
 			if err != nil {
 				resp.Diagnostics.AddError(
 					"Failed to convert port string to int32 payload",

@@ -91,7 +91,7 @@ resource "meraki_networks_syslog_servers" "test" {
       network_id = resource.meraki_network.test.network_id
 	  servers = [{
 		host = "1.2.3.67"
-		port = 443
+		port = "443"
 		roles = ["URLs"]
 	}] 
 }
