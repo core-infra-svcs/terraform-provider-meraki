@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
 	"strconv"
+	"strings"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -165,9 +166,9 @@ func (r *NetworksSyslogServersResource) Create(ctx context.Context, req resource
 	updateSyslogServers := *openApiClient.NewInlineObject139(servers)
 
 	_, httpResp, err := r.client.SyslogServersApi.UpdateNetworkSyslogServers(ctx, data.NetworkId.ValueString()).UpdateNetworkSyslogServers(updateSyslogServers).Execute()
-	if err != nil {
+	if err != nil && !strings.HasPrefix(err.Error(), "json:") {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
+			"Failed to Create resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
@@ -218,7 +219,7 @@ func (r *NetworksSyslogServersResource) Read(ctx context.Context, req resource.R
 	}
 
 	_, httpResp, err := r.client.NetworksApi.GetNetworkSyslogServers(ctx, data.NetworkId.ValueString()).Execute()
-	if err != nil {
+	if err != nil && !strings.HasPrefix(err.Error(), "json:") {
 		resp.Diagnostics.AddError(
 			"Failed to read resource",
 			fmt.Sprintf("%v\n", err.Error()),
@@ -303,9 +304,9 @@ func (r *NetworksSyslogServersResource) Update(ctx context.Context, req resource
 	updateSyslogServers := *openApiClient.NewInlineObject139(servers)
 
 	_, httpResp, err := r.client.SyslogServersApi.UpdateNetworkSyslogServers(ctx, data.NetworkId.ValueString()).UpdateNetworkSyslogServers(updateSyslogServers).Execute()
-	if err != nil {
+	if err != nil && !strings.HasPrefix(err.Error(), "json:") {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
+			"Failed to Update resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
@@ -357,13 +358,12 @@ func (r *NetworksSyslogServersResource) Delete(ctx context.Context, req resource
 	updateSyslogServers := *openApiClient.NewInlineObject139(nil)
 
 	_, httpResp, err := r.client.SyslogServersApi.UpdateNetworkSyslogServers(ctx, data.NetworkId.ValueString()).UpdateNetworkSyslogServers(updateSyslogServers).Execute()
-	if err != nil {
+	if err != nil && !strings.HasPrefix(err.Error(), "json:") {
 		resp.Diagnostics.AddError(
 			"Failed to delete resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
-
 	// collect diagnostics
 	if httpResp != nil {
 		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
