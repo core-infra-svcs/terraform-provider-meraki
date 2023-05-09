@@ -170,6 +170,7 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		NewNetworksTrafficAnalysisResource,
 		NewNetworksNetflowResource,
 		NewNetworksSyslogServersResource,
+		NewNetworksApplianceVlansSettingsResource,
 	}
 }
 
