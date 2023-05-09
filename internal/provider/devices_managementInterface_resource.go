@@ -94,9 +94,10 @@ func (r *DevicesManagementinterfaceResource) Schema(ctx context.Context, req res
 				Optional:            true,
 				CustomType:          jsontypes.StringType,
 			},
-			"wan1_static_dns": schema.ListNestedAttribute{
+			"wan1_static_dns": schema.ListAttribute{
 				MarkdownDescription: "Up to two DNS IPs.",
 				Optional:            true,
+				ElementType:         jsontypes.StringType,
 			},
 			"wan2_wan_enabled": schema.StringAttribute{
 				MarkdownDescription: "Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled', and 'not configured'.",
