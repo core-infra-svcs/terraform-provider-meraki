@@ -164,7 +164,14 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		NewNetworksSwitchSettingsResource,
 		NewOrganizationsSnmpResource,
 		NewNetworksSettingsResource,
-		NewNetworksSwitchAccessPoliciesResource,
+		NewNetworksApplianceFirewallL3FirewallRulesResource,
+		NewNetworksApplianceFirewallL7FirewallRulesResource,
+		NewOrganizationsApplianceVpnVpnFirewallRulesResource,
+		NewNetworksTrafficAnalysisResource,
+		NewNetworksNetflowResource,
+		NewNetworksSyslogServersResource,
+		NewNetworksApplianceVlansSettingsResource,
+		NewNetworksApplianceSettingsResource,
 	}
 }
 
@@ -172,7 +179,6 @@ func (p *CiscoMerakiProvider) DataSources(ctx context.Context) []func() datasour
 	return []func() datasource.DataSource{
 		NewOrganizationsDataSource,
 		NewOrganizationsNetworksDataSource,
-		NewNetworksSwitchAccessPoliciesDataSource,
 		NewAdministeredIdentitiesMeDataSource,
 		NewOrganizationsAdminsDataSource,
 		NewOrganizationsSamlIdpsDataSource,
