@@ -70,11 +70,19 @@ func (r *NetworksApplianceSettingsResource) Schema(ctx context.Context, req reso
 				MarkdownDescription: "Client tracking method of a network",
 				Required:            true,
 				CustomType:          jsontypes.StringType,
+				Validators: []validator.String{
+					stringvalidator.OneOf("IP address", "MAC address",
+						"Unique client identifier"),
+				},
 			},
 			"deployment_mode": schema.StringAttribute{
 				MarkdownDescription: "Deployment mode of a network",
 				Required:            true,
 				CustomType:          jsontypes.StringType,
+				Validators: []validator.String{
+					stringvalidator.OneOf("passthrough",
+						"routed"),
+				},
 			},
 			"dynamic_dns_prefix": schema.StringAttribute{
 				MarkdownDescription: "Dynamic DNS url prefix for Dynamic DNS settings for a network. DDNS must be enabled to update",
@@ -295,17 +303,13 @@ func (r *NetworksApplianceSettingsResource) Delete(ctx context.Context, req reso
 	}
 
 	updateNetworksApplianceSettings := *openApiClient.NewInlineObject45()
-	updateNetworksApplianceSettings.SetClientTrackingMethod(data.ClientTrackingMethod.ValueString())
-	updateNetworksApplianceSettings.SetDeploymentMode(data.DeploymentMode.ValueString())
 	var v openApiClient.NetworksNetworkIdApplianceSettingsDynamicDns
-	v.SetEnabled(data.DynamicDnsEnabled.ValueBool())
-	v.SetPrefix(data.DynamicDnsPrefix.ValueString())
 	updateNetworksApplianceSettings.SetDynamicDns(v)
 
-	inlineResp, httpResp, err := r.client.SettingsApi.UpdateNetworkApplianceSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceSettings(updateNetworksApplianceSettings).Execute()
+	_, httpResp, err := r.client.SettingsApi.UpdateNetworkApplianceSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceSettings(updateNetworksApplianceSettings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
+			"Failed to Delete resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
@@ -326,15 +330,6 @@ func (r *NetworksApplianceSettingsResource) Delete(ctx context.Context, req reso
 		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
 		return
 	}
-
-	data.ClientTrackingMethod = jsontypes.StringValue(inlineResp.GetClientTrackingMethod())
-	data.DeploymentMode = jsontypes.StringValue(inlineResp.GetDeploymentMode())
-	data.DynamicDnsPrefix = jsontypes.StringValue(inlineResp.DynamicDns.GetPrefix())
-	data.DynamicDnsEnabled = jsontypes.BoolValue(inlineResp.DynamicDns.GetEnabled())
-	data.DynamicDnsUrl = jsontypes.StringValue(inlineResp.DynamicDns.GetUrl())
-	data.Id = jsontypes.StringValue("example-id")
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	resp.State.RemoveResource(ctx)
 

@@ -90,7 +90,7 @@ resource "meraki_networks_appliance_settings" "test" {
       network_id = resource.meraki_network.test.network_id
 	  client_tracking_method = "MAC address"
 	  deployment_mode = "routed"
-	  dynamic_dns_prefix = "test" 
+	  dynamic_dns_prefix = "test"
 	  dynamic_dns_enabled = true
 	  
 	 
