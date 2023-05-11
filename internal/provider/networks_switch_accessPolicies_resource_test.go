@@ -73,5 +73,10 @@ resource "meraki_networks_switch_access_policies" "test" {
   radius_testing_enabled = false
   url_redirect_walled_garden_enabled = false
   voice_vlan_clients                 = false
+  radius_critical_auth = {
+	data_vlan_id = 100
+	voice_vlan_id = 100
+	suspend_port_bounce = true
+  }
 }
  `

@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
+	"strings"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -35,32 +36,33 @@ type NetworksSwitchAccessPoliciesResource struct {
 
 // NetworksSwitchAccessPoliciesResourceModel describes the resource data model.
 type NetworksSwitchAccessPoliciesResourceModel struct {
-	Id                      jsontypes.String                                             `tfsdk:"id"`
-	NetworkId               jsontypes.String                                             `tfsdk:"network_id"`
-	AccessPolicyType        jsontypes.String                                             `tfsdk:"access_policy_type"`
-	Dot1xControlDirection   jsontypes.String                                             `tfsdk:"dot_1x_control_direction"`
-	GuestVLANId             jsontypes.Int64                                              `tfsdk:"guest_vlan_id"`
-	HostMode                jsontypes.String                                             `tfsdk:"host_mode"`
-	IncreaseAccessSpeed     jsontypes.Bool                                               `tfsdk:"increase_access_speed"`
-	Name                    jsontypes.String                                             `tfsdk:"name"`
-	RadiusAccountingEnabled jsontypes.Bool                                               `tfsdk:"radius_accounting_enabled"`
-	RadiusAccountingServers []NetworkSwitchAccessPolicyRadiusServersDataSourceModelRules `tfsdk:"radius_accounting_servers"`
-	RadiusCoaSupportEnabled jsontypes.Bool                                               `tfsdk:"radius_coa_support_enabled"`
-	RadiusGroupAttribute    jsontypes.String                                             `tfsdk:"radius_group_attribute"`
-	RadiusServers           []NetworkSwitchAccessPolicyRadiusServersDataSourceModelRules `tfsdk:"radius_servers"`
-	RadiusTestingEnabled    jsontypes.Bool                                               `tfsdk:"radius_testing_enabled"`
-	//RadiusCriticalAuth             types.Object                                                 `tfsdk:"radius_critical_auth"`
-	RadiusFailedAuthVlanId         jsontypes.Int64                 `tfsdk:"radius_failed_auth_vlan_id"`
-	RadiusReauthenticationInterval jsontypes.Int64                 `tfsdk:"radius_re_authentication_interval"`
-	UrlRedirectWalledGardenEnabled jsontypes.Bool                  `tfsdk:"url_redirect_walled_garden_enabled"`
-	UrlRedirectWalledGardenRanges  jsontypes.Set[jsontypes.String] `tfsdk:"url_redirect_walled_garden_ranges"`
-	VoiceVlanClients               jsontypes.Bool                  `tfsdk:"voice_vlan_clients"`
+	Id                             jsontypes.String                                             `tfsdk:"id"`
+	AccessPolicyNumber             jsontypes.String                                             `tfsdk:"access_policy_number"`
+	NetworkId                      jsontypes.String                                             `tfsdk:"network_id"`
+	AccessPolicyType               jsontypes.String                                             `tfsdk:"access_policy_type"`
+	Dot1xControlDirection          jsontypes.String                                             `tfsdk:"dot_1x_control_direction"`
+	GuestVLANId                    jsontypes.Int64                                              `tfsdk:"guest_vlan_id"`
+	HostMode                       jsontypes.String                                             `tfsdk:"host_mode"`
+	IncreaseAccessSpeed            jsontypes.Bool                                               `tfsdk:"increase_access_speed"`
+	Name                           jsontypes.String                                             `tfsdk:"name"`
+	RadiusAccountingEnabled        jsontypes.Bool                                               `tfsdk:"radius_accounting_enabled"`
+	RadiusAccountingServers        []NetworkSwitchAccessPolicyRadiusServersDataSourceModelRules `tfsdk:"radius_accounting_servers"`
+	RadiusCoaSupportEnabled        jsontypes.Bool                                               `tfsdk:"radius_coa_support_enabled"`
+	RadiusGroupAttribute           jsontypes.String                                             `tfsdk:"radius_group_attribute"`
+	RadiusServers                  []NetworkSwitchAccessPolicyRadiusServersDataSourceModelRules `tfsdk:"radius_servers"`
+	RadiusTestingEnabled           jsontypes.Bool                                               `tfsdk:"radius_testing_enabled"`
+	RadiusCriticalAuth             RadiusCriticalAuth                                           `tfsdk:"radius_critical_auth"`
+	RadiusFailedAuthVlanId         jsontypes.Int64                                              `tfsdk:"radius_failed_auth_vlan_id"`
+	RadiusAuthenticationInterval   jsontypes.Int64                                              `tfsdk:"radius_authentication_interval"`
+	UrlRedirectWalledGardenEnabled jsontypes.Bool                                               `tfsdk:"url_redirect_walled_garden_enabled"`
+	UrlRedirectWalledGardenRanges  jsontypes.Set[jsontypes.String]                              `tfsdk:"url_redirect_walled_garden_ranges"`
+	VoiceVlanClients               jsontypes.Bool                                               `tfsdk:"voice_vlan_clients"`
 }
 
 type RadiusCriticalAuth struct {
-	DataVlanId        int64 `tfsdk:"dataVlanId"`
-	VoiceVlanId       int64 `tfsdk:"voiceVlanId"`
-	SuspendPortBounce bool  `tfsdk:"suspendPortBounce"`
+	DataVlanId        jsontypes.Int64 `tfsdk:"data_vlan_id"`
+	VoiceVlanId       jsontypes.Int64 `tfsdk:"voice_vlan_id"`
+	SuspendPortBounce jsontypes.Bool  `tfsdk:"suspend_port_bounce"`
 }
 
 func (r *NetworksSwitchAccessPoliciesResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -75,7 +77,10 @@ func (r *NetworksSwitchAccessPoliciesResource) Schema(ctx context.Context, req r
 				Computed:   true,
 				CustomType: jsontypes.StringType,
 			},
-
+			"access_policy_number": schema.StringAttribute{
+				Computed:   true,
+				CustomType: jsontypes.StringType,
+			},
 			"network_id": schema.StringAttribute{
 				MarkdownDescription: "Network ID",
 				Optional:            true,
@@ -209,14 +214,28 @@ func (r *NetworksSwitchAccessPoliciesResource) Schema(ctx context.Context, req r
 				CustomType:          jsontypes.BoolType,
 			},
 
-			//"radius_critical_auth": schema.SetNestedAttribute{
-			//	MarkdownDescription: "Critical auth settings for when authentication is rejected by the RADIUS server",
-			//	Optional:            true,
-			//	Computed:            true,
-			//	NestedObject: schema.NestedAttributeObject{
-			//		Attributes: map[string]schema.Attribute{},
-			//	},
-			//},
+			"radius_critical_auth": schema.SingleNestedAttribute{
+				MarkdownDescription: "Critical auth settings for when authentication is rejected by the RADIUS server",
+				Optional:            true,
+				Computed:            true,
+				Attributes: map[string]schema.Attribute{
+					"data_vlan_id": schema.Int64Attribute{
+						MarkdownDescription: "",
+						Optional:            true,
+						CustomType:          jsontypes.Int64Type,
+					},
+					"voice_vlan_id": schema.Int64Attribute{
+						MarkdownDescription: "",
+						Optional:            true,
+						CustomType:          jsontypes.Int64Type,
+					},
+					"suspend_port_bounce": schema.BoolAttribute{
+						MarkdownDescription: "",
+						Optional:            true,
+						CustomType:          jsontypes.BoolType,
+					},
+				},
+			},
 
 			"radius_failed_auth_vlan_id": schema.Int64Attribute{
 				MarkdownDescription: "VLAN that clients will be placed on when RADIUS authentication fails. Will be null if hostMode is Multi-Auth",
@@ -225,7 +244,7 @@ func (r *NetworksSwitchAccessPoliciesResource) Schema(ctx context.Context, req r
 				CustomType:          jsontypes.Int64Type,
 			},
 
-			"radius_re_authentication_interval": schema.Int64Attribute{
+			"radius_authentication_interval": schema.Int64Attribute{
 				MarkdownDescription: "Re-authentication period in seconds. Will be null if hostMode is Multi-Auth",
 				Optional:            true,
 				Computed:            true,
@@ -301,13 +320,24 @@ func (r *NetworksSwitchAccessPoliciesResource) Create(ctx context.Context, req r
 		radiusAccountingServers = append(radiusAccountingServers, *newServer)
 	}
 
-	createNetworkSwitchAccessPolicy := openApiClient.NewInlineObject109("new_policy", radiusServers, data.RadiusTestingEnabled.ValueBool(), data.RadiusCoaSupportEnabled.ValueBool(), data.RadiusAccountingEnabled.ValueBool(), data.HostMode.ValueString(), data.UrlRedirectWalledGardenEnabled.ValueBool())
+	createNetworkSwitchAccessPolicy := openApiClient.NewInlineObject109(data.Name.String(), radiusServers, data.RadiusTestingEnabled.ValueBool(), data.RadiusCoaSupportEnabled.ValueBool(), data.RadiusAccountingEnabled.ValueBool(), data.HostMode.ValueString(), data.UrlRedirectWalledGardenEnabled.ValueBool())
 	createNetworkSwitchAccessPolicy.RadiusAccountingServers = radiusAccountingServers
+
+	i := int32(data.RadiusCriticalAuth.DataVlanId.ValueInt64())
+	voiceVlanID := int32(data.RadiusCriticalAuth.VoiceVlanId.ValueInt64())
+	criticalAuth := openApiClient.NewNetworksNetworkIdSwitchAccessPoliciesRadiusCriticalAuth()
+	criticalAuth.SetDataVlanId(i)
+	criticalAuth.SetVoiceVlanId(voiceVlanID)
+	criticalAuth.SetSuspendPortBounce(data.RadiusCriticalAuth.SuspendPortBounce.ValueBool())
+
+	radius := openApiClient.NewNetworksNetworkIdSwitchAccessPoliciesRadius()
+	radius.SetCriticalAuth(*criticalAuth)
+	createNetworkSwitchAccessPolicy.SetRadius(*radius)
 
 	_, httpResp, err := r.client.SwitchApi.CreateNetworkSwitchAccessPolicy(context.Background(), data.NetworkId.ValueString()).CreateNetworkSwitchAccessPolicy(*createNetworkSwitchAccessPolicy).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
+			"Failed to create resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
@@ -358,7 +388,7 @@ func (r *NetworksSwitchAccessPoliciesResource) Read(ctx context.Context, req res
 		return
 	}
 
-	_, httpResp, err := r.client.SwitchApi.GetNetworkSwitchAccessPolicy(ctx, data.NetworkId.String(), data.Id.ValueString()).Execute()
+	_, httpResp, err := r.client.SwitchApi.GetNetworkSwitchAccessPolicy(ctx, data.NetworkId.String(), data.AccessPolicyNumber.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to read resource",
@@ -399,8 +429,6 @@ func (r *NetworksSwitchAccessPoliciesResource) Read(ctx context.Context, req res
 }
 
 func (r *NetworksSwitchAccessPoliciesResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-
-	// TODO - For update it is often required to look at both plan and state data to find dynamically generated postgres Ids.
 	var data *NetworksSwitchAccessPoliciesResourceModel
 
 	// Read Terraform plan data into the model
@@ -428,6 +456,8 @@ func (r *NetworksSwitchAccessPoliciesResource) Update(ctx context.Context, req r
 	hostMode := data.HostMode.ValueString()
 	updateNetworkSwitchAccessPolicy.HostMode = &hostMode
 	urlRedirectWalledGardenEnabled := data.UrlRedirectWalledGardenEnabled.ValueBool()
+	radiusReauthInterval := int32(data.RadiusAuthenticationInterval.Int64Value.ValueInt64())
+	updateNetworkSwitchAccessPolicy.Radius.ReAuthenticationInterval = &radiusReauthInterval
 	updateNetworkSwitchAccessPolicy.UrlRedirectWalledGardenEnabled = &urlRedirectWalledGardenEnabled
 	accessPolicyType := data.AccessPolicyType.String()
 	updateNetworkSwitchAccessPolicy.AccessPolicyType = &accessPolicyType
@@ -437,8 +467,6 @@ func (r *NetworksSwitchAccessPoliciesResource) Update(ctx context.Context, req r
 	updateNetworkSwitchAccessPolicy.Name = &name
 	radiusFailedAuthVlanId := int32(data.RadiusFailedAuthVlanId.Int64Value.ValueInt64())
 	updateNetworkSwitchAccessPolicy.Radius.FailedAuthVlanId = &radiusFailedAuthVlanId
-	radiusReauthInterval := int32(data.RadiusReauthenticationInterval.Int64Value.ValueInt64())
-	updateNetworkSwitchAccessPolicy.Radius.ReAuthenticationInterval = &radiusReauthInterval
 	controlDirection := data.Dot1xControlDirection.String()
 	updateNetworkSwitchAccessPolicy.Dot1x.ControlDirection = &controlDirection
 	guestVLANID := int32(data.GuestVLANId.Int64Value.ValueInt64())
@@ -535,22 +563,17 @@ func (r *NetworksSwitchAccessPoliciesResource) Delete(ctx context.Context, req r
 
 func (r *NetworksSwitchAccessPoliciesResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-
-	/*
-			// TODO - Only use the required attributes for making a READ call in the import statement
-
-		    	idParts := strings.Split(req.ID, ",")
-		    	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
-		    		resp.Diagnostics.AddError(
-		    			"Unexpected Import Identifier",
-		    			fmt.Sprintf("Expected import identifier with format: organization_id, admin_id. Got: %q", req.ID),
-		    		)
-		    		return
-		    	}
-		    	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("organization_id"), idParts[0])...)
-		    	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("admin_id"), idParts[1])...)
-		    	if resp.Diagnostics.HasError() {
-		    		return
-		    	}
-	*/
+	idParts := strings.Split(req.ID, ",")
+	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: organization_id, acl_id. Got: %q", req.ID),
+		)
+		return
+	}
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("network_id"), idParts[0])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("access_policy_number"), idParts[1])...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }
