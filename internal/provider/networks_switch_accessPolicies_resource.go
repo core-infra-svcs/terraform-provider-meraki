@@ -476,7 +476,7 @@ func (r *NetworksSwitchAccessPoliciesResource) Update(ctx context.Context, req r
 	voiceVlanClients := data.VoiceVlanClients.ValueBool()
 	updateNetworkSwitchAccessPolicy.VoiceVlanClients = &voiceVlanClients
 
-	_, httpResp, err := r.client.SwitchApi.UpdateNetworkSwitchAccessPolicy(context.Background(), data.NetworkId.ValueString(), data.Id.String()).UpdateNetworkSwitchAccessPolicy(*updateNetworkSwitchAccessPolicy).Execute()
+	_, httpResp, err := r.client.SwitchApi.UpdateNetworkSwitchAccessPolicy(context.Background(), data.NetworkId.ValueString(), data.AccessPolicyNumber.String()).UpdateNetworkSwitchAccessPolicy(*updateNetworkSwitchAccessPolicy).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to update resource",
@@ -530,7 +530,7 @@ func (r *NetworksSwitchAccessPoliciesResource) Delete(ctx context.Context, req r
 		return
 	}
 
-	httpResp, err := r.client.SwitchApi.DeleteNetworkSwitchAccessPolicy(context.Background(), data.NetworkId.ValueString(), data.Id.ValueString()).Execute()
+	httpResp, err := r.client.SwitchApi.DeleteNetworkSwitchAccessPolicy(context.Background(), data.NetworkId.ValueString(), data.AccessPolicyType.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to delete resource",
