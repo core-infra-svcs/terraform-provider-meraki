@@ -65,7 +65,7 @@ resource "meraki_networks_switch_access_policies" "test" {
   radius_group_attribute     = "11"
   radius_servers             = [
     {
-      host   = "1.2.3.4"
+      host   = "10.20.30.40"
       port   = 22
       secret = "secret"
     }
