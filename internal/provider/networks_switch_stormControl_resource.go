@@ -19,46 +19,43 @@ import (
 
 // Ensure provider defined types fully satisfy framework interfaces
 var (
-	_ resource.Resource                = &NetworksSwitchStormcontrolResource{}
-	_ resource.ResourceWithConfigure   = &NetworksSwitchStormcontrolResource{}
-	_ resource.ResourceWithImportState = &NetworksSwitchStormcontrolResource{}
+	_ resource.Resource                = &NetworksSwitchStormControlResource{}
+	_ resource.ResourceWithConfigure   = &NetworksSwitchStormControlResource{}
+	_ resource.ResourceWithImportState = &NetworksSwitchStormControlResource{}
 )
 
-// TODO - This function needs to be added to the list of Data Sources in provider.go: func (p *ScaffoldingProvider) Resources
-// TODO - Otherwise the provider has no idea this resource exists.
-func NewNetworksSwitchStormcontrolResource() resource.Resource {
-	return &NetworksSwitchStormcontrolResource{}
+func NewNetworksSwitchStormControlResource() resource.Resource {
+	return &NetworksSwitchStormControlResource{}
 }
 
-// NetworksSwitchStormcontrolResource defines the resource implementation.
-type NetworksSwitchStormcontrolResource struct {
+// NetworksSwitchStormControlResource defines the resource implementation.
+type NetworksSwitchStormControlResource struct {
 	client *openApiClient.APIClient
 }
 
-// NetworksSwitchStormcontrolResourceModel describes the resource data model.
-type NetworksSwitchStormcontrolResourceModel struct {
-	Id        jsontypes.String `tfsdk:"id"`
-	NetworkId jsontypes.String `tfsdk:"network_id"`
-
-	BroadcastThreshold      jsontypes.Int64 `tfsdk:"broadcast_threshold" json:"broadcastThreshold"`
-	MulticastThreshold      jsontypes.Int64 `tfsdk:"multicast_threshold" json:"multicastThreshold"`
-	UnknownUnicastThreshold jsontypes.Int64 `tfsdk:"unknown_unicast_threshold" json:"unknownUnicastThreshold"`
+// NetworksSwitchStormControlResourceModel describes the resource data model.
+type NetworksSwitchStormControlResourceModel struct {
+	Id                      jsontypes.String `tfsdk:"id"`
+	NetworkId               jsontypes.String `tfsdk:"network_id"`
+	BroadcastThreshold      jsontypes.Int64  `tfsdk:"broadcast_threshold" json:"broadcastThreshold"`
+	MulticastThreshold      jsontypes.Int64  `tfsdk:"multicast_threshold" json:"multicastThreshold"`
+	UnknownUnicastThreshold jsontypes.Int64  `tfsdk:"unknown_unicast_threshold" json:"unknownUnicastThreshold"`
 }
 
-func (r *NetworksSwitchStormcontrolResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *NetworksSwitchStormControlResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_networks_switch_storm_control"
 }
 
-func (r *NetworksSwitchStormcontrolResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *NetworksSwitchStormControlResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "NetworksSwitchStormcontrol",
+		MarkdownDescription: "Networks Switch Storm Control Resource",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:   true,
 				CustomType: jsontypes.StringType,
 			},
 			"network_id": schema.StringAttribute{
-				MarkdownDescription: "Networkd ID",
+				MarkdownDescription: "Network ID",
 				Required:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
@@ -90,7 +87,7 @@ func (r *NetworksSwitchStormcontrolResource) Schema(ctx context.Context, req res
 	}
 }
 
-func (r *NetworksSwitchStormcontrolResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *NetworksSwitchStormControlResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -110,8 +107,8 @@ func (r *NetworksSwitchStormcontrolResource) Configure(ctx context.Context, req 
 	r.client = client
 }
 
-func (r *NetworksSwitchStormcontrolResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *NetworksSwitchStormcontrolResourceModel
+func (r *NetworksSwitchStormControlResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *NetworksSwitchStormControlResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -120,12 +117,12 @@ func (r *NetworksSwitchStormcontrolResource) Create(ctx context.Context, req res
 		return
 	}
 
-	object137 := openApiClient.NewInlineObject137()
-	object137.SetMulticastThreshold(int32(data.MulticastThreshold.ValueInt64()))
-	object137.SetBroadcastThreshold(int32(data.BroadcastThreshold.ValueInt64()))
-	object137.SetUnknownUnicastThreshold(int32(data.UnknownUnicastThreshold.ValueInt64()))
+	payload := openApiClient.NewInlineObject137()
+	payload.SetMulticastThreshold(int32(data.MulticastThreshold.ValueInt64()))
+	payload.SetBroadcastThreshold(int32(data.BroadcastThreshold.ValueInt64()))
+	payload.SetUnknownUnicastThreshold(int32(data.UnknownUnicastThreshold.ValueInt64()))
 
-	_, httpResp, err := r.client.SwitchApi.UpdateNetworkSwitchStormControl(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchStormControl(*object137).Execute()
+	_, httpResp, err := r.client.SwitchApi.UpdateNetworkSwitchStormControl(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchStormControl(*payload).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to create resource",
@@ -169,8 +166,8 @@ func (r *NetworksSwitchStormcontrolResource) Create(ctx context.Context, req res
 	tflog.Trace(ctx, "create resource")
 }
 
-func (r *NetworksSwitchStormcontrolResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *NetworksSwitchStormcontrolResourceModel
+func (r *NetworksSwitchStormControlResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *NetworksSwitchStormControlResourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -222,8 +219,8 @@ func (r *NetworksSwitchStormcontrolResource) Read(ctx context.Context, req resou
 	tflog.Trace(ctx, "read resource")
 }
 
-func (r *NetworksSwitchStormcontrolResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data *NetworksSwitchStormcontrolResourceModel
+func (r *NetworksSwitchStormControlResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var data *NetworksSwitchStormControlResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -232,15 +229,15 @@ func (r *NetworksSwitchStormcontrolResource) Update(ctx context.Context, req res
 		return
 	}
 
-	object137 := openApiClient.NewInlineObject137()
-	object137.SetMulticastThreshold(int32(data.MulticastThreshold.ValueInt64()))
-	object137.SetBroadcastThreshold(int32(data.BroadcastThreshold.ValueInt64()))
-	object137.SetUnknownUnicastThreshold(int32(data.UnknownUnicastThreshold.ValueInt64()))
+	payload := openApiClient.NewInlineObject137()
+	payload.SetMulticastThreshold(int32(data.MulticastThreshold.ValueInt64()))
+	payload.SetBroadcastThreshold(int32(data.BroadcastThreshold.ValueInt64()))
+	payload.SetUnknownUnicastThreshold(int32(data.UnknownUnicastThreshold.ValueInt64()))
 
-	_, httpResp, err := r.client.SwitchApi.UpdateNetworkSwitchStormControl(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchStormControl(*object137).Execute()
+	_, httpResp, err := r.client.SwitchApi.UpdateNetworkSwitchStormControl(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchStormControl(*payload).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
+			"Failed to update resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
@@ -281,8 +278,8 @@ func (r *NetworksSwitchStormcontrolResource) Update(ctx context.Context, req res
 	tflog.Trace(ctx, "updated resource")
 }
 
-func (r *NetworksSwitchStormcontrolResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data *NetworksSwitchStormcontrolResourceModel
+func (r *NetworksSwitchStormControlResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data *NetworksSwitchStormControlResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -291,15 +288,12 @@ func (r *NetworksSwitchStormcontrolResource) Delete(ctx context.Context, req res
 		return
 	}
 
-	object137 := openApiClient.NewInlineObject137()
-	object137.SetMulticastThreshold(int32(data.MulticastThreshold.ValueInt64()))
-	object137.SetBroadcastThreshold(int32(data.BroadcastThreshold.ValueInt64()))
-	object137.SetUnknownUnicastThreshold(int32(data.UnknownUnicastThreshold.ValueInt64()))
+	payload := openApiClient.NewInlineObject137()
 
-	_, httpResp, err := r.client.SwitchApi.UpdateNetworkSwitchStormControl(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchStormControl(*object137).Execute()
+	_, httpResp, err := r.client.SwitchApi.UpdateNetworkSwitchStormControl(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchStormControl(*payload).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
+			"Failed to delete resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
@@ -340,7 +334,7 @@ func (r *NetworksSwitchStormcontrolResource) Delete(ctx context.Context, req res
 	tflog.Trace(ctx, "resource removed")
 }
 
-func (r *NetworksSwitchStormcontrolResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *NetworksSwitchStormControlResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("network_id"), req.ID)...)
