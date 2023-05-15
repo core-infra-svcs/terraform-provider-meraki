@@ -22,16 +22,6 @@ func TestAccNetworkApplianceFirewallSettingsResource(t *testing.T) {
 				),
 			},
 
-			// TODO - ImportState testing - This only works when hard-coded networkId.
-			/*
-				{
-					ResourceName:      "meraki_networks_appliance_firewall_settings.test",
-					ImportState:       true,
-					ImportStateVerify: false,
-					ImportStateId:     "657525545596096508",
-				},
-			*/
-
 			// Create and Read Network.
 			{
 				Config: testAccNetworkApplianceFirewallSettingsResourceConfigCreateNetwork,
@@ -84,6 +74,7 @@ resource "meraki_network" "test" {
     depends_on = [resource.meraki_organization.test]
     product_types = ["appliance", "switch", "wireless"]
 }
+
 resource "meraki_networks_appliance_firewall_settings" "test" {
     depends_on = [resource.meraki_network.test, resource.meraki_organization.test]
     network_id = resource.meraki_network.test.network_id

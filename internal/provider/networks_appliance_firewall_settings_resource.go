@@ -132,7 +132,7 @@ func (r *NetworksApplianceFirewallSettingsResource) Create(ctx context.Context, 
 	_, httpResp, err := r.client.SettingsApi.UpdateNetworkApplianceFirewallSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceFirewallSettings(updateNetworksApplianceFirewallSettings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
+			"Failed to create resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
@@ -186,7 +186,7 @@ func (r *NetworksApplianceFirewallSettingsResource) Read(ctx context.Context, re
 	_, httpResp, err := r.client.SettingsApi.GetNetworkApplianceFirewallSettings(context.Background(), data.NetworkId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to get resource",
+			"Failed to read resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
@@ -304,14 +304,13 @@ func (r *NetworksApplianceFirewallSettingsResource) Delete(ctx context.Context, 
 	updateNetworksApplianceFirewallSettings := *openApiClient.NewInlineObject39()
 	var spoofingProtection openApiClient.NetworksNetworkIdApplianceFirewallSettingsSpoofingProtection
 	var ipSourceGuard openApiClient.NetworksNetworkIdApplianceFirewallSettingsSpoofingProtectionIpSourceGuard
-	ipSourceGuard.SetMode(data.SpoofingProtection.IpSourceGuard.Mode.ValueString())
 	spoofingProtection.SetIpSourceGuard(ipSourceGuard)
 	updateNetworksApplianceFirewallSettings.SetSpoofingProtection(spoofingProtection)
 
 	_, httpResp, err := r.client.SettingsApi.UpdateNetworkApplianceFirewallSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceFirewallSettings(updateNetworksApplianceFirewallSettings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
+			"Failed to delete resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
