@@ -180,7 +180,7 @@ func (r *NetworksSwitchQosRulesResource) Create(ctx context.Context, req resourc
 	inlineResp, httpResp, err := r.client.QosRulesApi.CreateNetworkSwitchQosRule(context.Background(), data.NetworkId.ValueString()).CreateNetworkSwitchQosRule(createNetworksSwitchQosRules).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
+			"Failed to create resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
@@ -254,7 +254,7 @@ func (r *NetworksSwitchQosRulesResource) Read(ctx context.Context, req resource.
 	inlineResp, httpResp, err := r.client.QosRulesApi.GetNetworkSwitchQosRule(ctx, data.NetworkId.ValueString(), data.QosRulesId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to get resource",
+			"Failed to read resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
@@ -470,7 +470,7 @@ func (r *NetworksSwitchQosRulesResource) ImportState(ctx context.Context, req re
 		return
 	}
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("network_id"), idParts[0])...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("quos_rule_id"), idParts[1])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("qos_rule_id"), idParts[1])...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

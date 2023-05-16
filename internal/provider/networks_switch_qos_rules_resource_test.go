@@ -22,16 +22,6 @@ func TestAccNetworkSwitchQosRulesResource(t *testing.T) {
 				),
 			},
 
-			// TODO - ImportState testing - This only works when hard-coded networkId.
-			/*
-				{
-					ResourceName:      "meraki_networks_switch_qos_rules.test",
-					ImportState:       true,
-					ImportStateVerify: false,
-					ImportStateId:     "657525545596096508",
-				},
-			*/
-
 			// Create and Read Network.
 			{
 				Config: testAccNetworkSwitchQosRulesResourceConfigCreateNetwork,
