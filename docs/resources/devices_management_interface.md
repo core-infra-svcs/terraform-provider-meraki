@@ -18,7 +18,7 @@ DevicesManagementinterface
 ### Optional
 
 - `serial` (String) Serial number
-- `wan1_static_dns` (Attributes List) Up to two DNS IPs. (see [below for nested schema](#nestedatt--wan1_static_dns))
+- `wan1_static_dns` (List of String) Up to two DNS IPs.
 - `wan1_static_gateway_ip` (String) The IP of the gateway on the WAN.
 - `wan1_static_ip` (String) The IP the device should use on the WAN.
 - `wan1_static_subnet_mask` (String) The subnet mask for the WAN.
@@ -32,8 +32,5 @@ DevicesManagementinterface
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-
-<a id="nestedatt--wan1_static_dns"></a>
-### Nested Schema for `wan1_static_dns`
 
 
