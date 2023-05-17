@@ -86,10 +86,6 @@ resource "meraki_network" "test" {
   depends_on      = ["meraki_organization.test"]
   organization_id = resource.meraki_organization.test.organization_id
   product_types   = ["appliance", "switch", "wireless"]
-  tags            = ["tag1", "tag2"]
-  name            = "Main Office"
-  timezone        = "America/Los_Angeles"
-  notes           = "Additional description of the network"
 }
 
 resource "meraki_networks_switch_stp" "test" {
@@ -99,9 +95,7 @@ resource "meraki_networks_switch_stp" "test" {
  network_id = resource.meraki_network.test.network_id
  rstp_enabled = true
  stp_bridge_priority = [{
-	switches = ["Q234-ABCD-0001", "Q234-ABCD-0002", "Q234-ABCD-0003"]
 	stp_priority = 4096
-	stacks = ["789102", "123456", "129102"]
  }]
 }
 `

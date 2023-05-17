@@ -256,7 +256,7 @@ func (r *NetworksSwitchStpResource) Update(ctx context.Context, req resource.Upd
 
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
+			"Failed to Update resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
@@ -295,23 +295,6 @@ func (r *NetworksSwitchStpResource) Delete(ctx context.Context, req resource.Del
 	}
 
 	object138 := openApiClient.NewInlineObject138()
-	object138.SetRstpEnabled(data.RstpEnabled.ValueBool())
-	var stpBridgePriority []openApiClient.NetworksNetworkIdSwitchStpStpBridgePriority
-	for _, d := range data.StpBridgePriority {
-		priority := openApiClient.NewNetworksNetworkIdSwitchStpStpBridgePriority(int32(d.StpPriority.ValueInt64()))
-		stacks := []string{}
-		for _, stack := range d.Stacks.Elements() {
-			stacks = append(stacks, stack.String())
-		}
-		switches := []string{}
-		for _, switchs := range d.Switches.Elements() {
-			switches = append(switches, switchs.String())
-		}
-		priority.SetSwitches(switches)
-		priority.SetStacks(stacks)
-		stpBridgePriority = append(stpBridgePriority, *priority)
-	}
-	object138.SetStpBridgePriority(stpBridgePriority)
 	_, httpResp, err := r.client.SwitchApi.UpdateNetworkSwitchStp(ctx, data.NetworkId.String()).UpdateNetworkSwitchStp(*object138).Execute()
 
 	if err != nil {
