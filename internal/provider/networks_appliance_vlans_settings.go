@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -18,76 +19,60 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var (
-	_ resource.Resource                = &NetworksSwitchStormControlResource{}
-	_ resource.ResourceWithConfigure   = &NetworksSwitchStormControlResource{}
-	_ resource.ResourceWithImportState = &NetworksSwitchStormControlResource{}
-)
+var _ resource.Resource = &NetworksApplianceVlansSettingsResource{}
+var _ resource.ResourceWithImportState = &NetworksApplianceVlansSettingsResource{}
 
-func NewNetworksSwitchStormControlResource() resource.Resource {
-	return &NetworksSwitchStormControlResource{}
+func NewNetworksApplianceVlansSettingsResource() resource.Resource {
+	return &NetworksApplianceVlansSettingsResource{}
 }
 
-// NetworksSwitchStormControlResource defines the resource implementation.
-type NetworksSwitchStormControlResource struct {
+// NetworksApplianceVlansSettingsResource defines the resource implementation.
+type NetworksApplianceVlansSettingsResource struct {
 	client *openApiClient.APIClient
 }
 
-// NetworksSwitchStormControlResourceModel describes the resource data model.
-type NetworksSwitchStormControlResourceModel struct {
-	Id                      jsontypes.String `tfsdk:"id"`
-	NetworkId               jsontypes.String `tfsdk:"network_id"`
-	BroadcastThreshold      jsontypes.Int64  `tfsdk:"broadcast_threshold" json:"broadcastThreshold"`
-	MulticastThreshold      jsontypes.Int64  `tfsdk:"multicast_threshold" json:"multicastThreshold"`
-	UnknownUnicastThreshold jsontypes.Int64  `tfsdk:"unknown_unicast_threshold" json:"unknownUnicastThreshold"`
+// NetworksApplianceVlansSettingsResourceModel describes the resource data model.
+type NetworksApplianceVlansSettingsResourceModel struct {
+	Id           jsontypes.String `tfsdk:"id"`
+	NetworkId    jsontypes.String `tfsdk:"network_id" json:"network_id"`
+	VlansEnabled jsontypes.Bool   `tfsdk:"vlans_enabled"`
 }
 
-func (r *NetworksSwitchStormControlResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_networks_switch_storm_control"
+func (r *NetworksApplianceVlansSettingsResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_networks_appliance_vlans_settings"
 }
 
-func (r *NetworksSwitchStormControlResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *NetworksApplianceVlansSettingsResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Networks Switch Storm Control Resource",
+		MarkdownDescription: "NetworksApplianceVlansSettings resource for updating network appliance vlans settings.",
 		Attributes: map[string]schema.Attribute{
+
 			"id": schema.StringAttribute{
-				Computed:   true,
-				CustomType: jsontypes.StringType,
+				MarkdownDescription: "Example identifier",
+				Computed:            true,
+				CustomType:          jsontypes.StringType,
 			},
 			"network_id": schema.StringAttribute{
-				MarkdownDescription: "Network ID",
+				MarkdownDescription: "Network Id",
 				Required:            true,
+				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(8, 31),
 				},
-				CustomType: jsontypes.StringType,
 			},
-			"broadcast_threshold": schema.Int64Attribute{
-				MarkdownDescription: "Broadcast Threshold",
-				Description:         "Percentage (1 to 99) of total available port bandwidth for broadcast traffic type. Default value 100 percent rate is to clear the configuration.",
-				Optional:            true,
-				CustomType:          jsontypes.Int64Type,
-			},
-			"multicast_threshold": schema.Int64Attribute{
-				MarkdownDescription: "Multicast Threshold",
-				Description:         "Percentage (1 to 99) of total available port bandwidth for multicast traffic type. Default value 100 percent rate is to clear the configuration.",
-				Optional:            true,
-				CustomType:          jsontypes.Int64Type,
-			},
-			"unknown_unicast_threshold": schema.Int64Attribute{
-				MarkdownDescription: "Unknown Unicast Threshold",
-				Description:         "Percentage (1 to 99) of total available port bandwidth for unknown unicast (dlf-destination lookup failure) traffic type. Default value 100 percent rate is to clear the configuration.",
-				Optional:            true,
-				CustomType:          jsontypes.Int64Type,
+			"vlans_enabled": schema.BoolAttribute{
+				MarkdownDescription: "Boolean indicating whether to enable (true) or disable (false) VLANs for the network",
+				Required:            true,
+				CustomType:          jsontypes.BoolType,
 			},
 		},
 	}
 }
 
-func (r *NetworksSwitchStormControlResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *NetworksApplianceVlansSettingsResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -107,8 +92,8 @@ func (r *NetworksSwitchStormControlResource) Configure(ctx context.Context, req 
 	r.client = client
 }
 
-func (r *NetworksSwitchStormControlResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *NetworksSwitchStormControlResourceModel
+func (r *NetworksApplianceVlansSettingsResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *NetworksApplianceVlansSettingsResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -117,124 +102,10 @@ func (r *NetworksSwitchStormControlResource) Create(ctx context.Context, req res
 		return
 	}
 
-	payload := openApiClient.NewInlineObject137()
-	payload.SetMulticastThreshold(int32(data.MulticastThreshold.ValueInt64()))
-	payload.SetBroadcastThreshold(int32(data.BroadcastThreshold.ValueInt64()))
-	payload.SetUnknownUnicastThreshold(int32(data.UnknownUnicastThreshold.ValueInt64()))
+	updateNetworksApplianceVlansSettings := *openApiClient.NewInlineObject57()
+	updateNetworksApplianceVlansSettings.SetVlansEnabled(data.VlansEnabled.ValueBool())
 
-	_, httpResp, err := r.client.SwitchApi.UpdateNetworkSwitchStormControl(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchStormControl(*payload).Execute()
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Failed to create resource",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
-	}
-
-	// Check for API success response code
-	if httpResp.StatusCode != 200 {
-		resp.Diagnostics.AddError(
-			"Unexpected HTTP Response Status Code",
-			fmt.Sprintf("%v", httpResp.StatusCode),
-		)
-	}
-
-	// Check for errors after diagnostics collected
-	if resp.Diagnostics.HasError() {
-		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
-		return
-	}
-
-	// Save data into Terraform state
-	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
-		resp.Diagnostics.AddError(
-			"JSON decoding error",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-		return
-	}
-
-	data.Id = jsontypes.StringValue("example-id")
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
-	// Write logs using the tflog package
-	tflog.Trace(ctx, "create resource")
-}
-
-func (r *NetworksSwitchStormControlResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *NetworksSwitchStormControlResourceModel
-
-	// Read Terraform prior state data into the model
-	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
-
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	_, httpResp, err := r.client.SwitchApi.GetNetworkSwitchStormControl(context.Background(), data.NetworkId.ValueString()).Execute()
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Failed to read resource",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
-	}
-
-	// Check for API success inlineResp code
-	if httpResp.StatusCode != 200 {
-		resp.Diagnostics.AddError(
-			"Unexpected HTTP Response Status Code",
-			fmt.Sprintf("%v", httpResp.StatusCode),
-		)
-	}
-
-	// Check for errors after diagnostics collected
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	// Save data into Terraform state
-	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
-		resp.Diagnostics.AddError(
-			"JSON decoding error",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-		return
-	}
-
-	data.Id = jsontypes.StringValue("example-id")
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
-	// Write logs using the tflog package
-	tflog.Trace(ctx, "read resource")
-}
-
-func (r *NetworksSwitchStormControlResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data *NetworksSwitchStormControlResourceModel
-
-	// Read Terraform plan data into the model
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	payload := openApiClient.NewInlineObject137()
-	payload.SetMulticastThreshold(int32(data.MulticastThreshold.ValueInt64()))
-	payload.SetBroadcastThreshold(int32(data.BroadcastThreshold.ValueInt64()))
-	payload.SetUnknownUnicastThreshold(int32(data.UnknownUnicastThreshold.ValueInt64()))
-
-	_, httpResp, err := r.client.SwitchApi.UpdateNetworkSwitchStormControl(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchStormControl(*payload).Execute()
+	_, httpResp, err := r.client.SettingsApi.UpdateNetworkApplianceVlansSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceVlansSettings(updateNetworksApplianceVlansSettings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to update resource",
@@ -275,25 +146,23 @@ func (r *NetworksSwitchStormControlResource) Update(ctx context.Context, req res
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
-	tflog.Trace(ctx, "updated resource")
+	tflog.Trace(ctx, "create resource")
 }
 
-func (r *NetworksSwitchStormControlResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data *NetworksSwitchStormControlResourceModel
+func (r *NetworksApplianceVlansSettingsResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *NetworksApplianceVlansSettingsResourceModel
 
-	// Read Terraform plan data into the model
+	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	payload := openApiClient.NewInlineObject137()
-
-	_, httpResp, err := r.client.SwitchApi.UpdateNetworkSwitchStormControl(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchStormControl(*payload).Execute()
+	_, httpResp, err := r.client.SettingsApi.GetNetworkApplianceVlansSettings(context.Background(), data.NetworkId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to delete resource",
+			"Failed to get resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
@@ -304,6 +173,64 @@ func (r *NetworksSwitchStormControlResource) Delete(ctx context.Context, req res
 	}
 
 	// Check for API success response code
+	if httpResp.StatusCode != 200 {
+		resp.Diagnostics.AddError(
+			"Unexpected HTTP Response Status Code",
+			fmt.Sprintf("%v", httpResp.StatusCode),
+		)
+	}
+
+	// Check for errors after diagnostics collected
+	if resp.Diagnostics.HasError() {
+		return
+	} else {
+		resp.Diagnostics.Append()
+	}
+
+	// Save data into Terraform state
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
+	}
+
+	data.Id = jsontypes.StringValue("example-id")
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+
+	// Write logs using the tflog package
+	tflog.Trace(ctx, "read resource")
+}
+
+func (r *NetworksApplianceVlansSettingsResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+
+	var data *NetworksApplianceVlansSettingsResourceModel
+
+	// Read Terraform plan data into the model
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	updateNetworksApplianceVlansSettings := *openApiClient.NewInlineObject57()
+	updateNetworksApplianceVlansSettings.SetVlansEnabled(data.VlansEnabled.ValueBool())
+
+	_, httpResp, err := r.client.SettingsApi.UpdateNetworkApplianceVlansSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceVlansSettings(updateNetworksApplianceVlansSettings).Execute()
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to update resource",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+	}
+
+	// collect diagnostics
+	if httpResp != nil {
+		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+	}
+
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
@@ -331,10 +258,67 @@ func (r *NetworksSwitchStormControlResource) Delete(ctx context.Context, req res
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
-	tflog.Trace(ctx, "resource removed")
+	tflog.Trace(ctx, "updated resource")
 }
 
-func (r *NetworksSwitchStormControlResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *NetworksApplianceVlansSettingsResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+
+	var data *NetworksApplianceVlansSettingsResourceModel
+
+	// Read Terraform plan data into the model
+	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	updateNetworksApplianceVlansSettings := *openApiClient.NewInlineObject57()
+	updateNetworksApplianceVlansSettings.SetVlansEnabled(data.VlansEnabled.ValueBool())
+
+	_, httpResp, err := r.client.SettingsApi.UpdateNetworkApplianceVlansSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceVlansSettings(updateNetworksApplianceVlansSettings).Execute()
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to update resource",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+	}
+	// collect diagnostics
+	if httpResp != nil {
+		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+	}
+
+	if httpResp.StatusCode != 200 {
+		resp.Diagnostics.AddError(
+			"Unexpected HTTP Response Status Code",
+			fmt.Sprintf("%v", httpResp.StatusCode),
+		)
+	}
+
+	// Check for errors after diagnostics collected
+	if resp.Diagnostics.HasError() {
+		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
+		return
+	}
+
+	// Save data into Terraform state
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+
+	resp.State.RemoveResource(ctx)
+
+	// Write logs using the tflog package
+	tflog.Trace(ctx, "removed resource")
+
+}
+
+func (r *NetworksApplianceVlansSettingsResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("network_id"), req.ID)...)
