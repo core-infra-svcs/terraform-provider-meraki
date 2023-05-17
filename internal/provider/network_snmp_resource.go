@@ -55,7 +55,7 @@ func (r *OrganizationsSnmpResource) Schema(ctx context.Context, req resource.Sch
 				CustomType:          jsontypes.StringType,
 			},
 			"network_id": schema.StringAttribute{
-				MarkdownDescription: "Network Serial",
+				MarkdownDescription: "Network Id",
 				Required:            true,
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(8, 31),
