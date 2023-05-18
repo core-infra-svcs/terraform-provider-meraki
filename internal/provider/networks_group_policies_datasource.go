@@ -702,7 +702,6 @@ func (d *NetworkGroupPolicysDataSource) Configure(ctx context.Context, req datas
 func (d *NetworkGroupPolicysDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 
 	var data *NetworkGroupPolicysDataSourceModel
-	var model *NetworkGroupPolicyDataSourceModel
 
 	// Read Terraform state data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
@@ -739,13 +738,8 @@ func (d *NetworkGroupPolicysDataSource) Read(ctx context.Context, req datasource
 		resp.Diagnostics.Append()
 	}
 
-	// Save data into Terraform state
-	for i := 0; i < len(inlineResp); i++ {
-		jsonData, _ := json.Marshal(inlineResp[i])
-		json.Unmarshal(jsonData, &model)
-		data.List = append(data.List, *model)
-	}
-
+	jsonData, _ := json.Marshal(inlineResp)
+	json.Unmarshal(jsonData, &data.List)
 	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
