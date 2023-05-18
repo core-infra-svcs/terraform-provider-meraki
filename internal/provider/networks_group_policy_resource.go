@@ -141,7 +141,7 @@ type BandwidthLimits struct {
 }
 
 type BonjourForwarding struct {
-	BonjourForwardingSettings string `json:"settings"`
+	BonjourForwardingSettings jsontypes.String `json:"settings"`
 	BonjourForwardingRules    []Rule `json:"rules"`
 }
 
@@ -1371,7 +1371,7 @@ func extractHttpResponseGroupPolicyResource(ctx context.Context, inlineResp map[
 	data.SchedulingSundayTo = outputdata.Scheduling.Sunday.To
 	data.VlanTaggingSettings = outputdata.VlanTagging.Settings
 	data.VlanTaggingVlanId = outputdata.VlanTagging.VlanId
-	data.BonjourForwardingSettings = jsontypes.StringValue(outputdata.BonjourForwarding.BonjourForwardingSettings)
+	data.BonjourForwardingSettings = outputdata.BonjourForwarding.BonjourForwardingSettings
 	data.BonjourForwardingRules = outputdata.BonjourForwarding.BonjourForwardingRules
 	data.FirewallAndTrafficShaping.Settings = outputdata.OutputFirewallAndTrafficShaping.Settings
 	if outputdata.OutputFirewallAndTrafficShaping.L7FirewallRules != nil {
