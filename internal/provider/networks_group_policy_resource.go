@@ -36,14 +36,14 @@ type NetworksGroupPolicyResource struct {
 type NetworksGroupPolicyResourceModel struct {
 	Id                                           jsontypes.String          `tfsdk:"id"`
 	NetworkId                                    jsontypes.String          `tfsdk:"network_id"`
-	GroupPolicyId                                jsontypes.String          `tfsdk:"group_policy_id"`
+	GroupPolicyId                                jsontypes.String          `tfsdk:"group_policy_id" json:"groupPolicyId"`
 	Name                                         jsontypes.String          `tfsdk:"name" json:"name"`
-	SplashAuthSettings                           jsontypes.String          `tfsdk:"splash_auth_settings"`
-	BandwidthSettings                            jsontypes.String          `tfsdk:"bandwidth_settings"`
-	BandwidthLimitUp                             jsontypes.Int64           `tfsdk:"bandwidth_limit_up"`
-	BandwidthLimitDown                           jsontypes.Int64           `tfsdk:"bandwidth_limit_down"`
-	BonjourForwardingSettings                    jsontypes.String          `tfsdk:"bonjour_forwarding_settings"`
-	BonjourForwardingRules                       []Rule                    `tfsdk:"bonjour_forwarding_rules"`
+	SplashAuthSettings                           jsontypes.String          `tfsdk:"splash_auth_settings" json:"splashAuthSettings"`
+	BandwidthSettings                            jsontypes.String          `tfsdk:"bandwidth_settings" json:"bandwidthSettings"`
+	BandwidthLimitUp                             jsontypes.Int64           `tfsdk:"bandwidth_limit_up" json:"limitUp"`
+	BandwidthLimitDown                           jsontypes.Int64           `tfsdk:"bandwidth_limit_down" json:"limitDown"`
+	BonjourForwardingSettings                    jsontypes.String          `tfsdk:"bonjour_forwarding_settings" json:"bonjour_forwarding_settings"`
+	BonjourForwardingRules                       []Rule                    `tfsdk:"bonjour_forwarding_rules" json:"rules"`
 	FirewallAndTrafficShaping                    FirewallAndTrafficShaping `tfsdk:"firewall_and_traffic_shaping"`
 	SchedulingEnabled                            jsontypes.Bool            `tfsdk:"scheduling_enabled"`
 	SchedulingFridayActive                       jsontypes.Bool            `tfsdk:"scheduling_friday_active"`
@@ -77,56 +77,17 @@ type NetworksGroupPolicyResourceModel struct {
 	ContentFilteringBlockedUrlPatterns           []string                  `tfsdk:"content_filtering_blocked_url_patterns"`
 }
 
-type OutPutData struct {
-	GroupPolicyId                   jsontypes.String                `json:"groupPolicyId"`
-	Name                            jsontypes.String                `json:"name"`
-	SplashAuthSettings              jsontypes.String                `json:"splashAuthSettings"`
-	Bandwidth                       Bandwidth                       `json:"bandwidth"`
-	BonjourForwarding               BonjourForwarding               `json:"bonjourForwarding"`
-	VlanTagging                     VlanTagging                     `json:"vlanTagging"`
-	Scheduling                      Scheduling                      `json:"scheduling"`
-	OutputFirewallAndTrafficShaping OutputFirewallAndTrafficShaping `tfsdk:"firewall_and_traffic_shaping"`
-}
-
-type Bandwidth struct {
-	BandwidthLimits BandwidthLimits  `tfsdk:"bandwidth_limits"`
-	Settings        jsontypes.String `tfsdk:"settings"`
-}
-
-type BandwidthLimits struct {
-	LimitUp   jsontypes.Int64 `tfsdk:"limit_up"`
-	LimitDown jsontypes.Int64 `tfsdk:"limit_down"`
-}
-
 type Rule struct {
-	Description jsontypes.String `tfsdk:"description"`
-	VlanId      jsontypes.String `tfsdk:"vlan_id"`
-	Services    []string         `tfsdk:"services"`
-}
-
-type BonjourForwardingRule struct {
-	Description string   `json:"description"`
-	VlanId      string   `json:"vlanId"`
-	Services    []string `json:"services"`
-}
-
-type BonjourForwarding struct {
-	BonjourForwardingSettings string `json:"settings"`
-	BonjourForwardingRules    []Rule `json:"rules"`
+	Description jsontypes.String `tfsdk:"description" json:"description"`
+	VlanId      jsontypes.String `tfsdk:"vlan_id" json:"vlanId"`
+	Services    []string         `tfsdk:"services" json:"services"`
 }
 
 type FirewallAndTrafficShaping struct {
 	Settings            jsontypes.String     `tfsdk:"settings"`
-	L3FirewallRules     []L3FirewallRules    `tfsdk:"l3_firewall_rules"`
+	L3FirewallRules     []L3FirewallRule     `tfsdk:"l3_firewall_rules"`
 	L7FirewallRules     []L7FirewallRule     `tfsdk:"l7_firewall_rules"`
 	TrafficShapingRules []TrafficShapingRule `tfsdk:"traffic_shaping_rules"`
-}
-
-type OutputFirewallAndTrafficShaping struct {
-	Settings                  jsontypes.String
-	L3FirewallRules           []L3FirewallRules
-	L7FirewallRules           []L7FirewallRule
-	OutputTrafficShapingRules []OutputTrafficShapingRule
 }
 
 type TrafficShapingRule struct {
@@ -138,81 +99,110 @@ type TrafficShapingRule struct {
 	Definitions                      []Definition     `tfsdk:"definitions"`
 }
 
-type OutputTrafficShapingRule struct {
-	DscpTagValue             jsontypes.Int64
-	PcpTagValue              jsontypes.Int64
-	PerClientBandwidthLimits PerClientBandwidthLimits
-	Definitions              []Definition
-}
-
-type PerClientBandwidthLimits struct {
-	BandwidthLimits BandwidthLimits
-	Settings        jsontypes.String
-}
-
 type Definition struct {
-	Value jsontypes.String `tfsdk:"value"`
-	Type  jsontypes.String `tfsdk:"type"`
+	Value jsontypes.String `tfsdk:"value" json:"value"`
+	Type  jsontypes.String `tfsdk:"type" json:"type"`
 }
 
-type L3FirewallRules struct {
-	Comment  jsontypes.String `tfsdk:"comment"`
-	DestCidr jsontypes.String `tfsdk:"dest_cidr"`
-	DestPort jsontypes.String `tfsdk:"dest_port"`
-	Policy   jsontypes.String `tfsdk:"policy"`
-	Protocol jsontypes.String `tfsdk:"protocol"`
+type L3FirewallRule struct {
+	Comment  jsontypes.String `tfsdk:"comment" json:"comment"`
+	DestCidr jsontypes.String `tfsdk:"dest_cidr" json:"destCidr"`
+	DestPort jsontypes.String `tfsdk:"dest_port" json:"destPort"`
+	Policy   jsontypes.String `tfsdk:"policy" json:"policy"`
+	Protocol jsontypes.String `tfsdk:"protocol" json:"protocol"`
 }
 
 type L7FirewallRule struct {
-	Value  jsontypes.String `tfsdk:"value"`
-	Type   jsontypes.String `tfsdk:"type"`
-	Policy jsontypes.String `tfsdk:"policy"`
+	Value  jsontypes.String `tfsdk:"value" json:"value"`
+	Type   jsontypes.String `tfsdk:"type" json:"type"`
+	Policy jsontypes.String `tfsdk:"policy" json:"policy"`
+}
+
+type OutPutData struct {
+	GroupPolicyId                   jsontypes.String                `json:"groupPolicyId"`
+	Name                            jsontypes.String                `json:"name"`
+	SplashAuthSettings              jsontypes.String                `json:"splashAuthSettings"`
+	Bandwidth                       Bandwidth                       `json:"bandwidth"`
+	BonjourForwarding               BonjourForwarding               `json:"bonjourForwarding"`
+	VlanTagging                     VlanTagging                     `json:"vlanTagging"`
+	Scheduling                      Scheduling                      `json:"scheduling"`
+	OutputFirewallAndTrafficShaping OutputFirewallAndTrafficShaping `json:"firewallAndTrafficShaping"`
+	ContentFiltering                ContentFiltering                `json:"contentFiltering"`
+}
+
+type Bandwidth struct {
+	BandwidthLimits BandwidthLimits  `json:"bandwidthLimits"`
+	Settings        jsontypes.String `json:"settings"`
+}
+
+type BandwidthLimits struct {
+	LimitUp   jsontypes.Int64 `json:"limitUp"`
+	LimitDown jsontypes.Int64 `json:"limitDown"`
+}
+
+type BonjourForwarding struct {
+	BonjourForwardingSettings string `json:"settings"`
+	BonjourForwardingRules    []Rule `json:"rules"`
+}
+
+type OutputFirewallAndTrafficShaping struct {
+	Settings                  jsontypes.String           `json:"settings"`
+	L3FirewallRules           []L3FirewallRule           `json:"l3FirewallRules"`
+	L7FirewallRules           []L7FirewallRule           `json:"l7FirewallRules"`
+	OutputTrafficShapingRules []OutputTrafficShapingRule `json:"trafficShapingRules"`
+}
+
+type OutputTrafficShapingRule struct {
+	DscpTagValue             jsontypes.Int64          `json:"dscpTagValue"`
+	PcpTagValue              jsontypes.Int64          `json:"pcpTagValue"`
+	PerClientBandwidthLimits PerClientBandwidthLimits `json:"perClientBandwidthLimits"`
+	Definitions              []Definition             `json:"definitions"`
+}
+
+type PerClientBandwidthLimits struct {
+	BandwidthLimits BandwidthLimits  `json:"bandwidthLimits"`
+	Settings        jsontypes.String `json:"settings"`
 }
 
 type Scheduling struct {
-	Enabled   jsontypes.Bool `tfsdk:"enabled"`
-	Friday    Schedule       `tfsdk:"friday"`
-	Monday    Schedule       `tfsdk:"monday"`
-	Saturday  Schedule       `tfsdk:"saturday"`
-	Sunday    Schedule       `tfsdk:"sunday"`
-	Thursday  Schedule       `tfsdk:"thursday"`
-	Tuesday   Schedule       `tfsdk:"tuesday"`
-	Wednesday Schedule       `tfsdk:"wednesday"`
+	Enabled   jsontypes.Bool `json:"enabled"`
+	Friday    Schedule       `json:"friday"`
+	Monday    Schedule       `json:"monday"`
+	Saturday  Schedule       `json:"saturday"`
+	Sunday    Schedule       `json:"sunday"`
+	Thursday  Schedule       `json:"thursday"`
+	Tuesday   Schedule       `json:"tuesday"`
+	Wednesday Schedule       `json:"wednesday"`
 }
 
 type Schedule struct {
-	From   jsontypes.String `tfsdk:"from"`
-	To     jsontypes.String `tfsdk:"to"`
-	Active jsontypes.Bool   `tfsdk:"active"`
+	From   jsontypes.String `json:"from"`
+	To     jsontypes.String `json:"to"`
+	Active jsontypes.Bool   `json:"active"`
 }
 
 type VlanTagging struct {
-	Settings jsontypes.String `tfsdk:"settings"`
-	VlanId   jsontypes.String `tfsdk:"vlan_id"`
+	Settings jsontypes.String `json:"settings"`
+	VlanId   jsontypes.String `json:"vlanId"`
 }
 
 type ContentFiltering struct {
-	AllowedUrlPatterns   AllowedUrlPatterns   `tfsdk:"allowed_url_patterns"`
-	BlockedUrlCategories BlockedUrlCategories `tfsdk:"blocked_url_categories"`
-	BlockedUrlPatterns   BlockedUrlPatterns   `tfsdk:"blocked_url_patterns"`
+	AllowedUrlPatterns   AllowedUrlPatterns   `json:"allowedUrlPatterns"`
+	BlockedUrlCategories BlockedUrlCategories `json:"blockedUrlCategories"`
+	BlockedUrlPatterns   BlockedUrlPatterns   `json:"blockedUrlPatterns"`
 }
 
 type AllowedUrlPatterns struct {
-	Settings jsontypes.String `tfsdk:"settings"`
-	Patterns []string         `tfsdk:"patterns"`
+	Settings jsontypes.String `json:"settings"`
+	Patterns []string         `json:"patterns"`
 }
 type BlockedUrlCategories struct {
-	Settings   jsontypes.String `tfsdk:"settings"`
-	Categories []string         `tfsdk:"categories"`
+	Settings   jsontypes.String `json:"settings"`
+	Categories []string         `json:"categories"`
 }
 type BlockedUrlPatterns struct {
-	Settings jsontypes.String `tfsdk:"settings"`
-	Patterns []string         `tfsdk:"patterns"`
-}
-
-type CreateHttpRequestData struct {
-	CreateRequestData openApiClient.InlineObject87
-	UpdateRequestData openApiClient.InlineObject88
+	Settings jsontypes.String `json:"settings"`
+	Patterns []string         `json:"patterns"`
 }
 
 func (r *NetworksGroupPolicyResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -1383,59 +1373,58 @@ func extractHttpResponseGroupPolicyResource(ctx context.Context, inlineResp map[
 	data.VlanTaggingVlanId = outputdata.VlanTagging.VlanId
 	data.BonjourForwardingSettings = jsontypes.StringValue(outputdata.BonjourForwarding.BonjourForwardingSettings)
 	data.BonjourForwardingRules = outputdata.BonjourForwarding.BonjourForwardingRules
-	var outputFirewallAndTrafficShaping OutputFirewallAndTrafficShaping
-	if firewallAndTrafficShaping := inlineResp["firewallAndTrafficShaping"]; firewallAndTrafficShaping != nil {
-		jsonData, _ = json.Marshal(inlineResp["firewallAndTrafficShaping"])
-		json.Unmarshal(jsonData, &outputFirewallAndTrafficShaping)
-		data.FirewallAndTrafficShaping.Settings = outputFirewallAndTrafficShaping.Settings
-		if trafficShapingRules := inlineResp["firewallAndTrafficShaping"].(map[string]interface{})["trafficShapingRules"]; trafficShapingRules != nil {
-			var outputTrafficShapingRule []OutputTrafficShapingRule
-			jsonData, _ = json.Marshal(inlineResp["firewallAndTrafficShaping"].(map[string]interface{})["trafficShapingRules"])
-			json.Unmarshal(jsonData, &outputTrafficShapingRule)
-			for _, attribute := range outputTrafficShapingRule {
-				var trafficShapingRule TrafficShapingRule
-				trafficShapingRule.DscpTagValue = attribute.DscpTagValue
-				trafficShapingRule.PcpTagValue = attribute.PcpTagValue
-				trafficShapingRule.PerClientBandwidthLimitsSettings = attribute.PerClientBandwidthLimits.Settings
-				trafficShapingRule.BandwidthLimitDown = attribute.PerClientBandwidthLimits.BandwidthLimits.LimitDown
-				trafficShapingRule.BandwidthLimitUp = attribute.PerClientBandwidthLimits.BandwidthLimits.LimitUp
-				if len(attribute.Definitions) > 0 {
-					for _, attribute := range attribute.Definitions {
-						var definition Definition
-						definition.Type = attribute.Type
-						definition.Value = attribute.Value
-						trafficShapingRule.Definitions = append(trafficShapingRule.Definitions, definition)
-					}
-				} else {
-					trafficShapingRule.Definitions = nil
-				}
-				data.FirewallAndTrafficShaping.TrafficShapingRules = nil
-				data.FirewallAndTrafficShaping.TrafficShapingRules = append(data.FirewallAndTrafficShaping.TrafficShapingRules, trafficShapingRule)
-			}
-		} else {
-			data.FirewallAndTrafficShaping.TrafficShapingRules = nil
-		}
-	}
-	if contentFiltering := inlineResp["contentFiltering"]; contentFiltering != nil {
-		var contentFilteringData ContentFiltering
-		jsonData, _ = json.Marshal(inlineResp["contentFiltering"])
-		json.Unmarshal(jsonData, &contentFilteringData)
-		data.ContentFilteringAllowUrlPatternsSettings = contentFilteringData.AllowedUrlPatterns.Settings
-		data.ContentFilteringBlockedUrlCategoriesSettings = contentFilteringData.BlockedUrlCategories.Settings
-		data.ContentFilteringBlockedUrlPatternsSettings = contentFilteringData.BlockedUrlPatterns.Settings
-		data.ContentFilteringAllowUrlPatterns = contentFilteringData.AllowedUrlPatterns.Patterns
-		data.ContentFilteringBlockedUrlPatterns = contentFilteringData.BlockedUrlCategories.Categories
-		data.ContentFilteringBlockedUrlCategories = contentFilteringData.BlockedUrlPatterns.Patterns
-
+	data.FirewallAndTrafficShaping.Settings = outputdata.OutputFirewallAndTrafficShaping.Settings
+	if outputdata.OutputFirewallAndTrafficShaping.L7FirewallRules != nil {
+		data.FirewallAndTrafficShaping.L7FirewallRules = outputdata.OutputFirewallAndTrafficShaping.L7FirewallRules
 	} else {
-		data.ContentFilteringAllowUrlPatternsSettings = jsontypes.StringNull()
-		data.ContentFilteringBlockedUrlCategoriesSettings = jsontypes.StringNull()
-		data.ContentFilteringBlockedUrlPatternsSettings = jsontypes.StringNull()
+		data.FirewallAndTrafficShaping.L7FirewallRules = nil
+	}
+	if outputdata.OutputFirewallAndTrafficShaping.L3FirewallRules != nil {
+		data.FirewallAndTrafficShaping.L3FirewallRules = outputdata.OutputFirewallAndTrafficShaping.L3FirewallRules
+	} else {
+		data.FirewallAndTrafficShaping.L3FirewallRules = nil
+	}
+	if outputdata.OutputFirewallAndTrafficShaping.OutputTrafficShapingRules != nil {
+		for _, attribute := range outputdata.OutputFirewallAndTrafficShaping.OutputTrafficShapingRules {
+			var trafficShapingRule TrafficShapingRule
+			trafficShapingRule.DscpTagValue = attribute.DscpTagValue
+			trafficShapingRule.PcpTagValue = attribute.PcpTagValue
+			trafficShapingRule.PerClientBandwidthLimitsSettings = attribute.PerClientBandwidthLimits.Settings
+			trafficShapingRule.BandwidthLimitDown = attribute.PerClientBandwidthLimits.BandwidthLimits.LimitDown
+			trafficShapingRule.BandwidthLimitUp = attribute.PerClientBandwidthLimits.BandwidthLimits.LimitUp
+			if len(attribute.Definitions) > 0 {
+				for _, attribute := range attribute.Definitions {
+					var definition Definition
+					definition.Type = attribute.Type
+					definition.Value = attribute.Value
+					trafficShapingRule.Definitions = append(trafficShapingRule.Definitions, definition)
+				}
+			} else {
+				trafficShapingRule.Definitions = nil
+			}
+			data.FirewallAndTrafficShaping.TrafficShapingRules = nil
+			data.FirewallAndTrafficShaping.TrafficShapingRules = append(data.FirewallAndTrafficShaping.TrafficShapingRules, trafficShapingRule)
+		}
+	} else {
+		data.FirewallAndTrafficShaping.TrafficShapingRules = nil
+	}
+	data.ContentFilteringAllowUrlPatternsSettings = outputdata.ContentFiltering.AllowedUrlPatterns.Settings
+	data.ContentFilteringBlockedUrlCategoriesSettings = outputdata.ContentFiltering.BlockedUrlCategories.Settings
+	data.ContentFilteringBlockedUrlPatternsSettings = outputdata.ContentFiltering.BlockedUrlPatterns.Settings
+	if outputdata.ContentFiltering.AllowedUrlPatterns.Patterns != nil {
+		data.ContentFilteringAllowUrlPatterns = outputdata.ContentFiltering.AllowedUrlPatterns.Patterns
+	} else {
 		data.ContentFilteringAllowUrlPatterns = make([]string, 0)
-		data.ContentFilteringBlockedUrlPatterns = make([]string, 0)
+	}
+	if outputdata.ContentFiltering.BlockedUrlCategories.Categories != nil {
+		data.ContentFilteringBlockedUrlCategories = outputdata.ContentFiltering.BlockedUrlCategories.Categories
+	} else {
 		data.ContentFilteringBlockedUrlCategories = make([]string, 0)
 	}
-
+	if outputdata.ContentFiltering.BlockedUrlPatterns.Patterns != nil {
+		data.ContentFilteringBlockedUrlPatterns = outputdata.ContentFiltering.BlockedUrlPatterns.Patterns
+	} else {
+		data.ContentFilteringBlockedUrlPatterns = make([]string, 0)
+	}
 	return data
-
 }
