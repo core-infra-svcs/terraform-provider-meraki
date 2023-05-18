@@ -42,11 +42,11 @@ func TestAccNetworkGroupPolicysDataSource(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "name", "testpolicy"),
 					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "splash_auth_settings", "network default"),
-					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "bandwidth_settings", "custom"),
-					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "bandwidth_limit_up", "100000"),
-					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "bandwidth_limit_down", "100000"),
-					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "vlan_tagging_settings", "custom"),
-					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "vlan_tagging_vlan_id", "1"),
+					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "bandwidth.settings", "custom"),
+					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "bandwidth.bandwidth_limits.limit_up", "100000"),
+					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "bandwidth.bandwidth_limits.limit_down", "100000"),
+					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "vlan_tagging.settings", "custom"),
+					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "vlan_tagging.vlan_id", "1"),
 					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "firewall_and_traffic_shaping.settings", "network default"),
 					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "firewall_and_traffic_shaping.l3_firewall_rules.0.comment", "Allow TCP traffic to subnet with HTTP servers."),
 					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "firewall_and_traffic_shaping.l3_firewall_rules.0.policy", "allow"),
@@ -67,34 +67,37 @@ func TestAccNetworkGroupPolicysDataSource(t *testing.T) {
 					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "firewall_and_traffic_shaping.l7_firewall_rules.3.value", "23"),
 					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "firewall_and_traffic_shaping.traffic_shaping_rules.0.dscp_tag_value", "0"),
 					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "firewall_and_traffic_shaping.traffic_shaping_rules.0.pcp_tag_value", "0"),
-					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "firewall_and_traffic_shaping.traffic_shaping_rules.0.per_client_bandwidth_limits_settings", "network default"),
+					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "firewall_and_traffic_shaping.traffic_shaping_rules.0.per_client_bandwidth_limits.settings", "custom"),
+					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "firewall_and_traffic_shaping.traffic_shaping_rules.0.per_client_bandwidth_limits.bandwidth_limits.limit_down", "100000"),
+					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "firewall_and_traffic_shaping.traffic_shaping_rules.0.per_client_bandwidth_limits.bandwidth_limits.limit_up", "100000"),
 					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "firewall_and_traffic_shaping.traffic_shaping_rules.0.definitions.0.type", "host"),
 					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "firewall_and_traffic_shaping.traffic_shaping_rules.0.definitions.0.value", "google.com"),
-					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling_enabled", "true"),
-					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling_friday_active", "true"),
-					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling_friday_from", "09:00"),
-					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling_friday_to", "17:00"),
-					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling_saturday_active", "true"),
-					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling_saturday_from", "09:00"),
-					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling_saturday_to", "17:00"),
-					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling_sunday_active", "true"),
-					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling_sunday_from", "09:00"),
-					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling_sunday_to", "17:00"),
-					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling_monday_active", "true"),
-					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling_monday_from", "09:00"),
-					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling_monday_to", "17:00"),
-					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling_tuesday_active", "true"),
-					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling_tuesday_from", "09:00"),
-					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling_tuesday_to", "17:00"),
-					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling_wednesday_active", "true"),
-					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling_wednesday_from", "09:00"),
-					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling_wednesday_to", "17:00"),
-					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling_thursday_active", "true"),
-					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling_thursday_from", "09:00"),
-					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling_thursday_to", "17:00"),
-					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "bonjour_forwarding_rules.0.description", "A simple bonjour rule"),
-					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "bonjour_forwarding_rules.0.vlan_id", "1"),
-					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "bonjour_forwarding_rules.0.services.0", "All Services"),
+					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling.enabled", "true"),
+					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling.friday.active", "true"),
+					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling.friday.from", "09:00"),
+					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling.friday.to", "17:00"),
+					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling.saturday.active", "true"),
+					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling.saturday.from", "09:00"),
+					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling.saturday.to", "17:00"),
+					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling.sunday.active", "true"),
+					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling.sunday.from", "09:00"),
+					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling.sunday.to", "17:00"),
+					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling.monday.active", "true"),
+					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling.monday.from", "09:00"),
+					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling.monday.to", "17:00"),
+					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling.tuesday.active", "true"),
+					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling.tuesday.from", "09:00"),
+					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling.tuesday.to", "17:00"),
+					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling.wednesday.active", "true"),
+					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling.wednesday.from", "09:00"),
+					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling.wednesday.to", "17:00"),
+					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling.thursday.active", "true"),
+					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling.thursday.from", "09:00"),
+					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "scheduling.thursday.to", "17:00"),
+					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "bonjour_forwarding.settings", "custom"),
+					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "bonjour_forwarding.rules.0.description", "A simple bonjour rule"),
+					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "bonjour_forwarding.rules.0.vlan_id", "1"),
+					resource.TestCheckResourceAttr("meraki_networks_group_policy.test", "bonjour_forwarding.rules.0.services.0", "All Services"),
 				),
 			},
 
@@ -130,7 +133,9 @@ func TestAccNetworkGroupPolicysDataSource(t *testing.T) {
 					resource.TestCheckResourceAttr("data.meraki_network_group_policys.test", "list.0.firewall_and_traffic_shaping.l7_firewall_rules.3.value", "23"),
 					resource.TestCheckResourceAttr("data.meraki_network_group_policys.test", "list.0.firewall_and_traffic_shaping.traffic_shaping_rules.0.dscp_tag_value", "0"),
 					resource.TestCheckResourceAttr("data.meraki_network_group_policys.test", "list.0.firewall_and_traffic_shaping.traffic_shaping_rules.0.pcp_tag_value", "0"),
-					resource.TestCheckResourceAttr("data.meraki_network_group_policys.test", "list.0.firewall_and_traffic_shaping.traffic_shaping_rules.0.per_client_bandwidth_limits.settings", "network default"),
+					resource.TestCheckResourceAttr("data.meraki_network_group_policys.test", "list.0.firewall_and_traffic_shaping.traffic_shaping_rules.0.per_client_bandwidth_limits.settings", "custom"),
+					resource.TestCheckResourceAttr("data.meraki_network_group_policys.test", "list.0.firewall_and_traffic_shaping.traffic_shaping_rules.0.per_client_bandwidth_limits.bandwidth_limits.limit_down", "100000"),
+					resource.TestCheckResourceAttr("data.meraki_network_group_policys.test", "list.0.firewall_and_traffic_shaping.traffic_shaping_rules.0.per_client_bandwidth_limits.bandwidth_limits.limit_up", "100000"),
 					resource.TestCheckResourceAttr("data.meraki_network_group_policys.test", "list.0.firewall_and_traffic_shaping.traffic_shaping_rules.0.definitions.0.type", "host"),
 					resource.TestCheckResourceAttr("data.meraki_network_group_policys.test", "list.0.firewall_and_traffic_shaping.traffic_shaping_rules.0.definitions.0.value", "google.com"),
 					resource.TestCheckResourceAttr("data.meraki_network_group_policys.test", "list.0.scheduling.enabled", "true"),
@@ -155,6 +160,7 @@ func TestAccNetworkGroupPolicysDataSource(t *testing.T) {
 					resource.TestCheckResourceAttr("data.meraki_network_group_policys.test", "list.0.scheduling.thursday.active", "true"),
 					resource.TestCheckResourceAttr("data.meraki_network_group_policys.test", "list.0.scheduling.thursday.from", "09:00"),
 					resource.TestCheckResourceAttr("data.meraki_network_group_policys.test", "list.0.scheduling.thursday.to", "17:00"),
+					resource.TestCheckResourceAttr("data.meraki_network_group_policys.test", "list.0.bonjour_forwarding.settings", "custom"),
 					resource.TestCheckResourceAttr("data.meraki_network_group_policys.test", "list.0.bonjour_forwarding.rules.0.description", "A simple bonjour rule"),
 					resource.TestCheckResourceAttr("data.meraki_network_group_policys.test", "list.0.bonjour_forwarding.rules.0.vlan_id", "1"),
 					resource.TestCheckResourceAttr("data.meraki_network_group_policys.test", "list.0.bonjour_forwarding.rules.0.services.0", "All Services"),
@@ -195,36 +201,61 @@ resource "meraki_networks_group_policy" "test" {
     network_id = resource.meraki_network.test.network_id
     name = "testpolicy"
     splash_auth_settings = "network default"
-    scheduling_enabled = true
-    scheduling_friday_active = true
-    scheduling_friday_from = "09:00"
-    scheduling_friday_to = "17:00"
-    scheduling_saturday_active = true
-    scheduling_saturday_from = "09:00"
-    scheduling_saturday_to = "17:00"
-    scheduling_sunday_active = true
-    scheduling_sunday_from = "09:00"
-    scheduling_sunday_to = "17:00"
-    scheduling_monday_active = true
-    scheduling_monday_from = "09:00"
-    scheduling_monday_to = "17:00"
-    scheduling_tuesday_active = true
-    scheduling_tuesday_from = "09:00"
-    scheduling_tuesday_to = "17:00"
-    scheduling_wednesday_active = true
-    scheduling_wednesday_from = "09:00"
-    scheduling_wednesday_to = "17:00"
-    scheduling_thursday_active = true
-    scheduling_thursday_from = "09:00"
-    scheduling_thursday_to = "17:00"
-    bandwidth_settings = "custom"
-    bandwidth_limit_up = 100000
-    bandwidth_limit_down = 100000
-    bonjour_forwarding_rules = [{
+    scheduling = {
+    enabled = true
+    friday = {
+    active = true
+    from = "09:00"
+    to = "17:00"
+    },
+    saturday = {
+    active = true
+    from = "09:00"
+    to = "17:00"
+    },
+    sunday = { 
+    active = true
+    from = "09:00"
+    to = "17:00"
+    },
+    monday = { 
+    active = true
+    from = "09:00"
+    to = "17:00"
+    },
+    tuesday = {
+    active = true
+    from = "09:00"
+    to = "17:00"
+    },
+    wednesday = { 
+    active = true
+    from = "09:00"
+    to = "17:00"
+    },
+    thursday = { 
+    active = true
+    from = "09:00"
+    to = "17:00"
+    }
+    }
+	bandwidth = {
+		settings = "custom"
+		bandwidth_limits = {			
+          limit_up = 100000
+          limit_down = 100000
+	    }
+	}
+    bonjour_forwarding = { 
+        settings = "custom"
+        rules = [
+            {
         description = "A simple bonjour rule"
         vlan_id = "1"
         services = [ "All Services" ]
-    }]
+        }
+     ] 
+    }
     firewall_and_traffic_shaping = {
         settings = "network default"
         l3_firewall_rules = [{
@@ -257,7 +288,13 @@ resource "meraki_networks_group_policy" "test" {
         traffic_shaping_rules = [{
             dscp_tag_value = 0
             pcp_tag_value = 0
-            per_client_bandwidth_limits_settings = "network default"
+            per_client_bandwidth_limits = {
+            settings = "custom"
+            bandwidth_limits = {   
+                    limit_up = 100000
+                    limit_down = 100000        
+            }
+        }
             definitions = [{
                 type = "host"
                 value =  "google.com"
@@ -284,11 +321,25 @@ resource "meraki_networks_group_policy" "test" {
             }]
         }]
     }
-    vlan_tagging_settings = "custom"
-    vlan_tagging_vlan_id = 1
-    content_filtering_allow_url_patterns = []
-    content_filtering_blocked_url_categories = []
-    content_filtering_blocked_url_patterns = []
+    vlan_tagging = {
+    settings = "custom"
+    vlan_id = 1
+    }
+    content_filtering = {
+        allowed_url_patterns = {
+            patterns = []
+        }
+        blocked_url_categories = {
+            categories = []
+        }
+        blocked_url_patterns = {
+            patterns = []
+        }
+    }
+    
+       
+
+  
 }
 `
 
@@ -303,36 +354,61 @@ resource "meraki_networks_group_policy" "test" {
     network_id = resource.meraki_network.test.network_id
     name = "testpolicy"
     splash_auth_settings = "network default"
-    scheduling_enabled = true
-    scheduling_friday_active = true
-    scheduling_friday_from = "09:00"
-    scheduling_friday_to = "17:00"
-    scheduling_saturday_active = true
-    scheduling_saturday_from = "09:00"
-    scheduling_saturday_to = "17:00"
-    scheduling_sunday_active = true
-    scheduling_sunday_from = "09:00"
-    scheduling_sunday_to = "17:00"
-    scheduling_monday_active = true
-    scheduling_monday_from = "09:00"
-    scheduling_monday_to = "17:00"
-    scheduling_tuesday_active = true
-    scheduling_tuesday_from = "09:00"
-    scheduling_tuesday_to = "17:00"
-    scheduling_wednesday_active = true
-    scheduling_wednesday_from = "09:00"
-    scheduling_wednesday_to = "17:00"
-    scheduling_thursday_active = true
-    scheduling_thursday_from = "09:00"
-    scheduling_thursday_to = "17:00"
-    bandwidth_settings = "custom"
-    bandwidth_limit_up = 100000
-    bandwidth_limit_down = 100000
-    bonjour_forwarding_rules = [{
+    scheduling = {
+    enabled = true
+    friday = {
+    active = true
+    from = "09:00"
+    to = "17:00"
+    },
+    saturday = {
+    active = true
+    from = "09:00"
+    to = "17:00"
+    },
+    sunday = { 
+    active = true
+    from = "09:00"
+    to = "17:00"
+    },
+    monday = { 
+    active = true
+    from = "09:00"
+    to = "17:00"
+    },
+    tuesday = {
+    active = true
+    from = "09:00"
+    to = "17:00"
+    },
+    wednesday = { 
+    active = true
+    from = "09:00"
+    to = "17:00"
+    },
+    thursday = { 
+    active = true
+    from = "09:00"
+    to = "17:00"
+    }
+    }
+	bandwidth = {
+		settings = "custom"
+		bandwidth_limits = {			
+          limit_up = 100000
+          limit_down = 100000
+	    }
+	}
+    bonjour_forwarding = { 
+        settings = "custom"
+        rules = [
+            {
         description = "A simple bonjour rule"
         vlan_id = "1"
         services = [ "All Services" ]
-    }]
+        }
+     ] 
+    }
     firewall_and_traffic_shaping = {
         settings = "network default"
         l3_firewall_rules = [{
@@ -365,7 +441,13 @@ resource "meraki_networks_group_policy" "test" {
         traffic_shaping_rules = [{
             dscp_tag_value = 0
             pcp_tag_value = 0
-            per_client_bandwidth_limits_settings = "network default"
+            per_client_bandwidth_limits = {
+            settings = "custom"
+            bandwidth_limits = {   
+                limit_up = 100000
+                limit_down = 100000        
+            }
+        }
             definitions = [{
                 type = "host"
                 value =  "google.com"
@@ -392,15 +474,24 @@ resource "meraki_networks_group_policy" "test" {
             }]
         }]
     }
-    vlan_tagging_settings = "custom"
-    vlan_tagging_vlan_id = 1
-    content_filtering_allow_url_patterns = []
-    content_filtering_blocked_url_categories = []
-    content_filtering_blocked_url_patterns = []
+    vlan_tagging = {
+    settings = "custom"
+    vlan_id = 1
+    }
+    content_filtering = {
+        allowed_url_patterns = {
+            patterns = []
+        }
+        blocked_url_categories = {
+            categories = []
+        }
+        blocked_url_patterns = {
+            patterns = []
+        }
+    }
 }
 
-data "meraki_network_group_policys" "test" {
-	
+data "meraki_network_group_policys" "test" {	
 	depends_on = [resource.meraki_networks_group_policy.test, resource.meraki_network.test, resource.meraki_organization.test]
     network_id = resource.meraki_network.test.network_id
 }
