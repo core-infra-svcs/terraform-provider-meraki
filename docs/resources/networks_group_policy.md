@@ -17,66 +17,110 @@ NetworksGroupPolicy resource for creating updating and deleting networks group p
 
 ### Required
 
-- `content_filtering_allow_url_patterns` (Set of String) A list of URL patterns that are allowed for content filtering for your group policy
-- `content_filtering_blocked_url_categories` (Set of String) A list of URL categories to block for content filtering for your group policy
-- `content_filtering_blocked_url_patterns` (Set of String) A list of URL patterns that are blocked for content filtering for your group policy
-- `firewall_and_traffic_shaping` (Attributes) The firewall and traffic shaping rules and settings for your policy. (see [below for nested schema](#nestedatt--firewall_and_traffic_shaping))
 - `name` (String) Name of Group Policy
 - `network_id` (String) Network Id
 
 ### Optional
 
-- `bandwidth_limit_down` (Number) The bandwidth limits object, specifying upload and download speed for clients bound to the group policy. These are only enforced if 'settings' is set to 'custom'. The maximum download limit (integer, in Kbps). null indicates no limit.
-- `bandwidth_limit_up` (Number) The bandwidth limits object, specifying upload and download speed for clients bound to the group policy. These are only enforced if 'settings' is set to 'custom'. The maximum upload limit (integer, in Kbps). null indicates no limit.
-- `bandwidth_settings` (String) The bandwidth settings for clients bound to your group policy. How bandwidth limits are enforced. Can be 'network default', 'ignore' or 'custom'.
-- `bonjour_forwarding_rules` (Attributes Set) A list of the Bonjour forwarding rules for your group policy. If 'settings' is set to 'custom', at least one rule must be specified. (see [below for nested schema](#nestedatt--bonjour_forwarding_rules))
-- `bonjour_forwarding_settings` (String) The Bonjour settings for your group policy. Only valid if your network has a wireless configuration.
-- `content_filtering_allow_url_patterns_settings` (String) The content filtering settings for your group policy. Settings for allowed URL patterns. How URL patterns are applied. Can be 'network default', 'append' or 'override'.
-- `content_filtering_blocked_url_categories_settings` (String) The content filtering settings for your group policy. Settings for blocked URL categories. How URL categories are applied. Can be 'network default', 'append' or 'override'.
-- `content_filtering_blocked_url_patterns_settings` (String) The content filtering settings for your group policy. Settings for blocked URL patterns. How URL patterns are applied. Can be 'network default', 'append' or 'override'.
+- `bandwidth` (Attributes) The bandwidth settings for clients bound to your group policy (see [below for nested schema](#nestedatt--bandwidth))
+- `bonjour_forwarding` (Attributes) The Bonjour settings for your group policy. Only valid if your network has a wireless configuration. (see [below for nested schema](#nestedatt--bonjour_forwarding))
+- `content_filtering` (Attributes) The content filtering settings for your group policy (see [below for nested schema](#nestedatt--content_filtering))
+- `firewall_and_traffic_shaping` (Attributes) (see [below for nested schema](#nestedatt--firewall_and_traffic_shaping))
 - `group_policy_id` (String) Group Policy ID
-- `scheduling_enabled` (Boolean) Whether scheduling is enabled (true) or disabled (false). Defaults to false. If true, the schedule objects for each day of the week (monday - sunday) are parsed.
-- `scheduling_friday_active` (Boolean) Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.
-- `scheduling_friday_from` (String) The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.
-- `scheduling_friday_to` (String) The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.
-- `scheduling_monday_active` (Boolean) Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.
-- `scheduling_monday_from` (String) The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.
-- `scheduling_monday_to` (String) The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.
-- `scheduling_saturday_active` (Boolean) Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.
-- `scheduling_saturday_from` (String) The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.
-- `scheduling_saturday_to` (String) The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.
-- `scheduling_sunday_active` (Boolean) Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.
-- `scheduling_sunday_from` (String) The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.
-- `scheduling_sunday_to` (String) The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.
-- `scheduling_thursday_active` (Boolean) Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.
-- `scheduling_thursday_from` (String) The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.
-- `scheduling_thursday_to` (String) The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.
-- `scheduling_tuesday_active` (Boolean) Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.
-- `scheduling_tuesday_from` (String) The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.
-- `scheduling_tuesday_to` (String) The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.
-- `scheduling_wednesday_active` (Boolean) Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.
-- `scheduling_wednesday_from` (String) The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.
-- `scheduling_wednesday_to` (String) The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.
+- `scheduling` (Attributes) (see [below for nested schema](#nestedatt--scheduling))
 - `splash_auth_settings` (String) Whether clients bound to your policy will bypass splash authorization or behave according to the network's rules. Can be one of 'network default' or 'bypass'. Only available if your network has a wireless configuration
-- `vlan_tagging_settings` (String) How VLAN tagging is applied. Can be 'network default', 'ignore' or 'custom'.
-- `vlan_tagging_vlan_id` (String) The ID of the vlan you want to tag. This only applies if 'settings' is set to 'custom'.
+- `vlan_tagging` (Attributes) (see [below for nested schema](#nestedatt--vlan_tagging))
 
 ### Read-Only
 
 - `id` (String) Example identifier
 
-<a id="nestedatt--firewall_and_traffic_shaping"></a>
-### Nested Schema for `firewall_and_traffic_shaping`
-
-Required:
-
-- `l3_firewall_rules` (Attributes Set) An ordered array of the L3 firewall rules (see [below for nested schema](#nestedatt--firewall_and_traffic_shaping--l3_firewall_rules))
-- `l7_firewall_rules` (Attributes Set) An ordered array of the L7 firewall rules (see [below for nested schema](#nestedatt--firewall_and_traffic_shaping--l7_firewall_rules))
-- `traffic_shaping_rules` (Attributes Set) (see [below for nested schema](#nestedatt--firewall_and_traffic_shaping--traffic_shaping_rules))
+<a id="nestedatt--bandwidth"></a>
+### Nested Schema for `bandwidth`
 
 Optional:
 
+- `bandwidth_limits` (Attributes) The bandwidth limits object, specifying upload and download speed for clients bound to the group policy. These are only enforced if 'settings' is set to 'custom'. (see [below for nested schema](#nestedatt--bandwidth--bandwidth_limits))
+- `settings` (String) How bandwidth limits are enforced. Can be 'network default', 'ignore' or 'custom'.
+
+<a id="nestedatt--bandwidth--bandwidth_limits"></a>
+### Nested Schema for `bandwidth.bandwidth_limits`
+
+Optional:
+
+- `limit_down` (Number) The maximum download limit (integer, in Kbps).
+- `limit_up` (Number) The maximum upload limit (integer, in Kbps).
+
+
+
+<a id="nestedatt--bonjour_forwarding"></a>
+### Nested Schema for `bonjour_forwarding`
+
+Optional:
+
+- `rules` (Attributes Set) (see [below for nested schema](#nestedatt--bonjour_forwarding--rules))
+- `settings` (String) How Bonjour rules are applied. Can be 'network default', 'ignore' or 'custom'.
+
+<a id="nestedatt--bonjour_forwarding--rules"></a>
+### Nested Schema for `bonjour_forwarding.rules`
+
+Required:
+
+- `services` (Set of String)
+
+Optional:
+
+- `description` (String) A description for your Bonjour forwarding rule. Optional.
+- `vlan_id` (String) The ID of the service VLAN. Required.
+
+
+
+<a id="nestedatt--content_filtering"></a>
+### Nested Schema for `content_filtering`
+
+Optional:
+
+- `allowed_url_patterns` (Attributes) Settings for allowed URL patterns (see [below for nested schema](#nestedatt--content_filtering--allowed_url_patterns))
+- `blocked_url_categories` (Attributes) Settings for blocked URL categories (see [below for nested schema](#nestedatt--content_filtering--blocked_url_categories))
+- `blocked_url_patterns` (Attributes) Settings for blocked URL patterns (see [below for nested schema](#nestedatt--content_filtering--blocked_url_patterns))
+
+<a id="nestedatt--content_filtering--allowed_url_patterns"></a>
+### Nested Schema for `content_filtering.allowed_url_patterns`
+
+Optional:
+
+- `patterns` (Set of String) A list of URL patterns that are allowed
+- `settings` (String) How URL patterns are applied. Can be 'network default', 'append' or 'override'.
+
+
+<a id="nestedatt--content_filtering--blocked_url_categories"></a>
+### Nested Schema for `content_filtering.blocked_url_categories`
+
+Optional:
+
+- `categories` (Set of String) A list of URL categories to block
+- `settings` (String) How URL categories are applied. Can be 'network default', 'append' or 'override'.
+
+
+<a id="nestedatt--content_filtering--blocked_url_patterns"></a>
+### Nested Schema for `content_filtering.blocked_url_patterns`
+
+Optional:
+
+- `patterns` (Set of String) A list of URL patterns that are blocked
+- `settings` (String) How URL patterns are applied. Can be 'network default', 'append' or 'override'.
+
+
+
+<a id="nestedatt--firewall_and_traffic_shaping"></a>
+### Nested Schema for `firewall_and_traffic_shaping`
+
+Optional:
+
+- `l3_firewall_rules` (Attributes Set) (see [below for nested schema](#nestedatt--firewall_and_traffic_shaping--l3_firewall_rules))
+- `l7_firewall_rules` (Attributes Set) (see [below for nested schema](#nestedatt--firewall_and_traffic_shaping--l7_firewall_rules))
 - `settings` (String) How firewall and traffic shaping rules are enforced. Can be 'network default', 'ignore' or 'custom'.
+- `traffic_shaping_rules` (Attributes Set) (see [below for nested schema](#nestedatt--firewall_and_traffic_shaping--traffic_shaping_rules))
 
 <a id="nestedatt--firewall_and_traffic_shaping--l3_firewall_rules"></a>
 ### Nested Schema for `firewall_and_traffic_shaping.l3_firewall_rules`
@@ -103,17 +147,12 @@ Optional:
 <a id="nestedatt--firewall_and_traffic_shaping--traffic_shaping_rules"></a>
 ### Nested Schema for `firewall_and_traffic_shaping.traffic_shaping_rules`
 
-Required:
-
-- `definitions` (Attributes Set) (see [below for nested schema](#nestedatt--firewall_and_traffic_shaping--traffic_shaping_rules--definitions))
-- `per_client_bandwidth_limits_settings` (String) How bandwidth limits are applied by your rule. Can be one of 'network default', 'ignore' or 'custom'.
-
 Optional:
 
-- `bandwidth_limit_down` (Number) The maximum download limit (integer, in Kbps).
-- `bandwidth_limit_up` (Number) The maximum upload limit (integer, in Kbps).
+- `definitions` (Attributes Set) (see [below for nested schema](#nestedatt--firewall_and_traffic_shaping--traffic_shaping_rules--definitions))
 - `dscp_tag_value` (Number) The DSCP tag applied by your rule. null means Do not change DSCP tag. For a list of possible tag values, use the trafficShaping/dscpTaggingOptions endpoint
 - `pcp_tag_value` (Number) The PCP tag applied by your rule. Can be 0 (lowest priority) through 7 (highest priority). null means Do not set PCP tag.
+- `per_client_bandwidth_limits` (Attributes) (see [below for nested schema](#nestedatt--firewall_and_traffic_shaping--traffic_shaping_rules--per_client_bandwidth_limits))
 
 <a id="nestedatt--firewall_and_traffic_shaping--traffic_shaping_rules--definitions"></a>
 ### Nested Schema for `firewall_and_traffic_shaping.traffic_shaping_rules.definitions`
@@ -124,15 +163,117 @@ Optional:
 - `value` (String) If type is host, port, ipRange or localNet then value must be a string matching either a hostname (e.g. somesite.com) a port (e.g. 8080) or an IP range (192.1.0.0, 192.1.0.0/16, or 10.1.0.0/16:80). localNet also supports CIDR notation excluding custom ports If type is 'application' or 'applicationCategory', then value must be an object with the structure { id: meraki:layer7/... }, where id is the application category or application ID (for a list of IDs for your network, use the trafficShaping/applicationCategories endpoint)
 
 
-
-
-<a id="nestedatt--bonjour_forwarding_rules"></a>
-### Nested Schema for `bonjour_forwarding_rules`
+<a id="nestedatt--firewall_and_traffic_shaping--traffic_shaping_rules--per_client_bandwidth_limits"></a>
+### Nested Schema for `firewall_and_traffic_shaping.traffic_shaping_rules.per_client_bandwidth_limits`
 
 Optional:
 
-- `description` (String) A description for your Bonjour forwarding rule. Optional.
-- `services` (Set of String) A list of Bonjour services. At least one service must be specified. Available services are 'All Services', 'AirPlay', 'AFP', 'BitTorrent', 'FTP', 'iChat', 'iTunes', 'Printers', 'Samba', 'Scanners' and 'SSH'
-- `vlan_id` (String) The ID of the service VLAN. Required.
+- `bandwidth_limits` (Attributes) (see [below for nested schema](#nestedatt--firewall_and_traffic_shaping--traffic_shaping_rules--per_client_bandwidth_limits--bandwidth_limits))
+- `settings` (String) How bandwidth limits are applied by your rule. Can be one of 'network default', 'ignore' or 'custom'.
+
+<a id="nestedatt--firewall_and_traffic_shaping--traffic_shaping_rules--per_client_bandwidth_limits--bandwidth_limits"></a>
+### Nested Schema for `firewall_and_traffic_shaping.traffic_shaping_rules.per_client_bandwidth_limits.settings`
+
+Optional:
+
+- `limit_down` (Number) The maximum download limit (integer, in Kbps).
+- `limit_up` (Number) The maximum upload limit (integer, in Kbps).
+
+
+
+
+
+<a id="nestedatt--scheduling"></a>
+### Nested Schema for `scheduling`
+
+Optional:
+
+- `enabled` (Boolean) Whether scheduling is enabled (true) or disabled (false). Defaults to false. If true, the schedule objects for each day of the week (monday - sunday) are parsed.
+- `friday` (Attributes) (see [below for nested schema](#nestedatt--scheduling--friday))
+- `monday` (Attributes) (see [below for nested schema](#nestedatt--scheduling--monday))
+- `saturday` (Attributes) (see [below for nested schema](#nestedatt--scheduling--saturday))
+- `sunday` (Attributes) (see [below for nested schema](#nestedatt--scheduling--sunday))
+- `thursday` (Attributes) (see [below for nested schema](#nestedatt--scheduling--thursday))
+- `tuesday` (Attributes) (see [below for nested schema](#nestedatt--scheduling--tuesday))
+- `wednesday` (Attributes) (see [below for nested schema](#nestedatt--scheduling--wednesday))
+
+<a id="nestedatt--scheduling--friday"></a>
+### Nested Schema for `scheduling.friday`
+
+Optional:
+
+- `active` (Boolean) Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.
+- `from` (String) The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.
+- `to` (String) The time, from '00:00' to '24:00'. Must be greater than the time specified in 'from'. Defaults to '24:00'. Only 30 minute increments are allowed.
+
+
+<a id="nestedatt--scheduling--monday"></a>
+### Nested Schema for `scheduling.monday`
+
+Optional:
+
+- `active` (Boolean) Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.
+- `from` (String) The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.
+- `to` (String) The time, from '00:00' to '24:00'. Must be greater than the time specified in 'from'. Defaults to '24:00'. Only 30 minute increments are allowed.
+
+
+<a id="nestedatt--scheduling--saturday"></a>
+### Nested Schema for `scheduling.saturday`
+
+Optional:
+
+- `active` (Boolean) Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.
+- `from` (String) The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.
+- `to` (String) The time, from '00:00' to '24:00'. Must be greater than the time specified in 'from'. Defaults to '24:00'. Only 30 minute increments are allowed.
+
+
+<a id="nestedatt--scheduling--sunday"></a>
+### Nested Schema for `scheduling.sunday`
+
+Optional:
+
+- `active` (Boolean) Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.
+- `from` (String) The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.
+- `to` (String) The time, from '00:00' to '24:00'. Must be greater than the time specified in 'from'. Defaults to '24:00'. Only 30 minute increments are allowed.
+
+
+<a id="nestedatt--scheduling--thursday"></a>
+### Nested Schema for `scheduling.thursday`
+
+Optional:
+
+- `active` (Boolean) Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.
+- `from` (String) The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.
+- `to` (String) The time, from '00:00' to '24:00'. Must be greater than the time specified in 'from'. Defaults to '24:00'. Only 30 minute increments are allowed.
+
+
+<a id="nestedatt--scheduling--tuesday"></a>
+### Nested Schema for `scheduling.tuesday`
+
+Optional:
+
+- `active` (Boolean) Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.
+- `from` (String) The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.
+- `to` (String) The time, from '00:00' to '24:00'. Must be greater than the time specified in 'from'. Defaults to '24:00'. Only 30 minute increments are allowed.
+
+
+<a id="nestedatt--scheduling--wednesday"></a>
+### Nested Schema for `scheduling.wednesday`
+
+Optional:
+
+- `active` (Boolean) Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.
+- `from` (String) The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.
+- `to` (String) The time, from '00:00' to '24:00'. Must be greater than the time specified in 'from'. Defaults to '24:00'. Only 30 minute increments are allowed.
+
+
+
+<a id="nestedatt--vlan_tagging"></a>
+### Nested Schema for `vlan_tagging`
+
+Optional:
+
+- `settings` (String) How VLAN tagging is applied. Can be 'network default', 'ignore' or 'custom'.
+- `vlan_id` (String) The ID of the vlan you want to tag. This only applies if 'settings' is set to 'custom'.
 
 

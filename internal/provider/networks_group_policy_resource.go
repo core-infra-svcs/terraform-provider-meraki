@@ -8,6 +8,7 @@ import (
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -34,74 +35,24 @@ type NetworksGroupPolicyResource struct {
 
 // NetworksGroupPolicyResourceModel describes the resource data model.
 type NetworksGroupPolicyResourceModel struct {
-	Id                                           jsontypes.String          `tfsdk:"id"`
-	NetworkId                                    jsontypes.String          `tfsdk:"network_id"`
-	GroupPolicyId                                jsontypes.String          `tfsdk:"group_policy_id" json:"groupPolicyId"`
-	Name                                         jsontypes.String          `tfsdk:"name" json:"name"`
-	SplashAuthSettings                           jsontypes.String          `tfsdk:"splash_auth_settings" json:"splashAuthSettings"`
-	BandwidthSettings                            jsontypes.String          `tfsdk:"bandwidth_settings" json:"bandwidthSettings"`
-	BandwidthLimitUp                             jsontypes.Int64           `tfsdk:"bandwidth_limit_up" json:"limitUp"`
-	BandwidthLimitDown                           jsontypes.Int64           `tfsdk:"bandwidth_limit_down" json:"limitDown"`
-	BonjourForwardingSettings                    jsontypes.String          `tfsdk:"bonjour_forwarding_settings" json:"bonjour_forwarding_settings"`
-	BonjourForwardingRules                       []Rule                    `tfsdk:"bonjour_forwarding_rules" json:"rules"`
-	FirewallAndTrafficShaping                    FirewallAndTrafficShaping `tfsdk:"firewall_and_traffic_shaping"`
-	SchedulingEnabled                            jsontypes.Bool            `tfsdk:"scheduling_enabled"`
-	SchedulingFridayActive                       jsontypes.Bool            `tfsdk:"scheduling_friday_active"`
-	SchedulingFridayFrom                         jsontypes.String          `tfsdk:"scheduling_friday_from"`
-	SchedulingFridayTo                           jsontypes.String          `tfsdk:"scheduling_friday_to"`
-	SchedulingMondayActive                       jsontypes.Bool            `tfsdk:"scheduling_monday_active"`
-	SchedulingMondayFrom                         jsontypes.String          `tfsdk:"scheduling_monday_from"`
-	SchedulingMondayTo                           jsontypes.String          `tfsdk:"scheduling_monday_to"`
-	SchedulingTuesdayActive                      jsontypes.Bool            `tfsdk:"scheduling_tuesday_active"`
-	SchedulingTuesdayFrom                        jsontypes.String          `tfsdk:"scheduling_tuesday_from"`
-	SchedulingTuesdayTo                          jsontypes.String          `tfsdk:"scheduling_tuesday_to"`
-	SchedulingWednesdayActive                    jsontypes.Bool            `tfsdk:"scheduling_wednesday_active"`
-	SchedulingWednesdayFrom                      jsontypes.String          `tfsdk:"scheduling_wednesday_from"`
-	SchedulingWednesdayTo                        jsontypes.String          `tfsdk:"scheduling_wednesday_to"`
-	SchedulingThursdayActive                     jsontypes.Bool            `tfsdk:"scheduling_thursday_active"`
-	SchedulingThursdayFrom                       jsontypes.String          `tfsdk:"scheduling_thursday_from"`
-	SchedulingThursdayTo                         jsontypes.String          `tfsdk:"scheduling_thursday_to"`
-	SchedulingSaturdayActive                     jsontypes.Bool            `tfsdk:"scheduling_saturday_active"`
-	SchedulingSaturdayFrom                       jsontypes.String          `tfsdk:"scheduling_saturday_from"`
-	SchedulingSaturdayTo                         jsontypes.String          `tfsdk:"scheduling_saturday_to"`
-	SchedulingSundayActive                       jsontypes.Bool            `tfsdk:"scheduling_sunday_active"`
-	SchedulingSundayFrom                         jsontypes.String          `tfsdk:"scheduling_sunday_from"`
-	SchedulingSundayTo                           jsontypes.String          `tfsdk:"scheduling_sunday_to"`
-	VlanTaggingSettings                          jsontypes.String          `tfsdk:"vlan_tagging_settings"`
-	VlanTaggingVlanId                            jsontypes.String          `tfsdk:"vlan_tagging_vlan_id"`
-	ContentFilteringAllowUrlPatternsSettings     jsontypes.String          `tfsdk:"content_filtering_allow_url_patterns_settings"`
-	ContentFilteringAllowUrlPatterns             []string                  `tfsdk:"content_filtering_allow_url_patterns"`
-	ContentFilteringBlockedUrlCategoriesSettings jsontypes.String          `tfsdk:"content_filtering_blocked_url_categories_settings"`
-	ContentFilteringBlockedUrlCategories         []string                  `tfsdk:"content_filtering_blocked_url_categories"`
-	ContentFilteringBlockedUrlPatternsSettings   jsontypes.String          `tfsdk:"content_filtering_blocked_url_patterns_settings"`
-	ContentFilteringBlockedUrlPatterns           []string                  `tfsdk:"content_filtering_blocked_url_patterns"`
-}
-
-type Rule struct {
-	Description jsontypes.String `tfsdk:"description" json:"description"`
-	VlanId      jsontypes.String `tfsdk:"vlan_id" json:"vlanId"`
-	Services    []string         `tfsdk:"services" json:"services"`
+	Id                        jsontypes.String          `tfsdk:"id"`
+	NetworkId                 jsontypes.String          `tfsdk:"network_id"`
+	GroupPolicyId             jsontypes.String          `tfsdk:"group_policy_id" json:"groupPolicyId"`
+	Name                      jsontypes.String          `tfsdk:"name" json:"name"`
+	SplashAuthSettings        jsontypes.String          `tfsdk:"splash_auth_settings" json:"splashAuthSettings"`
+	Bandwidth                 Bandwidth                 `tfsdk:"bandwidth" json:"bandwidth"`
+	BonjourForwarding         BonjourForwarding         `tfsdk:"bonjour_forwarding" json:"bonjourForwarding"`
+	FirewallAndTrafficShaping FirewallAndTrafficShaping `tfsdk:"firewall_and_traffic_shaping" json:"firewallAndTrafficShaping"`
+	Scheduling                Scheduling                `tfsdk:"scheduling" json:"scheduling"`
+	VlanTagging               VlanTagging               `tfsdk:"vlan_tagging" json:"vlanTagging"`
+	ContentFiltering          ContentFiltering          `tfsdk:"content_filtering" json:"contentFiltering,omitempty"`
 }
 
 type FirewallAndTrafficShaping struct {
-	Settings            jsontypes.String     `tfsdk:"settings"`
-	L3FirewallRules     []L3FirewallRule     `tfsdk:"l3_firewall_rules"`
-	L7FirewallRules     []L7FirewallRule     `tfsdk:"l7_firewall_rules"`
-	TrafficShapingRules []TrafficShapingRule `tfsdk:"traffic_shaping_rules"`
-}
-
-type TrafficShapingRule struct {
-	DscpTagValue                     jsontypes.Int64  `tfsdk:"dscp_tag_value"`
-	PcpTagValue                      jsontypes.Int64  `tfsdk:"pcp_tag_value"`
-	PerClientBandwidthLimitsSettings jsontypes.String `tfsdk:"per_client_bandwidth_limits_settings"`
-	BandwidthLimitDown               jsontypes.Int64  `tfsdk:"bandwidth_limit_down"`
-	BandwidthLimitUp                 jsontypes.Int64  `tfsdk:"bandwidth_limit_up"`
-	Definitions                      []Definition     `tfsdk:"definitions"`
-}
-
-type Definition struct {
-	Value jsontypes.String `tfsdk:"value" json:"value"`
-	Type  jsontypes.String `tfsdk:"type" json:"type"`
+	Settings            jsontypes.String     `tfsdk:"settings" json:"settings"`
+	L3FirewallRules     []L3FirewallRule     `tfsdk:"l3_firewall_rules" json:"l3FirewallRules"`
+	L7FirewallRules     []L7FirewallRule     `tfsdk:"l7_firewall_rules" json:"l7FirewallRules"`
+	TrafficShapingRules []TrafficShapingRule `tfsdk:"traffic_shaping_rules" json:"trafficShapingRules"`
 }
 
 type L3FirewallRule struct {
@@ -118,6 +69,23 @@ type L7FirewallRule struct {
 	Policy jsontypes.String `tfsdk:"policy" json:"policy"`
 }
 
+type TrafficShapingRule struct {
+	DscpTagValue             jsontypes.Int64          `tfsdk:"dscp_tag_value" json:"dscpTagValue"`
+	PcpTagValue              jsontypes.Int64          `tfsdk:"pcp_tag_value" json:"pcpTagValue"`
+	PerClientBandwidthLimits PerClientBandwidthLimits `tfsdk:"per_client_bandwidth_limits" json:"perClientBandwidthLimits,,omitempty"`
+	Definitions              []Definition             `tfsdk:"definitions" json:"definitions"`
+}
+
+type PerClientBandwidthLimits struct {
+	BandwidthLimits BandwidthLimits  `tfsdk:"bandwidth_limits" json:"bandwidthLimits,,omitempty"`
+	Settings        jsontypes.String `tfsdk:"settings" json:"settings,,omitempty"`
+}
+
+type Definition struct {
+	Value jsontypes.String `tfsdk:"value" json:"value"`
+	Type  jsontypes.String `tfsdk:"type" json:"type"`
+}
+
 type OutPutData struct {
 	GroupPolicyId                   jsontypes.String                `json:"groupPolicyId"`
 	Name                            jsontypes.String                `json:"name"`
@@ -131,18 +99,24 @@ type OutPutData struct {
 }
 
 type Bandwidth struct {
-	BandwidthLimits BandwidthLimits  `json:"bandwidthLimits"`
-	Settings        jsontypes.String `json:"settings"`
+	BandwidthLimits BandwidthLimits  `tfsdk:"bandwidth_limits" json:"bandwidthLimits"`
+	Settings        jsontypes.String `tfsdk:"settings" json:"settings"`
 }
 
 type BandwidthLimits struct {
-	LimitUp   jsontypes.Int64 `json:"limitUp"`
-	LimitDown jsontypes.Int64 `json:"limitDown"`
+	LimitUp   jsontypes.Int64 `tfsdk:"limit_up" json:"limitUp"`
+	LimitDown jsontypes.Int64 `tfsdk:"limit_down" json:"limitDown"`
 }
 
 type BonjourForwarding struct {
-	BonjourForwardingSettings jsontypes.String `json:"settings"`
-	BonjourForwardingRules    []Rule `json:"rules"`
+	BonjourForwardingSettings jsontypes.String `tfsdk:"settings" json:"settings"`
+	BonjourForwardingRules    []Rule           `tfsdk:"rules" json:"rules"`
+}
+
+type Rule struct {
+	Description jsontypes.String `tfsdk:"description" json:"description"`
+	VlanId      jsontypes.String `tfsdk:"vlan_id" json:"vlanId"`
+	Services    []string         `tfsdk:"services" json:"services"`
 }
 
 type OutputFirewallAndTrafficShaping struct {
@@ -159,50 +133,45 @@ type OutputTrafficShapingRule struct {
 	Definitions              []Definition             `json:"definitions"`
 }
 
-type PerClientBandwidthLimits struct {
-	BandwidthLimits BandwidthLimits  `json:"bandwidthLimits"`
-	Settings        jsontypes.String `json:"settings"`
-}
-
 type Scheduling struct {
-	Enabled   jsontypes.Bool `json:"enabled"`
-	Friday    Schedule       `json:"friday"`
-	Monday    Schedule       `json:"monday"`
-	Saturday  Schedule       `json:"saturday"`
-	Sunday    Schedule       `json:"sunday"`
-	Thursday  Schedule       `json:"thursday"`
-	Tuesday   Schedule       `json:"tuesday"`
-	Wednesday Schedule       `json:"wednesday"`
+	Enabled   jsontypes.Bool `tfsdk:"enabled" json:"enabled"`
+	Friday    Schedule       `tfsdk:"friday" json:"friday"`
+	Monday    Schedule       `tfsdk:"monday" json:"monday"`
+	Saturday  Schedule       `tfsdk:"saturday" json:"saturday"`
+	Sunday    Schedule       `tfsdk:"sunday" json:"sunday"`
+	Thursday  Schedule       `tfsdk:"thursday" json:"thursday"`
+	Tuesday   Schedule       `tfsdk:"tuesday" json:"tuesday"`
+	Wednesday Schedule       `tfsdk:"wednesday" json:"wednesday"`
 }
 
 type Schedule struct {
-	From   jsontypes.String `json:"from"`
-	To     jsontypes.String `json:"to"`
-	Active jsontypes.Bool   `json:"active"`
+	From   jsontypes.String `tfsdk:"from" json:"from"`
+	To     jsontypes.String `tfsdk:"to" json:"to"`
+	Active jsontypes.Bool   `tfsdk:"active" json:"active"`
 }
 
 type VlanTagging struct {
-	Settings jsontypes.String `json:"settings"`
-	VlanId   jsontypes.String `json:"vlanId"`
+	Settings jsontypes.String `tfsdk:"settings" json:"settings"`
+	VlanId   jsontypes.String `tfsdk:"vlan_id" json:"vlanId"`
 }
 
 type ContentFiltering struct {
-	AllowedUrlPatterns   AllowedUrlPatterns   `json:"allowedUrlPatterns"`
-	BlockedUrlCategories BlockedUrlCategories `json:"blockedUrlCategories"`
-	BlockedUrlPatterns   BlockedUrlPatterns   `json:"blockedUrlPatterns"`
+	AllowedUrlPatterns   AllowedUrlPatterns   `tfsdk:"allowed_url_patterns" json:"allowedUrlPatterns"`
+	BlockedUrlCategories BlockedUrlCategories `tfsdk:"blocked_url_categories" json:"blockedUrlCategories"`
+	BlockedUrlPatterns   BlockedUrlPatterns   `tfsdk:"blocked_url_patterns" json:"blockedUrlPatterns"`
 }
 
 type AllowedUrlPatterns struct {
-	Settings jsontypes.String `json:"settings"`
-	Patterns []string         `json:"patterns"`
+	Settings jsontypes.String `tfsdk:"settings" json:"settings"`
+	Patterns []string         `tfsdk:"patterns" json:"patterns"`
 }
 type BlockedUrlCategories struct {
-	Settings   jsontypes.String `json:"settings"`
-	Categories []string         `json:"categories"`
+	Settings   jsontypes.String `tfsdk:"settings" json:"settings"`
+	Categories []string         `tfsdk:"categories" json:"categories"`
 }
 type BlockedUrlPatterns struct {
-	Settings jsontypes.String `json:"settings"`
-	Patterns []string         `json:"patterns"`
+	Settings jsontypes.String `tfsdk:"settings" json:"settings"`
+	Patterns []string         `tfsdk:"patterns" json:"patterns"`
 }
 
 func (r *NetworksGroupPolicyResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -256,241 +225,323 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 					stringvalidator.OneOf([]string{"network default", "bypass"}...),
 				},
 			},
-			"bandwidth_settings": schema.StringAttribute{
-				MarkdownDescription: "The bandwidth settings for clients bound to your group policy. How bandwidth limits are enforced. Can be 'network default', 'ignore' or 'custom'.",
+			"bandwidth": schema.SingleNestedAttribute{
+				MarkdownDescription: "The bandwidth settings for clients bound to your group policy",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes.StringType,
-				Validators: []validator.String{
-					stringvalidator.OneOf([]string{"network default", "ignore", "custom"}...),
-				},
-			},
-			"bandwidth_limit_up": schema.Int64Attribute{
-				MarkdownDescription: "The bandwidth limits object, specifying upload and download speed for clients bound to the group policy. These are only enforced if 'settings' is set to 'custom'. The maximum upload limit (integer, in Kbps). null indicates no limit.",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.Int64Type,
-			},
-			"bandwidth_limit_down": schema.Int64Attribute{
-				MarkdownDescription: "The bandwidth limits object, specifying upload and download speed for clients bound to the group policy. These are only enforced if 'settings' is set to 'custom'. The maximum download limit (integer, in Kbps). null indicates no limit.",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.Int64Type,
-			},
-			"bonjour_forwarding_settings": schema.StringAttribute{
-				MarkdownDescription: "The Bonjour settings for your group policy. Only valid if your network has a wireless configuration.",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.StringType,
-			},
-			"bonjour_forwarding_rules": schema.SetNestedAttribute{
-				Description: "A list of the Bonjour forwarding rules for your group policy. If 'settings' is set to 'custom', at least one rule must be specified.",
-				Optional:    true,
-				Computed:    true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"description": schema.StringAttribute{
-							MarkdownDescription: "A description for your Bonjour forwarding rule. Optional.",
-							Optional:            true,
-							Computed:            true,
-							CustomType:          jsontypes.StringType,
-						},
-						"vlan_id": schema.StringAttribute{
-							MarkdownDescription: "The ID of the service VLAN. Required.",
-							Optional:            true,
-							Computed:            true,
-							CustomType:          jsontypes.StringType,
-						},
-						"services": schema.SetAttribute{
-							Description: "A list of Bonjour services. At least one service must be specified. Available services are 'All Services', 'AirPlay', 'AFP', 'BitTorrent', 'FTP', 'iChat', 'iTunes', 'Printers', 'Samba', 'Scanners' and 'SSH'",
-							ElementType: jsontypes.StringType,
-							CustomType:  jsontypes.SetType[jsontypes.String](),
-							Optional:    true,
-							Computed:    true,
+				Attributes: map[string]schema.Attribute{
+					"settings": schema.StringAttribute{
+						MarkdownDescription: "How bandwidth limits are enforced. Can be 'network default', 'ignore' or 'custom'.",
+						Optional:            true,
+						Computed:            true,
+						CustomType:          jsontypes.StringType,
+					},
+					"bandwidth_limits": schema.SingleNestedAttribute{
+						MarkdownDescription: "The bandwidth limits object, specifying upload and download speed for clients bound to the group policy. These are only enforced if 'settings' is set to 'custom'.",
+						Optional:            true,
+						Computed:            true,
+						Attributes: map[string]schema.Attribute{
+							"limit_down": schema.Int64Attribute{
+								MarkdownDescription: "The maximum download limit (integer, in Kbps).",
+								Optional:            true,
+								Computed:            true,
+								CustomType:          jsontypes.Int64Type,
+							},
+							"limit_up": schema.Int64Attribute{
+								MarkdownDescription: "The maximum upload limit (integer, in Kbps).",
+								Optional:            true,
+								Computed:            true,
+								CustomType:          jsontypes.Int64Type,
+							},
 						},
 					},
 				},
 			},
-			"scheduling_enabled": schema.BoolAttribute{
-				MarkdownDescription: "Whether scheduling is enabled (true) or disabled (false). Defaults to false. If true, the schedule objects for each day of the week (monday - sunday) are parsed.",
+			"bonjour_forwarding": schema.SingleNestedAttribute{
+				MarkdownDescription: "The Bonjour settings for your group policy. Only valid if your network has a wireless configuration.",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes.BoolType,
-			},
-			"scheduling_friday_active": schema.BoolAttribute{
-				MarkdownDescription: "Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.BoolType,
-			},
-			"scheduling_friday_from": schema.StringAttribute{
-				MarkdownDescription: "The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.StringType,
-			},
-			"scheduling_friday_to": schema.StringAttribute{
-				MarkdownDescription: "The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.StringType,
-			},
-			"scheduling_monday_active": schema.BoolAttribute{
-				MarkdownDescription: "Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.BoolType,
-			},
-			"scheduling_monday_from": schema.StringAttribute{
-				MarkdownDescription: "The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.StringType,
-			},
-			"scheduling_monday_to": schema.StringAttribute{
-				MarkdownDescription: "The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.StringType,
-			},
-			"scheduling_tuesday_active": schema.BoolAttribute{
-				MarkdownDescription: "Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.BoolType,
-			},
-			"scheduling_tuesday_from": schema.StringAttribute{
-				MarkdownDescription: "The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.StringType,
-			},
-			"scheduling_tuesday_to": schema.StringAttribute{
-				MarkdownDescription: "The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.StringType,
-			},
-			"scheduling_wednesday_active": schema.BoolAttribute{
-				MarkdownDescription: "Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.BoolType,
-			},
-			"scheduling_wednesday_from": schema.StringAttribute{
-				MarkdownDescription: "The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.StringType,
-			},
-			"scheduling_wednesday_to": schema.StringAttribute{
-				MarkdownDescription: "The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.StringType,
-			},
-			"scheduling_thursday_active": schema.BoolAttribute{
-				MarkdownDescription: "Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.BoolType,
-			},
-			"scheduling_thursday_from": schema.StringAttribute{
-				MarkdownDescription: "The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.StringType,
-			},
-			"scheduling_thursday_to": schema.StringAttribute{
-				MarkdownDescription: "The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.StringType,
-			},
-			"scheduling_saturday_active": schema.BoolAttribute{
-				MarkdownDescription: "Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.BoolType,
-			},
-			"scheduling_saturday_from": schema.StringAttribute{
-				MarkdownDescription: "The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.StringType,
-			},
-			"scheduling_saturday_to": schema.StringAttribute{
-				MarkdownDescription: "The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.StringType,
-			},
-			"scheduling_sunday_active": schema.BoolAttribute{
-				MarkdownDescription: "Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.BoolType,
-			},
-			"scheduling_sunday_from": schema.StringAttribute{
-				MarkdownDescription: "The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.StringType,
-			},
-			"scheduling_sunday_to": schema.StringAttribute{
-				MarkdownDescription: "The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.StringType,
-			},
-			"content_filtering_allow_url_patterns_settings": schema.StringAttribute{
-				MarkdownDescription: "The content filtering settings for your group policy. Settings for allowed URL patterns. How URL patterns are applied. Can be 'network default', 'append' or 'override'.",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.StringType,
-				Validators: []validator.String{
-					stringvalidator.OneOf([]string{"network default", "append", "override"}...),
+				Attributes: map[string]schema.Attribute{
+					"settings": schema.StringAttribute{
+						MarkdownDescription: "How Bonjour rules are applied. Can be 'network default', 'ignore' or 'custom'.",
+						Optional:            true,
+						Computed:            true,
+						CustomType:          jsontypes.StringType,
+					},
+					"rules": schema.SetNestedAttribute{
+						Optional: true,
+						Computed: true,
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: map[string]schema.Attribute{
+								"description": schema.StringAttribute{
+									MarkdownDescription: "A description for your Bonjour forwarding rule. Optional.",
+									Optional:            true,
+									Computed:            true,
+									CustomType:          jsontypes.StringType,
+								},
+								"vlan_id": schema.StringAttribute{
+									MarkdownDescription: "The ID of the service VLAN. Required.",
+									Optional:            true,
+									Computed:            true,
+									CustomType:          jsontypes.StringType,
+								},
+								"services": schema.SetAttribute{
+									CustomType: jsontypes.SetType[jsontypes.String](),
+									Required:   true,
+									Validators: []validator.Set{
+										setvalidator.ValueStringsAre(
+											stringvalidator.OneOf([]string{"All Services", "AirPlay", "AFP", "BitTorrent", "FTP", "iChat", "iTunes", "Printers", "Samba", "Scanners", "SSH"}...),
+											stringvalidator.LengthAtLeast(3),
+										),
+									},
+								},
+							},
+						},
+					},
 				},
 			},
-			"content_filtering_allow_url_patterns": schema.SetAttribute{
-				Description: "A list of URL patterns that are allowed for content filtering for your group policy",
-				ElementType: jsontypes.StringType,
-				CustomType:  jsontypes.SetType[jsontypes.String](),
-				Required:    true,
-			},
-			"content_filtering_blocked_url_categories_settings": schema.StringAttribute{
-				MarkdownDescription: "The content filtering settings for your group policy. Settings for blocked URL categories. How URL categories are applied. Can be 'network default', 'append' or 'override'.",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.StringType,
-				Validators: []validator.String{
-					stringvalidator.OneOf([]string{"network default", "append", "override"}...),
+			"scheduling": schema.SingleNestedAttribute{
+				Optional: true,
+				Computed: true,
+				Attributes: map[string]schema.Attribute{
+					"enabled": schema.BoolAttribute{
+						MarkdownDescription: "Whether scheduling is enabled (true) or disabled (false). Defaults to false. If true, the schedule objects for each day of the week (monday - sunday) are parsed.",
+						Optional:            true,
+						Computed:            true,
+						CustomType:          jsontypes.BoolType,
+					},
+					"friday": schema.SingleNestedAttribute{
+						Optional: true,
+						Computed: true,
+						Attributes: map[string]schema.Attribute{
+							"from": schema.StringAttribute{
+								MarkdownDescription: "The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.",
+								Optional:            true,
+								Computed:            true,
+								CustomType:          jsontypes.StringType,
+							},
+							"to": schema.StringAttribute{
+								MarkdownDescription: "The time, from '00:00' to '24:00'. Must be greater than the time specified in 'from'. Defaults to '24:00'. Only 30 minute increments are allowed.",
+								Optional:            true,
+								Computed:            true,
+								CustomType:          jsontypes.StringType,
+							},
+							"active": schema.BoolAttribute{
+								MarkdownDescription: "Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.",
+								Optional:            true,
+								Computed:            true,
+								CustomType:          jsontypes.BoolType,
+							},
+						},
+					},
+					"monday": schema.SingleNestedAttribute{
+						Optional: true,
+						Computed: true,
+						Attributes: map[string]schema.Attribute{
+							"from": schema.StringAttribute{
+								MarkdownDescription: "The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.",
+								Optional:            true,
+								Computed:            true,
+								CustomType:          jsontypes.StringType,
+							},
+							"to": schema.StringAttribute{
+								MarkdownDescription: "The time, from '00:00' to '24:00'. Must be greater than the time specified in 'from'. Defaults to '24:00'. Only 30 minute increments are allowed.",
+								Optional:            true,
+								Computed:            true,
+								CustomType:          jsontypes.StringType,
+							},
+							"active": schema.BoolAttribute{
+								MarkdownDescription: "Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.",
+								Optional:            true,
+								Computed:            true,
+								CustomType:          jsontypes.BoolType,
+							},
+						},
+					},
+					"saturday": schema.SingleNestedAttribute{
+						Optional: true,
+						Computed: true,
+						Attributes: map[string]schema.Attribute{
+							"from": schema.StringAttribute{
+								MarkdownDescription: "The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.",
+								Optional:            true,
+								Computed:            true,
+								CustomType:          jsontypes.StringType,
+							},
+							"to": schema.StringAttribute{
+								MarkdownDescription: "The time, from '00:00' to '24:00'. Must be greater than the time specified in 'from'. Defaults to '24:00'. Only 30 minute increments are allowed.",
+								Optional:            true,
+								Computed:            true,
+								CustomType:          jsontypes.StringType,
+							},
+							"active": schema.BoolAttribute{
+								MarkdownDescription: "Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.",
+								Optional:            true,
+								Computed:            true,
+								CustomType:          jsontypes.BoolType,
+							},
+						},
+					},
+					"sunday": schema.SingleNestedAttribute{
+						Optional: true,
+						Computed: true,
+						Attributes: map[string]schema.Attribute{
+							"from": schema.StringAttribute{
+								MarkdownDescription: "The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.",
+								Optional:            true,
+								Computed:            true,
+								CustomType:          jsontypes.StringType,
+							},
+							"to": schema.StringAttribute{
+								MarkdownDescription: "The time, from '00:00' to '24:00'. Must be greater than the time specified in 'from'. Defaults to '24:00'. Only 30 minute increments are allowed.",
+								Optional:            true,
+								Computed:            true,
+								CustomType:          jsontypes.StringType,
+							},
+							"active": schema.BoolAttribute{
+								MarkdownDescription: "Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.",
+								Optional:            true,
+								Computed:            true,
+								CustomType:          jsontypes.BoolType,
+							},
+						},
+					},
+					"thursday": schema.SingleNestedAttribute{
+						Optional: true,
+						Computed: true,
+						Attributes: map[string]schema.Attribute{
+							"from": schema.StringAttribute{
+								MarkdownDescription: "The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.",
+								Optional:            true,
+								Computed:            true,
+								CustomType:          jsontypes.StringType,
+							},
+							"to": schema.StringAttribute{
+								MarkdownDescription: "The time, from '00:00' to '24:00'. Must be greater than the time specified in 'from'. Defaults to '24:00'. Only 30 minute increments are allowed.",
+								Optional:            true,
+								Computed:            true,
+								CustomType:          jsontypes.StringType,
+							},
+							"active": schema.BoolAttribute{
+								MarkdownDescription: "Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.",
+								Optional:            true,
+								Computed:            true,
+								CustomType:          jsontypes.BoolType,
+							},
+						},
+					},
+					"tuesday": schema.SingleNestedAttribute{
+						Optional: true,
+						Computed: true,
+						Attributes: map[string]schema.Attribute{
+							"from": schema.StringAttribute{
+								MarkdownDescription: "The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.",
+								Optional:            true,
+								Computed:            true,
+								CustomType:          jsontypes.StringType,
+							},
+							"to": schema.StringAttribute{
+								MarkdownDescription: "The time, from '00:00' to '24:00'. Must be greater than the time specified in 'from'. Defaults to '24:00'. Only 30 minute increments are allowed.",
+								Optional:            true,
+								Computed:            true,
+								CustomType:          jsontypes.StringType,
+							},
+							"active": schema.BoolAttribute{
+								MarkdownDescription: "Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.",
+								Optional:            true,
+								Computed:            true,
+								CustomType:          jsontypes.BoolType,
+							},
+						},
+					},
+					"wednesday": schema.SingleNestedAttribute{
+						Optional: true,
+						Computed: true,
+						Attributes: map[string]schema.Attribute{
+							"from": schema.StringAttribute{
+								MarkdownDescription: "The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.",
+								Optional:            true,
+								Computed:            true,
+								CustomType:          jsontypes.StringType,
+							},
+							"to": schema.StringAttribute{
+								MarkdownDescription: "The time, from '00:00' to '24:00'. Must be greater than the time specified in 'from'. Defaults to '24:00'. Only 30 minute increments are allowed.",
+								Optional:            true,
+								Computed:            true,
+								CustomType:          jsontypes.StringType,
+							},
+							"active": schema.BoolAttribute{
+								MarkdownDescription: "Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.",
+								Optional:            true,
+								Computed:            true,
+								CustomType:          jsontypes.BoolType,
+							},
+						},
+					},
 				},
 			},
-			"content_filtering_blocked_url_categories": schema.SetAttribute{
-				Description: "A list of URL categories to block for content filtering for your group policy",
-				ElementType: jsontypes.StringType,
-				CustomType:  jsontypes.SetType[jsontypes.String](),
-				Required:    true,
-			},
-			"content_filtering_blocked_url_patterns_settings": schema.StringAttribute{
-				MarkdownDescription: "The content filtering settings for your group policy. Settings for blocked URL patterns. How URL patterns are applied. Can be 'network default', 'append' or 'override'.",
+			"content_filtering": schema.SingleNestedAttribute{
+				MarkdownDescription: "The content filtering settings for your group policy",
 				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.StringType,
-				Validators: []validator.String{
-					stringvalidator.OneOf([]string{"network default", "append", "override"}...),
+				Attributes: map[string]schema.Attribute{
+					"allowed_url_patterns": schema.SingleNestedAttribute{
+						MarkdownDescription: "Settings for allowed URL patterns",
+						Optional:            true,
+						Attributes: map[string]schema.Attribute{
+							"settings": schema.StringAttribute{
+								MarkdownDescription: "How URL patterns are applied. Can be 'network default', 'append' or 'override'.",
+								Optional:            true,
+								Computed:            true,
+								CustomType:          jsontypes.StringType,
+							},
+							"patterns": schema.SetAttribute{
+								MarkdownDescription: "A list of URL patterns that are allowed",
+								CustomType:          jsontypes.SetType[jsontypes.String](),
+								Optional:            true,
+							},
+						},
+					},
+					"blocked_url_categories": schema.SingleNestedAttribute{
+						MarkdownDescription: "Settings for blocked URL categories",
+						Optional:            true,
+						Computed:            true,
+						Attributes: map[string]schema.Attribute{
+							"settings": schema.StringAttribute{
+								MarkdownDescription: "How URL categories are applied. Can be 'network default', 'append' or 'override'.",
+								Optional:            true,
+								Computed:            true,
+								CustomType:          jsontypes.StringType,
+							},
+							"categories": schema.SetAttribute{
+								MarkdownDescription: "A list of URL categories to block",
+								CustomType:          jsontypes.SetType[jsontypes.String](),
+								Optional:            true,
+							},
+						},
+					},
+					"blocked_url_patterns": schema.SingleNestedAttribute{
+						MarkdownDescription: "Settings for blocked URL patterns",
+						Optional:            true,
+						Computed:            true,
+						Attributes: map[string]schema.Attribute{
+							"settings": schema.StringAttribute{
+								MarkdownDescription: "How URL patterns are applied. Can be 'network default', 'append' or 'override'.",
+								Optional:            true,
+								Computed:            true,
+								CustomType:          jsontypes.StringType,
+							},
+							"patterns": schema.SetAttribute{
+								MarkdownDescription: "A list of URL patterns that are blocked",
+								CustomType:          jsontypes.SetType[jsontypes.String](),
+								Optional:            true,
+							},
+						},
+					},
 				},
-			},
-			"content_filtering_blocked_url_patterns": schema.SetAttribute{
-				Description: "A list of URL patterns that are blocked for content filtering for your group policy",
-				ElementType: jsontypes.StringType,
-				CustomType:  jsontypes.SetType[jsontypes.String](),
-				Required:    true,
 			},
 			"firewall_and_traffic_shaping": schema.SingleNestedAttribute{
-				MarkdownDescription: "The firewall and traffic shaping rules and settings for your policy.",
-				Required:            true,
+				Optional: true,
+				Computed: true,
 				Attributes: map[string]schema.Attribute{
 					"settings": schema.StringAttribute{
 						MarkdownDescription: "How firewall and traffic shaping rules are enforced. Can be 'network default', 'ignore' or 'custom'.",
@@ -499,8 +550,8 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 						CustomType:          jsontypes.StringType,
 					},
 					"l3_firewall_rules": schema.SetNestedAttribute{
-						Description: "An ordered array of the L3 firewall rules",
-						Required:    true,
+						Optional: true,
+						Computed: true,
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"comment": schema.StringAttribute{
@@ -526,25 +577,19 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 									Optional:            true,
 									Computed:            true,
 									CustomType:          jsontypes.StringType,
-									Validators: []validator.String{
-										stringvalidator.OneOf([]string{"allow", "deny"}...),
-									},
 								},
 								"protocol": schema.StringAttribute{
 									MarkdownDescription: "The type of protocol (must be 'tcp', 'udp', 'icmp', 'icmp6' or 'any')",
 									Optional:            true,
 									Computed:            true,
 									CustomType:          jsontypes.StringType,
-									Validators: []validator.String{
-										stringvalidator.OneOf([]string{"tcp", "udp", "icmp", "icmp6", "any"}...),
-									},
 								},
 							},
 						},
 					},
 					"l7_firewall_rules": schema.SetNestedAttribute{
-						Description: "An ordered array of the L7 firewall rules",
-						Required:    true,
+						Optional: true,
+						Computed: true,
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"value": schema.StringAttribute{
@@ -569,7 +614,8 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 						},
 					},
 					"traffic_shaping_rules": schema.SetNestedAttribute{
-						Required: true,
+						Optional: true,
+						Computed: true,
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"dscp_tag_value": schema.Int64Attribute{
@@ -584,23 +630,39 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 									Computed:            true,
 									CustomType:          jsontypes.Int64Type,
 								},
-								"per_client_bandwidth_limits_settings": schema.StringAttribute{
-									MarkdownDescription: "How bandwidth limits are applied by your rule. Can be one of 'network default', 'ignore' or 'custom'.",
-									Required:            true,
-									CustomType:          jsontypes.StringType,
-								},
-								"bandwidth_limit_down": schema.Int64Attribute{
-									MarkdownDescription: "The maximum download limit (integer, in Kbps).",
-									Optional:            true,
-									CustomType:          jsontypes.Int64Type,
-								},
-								"bandwidth_limit_up": schema.Int64Attribute{
-									MarkdownDescription: "The maximum upload limit (integer, in Kbps).",
-									Optional:            true,
-									CustomType:          jsontypes.Int64Type,
+								"per_client_bandwidth_limits": schema.SingleNestedAttribute{
+									Optional: true,
+									Computed: true,
+									Attributes: map[string]schema.Attribute{
+										"settings": schema.StringAttribute{
+											MarkdownDescription: "How bandwidth limits are applied by your rule. Can be one of 'network default', 'ignore' or 'custom'.",
+											Optional:            true,
+											Computed:            true,
+											CustomType:          jsontypes.StringType,
+										},
+										"bandwidth_limits": schema.SingleNestedAttribute{
+											Optional: true,
+											Computed: true,
+											Attributes: map[string]schema.Attribute{
+												"limit_down": schema.Int64Attribute{
+													MarkdownDescription: "The maximum download limit (integer, in Kbps).",
+													Optional:            true,
+													Computed:            true,
+													CustomType:          jsontypes.Int64Type,
+												},
+												"limit_up": schema.Int64Attribute{
+													MarkdownDescription: "The maximum upload limit (integer, in Kbps).",
+													Optional:            true,
+													Computed:            true,
+													CustomType:          jsontypes.Int64Type,
+												},
+											},
+										},
+									},
 								},
 								"definitions": schema.SetNestedAttribute{
-									Required: true,
+									Optional: true,
+									Computed: true,
 									NestedObject: schema.NestedAttributeObject{
 										Attributes: map[string]schema.Attribute{
 											"type": schema.StringAttribute{
@@ -623,17 +685,23 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 					},
 				},
 			},
-			"vlan_tagging_settings": schema.StringAttribute{
-				MarkdownDescription: "How VLAN tagging is applied. Can be 'network default', 'ignore' or 'custom'.",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.StringType,
-			},
-			"vlan_tagging_vlan_id": schema.StringAttribute{
-				MarkdownDescription: "The ID of the vlan you want to tag. This only applies if 'settings' is set to 'custom'.",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.StringType,
+			"vlan_tagging": schema.SingleNestedAttribute{
+				Optional: true,
+				Computed: true,
+				Attributes: map[string]schema.Attribute{
+					"settings": schema.StringAttribute{
+						MarkdownDescription: "How VLAN tagging is applied. Can be 'network default', 'ignore' or 'custom'.",
+						Optional:            true,
+						Computed:            true,
+						CustomType:          jsontypes.StringType,
+					},
+					"vlan_id": schema.StringAttribute{
+						MarkdownDescription: "The ID of the vlan you want to tag. This only applies if 'settings' is set to 'custom'.",
+						Optional:            true,
+						Computed:            true,
+						CustomType:          jsontypes.StringType,
+					},
+				},
 			},
 		},
 	}
@@ -676,24 +744,24 @@ func (r *NetworksGroupPolicyResource) Create(ctx context.Context, req resource.C
 
 	}
 
-	if !data.BandwidthSettings.IsUnknown() {
+	if !data.Bandwidth.Settings.IsUnknown() {
 		var bandwidth openApiClient.NetworksNetworkIdGroupPoliciesBandwidth
-		bandwidth.SetSettings(data.BandwidthSettings.ValueString())
+		bandwidth.SetSettings(data.Bandwidth.Settings.ValueString())
 		var bandwidthLimits openApiClient.NetworksNetworkIdGroupPoliciesBandwidthBandwidthLimits
-		if !data.BandwidthLimitUp.IsUnknown() {
-			bandwidthLimits.SetLimitUp(int32(data.BandwidthLimitUp.ValueInt64()))
+		if !data.Bandwidth.BandwidthLimits.LimitUp.IsUnknown() {
+			bandwidthLimits.SetLimitUp(int32(data.Bandwidth.BandwidthLimits.LimitUp.ValueInt64()))
 		}
-		if !data.BandwidthLimitDown.IsUnknown() {
-			bandwidthLimits.SetLimitDown(int32(data.BandwidthLimitDown.ValueInt64()))
+		if !data.Bandwidth.BandwidthLimits.LimitDown.IsUnknown() {
+			bandwidthLimits.SetLimitDown(int32(data.Bandwidth.BandwidthLimits.LimitDown.ValueInt64()))
 		}
 		bandwidth.SetBandwidthLimits(bandwidthLimits)
 		createNetworkGroupPolicy.SetBandwidth(bandwidth)
 	}
 
-	if len(data.BonjourForwardingRules) > 0 {
+	if len(data.BonjourForwarding.BonjourForwardingRules) > 0 {
 		var bonjourForwarding openApiClient.NetworksNetworkIdGroupPoliciesBonjourForwarding
 		var bonjourForwardingRules []openApiClient.NetworksNetworkIdGroupPoliciesBonjourForwardingRules
-		for _, attribute := range data.BonjourForwardingRules {
+		for _, attribute := range data.BonjourForwarding.BonjourForwardingRules {
 			var bonjourForwardingRule openApiClient.NetworksNetworkIdGroupPoliciesBonjourForwardingRules
 			if !attribute.Description.IsUnknown() {
 				bonjourForwardingRule.SetDescription(attribute.Description.ValueString())
@@ -703,8 +771,8 @@ func (r *NetworksGroupPolicyResource) Create(ctx context.Context, req resource.C
 			bonjourForwardingRules = append(bonjourForwardingRules, bonjourForwardingRule)
 		}
 		bonjourForwarding.SetRules(bonjourForwardingRules)
-		if !data.BonjourForwardingSettings.IsUnknown() {
-			bonjourForwarding.SetSettings(data.BonjourForwardingSettings.ValueString())
+		if !data.BonjourForwarding.BonjourForwardingSettings.IsUnknown() {
+			bonjourForwarding.SetSettings(data.BonjourForwarding.BonjourForwardingSettings.ValueString())
 		}
 		createNetworkGroupPolicy.SetBonjourForwarding(bonjourForwarding)
 	}
@@ -772,32 +840,21 @@ func (r *NetworksGroupPolicyResource) Create(ctx context.Context, req resource.C
 			}
 			var perclientBamdWidthLimits openApiClient.NetworksNetworkIdApplianceTrafficShapingRulesPerClientBandwidthLimits
 
-			if !attribute.PerClientBandwidthLimitsSettings.IsUnknown() {
+			if !attribute.PerClientBandwidthLimits.Settings.IsUnknown() {
 				var bandwidthLimits openApiClient.NetworksNetworkIdApplianceTrafficShapingRulesPerClientBandwidthLimitsBandwidthLimits
 
-				if attribute.PerClientBandwidthLimitsSettings.ValueString() != "network default" {
+				if attribute.PerClientBandwidthLimits.Settings.ValueString() != "network default" {
 
-					if !attribute.BandwidthLimitDown.Int64Value.IsUnknown() {
-						bandwidthLimits.SetLimitDown(int32(attribute.BandwidthLimitDown.ValueInt64()))
+					if !attribute.PerClientBandwidthLimits.BandwidthLimits.LimitDown.Int64Value.IsUnknown() {
+						bandwidthLimits.SetLimitDown(int32(attribute.PerClientBandwidthLimits.BandwidthLimits.LimitDown.ValueInt64()))
 					}
 
-					if !attribute.BandwidthLimitUp.Int64Value.IsUnknown() {
-						bandwidthLimits.SetLimitUp(int32(attribute.BandwidthLimitUp.ValueInt64()))
+					if !attribute.PerClientBandwidthLimits.BandwidthLimits.LimitUp.Int64Value.IsUnknown() {
+						bandwidthLimits.SetLimitUp(int32(attribute.PerClientBandwidthLimits.BandwidthLimits.LimitUp.ValueInt64()))
 					}
 					perclientBamdWidthLimits.SetBandwidthLimits(bandwidthLimits)
-				} else {
-
-					if attribute.BandwidthLimitDown.ValueInt64() != jsontypes.Int64Null().ValueInt64() {
-						resp.Diagnostics.AddError("Error:", "No need to add  band width limits for network default settings")
-						return
-					}
-
-					if attribute.BandwidthLimitUp.ValueInt64() != jsontypes.Int64Null().ValueInt64() {
-						resp.Diagnostics.AddError("Error:", "No need to add  band width limits for network default settings")
-						return
-					}
 				}
-				perclientBamdWidthLimits.SetSettings(attribute.PerClientBandwidthLimitsSettings.ValueString())
+				perclientBamdWidthLimits.SetSettings(attribute.PerClientBandwidthLimits.Settings.ValueString())
 				tf.SetPerClientBandwidthLimits(perclientBamdWidthLimits)
 			}
 			var defs []openApiClient.NetworksNetworkIdApplianceTrafficShapingRulesDefinitions
@@ -818,92 +875,92 @@ func (r *NetworksGroupPolicyResource) Create(ctx context.Context, req resource.C
 
 	createNetworkGroupPolicy.SetFirewallAndTrafficShaping(firewallAndTrafficShaping)
 
-	if !data.SchedulingEnabled.IsUnknown() {
+	if !data.Scheduling.Enabled.IsUnknown() {
 		var schedule openApiClient.NetworksNetworkIdGroupPoliciesScheduling
-		schedule.SetEnabled(data.SchedulingEnabled.ValueBool())
-		if !data.SchedulingFridayActive.IsUnknown() {
+		schedule.SetEnabled(data.Scheduling.Enabled.ValueBool())
+		if !data.Scheduling.Friday.Active.IsUnknown() {
 			var friday openApiClient.NetworksNetworkIdGroupPoliciesSchedulingFriday
-			friday.SetActive(data.SchedulingFridayActive.ValueBool())
-			friday.SetFrom(data.SchedulingFridayFrom.ValueString())
-			friday.SetTo(data.SchedulingFridayTo.ValueString())
+			friday.SetActive(data.Scheduling.Friday.Active.ValueBool())
+			friday.SetFrom(data.Scheduling.Friday.From.ValueString())
+			friday.SetTo(data.Scheduling.Friday.To.ValueString())
 			schedule.SetFriday(friday)
 		}
-		if !data.SchedulingMondayActive.IsUnknown() {
+		if !data.Scheduling.Monday.Active.IsUnknown() {
 			var monday openApiClient.NetworksNetworkIdGroupPoliciesSchedulingMonday
-			monday.SetActive(data.SchedulingMondayActive.ValueBool())
-			monday.SetFrom(data.SchedulingMondayFrom.ValueString())
-			monday.SetTo(data.SchedulingMondayTo.ValueString())
+			monday.SetActive(data.Scheduling.Monday.Active.ValueBool())
+			monday.SetFrom(data.Scheduling.Monday.From.ValueString())
+			monday.SetTo(data.Scheduling.Monday.To.ValueString())
 			schedule.SetMonday(monday)
 		}
-		if !data.SchedulingTuesdayActive.IsUnknown() {
+		if !data.Scheduling.Tuesday.Active.IsUnknown() {
 			var tuesday openApiClient.NetworksNetworkIdGroupPoliciesSchedulingTuesday
-			tuesday.SetActive(data.SchedulingTuesdayActive.ValueBool())
-			tuesday.SetFrom(data.SchedulingTuesdayFrom.ValueString())
-			tuesday.SetTo(data.SchedulingTuesdayTo.ValueString())
+			tuesday.SetActive(data.Scheduling.Tuesday.Active.ValueBool())
+			tuesday.SetFrom(data.Scheduling.Tuesday.From.ValueString())
+			tuesday.SetTo(data.Scheduling.Tuesday.To.ValueString())
 			schedule.SetTuesday(tuesday)
 		}
-		if !data.SchedulingWednesdayActive.IsUnknown() {
+		if !data.Scheduling.Wednesday.Active.IsUnknown() {
 			var wednesday openApiClient.NetworksNetworkIdGroupPoliciesSchedulingWednesday
-			wednesday.SetActive(data.SchedulingWednesdayActive.ValueBool())
-			wednesday.SetFrom(data.SchedulingWednesdayFrom.ValueString())
-			wednesday.SetTo(data.SchedulingWednesdayTo.ValueString())
+			wednesday.SetActive(data.Scheduling.Wednesday.Active.ValueBool())
+			wednesday.SetFrom(data.Scheduling.Wednesday.From.ValueString())
+			wednesday.SetTo(data.Scheduling.Wednesday.To.ValueString())
 			schedule.SetWednesday(wednesday)
 		}
-		if !data.SchedulingThursdayActive.IsUnknown() {
+		if !data.Scheduling.Thursday.Active.IsUnknown() {
 			var thursday openApiClient.NetworksNetworkIdGroupPoliciesSchedulingThursday
-			thursday.SetActive(data.SchedulingThursdayActive.ValueBool())
-			thursday.SetFrom(data.SchedulingThursdayFrom.ValueString())
-			thursday.SetTo(data.SchedulingThursdayTo.ValueString())
+			thursday.SetActive(data.Scheduling.Thursday.Active.ValueBool())
+			thursday.SetFrom(data.Scheduling.Thursday.From.ValueString())
+			thursday.SetTo(data.Scheduling.Thursday.To.ValueString())
 			schedule.SetThursday(thursday)
 		}
-		if !data.SchedulingSaturdayActive.IsUnknown() {
+		if !data.Scheduling.Saturday.Active.IsUnknown() {
 			var saturday openApiClient.NetworksNetworkIdGroupPoliciesSchedulingSaturday
-			saturday.SetActive(data.SchedulingSaturdayActive.ValueBool())
-			saturday.SetFrom(data.SchedulingSaturdayFrom.ValueString())
-			saturday.SetTo(data.SchedulingSaturdayTo.ValueString())
+			saturday.SetActive(data.Scheduling.Saturday.Active.ValueBool())
+			saturday.SetFrom(data.Scheduling.Saturday.From.ValueString())
+			saturday.SetTo(data.Scheduling.Saturday.To.ValueString())
 			schedule.SetSaturday(saturday)
 		}
-		if !data.SchedulingSundayActive.IsUnknown() {
+		if !data.Scheduling.Sunday.Active.IsUnknown() {
 			var sunday openApiClient.NetworksNetworkIdGroupPoliciesSchedulingSunday
-			sunday.SetActive(data.SchedulingSundayActive.ValueBool())
-			sunday.SetFrom(data.SchedulingSundayFrom.ValueString())
-			sunday.SetTo(data.SchedulingSundayTo.ValueString())
+			sunday.SetActive(data.Scheduling.Sunday.Active.ValueBool())
+			sunday.SetFrom(data.Scheduling.Sunday.From.ValueString())
+			sunday.SetTo(data.Scheduling.Sunday.To.ValueString())
 			schedule.SetSunday(sunday)
 		}
 		createNetworkGroupPolicy.SetScheduling(schedule)
 	}
 
-	if !data.VlanTaggingSettings.IsUnknown() {
-		if !data.VlanTaggingVlanId.IsUnknown() {
+	if !data.VlanTagging.Settings.IsUnknown() {
+		if !data.VlanTagging.VlanId.IsUnknown() {
 			var v openApiClient.NetworksNetworkIdGroupPoliciesVlanTagging
-			v.SetSettings(data.VlanTaggingSettings.ValueString())
-			v.SetVlanId(data.VlanTaggingVlanId.ValueString())
+			v.SetSettings(data.VlanTagging.Settings.ValueString())
+			v.SetVlanId(data.VlanTagging.VlanId.ValueString())
 			createNetworkGroupPolicy.SetVlanTagging(v)
 		}
 	}
 	var contentFiltering openApiClient.NetworksNetworkIdGroupPoliciesContentFiltering
 	contentFilteringStatus := false
 
-	if !data.ContentFilteringAllowUrlPatternsSettings.IsUnknown() {
+	if !data.ContentFiltering.AllowedUrlPatterns.Settings.IsUnknown() {
 		var allowedUrlPatternData openApiClient.NetworksNetworkIdGroupPoliciesContentFilteringAllowedUrlPatterns
-		allowedUrlPatternData.SetSettings(data.ContentFilteringAllowUrlPatternsSettings.ValueString())
-		allowedUrlPatternData.SetPatterns(data.ContentFilteringAllowUrlPatterns)
+		allowedUrlPatternData.SetSettings(data.ContentFiltering.AllowedUrlPatterns.Settings.ValueString())
+		allowedUrlPatternData.SetPatterns(data.ContentFiltering.AllowedUrlPatterns.Patterns)
 		contentFiltering.SetAllowedUrlPatterns(allowedUrlPatternData)
 		contentFilteringStatus = true
 	}
 
-	if !data.ContentFilteringBlockedUrlCategoriesSettings.IsUnknown() {
+	if !data.ContentFiltering.BlockedUrlCategories.Settings.IsUnknown() {
 		var blockedUrlCategorieData openApiClient.NetworksNetworkIdGroupPoliciesContentFilteringBlockedUrlCategories
-		blockedUrlCategorieData.SetSettings(data.ContentFilteringBlockedUrlCategoriesSettings.ValueString())
-		blockedUrlCategorieData.SetCategories(data.ContentFilteringBlockedUrlPatterns)
+		blockedUrlCategorieData.SetSettings(data.ContentFiltering.BlockedUrlCategories.Settings.ValueString())
+		blockedUrlCategorieData.SetCategories(data.ContentFiltering.BlockedUrlCategories.Categories)
 		contentFiltering.SetBlockedUrlCategories(blockedUrlCategorieData)
 		contentFilteringStatus = true
 	}
 
-	if !data.ContentFilteringBlockedUrlPatternsSettings.IsUnknown() {
+	if !data.ContentFiltering.BlockedUrlPatterns.Settings.IsUnknown() {
 		var blockedUrlPatternData openApiClient.NetworksNetworkIdGroupPoliciesContentFilteringBlockedUrlPatterns
-		blockedUrlPatternData.SetSettings(data.ContentFilteringBlockedUrlPatternsSettings.ValueString())
-		blockedUrlPatternData.SetPatterns(data.ContentFilteringBlockedUrlPatterns)
+		blockedUrlPatternData.SetSettings(data.ContentFiltering.BlockedUrlPatterns.Settings.ValueString())
+		blockedUrlPatternData.SetPatterns(data.ContentFiltering.BlockedUrlPatterns.Patterns)
 		contentFiltering.SetBlockedUrlPatterns(blockedUrlPatternData)
 		contentFilteringStatus = true
 	}
@@ -940,6 +997,8 @@ func (r *NetworksGroupPolicyResource) Create(ctx context.Context, req resource.C
 	}
 
 	data = extractHttpResponseGroupPolicyResource(ctx, inlineResp, data)
+
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -987,6 +1046,8 @@ func (r *NetworksGroupPolicyResource) Read(ctx context.Context, req resource.Rea
 
 	data = extractHttpResponseGroupPolicyResource(ctx, inlineResp, data)
 
+	data.Id = jsontypes.StringValue("example-id")
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
@@ -1010,24 +1071,24 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 
 	}
 
-	if !data.BandwidthSettings.IsUnknown() {
+	if !data.Bandwidth.Settings.IsUnknown() {
 		var bandwidth openApiClient.NetworksNetworkIdGroupPoliciesBandwidth
-		bandwidth.SetSettings(data.BandwidthSettings.ValueString())
+		bandwidth.SetSettings(data.Bandwidth.Settings.ValueString())
 		var bandwidthLimits openApiClient.NetworksNetworkIdGroupPoliciesBandwidthBandwidthLimits
-		if !data.BandwidthLimitUp.IsUnknown() {
-			bandwidthLimits.SetLimitUp(int32(data.BandwidthLimitUp.ValueInt64()))
+		if !data.Bandwidth.BandwidthLimits.LimitUp.IsUnknown() {
+			bandwidthLimits.SetLimitUp(int32(data.Bandwidth.BandwidthLimits.LimitUp.ValueInt64()))
 		}
-		if !data.BandwidthLimitDown.IsUnknown() {
-			bandwidthLimits.SetLimitDown(int32(data.BandwidthLimitDown.ValueInt64()))
+		if !data.Bandwidth.BandwidthLimits.LimitDown.IsUnknown() {
+			bandwidthLimits.SetLimitDown(int32(data.Bandwidth.BandwidthLimits.LimitDown.ValueInt64()))
 		}
 		bandwidth.SetBandwidthLimits(bandwidthLimits)
 		updateNetworkGroupPolicy.SetBandwidth(bandwidth)
 	}
 
-	if len(data.BonjourForwardingRules) > 0 {
+	if len(data.BonjourForwarding.BonjourForwardingRules) > 0 {
 		var bonjourForwarding openApiClient.NetworksNetworkIdGroupPoliciesBonjourForwarding
 		var bonjourForwardingRules []openApiClient.NetworksNetworkIdGroupPoliciesBonjourForwardingRules
-		for _, attribute := range data.BonjourForwardingRules {
+		for _, attribute := range data.BonjourForwarding.BonjourForwardingRules {
 			var bonjourForwardingRule openApiClient.NetworksNetworkIdGroupPoliciesBonjourForwardingRules
 			if !attribute.Description.IsUnknown() {
 				bonjourForwardingRule.SetDescription(attribute.Description.ValueString())
@@ -1037,8 +1098,8 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 			bonjourForwardingRules = append(bonjourForwardingRules, bonjourForwardingRule)
 		}
 		bonjourForwarding.SetRules(bonjourForwardingRules)
-		if !data.BonjourForwardingSettings.IsUnknown() {
-			bonjourForwarding.SetSettings(data.BonjourForwardingSettings.ValueString())
+		if !data.BonjourForwarding.BonjourForwardingSettings.IsUnknown() {
+			bonjourForwarding.SetSettings(data.BonjourForwarding.BonjourForwardingSettings.ValueString())
 		}
 		updateNetworkGroupPolicy.SetBonjourForwarding(bonjourForwarding)
 	}
@@ -1105,32 +1166,21 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 			}
 			var perclientBamdWidthLimits openApiClient.NetworksNetworkIdApplianceTrafficShapingRulesPerClientBandwidthLimits
 
-			if !attribute.PerClientBandwidthLimitsSettings.IsUnknown() {
+			if !attribute.PerClientBandwidthLimits.Settings.IsUnknown() {
 				var bandwidthLimits openApiClient.NetworksNetworkIdApplianceTrafficShapingRulesPerClientBandwidthLimitsBandwidthLimits
 
-				if attribute.PerClientBandwidthLimitsSettings.ValueString() != "network default" {
+				if attribute.PerClientBandwidthLimits.Settings.ValueString() != "network default" {
 
-					if !attribute.BandwidthLimitDown.Int64Value.IsUnknown() {
-						bandwidthLimits.SetLimitDown(int32(attribute.BandwidthLimitDown.ValueInt64()))
+					if !attribute.PerClientBandwidthLimits.BandwidthLimits.LimitDown.Int64Value.IsUnknown() {
+						bandwidthLimits.SetLimitDown(int32(attribute.PerClientBandwidthLimits.BandwidthLimits.LimitDown.ValueInt64()))
 					}
 
-					if !attribute.BandwidthLimitUp.Int64Value.IsUnknown() {
-						bandwidthLimits.SetLimitUp(int32(attribute.BandwidthLimitUp.ValueInt64()))
+					if !attribute.PerClientBandwidthLimits.BandwidthLimits.LimitUp.Int64Value.IsUnknown() {
+						bandwidthLimits.SetLimitUp(int32(attribute.PerClientBandwidthLimits.BandwidthLimits.LimitUp.ValueInt64()))
 					}
 					perclientBamdWidthLimits.SetBandwidthLimits(bandwidthLimits)
-				} else {
-
-					if attribute.BandwidthLimitDown.ValueInt64() != jsontypes.Int64Null().ValueInt64() {
-						resp.Diagnostics.AddError("Error:", "No need to add  band width limits for network default settings")
-						return
-					}
-
-					if attribute.BandwidthLimitUp.ValueInt64() != jsontypes.Int64Null().ValueInt64() {
-						resp.Diagnostics.AddError("Error:", "No need to add  band width limits for network default settings")
-						return
-					}
 				}
-				perclientBamdWidthLimits.SetSettings(attribute.PerClientBandwidthLimitsSettings.ValueString())
+				perclientBamdWidthLimits.SetSettings(attribute.PerClientBandwidthLimits.Settings.ValueString())
 				tf.SetPerClientBandwidthLimits(perclientBamdWidthLimits)
 			}
 			var defs []openApiClient.NetworksNetworkIdApplianceTrafficShapingRulesDefinitions
@@ -1148,68 +1198,69 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 		}
 		firewallAndTrafficShaping.SetTrafficShapingRules(tfs)
 	}
+
 	updateNetworkGroupPolicy.SetFirewallAndTrafficShaping(firewallAndTrafficShaping)
 
-	if !data.SchedulingEnabled.IsUnknown() {
+	if !data.Scheduling.Enabled.IsUnknown() {
 		var schedule openApiClient.NetworksNetworkIdGroupPoliciesScheduling
-		schedule.SetEnabled(data.SchedulingEnabled.ValueBool())
-		if !data.SchedulingFridayActive.IsUnknown() {
+		schedule.SetEnabled(data.Scheduling.Enabled.ValueBool())
+		if !data.Scheduling.Friday.Active.IsUnknown() {
 			var friday openApiClient.NetworksNetworkIdGroupPoliciesSchedulingFriday
-			friday.SetActive(data.SchedulingFridayActive.ValueBool())
-			friday.SetFrom(data.SchedulingFridayFrom.ValueString())
-			friday.SetTo(data.SchedulingFridayTo.ValueString())
+			friday.SetActive(data.Scheduling.Friday.Active.ValueBool())
+			friday.SetFrom(data.Scheduling.Friday.From.ValueString())
+			friday.SetTo(data.Scheduling.Friday.To.ValueString())
 			schedule.SetFriday(friday)
 		}
-		if !data.SchedulingMondayActive.IsUnknown() {
+		if !data.Scheduling.Monday.Active.IsUnknown() {
 			var monday openApiClient.NetworksNetworkIdGroupPoliciesSchedulingMonday
-			monday.SetActive(data.SchedulingMondayActive.ValueBool())
-			monday.SetFrom(data.SchedulingMondayFrom.ValueString())
-			monday.SetTo(data.SchedulingMondayTo.ValueString())
+			monday.SetActive(data.Scheduling.Monday.Active.ValueBool())
+			monday.SetFrom(data.Scheduling.Monday.From.ValueString())
+			monday.SetTo(data.Scheduling.Monday.To.ValueString())
 			schedule.SetMonday(monday)
 		}
-		if !data.SchedulingTuesdayActive.IsUnknown() {
+		if !data.Scheduling.Tuesday.Active.IsUnknown() {
 			var tuesday openApiClient.NetworksNetworkIdGroupPoliciesSchedulingTuesday
-			tuesday.SetActive(data.SchedulingTuesdayActive.ValueBool())
-			tuesday.SetFrom(data.SchedulingTuesdayFrom.ValueString())
-			tuesday.SetTo(data.SchedulingTuesdayTo.ValueString())
+			tuesday.SetActive(data.Scheduling.Tuesday.Active.ValueBool())
+			tuesday.SetFrom(data.Scheduling.Tuesday.From.ValueString())
+			tuesday.SetTo(data.Scheduling.Tuesday.To.ValueString())
 			schedule.SetTuesday(tuesday)
 		}
-		if !data.SchedulingWednesdayActive.IsUnknown() {
+		if !data.Scheduling.Wednesday.Active.IsUnknown() {
 			var wednesday openApiClient.NetworksNetworkIdGroupPoliciesSchedulingWednesday
-			wednesday.SetActive(data.SchedulingWednesdayActive.ValueBool())
-			wednesday.SetFrom(data.SchedulingWednesdayFrom.ValueString())
-			wednesday.SetTo(data.SchedulingWednesdayTo.ValueString())
+			wednesday.SetActive(data.Scheduling.Wednesday.Active.ValueBool())
+			wednesday.SetFrom(data.Scheduling.Wednesday.From.ValueString())
+			wednesday.SetTo(data.Scheduling.Wednesday.To.ValueString())
 			schedule.SetWednesday(wednesday)
 		}
-		if !data.SchedulingThursdayActive.IsUnknown() {
+		if !data.Scheduling.Thursday.Active.IsUnknown() {
 			var thursday openApiClient.NetworksNetworkIdGroupPoliciesSchedulingThursday
-			thursday.SetActive(data.SchedulingThursdayActive.ValueBool())
-			thursday.SetFrom(data.SchedulingThursdayFrom.ValueString())
-			thursday.SetTo(data.SchedulingThursdayTo.ValueString())
+			thursday.SetActive(data.Scheduling.Thursday.Active.ValueBool())
+			thursday.SetFrom(data.Scheduling.Thursday.From.ValueString())
+			thursday.SetTo(data.Scheduling.Thursday.To.ValueString())
 			schedule.SetThursday(thursday)
 		}
-		if !data.SchedulingSaturdayActive.IsUnknown() {
+		if !data.Scheduling.Saturday.Active.IsUnknown() {
 			var saturday openApiClient.NetworksNetworkIdGroupPoliciesSchedulingSaturday
-			saturday.SetActive(data.SchedulingSaturdayActive.ValueBool())
-			saturday.SetFrom(data.SchedulingSaturdayFrom.ValueString())
-			saturday.SetTo(data.SchedulingSaturdayTo.ValueString())
+			saturday.SetActive(data.Scheduling.Saturday.Active.ValueBool())
+			saturday.SetFrom(data.Scheduling.Saturday.From.ValueString())
+			saturday.SetTo(data.Scheduling.Saturday.To.ValueString())
 			schedule.SetSaturday(saturday)
 		}
-		if !data.SchedulingSundayActive.IsUnknown() {
+		if !data.Scheduling.Sunday.Active.IsUnknown() {
 			var sunday openApiClient.NetworksNetworkIdGroupPoliciesSchedulingSunday
-			sunday.SetActive(data.SchedulingSundayActive.ValueBool())
-			sunday.SetFrom(data.SchedulingSundayFrom.ValueString())
-			sunday.SetTo(data.SchedulingSundayTo.ValueString())
+			sunday.SetActive(data.Scheduling.Sunday.Active.ValueBool())
+			sunday.SetFrom(data.Scheduling.Sunday.From.ValueString())
+			sunday.SetTo(data.Scheduling.Sunday.To.ValueString())
 			schedule.SetSunday(sunday)
 		}
 		updateNetworkGroupPolicy.SetScheduling(schedule)
 	}
 
-	if !data.VlanTaggingSettings.IsUnknown() {
-		if !data.VlanTaggingVlanId.IsUnknown() {
+	if !data.VlanTagging.Settings.IsUnknown() {
+		if !data.VlanTagging.VlanId.IsUnknown() {
 			var v openApiClient.NetworksNetworkIdGroupPoliciesVlanTagging
-			v.SetSettings(data.VlanTaggingSettings.ValueString())
-			v.SetVlanId(data.VlanTaggingVlanId.ValueString())
+			v.SetSettings(data.VlanTagging.Settings.ValueString())
+			v.SetVlanId(data.VlanTagging.VlanId.ValueString())
 			updateNetworkGroupPolicy.SetVlanTagging(v)
 		}
 	}
@@ -1217,26 +1268,28 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 	var contentFiltering openApiClient.NetworksNetworkIdGroupPoliciesContentFiltering
 	contentFilteringStatus := false
 
-	if !data.ContentFilteringAllowUrlPatternsSettings.IsUnknown() {
+	if !data.ContentFiltering.AllowedUrlPatterns.Settings.IsUnknown() {
 		var allowedUrlPatternData openApiClient.NetworksNetworkIdGroupPoliciesContentFilteringAllowedUrlPatterns
-		allowedUrlPatternData.SetSettings(data.ContentFilteringAllowUrlPatternsSettings.ValueString())
-		allowedUrlPatternData.SetPatterns(data.ContentFilteringAllowUrlPatterns)
+		allowedUrlPatternData.SetSettings(data.ContentFiltering.AllowedUrlPatterns.Settings.ValueString())
+		allowedUrlPatternData.SetPatterns(data.ContentFiltering.AllowedUrlPatterns.Patterns)
 		contentFiltering.SetAllowedUrlPatterns(allowedUrlPatternData)
 		contentFilteringStatus = true
+	} else {
+		data.ContentFiltering.AllowedUrlPatterns.Settings = jsontypes.StringNull()
 	}
 
-	if !data.ContentFilteringBlockedUrlCategoriesSettings.IsUnknown() {
+	if !data.ContentFiltering.BlockedUrlCategories.Settings.IsUnknown() {
 		var blockedUrlCategorieData openApiClient.NetworksNetworkIdGroupPoliciesContentFilteringBlockedUrlCategories
-		blockedUrlCategorieData.SetSettings(data.ContentFilteringBlockedUrlCategoriesSettings.ValueString())
-		blockedUrlCategorieData.SetCategories(data.ContentFilteringBlockedUrlPatterns)
+		blockedUrlCategorieData.SetSettings(data.ContentFiltering.BlockedUrlCategories.Settings.ValueString())
+		blockedUrlCategorieData.SetCategories(data.ContentFiltering.BlockedUrlCategories.Categories)
 		contentFiltering.SetBlockedUrlCategories(blockedUrlCategorieData)
 		contentFilteringStatus = true
 	}
 
-	if !data.ContentFilteringBlockedUrlPatternsSettings.IsUnknown() {
+	if !data.ContentFiltering.BlockedUrlPatterns.Settings.IsUnknown() {
 		var blockedUrlPatternData openApiClient.NetworksNetworkIdGroupPoliciesContentFilteringBlockedUrlPatterns
-		blockedUrlPatternData.SetSettings(data.ContentFilteringBlockedUrlPatternsSettings.ValueString())
-		blockedUrlPatternData.SetPatterns(data.ContentFilteringBlockedUrlPatterns)
+		blockedUrlPatternData.SetSettings(data.ContentFiltering.BlockedUrlPatterns.Settings.ValueString())
+		blockedUrlPatternData.SetPatterns(data.ContentFiltering.BlockedUrlPatterns.Patterns)
 		contentFiltering.SetBlockedUrlPatterns(blockedUrlPatternData)
 		contentFilteringStatus = true
 	}
@@ -1273,6 +1326,8 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 	}
 
 	data = extractHttpResponseGroupPolicyResource(ctx, inlineResp, data)
+
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -1339,59 +1394,20 @@ func (r *NetworksGroupPolicyResource) ImportState(ctx context.Context, req resou
 
 func extractHttpResponseGroupPolicyResource(ctx context.Context, inlineResp map[string]interface{}, data *NetworksGroupPolicyResourceModel) *NetworksGroupPolicyResourceModel {
 
-	var outputdata OutPutData
 	jsonData, _ := json.Marshal(inlineResp)
-	json.Unmarshal(jsonData, &outputdata)
-	data.Id = jsontypes.StringValue("example-id")
-	data.GroupPolicyId = outputdata.GroupPolicyId
-	data.BandwidthSettings = outputdata.Bandwidth.Settings
-	data.BandwidthLimitUp = outputdata.Bandwidth.BandwidthLimits.LimitUp
-	data.BandwidthLimitDown = outputdata.Bandwidth.BandwidthLimits.LimitDown
-	data.SchedulingEnabled = outputdata.Scheduling.Enabled
-	data.SchedulingFridayActive = outputdata.Scheduling.Friday.Active
-	data.SchedulingFridayFrom = outputdata.Scheduling.Friday.From
-	data.SchedulingFridayTo = outputdata.Scheduling.Friday.To
-	data.SchedulingMondayActive = outputdata.Scheduling.Monday.Active
-	data.SchedulingMondayFrom = outputdata.Scheduling.Monday.From
-	data.SchedulingMondayTo = outputdata.Scheduling.Monday.To
-	data.SchedulingTuesdayActive = outputdata.Scheduling.Tuesday.Active
-	data.SchedulingTuesdayFrom = outputdata.Scheduling.Tuesday.From
-	data.SchedulingTuesdayTo = outputdata.Scheduling.Tuesday.To
-	data.SchedulingWednesdayActive = outputdata.Scheduling.Wednesday.Active
-	data.SchedulingWednesdayFrom = outputdata.Scheduling.Wednesday.From
-	data.SchedulingWednesdayTo = outputdata.Scheduling.Wednesday.To
-	data.SchedulingThursdayActive = outputdata.Scheduling.Thursday.Active
-	data.SchedulingThursdayFrom = outputdata.Scheduling.Thursday.From
-	data.SchedulingThursdayTo = outputdata.Scheduling.Thursday.To
-	data.SchedulingSaturdayActive = outputdata.Scheduling.Saturday.Active
-	data.SchedulingSaturdayFrom = outputdata.Scheduling.Saturday.From
-	data.SchedulingSaturdayTo = outputdata.Scheduling.Saturday.To
-	data.SchedulingSundayActive = outputdata.Scheduling.Sunday.Active
-	data.SchedulingSundayFrom = outputdata.Scheduling.Sunday.From
-	data.SchedulingSundayTo = outputdata.Scheduling.Sunday.To
-	data.VlanTaggingSettings = outputdata.VlanTagging.Settings
-	data.VlanTaggingVlanId = outputdata.VlanTagging.VlanId
-	data.BonjourForwardingSettings = outputdata.BonjourForwarding.BonjourForwardingSettings
-	data.BonjourForwardingRules = outputdata.BonjourForwarding.BonjourForwardingRules
-	data.FirewallAndTrafficShaping.Settings = outputdata.OutputFirewallAndTrafficShaping.Settings
-	if outputdata.OutputFirewallAndTrafficShaping.L7FirewallRules != nil {
-		data.FirewallAndTrafficShaping.L7FirewallRules = outputdata.OutputFirewallAndTrafficShaping.L7FirewallRules
-	} else {
-		data.FirewallAndTrafficShaping.L7FirewallRules = nil
-	}
-	if outputdata.OutputFirewallAndTrafficShaping.L3FirewallRules != nil {
-		data.FirewallAndTrafficShaping.L3FirewallRules = outputdata.OutputFirewallAndTrafficShaping.L3FirewallRules
-	} else {
-		data.FirewallAndTrafficShaping.L3FirewallRules = nil
-	}
-	if outputdata.OutputFirewallAndTrafficShaping.OutputTrafficShapingRules != nil {
-		for _, attribute := range outputdata.OutputFirewallAndTrafficShaping.OutputTrafficShapingRules {
+	json.Unmarshal(jsonData, &data)
+
+	var trafficShapingRule []TrafficShapingRule
+	jsonData, _ = json.Marshal(inlineResp["firewallAndTrafficShaping"].(map[string]interface{})["trafficShapingRules"])
+	json.Unmarshal(jsonData, &trafficShapingRule)
+	if len(trafficShapingRule) > 0 {
+		for _, attribute := range trafficShapingRule {
 			var trafficShapingRule TrafficShapingRule
 			trafficShapingRule.DscpTagValue = attribute.DscpTagValue
 			trafficShapingRule.PcpTagValue = attribute.PcpTagValue
-			trafficShapingRule.PerClientBandwidthLimitsSettings = attribute.PerClientBandwidthLimits.Settings
-			trafficShapingRule.BandwidthLimitDown = attribute.PerClientBandwidthLimits.BandwidthLimits.LimitDown
-			trafficShapingRule.BandwidthLimitUp = attribute.PerClientBandwidthLimits.BandwidthLimits.LimitUp
+			trafficShapingRule.PerClientBandwidthLimits.Settings = attribute.PerClientBandwidthLimits.Settings
+			trafficShapingRule.PerClientBandwidthLimits.BandwidthLimits.LimitDown = attribute.PerClientBandwidthLimits.BandwidthLimits.LimitDown
+			trafficShapingRule.PerClientBandwidthLimits.BandwidthLimits.LimitUp = attribute.PerClientBandwidthLimits.BandwidthLimits.LimitUp
 			if len(attribute.Definitions) > 0 {
 				for _, attribute := range attribute.Definitions {
 					var definition Definition
@@ -1405,26 +1421,20 @@ func extractHttpResponseGroupPolicyResource(ctx context.Context, inlineResp map[
 			data.FirewallAndTrafficShaping.TrafficShapingRules = nil
 			data.FirewallAndTrafficShaping.TrafficShapingRules = append(data.FirewallAndTrafficShaping.TrafficShapingRules, trafficShapingRule)
 		}
-	} else {
-		data.FirewallAndTrafficShaping.TrafficShapingRules = nil
 	}
-	data.ContentFilteringAllowUrlPatternsSettings = outputdata.ContentFiltering.AllowedUrlPatterns.Settings
-	data.ContentFilteringBlockedUrlCategoriesSettings = outputdata.ContentFiltering.BlockedUrlCategories.Settings
-	data.ContentFilteringBlockedUrlPatternsSettings = outputdata.ContentFiltering.BlockedUrlPatterns.Settings
-	if outputdata.ContentFiltering.AllowedUrlPatterns.Patterns != nil {
-		data.ContentFilteringAllowUrlPatterns = outputdata.ContentFiltering.AllowedUrlPatterns.Patterns
-	} else {
-		data.ContentFilteringAllowUrlPatterns = make([]string, 0)
+
+	if data.VlanTagging.VlanId.IsUnknown() {
+		data.VlanTagging.VlanId = jsontypes.StringNull()
 	}
-	if outputdata.ContentFiltering.BlockedUrlCategories.Categories != nil {
-		data.ContentFilteringBlockedUrlCategories = outputdata.ContentFiltering.BlockedUrlCategories.Categories
-	} else {
-		data.ContentFilteringBlockedUrlCategories = make([]string, 0)
+	if data.ContentFiltering.AllowedUrlPatterns.Settings.IsUnknown() {
+		data.ContentFiltering.AllowedUrlPatterns.Settings = jsontypes.StringNull()
 	}
-	if outputdata.ContentFiltering.BlockedUrlPatterns.Patterns != nil {
-		data.ContentFilteringBlockedUrlPatterns = outputdata.ContentFiltering.BlockedUrlPatterns.Patterns
-	} else {
-		data.ContentFilteringBlockedUrlPatterns = make([]string, 0)
+	if data.ContentFiltering.BlockedUrlCategories.Settings.IsUnknown() {
+		data.ContentFiltering.BlockedUrlCategories.Settings = jsontypes.StringNull()
 	}
+	if data.ContentFiltering.BlockedUrlPatterns.Settings.IsUnknown() {
+		data.ContentFiltering.BlockedUrlPatterns.Settings = jsontypes.StringNull()
+	}
+
 	return data
 }
