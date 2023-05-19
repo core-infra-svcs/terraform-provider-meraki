@@ -86,18 +86,6 @@ type Definition struct {
 	Type  jsontypes.String `tfsdk:"type" json:"type"`
 }
 
-type OutPutData struct {
-	GroupPolicyId                   jsontypes.String                `json:"groupPolicyId"`
-	Name                            jsontypes.String                `json:"name"`
-	SplashAuthSettings              jsontypes.String                `json:"splashAuthSettings"`
-	Bandwidth                       Bandwidth                       `json:"bandwidth"`
-	BonjourForwarding               BonjourForwarding               `json:"bonjourForwarding"`
-	VlanTagging                     VlanTagging                     `json:"vlanTagging"`
-	Scheduling                      Scheduling                      `json:"scheduling"`
-	OutputFirewallAndTrafficShaping OutputFirewallAndTrafficShaping `json:"firewallAndTrafficShaping"`
-	ContentFiltering                ContentFiltering                `json:"contentFiltering"`
-}
-
 type Bandwidth struct {
 	BandwidthLimits BandwidthLimits  `tfsdk:"bandwidth_limits" json:"bandwidthLimits"`
 	Settings        jsontypes.String `tfsdk:"settings" json:"settings"`
@@ -117,20 +105,6 @@ type Rule struct {
 	Description jsontypes.String `tfsdk:"description" json:"description"`
 	VlanId      jsontypes.String `tfsdk:"vlan_id" json:"vlanId"`
 	Services    []string         `tfsdk:"services" json:"services"`
-}
-
-type OutputFirewallAndTrafficShaping struct {
-	Settings                  jsontypes.String           `json:"settings"`
-	L3FirewallRules           []L3FirewallRule           `json:"l3FirewallRules"`
-	L7FirewallRules           []L7FirewallRule           `json:"l7FirewallRules"`
-	OutputTrafficShapingRules []OutputTrafficShapingRule `json:"trafficShapingRules"`
-}
-
-type OutputTrafficShapingRule struct {
-	DscpTagValue             jsontypes.Int64          `json:"dscpTagValue"`
-	PcpTagValue              jsontypes.Int64          `json:"pcpTagValue"`
-	PerClientBandwidthLimits PerClientBandwidthLimits `json:"perClientBandwidthLimits"`
-	Definitions              []Definition             `json:"definitions"`
 }
 
 type Scheduling struct {
