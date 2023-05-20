@@ -107,8 +107,8 @@ resource "meraki_network" "test" {
 }
 resource "meraki_networks_appliance_static_routes" "test" {
     depends_on = [resource.meraki_organization.test, resource.meraki_network.test]
-    network_id = "N_784752235069339433"  
-	name = "My route"
+    network_id = resource.meraki_network.test.network_id  
+    name = "My route"
     subnet = "192.168.0.0/24"
     gateway_ip = "192.168.0.0"
 	reserved_ip_ranges = []
