@@ -92,11 +92,15 @@ resource "meraki_network" "test" {
 resource "meraki_networks_appliance_traffic_shaping_uplink_selection" "test" {
 	depends_on = [resource.meraki_organization.test, resource.meraki_network.test]
     network_id = "N_784752235069351032"
-	load_balancing_enabled = false
+	active_active_auto_vpn_enabled = true
+	default_uplink = "wan1"
+	load_balancing_enabled = true
 	vpn_traffic_uplink_preferences = []
 	failover_and_failback = {
-    immediate =  {}
+    immediate =  {
+	   enabled = false
+	}
     }
-	wan_traffic_uplink_preferences = []	
+	wan_traffic_uplink_preferences = []
 }
 `

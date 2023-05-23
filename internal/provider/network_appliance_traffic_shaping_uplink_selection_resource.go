@@ -218,6 +218,11 @@ func (r *NetworksApplianceTrafficShapingUplinkSelectionResource) Schema(ctx cont
 														Computed:            true,
 														CustomType:          jsontypes.Int64Type,
 													},
+													"models": schema.ListNestedAttribute{
+														MarkdownDescription: "Filter for device models",
+														Optional:            true,
+														Type:                types.list,
+													},
 												},
 											},
 											"destination": schema.SingleNestedAttribute{
