@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -199,7 +201,7 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Create(ctx cont
 
 	updateApplianceTrafficShapingUplinkBandWidth.SetBandwidthLimits(bandwidthLimit)
 
-	inlineResp, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceTrafficShapingUplinkBandwidth(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceTrafficShapingUplinkBandwidth(updateApplianceTrafficShapingUplinkBandWidth).Execute()
+	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceTrafficShapingUplinkBandwidth(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceTrafficShapingUplinkBandwidth(updateApplianceTrafficShapingUplinkBandWidth).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to create resource",
@@ -225,7 +227,15 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Create(ctx cont
 		return
 	}
 
-	data = extractHttpResponseGroupPolicyResource(ctx, inlineResp, data)
+	// Save data into Terraform state
+	data, err = extractHttpResponseGroupPolicyResource(ctx, httpResp.Body, data)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
+	}
 
 	data.Id = jsontypes.StringValue("example-id")
 
@@ -244,7 +254,7 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Read(ctx contex
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	inlineResp, httpResp, err := r.client.ApplianceApi.GetNetworkApplianceTrafficShapingUplinkBandwidth(context.Background(), data.NetworkId.ValueString()).Execute()
+	_, httpResp, err := r.client.ApplianceApi.GetNetworkApplianceTrafficShapingUplinkBandwidth(context.Background(), data.NetworkId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to read resource",
@@ -271,7 +281,15 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Read(ctx contex
 		resp.Diagnostics.Append()
 	}
 
-	data = extractHttpResponseGroupPolicyResource(ctx, inlineResp, data)
+	// Save data into Terraform state
+	data, err = extractHttpResponseGroupPolicyResource(ctx, httpResp.Body, data)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
+	}
 
 	data.Id = jsontypes.StringValue("example-id")
 
@@ -325,7 +343,7 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Update(ctx cont
 
 	updateApplianceTrafficShapingUplinkBandWidth.SetBandwidthLimits(bandwidthLimit)
 
-	inlineResp, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceTrafficShapingUplinkBandwidth(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceTrafficShapingUplinkBandwidth(updateApplianceTrafficShapingUplinkBandWidth).Execute()
+	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceTrafficShapingUplinkBandwidth(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceTrafficShapingUplinkBandwidth(updateApplianceTrafficShapingUplinkBandWidth).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to update resource",
@@ -351,7 +369,15 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Update(ctx cont
 		return
 	}
 
-	data = extractHttpResponseGroupPolicyResource(ctx, inlineResp, data)
+	// Save data into Terraform state
+	data, err = extractHttpResponseGroupPolicyResource(ctx, httpResp.Body, data)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
+	}
 
 	data.Id = jsontypes.StringValue("example-id")
 
@@ -399,7 +425,7 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Delete(ctx cont
 
 	updateApplianceTrafficShapingUplinkBandWidth.SetBandwidthLimits(bandwidthLimit)
 
-	inlineResp, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceTrafficShapingUplinkBandwidth(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceTrafficShapingUplinkBandwidth(updateApplianceTrafficShapingUplinkBandWidth).Execute()
+	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceTrafficShapingUplinkBandwidth(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceTrafficShapingUplinkBandwidth(updateApplianceTrafficShapingUplinkBandWidth).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to delete resource",
@@ -425,7 +451,15 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Delete(ctx cont
 		return
 	}
 
-	data = extractHttpResponseGroupPolicyResource(ctx, inlineResp, data)
+	// Save data into Terraform state
+	data, err = extractHttpResponseGroupPolicyResource(ctx, httpResp.Body, data)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
+	}
 
 	data.Id = jsontypes.StringValue("example-id")
 
@@ -447,50 +481,30 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) ImportState(ctx
 	}
 }
 
-func extractHttpResponseGroupPolicyResource(ctx context.Context, inlineResp map[string]interface{}, data *NetworksApplianceTrafficShapingUplinkBandWidthResourceModel) *NetworksApplianceTrafficShapingUplinkBandWidthResourceModel {
+func extractHttpResponseGroupPolicyResource(ctx context.Context, httpRespBody io.ReadCloser, data *NetworksApplianceTrafficShapingUplinkBandWidthResourceModel) (*NetworksApplianceTrafficShapingUplinkBandWidthResourceModel, error) {
 
-	if bandwidthLimits := inlineResp["bandwidthLimits"]; bandwidthLimits != nil {
-		var bandwidthLimitsData BandwidthLimits
-		jsonData, _ := json.Marshal(bandwidthLimits)
-		json.Unmarshal(jsonData, &bandwidthLimitsData)
-		if !bandwidthLimitsData.Wan1.LimitDown.IsUnknown() {
-			data.BandwidthLimits.Wan1.LimitDown = bandwidthLimitsData.Wan1.LimitDown
-		} else {
-			data.BandwidthLimits.Wan1.LimitDown = jsontypes.Int64Null()
-		}
-		if !bandwidthLimitsData.Wan1.LimitUp.IsUnknown() {
-			data.BandwidthLimits.Wan1.LimitUp = bandwidthLimitsData.Wan1.LimitUp
-		} else {
-			data.BandwidthLimits.Wan1.LimitUp = jsontypes.Int64Null()
-		}
-		if !bandwidthLimitsData.Wan2.LimitDown.IsUnknown() {
-			data.BandwidthLimits.Wan2.LimitDown = bandwidthLimitsData.Wan2.LimitDown
-		} else {
-			data.BandwidthLimits.Wan2.LimitDown = jsontypes.Int64Null()
-		}
-		if !bandwidthLimitsData.Wan2.LimitUp.IsUnknown() {
-			data.BandwidthLimits.Wan2.LimitUp = bandwidthLimitsData.Wan2.LimitUp
-		} else {
-			data.BandwidthLimits.Wan2.LimitUp = jsontypes.Int64Null()
-		}
-		if !bandwidthLimitsData.Cellular.LimitDown.IsUnknown() {
-			data.BandwidthLimits.Cellular.LimitDown = bandwidthLimitsData.Cellular.LimitDown
-		} else {
-			data.BandwidthLimits.Cellular.LimitDown = jsontypes.Int64Null()
-		}
-		if !bandwidthLimitsData.Cellular.LimitUp.IsUnknown() {
-			data.BandwidthLimits.Cellular.LimitUp = bandwidthLimitsData.Cellular.LimitUp
-		} else {
-			data.BandwidthLimits.Cellular.LimitUp = jsontypes.Int64Null()
-		}
+	if err := json.NewDecoder(httpRespBody).Decode(data); err != nil {
+		return data, err
+	}
 
-	} else {
-		data.BandwidthLimits.Wan1.LimitUp = jsontypes.Int64Null()
-		data.BandwidthLimits.Wan1.LimitDown = jsontypes.Int64Null()
-		data.BandwidthLimits.Wan1.LimitUp = jsontypes.Int64Null()
-		data.BandwidthLimits.Wan1.LimitDown = jsontypes.Int64Null()
-		data.BandwidthLimits.Wan1.LimitUp = jsontypes.Int64Null()
+	if data.BandwidthLimits.Wan1.LimitDown.IsUnknown() {
 		data.BandwidthLimits.Wan1.LimitDown = jsontypes.Int64Null()
 	}
-	return data
+	if data.BandwidthLimits.Wan1.LimitUp.IsUnknown() {
+		data.BandwidthLimits.Wan1.LimitUp = jsontypes.Int64Null()
+	}
+	if data.BandwidthLimits.Wan2.LimitDown.Int64Value.IsUnknown() {
+		data.BandwidthLimits.Wan2.LimitDown = jsontypes.Int64Null()
+	}
+	if data.BandwidthLimits.Wan2.LimitUp.IsUnknown() {
+		data.BandwidthLimits.Wan2.LimitUp = jsontypes.Int64Null()
+	}
+	if data.BandwidthLimits.Cellular.LimitDown.IsUnknown() {
+		data.BandwidthLimits.Cellular.LimitDown = jsontypes.Int64Null()
+	}
+	if data.BandwidthLimits.Cellular.LimitUp.IsUnknown() {
+		data.BandwidthLimits.Cellular.LimitUp = jsontypes.Int64Null()
+	}
+
+	return data, nil
 }
