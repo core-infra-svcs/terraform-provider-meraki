@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccNetworksApplianceTrafficShappingUplinkBandWidthResource(t *testing.T) {
+func TestAccNetworksApplianceTrafficShapingUplinkBandWidthResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
@@ -14,25 +14,15 @@ func TestAccNetworksApplianceTrafficShappingUplinkBandWidthResource(t *testing.T
 
 			// Create test Organization
 			{
-				Config: testAccNetworksApplianceTrafficShappingUplinkBandWidthResourceConfigCreateOrganization,
+				Config: testAccNetworksApplianceTrafficShapingUplinkBandWidthResourceConfigCreateOrganization,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_acc_meraki_organizations_networks_appliance_traffic_shapping_uplink_bandWidth"),
+					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_acc_meraki_organizations_networks_appliance_traffic_shaping_uplink_bandwidth"),
 				),
 			},
 
-			// TODO - ImportState testing - This only works when hard-coded networkId.
-			/*
-				{
-					ResourceName:      "meraki_networks_appliance_traffic_shapping_uplink_bandwidth.test",
-					ImportState:       true,
-					ImportStateVerify: false,
-					ImportStateId:     "657525545596096508",
-				},
-			*/
-
 			// Create and Read Network.
 			{
-				Config: testAccNetworksApplianceTrafficShappingUplinkBandWidthResourceConfigCreateNetwork,
+				Config: testAccNetworksApplianceTrafficShapingUplinkBandWidthResourceConfigCreateNetwork,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_network.test", "name", "Main Office"),
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
@@ -46,38 +36,38 @@ func TestAccNetworksApplianceTrafficShappingUplinkBandWidthResource(t *testing.T
 				),
 			},
 
-			// Create and Read Network Appliance Traffic Shapping UplinkBandWidth.
+			// Create and Read Network Appliance Traffic Shaping UplinkBandWidth.
 			{
-				Config: testAccNetworksApplianceTrafficShappingUplinkBandWidthResourceConfigCreateNetworksApplianceTrafficShappingUplinkBandWidth,
+				Config: testAccNetworksApplianceTrafficShapingUplinkBandWidthResourceConfigCreateNetworksApplianceTrafficShapingUplinkBandWidth,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_appliance_traffic_shapping_uplink_bandWidth.test", "bandwidth_limits.wan1.limit_up", "1000000"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_traffic_shapping_uplink_bandWidth.test", "bandwidth_limits.wan1.limit_up", "1000000"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_traffic_shapping_uplink_bandWidth.test", "bandwidth_limits.cellular.limit_up", "51200"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_traffic_shapping_uplink_bandWidth.test", "bandwidth_limits.cellular.limit_up", "51200"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_traffic_shaping_uplink_bandwidth.test", "bandwidth_limits.wan1.limit_up", "1000000"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_traffic_shaping_uplink_bandwidth.test", "bandwidth_limits.wan1.limit_up", "1000000"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_traffic_shaping_uplink_bandwidth.test", "bandwidth_limits.cellular.limit_up", "51200"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_traffic_shaping_uplink_bandwidth.test", "bandwidth_limits.cellular.limit_up", "51200"),
 				),
 			},
 
-			// Update Network Appliance Traffic Shapping UplinkBandWidth.
+			// Update Network Appliance Traffic Shaping UplinkBandWidth.
 			{
-				Config: testAccNetworksApplianceTrafficShappingUplinkBandWidthResourceConfigUpdateNetworksApplianceTrafficShappingUplinkBandWidth,
+				Config: testAccNetworksApplianceTrafficShapingUplinkBandWidthResourceConfigUpdateNetworksApplianceTrafficShapingUplinkBandWidth,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_appliance_traffic_shapping_uplink_bandWidth.test", "bandwidth_limits.wan1.limit_up", "900000"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_traffic_shapping_uplink_bandWidth.test", "bandwidth_limits.wan1.limit_up", "900000"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_traffic_shapping_uplink_bandWidth.test", "bandwidth_limits.cellular.limit_up", "101200"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_traffic_shapping_uplink_bandWidth.test", "bandwidth_limits.cellular.limit_up", "101200"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_traffic_shaping_uplink_bandwidth.test", "bandwidth_limits.wan1.limit_up", "900000"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_traffic_shaping_uplink_bandwidth.test", "bandwidth_limits.wan1.limit_up", "900000"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_traffic_shaping_uplink_bandwidth.test", "bandwidth_limits.cellular.limit_up", "101200"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_traffic_shaping_uplink_bandwidth.test", "bandwidth_limits.cellular.limit_up", "101200"),
 				),
 			},
 		},
 	})
 }
 
-const testAccNetworksApplianceTrafficShappingUplinkBandWidthResourceConfigCreateOrganization = `
+const testAccNetworksApplianceTrafficShapingUplinkBandWidthResourceConfigCreateOrganization = `
  resource "meraki_organization" "test" {
- 	name = "test_acc_meraki_organizations_networks_appliance_traffic_shapping_uplink_bandWidth"
+ 	name = "test_acc_meraki_organizations_networks_appliance_traffic_shaping_uplink_bandwidth"
  	api_enabled = true
  }
  `
-const testAccNetworksApplianceTrafficShappingUplinkBandWidthResourceConfigCreateNetwork = `
+const testAccNetworksApplianceTrafficShapingUplinkBandWidthResourceConfigCreateNetwork = `
 resource "meraki_organization" "test" {}
  resource "meraki_network" "test" {
 	depends_on = [resource.meraki_organization.test]
@@ -90,7 +80,7 @@ resource "meraki_organization" "test" {}
 }
  `
 
-const testAccNetworksApplianceTrafficShappingUplinkBandWidthResourceConfigUpdateNetworksApplianceTrafficShappingUplinkBandWidth = `
+const testAccNetworksApplianceTrafficShapingUplinkBandWidthResourceConfigUpdateNetworksApplianceTrafficShapingUplinkBandWidth = `
  resource "meraki_organization" "test" {}
  
  resource "meraki_network" "test" {
@@ -98,7 +88,7 @@ const testAccNetworksApplianceTrafficShappingUplinkBandWidthResourceConfigUpdate
 	 product_types = ["appliance", "switch", "wireless"]	
  }
  
- resource "meraki_networks_appliance_traffic_shapping_uplink_bandWidth" "test" {
+ resource "meraki_networks_appliance_traffic_shaping_uplink_bandwidth" "test" {
 	 depends_on = [resource.meraki_organization.test,
 	 resource.meraki_network.test]
 	 network_id = resource.meraki_network.test.network_id
@@ -116,7 +106,7 @@ const testAccNetworksApplianceTrafficShappingUplinkBandWidthResourceConfigUpdate
  }
  `
 
-const testAccNetworksApplianceTrafficShappingUplinkBandWidthResourceConfigCreateNetworksApplianceTrafficShappingUplinkBandWidth = `
+const testAccNetworksApplianceTrafficShapingUplinkBandWidthResourceConfigCreateNetworksApplianceTrafficShapingUplinkBandWidth = `
  resource "meraki_organization" "test" {}
  
  resource "meraki_network" "test" {
@@ -124,7 +114,7 @@ const testAccNetworksApplianceTrafficShappingUplinkBandWidthResourceConfigCreate
 	 product_types = ["appliance", "switch", "wireless"]	
  }
  
- resource "meraki_networks_appliance_traffic_shapping_uplink_bandWidth" "test" {
+ resource "meraki_networks_appliance_traffic_shaping_uplink_bandwidth" "test" {
 	 depends_on = [resource.meraki_organization.test,
 	 resource.meraki_network.test]
 	 network_id = resource.meraki_network.test.network_id
