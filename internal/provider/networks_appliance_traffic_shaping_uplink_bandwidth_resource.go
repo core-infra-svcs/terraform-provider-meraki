@@ -174,7 +174,7 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Create(ctx cont
 
 	var cellular openApiClient.NetworksNetworkIdApplianceTrafficShapingUplinkBandwidthBandwidthLimitsCellular
 	if !(data.BandwidthLimits.Cellular.LimitUp.IsUnknown() || data.BandwidthLimits.Cellular.LimitDown.IsUnknown()) {
-		if !(data.BandwidthLimits.Cellular.LimitUp.IsNull() || data.BandwidthLimits.Cellular.LimitUp.IsNull()) {
+		if !(data.BandwidthLimits.Cellular.LimitUp.IsNull() || data.BandwidthLimits.Cellular.LimitDown.IsNull()) {
 			cellular.SetLimitUp(int32(data.BandwidthLimits.Cellular.LimitUp.ValueInt64()))
 			cellular.SetLimitDown(int32(data.BandwidthLimits.Cellular.LimitDown.ValueInt64()))
 			bandwidthLimit.SetCellular(cellular)
@@ -182,8 +182,8 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Create(ctx cont
 	}
 
 	var wan1 openApiClient.NetworksNetworkIdApplianceTrafficShapingUplinkBandwidthBandwidthLimitsWan1
-	if !(data.BandwidthLimits.Wan1.LimitUp.IsUnknown() || data.BandwidthLimits.Wan1.LimitUp.IsUnknown()) {
-		if !(data.BandwidthLimits.Wan1.LimitUp.IsNull() || data.BandwidthLimits.Wan1.LimitUp.IsNull()) {
+	if !(data.BandwidthLimits.Wan1.LimitUp.IsUnknown() || data.BandwidthLimits.Wan1.LimitDown.IsUnknown()) {
+		if !(data.BandwidthLimits.Wan1.LimitUp.IsNull() || data.BandwidthLimits.Wan1.LimitDown.IsNull()) {
 			wan1.SetLimitUp(int32(data.BandwidthLimits.Wan1.LimitUp.ValueInt64()))
 			wan1.SetLimitDown(int32(data.BandwidthLimits.Wan1.LimitDown.ValueInt64()))
 			bandwidthLimit.SetWan1(wan1)
@@ -191,8 +191,8 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Create(ctx cont
 	}
 
 	var wan2 openApiClient.NetworksNetworkIdApplianceTrafficShapingUplinkBandwidthBandwidthLimitsWan2
-	if !(data.BandwidthLimits.Wan2.LimitUp.IsUnknown() || data.BandwidthLimits.Wan2.LimitUp.IsUnknown()) {
-		if !(data.BandwidthLimits.Wan2.LimitUp.IsNull() || data.BandwidthLimits.Wan2.LimitUp.IsNull()) {
+	if !(data.BandwidthLimits.Wan2.LimitUp.IsUnknown() || data.BandwidthLimits.Wan2.LimitDown.IsUnknown()) {
+		if !(data.BandwidthLimits.Wan2.LimitUp.IsNull() || data.BandwidthLimits.Wan2.LimitDown.IsNull()) {
 			wan2.SetLimitUp(int32(data.BandwidthLimits.Wan2.LimitUp.ValueInt64()))
 			wan2.SetLimitDown(int32(data.BandwidthLimits.Wan2.LimitDown.ValueInt64()))
 			bandwidthLimit.SetWan2(wan2)
@@ -316,7 +316,7 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Update(ctx cont
 
 	var cellular openApiClient.NetworksNetworkIdApplianceTrafficShapingUplinkBandwidthBandwidthLimitsCellular
 	if !(data.BandwidthLimits.Cellular.LimitUp.IsUnknown() || data.BandwidthLimits.Cellular.LimitDown.IsUnknown()) {
-		if !(data.BandwidthLimits.Cellular.LimitUp.IsNull() || data.BandwidthLimits.Cellular.LimitUp.IsNull()) {
+		if !(data.BandwidthLimits.Cellular.LimitUp.IsNull() || data.BandwidthLimits.Cellular.LimitDown.IsNull()) {
 			cellular.SetLimitUp(int32(data.BandwidthLimits.Cellular.LimitUp.ValueInt64()))
 			cellular.SetLimitDown(int32(data.BandwidthLimits.Cellular.LimitDown.ValueInt64()))
 			bandwidthLimit.SetCellular(cellular)
@@ -324,8 +324,8 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Update(ctx cont
 	}
 
 	var wan1 openApiClient.NetworksNetworkIdApplianceTrafficShapingUplinkBandwidthBandwidthLimitsWan1
-	if !(data.BandwidthLimits.Wan1.LimitUp.IsUnknown() || data.BandwidthLimits.Wan1.LimitUp.IsUnknown()) {
-		if !(data.BandwidthLimits.Wan1.LimitUp.IsNull() || data.BandwidthLimits.Wan1.LimitUp.IsNull()) {
+	if !(data.BandwidthLimits.Wan1.LimitUp.IsUnknown() || data.BandwidthLimits.Wan1.LimitDown.IsUnknown()) {
+		if !(data.BandwidthLimits.Wan1.LimitUp.IsNull() || data.BandwidthLimits.Wan1.LimitDown.IsNull()) {
 			wan1.SetLimitUp(int32(data.BandwidthLimits.Wan1.LimitUp.ValueInt64()))
 			wan1.SetLimitDown(int32(data.BandwidthLimits.Wan1.LimitDown.ValueInt64()))
 			bandwidthLimit.SetWan1(wan1)
@@ -333,8 +333,8 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Update(ctx cont
 	}
 
 	var wan2 openApiClient.NetworksNetworkIdApplianceTrafficShapingUplinkBandwidthBandwidthLimitsWan2
-	if !(data.BandwidthLimits.Wan2.LimitUp.IsUnknown() || data.BandwidthLimits.Wan2.LimitUp.IsUnknown()) {
-		if !(data.BandwidthLimits.Wan2.LimitUp.IsNull() || data.BandwidthLimits.Wan2.LimitUp.IsNull()) {
+	if !(data.BandwidthLimits.Wan2.LimitUp.IsUnknown() || data.BandwidthLimits.Wan2.LimitDown.IsUnknown()) {
+		if !(data.BandwidthLimits.Wan2.LimitUp.IsNull() || data.BandwidthLimits.Wan2.LimitDown.IsNull()) {
 			wan2.SetLimitUp(int32(data.BandwidthLimits.Wan2.LimitUp.ValueInt64()))
 			wan2.SetLimitDown(int32(data.BandwidthLimits.Wan2.LimitDown.ValueInt64()))
 			bandwidthLimit.SetWan2(wan2)
@@ -404,21 +404,21 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Delete(ctx cont
 
 	var cellular openApiClient.NetworksNetworkIdApplianceTrafficShapingUplinkBandwidthBandwidthLimitsCellular
 	if !(data.BandwidthLimits.Cellular.LimitUp.IsUnknown() || data.BandwidthLimits.Cellular.LimitDown.IsUnknown()) {
-		if !(data.BandwidthLimits.Cellular.LimitUp.IsNull() || data.BandwidthLimits.Cellular.LimitUp.IsNull()) {
+		if !(data.BandwidthLimits.Cellular.LimitUp.IsNull() || data.BandwidthLimits.Cellular.LimitDown.IsNull()) {
 			bandwidthLimit.SetCellular(cellular)
 		}
 	}
 
 	var wan1 openApiClient.NetworksNetworkIdApplianceTrafficShapingUplinkBandwidthBandwidthLimitsWan1
-	if !(data.BandwidthLimits.Wan1.LimitUp.IsUnknown() || data.BandwidthLimits.Wan1.LimitUp.IsUnknown()) {
-		if !(data.BandwidthLimits.Wan1.LimitUp.IsNull() || data.BandwidthLimits.Wan1.LimitUp.IsNull()) {
+	if !(data.BandwidthLimits.Wan1.LimitUp.IsUnknown() || data.BandwidthLimits.Wan1.LimitDown.IsUnknown()) {
+		if !(data.BandwidthLimits.Wan1.LimitUp.IsNull() || data.BandwidthLimits.Wan1.LimitDown.IsNull()) {
 			bandwidthLimit.SetWan1(wan1)
 		}
 	}
 
 	var wan2 openApiClient.NetworksNetworkIdApplianceTrafficShapingUplinkBandwidthBandwidthLimitsWan2
-	if !(data.BandwidthLimits.Wan2.LimitUp.IsUnknown() || data.BandwidthLimits.Wan2.LimitUp.IsUnknown()) {
-		if !(data.BandwidthLimits.Wan2.LimitUp.IsNull() || data.BandwidthLimits.Wan2.LimitUp.IsNull()) {
+	if !(data.BandwidthLimits.Wan2.LimitUp.IsUnknown() || data.BandwidthLimits.Wan2.LimitDown.IsUnknown()) {
+		if !(data.BandwidthLimits.Wan2.LimitUp.IsNull() || data.BandwidthLimits.Wan2.LimitDown.IsNull()) {
 			bandwidthLimit.SetWan2(wan2)
 		}
 	}
