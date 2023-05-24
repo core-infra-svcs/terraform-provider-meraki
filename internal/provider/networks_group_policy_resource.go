@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"strings"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
@@ -45,7 +46,7 @@ type NetworksGroupPolicyResourceModel struct {
 	FirewallAndTrafficShaping FirewallAndTrafficShaping `tfsdk:"firewall_and_traffic_shaping" json:"firewallAndTrafficShaping"`
 	Scheduling                Scheduling                `tfsdk:"scheduling" json:"scheduling"`
 	VlanTagging               VlanTagging               `tfsdk:"vlan_tagging" json:"vlanTagging"`
-	ContentFiltering          ContentFiltering          `tfsdk:"content_filtering" json:"contentFiltering,omitempty"`
+	ContentFiltering          ContentFiltering          `tfsdk:"content_filtering" json:"contentFiltering"`
 }
 
 type FirewallAndTrafficShaping struct {
@@ -970,7 +971,14 @@ func (r *NetworksGroupPolicyResource) Create(ctx context.Context, req resource.C
 		return
 	}
 
-	data = extractHttpResponseGroupPolicyResource(ctx, inlineResp, data)
+	data, err = extractHttpResponseGroupPolicyResource(ctx, inlineResp, httpResp.Body, data)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"JSON Decode issue",
+			fmt.Sprintf("%v", err.Error()),
+		)
+		return
+	}
 
 	data.Id = jsontypes.StringValue("example-id")
 
@@ -1018,7 +1026,14 @@ func (r *NetworksGroupPolicyResource) Read(ctx context.Context, req resource.Rea
 		resp.Diagnostics.Append()
 	}
 
-	data = extractHttpResponseGroupPolicyResource(ctx, inlineResp, data)
+	data, err = extractHttpResponseGroupPolicyResource(ctx, inlineResp, httpResp.Body, data)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"JSON Decode issue",
+			fmt.Sprintf("%v", err.Error()),
+		)
+		return
+	}
 
 	data.Id = jsontypes.StringValue("example-id")
 
@@ -1299,7 +1314,14 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 		return
 	}
 
-	data = extractHttpResponseGroupPolicyResource(ctx, inlineResp, data)
+	data, err = extractHttpResponseGroupPolicyResource(ctx, inlineResp, httpResp.Body, data)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"JSON Decode issue",
+			fmt.Sprintf("%v", err.Error()),
+		)
+		return
+	}
 
 	data.Id = jsontypes.StringValue("example-id")
 
@@ -1366,13 +1388,13 @@ func (r *NetworksGroupPolicyResource) ImportState(ctx context.Context, req resou
 	}
 }
 
-func extractHttpResponseGroupPolicyResource(ctx context.Context, inlineResp map[string]interface{}, data *NetworksGroupPolicyResourceModel) *NetworksGroupPolicyResourceModel {
+func extractHttpResponseGroupPolicyResource(ctx context.Context, inlineResp map[string]interface{}, httpRespBody io.ReadCloser, data *NetworksGroupPolicyResourceModel) (*NetworksGroupPolicyResourceModel, error) {
 
-	jsonData, _ := json.Marshal(inlineResp)
-	json.Unmarshal(jsonData, &data)
-
+	if err := json.NewDecoder(httpRespBody).Decode(data); err != nil {
+		return data, err
+	}
 	var trafficShapingRule []TrafficShapingRule
-	jsonData, _ = json.Marshal(inlineResp["firewallAndTrafficShaping"].(map[string]interface{})["trafficShapingRules"])
+	jsonData, _ := json.Marshal(inlineResp["firewallAndTrafficShaping"].(map[string]interface{})["trafficShapingRules"])
 	json.Unmarshal(jsonData, &trafficShapingRule)
 	if len(trafficShapingRule) > 0 {
 		for _, attribute := range trafficShapingRule {
@@ -1410,5 +1432,5 @@ func extractHttpResponseGroupPolicyResource(ctx context.Context, inlineResp map[
 		data.ContentFiltering.BlockedUrlPatterns.Settings = jsontypes.StringNull()
 	}
 
-	return data
+	return data, nil
 }
