@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestAccNetworksCellulargatewayDhcpResource(t *testing.T) {
+func TestAccNetworksCellularGatewayDhcpResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
@@ -13,7 +13,7 @@ func TestAccNetworksCellulargatewayDhcpResource(t *testing.T) {
 
 			// Create test Organization
 			{
-				Config: testAccNetworksCellulargatewayDhcpResourceConfigCreateOrganization,
+				Config: testAccNetworksCellularGatewayDhcpResourceConfigCreateOrganization,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_meraki_networks_cellular_gateway_dhcp"),
@@ -22,7 +22,7 @@ func TestAccNetworksCellulargatewayDhcpResource(t *testing.T) {
 
 			// Create and Read testing
 			{
-				Config: testAccNetworksCellulargatewayDhcpResourceConfigCreate,
+				Config: testAccNetworksCellularGatewayDhcpResourceConfigCreate,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_network.test", "product_types.#", "4"),
 					resource.TestCheckResourceAttr("meraki_network.test", "product_types.0", "appliance"),
@@ -36,23 +36,24 @@ func TestAccNetworksCellulargatewayDhcpResource(t *testing.T) {
 
 			// Update testing
 			{
-				Config: testAccNetworksCellulargatewayDhcpResourceConfigUpdate,
+				Config: testAccNetworksCellularGatewayDhcpResourceConfigUpdate,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("NetworksCellulargatewayDhcp.test", "id", "example-id"),
+					resource.TestCheckResourceAttr("meraki_networks_cellular_gateway_dhcp.test", "id", "example-id"),
+					resource.TestCheckResourceAttr("meraki_networks_cellular_gateway_dhcp.test", "dns_custom_name_servers.0", "1.1.1.1"),
 				),
 			},
 		},
 	})
 }
 
-const testAccNetworksCellulargatewayDhcpResourceConfigCreateOrganization = `
+const testAccNetworksCellularGatewayDhcpResourceConfigCreateOrganization = `
  resource "meraki_organization" "test" {
  	name = "test_meraki_networks_cellular_gateway_dhcp"
  	api_enabled = true
  }
  `
 
-const testAccNetworksCellulargatewayDhcpResourceConfigCreate = `
+const testAccNetworksCellularGatewayDhcpResourceConfigCreate = `
 resource "meraki_organization" "test" {}
  resource "meraki_network" "test" {
 	depends_on = [resource.meraki_organization.test]
@@ -65,12 +66,12 @@ resource "meraki_organization" "test" {}
 }
 `
 
-const testAccNetworksCellulargatewayDhcpResourceConfigUpdate = `
+const testAccNetworksCellularGatewayDhcpResourceConfigUpdate = `
 resource "meraki_organization" "test" {}
  resource "meraki_network" "test" {
 	depends_on = [resource.meraki_organization.test]
 	organization_id = resource.meraki_organization.test.organization_id
-	product_types = ["appliance", "switch", "wireless"]
+	product_types = ["appliance", "switch", "wireless", "cellularGateway"]
 	tags = ["tag1"]
 	name = "Main Office"
 	timezone = "America/Los_Angeles"
@@ -82,6 +83,6 @@ resource "meraki_networks_cellular_gateway_dhcp" "test" {
     network_id = resource.meraki_network.test.network_id
 	dhcp_lease_time =  "1 hour"
 	dns_name_servers = "custom"
-	dns_custom_nameservers = ["172.16.2.111", "172.16.2.30"]
+	dns_custom_name_servers = ["1.1.1.1", "8.8.8.8"]
 }
 `

@@ -19,36 +19,36 @@ import (
 
 // Ensure provider defined types fully satisfy framework interfaces
 var (
-	_ resource.Resource                = &NetworksCellulargatewayDhcpResource{}
-	_ resource.ResourceWithConfigure   = &NetworksCellulargatewayDhcpResource{}
-	_ resource.ResourceWithImportState = &NetworksCellulargatewayDhcpResource{}
+	_ resource.Resource                = &NetworksCellularGatewayDhcpResource{}
+	_ resource.ResourceWithConfigure   = &NetworksCellularGatewayDhcpResource{}
+	_ resource.ResourceWithImportState = &NetworksCellularGatewayDhcpResource{}
 )
 
-func NewNetworksCellulargatewayDhcpResource() resource.Resource {
-	return &NetworksCellulargatewayDhcpResource{}
+func NewNetworksCellularGatewayDhcpResource() resource.Resource {
+	return &NetworksCellularGatewayDhcpResource{}
 }
 
-// NetworksCellulargatewayDhcpResource defines the resource implementation.
-type NetworksCellulargatewayDhcpResource struct {
+// NetworksCellularGatewayDhcpResource defines the resource implementation.
+type NetworksCellularGatewayDhcpResource struct {
 	client *openApiClient.APIClient
 }
 
-// NetworksCellulargatewayDhcpResourceModel describes the resource data model.
-type NetworksCellulargatewayDhcpResourceModel struct {
-	Id                   jsontypes.String                `tfsdk:"id"`
-	NetworkId            jsontypes.String                `tfsdk:"network_id"`
-	DhcpLeaseTime        jsontypes.String                `tfsdk:"dhcp_lease_time"`
-	DnsNameservers       jsontypes.String                `tfsdk:"dns_name_servers"`
-	DnsCustomNameservers jsontypes.Set[jsontypes.String] `tfsdk:"dns_custom_nameservers"`
+// NetworksCellularGatewayDhcpResourceModel describes the resource data model.
+type NetworksCellularGatewayDhcpResourceModel struct {
+	Id                   jsontypes.String   `tfsdk:"id"`
+	NetworkId            jsontypes.String   `tfsdk:"network_id"`
+	DhcpLeaseTime        jsontypes.String   `tfsdk:"dhcp_lease_time"`
+	DnsNameServers       jsontypes.String   `tfsdk:"dns_name_servers"`
+	DnsCustomNameServers []jsontypes.String `tfsdk:"dns_custom_name_servers"`
 }
 
-func (r *NetworksCellulargatewayDhcpResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *NetworksCellularGatewayDhcpResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_networks_cellular_gateway_dhcp"
 }
 
-func (r *NetworksCellulargatewayDhcpResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *NetworksCellularGatewayDhcpResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "NetworksCellulargatewayDhcp",
+		MarkdownDescription: "Networks Cellular Gateway DHCP",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:   true,
@@ -78,7 +78,7 @@ func (r *NetworksCellulargatewayDhcpResource) Schema(ctx context.Context, req re
 				Computed:            true,
 				CustomType:          jsontypes.StringType,
 			},
-			"dns_custom_nameservers": schema.SetAttribute{
+			"dns_custom_name_servers": schema.SetAttribute{
 				MarkdownDescription: "list of fixed IP representing the the DNS Name servers when the mode is 'custom'",
 				Optional:            true,
 				Computed:            true,
@@ -89,7 +89,7 @@ func (r *NetworksCellulargatewayDhcpResource) Schema(ctx context.Context, req re
 	}
 }
 
-func (r *NetworksCellulargatewayDhcpResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *NetworksCellularGatewayDhcpResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -109,8 +109,8 @@ func (r *NetworksCellulargatewayDhcpResource) Configure(ctx context.Context, req
 	r.client = client
 }
 
-func (r *NetworksCellulargatewayDhcpResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *NetworksCellulargatewayDhcpResourceModel
+func (r *NetworksCellularGatewayDhcpResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *NetworksCellularGatewayDhcpResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -120,12 +120,12 @@ func (r *NetworksCellulargatewayDhcpResource) Create(ctx context.Context, req re
 	}
 
 	object68 := openApiClient.NewInlineObject68()
-	object68.SetDnsNameservers(data.DnsNameservers.ValueString())
+	object68.SetDnsNameservers(data.DnsNameServers.ValueString())
 	object68.SetDhcpLeaseTime(data.DhcpLeaseTime.ValueString())
 	var customNameServers []string
 	{
 	}
-	for _, d := range data.DnsCustomNameservers.Elements() {
+	for _, d := range data.DnsCustomNameServers {
 		customNameServers = append(customNameServers, d.String())
 	}
 	object68.SetDnsCustomNameservers(customNameServers)
@@ -172,8 +172,8 @@ func (r *NetworksCellulargatewayDhcpResource) Create(ctx context.Context, req re
 	tflog.Trace(ctx, "create resource")
 }
 
-func (r *NetworksCellulargatewayDhcpResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *NetworksCellulargatewayDhcpResourceModel
+func (r *NetworksCellularGatewayDhcpResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *NetworksCellularGatewayDhcpResourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -224,8 +224,8 @@ func (r *NetworksCellulargatewayDhcpResource) Read(ctx context.Context, req reso
 	tflog.Trace(ctx, "read resource")
 }
 
-func (r *NetworksCellulargatewayDhcpResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data *NetworksCellulargatewayDhcpResourceModel
+func (r *NetworksCellularGatewayDhcpResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var data *NetworksCellularGatewayDhcpResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -235,12 +235,12 @@ func (r *NetworksCellulargatewayDhcpResource) Update(ctx context.Context, req re
 	}
 
 	object68 := openApiClient.NewInlineObject68()
-	object68.SetDnsNameservers(data.DnsNameservers.ValueString())
+	object68.SetDnsNameservers(data.DnsNameServers.ValueString())
 	object68.SetDhcpLeaseTime(data.DhcpLeaseTime.ValueString())
 	var customNameServers []string
 	{
 	}
-	for _, d := range data.DnsCustomNameservers.Elements() {
+	for _, d := range data.DnsCustomNameServers {
 		customNameServers = append(customNameServers, d.String())
 	}
 	object68.SetDnsCustomNameservers(customNameServers)
@@ -248,7 +248,7 @@ func (r *NetworksCellulargatewayDhcpResource) Update(ctx context.Context, req re
 
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
+			"Failed to update resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
@@ -287,8 +287,8 @@ func (r *NetworksCellulargatewayDhcpResource) Update(ctx context.Context, req re
 	tflog.Trace(ctx, "updated resource")
 }
 
-func (r *NetworksCellulargatewayDhcpResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data *NetworksCellulargatewayDhcpResourceModel
+func (r *NetworksCellularGatewayDhcpResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data *NetworksCellularGatewayDhcpResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -298,12 +298,12 @@ func (r *NetworksCellulargatewayDhcpResource) Delete(ctx context.Context, req re
 	}
 
 	object68 := openApiClient.NewInlineObject68()
-	object68.SetDnsNameservers(data.DnsNameservers.ValueString())
+	object68.SetDnsNameservers(data.DnsNameServers.ValueString())
 	object68.SetDhcpLeaseTime(data.DhcpLeaseTime.ValueString())
 	var customNameServers []string
 	{
 	}
-	for _, d := range data.DnsCustomNameservers.Elements() {
+	for _, d := range data.DnsCustomNameServers {
 		customNameServers = append(customNameServers, d.String())
 	}
 	object68.SetDnsCustomNameservers(customNameServers)
@@ -311,7 +311,7 @@ func (r *NetworksCellulargatewayDhcpResource) Delete(ctx context.Context, req re
 
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
+			"Failed to delete resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
@@ -350,7 +350,7 @@ func (r *NetworksCellulargatewayDhcpResource) Delete(ctx context.Context, req re
 	tflog.Trace(ctx, "removed resource")
 }
 
-func (r *NetworksCellulargatewayDhcpResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *NetworksCellularGatewayDhcpResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("network_id"), req.ID)...)
