@@ -24,10 +24,11 @@ func TestAccNetworksCellulargatewayDhcpResource(t *testing.T) {
 			{
 				Config: testAccNetworksCellulargatewayDhcpResourceConfigCreate,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.#", "3"),
+					resource.TestCheckResourceAttr("meraki_network.test", "product_types.#", "4"),
 					resource.TestCheckResourceAttr("meraki_network.test", "product_types.0", "appliance"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.1", "switch"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.2", "wireless"),
+					resource.TestCheckResourceAttr("meraki_network.test", "product_types.1", "cellularGateway"),
+					resource.TestCheckResourceAttr("meraki_network.test", "product_types.2", "switch"),
+					resource.TestCheckResourceAttr("meraki_network.test", "product_types.3", "wireless"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
 				),
@@ -56,7 +57,7 @@ resource "meraki_organization" "test" {}
  resource "meraki_network" "test" {
 	depends_on = [resource.meraki_organization.test]
 	organization_id = resource.meraki_organization.test.organization_id
-	product_types = ["appliance", "switch", "wireless"]
+	product_types = ["appliance", "switch", "wireless", "cellularGateway"]
 	tags = ["tag1"]
 	name = "Main Office"
 	timezone = "America/Los_Angeles"
