@@ -14,22 +14,22 @@ import (
 )
 
 var (
-	_ resource.Resource                = &NetworksSwitchDscptocosmappingsResource{}
-	_ resource.ResourceWithConfigure   = &NetworksSwitchDscptocosmappingsResource{}
-	_ resource.ResourceWithImportState = &NetworksSwitchDscptocosmappingsResource{}
+	_ resource.Resource                = &NetworksSwitchDscpToCosMappingsResource{}
+	_ resource.ResourceWithConfigure   = &NetworksSwitchDscpToCosMappingsResource{}
+	_ resource.ResourceWithImportState = &NetworksSwitchDscpToCosMappingsResource{}
 )
 
-func NewNetworksSwitchDscptocosmappingsResource() resource.Resource {
-	return &NetworksSwitchDscptocosmappingsResource{}
+func NewNetworksSwitchDscpToCosMappingsResource() resource.Resource {
+	return &NetworksSwitchDscpToCosMappingsResource{}
 }
 
-// NetworksSwitchDscptocosmappingsResource defines the resource implementation.
-type NetworksSwitchDscptocosmappingsResource struct {
+// NetworksSwitchDscpToCosMappingsResource defines the resource implementation.
+type NetworksSwitchDscpToCosMappingsResource struct {
 	client *openApiClient.APIClient
 }
 
-// NetworksSwitchDscptocosmappingsResourceModel describes the resource data model.
-type NetworksSwitchDscptocosmappingsResourceModel struct {
+// NetworksSwitchDscpToCosMappingsResourceModel describes the resource data model.
+type NetworksSwitchDscpToCosMappingsResourceModel struct {
 	Id        jsontypes.String `tfsdk:"id"`
 	NetworkId jsontypes.String `tfsdk:"network_id"`
 	Mappings  []Mapping        `tfsdk:"mappings" json:"mappings"`
@@ -40,11 +40,11 @@ type Mapping struct {
 	Cos  jsontypes.Int64 `tfsdk:"cos" json:"cos"`
 }
 
-func (r *NetworksSwitchDscptocosmappingsResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *NetworksSwitchDscpToCosMappingsResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_networks_switch_dscp_to_cos_mappings"
 }
 
-func (r *NetworksSwitchDscptocosmappingsResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *NetworksSwitchDscpToCosMappingsResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 
 		MarkdownDescription: "NetworksSwitchDscptocosmappings",
@@ -79,7 +79,7 @@ func (r *NetworksSwitchDscptocosmappingsResource) Schema(ctx context.Context, re
 	}
 }
 
-func (r *NetworksSwitchDscptocosmappingsResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *NetworksSwitchDscpToCosMappingsResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -99,8 +99,8 @@ func (r *NetworksSwitchDscptocosmappingsResource) Configure(ctx context.Context,
 	r.client = client
 }
 
-func (r *NetworksSwitchDscptocosmappingsResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *NetworksSwitchDscptocosmappingsResourceModel
+func (r *NetworksSwitchDscpToCosMappingsResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *NetworksSwitchDscpToCosMappingsResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -121,7 +121,7 @@ func (r *NetworksSwitchDscptocosmappingsResource) Create(ctx context.Context, re
 	// Create Payload
 	networkMappings := *openApiClient.NewInlineObject115(mappings)
 
-	_, httpResp, err := r.client.ConfigureApi.UpdateNetworkSwitchDscpToCosMappings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchDscpToCosMappings(networkMappings).Execute()
+	inlineResp, httpResp, err := r.client.ConfigureApi.UpdateNetworkSwitchDscpToCosMappings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchDscpToCosMappings(networkMappings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to create resource",
@@ -149,15 +149,24 @@ func (r *NetworksSwitchDscptocosmappingsResource) Create(ctx context.Context, re
 	}
 
 	data.Id = jsontypes.StringValue("example-id")
-
+	i := inlineResp["mappings"].([]interface{})
+	for _, val := range i {
+		m := val.(map[string]interface{})
+		dscp := m["dscp"]
+		cos := m["cos"]
+		data.Mappings = append([]Mapping{}, Mapping{
+			Dscp: jsontypes.Int64Value(int64(dscp.(float64))),
+			Cos:  jsontypes.Int64Value(int64(cos.(float64))),
+		})
+	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
 	tflog.Trace(ctx, "create resource")
 }
 
-func (r *NetworksSwitchDscptocosmappingsResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *NetworksSwitchDscptocosmappingsResourceModel
+func (r *NetworksSwitchDscpToCosMappingsResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *NetworksSwitchDscpToCosMappingsResourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -166,7 +175,7 @@ func (r *NetworksSwitchDscptocosmappingsResource) Read(ctx context.Context, req 
 		return
 	}
 
-	_, httpResp, err := r.client.ConfigureApi.GetNetworkSwitchDscpToCosMappings(context.Background(), data.NetworkId.ValueString()).Execute()
+	inlineResp, httpResp, err := r.client.ConfigureApi.GetNetworkSwitchDscpToCosMappings(context.Background(), data.NetworkId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to get resource",
@@ -204,6 +213,17 @@ func (r *NetworksSwitchDscptocosmappingsResource) Read(ctx context.Context, req 
 	}
 
 	data.Id = jsontypes.StringValue("example-id")
+	i := inlineResp["mappings"].([]interface{})
+	for _, val := range i {
+		m := val.(map[string]interface{})
+		dscp := m["dscp"]
+		cos := m["cos"]
+		data.Mappings = append([]Mapping{}, Mapping{
+			Dscp: jsontypes.Int64Value(int64(dscp.(float64))),
+			Cos:  jsontypes.Int64Value(int64(cos.(float64))),
+		})
+	}
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -211,8 +231,8 @@ func (r *NetworksSwitchDscptocosmappingsResource) Read(ctx context.Context, req 
 	tflog.Trace(ctx, "read resource")
 }
 
-func (r *NetworksSwitchDscptocosmappingsResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data *NetworksSwitchDscptocosmappingsResourceModel
+func (r *NetworksSwitchDscpToCosMappingsResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var data *NetworksSwitchDscpToCosMappingsResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -232,10 +252,10 @@ func (r *NetworksSwitchDscptocosmappingsResource) Update(ctx context.Context, re
 	// Create Payload
 	networkMappings := *openApiClient.NewInlineObject115(mappings)
 
-	_, httpResp, err := r.client.ConfigureApi.UpdateNetworkSwitchDscpToCosMappings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchDscpToCosMappings(networkMappings).Execute()
+	inlineResp, httpResp, err := r.client.ConfigureApi.UpdateNetworkSwitchDscpToCosMappings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchDscpToCosMappings(networkMappings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
+			"Failed to update resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
@@ -260,6 +280,17 @@ func (r *NetworksSwitchDscptocosmappingsResource) Update(ctx context.Context, re
 	}
 
 	data.Id = jsontypes.StringValue("example-id")
+	i := inlineResp["mappings"].([]interface{})
+	for _, val := range i {
+		m := val.(map[string]interface{})
+		dscp := m["dscp"]
+		cos := m["cos"]
+		data.Mappings = append([]Mapping{}, Mapping{
+			Dscp: jsontypes.Int64Value(int64(dscp.(float64))),
+			Cos:  jsontypes.Int64Value(int64(cos.(float64))),
+		})
+	}
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -267,8 +298,8 @@ func (r *NetworksSwitchDscptocosmappingsResource) Update(ctx context.Context, re
 	tflog.Trace(ctx, "updated resource")
 }
 
-func (r *NetworksSwitchDscptocosmappingsResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data *NetworksSwitchDscptocosmappingsResourceModel
+func (r *NetworksSwitchDscpToCosMappingsResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data *NetworksSwitchDscpToCosMappingsResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -288,10 +319,10 @@ func (r *NetworksSwitchDscptocosmappingsResource) Delete(ctx context.Context, re
 	// Create Payload
 	networkMappings := *openApiClient.NewInlineObject115(mappings)
 
-	_, httpResp, err := r.client.ConfigureApi.UpdateNetworkSwitchDscpToCosMappings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchDscpToCosMappings(networkMappings).Execute()
+	inlineResp, httpResp, err := r.client.ConfigureApi.UpdateNetworkSwitchDscpToCosMappings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchDscpToCosMappings(networkMappings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
+			"Failed to delete resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
@@ -316,6 +347,17 @@ func (r *NetworksSwitchDscptocosmappingsResource) Delete(ctx context.Context, re
 	}
 
 	data.Id = jsontypes.StringValue("example-id")
+	i := inlineResp["mappings"].([]interface{})
+	for _, val := range i {
+		m := val.(map[string]interface{})
+		dscp := m["dscp"]
+		cos := m["cos"]
+		data.Mappings = append([]Mapping{}, Mapping{
+			Dscp: jsontypes.Int64Value(int64(dscp.(float64))),
+			Cos:  jsontypes.Int64Value(int64(cos.(float64))),
+		})
+	}
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -324,7 +366,7 @@ func (r *NetworksSwitchDscptocosmappingsResource) Delete(ctx context.Context, re
 
 }
 
-func (r *NetworksSwitchDscptocosmappingsResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *NetworksSwitchDscpToCosMappingsResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("network_id"), req.ID)...)
