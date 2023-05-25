@@ -20,16 +20,6 @@ func TestAccNetworkApplianceTrafficShapingUplinkSelectionResource(t *testing.T) 
 				),
 			},
 
-			// TODO - ImportState testing - This only works when hard-coded networkId.
-			/*
-				{
-					ResourceName:      "meraki_networks_appliance_traffic_shaping_uplink_selection.test",
-					ImportState:       true,
-					ImportStateVerify: false,
-					ImportStateId:     "657525545596096508",
-				},
-			*/
-
 			// Create and Read Network.
 			{
 				Config: testAccNetworkApplianceTrafficShapingUplinkSelectionResourceConfigCreateNetwork,
@@ -91,7 +81,7 @@ resource "meraki_network" "test" {
 
 resource "meraki_networks_appliance_traffic_shaping_uplink_selection" "test" {
 	depends_on = [resource.meraki_organization.test, resource.meraki_network.test]
-    network_id = "N_784752235069351032"
+    network_id = resource.meraki_network.test.network_id
 	active_active_auto_vpn_enabled = true
 	default_uplink = "wan1"
 	load_balancing_enabled = true
