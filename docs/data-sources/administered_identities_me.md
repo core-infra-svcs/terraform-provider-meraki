@@ -3,12 +3,12 @@
 page_title: "meraki_administered_identities_me Data Source - terraform-provider-meraki"
 subcategory: ""
 description: |-
-  AdministeredIdentitiesMe data source - Returns the identity of the current user
+  Returns the identity of the current user
 ---
 
 # meraki_administered_identities_me (Data Source)
 
-AdministeredIdentitiesMe data source - Returns the identity of the current user
+Returns the identity of the current user
 
 
 
@@ -17,16 +17,16 @@ AdministeredIdentitiesMe data source - Returns the identity of the current user
 
 ### Optional
 
-- `authentication_api_key_created` (Boolean) API authentication Key
+- `authentication_api_key_created` (Boolean) If API key is created for this user
 - `authentication_mode` (String) Authentication mode
-- `authentication_saml_enabled` (Boolean) SAML authentication
-- `authentication_two_factor_enabled` (Boolean) TwoFactor authentication
+- `authentication_saml_enabled` (Boolean) If SAML authentication is enabled for this user
+- `authentication_two_factor_enabled` (Boolean) If twoFactor authentication is enabled for this user
 - `email` (String) User email
 - `last_used_dashboard_at` (String) Last seen active on Dashboard UI
 - `name` (String) Username
 
 ### Read-Only
 
-- `id` (String) Example identifier
+- `id` (String) The ID of this resource.
 
 

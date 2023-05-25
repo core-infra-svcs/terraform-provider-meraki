@@ -3,12 +3,12 @@
 page_title: "meraki_organizations Data Source - terraform-provider-meraki"
 subcategory: ""
 description: |-
-  Organizations data source
+  List the organizations that the user has privileges on
 ---
 
 # meraki_organizations (Data Source)
 
-Organizations data source
+List the organizations that the user has privileges on
 
 
 
@@ -17,11 +17,11 @@ Organizations data source
 
 ### Optional
 
-- `list` (Attributes Set) List of organizations (see [below for nested schema](#nestedatt--list))
+- `list` (Attributes List) (see [below for nested schema](#nestedatt--list))
 
 ### Read-Only
 
-- `id` (String) Example identifier
+- `id` (String) The ID of this resource.
 
 <a id="nestedatt--list"></a>
 ### Nested Schema for `list`
@@ -29,7 +29,7 @@ Organizations data source
 Optional:
 
 - `api_enabled` (Boolean) Enable API access
-- `cloud_region` (String) Region info
+- `cloud_region_name` (String) Name of region
 - `licensing_model` (String) Organization licensing model. Can be 'co-term', 'per-device', or 'subscription'.
 - `name` (String) Organization name
 - `organization_id` (String) Organization ID

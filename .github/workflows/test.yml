@@ -16,14 +16,27 @@ permissions:
   contents: read
 
 jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          # Optional: version of golangci-lint to use in form of v1.2 or v1.2.3 or `latest` to use the latest version
+          version: latest
+
   # Ensure project builds before running testing matrix
   build:
     name: Build
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    needs: lint
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
+      - uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
           cache: true
@@ -34,7 +47,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
+      - uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
           cache: true
@@ -55,12 +68,10 @@ jobs:
       matrix:
         # list whatever Terraform versions here you would like to support
         terraform:
-          - '1.0.*'
-          - '1.1.*'
           - '1.2.*'
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
+      - uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
           cache: true
@@ -71,6 +82,7 @@ jobs:
       - run: go mod download
       - env:
           TF_ACC: "1"
-          MERAKI_DASHBOARD_API_KEY: ${{ secrets.GITHUB_MERAKI_DASHBOARD_API_KEY }}
+          # Turning this off until we get a sweeper...
+          #MERAKI_DASHBOARD_API_KEY: ${{ secrets.MERAKI_DASHBOARD_API_KEY }}
         run: go test -v -cover ./internal/provider/
         timeout-minutes: 10
