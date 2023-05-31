@@ -7,16 +7,20 @@ import (
 	"testing"
 )
 
-// TODO - DON'T FORGET TO DELETE ALL "TODO" COMMENTS!
-// TODO - Testing is meant to be atomic in that we give very specific instructions for how to create, read, update, and delete infrastructure across test steps.
-// TODO - This is really useful for troubleshooting resources/data sources during development and provides a high level of confidence that our provider works as intended.
+// TestAccOrganizationsClaimResource function is used to test the CRUD operations of the Terraform resource you are developing.
+// It runs the test cases in order to create, read, update, and delete the resource and checks the state at each step.
 func TestAccOrganizationsClaimResource(t *testing.T) {
+
+	// The resource.Test function is used to run the test cases.
 	resource.Test(t, resource.TestCase{
+		// PreCheck function is used to do the necessary setup before running the test cases.
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+
+		// Steps is a slice of TestStep where each TestStep represents a test case.
 		Steps: []resource.TestStep{
 
-			// Create test Organization
+			// Create and Read an Organization.
 			{
 				Config: testAccOrganizationsClaimResourceConfigCreateOrganization,
 				Check: resource.ComposeAggregateTestCheckFunc(
@@ -25,12 +29,11 @@ func TestAccOrganizationsClaimResource(t *testing.T) {
 				),
 			},
 
-			// Create and Read testing
+			// TODO: Create and Read OrganizationsClaim
 			{
-				Config: testAccOrganizationsClaimResourceConfigCreate(os.Getenv("TF_ACC_MERAKI_ORDER_NUMBER"),
-					os.Getenv("TF_ACC_MERAKI_MX_SERIAL"), os.Getenv("TF_ACC_MERAKI_MX_LICENCE")),
+				Config: testAccOrganizationsClaimResourceConfigCreate,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("organizations_claim.test", "id", "example-id"),
+					resource.TestCheckResourceAttr("OrganizationsClaim.test", "id", "example-id"),
 
 					resource.TestCheckResourceAttr("organizations_claim.test", "orders.#", "1"),
 					resource.TestCheckResourceAttr("organizations_claim.test", "orders.0", os.Getenv("TF_ACC_MERAKI_ORDER_NUMBER")),
@@ -44,12 +47,11 @@ func TestAccOrganizationsClaimResource(t *testing.T) {
 				),
 			},
 
-			// Update testing
+			// TODO: Update and Read OrganizationsClaim
 			{
-				Config: testAccOrganizationsClaimResourceConfigUpdate(os.Getenv("TF_ACC_MERAKI_ORDER_NUMBER"),
-					os.Getenv("TF_ACC_MERAKI_MX_SERIAL"), os.Getenv("TF_ACC_MERAKI_MX_LICENCE")),
+				Config: testAccOrganizationsClaimResourceConfigUpdate,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("organizations_claim.test", "id", "example-id"),
+					resource.TestCheckResourceAttr("OrganizationsClaim.test", "id", "example-id"),
 
 					resource.TestCheckResourceAttr("organizations_claim.test", "orders.#", "1"),
 					resource.TestCheckResourceAttr("organizations_claim.test", "orders.0", os.Getenv("TF_ACC_MERAKI_ORDER_NUMBER")),
@@ -62,19 +64,13 @@ func TestAccOrganizationsClaimResource(t *testing.T) {
 					resource.TestCheckResourceAttr("organizations_claim.test", "licenses.0.mode", "addDevices"),
 				),
 			},
-
-			//	TODO - organizations_licence (Remove Licenses)
-			// deviceSerial	string	The serial number of the device to assign this license to.
-			//Set this to null to unassign the license. If a different license is already active on the device,
-			//this parameter will control queueing/dequeuing this license.
-
-			// TODO - organizations_inventory_release (Remove Serials)
-
-			// Delete testing automatically occurs in TestCase
 		},
+
+		// The resource.Test function automatically tests the Delete operation.
 	})
 }
 
+// testAccOrganizationsClaimResourceConfigCreateOrganization is a constant string that defines the configuration for creating an organization resource in your tests.
 const testAccOrganizationsClaimResourceConfigCreateOrganization = `
  resource "meraki_organization" "test" {
  	name = "test_meraki_organizations_claim"
@@ -82,6 +78,8 @@ const testAccOrganizationsClaimResourceConfigCreateOrganization = `
  }
  `
 
+// testAccOrganizationsClaimResourceConfigCreate is a constant string that defines the configuration for creating and reading a organizations_claim resource in your tests.
+// It depends on both the organization and network resources.
 func testAccOrganizationsClaimResourceConfigCreate(order, serial, licence string) string {
 	result := fmt.Sprintf(`
 	resource "meraki_organization" "test" {}
@@ -99,9 +97,12 @@ func testAccOrganizationsClaimResourceConfigCreate(order, serial, licence string
 	
 	}
 `, order, serial, licence)
-	return result
+	return string(result)
 }
 
+// TODO: Make a change to the configuration to test
+// testAccOrganizationsClaimResourceConfigUpdate is a constant string that defines the configuration for updating a organizations_claim resource in your tests.
+// It depends on both the organization and network resources.
 func testAccOrganizationsClaimResourceConfigUpdate(order, serial, licence string) string {
 	result := fmt.Sprintf(`
 	resource "meraki_organization" "test" {}
@@ -121,39 +122,3 @@ func testAccOrganizationsClaimResourceConfigUpdate(order, serial, licence string
 `, order, serial, licence)
 	return result
 }
-
-/*
-const testAccOrganizationsClaimResourceConfigCreate = `
-resource "meraki_organization" "test" {}
-
-resource "meraki_organizations_claim" "test" {
-	organization_id = resource.meraki_organization.test.organization_id
-	orders = ["4CXXXXXXX"]
-	serials = ["Q234-ABCD-5678"]
-	licences = [
-		{
-			"key": "Z2XXXXXXXXXX",
-			"mode": "addDevices"
-		}
-	]
-
-}
-`
-
-const testAccOrganizationsClaimResourceConfigUpdate = `
-resource "meraki_organization" "test" {}
-
-resource "meraki_organizations_claim" "test" {
-	organization_id  = resource.meraki_organization.test.organization_id
-    orders = ["4CXXXXXXX"]
-	serials = ["Q234-ABCD-5678"]
-	licences = [
-		{
-			"key": "Z2XXXXXXXXXX",
-			"mode": "addDevices"
-		}
-	]
-
-}
-`
-*/

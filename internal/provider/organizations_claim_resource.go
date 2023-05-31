@@ -2,138 +2,150 @@ package provider
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	apiclient "github.com/core-infra-svcs/dashboard-api-go/client"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	openApiClient "github.com/meraki/dashboard-api-go/client"
 )
 
-// TODO - DON'T FORGET TO DELETE ALL "TODO" COMMENTS!
+// The below var block ensures that the provider defined types fully satisfy the required
+// interfaces for a Terraform resource. This includes resource.Resource, resource.ResourceWithConfigure,
+// and resource.ResourceWithImportState.
 
-// Ensure provider defined types fully satisfy framework interfaces
-var _ resource.Resource = &OrganizationsClaimResource{}
-var _ resource.ResourceWithImportState = &OrganizationsClaimResource{}
+// OrganizationsClaimResource struct.
+var (
+	_ resource.Resource              = &OrganizationsClaimResource{} // Terraform resource interface
+	_ resource.ResourceWithConfigure = &OrganizationsClaimResource{} // Interface for resources with configuration methods
+)
 
+// The NewOrganizationsClaimResource function is a constructor for the resource. This function needs
+// to be added to the list of Resources in provider.go: func (p *ScaffoldingProvider) Resources.
+// If it's not added, the provider won't be aware of this resource's existence.
 func NewOrganizationsClaimResource() resource.Resource {
 	return &OrganizationsClaimResource{}
 }
 
-// OrganizationsClaimResource defines the resource implementation.
+// OrganizationsClaimResource struct defines the structure for this resource.
+// It includes an APIClient field for making requests to the Meraki API.
+// If additional fields are required (e.g., for caching or for tracking internal state), add them here.
 type OrganizationsClaimResource struct {
-	client *apiclient.APIClient
+	client *openApiClient.APIClient // APIClient instance for making API requests
 }
 
-// OrganizationsClaimResourceModel describes the resource data model.
+// The OrganizationsClaimResourceModel structure describes the data model.
+// This struct is where you define all the attributes that are part of this resource's state.
 type OrganizationsClaimResourceModel struct {
-	Id       types.String                        `tfsdk:"id"`
-	OrgId    types.String                        `tfsdk:"organization_id"`
-	Orders   []types.String                      `tfsdk:"orders"`
-	Serials  []types.String                      `tfsdk:"serials"`
-	Licences []OrganizationsClaimResourceLicence `tfsdk:"licences"`
+
+	// The Id field is mandatory for all resources. It's used for resource identification and is required
+	// for the acceptance tests to run.
+	Id             jsontypes.String                    `tfsdk:"id"`
+	OrganizationId jsontypes.String                    `tfsdk:"organization_id"`
+	Orders         []jsontypes.String                  `tfsdk:"orders"`
+	Serials        []jsontypes.String                  `tfsdk:"serials"`
+	Licences       []OrganizationsClaimResourceLicence `tfsdk:"licences"`
 }
 
 type OrganizationsClaimResourceLicence struct {
-	Key  types.String `tfsdk:"key"`
-	Mode types.String `tfsdk:"mode"`
+	Key  jsontypes.String `tfsdk:"key"`
+	Mode jsontypes.String `tfsdk:"mode"`
 }
 
+// Metadata provides a way to define information about the resource.
+// This method is called by the framework to retrieve metadata about the resource.
 func (r *OrganizationsClaimResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+
+	// The TypeName attribute is important as it provides the user-friendly name for the resource/data source.
+	// This is the name users will use to reference the resource/data source and it's also used in the acceptance tests.
 	resp.TypeName = req.ProviderTypeName + "_organizations_claim"
 }
 
-func (r *OrganizationsClaimResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
-		MarkdownDescription: "OrganizationsClaim resource - Claim a list of devices, licenses, " +
-			"and/or orders into an organization. When claiming by order, " +
-			"all devices and licenses in the order will be claimed; " +
-			"licenses will be added to the organization and devices will be placed in the organization's inventory.",
-		Attributes: map[string]tfsdk.Attribute{
-			"id": {
-				Description:         "Example identifier",
-				MarkdownDescription: "Example identifier",
-				Type:                types.StringType,
-				Required:            false,
-				Optional:            false,
-				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
+// Schema provides a way to define the structure of the resource data.
+// It is called by the framework to get the schema of the resource.
+func (r *OrganizationsClaimResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+
+	// The Schema object defines the structure of the resource.
+	resp.Schema = schema.Schema{
+
+		// It should provide a clear and concise description of the resource.
+		MarkdownDescription: "Organizations Claim Resource. DISCLAIMER: Can only claim, does not have full CRUD capabilities.",
+
+		// The Attributes map describes the fields of the resource.
+		Attributes: map[string]schema.Attribute{
+
+			// Every resource must have an ID attribute. This is computed by the framework.
+			"id": schema.StringAttribute{
+				Computed:   true,
+				CustomType: jsontypes.StringType,
 			},
-			"organization_id": {
-				Description:         "Organization ID",
+			"organization_id": schema.StringAttribute{
+				Computed:            true,
+				CustomType:          jsontypes.StringType,
 				MarkdownDescription: "Organization ID",
-				Type:                types.StringType,
-				Required:            false,
-				Optional:            true,
-				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
 			},
-			"orders": {
-				Description:         "The numbers of the orders that should be claimed",
+			"orders": schema.SetAttribute{
 				MarkdownDescription: "The numbers of the orders that should be claimed",
-				Type:                types.ListType{ElemType: types.StringType},
-				Required:            false,
-				Optional:            true,
+				ElementType:         jsontypes.StringType,
+				CustomType:          jsontypes.SetType[jsontypes.String](),
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
+				Optional:            true,
 			},
-			"serials": {
-				Description:         "The serials of the devices that should be claimed",
+			"serials": schema.SetAttribute{
 				MarkdownDescription: "The serials of the devices that should be claimed",
-				Type:                types.ListType{ElemType: types.StringType},
-				Required:            false,
-				Optional:            true,
+				ElementType:         jsontypes.StringType,
+				CustomType:          jsontypes.SetType[jsontypes.String](),
 				Computed:            true,
-				Sensitive:           false,
-				Attributes:          nil,
-				DeprecationMessage:  "",
-				Validators:          nil,
-				PlanModifiers:       nil,
+				Optional:            true,
 			},
-			"licences": {
-				Description: "The keys & modes of the list of license",
-				MarkdownDescription: "Either 'renew' or 'addDevices'. 'addDevices' will increase the license limit, " +
-					"while 'renew' will extend the amount of time until expiration. Defaults to 'addDevices'. " +
-					"All licenses must be claimed with the same mode, and at most one renewal can be claimed at a time. " +
-					"This parameter is legacy and does not apply to organizations with per-device licensing enabled.",
-				Type:               types.ListType{ElemType: types.StringType},
-				Required:           false,
-				Optional:           true,
-				Computed:           true,
-				Sensitive:          false,
-				Attributes:         nil,
-				DeprecationMessage: "",
-				Validators:         nil,
-				PlanModifiers:      nil,
+			"licences": schema.ListNestedAttribute{
+				MarkdownDescription: "The licenses that should be claimed",
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"key": schema.StringAttribute{
+							MarkdownDescription: "The key of the license",
+							Optional:            true,
+							Computed:            true,
+							CustomType:          jsontypes.StringType,
+						},
+						"mode": schema.StringAttribute{
+							MarkdownDescription: "Either 'renew' or 'addDevices'. 'addDevices' will increase the license limit, " +
+								"while 'renew' will extend the amount of time until expiration. Defaults to 'addDevices'. " +
+								"All licenses must be claimed with the same mode, and at most one renewal can be claimed at a time. " +
+								"This parameter is legacy and does not apply to organizations with per-device licensing enabled.",
+							Optional:   true,
+							Computed:   true,
+							CustomType: jsontypes.StringType,
+							Validators: []validator.String{
+								stringvalidator.OneOf("addDevices", "renew"),
+							},
+						},
+					},
+				},
+				Computed: true,
+				Optional: true,
 			},
 		},
-	}, nil
+	}
 }
 
+// Configure is a method of the Resource interface that Terraform calls to provide the configured provider instance to the resource.
+// It passes the ResourceData that's been stored by the provider's ConfigureFunc.
 func (r *OrganizationsClaimResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	// Prevent panic if the provider has not been configured.
+
+	// The provider must be properly configured before it can be used.
 	if req.ProviderData == nil {
 		return
 	}
 
-	client, ok := req.ProviderData.(*apiclient.APIClient)
+	// Here we expect the provider data to be of type *openApiClient.APIClient.
+	client, ok := req.ProviderData.(*openApiClient.APIClient)
 
+	// This is a fatal error and the provider cannot proceed without it.
+	// If you see this error, it means there is an issue with the provider setup.
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
@@ -143,69 +155,69 @@ func (r *OrganizationsClaimResource) Configure(ctx context.Context, req resource
 		return
 	}
 
+	// This allows the resource to use the configured provider for any API calls it needs to make.
 	r.client = client
 }
 
+// Create method is responsible for creating a new resource.
+// It takes a CreateRequest containing the planned state of the new resource and returns a CreateResponse
+// with the final state of the new resource or an error.
 func (r *OrganizationsClaimResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data *OrganizationsClaimResourceModel
 
-	// Read Terraform plan data into the model
+	// Unmarshal the plan data into the internal data model struct.
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
-	// Check for required parameters
-	if len(data.OrgId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing OrganizationId", fmt.Sprintf("Value: %s", data.OrgId.ValueString()))
-		return
-	}
-
+	// Check if there are any errors before proceeding.
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Create and Validate Payload
-	claimIntoOrganization := apiclient.NewInlineObject188()
+	payload := openApiClient.NewInlineObject189()
 
-	if len(data.Orders) < 0 {
-		var orders []string
-		for _, order := range data.Orders {
-			orders = append(orders, order.ValueString())
-		}
-		claimIntoOrganization.Orders = orders
+	// orders
+	var orders []string
+	for _, order := range data.Orders {
+		orders = append(orders, order.ValueString())
 	}
 
-	if len(data.Serials) < 0 {
-		var serials []string
-		for _, serial := range data.Serials {
-			serials = append(serials, serial.ValueString())
-		}
-		claimIntoOrganization.Serials = serials
+	// serials
+	var serials []string
+	for _, serial := range data.Serials {
+		serials = append(serials, serial.ValueString())
 	}
 
-	if len(data.Licences) < 0 {
-		var licences []apiclient.OrganizationsOrganizationIdClaimLicenses
-		for _, licence := range data.Licences {
-			var lic apiclient.OrganizationsOrganizationIdClaimLicenses
-
-			// key
-			lic.Key = licence.Key.ValueString()
-
-			// mode
-			mode := licence.Mode.ValueString()
-			lic.Mode = &mode
-
-			licences = append(licences, lic)
-		}
-		claimIntoOrganization.Licenses = licences
+	// licenses
+	var licensesPayload []openApiClient.OrganizationsOrganizationIdClaimLicenses
+	for _, license := range data.Licences {
+		var licenseMap openApiClient.OrganizationsOrganizationIdClaimLicenses
+		licenseMap.Key = license.Key.ValueString()
+		licenseMap.SetMode(license.Mode.ValueString())
+		licensesPayload = append(licensesPayload, licenseMap)
 	}
 
-	inlineResp, httpResp, err := r.client.OrganizationsApi.ClaimIntoOrganization(context.Background(), data.OrgId.ValueString()).ClaimIntoOrganization(*claimIntoOrganization).Execute()
+	payload.Orders = orders
+	payload.Serials = serials
+	payload.Licenses = licensesPayload
+
+	// Remember to handle any potential errors.
+	_, httpResp, err := r.client.OrganizationsApi.ClaimIntoOrganization(ctx,
+		data.OrganizationId.ValueString()).ClaimIntoOrganization(*payload).Execute()
+
+	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to create resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
-	// Check for API success response code
+
+	// Collect any HTTP diagnostics that might be useful for debugging.
+	if httpResp != nil {
+		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+	}
+
+	// If it's not what you expect, add an error to diagnostics.
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
@@ -213,217 +225,82 @@ func (r *OrganizationsClaimResource) Create(ctx context.Context, req resource.Cr
 		)
 	}
 
-	// collect diagnostics
-	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
-
-	// Check for errors after diagnostics collected
+	// If there were any errors up to this point, log the plan data and return.
 	if resp.Diagnostics.HasError() {
-		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
+		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%v", data))
 		return
 	}
 
-	// save into the Terraform state.
-	data.Id = types.StringValue("example-id")
+	// Set ID for the new resource.
+	data.Id = jsontypes.StringValue("example-id")
 
-	// orders attribute
-	if orders := inlineResp["orders"]; orders != nil {
-		for _, order := range orders.([]interface{}) {
-			data.Orders = append(data.Orders, types.StringValue(order.(string)))
-		}
-	} else {
-		data.Orders = nil
-	}
-
-	// serials attribute
-	if serials := inlineResp["serials"]; serials != nil {
-		for _, serial := range serials.([]interface{}) {
-			data.Serials = append(data.Serials, types.StringValue(serial.(string)))
-		}
-	} else {
-		data.Serials = nil
-	}
-
-	// licences attribute
-	if licences := inlineResp["licences"]; licences != nil {
-		for _, lic := range licences.([]interface{}) {
-			var licence OrganizationsClaimResourceLicence
-			_ = json.Unmarshal([]byte(lic.(string)), &licence)
-			data.Licences = append(data.Licences, licence)
-		}
-	} else {
-		data.Licences = nil
-	}
-
+	// Now set the final state of the resource.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
-	// Write logs using the tflog package
-	tflog.Trace(ctx, "create resource")
+	// Log that the resource was created.
+	tflog.Trace(ctx, "created resource")
 }
 
+// Read method is responsible for reading an existing resource's state.
+// It takes a ReadRequest and returns a ReadResponse with the current state of the resource or an error.
 func (r *OrganizationsClaimResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var data *OrganizationsClaimResourceModel
 
-	// Read Terraform prior state data into the model
+	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-	// Check for errors after diagnostics collected
+	// Check if there are any errors before proceeding.
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
+	// Set ID for the resource.
+	data.Id = jsontypes.StringValue("example-id")
+
+	// Now set the final state of the resource.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
-	// Write logs using the tflog package
+	// Log that the resource was read.
 	tflog.Trace(ctx, "read resource")
 }
 
+// Update function is responsible for updating the state of an existing resource.
+// It uses an UpdateRequest and responds with an UpdateResponse which contains the updated state of the resource or an error.
 func (r *OrganizationsClaimResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var data *OrganizationsClaimResourceModel
-	var stateData *OrganizationsClaimResourceModel
 
-	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
-	// Read Terraform state data into the model
-	resp.Diagnostics.Append(req.State.Get(ctx, &stateData)...)
-
-	// Check state for required attributes
-	if len(data.OrgId.ValueString()) < 1 {
-		data.OrgId = stateData.OrgId
-	}
-
-	if len(data.OrgId.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing OrganizationId", fmt.Sprintf("OrganizationId: %s", data.OrgId.ValueString()))
-		return
-	}
-
+	// If there was an error reading the plan, return early.
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Create and Validate Payload
-	claimIntoOrganization := apiclient.NewInlineObject188()
+	// Set ID for the resource.
+	data.Id = jsontypes.StringValue("example-id")
 
-	if len(data.Orders) < 0 {
-		var orders []string
-		for _, order := range data.Orders {
-			orders = append(orders, order.ValueString())
-		}
-		claimIntoOrganization.Orders = orders
-	}
-
-	if len(data.Serials) < 0 {
-		var serials []string
-		for _, serial := range data.Serials {
-			serials = append(serials, serial.ValueString())
-		}
-		claimIntoOrganization.Serials = serials
-	}
-
-	if len(data.Licences) < 0 {
-		var licences []apiclient.OrganizationsOrganizationIdClaimLicenses
-		for _, licence := range data.Licences {
-			var lic apiclient.OrganizationsOrganizationIdClaimLicenses
-
-			// key
-			lic.Key = licence.Key.ValueString()
-
-			// mode
-			mode := licence.Mode.ValueString()
-			lic.Mode = &mode
-
-			licences = append(licences, lic)
-		}
-		claimIntoOrganization.Licenses = licences
-	}
-
-	inlineResp, httpResp, err := r.client.OrganizationsApi.ClaimIntoOrganization(context.Background(), data.OrgId.ValueString()).ClaimIntoOrganization(*claimIntoOrganization).Execute()
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Failed to update resource",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-	}
-	// Check for API success response code
-	if httpResp.StatusCode != 200 {
-		resp.Diagnostics.AddError(
-			"Unexpected HTTP Response Status Code",
-			fmt.Sprintf("%v", httpResp.StatusCode),
-		)
-	}
-
-	// collect diagnostics
-	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
-
-	// Check for errors after diagnostics collected
-	if resp.Diagnostics.HasError() {
-		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
-		return
-	}
-
-	// save into the Terraform state.
-	data.Id = types.StringValue("example-id")
-
-	// orders attribute
-	if orders := inlineResp["orders"]; orders != nil {
-		for _, order := range orders.([]interface{}) {
-			data.Orders = append(data.Orders, types.StringValue(order.(string)))
-		}
-	} else {
-		data.Orders = nil
-	}
-
-	// serials attribute
-	if serials := inlineResp["serials"]; serials != nil {
-		for _, serial := range serials.([]interface{}) {
-			data.Serials = append(data.Serials, types.StringValue(serial.(string)))
-		}
-	} else {
-		data.Serials = nil
-	}
-
-	// licences attribute
-	if licences := inlineResp["licences"]; licences != nil {
-		for _, lic := range licences.([]interface{}) {
-			var licence OrganizationsClaimResourceLicence
-			_ = json.Unmarshal([]byte(lic.(string)), &licence)
-			data.Licences = append(data.Licences, licence)
-		}
-	} else {
-		data.Licences = nil
-	}
-
+	// Now set the updated state of the resource.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
-	// Write logs using the tflog package
+	// Log that the resource was updated.
 	tflog.Trace(ctx, "updated resource")
 }
 
+// Delete function is responsible for deleting a resource.
+// It uses a DeleteRequest and responds with a DeleteResponse which contains the updated state of the resource or an error.
 func (r *OrganizationsClaimResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+
 	var data *OrganizationsClaimResourceModel
 
-	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	// Check for errors after diagnostics collected
+	// If there was an error reading the state, return early.
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	resp.State.RemoveResource(ctx)
 
-	// Write logs using the tflog package
+	// Log that the resource was deleted.
 	tflog.Trace(ctx, "removed resource")
-
-}
-
-func (r *OrganizationsClaimResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }
