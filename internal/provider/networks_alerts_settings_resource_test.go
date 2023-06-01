@@ -77,7 +77,7 @@ resource "meraki_networks_alerts_settings" "test" {
 	depends_on = [resource.meraki_network.test]
 	network_id = resource.meraki_network.test.network_id
 	default_destinations = {
-		emails = ["miles@meraki.com"]
+		emails = ["dl-core-infra-svcs-public@starbucks.com"]
 		snmp = true
 		all_admins = true
 		http_server_ids = ["aHR0cHM6Ly93d3cuZXhhbXBsZS5jb20vd2ViaG9va3M="]
@@ -87,7 +87,7 @@ resource "meraki_networks_alerts_settings" "test" {
 			type = "gatewayDown"
 			enabled = true
 			alert_destinations = {
-				emails = ["miles@meraki.com"]
+				emails = ["dl-core-infra-svcs-public@starbucks.com"]
 				snmp = true
 				all_admins = true
 				http_server_ids = ["aHR0cHM6Ly93d3cuZXhhbXBsZS5jb20vd2ViaG9va3M="]

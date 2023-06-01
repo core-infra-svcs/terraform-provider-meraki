@@ -270,15 +270,17 @@ func (r *NetworksAlertsSettingsResource) Create(ctx context.Context, req resourc
 		settingsAlerts.SetEnabled(alert.Enabled.ValueBool())
 		alertDestinations := openApiClient.NewNetworksNetworkIdAlertsSettingsAlertDestinations()
 		serverIDs := []string{}
-		for _, serverID := range data.DefaultDestinations.HttpServerIds.Elements() {
+		for _, serverID := range alert.AlertDestinations.HttpServerIds.Elements() {
 			serverIDs = append(serverIDs, serverID.String())
 		}
 		adminEmails := []string{}
-		for _, email := range data.DefaultDestinations.Emails.Elements() {
+		for _, email := range alert.AlertDestinations.Emails.Elements() {
 			adminEmails = append(adminEmails, email.String())
 		}
 		alertDestinations.SetEmails(adminEmails)
 		alertDestinations.SetHttpServerIds(serverIDs)
+		alertDestinations.SetSnmp(alert.AlertDestinations.Snmp.ValueBool())
+		alertDestinations.SetAllAdmins(alert.AlertDestinations.AllAdmins.ValueBool())
 		settingsAlerts.SetAlertDestinations(*alertDestinations)
 		clients := []string{}
 		for _, client := range alert.Filters.Clients.Elements() {
@@ -438,15 +440,17 @@ func (r *NetworksAlertsSettingsResource) Update(ctx context.Context, req resourc
 		settingsAlerts.SetEnabled(alert.Enabled.ValueBool())
 		alertDestinations := openApiClient.NewNetworksNetworkIdAlertsSettingsAlertDestinations()
 		serverIDs := []string{}
-		for _, serverID := range data.DefaultDestinations.HttpServerIds.Elements() {
+		for _, serverID := range alert.AlertDestinations.HttpServerIds.Elements() {
 			serverIDs = append(serverIDs, serverID.String())
 		}
 		adminEmails := []string{}
-		for _, email := range data.DefaultDestinations.Emails.Elements() {
+		for _, email := range alert.AlertDestinations.Emails.Elements() {
 			adminEmails = append(adminEmails, email.String())
 		}
 		alertDestinations.SetEmails(adminEmails)
 		alertDestinations.SetHttpServerIds(serverIDs)
+		alertDestinations.SetSnmp(alert.AlertDestinations.Snmp.ValueBool())
+		alertDestinations.SetAllAdmins(alert.AlertDestinations.AllAdmins.ValueBool())
 		settingsAlerts.SetAlertDestinations(*alertDestinations)
 		clients := []string{}
 		for _, client := range alert.Filters.Clients.Elements() {
@@ -548,13 +552,15 @@ func (r *NetworksAlertsSettingsResource) Delete(ctx context.Context, req resourc
 		settingsAlerts.SetEnabled(alert.Enabled.ValueBool())
 		alertDestinations := openApiClient.NewNetworksNetworkIdAlertsSettingsAlertDestinations()
 		serverIDs := []string{}
-		for _, serverID := range data.DefaultDestinations.HttpServerIds.Elements() {
+		for _, serverID := range alert.AlertDestinations.HttpServerIds.Elements() {
 			serverIDs = append(serverIDs, serverID.String())
 		}
 		adminEmails := []string{}
-		for _, email := range data.DefaultDestinations.Emails.Elements() {
+		for _, email := range alert.AlertDestinations.Emails.Elements() {
 			adminEmails = append(adminEmails, email.String())
 		}
+		alertDestinations.SetSnmp(alert.AlertDestinations.Snmp.ValueBool())
+		alertDestinations.SetAllAdmins(alert.AlertDestinations.AllAdmins.ValueBool())
 		alertDestinations.SetEmails(adminEmails)
 		alertDestinations.SetHttpServerIds(serverIDs)
 		settingsAlerts.SetAlertDestinations(*alertDestinations)
@@ -562,7 +568,6 @@ func (r *NetworksAlertsSettingsResource) Delete(ctx context.Context, req resourc
 		for _, client := range alert.Filters.Clients.Elements() {
 			clients = append(clients, client.String())
 		}
-		alert.Filters.Clients.Elements()
 		filters := map[string]interface{}{}
 		filters["selector"] = alert.Filters.Selector.ValueString()
 		filters["period"] = alert.Filters.Period.ValueInt64()
