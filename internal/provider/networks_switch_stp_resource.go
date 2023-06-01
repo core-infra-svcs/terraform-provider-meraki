@@ -63,14 +63,14 @@ func (r *NetworksSwitchStpResource) Schema(ctx context.Context, req resource.Sch
 				CustomType:          jsontypes.StringType,
 			},
 			"rstp_enabled": schema.BoolAttribute{
-				MarkdownDescription: "RSTP Enabled",
+				MarkdownDescription: "The spanning tree protocol status in network",
 				Optional:            false,
 				Computed:            false,
 				Required:            true,
 				CustomType:          jsontypes.BoolType,
 			},
 			"stp_bridge_priority": schema.ListNestedAttribute{
-				MarkdownDescription: "RSTP Enabled",
+				MarkdownDescription: "STP bridge priority for switches/stacks or switch profiles. An empty array will clear the STP bridge priority settings.",
 				Optional:            false,
 				Computed:            false,
 				Required:            true,
@@ -79,12 +79,12 @@ func (r *NetworksSwitchStpResource) Schema(ctx context.Context, req resource.Sch
 						"switches": schema.SetAttribute{
 							CustomType:          jsontypes.SetType[jsontypes.String](),
 							ElementType:         jsontypes.StringType,
-							MarkdownDescription: "Swiches",
+							MarkdownDescription: "List of switch serial numbers",
 							Optional:            true,
 							Computed:            true,
 						},
 						"stp_priority": schema.Int64Attribute{
-							MarkdownDescription: "stp priority",
+							MarkdownDescription: "STP priority for switch, stacks, or switch profiles",
 							Optional:            false,
 							Computed:            false,
 							Required:            true,
@@ -93,14 +93,14 @@ func (r *NetworksSwitchStpResource) Schema(ctx context.Context, req resource.Sch
 						"stacks": schema.SetAttribute{
 							CustomType:          jsontypes.SetType[jsontypes.String](),
 							ElementType:         jsontypes.StringType,
-							MarkdownDescription: "Stacks",
+							MarkdownDescription: "List of stack IDs",
 							Optional:            true,
 							Computed:            true,
 						},
 						"switch_profiles": schema.SetAttribute{
 							CustomType:          jsontypes.SetType[jsontypes.String](),
 							ElementType:         jsontypes.StringType,
-							MarkdownDescription: "Switch Profiles",
+							MarkdownDescription: "List of switch profile IDs",
 							Optional:            true,
 							Computed:            true,
 						},

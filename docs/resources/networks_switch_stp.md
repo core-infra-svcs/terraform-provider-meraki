@@ -17,8 +17,8 @@ NetworksSwitchStp
 
 ### Required
 
-- `rstp_enabled` (Boolean) RSTP Enabled
-- `stp_bridge_priority` (Attributes List) RSTP Enabled (see [below for nested schema](#nestedatt--stp_bridge_priority))
+- `rstp_enabled` (Boolean) The spanning tree protocol status in network
+- `stp_bridge_priority` (Attributes List) STP bridge priority for switches/stacks or switch profiles. An empty array will clear the STP bridge priority settings. (see [below for nested schema](#nestedatt--stp_bridge_priority))
 
 ### Optional
 
@@ -33,11 +33,12 @@ NetworksSwitchStp
 
 Required:
 
-- `stp_priority` (Number) stp priority
+- `stp_priority` (Number) STP priority for switch, stacks, or switch profiles
 
 Optional:
 
-- `stacks` (Set of String) Stacks
-- `switches` (Set of String) Swiches
+- `stacks` (Set of String) List of stack IDs
+- `switch_profiles` (Set of String) List of switch profile IDs
+- `switches` (Set of String) List of switch serial numbers
 
 
