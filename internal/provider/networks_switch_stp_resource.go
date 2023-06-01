@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
@@ -32,14 +33,15 @@ type NetworksSwitchStpResource struct {
 type NetworksSwitchStpResourceModel struct {
 	Id                jsontypes.String    `tfsdk:"id"`
 	NetworkId         jsontypes.String    `tfsdk:"network_id"`
-	RstpEnabled       jsontypes.Bool      `tfsdk:"rstp_enabled"`
-	StpBridgePriority []STPBridgePriority `tfsdk:"stp_bridge_priority"`
+	RstpEnabled       jsontypes.Bool      `tfsdk:"rstp_enabled" json:"rstpEnabled"`
+	StpBridgePriority []STPBridgePriority `tfsdk:"stp_bridge_priority" json:"stpBridgePriority"`
 }
 
 type STPBridgePriority struct {
-	Switches    jsontypes.Set[jsontypes.String] `tfsdk:"switches"`
-	StpPriority jsontypes.Int64                 `tfsdk:"stp_priority"`
-	Stacks      jsontypes.Set[jsontypes.String] `tfsdk:"stacks"`
+	Switches       jsontypes.Set[jsontypes.String] `tfsdk:"switches" json:"switches"`
+	StpPriority    jsontypes.Int64                 `tfsdk:"stp_priority" json:"stpPriority"`
+	Stacks         jsontypes.Set[jsontypes.String] `tfsdk:"stacks" json:"stacks"`
+	SwitchProfiles jsontypes.Set[jsontypes.String] `tfsdk:"switch_profiles" json:"switchProfiles"`
 }
 
 func (r *NetworksSwitchStpResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -95,6 +97,13 @@ func (r *NetworksSwitchStpResource) Schema(ctx context.Context, req resource.Sch
 							Optional:            true,
 							Computed:            true,
 						},
+						"switch_profiles": schema.SetAttribute{
+							CustomType:          jsontypes.SetType[jsontypes.String](),
+							ElementType:         jsontypes.StringType,
+							MarkdownDescription: "Switch Profiles",
+							Optional:            true,
+							Computed:            true,
+						},
 					},
 				},
 			},
@@ -147,6 +156,11 @@ func (r *NetworksSwitchStpResource) Create(ctx context.Context, req resource.Cre
 		}
 		priority.SetSwitches(switches)
 		priority.SetStacks(stacks)
+		switcheProfiles := []string{}
+		for _, switchProfile := range d.SwitchProfiles.Elements() {
+			switcheProfiles = append(switcheProfiles, switchProfile.String())
+		}
+		priority.SetSwitchProfiles(switcheProfiles)
 		stpBridgePriority = append(stpBridgePriority, *priority)
 	}
 	object138.SetStpBridgePriority(stpBridgePriority)
@@ -175,6 +189,17 @@ func (r *NetworksSwitchStpResource) Create(ctx context.Context, req resource.Cre
 		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
 		return
 	}
+
+	// save into the Terraform state.
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
+	}
+
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -218,6 +243,17 @@ func (r *NetworksSwitchStpResource) Read(ctx context.Context, req resource.ReadR
 		return
 	}
 
+	// save into the Terraform state.
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
+	}
+
+	data.Id = jsontypes.StringValue("example-id")
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
@@ -249,6 +285,11 @@ func (r *NetworksSwitchStpResource) Update(ctx context.Context, req resource.Upd
 		}
 		priority.SetSwitches(switches)
 		priority.SetStacks(stacks)
+		switchProfiles := []string{}
+		for _, switchProfile := range d.SwitchProfiles.Elements() {
+			switchProfiles = append(switchProfiles, switchProfile.String())
+		}
+		priority.SetSwitchProfiles(switchProfiles)
 		stpBridgePriority = append(stpBridgePriority, *priority)
 	}
 	object138.SetStpBridgePriority(stpBridgePriority)
@@ -278,6 +319,17 @@ func (r *NetworksSwitchStpResource) Update(ctx context.Context, req resource.Upd
 		return
 	}
 
+	// save into the Terraform state.
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
+	}
+
+	data.Id = jsontypes.StringValue("example-id")
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
@@ -295,6 +347,28 @@ func (r *NetworksSwitchStpResource) Delete(ctx context.Context, req resource.Del
 	}
 
 	object138 := openApiClient.NewInlineObject138()
+	object138.SetRstpEnabled(data.RstpEnabled.ValueBool())
+	var stpBridgePriority []openApiClient.NetworksNetworkIdSwitchStpStpBridgePriority
+	for _, d := range data.StpBridgePriority {
+		priority := openApiClient.NewNetworksNetworkIdSwitchStpStpBridgePriority(int32(d.StpPriority.ValueInt64()))
+		stacks := []string{}
+		for _, stack := range d.Stacks.Elements() {
+			stacks = append(stacks, stack.String())
+		}
+		switches := []string{}
+		for _, switchs := range d.Switches.Elements() {
+			switches = append(switches, switchs.String())
+		}
+		priority.SetSwitches(switches)
+		priority.SetStacks(stacks)
+		switcheProfiles := []string{}
+		for _, switchProfile := range d.SwitchProfiles.Elements() {
+			switcheProfiles = append(switcheProfiles, switchProfile.String())
+		}
+		priority.SetSwitchProfiles(switcheProfiles)
+		stpBridgePriority = append(stpBridgePriority, *priority)
+	}
+	object138.SetStpBridgePriority(stpBridgePriority)
 	_, httpResp, err := r.client.SwitchApi.UpdateNetworkSwitchStp(ctx, data.NetworkId.String()).UpdateNetworkSwitchStp(*object138).Execute()
 
 	if err != nil {
@@ -320,6 +394,17 @@ func (r *NetworksSwitchStpResource) Delete(ctx context.Context, req resource.Del
 		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
 		return
 	}
+
+	// save into the Terraform state.
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
+	}
+
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 

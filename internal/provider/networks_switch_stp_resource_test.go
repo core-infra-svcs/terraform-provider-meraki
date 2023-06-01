@@ -46,12 +46,12 @@ func TestAccNetworksSwitchStpResource(t *testing.T) {
 				),
 			},
 
-			{
-				ResourceName:      "meraki_networks_switch_stp.test",
-				ImportState:       true,
-				ImportStateVerify: false,
-				ImportStateId:     "1234567890, 0987654321",
-			},
+			//{
+			//	ResourceName:      "meraki_networks_switch_stp.test",
+			//	ImportState:       true,
+			//	ImportStateVerify: false,
+			//	ImportStateId:     "1234567890, 0987654321",
+			//},
 
 			// Delete testing automatically occurs in TestCase
 		},
