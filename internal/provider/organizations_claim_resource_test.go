@@ -86,7 +86,7 @@ func testAccOrganizationsClaimResourceConfigCreate(order, serial, licence string
 	resource "meraki_organization" "test" {}
 	
 	resource "meraki_organizations_claim" "test" {
-		organization_id = "1232821"
+		organization_id = resource.meraki_organization.test.organization_id
 		orders = ["%s"]
 		serials = ["%s"]
 		licences = [
@@ -108,7 +108,7 @@ func testAccOrganizationsClaimResourceConfigUpdate(order, serial, licence string
 	resource "meraki_organization" "test" {}
 	
 	resource "meraki_organizations_claim" "test" {
-		organization_id = "1232821"
+		organization_id = resource.meraki_organization.test.organization_id
 		orders = ["%s"]
 		serials = ["%s"]
 		licences = [
