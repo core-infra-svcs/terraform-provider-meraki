@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
+	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
 )
@@ -47,7 +49,7 @@ func (r *NetworksSwitchDscpToCosMappingsResource) Metadata(ctx context.Context, 
 func (r *NetworksSwitchDscpToCosMappingsResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 
-		MarkdownDescription: "NetworksSwitchDscptocosmappings",
+		MarkdownDescription: "Networks Switch Dscp to cos mappings",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:   true,
@@ -66,11 +68,17 @@ func (r *NetworksSwitchDscpToCosMappingsResource) Schema(ctx context.Context, re
 							MarkdownDescription: "The Differentiated Services Code Point (DSCP) tag in the IP header that will be mapped to a particular Class-of-Service (CoS) queue. Value can be in the range of 0 to 63 inclusive.",
 							Required:            true,
 							CustomType:          jsontypes.Int64Type,
+							Validators: []validator.Int64{
+								int64validator.Between(0, 63),
+							},
 						},
 						"cos": schema.Int64Attribute{
 							MarkdownDescription: "The actual layer-2 CoS queue the DSCP value is mapped to. These are not bits set on outgoing frames. Value can be in the range of 0 to 5 inclusive.",
 							Required:            true,
 							CustomType:          jsontypes.Int64Type,
+							Validators: []validator.Int64{
+								int64validator.Between(0, 5),
+							},
 						},
 					},
 				},

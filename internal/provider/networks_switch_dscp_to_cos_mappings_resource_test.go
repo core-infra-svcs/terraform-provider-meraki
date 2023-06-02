@@ -5,20 +5,20 @@ import (
 	"testing"
 )
 
-func TestAccNetworksSwitchDscptocosmappingsResource(t *testing.T) {
+func TestAccNetworksSwitchDscpToCosMappingsResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccNetworksSwitchDscptocosmappingsResourceOrganizationCreate,
+				Config: testAccNetworksSwitchDscpToCosMappingsResourceOrganizationCreate,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_acc_meraki_networks_switch_dscp_to_cos_mappings"),
 				),
 			},
 			// Create and Read Network.
 			{
-				Config: testAccNetworksSwitchDscptocosmappingsResourceNetworkCreate,
+				Config: testAccNetworksSwitchDscpToCosMappingsResourceNetworkCreate,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_network.test", "name", "Main Office"),
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
@@ -32,26 +32,38 @@ func TestAccNetworksSwitchDscptocosmappingsResource(t *testing.T) {
 					resource.TestCheckResourceAttr("meraki_network.test", "notes", "Additional description of the network"),
 				),
 			},
+
+			// Create and Read Test
 			{
-				Config: testAccNetworksSwitchDscptocosmappingsResourceConfigCreate,
+				Config: testAccNetworksSwitchDscpToCosMappingsResourceConfigCreate,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_networks_switch_dscp_to_cos_mappings.test", "mappings.#", "1"),
 					resource.TestCheckResourceAttr("meraki_networks_switch_dscp_to_cos_mappings.test", "mappings.0.dscp", "1"),
 					resource.TestCheckResourceAttr("meraki_networks_switch_dscp_to_cos_mappings.test", "mappings.0.cos", "1"),
 				),
 			},
+
+			// Update and Read Test
+			{
+				Config: testAccNetworksSwitchDscpToCosMappingsResourceConfigUpdate,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("meraki_networks_switch_dscp_to_cos_mappings.test", "mappings.#", "1"),
+					resource.TestCheckResourceAttr("meraki_networks_switch_dscp_to_cos_mappings.test", "mappings.0.dscp", "63"),
+					resource.TestCheckResourceAttr("meraki_networks_switch_dscp_to_cos_mappings.test", "mappings.0.cos", "5"),
+				),
+			},
 		},
 	})
 }
 
-const testAccNetworksSwitchDscptocosmappingsResourceOrganizationCreate = `
+const testAccNetworksSwitchDscpToCosMappingsResourceOrganizationCreate = `
 resource "meraki_organization" "test" {
   name = "test_acc_meraki_networks_switch_dscp_to_cos_mappings"
   api_enabled = true
 }
 `
 
-const testAccNetworksSwitchDscptocosmappingsResourceNetworkCreate = `
+const testAccNetworksSwitchDscpToCosMappingsResourceNetworkCreate = `
 resource "meraki_organization" "test" {
   name = "test_meraki_organizations"
   api_enabled = true
@@ -68,20 +80,11 @@ resource "meraki_network" "test" {
 }
 `
 
-const testAccNetworksSwitchDscptocosmappingsResourceConfigCreate = `
-resource "meraki_organization" "test" {
-  name = "test_meraki_organizations"
-  api_enabled = true
-}
-
+const testAccNetworksSwitchDscpToCosMappingsResourceConfigCreate = `
+resource "meraki_organization" "test" {}
 resource "meraki_network" "test" {
   depends_on      = ["meraki_organization.test"]
-  organization_id = resource.meraki_organization.test.organization_id
   product_types   = ["appliance", "switch", "wireless"]
-  tags            = ["tag1", "tag2"]
-  name            = "Main Office"
-  timezone        = "America/Los_Angeles"
-  notes           = "Additional description of the network"
 }
 
 resource "meraki_networks_switch_dscp_to_cos_mappings" "test" {
@@ -91,6 +94,25 @@ resource "meraki_networks_switch_dscp_to_cos_mappings" "test" {
 	{
 		dscp = 1
 		cos = 1
+	}
+  ]
+}
+`
+
+const testAccNetworksSwitchDscpToCosMappingsResourceConfigUpdate = `
+resource "meraki_organization" "test" {}
+resource "meraki_network" "test" {
+  depends_on      = ["meraki_organization.test"]
+  product_types   = ["appliance", "switch", "wireless"]
+}
+
+resource "meraki_networks_switch_dscp_to_cos_mappings" "test" {
+  depends_on                = ["meraki_organization.test", "meraki_network.test"]
+  network_id                = resource.meraki_network.test.network_id
+  mappings = [
+	{
+		dscp = 63
+		cos = 5
 	}
   ]
 }
