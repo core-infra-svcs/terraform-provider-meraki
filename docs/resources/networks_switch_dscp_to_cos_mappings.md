@@ -3,12 +3,12 @@
 page_title: "meraki_networks_switch_dscp_to_cos_mappings Resource - terraform-provider-meraki"
 subcategory: ""
 description: |-
-  NetworksSwitchDscptocosmappings
+  Networks Switch Dscp to cos mappings
 ---
 
 # meraki_networks_switch_dscp_to_cos_mappings (Resource)
 
-NetworksSwitchDscptocosmappings
+Networks Switch Dscp to cos mappings
 
 
 
