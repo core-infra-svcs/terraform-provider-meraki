@@ -19,17 +19,17 @@ import (
 // Ensure provider defined types fully satisfy framework interfaces
 var _ datasource.DataSource = &OrganizationsAdminsDataSource{}
 
-func NewNetworkGroupPolicysDataSource() datasource.DataSource {
-	return &NetworkGroupPolicysDataSource{}
+func NewNetworkGroupPoliciesDataSource() datasource.DataSource {
+	return &NetworkGroupPoliciesDataSource{}
 }
 
-// NetworkGroupPolicysDataSource defines the data source implementation.
-type NetworkGroupPolicysDataSource struct {
+// NetworkGroupPoliciesDataSource defines the data source implementation.
+type NetworkGroupPoliciesDataSource struct {
 	client *openApiClient.APIClient
 }
 
-// NetworkGroupPolicysDataSourceModel describes the data source data model.
-type NetworkGroupPolicysDataSourceModel struct {
+// NetworkGroupPoliciesDataSourceModel describes the data source data model.
+type NetworkGroupPoliciesDataSourceModel struct {
 	Id        jsontypes.String                    `tfsdk:"id"`
 	NetworkId jsontypes.String                    `tfsdk:"network_id"`
 	List      []NetworkGroupPolicyDataSourceModel `tfsdk:"list"`
@@ -148,11 +148,11 @@ type DefinitionDatasource struct {
 	Type  jsontypes.String `tfsdk:"type" json:"type"`
 }
 
-func (d *NetworkGroupPolicysDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_network_group_policys"
+func (d *NetworkGroupPoliciesDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_network_group_policies"
 }
 
-func (d *NetworkGroupPolicysDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *NetworkGroupPoliciesDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "List the group policy's in this network",
 
@@ -680,7 +680,7 @@ func (d *NetworkGroupPolicysDataSource) Schema(ctx context.Context, req datasour
 	}
 }
 
-func (d *NetworkGroupPolicysDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *NetworkGroupPoliciesDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -699,9 +699,9 @@ func (d *NetworkGroupPolicysDataSource) Configure(ctx context.Context, req datas
 	d.client = client
 }
 
-func (d *NetworkGroupPolicysDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (d *NetworkGroupPoliciesDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 
-	var data *NetworkGroupPolicysDataSourceModel
+	var data *NetworkGroupPoliciesDataSourceModel
 
 	// Read Terraform state data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
