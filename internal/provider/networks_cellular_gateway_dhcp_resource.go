@@ -71,12 +71,18 @@ func (r *NetworksCellularGatewayDhcpResource) Schema(ctx context.Context, req re
 				Optional:            true,
 				Computed:            true,
 				CustomType:          jsontypes.StringType,
+				Validators: []validator.String{
+					stringvalidator.OneOf("1 day", "1 hour", "1 week", "12 hours", "30 minutes", "4 hours"),
+				},
 			},
 			"dns_name_servers": schema.StringAttribute{
-				MarkdownDescription: "'DNS name servers mode for all MG of the network. It can take 4 different values: ''upstream_dns'', '",
+				MarkdownDescription: "DNS name servers mode for all MG in the network.",
 				Optional:            true,
 				Computed:            true,
 				CustomType:          jsontypes.StringType,
+				Validators: []validator.String{
+					stringvalidator.OneOf("custom", "google_dns", "opendns", "upstream_dns"),
+				},
 			},
 			"dns_custom_name_servers": schema.SetAttribute{
 				MarkdownDescription: "list of fixed IP representing the the DNS Name servers when the mode is 'custom'",
