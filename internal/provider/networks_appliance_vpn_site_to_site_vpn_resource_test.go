@@ -22,16 +22,6 @@ func TestAccNetworksApplianceVpnSiteToSiteVpnResource(t *testing.T) {
 				),
 			},
 
-			// TODO - ImportState testing - This only works when hard-coded networkId.
-			/*
-				{
-					ResourceName:      "meraki_networks_appliance_vpn_site_to_site_vpn.test",
-					ImportState:       true,
-					ImportStateVerify: false,
-					ImportStateId:     "657525545596096508",
-				},
-			*/
-
 			// Create and Read Network.
 			{
 				Config: testAccNetworksApplianceVpnSiteToSiteVpnResourceConfigCreateNetwork,
