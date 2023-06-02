@@ -121,7 +121,7 @@ func (r *NetworksSwitchDscpToCosMappingsResource) Create(ctx context.Context, re
 	// Create Payload
 	networkMappings := *openApiClient.NewInlineObject115(mappings)
 
-	inlineResp, httpResp, err := r.client.ConfigureApi.UpdateNetworkSwitchDscpToCosMappings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchDscpToCosMappings(networkMappings).Execute()
+	_, httpResp, err := r.client.ConfigureApi.UpdateNetworkSwitchDscpToCosMappings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchDscpToCosMappings(networkMappings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to create resource",
@@ -148,17 +148,17 @@ func (r *NetworksSwitchDscpToCosMappingsResource) Create(ctx context.Context, re
 		return
 	}
 
-	data.Id = jsontypes.StringValue("example-id")
-	i := inlineResp["mappings"].([]interface{})
-	for _, val := range i {
-		m := val.(map[string]interface{})
-		dscp := m["dscp"]
-		cos := m["cos"]
-		data.Mappings = append([]Mapping{}, Mapping{
-			Dscp: jsontypes.Int64Value(int64(dscp.(float64))),
-			Cos:  jsontypes.Int64Value(int64(cos.(float64))),
-		})
+	// Save data into Terraform state
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
 	}
+
+	data.Id = jsontypes.StringValue("example-id")
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
@@ -175,7 +175,7 @@ func (r *NetworksSwitchDscpToCosMappingsResource) Read(ctx context.Context, req 
 		return
 	}
 
-	inlineResp, httpResp, err := r.client.ConfigureApi.GetNetworkSwitchDscpToCosMappings(context.Background(), data.NetworkId.ValueString()).Execute()
+	_, httpResp, err := r.client.ConfigureApi.GetNetworkSwitchDscpToCosMappings(context.Background(), data.NetworkId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to get resource",
@@ -213,17 +213,6 @@ func (r *NetworksSwitchDscpToCosMappingsResource) Read(ctx context.Context, req 
 	}
 
 	data.Id = jsontypes.StringValue("example-id")
-	i := inlineResp["mappings"].([]interface{})
-	for _, val := range i {
-		m := val.(map[string]interface{})
-		dscp := m["dscp"]
-		cos := m["cos"]
-		data.Mappings = append([]Mapping{}, Mapping{
-			Dscp: jsontypes.Int64Value(int64(dscp.(float64))),
-			Cos:  jsontypes.Int64Value(int64(cos.(float64))),
-		})
-	}
-	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -252,7 +241,7 @@ func (r *NetworksSwitchDscpToCosMappingsResource) Update(ctx context.Context, re
 	// Create Payload
 	networkMappings := *openApiClient.NewInlineObject115(mappings)
 
-	inlineResp, httpResp, err := r.client.ConfigureApi.UpdateNetworkSwitchDscpToCosMappings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchDscpToCosMappings(networkMappings).Execute()
+	_, httpResp, err := r.client.ConfigureApi.UpdateNetworkSwitchDscpToCosMappings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchDscpToCosMappings(networkMappings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to update resource",
@@ -279,17 +268,15 @@ func (r *NetworksSwitchDscpToCosMappingsResource) Update(ctx context.Context, re
 		return
 	}
 
-	data.Id = jsontypes.StringValue("example-id")
-	i := inlineResp["mappings"].([]interface{})
-	for _, val := range i {
-		m := val.(map[string]interface{})
-		dscp := m["dscp"]
-		cos := m["cos"]
-		data.Mappings = append([]Mapping{}, Mapping{
-			Dscp: jsontypes.Int64Value(int64(dscp.(float64))),
-			Cos:  jsontypes.Int64Value(int64(cos.(float64))),
-		})
+	// Save data into Terraform state
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
 	}
+
 	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -319,7 +306,7 @@ func (r *NetworksSwitchDscpToCosMappingsResource) Delete(ctx context.Context, re
 	// Create Payload
 	networkMappings := *openApiClient.NewInlineObject115(mappings)
 
-	inlineResp, httpResp, err := r.client.ConfigureApi.UpdateNetworkSwitchDscpToCosMappings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchDscpToCosMappings(networkMappings).Execute()
+	_, httpResp, err := r.client.ConfigureApi.UpdateNetworkSwitchDscpToCosMappings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchDscpToCosMappings(networkMappings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to delete resource",
@@ -346,17 +333,15 @@ func (r *NetworksSwitchDscpToCosMappingsResource) Delete(ctx context.Context, re
 		return
 	}
 
-	data.Id = jsontypes.StringValue("example-id")
-	i := inlineResp["mappings"].([]interface{})
-	for _, val := range i {
-		m := val.(map[string]interface{})
-		dscp := m["dscp"]
-		cos := m["cos"]
-		data.Mappings = append([]Mapping{}, Mapping{
-			Dscp: jsontypes.Int64Value(int64(dscp.(float64))),
-			Cos:  jsontypes.Int64Value(int64(cos.(float64))),
-		})
+	// Save data into Terraform state
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
 	}
+
 	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
