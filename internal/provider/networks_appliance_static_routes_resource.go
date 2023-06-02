@@ -213,7 +213,7 @@ func (r *NetworkApplianceStaticRoutesResource) Create(ctx context.Context, req r
 	if err != nil {
 
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
+			"Failed to create resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 
@@ -306,7 +306,7 @@ func (r *NetworkApplianceStaticRoutesResource) Read(ctx context.Context, req res
 	if err != nil {
 
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
+			"Failed to read resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 
@@ -537,7 +537,7 @@ func (r *NetworkApplianceStaticRoutesResource) Delete(ctx context.Context, req r
 	if err != nil {
 
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
+			"Failed to delete resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 
