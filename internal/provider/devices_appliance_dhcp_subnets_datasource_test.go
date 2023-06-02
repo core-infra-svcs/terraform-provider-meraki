@@ -43,14 +43,6 @@ func TestAccDevicesApplianceDhcpSubnetsDataSource(t *testing.T) {
 				),
 			},
 
-			// TODO: Create and Read DevicesApplianceDhcpSubnets
-			//{
-			//	Config: testAccDevicesApplianceDhcpSubnetsDataSourceConfigCreate,
-			//	Check: resource.ComposeAggregateTestCheckFunc(
-			//		resource.TestCheckResourceAttr("devices_appliance_dhcp_subnets.test", "id", "example-id"),
-			//	),
-			//},
-
 			// Update and Read DevicesApplianceDhcpSubnets
 			{
 				Config: testAccDevicesApplianceDhcpSubnetsDataSourceConfigRead,

@@ -64,7 +64,7 @@ func (d *DevicesApplianceDhcpSubnetsDataSource) Schema(ctx context.Context, req 
 	// The Schema object defines the structure of the data source.
 	resp.Schema = schema.Schema{
 		// It should provide a clear and concise description of the data source.
-		MarkdownDescription: "DevicesApplianceDhcpSubnets",
+		MarkdownDescription: "Devices Appliance Dhcp Subnets - Return the DHCP subnet information for an appliance",
 
 		// The Attributes map describes the fields of the data source.
 		Attributes: map[string]schema.Attribute{
@@ -91,19 +91,19 @@ func (d *DevicesApplianceDhcpSubnetsDataSource) Schema(ctx context.Context, req 
 							CustomType:          jsontypes.StringType,
 						},
 						"vlan_id": schema.Int64Attribute{
-							MarkdownDescription: "Organization ID",
+							MarkdownDescription: "VLAN ID",
 							Optional:            true,
 							Computed:            true,
 							CustomType:          jsontypes.Int64Type,
 						},
 						"used_count": schema.Int64Attribute{
-							MarkdownDescription: "Organization ID",
+							MarkdownDescription: "used count",
 							Optional:            true,
 							Computed:            true,
 							CustomType:          jsontypes.Int64Type,
 						},
 						"free_count": schema.Int64Attribute{
-							MarkdownDescription: "Organization ID",
+							MarkdownDescription: "free count",
 							Optional:            true,
 							Computed:            true,
 							CustomType:          jsontypes.Int64Type,
@@ -170,7 +170,6 @@ func (d *DevicesApplianceDhcpSubnetsDataSource) Read(ctx context.Context, req da
 	}
 
 	// If it's not what you expect, add an error to diagnostics.
-	// TODO: Check the HTTP response status code matches the API endpoint.
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",

@@ -3,12 +3,12 @@
 page_title: "meraki_devices_appliance_dhcp_subnets Data Source - terraform-provider-meraki"
 subcategory: ""
 description: |-
-  DevicesApplianceDhcpSubnets
+  Devices Appliance Dhcp Subnets - Return the DHCP subnet information for an appliance
 ---
 
 # meraki_devices_appliance_dhcp_subnets (Data Source)
 
-DevicesApplianceDhcpSubnets
+Devices Appliance Dhcp Subnets - Return the DHCP subnet information for an appliance
 
 
 
@@ -32,9 +32,9 @@ DevicesApplianceDhcpSubnets
 
 Optional:
 
-- `free_count` (Number) Organization ID
+- `free_count` (Number) free count
 - `subnet` (String) Network ID
-- `used_count` (Number) Organization ID
-- `vlan_id` (Number) Organization ID
+- `used_count` (Number) used count
+- `vlan_id` (Number) VLAN ID
 
 
