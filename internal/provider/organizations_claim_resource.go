@@ -2,7 +2,9 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -83,7 +85,7 @@ func (r *OrganizationsClaimResource) Schema(ctx context.Context, req resource.Sc
 				CustomType: jsontypes.StringType,
 			},
 			"organization_id": schema.StringAttribute{
-				Computed:            true,
+				Required:            true,
 				CustomType:          jsontypes.StringType,
 				MarkdownDescription: "Organization ID",
 			},
@@ -107,8 +109,7 @@ func (r *OrganizationsClaimResource) Schema(ctx context.Context, req resource.Sc
 					Attributes: map[string]schema.Attribute{
 						"key": schema.StringAttribute{
 							MarkdownDescription: "The key of the license",
-							Optional:            true,
-							Computed:            true,
+							Required:            true,
 							CustomType:          jsontypes.StringType,
 						},
 						"mode": schema.StringAttribute{
@@ -191,14 +192,14 @@ func (r *OrganizationsClaimResource) Create(ctx context.Context, req resource.Cr
 	var licensesPayload []openApiClient.OrganizationsOrganizationIdClaimLicenses
 	for _, license := range data.Licences {
 		var licenseMap openApiClient.OrganizationsOrganizationIdClaimLicenses
-		licenseMap.Key = license.Key.ValueString()
+		licenseMap.SetKey(license.Key.ValueString())
 		licenseMap.SetMode(license.Mode.ValueString())
 		licensesPayload = append(licensesPayload, licenseMap)
 	}
 
-	payload.Orders = orders
-	payload.Serials = serials
-	payload.Licenses = licensesPayload
+	payload.SetOrders(orders)
+	payload.SetLicenses(licensesPayload)
+	payload.SetSerials(serials)
 
 	// Remember to handle any potential errors.
 	_, httpResp, err := r.client.OrganizationsApi.ClaimIntoOrganization(ctx,
@@ -228,6 +229,15 @@ func (r *OrganizationsClaimResource) Create(ctx context.Context, req resource.Cr
 	// If there were any errors up to this point, log the plan data and return.
 	if resp.Diagnostics.HasError() {
 		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%v", data))
+		return
+	}
+
+	// Save data into Terraform state
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
 		return
 	}
 

@@ -2,9 +2,10 @@ package provider
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"os"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 // TestAccOrganizationsClaimResource function is used to test the CRUD operations of the Terraform resource you are developing.
@@ -31,7 +32,7 @@ func TestAccOrganizationsClaimResource(t *testing.T) {
 
 			// TODO: Create and Read OrganizationsClaim
 			{
-				Config: testAccOrganizationsClaimResourceConfigCreate,
+				Config: testAccOrganizationsClaimResourceConfigCreate(os.Getenv("TF_ACC_MERAKI_ORDER_NUMBER"), os.Getenv("TF_ACC_MERAKI_MX_SERIAL"), os.Getenv("TF_ACC_MERAKI_MX_LICENCE")),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("OrganizationsClaim.test", "id", "example-id"),
 
@@ -49,7 +50,7 @@ func TestAccOrganizationsClaimResource(t *testing.T) {
 
 			// TODO: Update and Read OrganizationsClaim
 			{
-				Config: testAccOrganizationsClaimResourceConfigUpdate,
+				Config: testAccOrganizationsClaimResourceConfigUpdate(os.Getenv("TF_ACC_MERAKI_ORDER_NUMBER"), os.Getenv("TF_ACC_MERAKI_MX_SERIAL"), os.Getenv("TF_ACC_MERAKI_MX_LICENCE")),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("OrganizationsClaim.test", "id", "example-id"),
 
@@ -85,13 +86,13 @@ func testAccOrganizationsClaimResourceConfigCreate(order, serial, licence string
 	resource "meraki_organization" "test" {}
 	
 	resource "meraki_organizations_claim" "test" {
-		organization_id = resource.meraki_organization.test.organization_id
-		orders = [%s]
-		serials = [%s]
+		organization_id = "1232821"
+		orders = ["%s"]
+		serials = ["%s"]
 		licences = [
 			{
-				"key": %s,
-				"mode": "addDevices"
+				key = "%s"
+				mode = "addDevices"
 			}
 		]
 	
@@ -100,7 +101,6 @@ func testAccOrganizationsClaimResourceConfigCreate(order, serial, licence string
 	return string(result)
 }
 
-// TODO: Make a change to the configuration to test
 // testAccOrganizationsClaimResourceConfigUpdate is a constant string that defines the configuration for updating a organizations_claim resource in your tests.
 // It depends on both the organization and network resources.
 func testAccOrganizationsClaimResourceConfigUpdate(order, serial, licence string) string {
@@ -108,13 +108,13 @@ func testAccOrganizationsClaimResourceConfigUpdate(order, serial, licence string
 	resource "meraki_organization" "test" {}
 	
 	resource "meraki_organizations_claim" "test" {
-		organization_id = resource.meraki_organization.test.organization_id
-		orders = [%s]
-		serials = [%s]
+		organization_id = "1232821"
+		orders = ["%s"]
+		serials = ["%s"]
 		licences = [
 			{
-				"key": %s,
-				"mode": "addDevices"
+				key = "%s"
+				mode = "addDevices"
 			}
 		]
 	

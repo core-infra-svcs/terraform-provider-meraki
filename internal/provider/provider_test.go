@@ -20,7 +20,7 @@ func testAccPreCheck(t *testing.T) {
 	// You can add code here to run prior to any test case execution, for example assertions
 	// about the appropriate environment variables being set are common to see in a pre-check
 	// function.
-	
+
 	// Check environmental variables
 	ev := []string{"MERAKI_DASHBOARD_API_KEY, TF_ACC_MERAKI_MX_LICENCE, TF_ACC_MERAKI_MX_SERIAL, TF_ACC_MERAKI_ORDER_NUMBER"}
 	for _, v := range ev {
