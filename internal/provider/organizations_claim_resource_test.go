@@ -30,7 +30,7 @@ func TestAccOrganizationsClaimResource(t *testing.T) {
 				),
 			},
 
-			// TODO: Create and Read OrganizationsClaim
+			// Create and Read OrganizationsClaim
 			{
 				Config: testAccOrganizationsClaimResourceConfigCreate(os.Getenv("TF_ACC_MERAKI_ORDER_NUMBER"), os.Getenv("TF_ACC_MERAKI_MX_SERIAL"), os.Getenv("TF_ACC_MERAKI_MX_LICENCE")),
 				Check: resource.ComposeAggregateTestCheckFunc(
@@ -48,7 +48,7 @@ func TestAccOrganizationsClaimResource(t *testing.T) {
 				),
 			},
 
-			// TODO: Update and Read OrganizationsClaim
+			// Update and Read OrganizationsClaim
 			{
 				Config: testAccOrganizationsClaimResourceConfigUpdate(os.Getenv("TF_ACC_MERAKI_ORDER_NUMBER"), os.Getenv("TF_ACC_MERAKI_MX_SERIAL"), os.Getenv("TF_ACC_MERAKI_MX_LICENCE")),
 				Check: resource.ComposeAggregateTestCheckFunc(
@@ -67,8 +67,7 @@ func TestAccOrganizationsClaimResource(t *testing.T) {
 			},
 		},
 
-		// The resource.Test function automatically tests the Delete operation.
-	})
+		})
 }
 
 // testAccOrganizationsClaimResourceConfigCreateOrganization is a constant string that defines the configuration for creating an organization resource in your tests.
