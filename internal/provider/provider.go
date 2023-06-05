@@ -174,7 +174,10 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		NewNetworksApplianceSettingsResource,
 		NewNetworksApplianceFirewallSettingsResource,
 		NewNetworksSwitchQosRulesResource,
-		NewNetworksWirelessSsidsFirewallL7FirewallRulesResource,
+		NewNetworksSwitchDscpToCosMappingsResource,
+		NewNetworksSwitchMtuResource,
+		NewNetworksGroupPolicyResource,
+    NewNetworksWirelessSsidsFirewallL7FirewallRulesResource,
 	}
 }
 
@@ -187,6 +190,7 @@ func (p *CiscoMerakiProvider) DataSources(ctx context.Context) []func() datasour
 		NewOrganizationsSamlIdpsDataSource,
 		NewOrganizationsAdaptivePolicyAclsDataSource,
 		NewOrganizationsSamlRolesDataSource,
+		NewNetworkGroupPoliciesDataSource,
 	}
 }
 
