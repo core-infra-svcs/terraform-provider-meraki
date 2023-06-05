@@ -133,7 +133,7 @@ func (r *OrganizationsSamlIdpResource) Create(ctx context.Context, req resource.
 	}
 
 	// Create HTTP request body
-	createOrganizationsSamlIdp := *openApiClient.NewInlineObject216(data.X509CertSha1Fingerprint.ValueString())
+	createOrganizationsSamlIdp := *openApiClient.NewInlineObject218(data.X509CertSha1Fingerprint.ValueString())
 	createOrganizationsSamlIdp.SetSloLogoutUrl(data.SloLogoutUrl.ValueString())
 
 	// Initialize provider client and make API call
@@ -242,7 +242,7 @@ func (r *OrganizationsSamlIdpResource) Update(ctx context.Context, req resource.
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	// Create HTTP request body
-	updateOrganizationsSamlIdp := openApiClient.NewInlineObject217()
+	updateOrganizationsSamlIdp := openApiClient.NewInlineObject219()
 	updateOrganizationsSamlIdp.SetX509certSha1Fingerprint(data.X509CertSha1Fingerprint.ValueString())
 	updateOrganizationsSamlIdp.SetSloLogoutUrl(data.SloLogoutUrl.ValueString())
 

@@ -204,10 +204,10 @@ func (r *NetworksSettingsResource) Create(ctx context.Context, req resource.Crea
 		return
 	}
 
-	updateNetworkSettings := *openApiClient.NewInlineObject97()
+	updateNetworkSettings := *openApiClient.NewInlineObject98()
 	updateNetworkSettings.SetLocalStatusPageEnabled(data.LocalStatusPageEnabled.ValueBool())
 	updateNetworkSettings.SetRemoteStatusPageEnabled(data.RemoteStatusPageEnabled.ValueBool())
-	var v openApiClient.InlineResponse20037SecurePort
+	var v openApiClient.InlineResponse20041SecurePort
 
 	v.SetEnabled(data.SecurePortEnabled.Enabled)
 	updateNetworkSettings.SetSecurePort(v)
@@ -364,10 +364,10 @@ func (r *NetworksSettingsResource) Update(ctx context.Context, req resource.Upda
 		return
 	}
 
-	updateNetworkSettings := *openApiClient.NewInlineObject97()
+	updateNetworkSettings := *openApiClient.NewInlineObject98()
 	updateNetworkSettings.SetLocalStatusPageEnabled(data.LocalStatusPageEnabled.ValueBool())
 	updateNetworkSettings.SetRemoteStatusPageEnabled(data.RemoteStatusPageEnabled.ValueBool())
-	var v openApiClient.InlineResponse20037SecurePort
+	var v openApiClient.InlineResponse20041SecurePort
 	v.SetEnabled(data.SecurePortEnabled.Enabled)
 	updateNetworkSettings.SetSecurePort(v)
 	var l openApiClient.NetworksNetworkIdSettingsLocalStatusPage
@@ -451,10 +451,10 @@ func (r *NetworksSettingsResource) Delete(ctx context.Context, req resource.Dele
 		return
 	}
 
-	updateNetworkSettings := *openApiClient.NewInlineObject97()
+	updateNetworkSettings := *openApiClient.NewInlineObject98()
 	updateNetworkSettings.SetLocalStatusPageEnabled(data.LocalStatusPageEnabled.ValueBool())
 	updateNetworkSettings.SetRemoteStatusPageEnabled(data.RemoteStatusPageEnabled.ValueBool())
-	var v openApiClient.InlineResponse20037SecurePort
+	var v openApiClient.InlineResponse20041SecurePort
 	v.SetEnabled(data.SecurePortEnabled.Enabled)
 	updateNetworkSettings.SetSecurePort(v)
 	var l openApiClient.NetworksNetworkIdSettingsLocalStatusPage

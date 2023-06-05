@@ -135,7 +135,7 @@ func (r *NetworksSwitchSettingsResource) Create(ctx context.Context, req resourc
 		return
 	}
 
-	updateNetworksSwitchSettings := *openApiClient.NewInlineObject128()
+	updateNetworksSwitchSettings := *openApiClient.NewInlineObject129()
 	updateNetworksSwitchSettings.SetUseCombinedPower(data.UseCombinedPower.ValueBool())
 	updateNetworksSwitchSettings.SetVlan(int32(data.Vlan.ValueFloat64()))
 
@@ -261,7 +261,7 @@ func (r *NetworksSwitchSettingsResource) Update(ctx context.Context, req resourc
 		return
 	}
 
-	updateNetworksSwitchSettings := *openApiClient.NewInlineObject128()
+	updateNetworksSwitchSettings := *openApiClient.NewInlineObject129()
 	updateNetworksSwitchSettings.SetUseCombinedPower(data.UseCombinedPower.ValueBool())
 	updateNetworksSwitchSettings.SetVlan(int32(data.Vlan.ValueFloat64()))
 
@@ -332,7 +332,7 @@ func (r *NetworksSwitchSettingsResource) Delete(ctx context.Context, req resourc
 		return
 	}
 
-	updateNetworksSwitchSettings := *openApiClient.NewInlineObject128()
+	updateNetworksSwitchSettings := *openApiClient.NewInlineObject129()
 	updateNetworksSwitchSettings.SetUseCombinedPower(data.UseCombinedPower.ValueBool())
 	updateNetworksSwitchSettings.SetVlan(int32(data.Vlan.ValueFloat64()))
 

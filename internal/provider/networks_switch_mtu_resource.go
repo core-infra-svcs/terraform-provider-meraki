@@ -137,14 +137,14 @@ func (r *NetworksSwitchMtuResource) Create(ctx context.Context, req resource.Cre
 		return
 	}
 
-	updateNetworkSwitchMtu := *openApiClient.NewInlineObject118()
+	updateNetworkSwitchMtu := *openApiClient.NewInlineObject119()
 	if !data.DefaultMtuSize.IsUnknown() {
 		updateNetworkSwitchMtu.SetDefaultMtuSize(int32(data.DefaultMtuSize.ValueInt64()))
 	}
-	var overrides []openApiClient.NetworksNetworkIdSwitchMtuOverrides
+	var overrides []openApiClient.InlineResponse20069Overrides
 	if len(data.Overrides) > 0 {
 		for _, attribute := range data.Overrides {
-			var override openApiClient.NetworksNetworkIdSwitchMtuOverrides
+			var override openApiClient.InlineResponse20069Overrides
 			if !attribute.MtuSize.IsUnknown() {
 				override.SetMtuSize(int32(attribute.MtuSize.ValueInt64()))
 			}
@@ -267,14 +267,14 @@ func (r *NetworksSwitchMtuResource) Update(ctx context.Context, req resource.Upd
 		return
 	}
 
-	updateNetworkSwitchMtu := *openApiClient.NewInlineObject118()
+	updateNetworkSwitchMtu := *openApiClient.NewInlineObject119()
 	if !data.DefaultMtuSize.IsUnknown() {
 		updateNetworkSwitchMtu.SetDefaultMtuSize(int32(data.DefaultMtuSize.ValueInt64()))
 	}
-	var overrides []openApiClient.NetworksNetworkIdSwitchMtuOverrides
+	var overrides []openApiClient.InlineResponse20069Overrides
 	if len(data.Overrides) > 0 {
 		for _, attribute := range data.Overrides {
-			var override openApiClient.NetworksNetworkIdSwitchMtuOverrides
+			var override openApiClient.InlineResponse20069Overrides
 			if !attribute.MtuSize.IsUnknown() {
 				override.SetMtuSize(int32(attribute.MtuSize.ValueInt64()))
 			}
@@ -343,14 +343,14 @@ func (r *NetworksSwitchMtuResource) Delete(ctx context.Context, req resource.Del
 		return
 	}
 
-	updateNetworkSwitchMtu := *openApiClient.NewInlineObject118()
+	updateNetworkSwitchMtu := *openApiClient.NewInlineObject119()
 	if !data.DefaultMtuSize.IsUnknown() {
 		updateNetworkSwitchMtu.SetDefaultMtuSize(int32(data.DefaultMtuSize.ValueInt64()))
 	}
-	var overrides []openApiClient.NetworksNetworkIdSwitchMtuOverrides
+	var overrides []openApiClient.InlineResponse20069Overrides
 	if len(data.Overrides) > 0 {
 		for _, attribute := range data.Overrides {
-			var override openApiClient.NetworksNetworkIdSwitchMtuOverrides
+			var override openApiClient.InlineResponse20069Overrides
 			if !attribute.MtuSize.IsUnknown() {
 				override.SetMtuSize(int32(attribute.MtuSize.ValueInt64()))
 			}

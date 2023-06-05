@@ -163,7 +163,7 @@ func (r *NetworksSyslogServersResource) Create(ctx context.Context, req resource
 
 	}
 
-	updateSyslogServers := *openApiClient.NewInlineObject139(servers)
+	updateSyslogServers := *openApiClient.NewInlineObject140(servers)
 
 	_, httpResp, err := r.client.SyslogServersApi.UpdateNetworkSyslogServers(ctx, data.NetworkId.ValueString()).UpdateNetworkSyslogServers(updateSyslogServers).Execute()
 	if err != nil && !strings.HasPrefix(err.Error(), "json:") {
@@ -301,7 +301,7 @@ func (r *NetworksSyslogServersResource) Update(ctx context.Context, req resource
 
 	}
 
-	updateSyslogServers := *openApiClient.NewInlineObject139(servers)
+	updateSyslogServers := *openApiClient.NewInlineObject140(servers)
 
 	_, httpResp, err := r.client.SyslogServersApi.UpdateNetworkSyslogServers(ctx, data.NetworkId.ValueString()).UpdateNetworkSyslogServers(updateSyslogServers).Execute()
 	if err != nil && !strings.HasPrefix(err.Error(), "json:") {
@@ -355,7 +355,7 @@ func (r *NetworksSyslogServersResource) Delete(ctx context.Context, req resource
 		return
 	}
 
-	updateSyslogServers := *openApiClient.NewInlineObject139(nil)
+	updateSyslogServers := *openApiClient.NewInlineObject140(nil)
 
 	_, httpResp, err := r.client.SyslogServersApi.UpdateNetworkSyslogServers(ctx, data.NetworkId.ValueString()).UpdateNetworkSyslogServers(updateSyslogServers).Execute()
 	if err != nil && !strings.HasPrefix(err.Error(), "json:") {
