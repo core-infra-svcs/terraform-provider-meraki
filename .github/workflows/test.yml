@@ -82,7 +82,6 @@ jobs:
       - run: go mod download
       - env:
           TF_ACC: "1"
-          # Turning this off until we get a sweeper...
-          #MERAKI_DASHBOARD_API_KEY: ${{ secrets.MERAKI_DASHBOARD_API_KEY }}
+          MERAKI_DASHBOARD_API_KEY: ${{ secrets.MERAKI_DASHBOARD_API_KEY }}
         run: go test -v -cover ./internal/provider/
         timeout-minutes: 10

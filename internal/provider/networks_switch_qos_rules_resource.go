@@ -156,7 +156,7 @@ func (r *NetworksSwitchQosRulesResource) Create(ctx context.Context, req resourc
 		return
 	}
 
-	createNetworksSwitchQosRules := *openApiClient.NewInlineObject121(int32(data.Vlan.ValueInt64()))
+	createNetworksSwitchQosRules := *openApiClient.NewInlineObject122(int32(data.Vlan.ValueInt64()))
 
 	if !data.Dscp.IsUnknown() {
 		createNetworksSwitchQosRules.SetDscp(int32(data.Dscp.ValueInt64()))
@@ -327,7 +327,7 @@ func (r *NetworksSwitchQosRulesResource) Update(ctx context.Context, req resourc
 		return
 	}
 
-	updateNetworksSwitchQosRules := *openApiClient.NewInlineObject123()
+	updateNetworksSwitchQosRules := *openApiClient.NewInlineObject124()
 
 	if !data.Vlan.IsUnknown() {
 		updateNetworksSwitchQosRules.SetVlan(int32(data.Vlan.ValueInt64()))

@@ -176,7 +176,7 @@ func (r *OrganizationsSamlRolesResource) Create(ctx context.Context, req resourc
 		return
 	}
 
-	createOrganizationSamlRole := *openApiClient.NewInlineObject218(data.Role.ValueString(), data.OrgAccess.ValueString())
+	createOrganizationSamlRole := *openApiClient.NewInlineObject220(data.Role.ValueString(), data.OrgAccess.ValueString())
 
 	// Tags
 	if len(data.Tags) > 0 {
@@ -314,7 +314,7 @@ func (r *OrganizationsSamlRolesResource) Update(ctx context.Context, req resourc
 		return
 	}
 
-	updateOrganizationSamlRole := *openApiClient.NewInlineObject219()
+	updateOrganizationSamlRole := *openApiClient.NewInlineObject221()
 	updateOrganizationSamlRole.SetRole(data.Role.ValueString())
 	updateOrganizationSamlRole.SetOrgAccess(data.OrgAccess.ValueString())
 

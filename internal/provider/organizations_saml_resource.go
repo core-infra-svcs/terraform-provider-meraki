@@ -104,7 +104,7 @@ func (r *OrganizationSamlResource) Create(ctx context.Context, req resource.Crea
 	}
 
 	// Create HTTP request body
-	enableOrganizationSaml := *openApiClient.NewInlineObject215()
+	enableOrganizationSaml := *openApiClient.NewInlineObject217()
 	enableOrganizationSaml.SetEnabled(data.Enabled.ValueBool())
 
 	// Initialize provider client and make API call
@@ -198,7 +198,7 @@ func (r *OrganizationSamlResource) Update(ctx context.Context, req resource.Upda
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	// Create HTTP request body
-	enableOrganizationSaml := *openApiClient.NewInlineObject215()
+	enableOrganizationSaml := *openApiClient.NewInlineObject217()
 	enableOrganizationSaml.SetEnabled(data.Enabled.ValueBool())
 
 	// Initialize provider client and make API call

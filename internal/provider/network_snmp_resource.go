@@ -126,7 +126,7 @@ func (r *OrganizationsSnmpResource) Create(ctx context.Context, req resource.Cre
 		return
 	}
 
-	updateNetworkSnmp := *openApiClient.NewInlineObject107()
+	updateNetworkSnmp := *openApiClient.NewInlineObject108()
 	updateNetworkSnmp.SetAccess(data.Access.ValueString())
 	if len(data.Users) > 0 {
 		var usersData []openApiClient.NetworksNetworkIdSnmpUsers
@@ -249,7 +249,7 @@ func (r *OrganizationsSnmpResource) Update(ctx context.Context, req resource.Upd
 		return
 	}
 
-	updateNetworkSnmp := *openApiClient.NewInlineObject107()
+	updateNetworkSnmp := *openApiClient.NewInlineObject108()
 	updateNetworkSnmp.SetAccess(data.Access.ValueString())
 	if len(data.Users) > 0 {
 		var usersData []openApiClient.NetworksNetworkIdSnmpUsers
@@ -316,7 +316,7 @@ func (r *OrganizationsSnmpResource) Delete(ctx context.Context, req resource.Del
 		return
 	}
 
-	updateNetworkSnmp := *openApiClient.NewInlineObject107()
+	updateNetworkSnmp := *openApiClient.NewInlineObject108()
 	updateNetworkSnmp.SetAccess("none")
 	updateNetworkSnmp.SetUsers(nil)
 
