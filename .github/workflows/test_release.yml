@@ -1,15 +1,12 @@
 # Terraform Provider testing workflow.
-name: Tests
+name: release test
 
-# This GitHub action runs your tests for each pull request and push.
-# Optionally, you can turn it on using a schedule for regular testing.
+# This GitHub action runs all tests for each resource and data source.
+# Currently its setup to run on any tag that matches the pattern "v*" (ie. v0.1.0).
 on:
-  pull_request:
-    paths-ignore:
-      - 'README.md'
-  push:
-    paths-ignore:
-      - 'README.md'
+push:
+  tags:
+    - 'v*'
 
 # Testing only needs permissions to read the repository contents.
 permissions:
@@ -32,7 +29,7 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 30
     needs: lint
     steps:
       - uses: actions/checkout@v3
@@ -62,7 +59,7 @@ jobs:
     name: Terraform Provider Acceptance Tests
     needs: build
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:

@@ -68,7 +68,7 @@ func (r *NetworksSwitchQosRulesResource) Schema(ctx context.Context, req resourc
 					stringplanmodifier.UseStateForUnknown(),
 				},
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(8, 31),
+					stringvalidator.LengthBetween(1, 31),
 				},
 			},
 			"qos_rules_id": schema.StringAttribute{

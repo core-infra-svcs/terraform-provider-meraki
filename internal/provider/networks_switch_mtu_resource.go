@@ -67,7 +67,7 @@ func (r *NetworksSwitchMtuResource) Schema(ctx context.Context, req resource.Sch
 					stringplanmodifier.UseStateForUnknown(),
 				},
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(8, 31),
+					stringvalidator.LengthBetween(1, 31),
 				},
 			},
 			"default_mtu_size": schema.Int64Attribute{
