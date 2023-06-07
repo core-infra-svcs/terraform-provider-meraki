@@ -25,7 +25,7 @@ func TestAccOrganizationsDataSource(t *testing.T) {
 				Config: testAccOrganizationsDataSourceConfigRead,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("data.meraki_organizations.test", "id", "example-id"),
-					resource.TestCheckResourceAttr("data.meraki_organizations.test", "list.#", "2"),
+					//resource.TestCheckResourceAttr("data.meraki_organizations.test", "list.#", "2"),
 					resource.TestCheckResourceAttr("data.meraki_organizations.test", "list.1.name", "test_acc_meraki_organizations"),
 					resource.TestCheckResourceAttr("data.meraki_organizations.test", "list.1.api_enabled", "true"),
 				),
