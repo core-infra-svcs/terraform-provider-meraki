@@ -77,7 +77,7 @@ func (r *OrganizationsAdaptivePolicyAclResource) Schema(ctx context.Context, req
 					stringplanmodifier.UseStateForUnknown(),
 				},
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(8, 31),
+					stringvalidator.LengthBetween(1, 31),
 				},
 			},
 			"acl_id": schema.StringAttribute{
