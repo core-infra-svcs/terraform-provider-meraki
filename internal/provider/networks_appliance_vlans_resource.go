@@ -107,7 +107,7 @@ func (r *NetworksApplianceVlansResource) Schema(ctx context.Context, req resourc
 				CustomType: jsontypes.StringType,
 			},
 			"network_id": schema.StringAttribute{
-				MarkdownDescription: "Network Id",
+				MarkdownDescription: "The VLAN ID of the new VLAN (must be between 1 and 4094)",
 				Required:            true,
 				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
@@ -118,85 +118,85 @@ func (r *NetworksApplianceVlansResource) Schema(ctx context.Context, req resourc
 				},
 			},
 			"name": schema.StringAttribute{
-				MarkdownDescription: "The destination port range of the incoming packet. Applicable only if protocol is set to TCP or UDP. Example: 70-80",
+				MarkdownDescription: "The name of the new VLAN",
 				Optional:            true,
 				Computed:            true,
 				CustomType:          jsontypes.StringType,
 			},
 			"subnet": schema.StringAttribute{
-				MarkdownDescription: "The destination port range of the incoming packet. Applicable only if protocol is set to TCP or UDP. Example: 70-80",
+				MarkdownDescription: "The subnet of the VLAN",
 				Optional:            true,
 				Computed:            true,
 				CustomType:          jsontypes.StringType,
 			},
 			"appliance_ip": schema.StringAttribute{
-				MarkdownDescription: "The destination port range of the incoming packet. Applicable only if protocol is set to TCP or UDP. Example: 70-80",
+				MarkdownDescription: "The local IP of the appliance on the VLAN",
 				Optional:            true,
 				Computed:            true,
 				CustomType:          jsontypes.StringType,
 			},
 			"group_policy_id": schema.StringAttribute{
-				MarkdownDescription: "The destination port range of the incoming packet. Applicable only if protocol is set to TCP or UDP. Example: 70-80",
+				MarkdownDescription: " desired group policy to apply to the VLAN",
 				Optional:            true,
 				Computed:            true,
 				CustomType:          jsontypes.StringType,
 			},
 			"template_vlan_type": schema.StringAttribute{
-				MarkdownDescription: "The destination port range of the incoming packet. Applicable only if protocol is set to TCP or UDP. Example: 70-80",
+				MarkdownDescription: "Type of subnetting of the VLAN. Applicable only for template network.",
 				Optional:            true,
 				Computed:            true,
 				CustomType:          jsontypes.StringType,
 			},
 			"cidr": schema.StringAttribute{
-				MarkdownDescription: "The destination port range of the incoming packet. Applicable only if protocol is set to TCP or UDP. Example: 70-80",
+				MarkdownDescription: "CIDR of the pool of subnets. Applicable only for template network. Each network bound to the template will automatically pick a subnet from this pool to build its own VLAN.",
 				Optional:            true,
 				Computed:            true,
 				CustomType:          jsontypes.StringType,
 			},
 			"dhcp_handling": schema.StringAttribute{
-				MarkdownDescription: "The destination port range of the incoming packet. Applicable only if protocol is set to TCP or UDP. Example: 70-80",
+				MarkdownDescription: "The appliance's handling of DHCP requests on this VLAN. One of: 'Run a DHCP server', 'Relay DHCP to another server' or 'Do not respond to DHCP requests'",
 				Optional:            true,
 				Computed:            true,
 				CustomType:          jsontypes.StringType,
 			},
 			"dhcp_lease_time": schema.StringAttribute{
-				MarkdownDescription: "The destination port range of the incoming packet. Applicable only if protocol is set to TCP or UDP. Example: 70-80",
+				MarkdownDescription: "The term of DHCP leases if the appliance is running a DHCP server on this VLAN. One of: '30 minutes', '1 hour', '4 hours', '12 hours', '1 day' or '1 week'",
 				Optional:            true,
 				Computed:            true,
 				CustomType:          jsontypes.StringType,
 			},
 			"dhcp_boot_next_server": schema.StringAttribute{
-				MarkdownDescription: "The destination port range of the incoming packet. Applicable only if protocol is set to TCP or UDP. Example: 70-80",
+				MarkdownDescription: "DHCP boot option to direct boot clients to the server to load the boot file from",
 				Optional:            true,
 				Computed:            true,
 				CustomType:          jsontypes.StringType,
 			},
 			"dhcp_boot_filename": schema.StringAttribute{
-				MarkdownDescription: "The destination port range of the incoming packet. Applicable only if protocol is set to TCP or UDP. Example: 70-80",
+				MarkdownDescription: "DHCP boot option for boot filename ",
 				Optional:            true,
 				Computed:            true,
 				CustomType:          jsontypes.StringType,
 			},
 			"dns_nameservers": schema.StringAttribute{
-				MarkdownDescription: "The destination port range of the incoming packet. Applicable only if protocol is set to TCP or UDP. Example: 70-80",
+				MarkdownDescription: "The DNS nameservers used for DHCP responses, either \"upstream_dns\", \"google_dns\", \"opendns\", or a newline seperated string of IP addresses or domain names",
 				Optional:            true,
 				Computed:            true,
 				CustomType:          jsontypes.StringType,
 			},
 			"vpn_nat_subnet": schema.StringAttribute{
-				MarkdownDescription: "The destination port range of the incoming packet. Applicable only if protocol is set to TCP or UDP. Example: 70-80",
+				MarkdownDescription: "The translated VPN subnet if VPN and VPN subnet translation are enabled on the VLAN",
 				Optional:            true,
 				Computed:            true,
 				CustomType:          jsontypes.StringType,
 			},
 			"mask": schema.Int64Attribute{
-				MarkdownDescription: "The destination port range of the incoming packet. Applicable only if protocol is set to TCP or UDP. Example: 70-80",
+				MarkdownDescription: "Mask used for the subnet of all bound to the template networks. Applicable only for template network.",
 				Optional:            true,
 				Computed:            true,
 				CustomType:          jsontypes.Int64Type,
 			},
 			"dhcp_boot_options_enabled": schema.BoolAttribute{
-				MarkdownDescription: "The destination port range of the incoming packet. Applicable only if protocol is set to TCP or UDP. Example: 70-80",
+				MarkdownDescription: "Use DHCP boot options specified in other properties",
 				Optional:            true,
 				Computed:            true,
 				CustomType:          jsontypes.BoolType,
@@ -204,30 +204,30 @@ func (r *NetworksApplianceVlansResource) Schema(ctx context.Context, req resourc
 			"dhcp_relay_server_ips": schema.SetAttribute{
 				CustomType:  jsontypes.SetType[jsontypes.String](),
 				ElementType: jsontypes.StringType,
-				Description: "Network tags",
+				Description: "The IPs of the DHCP servers that DHCP requests should be relayed to",
 				Computed:    true,
 				Optional:    true,
 			},
 			"reserved_ip_ranges": schema.SetNestedAttribute{
 				Optional:    true,
 				Computed:    true,
-				Description: "",
+				Description: "The DHCP reserved IP ranges on the VLAN",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"start": schema.StringAttribute{
-							MarkdownDescription: "Network ID",
+							MarkdownDescription: "The first IP in the reserved range",
 							Optional:            true,
 							Computed:            true,
 							CustomType:          jsontypes.StringType,
 						},
 						"end": schema.StringAttribute{
-							MarkdownDescription: "Network ID",
+							MarkdownDescription: "The last IP in the reserved range",
 							Optional:            true,
 							Computed:            true,
 							CustomType:          jsontypes.StringType,
 						},
 						"comment": schema.StringAttribute{
-							MarkdownDescription: "Network ID",
+							MarkdownDescription: "A text comment for the reserved range",
 							Optional:            true,
 							Computed:            true,
 							CustomType:          jsontypes.StringType,
@@ -238,23 +238,23 @@ func (r *NetworksApplianceVlansResource) Schema(ctx context.Context, req resourc
 			"dhcp_options": schema.SetNestedAttribute{
 				Optional:    true,
 				Computed:    true,
-				Description: "",
+				Description: "The list of DHCP options that will be included in DHCP responses. Each object in the list should have \"code\", \"type\", and \"value\" properties.",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"code": schema.StringAttribute{
-							MarkdownDescription: "Network ID",
+							MarkdownDescription: "The code for the DHCP option. This should be an integer between 2 and 254.",
 							Optional:            true,
 							Computed:            true,
 							CustomType:          jsontypes.StringType,
 						},
 						"type": schema.StringAttribute{
-							MarkdownDescription: "Network ID",
+							MarkdownDescription: "The type for the DHCP option. One of: 'text', 'ip', 'hex' or 'integer'",
 							Optional:            true,
 							Computed:            true,
 							CustomType:          jsontypes.StringType,
 						},
 						"value": schema.StringAttribute{
-							MarkdownDescription: "Network ID",
+							MarkdownDescription: "The value for the DHCP option",
 							Optional:            true,
 							Computed:            true,
 							CustomType:          jsontypes.StringType,
@@ -263,11 +263,12 @@ func (r *NetworksApplianceVlansResource) Schema(ctx context.Context, req resourc
 				},
 			},
 			"ipv6": schema.SingleNestedAttribute{
-				Optional: true,
-				Computed: true,
+				Description: "IPv6 configuration on the VLAN",
+				Optional:    true,
+				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					"enabled": schema.BoolAttribute{
-						MarkdownDescription: "Enables / disables the secure port.",
+						MarkdownDescription: "Enable IPv6 on VLAN.",
 						Optional:            true,
 						Computed:            true,
 						CustomType:          jsontypes.BoolType,
@@ -275,33 +276,34 @@ func (r *NetworksApplianceVlansResource) Schema(ctx context.Context, req resourc
 					"prefix_assignments": schema.SetNestedAttribute{
 						Optional:    true,
 						Computed:    true,
-						Description: "",
+						Description: "Prefix assignments on the VLAN",
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"autonomous": schema.BoolAttribute{
-									MarkdownDescription: "Network ID",
+									MarkdownDescription: "Auto assign a /64 prefix from the origin to the VLAN",
 									Optional:            true,
 									Computed:            true,
 									CustomType:          jsontypes.BoolType,
 								},
 								"static_prefix": schema.StringAttribute{
-									MarkdownDescription: "Network ID",
+									MarkdownDescription: "Manual configuration of a /64 prefix on the VLAN",
 									Optional:            true,
 									Computed:            true,
 									CustomType:          jsontypes.StringType,
 								},
 								"static_appliance_ip6": schema.StringAttribute{
-									MarkdownDescription: "Network ID",
+									MarkdownDescription: "Manual configuration of the IPv6 Appliance IP",
 									Optional:            true,
 									Computed:            true,
 									CustomType:          jsontypes.StringType,
 								},
 								"origin": schema.SingleNestedAttribute{
-									Optional: true,
-									Computed: true,
+									MarkdownDescription: "The origin of the prefix",
+									Optional:            true,
+									Computed:            true,
 									Attributes: map[string]schema.Attribute{
 										"type": schema.StringAttribute{
-											MarkdownDescription: "Network ID",
+											MarkdownDescription: "Type of the origin",
 											Optional:            true,
 											Computed:            true,
 											CustomType:          jsontypes.StringType,
@@ -309,7 +311,7 @@ func (r *NetworksApplianceVlansResource) Schema(ctx context.Context, req resourc
 										"interfaces": schema.SetAttribute{
 											CustomType:  jsontypes.SetType[jsontypes.String](),
 											ElementType: jsontypes.StringType,
-											Description: "Network tags",
+											Description: "Interfaces associated with the prefix",
 											Computed:    true,
 											Optional:    true,
 										},
