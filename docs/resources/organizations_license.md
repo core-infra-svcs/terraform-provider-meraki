@@ -23,19 +23,19 @@ Organizations License Updates a license
 
 ### Optional
 
-- `activation_date` (String) The serial number of the device to assign this license to. Set this to null to unassign the license. If a different license is already active on the device, this parameter will control queueing/dequeuing this license.
-- `claim_date` (String) The serial number of the device to assign this license to. Set this to null to unassign the license. If a different license is already active on the device, this parameter will control queueing/dequeuing this license.
-- `duration_in_days` (Number) The serial number of the device to assign this license to. Set this to null to unassign the license. If a different license is already active on the device, this parameter will control queueing/dequeuing this license.
-- `expiration_date` (String) The serial number of the device to assign this license to. Set this to null to unassign the license. If a different license is already active on the device, this parameter will control queueing/dequeuing this license.
-- `head_license_id` (String) The serial number of the device to assign this license to. Set this to null to unassign the license. If a different license is already active on the device, this parameter will control queueing/dequeuing this license.
-- `license_key` (String) The serial number of the device to assign this license to. Set this to null to unassign the license. If a different license is already active on the device, this parameter will control queueing/dequeuing this license.
-- `license_type` (String) The serial number of the device to assign this license to. Set this to null to unassign the license. If a different license is already active on the device, this parameter will control queueing/dequeuing this license.
-- `network_id` (String) The serial number of the device to assign this license to. Set this to null to unassign the license. If a different license is already active on the device, this parameter will control queueing/dequeuing this license.
-- `order_number` (String) The serial number of the device to assign this license to. Set this to null to unassign the license. If a different license is already active on the device, this parameter will control queueing/dequeuing this license.
-- `permanently_queued_licenses` (Attributes) (see [below for nested schema](#nestedatt--permanently_queued_licenses))
-- `seat_count` (Number) The serial number of the device to assign this license to. Set this to null to unassign the license. If a different license is already active on the device, this parameter will control queueing/dequeuing this license.
-- `state` (String) The serial number of the device to assign this license to. Set this to null to unassign the license. If a different license is already active on the device, this parameter will control queueing/dequeuing this license.
-- `total_duration_in_days` (Number) The serial number of the device to assign this license to. Set this to null to unassign the license. If a different license is already active on the device, this parameter will control queueing/dequeuing this license.
+- `activation_date` (String) The date the license started burning.
+- `claim_date` (String) The date the license was claimed into the organization.
+- `duration_in_days` (Number) The duration of the individual license.
+- `expiration_date` (String) The date the license will expire.
+- `head_license_id` (String) The id of the head license this license is queued behind. If there is no head license, it returns nil.
+- `license_key` (String) License Key.
+- `license_type` (String) License Type.
+- `network_id` (String) ID of the network the license is assigned to.
+- `order_number` (String) Order Number.
+- `permanently_queued_licenses` (Attributes) DEPRECATED List of permanently queued licenses attached to the license. Instead, use /organizations/{organizationId}/licenses?deviceSerial= to retrieved queued licenses for a given device. (see [below for nested schema](#nestedatt--permanently_queued_licenses))
+- `seat_count` (Number) The number of seats of the license. Only applicable to SM licenses.
+- `state` (String) The state of the license. All queued licenses have a status of `recentlyQueued`.
+- `total_duration_in_days` (Number) The duration of the license plus all permanently queued licenses associated with it.
 
 ### Read-Only
 
