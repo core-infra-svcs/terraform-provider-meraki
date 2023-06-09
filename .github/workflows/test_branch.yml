@@ -84,7 +84,7 @@ jobs:
           TF_ACC: "1"
           MERAKI_DASHBOARD_API_KEY: ${{ secrets.MERAKI_DASHBOARD_API_KEY }}
         run: |
-          changed_files=$(git diff --name-only HEAD $(git merge-base HEAD master))
+          changed_files=$(git diff --name-only HEAD $(git merge-base HEAD main))
           test_function=$(grep -E '^func TestAcc.*\(t \*testing.T\)' $changed_files | awk -F 'func ' '{print $2}' | awk -F '(' '{print $1}')
           if [[ -n "$test_function" ]]; then
             go test -v -cover -run "$test_function" ./internal/provider/
