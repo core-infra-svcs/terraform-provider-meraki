@@ -70,7 +70,7 @@ func (r *OrganizationsApplianceVpnVpnFirewallRulesResource) Schema(ctx context.C
 					stringplanmodifier.UseStateForUnknown(),
 				},
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(8, 31),
+					stringvalidator.LengthBetween(1, 31),
 				},
 			},
 			"syslog_default_rule": schema.BoolAttribute{
@@ -164,7 +164,7 @@ func (r *OrganizationsApplianceVpnVpnFirewallRulesResource) Create(ctx context.C
 		return
 	}
 
-	organizationsApplianceVpnVpnFirewallRules := *openApiClient.NewInlineObject183()
+	organizationsApplianceVpnVpnFirewallRules := *openApiClient.NewInlineObject184()
 	var rules []openApiClient.OrganizationsOrganizationIdApplianceVpnVpnFirewallRulesRules
 
 	if len(data.Rules) > 0 {
@@ -294,7 +294,7 @@ func (r *OrganizationsApplianceVpnVpnFirewallRulesResource) Update(ctx context.C
 		return
 	}
 
-	organizationsApplianceVpnVpnFirewallRules := *openApiClient.NewInlineObject183()
+	organizationsApplianceVpnVpnFirewallRules := *openApiClient.NewInlineObject184()
 	var rules []openApiClient.OrganizationsOrganizationIdApplianceVpnVpnFirewallRulesRules
 
 	if len(data.Rules) > 0 {
@@ -370,7 +370,7 @@ func (r *OrganizationsApplianceVpnVpnFirewallRulesResource) Delete(ctx context.C
 		return
 	}
 
-	organizationsApplianceVpnVpnFirewallRules := *openApiClient.NewInlineObject183()
+	organizationsApplianceVpnVpnFirewallRules := *openApiClient.NewInlineObject184()
 	rules := []openApiClient.OrganizationsOrganizationIdApplianceVpnVpnFirewallRulesRules{}
 	organizationsApplianceVpnVpnFirewallRules.SetRules(rules)
 	organizationsApplianceVpnVpnFirewallRules.SetSyslogDefaultRule(false)

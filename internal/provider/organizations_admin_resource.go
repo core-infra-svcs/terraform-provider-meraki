@@ -82,7 +82,7 @@ func (r *OrganizationsAdminResource) Schema(ctx context.Context, req resource.Sc
 					stringplanmodifier.UseStateForUnknown(),
 				},
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(8, 31),
+					stringvalidator.LengthBetween(1, 31),
 				},
 			},
 			"admin_id": schema.StringAttribute{
@@ -94,7 +94,7 @@ func (r *OrganizationsAdminResource) Schema(ctx context.Context, req resource.Sc
 					stringplanmodifier.UseStateForUnknown(),
 				},
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(8, 31),
+					stringvalidator.LengthBetween(1, 31),
 				},
 			},
 			"name": schema.StringAttribute{
@@ -231,7 +231,7 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 	}
 
 	// Creating and Validating Payload for Creating Administrator
-	createOrganizationAdmin := *openApiClient.NewInlineObject177(
+	createOrganizationAdmin := *openApiClient.NewInlineObject178(
 		data.Email.ValueString(),
 		data.Name.ValueString(),
 		data.OrgAccess.ValueString())
@@ -379,7 +379,7 @@ func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.Up
 	}
 
 	// Creating and Validating Payload for Creating Administrator
-	updateOrganizationAdmin := *openApiClient.NewInlineObject178()
+	updateOrganizationAdmin := *openApiClient.NewInlineObject179()
 	updateOrganizationAdmin.SetName(data.Name.ValueString())
 	updateOrganizationAdmin.SetOrgAccess(data.OrgAccess.ValueString())
 
