@@ -31,8 +31,10 @@ NetworksApplianceVlans
 - `dhcp_options` (Attributes Set) The list of DHCP options that will be included in DHCP responses. Each object in the list should have "code", "type", and "value" properties. (see [below for nested schema](#nestedatt--dhcp_options))
 - `dhcp_relay_server_ips` (Set of String) The IPs of the DHCP servers that DHCP requests should be relayed to
 - `dns_nameservers` (String) The DNS nameservers used for DHCP responses, either "upstream_dns", "google_dns", "opendns", or a newline seperated string of IP addresses or domain names
+- `fixed_ip_assignments` (Attributes) The DHCP fixed IP assignments on the VLAN. This should be an object that contains mappings from MAC addresses to objects that themselves each contain "ip" and "name" string fields. See the sample request/response for more details (see [below for nested schema](#nestedatt--fixed_ip_assignments))
 - `group_policy_id` (String) desired group policy to apply to the VLAN
 - `ipv6` (Attributes) IPv6 configuration on the VLAN (see [below for nested schema](#nestedatt--ipv6))
+- `mandatory_dhcp` (Attributes) Mandatory DHCP will enforce that clients connecting to this VLAN must use the IP address assigned by the DHCP server. Clients who use a static IP address won't be able to associate. Only available on firmware versions 17.0 and above (see [below for nested schema](#nestedatt--mandatory_dhcp))
 - `mask` (Number) Mask used for the subnet of all bound to the template networks. Applicable only for template network.
 - `name` (String) The name of the new VLAN
 - `reserved_ip_ranges` (Attributes Set) The DHCP reserved IP ranges on the VLAN (see [below for nested schema](#nestedatt--reserved_ip_ranges))
@@ -53,6 +55,15 @@ Optional:
 - `code` (String) The code for the DHCP option. This should be an integer between 2 and 254.
 - `type` (String) The type for the DHCP option. One of: 'text', 'ip', 'hex' or 'integer'
 - `value` (String) The value for the DHCP option
+
+
+<a id="nestedatt--fixed_ip_assignments"></a>
+### Nested Schema for `fixed_ip_assignments`
+
+Optional:
+
+- `ip` (String) Enable IPv6 on VLAN.
+- `name` (String) Enable IPv6 on VLAN.
 
 
 <a id="nestedatt--ipv6"></a>
@@ -82,6 +93,14 @@ Optional:
 - `type` (String) Type of the origin
 
 
+
+
+<a id="nestedatt--mandatory_dhcp"></a>
+### Nested Schema for `mandatory_dhcp`
+
+Optional:
+
+- `enabled` (Boolean) Enable Mandatory DHCP on VLAN.
 
 
 <a id="nestedatt--reserved_ip_ranges"></a>

@@ -335,7 +335,7 @@ func (r *NetworksApplianceVLANsResource) Schema(ctx context.Context, req resourc
 				},
 			},
 			"fixed_ip_assignments": schema.SingleNestedAttribute{
-				Description: "IPv6 configuration on the VLAN",
+				Description: "The DHCP fixed IP assignments on the VLAN. This should be an object that contains mappings from MAC addresses to objects that themselves each contain \"ip\" and \"name\" string fields. See the sample request/response for more details",
 				Optional:    true,
 				Computed:    false,
 				Attributes: map[string]schema.Attribute{
