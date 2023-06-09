@@ -177,7 +177,7 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		NewNetworksSwitchDscpToCosMappingsResource,
 		NewNetworksSwitchMtuResource,
 		NewNetworksGroupPolicyResource,
-		NewNetworksApplianceVlansResource,
+		NewNetworksApplianceVLANsResource,
 	}
 }
 
