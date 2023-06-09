@@ -138,7 +138,7 @@ func (p *CiscoMerakiProvider) Configure(ctx context.Context, req provider.Config
 	configuration := openApiClient.NewConfiguration()
 	configuration.AddDefaultHeader("X-Cisco-Meraki-API-Key", apiKey)
 	configuration.Host = baseUrl
-	configuration.UserAgent = "Terraform-Provider-Meraki-" + p.version
+	configuration.UserAgent = configuration.UserAgent + "terraform" + p.version
 
 	// enable debug for provider development
 	if p.version == "dev" {

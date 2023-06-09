@@ -127,7 +127,7 @@ func (r *NetworksSwitchDscpToCosMappingsResource) Create(ctx context.Context, re
 	}
 
 	// Create Payload
-	networkMappings := *openApiClient.NewInlineObject115(mappings)
+	networkMappings := *openApiClient.NewInlineObject116(mappings)
 
 	_, httpResp, err := r.client.ConfigureApi.UpdateNetworkSwitchDscpToCosMappings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchDscpToCosMappings(networkMappings).Execute()
 	if err != nil {
@@ -247,7 +247,7 @@ func (r *NetworksSwitchDscpToCosMappingsResource) Update(ctx context.Context, re
 	}
 
 	// Create Payload
-	networkMappings := *openApiClient.NewInlineObject115(mappings)
+	networkMappings := *openApiClient.NewInlineObject116(mappings)
 
 	_, httpResp, err := r.client.ConfigureApi.UpdateNetworkSwitchDscpToCosMappings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchDscpToCosMappings(networkMappings).Execute()
 	if err != nil {
@@ -312,7 +312,7 @@ func (r *NetworksSwitchDscpToCosMappingsResource) Delete(ctx context.Context, re
 	}
 
 	// Create Payload
-	networkMappings := *openApiClient.NewInlineObject115(mappings)
+	networkMappings := *openApiClient.NewInlineObject116(mappings)
 
 	_, httpResp, err := r.client.ConfigureApi.UpdateNetworkSwitchDscpToCosMappings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchDscpToCosMappings(networkMappings).Execute()
 	if err != nil {
