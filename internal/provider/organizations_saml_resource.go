@@ -61,7 +61,7 @@ func (r *OrganizationSamlResource) Schema(ctx context.Context, req resource.Sche
 					stringplanmodifier.UseStateForUnknown(),
 				},
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(8, 31),
+					stringvalidator.LengthBetween(1, 31),
 				},
 			},
 			"enabled": schema.BoolAttribute{
