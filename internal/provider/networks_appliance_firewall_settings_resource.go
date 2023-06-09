@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -15,47 +16,43 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
-	"strconv"
-	"strings"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ resource.Resource = &NetworksSyslogServersResource{}
-var _ resource.ResourceWithImportState = &NetworksSyslogServersResource{}
+var _ resource.Resource = &NetworksApplianceFirewallSettingsResource{}
+var _ resource.ResourceWithImportState = &NetworksApplianceFirewallSettingsResource{}
 
-func NewNetworksSyslogServersResource() resource.Resource {
-	return &NetworksSyslogServersResource{}
+func NewNetworksApplianceFirewallSettingsResource() resource.Resource {
+	return &NetworksApplianceFirewallSettingsResource{}
 }
 
-// NetworksSyslogServersResource defines the resource implementation.
-type NetworksSyslogServersResource struct {
+// NetworksApplianceFirewallSettingsResource defines the resource implementation.
+type NetworksApplianceFirewallSettingsResource struct {
 	client *openApiClient.APIClient
 }
 
-// NetworksSyslogServersResourceModel describes the resource data model.
-type NetworksSyslogServersResourceModel struct {
-	Id        jsontypes.String                           `tfsdk:"id"`
-	NetworkId jsontypes.String                           `tfsdk:"network_id"`
-	Servers   []NetworksSyslogServersResourceModelServer `tfsdk:"servers"`
+// NetworksApplianceFirewallSettingsResourceModel describes the resource data model.
+type NetworksApplianceFirewallSettingsResourceModel struct {
+	Id                 jsontypes.String   `tfsdk:"id"`
+	NetworkId          jsontypes.String   `tfsdk:"network_id" json:"network_id"`
+	SpoofingProtection SpoofingProtection `tfsdk:"spoofing_protection" json:"spoofingProtection"`
 }
 
-type NetworksSyslogServersResourceModelServer struct {
-	Host  jsontypes.String   `tfsdk:"host"`
-	Port  jsontypes.String   `tfsdk:"port"`
-	Roles []jsontypes.String `tfsdk:"roles"`
+type SpoofingProtection struct {
+	IpSourceGuard IpSourceGuard `tfsdk:"ip_source_guard" json:"ipSourceGuard"`
 }
 
-type NetworksSyslogServersResourceModelResponse struct {
-	Servers []NetworksSyslogServersResourceModelServer `tfsdk:"servers"`
+type IpSourceGuard struct {
+	Mode jsontypes.String `tfsdk:"mode" json:"mode"`
 }
 
-func (r *NetworksSyslogServersResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_networks_syslog_servers"
+func (r *NetworksApplianceFirewallSettingsResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_networks_appliance_firewall_settings"
 }
 
-func (r *NetworksSyslogServersResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *NetworksApplianceFirewallSettingsResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "NetworksSyslogServers resource for updating networks syslog servers.",
+		MarkdownDescription: "Networks Appliance Firewall Settings resource for updating network appliance firewall settings.",
 		Attributes: map[string]schema.Attribute{
 
 			"id": schema.StringAttribute{
@@ -74,29 +71,19 @@ func (r *NetworksSyslogServersResource) Schema(ctx context.Context, req resource
 					stringvalidator.LengthBetween(1, 31),
 				},
 			},
-			"servers": schema.SetNestedAttribute{
-				MarkdownDescription: "servers",
+			"spoofing_protection": schema.SingleNestedAttribute{
+				MarkdownDescription: "Spoofing protection settings",
 				Required:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"host": schema.StringAttribute{
-							MarkdownDescription: "The IP address of the syslog server",
-							Optional:            true,
-							Computed:            true,
-							CustomType:          jsontypes.StringType,
-						},
-						"port": schema.StringAttribute{
-							MarkdownDescription: "The port of the syslog server",
-							Optional:            true,
-							Computed:            true,
-							CustomType:          jsontypes.StringType,
-						},
-						"roles": schema.SetAttribute{
-							Description: "roles",
-							ElementType: jsontypes.StringType,
-							CustomType:  jsontypes.SetType[jsontypes.String](),
-							Computed:    true,
-							Optional:    true,
+				Attributes: map[string]schema.Attribute{
+					"ip_source_guard": schema.SingleNestedAttribute{
+						MarkdownDescription: "IP source address spoofing settings",
+						Required:            true,
+						Attributes: map[string]schema.Attribute{
+							"mode": schema.StringAttribute{
+								MarkdownDescription: "Mode of protection.",
+								Required:            true,
+								CustomType:          jsontypes.StringType,
+							},
 						},
 					},
 				},
@@ -105,7 +92,7 @@ func (r *NetworksSyslogServersResource) Schema(ctx context.Context, req resource
 	}
 }
 
-func (r *NetworksSyslogServersResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *NetworksApplianceFirewallSettingsResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -125,8 +112,8 @@ func (r *NetworksSyslogServersResource) Configure(ctx context.Context, req resou
 	r.client = client
 }
 
-func (r *NetworksSyslogServersResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *NetworksSyslogServersResourceModel
+func (r *NetworksApplianceFirewallSettingsResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *NetworksApplianceFirewallSettingsResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -134,41 +121,18 @@ func (r *NetworksSyslogServersResource) Create(ctx context.Context, req resource
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	var servers []openApiClient.NetworksNetworkIdSyslogServersServers
 
-	// Servers
-	if len(data.Servers) > 0 {
+	updateNetworksApplianceFirewallSettings := *openApiClient.NewInlineObject39()
+	var spoofingProtection openApiClient.NetworksNetworkIdApplianceFirewallSettingsSpoofingProtection
+	var ipSourceGuard openApiClient.NetworksNetworkIdApplianceFirewallSettingsSpoofingProtectionIpSourceGuard
+	ipSourceGuard.SetMode(data.SpoofingProtection.IpSourceGuard.Mode.ValueString())
+	spoofingProtection.SetIpSourceGuard(ipSourceGuard)
+	updateNetworksApplianceFirewallSettings.SetSpoofingProtection(spoofingProtection)
 
-		for _, attribute := range data.Servers {
-			var server openApiClient.NetworksNetworkIdSyslogServersServers
-			server.SetHost(attribute.Host.ValueString())
-
-			parsedStr, err := strconv.ParseInt(attribute.Port.ValueString(), 10, 32)
-			if err != nil {
-				resp.Diagnostics.AddError(
-					"Failed to convert port string to int32 payload",
-					fmt.Sprintf("%v\n", err.Error()),
-				)
-			}
-			server.SetPort(int32(parsedStr))
-
-			var roles []string
-			for _, role := range attribute.Roles {
-				roles = append(roles, role.ValueString())
-
-			}
-			server.SetRoles(roles)
-			servers = append(servers, server)
-		}
-
-	}
-
-	updateSyslogServers := *openApiClient.NewInlineObject140(servers)
-
-	_, httpResp, err := r.client.SyslogServersApi.UpdateNetworkSyslogServers(ctx, data.NetworkId.ValueString()).UpdateNetworkSyslogServers(updateSyslogServers).Execute()
-	if err != nil && !strings.HasPrefix(err.Error(), "json:") {
+	_, httpResp, err := r.client.SettingsApi.UpdateNetworkApplianceFirewallSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceFirewallSettings(updateNetworksApplianceFirewallSettings).Execute()
+	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to Create resource",
+			"Failed to create resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
@@ -178,6 +142,7 @@ func (r *NetworksSyslogServersResource) Create(ctx context.Context, req resource
 		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 	}
 
+	// Check for API success response code
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
@@ -201,15 +166,15 @@ func (r *NetworksSyslogServersResource) Create(ctx context.Context, req resource
 	}
 
 	data.Id = jsontypes.StringValue("example-id")
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
 	tflog.Trace(ctx, "create resource")
 }
 
-func (r *NetworksSyslogServersResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-
-	var data *NetworksSyslogServersResourceModel
+func (r *NetworksApplianceFirewallSettingsResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *NetworksApplianceFirewallSettingsResourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -218,8 +183,8 @@ func (r *NetworksSyslogServersResource) Read(ctx context.Context, req resource.R
 		return
 	}
 
-	_, httpResp, err := r.client.NetworksApi.GetNetworkSyslogServers(ctx, data.NetworkId.ValueString()).Execute()
-	if err != nil && !strings.HasPrefix(err.Error(), "json:") {
+	_, httpResp, err := r.client.SettingsApi.GetNetworkApplianceFirewallSettings(context.Background(), data.NetworkId.ValueString()).Execute()
+	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to read resource",
 			fmt.Sprintf("%v\n", err.Error()),
@@ -231,6 +196,7 @@ func (r *NetworksSyslogServersResource) Read(ctx context.Context, req resource.R
 		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 	}
 
+	// Check for API success response code
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
@@ -240,8 +206,9 @@ func (r *NetworksSyslogServersResource) Read(ctx context.Context, req resource.R
 
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
-		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
 		return
+	} else {
+		resp.Diagnostics.Append()
 	}
 
 	// Save data into Terraform state
@@ -261,9 +228,9 @@ func (r *NetworksSyslogServersResource) Read(ctx context.Context, req resource.R
 	tflog.Trace(ctx, "read resource")
 }
 
-func (r *NetworksSyslogServersResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *NetworksApplianceFirewallSettingsResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 
-	var data *NetworksSyslogServersResourceModel
+	var data *NetworksApplianceFirewallSettingsResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -272,41 +239,17 @@ func (r *NetworksSyslogServersResource) Update(ctx context.Context, req resource
 		return
 	}
 
-	var servers []openApiClient.NetworksNetworkIdSyslogServersServers
+	updateNetworksApplianceFirewallSettings := *openApiClient.NewInlineObject39()
+	var spoofingProtection openApiClient.NetworksNetworkIdApplianceFirewallSettingsSpoofingProtection
+	var ipSourceGuard openApiClient.NetworksNetworkIdApplianceFirewallSettingsSpoofingProtectionIpSourceGuard
+	ipSourceGuard.SetMode(data.SpoofingProtection.IpSourceGuard.Mode.ValueString())
+	spoofingProtection.SetIpSourceGuard(ipSourceGuard)
+	updateNetworksApplianceFirewallSettings.SetSpoofingProtection(spoofingProtection)
 
-	// Servers
-	if len(data.Servers) > 0 {
-
-		for _, attribute := range data.Servers {
-			var server openApiClient.NetworksNetworkIdSyslogServersServers
-			server.SetHost(attribute.Host.ValueString())
-
-			parsedStr, err := strconv.ParseInt(attribute.Port.ValueString(), 10, 32)
-			if err != nil {
-				resp.Diagnostics.AddError(
-					"Failed to convert port string to int32 payload",
-					fmt.Sprintf("%v\n", err.Error()),
-				)
-			}
-			server.SetPort(int32(parsedStr))
-
-			var roles []string
-			for _, role := range attribute.Roles {
-				roles = append(roles, role.ValueString())
-
-			}
-			server.SetRoles(roles)
-			servers = append(servers, server)
-		}
-
-	}
-
-	updateSyslogServers := *openApiClient.NewInlineObject140(servers)
-
-	_, httpResp, err := r.client.SyslogServersApi.UpdateNetworkSyslogServers(ctx, data.NetworkId.ValueString()).UpdateNetworkSyslogServers(updateSyslogServers).Execute()
-	if err != nil && !strings.HasPrefix(err.Error(), "json:") {
+	_, httpResp, err := r.client.SettingsApi.UpdateNetworkApplianceFirewallSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceFirewallSettings(updateNetworksApplianceFirewallSettings).Execute()
+	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to Update resource",
+			"Failed to update resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
@@ -316,6 +259,7 @@ func (r *NetworksSyslogServersResource) Update(ctx context.Context, req resource
 		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 	}
 
+	// Check for API success response code
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
@@ -340,13 +284,15 @@ func (r *NetworksSyslogServersResource) Update(ctx context.Context, req resource
 
 	data.Id = jsontypes.StringValue("example-id")
 
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+
 	// Write logs using the tflog package
 	tflog.Trace(ctx, "updated resource")
 }
 
-func (r *NetworksSyslogServersResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *NetworksApplianceFirewallSettingsResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 
-	var data *NetworksSyslogServersResourceModel
+	var data *NetworksApplianceFirewallSettingsResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -355,20 +301,26 @@ func (r *NetworksSyslogServersResource) Delete(ctx context.Context, req resource
 		return
 	}
 
-	updateSyslogServers := *openApiClient.NewInlineObject140(nil)
+	updateNetworksApplianceFirewallSettings := *openApiClient.NewInlineObject39()
+	var spoofingProtection openApiClient.NetworksNetworkIdApplianceFirewallSettingsSpoofingProtection
+	var ipSourceGuard openApiClient.NetworksNetworkIdApplianceFirewallSettingsSpoofingProtectionIpSourceGuard
+	spoofingProtection.SetIpSourceGuard(ipSourceGuard)
+	updateNetworksApplianceFirewallSettings.SetSpoofingProtection(spoofingProtection)
 
-	_, httpResp, err := r.client.SyslogServersApi.UpdateNetworkSyslogServers(ctx, data.NetworkId.ValueString()).UpdateNetworkSyslogServers(updateSyslogServers).Execute()
-	if err != nil && !strings.HasPrefix(err.Error(), "json:") {
+	_, httpResp, err := r.client.SettingsApi.UpdateNetworkApplianceFirewallSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceFirewallSettings(updateNetworksApplianceFirewallSettings).Execute()
+	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to delete resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
+
 	// collect diagnostics
 	if httpResp != nil {
 		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 	}
 
+	// Check for API success response code
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
@@ -382,6 +334,19 @@ func (r *NetworksSyslogServersResource) Delete(ctx context.Context, req resource
 		return
 	}
 
+	// Save data into Terraform state
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
+	}
+
+	data.Id = jsontypes.StringValue("example-id")
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+
 	resp.State.RemoveResource(ctx)
 
 	// Write logs using the tflog package
@@ -389,7 +354,7 @@ func (r *NetworksSyslogServersResource) Delete(ctx context.Context, req resource
 
 }
 
-func (r *NetworksSyslogServersResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *NetworksApplianceFirewallSettingsResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("network_id"), req.ID)...)

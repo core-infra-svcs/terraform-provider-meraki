@@ -60,7 +60,7 @@ func (r *NetworksApplianceVlansSettingsResource) Schema(ctx context.Context, req
 					stringplanmodifier.UseStateForUnknown(),
 				},
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(8, 31),
+					stringvalidator.LengthBetween(1, 31),
 				},
 			},
 			"vlans_enabled": schema.BoolAttribute{
