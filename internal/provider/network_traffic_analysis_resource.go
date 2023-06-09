@@ -67,7 +67,7 @@ func (r *NetworksTrafficAnalysisResource) Schema(ctx context.Context, req resour
 					stringplanmodifier.UseStateForUnknown(),
 				},
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(8, 31),
+					stringvalidator.LengthBetween(1, 31),
 				},
 			},
 			"mode": schema.StringAttribute{

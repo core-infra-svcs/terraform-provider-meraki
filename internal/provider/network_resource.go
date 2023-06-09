@@ -88,7 +88,7 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 					stringplanmodifier.UseStateForUnknown(),
 				},
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(8, 31),
+					stringvalidator.LengthBetween(1, 31),
 				},
 			},
 			"organization_id": schema.StringAttribute{
@@ -100,7 +100,7 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 					stringplanmodifier.UseStateForUnknown(),
 				},
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(8, 31),
+					stringvalidator.LengthBetween(1, 31),
 				},
 			},
 			"name": schema.StringAttribute{
@@ -170,7 +170,7 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Computed:            true,
 				CustomType:          jsontypes.StringType,
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(8, 31),
+					stringvalidator.LengthBetween(1, 31),
 				},
 			},
 		},
