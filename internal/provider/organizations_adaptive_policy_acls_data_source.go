@@ -69,7 +69,7 @@ func (d *OrganizationsAdaptivePolicyAclsDataSource) Schema(ctx context.Context, 
 				Optional:            true,
 				CustomType:          jsontypes.StringType,
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(8, 31),
+					stringvalidator.LengthBetween(1, 31),
 				},
 			},
 			"list": schema.ListNestedAttribute{
