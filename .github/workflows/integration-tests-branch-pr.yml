@@ -1,35 +1,22 @@
-# Terraform Provider testing workflow.
-name: release test
+name: resource pull request tests
 
-# This GitHub action runs all tests for each resource and data source.
-# Currently its setup to run on any tag that matches the pattern "v*" (ie. v0.1.0).
 on:
-push:
-  tags:
-    - 'v*'
+  pull_request:
+    branches-ignore:
+      - main
 
-# Testing only needs permissions to read the repository contents.
 permissions:
   contents: read
 
-jobs:
-  lint:
-    name: Lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v4
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3
-        with:
-          # Optional: version of golangci-lint to use in form of v1.2 or v1.2.3 or `latest` to use the latest version
-          version: latest
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
 
-  # Ensure project builds before running testing matrix
+jobs:
+  # Ensure project builds before running the testing matrix
   build:
     name: Build
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 10
     needs: lint
     steps:
       - uses: actions/checkout@v3
@@ -41,6 +28,7 @@ jobs:
       - run: go build -v .
 
   generate:
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -57,9 +45,9 @@ jobs:
   # Run acceptance tests in a matrix with Terraform CLI versions
   test:
     name: Terraform Provider Acceptance Tests
-    needs: build
+    needs: generate
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
@@ -81,4 +69,4 @@ jobs:
           TF_ACC: "1"
           MERAKI_DASHBOARD_API_KEY: ${{ secrets.MERAKI_DASHBOARD_API_KEY }}
         run: go test -v -cover ./internal/provider/
-        timeout-minutes: 10
+        timeout-minutes: 60
