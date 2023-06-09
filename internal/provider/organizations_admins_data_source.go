@@ -77,7 +77,7 @@ func (d *OrganizationsAdminsDataSource) Schema(ctx context.Context, req datasour
 				Optional:            true,
 				CustomType:          jsontypes.StringType,
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(8, 31),
+					stringvalidator.LengthBetween(1, 31),
 				},
 			},
 			"list": schema.SetNestedAttribute{

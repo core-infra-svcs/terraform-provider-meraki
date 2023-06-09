@@ -67,7 +67,7 @@ func (r *NetworksTrafficAnalysisResource) Schema(ctx context.Context, req resour
 					stringplanmodifier.UseStateForUnknown(),
 				},
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(8, 31),
+					stringvalidator.LengthBetween(1, 31),
 				},
 			},
 			"mode": schema.StringAttribute{
@@ -143,7 +143,7 @@ func (r *NetworksTrafficAnalysisResource) Create(ctx context.Context, req resour
 		return
 	}
 
-	updateNetworkTrafficAnalysis := *openApiClient.NewInlineObject140()
+	updateNetworkTrafficAnalysis := *openApiClient.NewInlineObject141()
 	updateNetworkTrafficAnalysis.SetMode(data.Mode.ValueString())
 
 	if len(data.CustomPieChartItems) > 0 {
@@ -270,7 +270,7 @@ func (r *NetworksTrafficAnalysisResource) Update(ctx context.Context, req resour
 		return
 	}
 
-	updateNetworkTrafficAnalysis := *openApiClient.NewInlineObject140()
+	updateNetworkTrafficAnalysis := *openApiClient.NewInlineObject141()
 	updateNetworkTrafficAnalysis.SetMode(data.Mode.ValueString())
 
 	if len(data.CustomPieChartItems) > 0 {
@@ -342,7 +342,7 @@ func (r *NetworksTrafficAnalysisResource) Delete(ctx context.Context, req resour
 		return
 	}
 
-	updateNetworkTrafficAnalysis := *openApiClient.NewInlineObject140()
+	updateNetworkTrafficAnalysis := *openApiClient.NewInlineObject141()
 	updateNetworkTrafficAnalysis.SetMode("disabled")
 	updateNetworkTrafficAnalysis.SetCustomPieChartItems(nil)
 
