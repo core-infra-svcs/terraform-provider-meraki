@@ -80,7 +80,7 @@ func (r *OrganizationResource) Schema(ctx context.Context, req resource.SchemaRe
 					stringplanmodifier.UseStateForUnknown(),
 				},
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(8, 31),
+					stringvalidator.LengthBetween(1, 31),
 				},
 			},
 			"licensing_model": schema.StringAttribute{
@@ -149,7 +149,7 @@ func (r *OrganizationResource) Create(ctx context.Context, req resource.CreateRe
 	}
 
 	// Create HTTP request body
-	createOrganization := *openApiClient.NewInlineObject166(data.Name.ValueString())
+	createOrganization := *openApiClient.NewInlineObject167(data.Name.ValueString())
 
 	// Set management details
 	var name = data.ManagementDetailsName.ValueString()
@@ -308,7 +308,7 @@ func (r *OrganizationResource) Update(ctx context.Context, req resource.UpdateRe
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	// Create HTTP request body
-	updateOrganization := openApiClient.NewInlineObject167()
+	updateOrganization := openApiClient.NewInlineObject168()
 	updateOrganization.SetName(data.Name.ValueString())
 
 	// Set enabled attribute
