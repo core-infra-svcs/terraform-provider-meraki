@@ -68,7 +68,7 @@ func (r *NetworksApplianceFirewallSettingsResource) Schema(ctx context.Context, 
 					stringplanmodifier.UseStateForUnknown(),
 				},
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(8, 31),
+					stringvalidator.LengthBetween(1, 31),
 				},
 			},
 			"spoofing_protection": schema.SingleNestedAttribute{

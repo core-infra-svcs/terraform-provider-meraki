@@ -63,7 +63,7 @@ func (r *NetworksApplianceSettingsResource) Schema(ctx context.Context, req reso
 					stringplanmodifier.UseStateForUnknown(),
 				},
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(8, 31),
+					stringvalidator.LengthBetween(1, 31),
 				},
 			},
 			"client_tracking_method": schema.StringAttribute{
