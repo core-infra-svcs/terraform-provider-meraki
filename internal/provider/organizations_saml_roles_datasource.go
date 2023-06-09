@@ -70,7 +70,7 @@ func (d *OrganizationsSamlRolesDataSource) Schema(ctx context.Context, req datas
 				MarkdownDescription: "Organization ID",
 				Required:            true,
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(8, 31),
+					stringvalidator.LengthBetween(1, 31),
 				},
 				CustomType: jsontypes.StringType,
 			},
