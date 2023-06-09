@@ -114,9 +114,14 @@ resource "meraki_networks_appliance_vlans" "test" {
 			value = "five"
       	}
     ]
+	fixed_ip_assignments = {
+	}
     ipv6 = {
         enabled = true
         prefix_assignments = []
     }
+	mandatory_dhcp = {
+		enabled = true
+	}
 }
 `

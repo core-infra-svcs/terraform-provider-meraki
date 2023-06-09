@@ -66,7 +66,7 @@ func (r *NetworksSwitchSettingsResource) Schema(ctx context.Context, req resourc
 					stringplanmodifier.UseStateForUnknown(),
 				},
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(8, 31),
+					stringvalidator.LengthBetween(1, 31),
 				},
 			},
 			"vlan": schema.Float64Attribute{

@@ -70,7 +70,7 @@ func (r *NetworksApplianceFirewallL3FirewallRulesResource) Schema(ctx context.Co
 					stringplanmodifier.UseStateForUnknown(),
 				},
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(8, 31),
+					stringvalidator.LengthBetween(1, 31),
 				},
 			},
 			"syslog_default_rule": schema.BoolAttribute{
