@@ -88,7 +88,7 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 					stringplanmodifier.UseStateForUnknown(),
 				},
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(8, 31),
+					stringvalidator.LengthBetween(1, 31),
 				},
 			},
 			"organization_id": schema.StringAttribute{
@@ -100,7 +100,7 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 					stringplanmodifier.UseStateForUnknown(),
 				},
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(8, 31),
+					stringvalidator.LengthBetween(1, 31),
 				},
 			},
 			"name": schema.StringAttribute{
@@ -170,7 +170,7 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Computed:            true,
 				CustomType:          jsontypes.StringType,
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(8, 31),
+					stringvalidator.LengthBetween(1, 31),
 				},
 			},
 		},
@@ -206,7 +206,7 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	// Create HTTP request body
-	createOrganizationNetwork := openApiClient.NewInlineObject209(data.Name.ValueString(), nil)
+	createOrganizationNetwork := openApiClient.NewInlineObject211(data.Name.ValueString(), nil)
 	createOrganizationNetwork.SetTimeZone(data.Timezone.ValueString())
 
 	// ProductTypes
