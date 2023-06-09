@@ -82,7 +82,7 @@ func (d *OrganizationsNetworksDataSource) Schema(ctx context.Context, req dataso
 				CustomType:          jsontypes.StringType,
 				Required:            true,
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(8, 31),
+					stringvalidator.LengthBetween(1, 31),
 				},
 			},
 			"config_template_id": schema.StringAttribute{
@@ -122,7 +122,7 @@ func (d *OrganizationsNetworksDataSource) Schema(ctx context.Context, req dataso
 							Computed:            true,
 							CustomType:          jsontypes.StringType,
 							Validators: []validator.String{
-								stringvalidator.LengthBetween(8, 31),
+								stringvalidator.LengthBetween(1, 31),
 							},
 						},
 						"organization_id": schema.StringAttribute{
@@ -131,7 +131,7 @@ func (d *OrganizationsNetworksDataSource) Schema(ctx context.Context, req dataso
 							Computed:            true,
 							CustomType:          jsontypes.StringType,
 							Validators: []validator.String{
-								stringvalidator.LengthBetween(8, 31),
+								stringvalidator.LengthBetween(1, 31),
 							},
 						},
 						"name": schema.StringAttribute{

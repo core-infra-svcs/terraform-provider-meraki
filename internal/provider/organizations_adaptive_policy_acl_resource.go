@@ -77,7 +77,7 @@ func (r *OrganizationsAdaptivePolicyAclResource) Schema(ctx context.Context, req
 					stringplanmodifier.UseStateForUnknown(),
 				},
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(8, 31),
+					stringvalidator.LengthBetween(1, 31),
 				},
 			},
 			"acl_id": schema.StringAttribute{
@@ -194,10 +194,10 @@ func (r *OrganizationsAdaptivePolicyAclResource) Create(ctx context.Context, req
 	}
 
 	// rules
-	var rules []openApiClient.OrganizationsOrganizationIdAdaptivePolicyAclsRules
+	var rules []openApiClient.OrganizationsOrganizationIdAdaptivePolicyAclsRules1
 	for _, attribute := range data.Rules {
 
-		var rule openApiClient.OrganizationsOrganizationIdAdaptivePolicyAclsRules
+		var rule openApiClient.OrganizationsOrganizationIdAdaptivePolicyAclsRules1
 		rule.Protocol = attribute.Protocol.ValueString()
 		rule.Policy = attribute.Policy.ValueString()
 
@@ -211,7 +211,7 @@ func (r *OrganizationsAdaptivePolicyAclResource) Create(ctx context.Context, req
 	}
 
 	// payload
-	createOrganizationsAdaptivePolicyAcl := *openApiClient.NewInlineObject170(data.Name.ValueString(), rules, data.IpVersion.ValueString())
+	createOrganizationsAdaptivePolicyAcl := *openApiClient.NewInlineObject171(data.Name.ValueString(), rules, data.IpVersion.ValueString())
 	createOrganizationsAdaptivePolicyAcl.SetDescription(data.Description.ValueString())
 
 	_, httpResp, err := r.client.OrganizationsApi.CreateOrganizationAdaptivePolicyAcl(context.Background(), data.OrgId.ValueString()).CreateOrganizationAdaptivePolicyAcl(createOrganizationsAdaptivePolicyAcl).Execute()
@@ -318,10 +318,10 @@ func (r *OrganizationsAdaptivePolicyAclResource) Update(ctx context.Context, req
 	}
 
 	// rules
-	var rules []openApiClient.OrganizationsOrganizationIdAdaptivePolicyAclsRules
+	var rules []openApiClient.OrganizationsOrganizationIdAdaptivePolicyAclsRules1
 	for _, attribute := range data.Rules {
 
-		var rule openApiClient.OrganizationsOrganizationIdAdaptivePolicyAclsRules
+		var rule openApiClient.OrganizationsOrganizationIdAdaptivePolicyAclsRules1
 		rule.Protocol = attribute.Protocol.ValueString()
 		rule.Policy = attribute.Policy.ValueString()
 
@@ -335,7 +335,7 @@ func (r *OrganizationsAdaptivePolicyAclResource) Update(ctx context.Context, req
 	}
 
 	// payload
-	createOrganizationsAdaptivePolicyAcl := *openApiClient.NewInlineObject171()
+	createOrganizationsAdaptivePolicyAcl := *openApiClient.NewInlineObject172()
 	createOrganizationsAdaptivePolicyAcl.SetName(data.Name.ValueString())
 	createOrganizationsAdaptivePolicyAcl.SetDescription(data.Description.ValueString())
 	createOrganizationsAdaptivePolicyAcl.SetRules(rules)
