@@ -62,6 +62,54 @@ func Int64Null() Int64 {
 	}
 }
 
+type Float64 struct {
+	basetypes.Float64Value
+}
+
+func (f *Float64) UnmarshalJSON(bytes []byte) error {
+	f.Float64Value = types.Float64Null()
+
+	var f64 *float64
+	if err := json.Unmarshal(bytes, &f64); err != nil {
+		return err
+	}
+
+	if f64 != nil {
+		f.Float64Value = types.Float64Value(*f64)
+	}
+	return nil
+}
+
+func (f Float64) Type(_ context.Context) attr.Type {
+	return Float64Type
+}
+
+func (f Float64) Equal(value attr.Value) bool {
+	var bv basetypes.Float64Valuable
+
+	switch val := value.(type) {
+	case basetypes.Float64Value:
+		bv = val
+	case Float64:
+		bv = val.Float64Value
+	default:
+		return false
+	}
+	return f.Float64Value.Equal(bv)
+}
+
+func Float64Value(v float64) Float64 {
+	return Float64{
+		Float64Value: types.Float64Value(v),
+	}
+}
+
+func Float64Null() Float64 {
+	return Float64{
+		Float64Value: types.Float64Null(),
+	}
+}
+
 type String struct {
 	basetypes.StringValue
 }

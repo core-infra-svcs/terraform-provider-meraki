@@ -138,7 +138,7 @@ func (p *CiscoMerakiProvider) Configure(ctx context.Context, req provider.Config
 	configuration := openApiClient.NewConfiguration()
 	configuration.AddDefaultHeader("X-Cisco-Meraki-API-Key", apiKey)
 	configuration.Host = baseUrl
-	configuration.UserAgent = "Terraform-Provider-Meraki-" + p.version
+	configuration.UserAgent = configuration.UserAgent + "terraform" + p.version
 
 	// enable debug for provider development
 	if p.version == "dev" {
@@ -161,6 +161,22 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		NewOrganizationsAdaptivePolicyAclResource,
 		NewNetworkResource,
 		NewOrganizationsSamlRolesResource,
+		NewNetworksSwitchSettingsResource,
+		NewOrganizationsSnmpResource,
+		NewNetworksSettingsResource,
+		NewNetworksApplianceFirewallL3FirewallRulesResource,
+		NewNetworksApplianceFirewallL7FirewallRulesResource,
+		NewOrganizationsApplianceVpnVpnFirewallRulesResource,
+		NewNetworksTrafficAnalysisResource,
+		NewNetworksNetflowResource,
+		NewNetworksSyslogServersResource,
+		NewNetworksApplianceVlansSettingsResource,
+		NewNetworksApplianceSettingsResource,
+		NewNetworksApplianceFirewallSettingsResource,
+		NewNetworksSwitchQosRulesResource,
+		NewNetworksSwitchDscpToCosMappingsResource,
+		NewNetworksSwitchMtuResource,
+		NewNetworksGroupPolicyResource,
 	}
 }
 
@@ -173,7 +189,7 @@ func (p *CiscoMerakiProvider) DataSources(ctx context.Context) []func() datasour
 		NewOrganizationsSamlIdpsDataSource,
 		NewOrganizationsAdaptivePolicyAclsDataSource,
 		NewOrganizationsSamlRolesDataSource,
-		NewNetworksAppliancePortsDataSource,
+		NewNetworkGroupPoliciesDataSource,
 	}
 }
 
