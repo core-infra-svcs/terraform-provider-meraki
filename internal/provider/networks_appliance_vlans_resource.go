@@ -20,22 +20,22 @@ import (
 
 // Ensure provider defined types fully satisfy framework interfaces
 var (
-	_ resource.Resource                = &NetworksApplianceVlansResource{}
-	_ resource.ResourceWithConfigure   = &NetworksApplianceVlansResource{}
-	_ resource.ResourceWithImportState = &NetworksApplianceVlansResource{}
+	_ resource.Resource                = &NetworksApplianceVLANsResource{}
+	_ resource.ResourceWithConfigure   = &NetworksApplianceVLANsResource{}
+	_ resource.ResourceWithImportState = &NetworksApplianceVLANsResource{}
 )
 
-func NewNetworksApplianceVlansResource() resource.Resource {
-	return &NetworksApplianceVlansResource{}
+func NewNetworksApplianceVLANsResource() resource.Resource {
+	return &NetworksApplianceVLANsResource{}
 }
 
-// NetworksApplianceVlansResource defines the resource implementation.
-type NetworksApplianceVlansResource struct {
+// NetworksApplianceVLANsResource defines the resource implementation.
+type NetworksApplianceVLANsResource struct {
 	client *openApiClient.APIClient
 }
 
-// NetworksApplianceVlansResourceModel describes the resource data model.
-type NetworksApplianceVlansResourceModel struct {
+// NetworksApplianceVLANsResourceModel describes the resource data model.
+type NetworksApplianceVLANsResourceModel struct {
 	Id        jsontypes.String `tfsdk:"id" json:"-"`
 	NetworkId jsontypes.String `tfsdk:"network_id" json:"networkId"`
 
@@ -100,11 +100,11 @@ type DHCPOption struct {
 	Value jsontypes.String `tfsdk:"value" json:"value"`
 }
 
-func (r *NetworksApplianceVlansResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *NetworksApplianceVLANsResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_networks_appliance_vlans"
 }
 
-func (r *NetworksApplianceVlansResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *NetworksApplianceVLANsResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 
 		MarkdownDescription: "NetworksApplianceVlans",
@@ -370,7 +370,7 @@ func (r *NetworksApplianceVlansResource) Schema(ctx context.Context, req resourc
 	}
 }
 
-func (r *NetworksApplianceVlansResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *NetworksApplianceVLANsResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -390,8 +390,8 @@ func (r *NetworksApplianceVlansResource) Configure(ctx context.Context, req reso
 	r.client = client
 }
 
-func (r *NetworksApplianceVlansResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *NetworksApplianceVlansResourceModel
+func (r *NetworksApplianceVLANsResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *NetworksApplianceVLANsResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -475,8 +475,8 @@ func (r *NetworksApplianceVlansResource) Create(ctx context.Context, req resourc
 	tflog.Trace(ctx, "create resource")
 }
 
-func (r *NetworksApplianceVlansResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *NetworksApplianceVlansResourceModel
+func (r *NetworksApplianceVLANsResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *NetworksApplianceVLANsResourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -525,8 +525,8 @@ func (r *NetworksApplianceVlansResource) Read(ctx context.Context, req resource.
 	tflog.Trace(ctx, "read resource")
 }
 
-func (r *NetworksApplianceVlansResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data *NetworksApplianceVlansResourceModel
+func (r *NetworksApplianceVLANsResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var data *NetworksApplianceVLANsResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -609,8 +609,8 @@ func (r *NetworksApplianceVlansResource) Update(ctx context.Context, req resourc
 	tflog.Trace(ctx, "updated resource")
 }
 
-func (r *NetworksApplianceVlansResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data *NetworksApplianceVlansResourceModel
+func (r *NetworksApplianceVLANsResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data *NetworksApplianceVLANsResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -662,7 +662,7 @@ func (r *NetworksApplianceVlansResource) Delete(ctx context.Context, req resourc
 
 }
 
-func (r *NetworksApplianceVlansResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *NetworksApplianceVLANsResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 	idParts := strings.Split(req.ID, ",")
 	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
