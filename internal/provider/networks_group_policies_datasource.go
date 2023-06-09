@@ -179,7 +179,7 @@ func (d *NetworkGroupPoliciesDataSource) Schema(ctx context.Context, req datasou
 							Computed:            true,
 							CustomType:          jsontypes.StringType,
 							Validators: []validator.String{
-								stringvalidator.LengthBetween(8, 31),
+								stringvalidator.LengthBetween(1, 31),
 							},
 						},
 						"name": schema.StringAttribute{

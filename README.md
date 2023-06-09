@@ -1,87 +1,131 @@
-# Meraki Terraform Provider (Terraform Plugin Framework)
+# Terraform Provider Meraki
 
-_This template repository is built on the [Terraform Plugin Framework](https://github.com/hashicorp/terraform-plugin-framework). The template repository built on the [Terraform Plugin SDK](https://github.com/hashicorp/terraform-plugin-sdk) can be found at [terraform-provider-scaffolding](https://github.com/hashicorp/terraform-provider-scaffolding). See [Which SDK Should I Use?](https://www.terraform.io/docs/plugin/which-sdk.html) in the Terraform documentation for additional information._
+The Meraki Terraform Provider is a declarative tool that enables teams and individuals to automate their workflows and manage Cisco Meraki network infrastructure using Terraform. With this provider, you can define and manage Meraki organizations, networks, devices, and other resources as code, providing simplicity, scalability, and repeatability in your automation strategy.
 
-This repository is a *template* for a [Terraform](https://www.terraform.io) provider. It is intended as a starting point for creating Terraform providers, containing:
+## Features
 
-- A resource and a data source (`internal/provider/`),
-- Examples (`examples/`) and generated documentation (`docs/`),
-- Miscellaneous meta files.
+- Provision and manage Meraki organizations, networks, devices, and more through infrastructure as code.
+- Configure and control various aspects of your Meraki infrastructure, including network settings, security policies, and device configurations.
+- Leverage the power of Terraform to plan, apply, and manage changes to your Meraki environment in a controlled and auditable manner.
+- Enable collaboration and version control for your Meraki configurations, allowing teams to work together efficiently and track changes over time.
 
-These files contain boilerplate code that you will need to edit to create your own Terraform provider. Tutorials for creating Terraform providers can be found on the [HashiCorp Learn](https://learn.hashicorp.com/collections/terraform/providers-plugin-framework) platform. _Terraform Plugin Framework specific guides are titled accordingly._
-
-Please see the [GitHub template repository documentation](https://help.github.com/en/github/creating-cloning-and-archiving-repositories/creating-a-repository-from-a-template) for how to create a new repository from this template on GitHub.
-
-Once you've written your provider, you'll want to [publish it on the Terraform Registry](https://www.terraform.io/docs/registry/providers/publishing.html) so that others can use it.
 
 ## Requirements
 
 - [Terraform](https://www.terraform.io/downloads.html) >= 1.0
-- [Go](https://golang.org/doc/install) >= 1.18
 
-## Building The Provider
+## Getting Started
 
-1. Clone the repository
-1. Enter the repository directory
-1. Build the provider using the Go `install` command:
+To start using the Meraki Terraform Provider, follow these steps:
 
-```shell
-go install
-```
+1. Install Terraform: Make sure you have Terraform installed on your local machine. You can download and install Terraform from the [official website](https://www.terraform.io/downloads.html).
 
-## Adding Dependencies
+2. Configure the Meraki Terraform Provider: Set up the provider block in your Terraform configuration file, specifying your Meraki API key and base URL.
 
-This provider uses [Go modules](https://github.com/golang/go/wiki/Modules).
-Please see the Go documentation for the most up to date information about using Go modules.
+3. Define Meraki resources: Create resource blocks in your configuration file to describe the desired state of your Meraki infrastructure. You can create organizations, networks, devices, and more.
 
-To add a new dependency `github.com/author/dependency` to your Terraform provider:
+4. Initialize and apply changes: Run `terraform init` to initialize your Terraform configuration. Then, use `terraform plan` to preview the changes that will be applied, and `terraform apply` to apply the changes and provision the resources.
 
-```shell
-go get github.com/author/dependency
-go mod tidy
-```
+## Usage Documentation
 
-Then commit the changes to `go.mod` and `go.sum`.
+To use the Meraki Terraform Provider in your Terraform configuration, you need to configure the required provider and define resources specific to the Meraki platform. Follow the steps below to get started:
 
-## Using the provider
+### Configuration
 
-Fill this in for each provider
+1. Add the provider block to your Terraform configuration file (e.g., `main.tf`):
 
-## Developing the Provider
+   ```hcl
+   terraform {
+     required_providers {
+       meraki = {
+         source = "core-infra-svcs/meraki"
+       }
+     }
+   }
 
-If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (see [Requirements](#requirements) above).
+   provider "meraki" {
+     api_key  = var.MERAKI_DASHBOARD_API_KEY
+     base_url = var.MERAKI_DASHBOARD_API_URL
+   }
+   ```
 
-To compile the provider, run `go install`. This will build the provider and put the provider binary in the `$GOPATH/bin` directory.
+   Replace `var.MERAKI_DASHBOARD_API_KEY` and `var.MERAKI_DASHBOARD_API_URL` with your own API key and base URL values.
 
-To generate or update documentation, run `go generate`.
+2. Define Meraki resources in your configuration file. For example, you can create a new Meraki organization and network:
 
-In order to run the full suite of Acceptance tests, run `make testacc`.
+   ```hcl
+   // Create new Meraki organization
+   resource "meraki_organization" "demo" {
+     name            = "example"
+     api_enabled     = true
+     licensing_model = "co-term"
+   }
 
-*Note:* Acceptance tests create real resources, and often cost money to run.
+   // Create a new Network
+   resource "meraki_network" "demo" {
+     depends_on      = [meraki_organization.demo]
+     organization_id = resource.meraki_organization.demo.organization_id
+     product_types   = ["appliance", "switch", "wireless"]
+     tags            = ["cisco", "meraki", "terraform"]
+     name            = "Main Office"
+     timezone        = "America/Los_Angeles"
+     notes           = "example demo network"
+   }
+   ```
 
-```shell
-make testacc
-```
+   Customize the configuration according to your requirements, such as providing the appropriate values for the organization name, product types, tags, etc.
 
-## Development Overrides for Provider Developers
+### Commands
 
-To support local development workflows a [developer override](https://www.terraform.io/cli/config/config-file#development-overrides-for-provider-developers) 
-allows Terraform to forgo the versioning and checksum verification for local configurations explicitly allow-listed in a `.terraformrc` file.    
+1. Initialize the Terraform configuration by running the following command in your project directory:
 
-```shell
-$ touch  $HOME/.terraformrc
-$ vim  $HOME/.terraformrc
+   ```shell
+   terraform init
+   ```
 
-```
+2. Plan and preview the changes that will be applied to your Meraki environment:
 
-Add your terraform provider ("core-infra-svcs/meraki") in the `dev_overrides` section of the file:
+   ```shell
+   terraform plan
+   ```
 
-```text
-provider_installation {
+3. Apply the changes to create the Meraki organization and network:
 
-    dev_overrides {
-        "$REPOSITORY/$PROVIDER"  = "/Users/$USER/go/bin"
-    }
-}
-```
+   ```shell
+   terraform apply
+   ```
 
+   Review the changes and confirm by typing `yes` when prompted.
+
+4. Monitor the Terraform output for any errors or warnings. Once the process completes successfully, the Meraki organization and network will be created according to your configuration.
+
+Now you have successfully used the Meraki Terraform Provider to provision resources in your Meraki environment. You can further customize your configuration to manage additional Meraki resources or update existing ones by modifying the Terraform configuration file.
+
+Remember to always review and verify the changes before applying them to your production environment.
+
+For even more detailed information and usage examples, please refer to the following documentation resources:
+
+- [Meraki Provider Documentation](./docs): Explore the available resources and data sources provided by the Meraki Terraform Provider.
+
+
+## Contributing
+
+Contributions are welcome! If you are interested in contributing to the Meraki Terraform Provider, please refer to the [Contributing Guidelines](./CONTRIBUTING.md) for detailed instructions on how to get started.
+
+See the [Getting Started Document](.github/workflow-docs/getting-started.md) for detailed instructions.
+
+## License
+
+The Meraki Terraform Provider is open-source and licensed under the [Mozilla Public License Version 2.0](./LICENSE). Feel free to use, modify, and distribute the provider according to the terms of the license.
+
+## Support
+
+If you encounter any issues, have questions, or need assistance, please [create an issue](https://github.com/core-infra-svcs/terraform-provider-meraki/issues) on the GitHub repository. Our community and maintainers will be happy to help you.
+
+## Acknowledgements
+
+We would like to express our gratitude to the contributors who have made this project possible. Your contributions and feedback are highly appreciated and valuable to the Meraki Terraform Provider community.
+
+## Disclaimer
+
+This project is not officially supported by Cisco or Meraki. It is maintained and supported by a community of enthusiastic engineers and developers.

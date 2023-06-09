@@ -66,7 +66,7 @@ func (r *OrganizationsSamlIdpResource) Schema(ctx context.Context, req resource.
 					stringplanmodifier.UseStateForUnknown(),
 				},
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(8, 31),
+					stringvalidator.LengthBetween(1, 31),
 				},
 			},
 			"consumer_url": schema.StringAttribute{
@@ -84,7 +84,7 @@ func (r *OrganizationsSamlIdpResource) Schema(ctx context.Context, req resource.
 					stringplanmodifier.UseStateForUnknown(),
 				},
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(8, 31),
+					stringvalidator.LengthBetween(1, 31),
 				},
 			},
 			"slo_logout_url": schema.StringAttribute{

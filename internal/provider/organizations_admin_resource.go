@@ -82,7 +82,7 @@ func (r *OrganizationsAdminResource) Schema(ctx context.Context, req resource.Sc
 					stringplanmodifier.UseStateForUnknown(),
 				},
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(8, 31),
+					stringvalidator.LengthBetween(1, 31),
 				},
 			},
 			"admin_id": schema.StringAttribute{
@@ -94,7 +94,7 @@ func (r *OrganizationsAdminResource) Schema(ctx context.Context, req resource.Sc
 					stringplanmodifier.UseStateForUnknown(),
 				},
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(8, 31),
+					stringvalidator.LengthBetween(1, 31),
 				},
 			},
 			"name": schema.StringAttribute{
