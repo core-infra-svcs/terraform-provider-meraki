@@ -1,7 +1,9 @@
 package provider
 
 import (
+	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"os"
 	"testing"
 )
 
@@ -45,9 +47,10 @@ func TestAccDevicesApplianceDhcpSubnetsDataSource(t *testing.T) {
 
 			// Update and Read DevicesApplianceDhcpSubnets
 			{
-				Config: testAccDevicesApplianceDhcpSubnetsDataSourceConfigRead,
+				Config: testAccDevicesApplianceDhcpSubnetsDataSourceConfigRead(os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("devices_appliance_dhcp_subnets.test", "id", "example-id"),
+					resource.TestCheckResourceAttr("devices_appliance_dhcp_subnets.test", "serial", os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
 				),
 			},
 		},
@@ -82,8 +85,9 @@ resource "meraki_network" "test" {
 
 // testAccDevicesApplianceDhcpSubnetsDataSourceConfigRead is a constant string that defines the configuration for creating and updating a devices__appliance_dhcp_subnets resource in your tests.
 // It depends on both the organization and network resources.
-const testAccDevicesApplianceDhcpSubnetsDataSourceConfigRead = `
-resource "meraki_organization" "test" {}
+func testAccDevicesApplianceDhcpSubnetsDataSourceConfigRead(serialID string) string {
+	return fmt.Sprintf(
+		`resource "meraki_organization" "test" {}
 resource "meraki_network" "test" {
 	depends_on = [resource.meraki_organization.test]
 	product_types = ["appliance", "switch", "wireless"]
@@ -91,6 +95,7 @@ resource "meraki_network" "test" {
 
 data "meraki_devices_appliance_dhcp_subnets" "test" {
 	depends_on = [resource.meraki_network.test, resource.meraki_organization.test]
-  	serial = "test-serial-id"
+  	serial = "%s"
+}`, serialID,
+	)
 }
-`
