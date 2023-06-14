@@ -47,6 +47,7 @@ func TestAccNetworksWirelessSsidsDataSource(t *testing.T) {
 				Config: testAccNetworksWirelessSsidsDataSourceConfigCreate,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("networks_wireless_ssids.test", "id", "example-id"),
+					resource.TestCheckResourceAttr("data.meraki_networks_wireless_ssids.test", "list.#", "0"),
 				),
 			},
 		},
