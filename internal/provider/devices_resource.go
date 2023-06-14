@@ -280,7 +280,7 @@ func (r *DevicesResource) Create(ctx context.Context, req resource.CreateRequest
 	updateDevice.SetAddress(data.Address.ValueString())
 
 	// Tags
-	if data.Tags.IsNull() != true {
+	if !data.Tags.IsNull() {
 		var tags []string
 		for _, attribute := range data.Tags.Elements() {
 			tag := fmt.Sprint(strings.Trim(attribute.String(), "\""))
@@ -478,7 +478,7 @@ func (r *DevicesResource) Update(ctx context.Context, req resource.UpdateRequest
 	updateDevice.SetAddress(data.Address.ValueString())
 
 	// Tags
-	if data.Tags.IsNull() != true {
+	if !data.Tags.IsNull() {
 		var tags []string
 		for _, attribute := range data.Tags.Elements() {
 			tag := fmt.Sprint(strings.Trim(attribute.String(), "\""))
@@ -593,7 +593,7 @@ func (r *DevicesResource) Delete(ctx context.Context, req resource.DeleteRequest
 	updateDevice.SetAddress(data.Address.ValueString())
 
 	// Tags
-	if data.Tags.IsNull() != true {
+	if !data.Tags.IsNull() {
 		var tags []string
 		for _, attribute := range data.Tags.Elements() {
 			tag := fmt.Sprint(strings.Trim(attribute.String(), "\""))
