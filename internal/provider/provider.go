@@ -178,7 +178,7 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		NewNetworksSwitchMtuResource,
 		NewNetworksGroupPolicyResource,
 		NewOrganizationsLicenseResource,
-    NewNetworksCellularGatewayUplinkResource,
+                NewNetworksCellularGatewayUplinkResource,
 }
 
 func (p *CiscoMerakiProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
