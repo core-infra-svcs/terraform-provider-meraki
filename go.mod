@@ -72,3 +72,5 @@ require (
 	google.golang.org/grpc v1.54.0 // indirect
 	google.golang.org/protobuf v1.30.0 // indirect
 )
+
+replace github.com/meraki/dashboard-api-go/client => github.com/ryan-berger/dashboard-api-go/client v0.0.0-20230614213815-362328a0ea6b
