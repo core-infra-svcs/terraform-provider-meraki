@@ -179,7 +179,7 @@ func (r *NetworksWirelessSsidsFirewallL3FirewallRulesResource) Create(ctx contex
 		return
 	}
 
-	updateNetworkWirelessSsidFirewallL3FirewallRules := *openApiClient.NewInlineObject157()
+	updateNetworkWirelessSsidFirewallL3FirewallRules := *openApiClient.NewInlineObject158()
 	updateNetworkWirelessSsidFirewallL3FirewallRules.SetAllowLanAccess(data.AllowLanAccess.ValueBool())
 	var rules []openApiClient.NetworksNetworkIdWirelessSsidsNumberFirewallL3FirewallRulesRules
 	if len(data.Rules) > 0 {
@@ -323,7 +323,7 @@ func (r *NetworksWirelessSsidsFirewallL3FirewallRulesResource) Update(ctx contex
 		return
 	}
 
-	updateNetworkWirelessSsidFirewallL3FirewallRules := *openApiClient.NewInlineObject157()
+	updateNetworkWirelessSsidFirewallL3FirewallRules := *openApiClient.NewInlineObject158()
 	updateNetworkWirelessSsidFirewallL3FirewallRules.SetAllowLanAccess(data.AllowLanAccess.ValueBool())
 	var rules []openApiClient.NetworksNetworkIdWirelessSsidsNumberFirewallL3FirewallRulesRules
 	if len(data.Rules) > 0 {
@@ -400,7 +400,7 @@ func (r *NetworksWirelessSsidsFirewallL3FirewallRulesResource) Delete(ctx contex
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-	updateNetworkWirelessSsidFirewallL3FirewallRules := *openApiClient.NewInlineObject157()
+	updateNetworkWirelessSsidFirewallL3FirewallRules := *openApiClient.NewInlineObject158()
 	updateNetworkWirelessSsidFirewallL3FirewallRules.SetRules(nil)
 	updateNetworkWirelessSsidFirewallL3FirewallRules.SetAllowLanAccess(true)
 	_, httpResp, err := r.client.FirewallApi.UpdateNetworkWirelessSsidFirewallL3FirewallRules(context.Background(), data.NetworkId.ValueString(), data.Number.ValueString()).UpdateNetworkWirelessSsidFirewallL3FirewallRules(updateNetworkWirelessSsidFirewallL3FirewallRules).Execute()
