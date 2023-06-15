@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
+	"github.com/hashicorp/go-retryablehttp"
 )
 
 // Ensure CiscoMerakiProvider satisfies various provider interfaces.
@@ -139,6 +140,11 @@ func (p *CiscoMerakiProvider) Configure(ctx context.Context, req provider.Config
 	configuration.AddDefaultHeader("X-Cisco-Meraki-API-Key", apiKey)
 	configuration.Host = baseUrl
 	configuration.UserAgent = configuration.UserAgent + "terraform" + p.version
+
+	retryClient := retryablehttp.NewClient()
+	retryClient.RetryMax = 10
+	standardClient := retryClient.StandardClient()
+	configuration.HTTPClient = standardClient
 
 	// enable debug for provider development
 	if p.version == "dev" {
