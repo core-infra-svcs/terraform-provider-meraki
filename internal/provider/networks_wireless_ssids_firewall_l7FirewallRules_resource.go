@@ -164,7 +164,7 @@ func (r *NetworksWirelessSsidsFirewallL7FirewallRulesResource) Create(ctx contex
 		return
 	}
 
-	updateNetworkWirelessSsidFirewallL7FirewallRules := *openApiClient.NewInlineObject158()
+	updateNetworkWirelessSsidFirewallL7FirewallRules := *openApiClient.NewInlineObject159()
 	var rules []openApiClient.NetworksNetworkIdWirelessSsidsNumberFirewallL7FirewallRulesRules
 	if len(data.Rules) > 0 {
 		for _, attribute := range data.Rules {
@@ -301,7 +301,7 @@ func (r *NetworksWirelessSsidsFirewallL7FirewallRulesResource) Update(ctx contex
 		return
 	}
 
-	updateNetworkWirelessSsidFirewallL7FirewallRules := *openApiClient.NewInlineObject158()
+	updateNetworkWirelessSsidFirewallL7FirewallRules := *openApiClient.NewInlineObject159()
 	var rules []openApiClient.NetworksNetworkIdWirelessSsidsNumberFirewallL7FirewallRulesRules
 	if len(data.Rules) > 0 {
 		for _, attribute := range data.Rules {
@@ -376,7 +376,7 @@ func (r *NetworksWirelessSsidsFirewallL7FirewallRulesResource) Delete(ctx contex
 		return
 	}
 
-	updateNetworkWirelessSsidFirewallL7FirewallRules := *openApiClient.NewInlineObject158()
+	updateNetworkWirelessSsidFirewallL7FirewallRules := *openApiClient.NewInlineObject159()
 	var rules []openApiClient.NetworksNetworkIdWirelessSsidsNumberFirewallL7FirewallRulesRules
 	if len(data.Rules) > 0 {
 		for _, attribute := range data.Rules {
