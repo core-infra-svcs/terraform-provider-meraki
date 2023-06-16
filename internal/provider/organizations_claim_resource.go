@@ -174,7 +174,7 @@ func (r *OrganizationsClaimResource) Create(ctx context.Context, req resource.Cr
 		return
 	}
 
-	payload := openApiClient.NewInlineObject189()
+	payload := openApiClient.NewInlineObject190()
 
 	// orders
 	var orders []string
