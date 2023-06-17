@@ -64,7 +64,7 @@ const testAccOrganizationsLicensesDataSourceConfigCreateOrganization = `
 
 // testAccOrganizationsLicenseResourceConfigUpdate is a constant string that defines the configuration for updating a organizations_license resource in your tests.
 // It depends on both the organization and network resources.
-func testAccOrganizationsLicenseResourceConfigUpdate(licenceId, serial string) string {
+func testAccOrganizationsLicenseDataSourceConfigUpdate(licenceId, serial string) string {
 	result := fmt.Sprintf(`
 resource "meraki_organization" "test" {}
 
