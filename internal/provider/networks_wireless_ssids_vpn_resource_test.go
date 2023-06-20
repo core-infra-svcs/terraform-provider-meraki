@@ -1,143 +1,122 @@
 package provider
 
 import (
-	"testing"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"testing"
 )
 
 // TODO - DON'T FORGET TO DELETE ALL "TODO" COMMENTS!
 // TODO - Testing is meant to be atomic in that we give very specific instructions for how to create, read, update, and delete infrastructure across test steps.
 // TODO - This is really useful for troubleshooting resources/data sources during development and provides a high level of confidence that our provider works as intended.
-func TestAccNetworks{Networkid}WirelessSsids{Number}VpnResource(t *testing.T) {
+func TestAccNetworksWirelessSsidsVpnResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 
-          // TODO - Usually the first step in building a resource is to create an organization or network to configure.
-        /*
-        // Create test Organization
-                    {
-                        Config: testAccNetworks{Networkid}WirelessSsids{Number}VpnResourceConfigCreateOrganization,
-                        Check: resource.ComposeAggregateTestCheckFunc(
-                            resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
-                            resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_meraki_networks_{network_id}_wireless_ssids_{number}_vpn"),
-                        ),
-                    },
-        */
+			// Create test Organization
+			{
+				Config: testAccNetworksWirelessSsidsVpnResourceConfigCreateOrganization,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
+					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_meraki_networks_wireless_ssids_vpn"),
+				),
+			},
 
-            // TODO - Next, run the create test step for the resource you are developing. It is important to validate every field returned by read.
-			// Create and Read testing
-            			{
-                            Config: testAccNetworks{Networkid}WirelessSsids{Number}VpnResourceConfigCreate,
-                            Check: resource.ComposeAggregateTestCheckFunc(
-                                resource.TestCheckResourceAttr("networks_{network_id}_wireless_ssids_{number}_vpn.test", "id", "example-id"),
-                                // resource.TestCheckResourceAttr("networks_{network_id}_wireless_ssids_{number}_vpn.test", "name", "Block sensitive web traffic"),
-                                // resource.TestCheckResourceAttr("networks_{network_id}_wireless_ssids_{number}_vpn.test", "description", "Blocks sensitive web traffic"),
-                                // resource.TestCheckResourceAttr("networks_{network_id}_wireless_ssids_{number}_vpn.test", "ip_version", "ipv6"),
+			//Create and Read testing
+			{
+				Config: testAccNetworksWirelessSsidsVpnResourceConfigCreate,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("meraki_network.test", "name", "Main Office"),
+					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
+					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
+					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
+					resource.TestCheckResourceAttr("meraki_network.test", "product_types.#", "3"),
+					resource.TestCheckResourceAttr("meraki_network.test", "product_types.0", "appliance"),
+					resource.TestCheckResourceAttr("meraki_network.test", "product_types.1", "switch"),
+					resource.TestCheckResourceAttr("meraki_network.test", "product_types.2", "wireless"),
+					resource.TestCheckResourceAttr("meraki_network.test", "notes", "Additional description of the network"),
+				),
+			},
 
-                                // resource.TestCheckResourceAttr("networks_{network_id}_wireless_ssids_{number}_vpn.test", "rules.#", "1"),
-                                // resource.TestCheckResourceAttr("networks_{network_id}_wireless_ssids_{number}_vpn.test", "rules.0.policy", "deny"),
-                                // resource.TestCheckResourceAttr("networks_{network_id}_wireless_ssids_{number}_vpn.test", "rules.0.protocol", "tcp"),
-                                // resource.TestCheckResourceAttr("networks_{network_id}_wireless_ssids_{number}_vpn.test", "rules.0.src_port", "1,33"),
-                                // resource.TestCheckResourceAttr("networks_{network_id}_wireless_ssids_{number}_vpn.test", "rules.0.dst_port", "22-30"),
-                            ),
-                        },
-
-            // TODO - Once a resource has been created, we will test the ability to modify it. Make sure to test all values that are modifiable by the API call.
 			// Update testing
-            			{
-            				Config: testAccNetworks{Networkid}WirelessSsids{Number}VpnResourceConfigUpdate,
-            				Check: resource.ComposeAggregateTestCheckFunc(
-            					resource.TestCheckResourceAttr("Networks{Networkid}WirelessSsids{Number}Vpn.test", "id", "example-id"),
+			{
+				Config: testAccNetworksWirelessSsidsVpnResourceConfigUpdate,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_vpn.test", "id", "example-id"),
+				),
+			},
 
-                               // resource.TestCheckResourceAttr("data.Networks{Networkid}WirelessSsids{Number}Vpns.test", "list.#", "2"),
-
-                               // resource.TestCheckResourceAttr("networks_{network_id}_wireless_ssids_{number}_vpn.test", "rules.0.policy", "deny"),
-                               // resource.TestCheckResourceAttr("networks_{network_id}_wireless_ssids_{number}_vpn.test", "rules.0.protocol", "tcp"),
-                               // resource.TestCheckResourceAttr("networks_{network_id}_wireless_ssids_{number}_vpn.test", "rules.0.src_port", "1,33"),
-                               // resource.TestCheckResourceAttr("networks_{network_id}_wireless_ssids_{number}_vpn.test", "rules.0.dst_port", "22-30"),
-                               // resource.TestCheckResourceAttr("networks_{network_id}_wireless_ssids_{number}_vpns.test", "list.1.rules.0.policy", "allow"),
-                               // resource.TestCheckResourceAttr("networks_{network_id}_wireless_ssids_{number}_vpns.test", "list.1.rules.0.protocol", "any"),
-                               // resource.TestCheckResourceAttr("networks_{network_id}_wireless_ssids_{number}_vpns.test", "list.1.rules.0.src_port", "any"),
-                               // resource.TestCheckResourceAttr("networks_{network_id}_wireless_ssids_{number}_vpns.test", "list.1.rules.0.dst_port", "any"),
-            				),
-            			},
-
-			// TODO - ImportState testing - An import statement should ONLY include the required attributes to make a Read func call (example: organizationId + networkId).
-			// TODO - Currently This only works with hard-coded values so if you find a dynamic way to test please update these template.
-			/*
-				{
-						ResourceName:      "meraki_networks_{network_id}_wireless_ssids_{number}_vpn.test",
-						ImportState:       true,
-						ImportStateVerify: false,
-						ImportStateId:     "1234567890, 0987654321",
-					},
-			*/
-
-            // TODO - Check your test environment for dangling resources. During the early stages of development it is not uncommon to find organizations,
-            // TODO - networks or admins which did not get picked up because the resource errored out before the delete stage.
 			// Delete testing automatically occurs in TestCase
 		},
 	})
 }
 
-// TODO - Usually we need to create an organization. Determine if this makes sense for your workflow.
-/*
-const testAccNetworks{Networkid}WirelessSsids{Number}VpnResourceConfigCreateOrganization = `
- resource "meraki_organization" "test" {
- 	name = "test_meraki_networks_{network_id}_wireless_ssids_{number}_vpn"
- 	api_enabled = true
- }
- `
-*/
+const testAccNetworksWirelessSsidsVpnResourceConfigCreateOrganization = `
+resource "meraki_organization" "test" {
+	name = "test_meraki_networks_wireless_ssids_vpn"
+	api_enabled = true
+}
+`
 
-// TODO - Create your resource, make sure to include only the applicable attributes modifiable for CREATE.
-const testAccNetworks{Networkid}WirelessSsids{Number}VpnResourceConfigCreate = `
+const testAccNetworksWirelessSsidsVpnResourceConfigCreate = `
 resource "meraki_organization" "test" {}
 
-resource "meraki_networks_{network_id}_wireless_ssids_{number}_vpn" "test" {
+resource "meraki_network" "test" {
+	depends_on = ["meraki_organization.test"]
 	organization_id = resource.meraki_organization.test.organization_id
-        name = "Block sensitive web traffic"
-        description = "Blocks sensitive web traffic"
-        ip_version   = "ipv6"
-        rules = [
-            {
-                "policy": "deny",
-                "protocol": "tcp",
-                "src_port": "1,33",
-                "dst_port": "22-30"
-            }
-        ]
-    }
+	product_types = ["appliance", "switch", "wireless"]
+	tags = ["tag1"]
+	name = "Main Office"
+	timezone = "America/Los_Angeles"
+	notes = "Additional description of the network"
+}
 `
 
-// TODO - Update the resource ensuring that all modifiable attributes are tested
-/*
-const testAccNetworks{Networkid}WirelessSsids{Number}VpnResourceConfigUpdate = `
+const testAccNetworksWirelessSsidsVpnResourceConfigUpdate = `
 resource "meraki_organization" "test" {}
 
-resource "meraki_networks_{network_id}_wireless_ssids_{number}_vpn" "test" {
-	organization_id  = resource.meraki_organization.test.organization_id
-    name = "Block sensitive web traffic"
-    description = "Blocks sensitive web traffic"
-    ip_version   = "ipv6"
-    rules = [
-        {
-            "policy": "deny",
-            "protocol": "tcp",
-            "src_port": "1,33",
-            "dst_port": "22-30"
-        },
-        {
-            "policy": "allow",
-            "protocol": "any",
-            "src_port": "any",
-            "dst_port": "any"
-        }
-    ]
-  }
+resource "meraki_network" "test" {
+	depends_on = ["meraki_organization.test"]
+	organization_id = resource.meraki_organization.test.organization_id
+	product_types = ["appliance", "switch", "wireless"]
+	tags = ["tag1"]
+	name = "Main Office"
+	timezone = "America/Los_Angeles"
+	notes = "Additional description of the network"
+}
+
+resource "meraki_networks_wireless_ssids_vpn" "test" {
+	network_id  = resource.meraki_network.test.network_id
+	number = "123"
+	concentrator = {
+		network_id = resource.meraki_network.test.network_id
+		vlan_id = 44
+		name = "some concentrator name"
+	}
+	failover = {
+		request_ip = "1.1.1.1"
+		idle_timeout = 10
+		heartbeat_interval = 30
+	}
+	split_tunnel = {
+		enabled = true
+		rules = [
+			{
+				protocol = "Any"
+				dest_cidr = "1.1.1.1/32"
+				dest_port = "any"
+				policy = "allow"
+				comment = "split tunnel rule 1"
+			},
+			{
+				protocol = "Any"
+				dest_cidr = "foo.com"
+				dest_port = "any"
+				policy = "deny"
+				comment = "split tunnel rule 2"
+			}
+		]
+	}
+}
 `
-*/
-
-

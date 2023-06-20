@@ -122,6 +122,7 @@ func (r *NetworksWirelessSsidsVpnResource) Schema(ctx context.Context, req resou
 						CustomType:          jsontypes.StringType,
 					},
 				},
+				Required: true,
 			},
 			"failover": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
@@ -144,6 +145,7 @@ func (r *NetworksWirelessSsidsVpnResource) Schema(ctx context.Context, req resou
 						CustomType:          jsontypes.Int64Type,
 					},
 				},
+				Required: true,
 			},
 			"split_tunnel": schema.SingleNestedAttribute{
 				Attributes: map[string]schema.Attribute{
@@ -193,6 +195,7 @@ func (r *NetworksWirelessSsidsVpnResource) Schema(ctx context.Context, req resou
 						},
 					},
 				},
+				Required: true,
 			},
 		},
 	}
