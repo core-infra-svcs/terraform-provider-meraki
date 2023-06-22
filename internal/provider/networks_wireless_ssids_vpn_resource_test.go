@@ -88,7 +88,7 @@ resource "meraki_network" "test" {
 
 resource "meraki_networks_wireless_ssids_vpn" "test" {
 	network_id  = resource.meraki_network.test.network_id
-	number = "123"
+	number = "1"
 	concentrator = {
 		network_id = resource.meraki_network.test.network_id
 		vlan_id = 44
