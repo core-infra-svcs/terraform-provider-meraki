@@ -222,9 +222,40 @@ func (r *NetworksDevicesClaimResource) Delete(ctx context.Context, req resource.
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-	// If there was an error reading the state, return early.
-	if resp.Diagnostics.HasError() {
-		return
+	// deleting serials
+	for _, serial := range data.Serials {
+
+		removeNetworkDevices := *openApiClient.NewInlineObject76(serial.String())
+
+		httpResp, err := r.client.NetworksApi.RemoveNetworkDevices(ctx, data.NetworkId.ValueString()).RemoveNetworkDevices(removeNetworkDevices).Execute()
+
+		// If there was an error during API call, add it to diagnostics.
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Failed to create resource",
+				fmt.Sprintf("%v\n", err.Error()),
+			)
+		}
+
+		// Collect any HTTP diagnostics that might be useful for debugging.
+		if httpResp != nil {
+			tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		}
+
+		// If it's not what you expect, add an error to diagnostics.
+		if httpResp.StatusCode != 200 {
+			resp.Diagnostics.AddError(
+				"Unexpected HTTP Response Status Code",
+				fmt.Sprintf("%v", httpResp.StatusCode),
+			)
+		}
+
+		// If there were any errors up to this point, log the plan data and return.
+		if resp.Diagnostics.HasError() {
+			resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%v", data))
+			return
+		}
+
 	}
 
 	resp.State.RemoveResource(ctx)
