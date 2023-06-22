@@ -26,7 +26,7 @@ func TestAccDevicesResource(t *testing.T) {
 				Config: testAccDevicesResourceConfigCreateOrganization,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
-					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_meraki_devices"),
+					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_acc_meraki_devices"),
 				),
 			},
 
@@ -62,7 +62,7 @@ func TestAccDevicesResource(t *testing.T) {
 // testAccDevicesResourceConfigCreateOrganization is a constant string that defines the configuration for creating an organization resource in your tests.
 const testAccDevicesResourceConfigCreateOrganization = `
  resource "meraki_organization" "test" {
- 	name = "test_meraki_devices"
+ 	name = "test_acc_meraki_devices"
  	api_enabled = true
  }
  `
