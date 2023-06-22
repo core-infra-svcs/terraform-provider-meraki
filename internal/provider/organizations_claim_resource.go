@@ -304,8 +304,43 @@ func (r *OrganizationsClaimResource) Delete(ctx context.Context, req resource.De
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-	// If there was an error reading the state, return early.
+	payload := openApiClient.NewInlineObject190()
+
+	// serials
+	var serials []string
+	for _, serial := range data.Serials {
+		serials = append(serials, serial.ValueString())
+	}
+
+	payload.SetSerials(serials)
+
+	// Remember to handle any potential errors.
+	_, httpResp, err := r.client.OrganizationsApi.ReleaseFromOrganizationInventory(ctx, data.OrganizationId.ValueString()).Execute()
+
+	// If there was an error during API call, add it to diagnostics.
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to create resource",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+	}
+
+	// Collect any HTTP diagnostics that might be useful for debugging.
+	if httpResp != nil {
+		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+	}
+
+	// If it's not what you expect, add an error to diagnostics.
+	if httpResp.StatusCode != 200 {
+		resp.Diagnostics.AddError(
+			"Unexpected HTTP Response Status Code",
+			fmt.Sprintf("%v", httpResp.StatusCode),
+		)
+	}
+
+	// If there were any errors up to this point, log the plan data and return.
 	if resp.Diagnostics.HasError() {
+		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%v", data))
 		return
 	}
 

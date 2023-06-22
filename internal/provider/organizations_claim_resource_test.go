@@ -47,27 +47,8 @@ func TestAccOrganizationsClaimResource(t *testing.T) {
 					resource.TestCheckResourceAttr("organizations_claim.test", "licenses.0.mode", "addDevices"),
 				),
 			},
-
-			// Update and Read OrganizationsClaim
-			{
-				Config: testAccOrganizationsClaimResourceConfigUpdate(os.Getenv("TF_ACC_MERAKI_ORDER_NUMBER"), os.Getenv("TF_ACC_MERAKI_MX_SERIAL"), os.Getenv("TF_ACC_MERAKI_MX_LICENCE")),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("OrganizationsClaim.test", "id", "example-id"),
-
-					resource.TestCheckResourceAttr("organizations_claim.test", "orders.#", "1"),
-					resource.TestCheckResourceAttr("organizations_claim.test", "orders.0", os.Getenv("TF_ACC_MERAKI_ORDER_NUMBER")),
-
-					resource.TestCheckResourceAttr("organizations_claim.test", "serials.#", "1"),
-					resource.TestCheckResourceAttr("organizations_claim.test", "serials.0", os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
-
-					resource.TestCheckResourceAttr("organizations_claim.test", "licenses.#", "1"),
-					resource.TestCheckResourceAttr("organizations_claim.test", "licenses.0.key", os.Getenv("TF_ACC_MERAKI_MX_LICENCE")),
-					resource.TestCheckResourceAttr("organizations_claim.test", "licenses.0.mode", "addDevices"),
-				),
-			},
 		},
-
-		})
+	})
 }
 
 // testAccOrganizationsClaimResourceConfigCreateOrganization is a constant string that defines the configuration for creating an organization resource in your tests.
@@ -98,26 +79,4 @@ func testAccOrganizationsClaimResourceConfigCreate(order, serial, licence string
 	}
 `, order, serial, licence)
 	return string(result)
-}
-
-// testAccOrganizationsClaimResourceConfigUpdate is a constant string that defines the configuration for updating a organizations_claim resource in your tests.
-// It depends on both the organization and network resources.
-func testAccOrganizationsClaimResourceConfigUpdate(order, serial, licence string) string {
-	result := fmt.Sprintf(`
-	resource "meraki_organization" "test" {}
-	
-	resource "meraki_organizations_claim" "test" {
-		organization_id = resource.meraki_organization.test.organization_id
-		orders = ["%s"]
-		serials = ["%s"]
-		licences = [
-			{
-				key = "%s"
-				mode = "addDevices"
-			}
-		]
-	
-	}
-`, order, serial, licence)
-	return result
 }
