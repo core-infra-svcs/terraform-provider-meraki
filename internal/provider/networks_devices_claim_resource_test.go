@@ -53,6 +53,24 @@ func TestAccNetworksDevicesClaimResource(t *testing.T) {
 					resource.TestCheckResourceAttr("meraki_networks_devices_claim.test", "id", "example-id"),
 				),
 			},
+
+			// Create and Read OrganizationsClaim
+			{
+				Config: testAccOrganizationsClaimResourceforClaimingDevices(os.Getenv("TF_ACC_MERAKI_TEST_ACC"), os.Getenv("TF_ACC_MERAKI_ORDER_NUMBER"), os.Getenv("TF_ACC_MERAKI_MX_SERIAL"), os.Getenv("TF_ACC_MERAKI_MX_LICENCE")),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("meraki_organizations_claim.test", "id", "example-id"),
+
+					resource.TestCheckResourceAttr("meraki_organizations_claim.test", "orders.#", "1"),
+					resource.TestCheckResourceAttr("meraki_organizations_claim.test", "orders.0", os.Getenv("TF_ACC_MERAKI_ORDER_NUMBER")),
+
+					resource.TestCheckResourceAttr("meraki_organizations_claim.test", "serials.#", "1"),
+					resource.TestCheckResourceAttr("meraki_organizations_claim.test", "serials.0", os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
+
+					resource.TestCheckResourceAttr("meraki_organizations_claim.test", "licenses.#", "1"),
+					resource.TestCheckResourceAttr("meraki_organizations_claim.test", "licenses.0.key", os.Getenv("TF_ACC_MERAKI_MX_LICENCE")),
+					resource.TestCheckResourceAttr("meraki_organizations_claim.test", "licenses.0.mode", "addDevices"),
+				),
+			},
 		},
 	})
 }
@@ -99,4 +117,26 @@ resource "meraki_networks_devices_claim" "test" {
 }	
 `, serial)
 	return result
+}
+
+// testAccOrganizationsClaimResourceforClaimingDevices is a constant string that defines the configuration for creating and reading a organizations_claim resource in your tests.
+// It depends on both the organization and network resources.
+func testAccOrganizationsClaimResourceforClaimingDevices(orgid, order, serial, licence string) string {
+	result := fmt.Sprintf(`
+	resource "meraki_organization" "test" {}
+	
+	resource "meraki_organizations_claim" "test" {
+		organization_id = ["%s"]
+		orders = ["%s"]
+		serials = ["%s"]
+		licences = [
+			{
+				key = "%s"
+				mode = "addDevices"
+			}
+		]
+	
+	}
+`, orgid, order, serial, licence)
+	return string(result)
 }
