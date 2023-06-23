@@ -56,7 +56,7 @@ func TestAccNetworksDevicesClaimResource(t *testing.T) {
 
 			// Create and Read OrganizationsClaim
 			{
-				Config: testAccOrganizationsClaimResourceforClaimingDevices(os.Getenv("TF_ACC_MERAKI_TEST_ACC"), os.Getenv("TF_ACC_MERAKI_ORDER_NUMBER"), os.Getenv("TF_ACC_MERAKI_MX_SERIAL"), os.Getenv("TF_ACC_MERAKI_MX_LICENCE")),
+				Config: testAccOrganizationsClaimResourceforClaimingDevices(os.Getenv("TF_ACC_MERAKI_ORGANZIATION_ID"), os.Getenv("TF_ACC_MERAKI_ORDER_NUMBER"), os.Getenv("TF_ACC_MERAKI_MX_SERIAL"), os.Getenv("TF_ACC_MERAKI_MX_LICENCE")),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_organizations_claim.test", "id", "example-id"),
 
