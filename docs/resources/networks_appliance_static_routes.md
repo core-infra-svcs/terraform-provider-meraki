@@ -17,7 +17,6 @@ Manage static route for an MX or teleworker network.
 
 ### Required
 
-- `gateway_ip` (String) The gateway IP (next hop) of the static route
 - `name` (String) The name of the new static route
 - `subnet` (String) The subnet of the static route
 
@@ -27,8 +26,7 @@ Manage static route for an MX or teleworker network.
 - `fixed_ip_assignments_mac_address` (String) The DHCP fixed IP assignments on the static route. MAC address
 - `fixed_ip_assignments_mac_ip_address` (String) The DHCP fixed IP assignments on the static route. MAC IP address
 - `fixed_ip_assignments_mac_name` (String) The DHCP fixed IP assignments on the static route. MAC Name
-- `gateway_vlan_id` (String) The gateway IP (next hop) VLAN ID of the static route
-- `ip_version` (Number) Ip Version
+- `gateway_ip` (String) The gateway IP (next hop) of the static route
 - `network_id` (String) Network ID
 - `reserved_ip_ranges` (Attributes Set) The DHCP reserved IP ranges on the static route (see [below for nested schema](#nestedatt--reserved_ip_ranges))
 - `static_route_id` (String) Static Route ID

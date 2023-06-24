@@ -41,16 +41,14 @@ type NetworkApplianceStaticRoutesResourceModel struct {
 	Id                             types.String      `tfsdk:"id"`
 	NetworkId                      jsontypes.String  `tfsdk:"network_id" json:"networkId"`
 	StaticRoutId                   jsontypes.String  `tfsdk:"static_route_id" json:"id"`
-	Ipversion                      jsontypes.Int64   `tfsdk:"ip_version" json:"ipVersion"`
-	Enable                         jsontypes.Bool    `tfsdk:"enable" json:"enable"`
+	Enable                         jsontypes.Bool    `tfsdk:"enable" json:"enabled"`
 	Name                           jsontypes.String  `tfsdk:"name" json:"name"`
 	GatewayIp                      jsontypes.String  `tfsdk:"gateway_ip" json:"gatewayIp"`
 	Subnet                         jsontypes.String  `tfsdk:"subnet" json:"subnet"`
-	GatewayVlanId                  jsontypes.String  `tfsdk:"gateway_vlan_id" json:"gatewayVlanId"`
 	FixedIpAssignmentsMacAddress   jsontypes.String  `tfsdk:"fixed_ip_assignments_mac_address"`
 	FixedIpAssignmentsMacIpAddress jsontypes.String  `tfsdk:"fixed_ip_assignments_mac_ip_address"`
 	FixedIpAssignmentsMacName      jsontypes.String  `tfsdk:"fixed_ip_assignments_mac_name"`
-	ReservedIpRanges               []ReservedIpRange `tfsdk:"reserved_ip_ranges" json:"reserved_ip_ranges"`
+	ReservedIpRanges               []ReservedIpRange `tfsdk:"reserved_ip_ranges" json:"reservedIpRanges"`
 }
 
 type MacData struct {
@@ -93,16 +91,14 @@ func (r *NetworkApplianceStaticRoutesResource) Schema(ctx context.Context, req r
 				Optional:            true,
 				Computed:            true,
 				CustomType:          jsontypes.StringType,
-			},
-			"ip_version": schema.Int64Attribute{
-				MarkdownDescription: "Ip Version",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.Int64Type,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"gateway_ip": schema.StringAttribute{
 				MarkdownDescription: "The gateway IP (next hop) of the static route",
-				Required:            true,
+				Computed:            true,
+				Optional:            true,
 				CustomType:          jsontypes.StringType,
 			},
 			"enable": schema.BoolAttribute{
@@ -119,12 +115,6 @@ func (r *NetworkApplianceStaticRoutesResource) Schema(ctx context.Context, req r
 			"subnet": schema.StringAttribute{
 				MarkdownDescription: "The subnet of the static route",
 				Required:            true,
-				CustomType:          jsontypes.StringType,
-			},
-			"gateway_vlan_id": schema.StringAttribute{
-				MarkdownDescription: "The gateway IP (next hop) VLAN ID of the static route",
-				Computed:            true,
-				Optional:            true,
 				CustomType:          jsontypes.StringType,
 			},
 			"fixed_ip_assignments_mac_address": schema.StringAttribute{
@@ -147,8 +137,8 @@ func (r *NetworkApplianceStaticRoutesResource) Schema(ctx context.Context, req r
 			},
 			"reserved_ip_ranges": schema.SetNestedAttribute{
 				Description: "The DHCP reserved IP ranges on the static route",
-				Computed:    true,
 				Optional:    true,
+				Computed:    true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"comment": schema.StringAttribute{
@@ -205,9 +195,6 @@ func (r *NetworkApplianceStaticRoutesResource) Create(ctx context.Context, req r
 	}
 
 	createNetworkApplianceStaticRoutes := *openApiClient.NewInlineObject48(data.Name.ValueString(), data.Subnet.ValueString(), data.GatewayIp.ValueString())
-	if !data.GatewayVlanId.IsUnknown() {
-		createNetworkApplianceStaticRoutes.SetGatewayVlanId(data.GatewayVlanId.ValueString())
-	}
 
 	inlineResp, httpResp, err := r.client.ApplianceApi.CreateNetworkApplianceStaticRoute(context.Background(), data.NetworkId.ValueString()).CreateNetworkApplianceStaticRoute(createNetworkApplianceStaticRoutes).Execute()
 	if err != nil {
@@ -225,7 +212,7 @@ func (r *NetworkApplianceStaticRoutesResource) Create(ctx context.Context, req r
 	}
 
 	// Check for API success response code
-	if httpResp.StatusCode != 200 {
+	if httpResp.StatusCode != 201 {
 
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
@@ -249,10 +236,15 @@ func (r *NetworkApplianceStaticRoutesResource) Create(ctx context.Context, req r
 		return
 	}
 
+	if staticRouteId := inlineResp["id"]; staticRouteId != nil {
+		data.StaticRoutId = jsontypes.StringValue(staticRouteId.(string))
+	}
+
 	if reservedIpRangesResponse := inlineResp["reservedIpRanges"]; reservedIpRangesResponse != nil {
 		var reservedIpRanges []ReservedIpRange
 		jsonData, _ := json.Marshal(reservedIpRangesResponse)
 		json.Unmarshal(jsonData, &reservedIpRanges)
+		data.ReservedIpRanges = make([]ReservedIpRange, 0)
 		for _, attribute := range reservedIpRanges {
 			var reservedIpRange ReservedIpRange
 			reservedIpRange.Comment = attribute.Comment
@@ -260,13 +252,11 @@ func (r *NetworkApplianceStaticRoutesResource) Create(ctx context.Context, req r
 			reservedIpRange.Start = attribute.Start
 			data.ReservedIpRanges = append(data.ReservedIpRanges, reservedIpRange)
 		}
-	} else {
-		data.ReservedIpRanges = nil
+
 	}
 
 	if fixedIpAssignmentsResponse := inlineResp["fixedIpAssignments"]; fixedIpAssignmentsResponse != nil {
 		if macresponse := fixedIpAssignmentsResponse.(map[string]interface{})[data.FixedIpAssignmentsMacAddress.ValueString()]; macresponse != nil {
-			data.FixedIpAssignmentsMacAddress = jsontypes.StringValue(inlineResp["fixedIpAssignments"].(map[string]interface{})[data.FixedIpAssignmentsMacAddress.ValueString()].(string))
 			var macData MacData
 			jsonData, _ := json.Marshal(fixedIpAssignmentsResponse.(map[string]interface{})[data.FixedIpAssignmentsMacAddress.ValueString()])
 			json.Unmarshal(jsonData, &macData)
@@ -346,6 +336,7 @@ func (r *NetworkApplianceStaticRoutesResource) Read(ctx context.Context, req res
 		var reservedIpRanges []ReservedIpRange
 		jsonData, _ := json.Marshal(reservedIpRangesResponse)
 		json.Unmarshal(jsonData, &reservedIpRanges)
+		data.ReservedIpRanges = make([]ReservedIpRange, 0)
 		for _, attribute := range reservedIpRanges {
 			var reservedIpRange ReservedIpRange
 			reservedIpRange.Comment = attribute.Comment
@@ -353,13 +344,10 @@ func (r *NetworkApplianceStaticRoutesResource) Read(ctx context.Context, req res
 			reservedIpRange.Start = attribute.Start
 			data.ReservedIpRanges = append(data.ReservedIpRanges, reservedIpRange)
 		}
-	} else {
-		data.ReservedIpRanges = nil
 	}
 
 	if fixedIpAssignmentsResponse := inlineResp["fixedIpAssignments"]; fixedIpAssignmentsResponse != nil {
 		if macresponse := fixedIpAssignmentsResponse.(map[string]interface{})[data.FixedIpAssignmentsMacAddress.ValueString()]; macresponse != nil {
-			data.FixedIpAssignmentsMacAddress = jsontypes.StringValue(inlineResp["fixedIpAssignments"].(map[string]interface{})[data.FixedIpAssignmentsMacAddress.ValueString()].(string))
 			var macData MacData
 			jsonData, _ := json.Marshal(fixedIpAssignmentsResponse.(map[string]interface{})[data.FixedIpAssignmentsMacAddress.ValueString()])
 			json.Unmarshal(jsonData, &macData)
@@ -392,9 +380,7 @@ func (r *NetworkApplianceStaticRoutesResource) Update(ctx context.Context, req r
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	updateNetworkApplianceStaticRoutes := *openApiClient.NewInlineObject49()
-	if !data.GatewayVlanId.IsUnknown() {
-		updateNetworkApplianceStaticRoutes.SetGatewayVlanId(data.GatewayVlanId.ValueString())
-	}
+
 	if !data.Name.IsUnknown() {
 		updateNetworkApplianceStaticRoutes.SetName(data.Name.ValueString())
 	}
@@ -403,9 +389,6 @@ func (r *NetworkApplianceStaticRoutesResource) Update(ctx context.Context, req r
 	}
 	if !data.GatewayIp.IsUnknown() {
 		updateNetworkApplianceStaticRoutes.SetGatewayIp(data.GatewayIp.ValueString())
-	}
-	if !data.GatewayVlanId.IsUnknown() {
-		updateNetworkApplianceStaticRoutes.SetGatewayVlanId(data.GatewayVlanId.ValueString())
 	}
 	if !data.Enable.IsUnknown() {
 		updateNetworkApplianceStaticRoutes.SetEnabled(data.Enable.ValueBool())
@@ -416,8 +399,8 @@ func (r *NetworkApplianceStaticRoutesResource) Update(ctx context.Context, req r
 		for _, attribute := range data.ReservedIpRanges {
 			var networksNetworkIdApplianceStaticRoutesStaticRouteIdReservedIpRangesData openApiClient.NetworksNetworkIdApplianceStaticRoutesStaticRouteIdReservedIpRanges
 			networksNetworkIdApplianceStaticRoutesStaticRouteIdReservedIpRangesData.SetComment(attribute.Comment.ValueString())
-			networksNetworkIdApplianceStaticRoutesStaticRouteIdReservedIpRangesData.SetComment(attribute.End.ValueString())
-			networksNetworkIdApplianceStaticRoutesStaticRouteIdReservedIpRangesData.SetComment(attribute.Start.ValueString())
+			networksNetworkIdApplianceStaticRoutesStaticRouteIdReservedIpRangesData.SetEnd(attribute.End.ValueString())
+			networksNetworkIdApplianceStaticRoutesStaticRouteIdReservedIpRangesData.SetStart(attribute.Start.ValueString())
 			networksNetworkIdApplianceStaticRoutesStaticRouteIdReservedIpRanges = append(networksNetworkIdApplianceStaticRoutesStaticRouteIdReservedIpRanges, networksNetworkIdApplianceStaticRoutesStaticRouteIdReservedIpRangesData)
 		}
 		updateNetworkApplianceStaticRoutes.SetReservedIpRanges(networksNetworkIdApplianceStaticRoutesStaticRouteIdReservedIpRanges)
@@ -486,8 +469,9 @@ func (r *NetworkApplianceStaticRoutesResource) Update(ctx context.Context, req r
 
 	if reservedIpRangesResponse := inlineResp["reservedIpRanges"]; reservedIpRangesResponse != nil {
 		var reservedIpRanges []ReservedIpRange
-		jsonData, _ := json.Marshal(inlineResp["reservedIpRanges"])
+		jsonData, _ := json.Marshal(reservedIpRangesResponse)
 		json.Unmarshal(jsonData, &reservedIpRanges)
+		data.ReservedIpRanges = make([]ReservedIpRange, 0)
 		for _, attribute := range reservedIpRanges {
 			var reservedIpRange ReservedIpRange
 			reservedIpRange.Comment = attribute.Comment
@@ -495,13 +479,10 @@ func (r *NetworkApplianceStaticRoutesResource) Update(ctx context.Context, req r
 			reservedIpRange.Start = attribute.Start
 			data.ReservedIpRanges = append(data.ReservedIpRanges, reservedIpRange)
 		}
-	} else {
-		data.ReservedIpRanges = nil
 	}
 
 	if fixedIpAssignmentsResponse := inlineResp["fixedIpAssignments"]; fixedIpAssignmentsResponse != nil {
 		if macresponse := inlineResp["fixedIpAssignments"].(map[string]interface{})[data.FixedIpAssignmentsMacAddress.ValueString()]; macresponse != nil {
-			data.FixedIpAssignmentsMacAddress = jsontypes.StringValue(inlineResp["fixedIpAssignments"].(map[string]interface{})[data.FixedIpAssignmentsMacAddress.ValueString()].(string))
 			var macData MacData
 			jsonData, _ := json.Marshal(inlineResp["fixedIpAssignments"].(map[string]interface{})[data.FixedIpAssignmentsMacAddress.ValueString()])
 			json.Unmarshal(jsonData, &macData)
@@ -549,7 +530,7 @@ func (r *NetworkApplianceStaticRoutesResource) Delete(ctx context.Context, req r
 	}
 
 	// Check for API success response code
-	if httpResp.StatusCode != 200 {
+	if httpResp.StatusCode != 204 {
 
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",

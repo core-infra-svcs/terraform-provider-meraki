@@ -43,8 +43,8 @@ func TestAccNetworksApplianceStaticRoutesResource(t *testing.T) {
 				Config: testAccNetworksApplianceStaticRoutesResourceConfigCreateNetworksApplianceStaticRoutes,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_networks_appliance_static_routes.test", "name", "My route"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_static_routes.test", "subnet", "192.168.0.0/24"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_static_routes.test", "gateway_ip", "192.168.0.1"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_static_routes.test", "subnet", "192.168.129.0/24"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_static_routes.test", "gateway_ip", "192.168.128.1"),
 				),
 			},
 
@@ -53,17 +53,16 @@ func TestAccNetworksApplianceStaticRoutesResource(t *testing.T) {
 				Config: testAccNetworksApplianceStaticRoutesResourceConfigUpdateNetworksApplianceStaticRoutes,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_networks_appliance_static_routes.test", "name", "My route"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_static_routes.test", "subnet", "192.168.0.0/24"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_static_routes.test", "gateway_ip", "192.168.0.1"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_static_routes.test", "gateway_vlan_id", "100"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_static_routes.test", "subnet", "192.168.129.0/24"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_static_routes.test", "gateway_ip", "192.168.128.1"),
 					resource.TestCheckResourceAttr("meraki_networks_appliance_static_routes.test", "enable", "true"),
 					resource.TestCheckResourceAttr("meraki_networks_appliance_static_routes.test", "fixed_ip_assignments_mac_address", "22:33:44:55:66:77"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_static_routes.test", "fixed_ip_assignments_mac_ip_address", "192.168.0.1"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_static_routes.test", "fixed_ip_assignments_mac_ip_address", "192.168.128.1"),
 					resource.TestCheckResourceAttr("meraki_networks_appliance_static_routes.test", "fixed_ip_assignments_mac_name", "Some client name"),
 					resource.TestCheckResourceAttr("meraki_networks_appliance_static_routes.test", "reserved_ip_ranges.#", "1"),
 					resource.TestCheckResourceAttr("meraki_networks_appliance_static_routes.test", "reserved_ip_ranges.0.comment", "A reserved IP range"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_static_routes.test", "reserved_ip_ranges.0.start", "192.168.0.0"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_static_routes.test", "reserved_ip_ranges.0.end", "192.168.0.1"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_static_routes.test", "reserved_ip_ranges.0.start", "192.168.128.1"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_static_routes.test", "reserved_ip_ranges.0.end", "192.168.128.2"),
 				),
 			},
 		},
@@ -99,8 +98,8 @@ resource "meraki_networks_appliance_static_routes" "test" {
     depends_on = [resource.meraki_organization.test, resource.meraki_network.test]
     network_id = resource.meraki_network.test.network_id  
     name = "My route"
-    subnet = "192.168.0.0/24"
-    gateway_ip = "192.168.0.1"
+    subnet = "192.168.129.0/24"
+    gateway_ip = "192.168.128.1"
 	reserved_ip_ranges = []
 	
 }
@@ -116,17 +115,14 @@ resource "meraki_networks_appliance_static_routes" "test" {
     depends_on = [resource.meraki_organization.test, resource.meraki_network.test]
     network_id = resource.meraki_network.test.network_id    
 	name = "My route"
-    subnet = "192.168.0.0/24"
-    gateway_ip = "192.168.0.1"
-	gateway_vlan_id = "100"
-	enabled = true
+    subnet = "192.168.129.0/24"
 	fixed_ip_assignments_mac_address = "22:33:44:55:66:77"
-	fixed_ip_assignments_mac_ip_address = "192.168.0.1"
-	fixed_ip_assignments_mac_name = "Some client name"
+	fixed_ip_assignments_mac_ip_address = "192.168.128.1"
+	fixed_ip_assignments_mac_name = "Some client name"   
 	reserved_ip_ranges = [
         {
-            start = "192.168.0.0"
-            end = "192.168.0.1"
+            start = "192.168.128.1"
+            end = "192.168.128.2"
             comment = "A reserved IP range"
         }
     ]
