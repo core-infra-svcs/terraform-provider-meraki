@@ -58,13 +58,13 @@ func (r *DevicesWirelessRadioSettingsResource) Schema(ctx context.Context, req r
 				CustomType: jsontypes.StringType,
 			},
 			"serial": schema.StringAttribute{
-				MarkdownDescription: "Enables / disables the secure port.",
+				MarkdownDescription: "Device serial number",
 				Optional:            true,
 				Computed:            true,
 				CustomType:          jsontypes.StringType,
 			},
 			"rf_profile_id": schema.StringAttribute{
-				MarkdownDescription: "Enables / disables the secure port.",
+				MarkdownDescription: "The ID of an RF profile to assign to the device. If the value of this parameter is null, the appropriate basic RF profile (indoor or outdoor) will be assigned to the device. Assigning an RF profile will clear ALL manually configured overrides on the device (channel width, channel, power)..",
 				Optional:            true,
 				Computed:            true,
 				CustomType:          jsontypes.StringType,
@@ -74,13 +74,13 @@ func (r *DevicesWirelessRadioSettingsResource) Schema(ctx context.Context, req r
 				Computed: true,
 				Attributes: map[string]schema.Attribute{
 					"channel": schema.Int64Attribute{
-						MarkdownDescription: "Enables / disables the secure port.",
+						MarkdownDescription: "Sets a manual channel for 2.4 GHz. Can be '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13' or '14' or null for using auto channel..",
 						Optional:            true,
 						Computed:            true,
 						CustomType:          jsontypes.Int64Type,
 					},
 					"target_power": schema.Int64Attribute{
-						MarkdownDescription: "Enables / disables the secure port.",
+						MarkdownDescription: "Set a manual target power for 2.4 GHz. Can be between '5' or '30' or null for using auto power range..",
 						Optional:            true,
 						Computed:            true,
 						CustomType:          jsontypes.Int64Type,
@@ -92,19 +92,19 @@ func (r *DevicesWirelessRadioSettingsResource) Schema(ctx context.Context, req r
 				Computed: true,
 				Attributes: map[string]schema.Attribute{
 					"channel": schema.Int64Attribute{
-						MarkdownDescription: "Enables / disables the secure port.",
+						MarkdownDescription: "Sets a manual channel for 5 GHz. Can be '36', '40', '44', '48', '52', '56', '60', '64', '100', '104', '108', '112', '116', '120', '124', '128', '132', '136', '140', '144', '149', '153', '157', '161', '165', '169', '173' or '177' or null for using auto channel.",
 						Optional:            true,
 						Computed:            true,
 						CustomType:          jsontypes.Int64Type,
 					},
 					"channel_width": schema.Int64Attribute{
-						MarkdownDescription: "Enables / disables the secure port.",
+						MarkdownDescription: "Sets a manual channel for 5 GHz. Can be '0', '20', '40', '80' or '160' or null for using auto channel width.",
 						Optional:            true,
 						Computed:            true,
 						CustomType:          jsontypes.Int64Type,
 					},
 					"target_power": schema.Int64Attribute{
-						MarkdownDescription: "Enables / disables the secure port.",
+						MarkdownDescription: "Set a manual target power for 5 GHz. Can be between '8' or '30' or null for using auto power range.",
 						Optional:            true,
 						Computed:            true,
 						CustomType:          jsontypes.Int64Type,
