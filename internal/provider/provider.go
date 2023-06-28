@@ -181,6 +181,7 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		NewNetworksWirelessSsidsFirewallL7FirewallRulesResource,
 		NewDevicesResource,
 		NewOrganizationsClaimResource,
+		NewNetworksSwitchAccessPoliciesResource,
 	}
 }
 

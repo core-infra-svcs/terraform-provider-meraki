@@ -26,10 +26,11 @@ NetworksSwitchAccessPolicies
 - `network_id` (String) Network ID
 - `radius_accounting_enabled` (Boolean) Enable to send start, interim-update and stop messages to a configured RADIUS accounting server for tracking connected clients
 - `radius_accounting_servers` (Attributes Set) List of RADIUS accounting servers to require connecting devices to authenticate against before granting network access (see [below for nested schema](#nestedatt--radius_accounting_servers))
+- `radius_authentication_interval` (Number) Re-authentication period in seconds. Will be null if hostMode is Multi-Auth
 - `radius_coa_support_enabled` (Boolean) Change of authentication for RADIUS re-authentication and disconnection
+- `radius_critical_auth` (Attributes) Critical auth settings for when authentication is rejected by the RADIUS server (see [below for nested schema](#nestedatt--radius_critical_auth))
 - `radius_failed_auth_vlan_id` (Number) VLAN that clients will be placed on when RADIUS authentication fails. Will be null if hostMode is Multi-Auth
 - `radius_group_attribute` (String) Acceptable values are "" for None, or "11" for Group Policies ACL
-- `radius_re_authentication_interval` (Number) Re-authentication period in seconds. Will be null if hostMode is Multi-Auth
 - `radius_servers` (Attributes Set) List of RADIUS servers to require connecting devices to authenticate against before granting network access (see [below for nested schema](#nestedatt--radius_servers))
 - `radius_testing_enabled` (Boolean) If enabled, Meraki devices will periodically send access-request messages to these RADIUS servers
 - `url_redirect_walled_garden_enabled` (Boolean) Enable to restrict access for clients to a response_objectific set of IP addresses or hostnames prior to authentication
@@ -38,6 +39,7 @@ NetworksSwitchAccessPolicies
 
 ### Read-Only
 
+- `access_policy_number` (String)
 - `id` (String) The ID of this resource.
 
 <a id="nestedatt--radius_accounting_servers"></a>
@@ -48,6 +50,16 @@ Optional:
 - `host` (String)
 - `port` (Number)
 - `secret` (String)
+
+
+<a id="nestedatt--radius_critical_auth"></a>
+### Nested Schema for `radius_critical_auth`
+
+Optional:
+
+- `data_vlan_id` (Number)
+- `suspend_port_bounce` (Boolean)
+- `voice_vlan_id` (Number)
 
 
 <a id="nestedatt--radius_servers"></a>
