@@ -36,27 +36,33 @@ type NetworksSwitchAccessPoliciesResource struct {
 
 // NetworksSwitchAccessPoliciesResourceModel describes the resource data model.
 type NetworksSwitchAccessPoliciesResourceModel struct {
-	Id                             jsontypes.String                                             `tfsdk:"id"`
-	AccessPolicyNumber             jsontypes.String                                             `tfsdk:"access_policy_number"`
-	NetworkId                      jsontypes.String                                             `tfsdk:"network_id"`
-	AccessPolicyType               jsontypes.String                                             `tfsdk:"access_policy_type"`
-	Dot1xControlDirection          jsontypes.String                                             `tfsdk:"dot_1x_control_direction"`
-	GuestVLANId                    jsontypes.Int64                                              `tfsdk:"guest_vlan_id"`
-	HostMode                       jsontypes.String                                             `tfsdk:"host_mode"`
-	IncreaseAccessSpeed            jsontypes.Bool                                               `tfsdk:"increase_access_speed"`
-	Name                           jsontypes.String                                             `tfsdk:"name"`
-	RadiusAccountingEnabled        jsontypes.Bool                                               `tfsdk:"radius_accounting_enabled"`
-	RadiusAccountingServers        []NetworkSwitchAccessPolicyRadiusServersDataSourceModelRules `tfsdk:"radius_accounting_servers"`
-	RadiusCoaSupportEnabled        jsontypes.Bool                                               `tfsdk:"radius_coa_support_enabled"`
-	RadiusGroupAttribute           jsontypes.String                                             `tfsdk:"radius_group_attribute"`
-	RadiusServers                  []NetworkSwitchAccessPolicyRadiusServersDataSourceModelRules `tfsdk:"radius_servers"`
-	RadiusTestingEnabled           jsontypes.Bool                                               `tfsdk:"radius_testing_enabled"`
-	RadiusCriticalAuth             RadiusCriticalAuth                                           `tfsdk:"radius_critical_auth"`
-	RadiusFailedAuthVlanId         jsontypes.Int64                                              `tfsdk:"radius_failed_auth_vlan_id"`
-	RadiusAuthenticationInterval   jsontypes.Int64                                              `tfsdk:"radius_authentication_interval"`
-	UrlRedirectWalledGardenEnabled jsontypes.Bool                                               `tfsdk:"url_redirect_walled_garden_enabled"`
-	UrlRedirectWalledGardenRanges  jsontypes.Set[jsontypes.String]                              `tfsdk:"url_redirect_walled_garden_ranges"`
-	VoiceVlanClients               jsontypes.Bool                                               `tfsdk:"voice_vlan_clients"`
+	Id                             jsontypes.String                                           `tfsdk:"id"`
+	AccessPolicyNumber             jsontypes.String                                           `tfsdk:"access_policy_number"`
+	NetworkId                      jsontypes.String                                           `tfsdk:"network_id"`
+	AccessPolicyType               jsontypes.String                                           `tfsdk:"access_policy_type"`
+	Dot1xControlDirection          jsontypes.String                                           `tfsdk:"dot_1x_control_direction"`
+	GuestVLANId                    jsontypes.Int64                                            `tfsdk:"guest_vlan_id"`
+	HostMode                       jsontypes.String                                           `tfsdk:"host_mode"`
+	IncreaseAccessSpeed            jsontypes.Bool                                             `tfsdk:"increase_access_speed"`
+	Name                           jsontypes.String                                           `tfsdk:"name"`
+	RadiusAccountingEnabled        jsontypes.Bool                                             `tfsdk:"radius_accounting_enabled"`
+	RadiusAccountingServers        []NetworkSwitchAccessPolicyRadiusServersResourceModelRules `tfsdk:"radius_accounting_servers"`
+	RadiusCoaSupportEnabled        jsontypes.Bool                                             `tfsdk:"radius_coa_support_enabled"`
+	RadiusGroupAttribute           jsontypes.String                                           `tfsdk:"radius_group_attribute"`
+	RadiusServers                  []NetworkSwitchAccessPolicyRadiusServersResourceModelRules `tfsdk:"radius_servers"`
+	RadiusTestingEnabled           jsontypes.Bool                                             `tfsdk:"radius_testing_enabled"`
+	RadiusCriticalAuth             RadiusCriticalAuth                                         `tfsdk:"radius_critical_auth"`
+	RadiusFailedAuthVlanId         jsontypes.Int64                                            `tfsdk:"radius_failed_auth_vlan_id"`
+	RadiusAuthenticationInterval   jsontypes.Int64                                            `tfsdk:"radius_authentication_interval"`
+	UrlRedirectWalledGardenEnabled jsontypes.Bool                                             `tfsdk:"url_redirect_walled_garden_enabled"`
+	UrlRedirectWalledGardenRanges  jsontypes.Set[jsontypes.String]                            `tfsdk:"url_redirect_walled_garden_ranges"`
+	VoiceVlanClients               jsontypes.Bool                                             `tfsdk:"voice_vlan_clients"`
+}
+
+type NetworkSwitchAccessPolicyRadiusServersResourceModelRules struct {
+	Host   jsontypes.String `tfsdk:"host"`
+	Port   jsontypes.Int64  `tfsdk:"port"`
+	Secret jsontypes.String `tfsdk:"secret"`
 }
 
 type RadiusCriticalAuth struct {
@@ -320,7 +326,7 @@ func (r *NetworksSwitchAccessPoliciesResource) Create(ctx context.Context, req r
 		radiusAccountingServers = append(radiusAccountingServers, *newServer)
 	}
 
-	createNetworkSwitchAccessPolicy := openApiClient.NewInlineObject109(data.Name.String(), radiusServers, data.RadiusTestingEnabled.ValueBool(), data.RadiusCoaSupportEnabled.ValueBool(), data.RadiusAccountingEnabled.ValueBool(), data.HostMode.ValueString(), data.UrlRedirectWalledGardenEnabled.ValueBool())
+	createNetworkSwitchAccessPolicy := openApiClient.NewInlineObject110(data.Name.String(), radiusServers, data.RadiusTestingEnabled.ValueBool(), data.RadiusCoaSupportEnabled.ValueBool(), data.RadiusAccountingEnabled.ValueBool(), data.HostMode.ValueString(), data.UrlRedirectWalledGardenEnabled.ValueBool())
 	createNetworkSwitchAccessPolicy.RadiusAccountingServers = radiusAccountingServers
 
 	i := int32(data.RadiusCriticalAuth.DataVlanId.ValueInt64())
@@ -445,7 +451,7 @@ func (r *NetworksSwitchAccessPoliciesResource) Update(ctx context.Context, req r
 		radiusServers = append(radiusServers, *newServer)
 	}
 
-	updateNetworkSwitchAccessPolicy := openApiClient.NewInlineObject110()
+	updateNetworkSwitchAccessPolicy := openApiClient.NewInlineObject111()
 	updateNetworkSwitchAccessPolicy.RadiusServers = radiusServers
 	radiusTestingEnabled := data.RadiusTestingEnabled.ValueBool()
 	updateNetworkSwitchAccessPolicy.RadiusTestingEnabled = &radiusTestingEnabled
