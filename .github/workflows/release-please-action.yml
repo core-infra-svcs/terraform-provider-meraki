@@ -18,9 +18,9 @@ jobs:
           release-type: terraform-module
           package-name: ${{env.ACTION_NAME}}
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Add tags to PR
-        uses: actions/github-script@v4
+        uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
