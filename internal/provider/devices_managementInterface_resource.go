@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
@@ -207,6 +208,15 @@ func (r *DevicesManagementinterfaceResource) Create(ctx context.Context, req res
 		return
 	}
 
+	// Save data into Terraform state
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
+	}
+
 	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -248,6 +258,15 @@ func (r *DevicesManagementinterfaceResource) Read(ctx context.Context, req resou
 
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Save data into Terraform state
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
 		return
 	}
 
@@ -328,6 +347,15 @@ func (r *DevicesManagementinterfaceResource) Update(ctx context.Context, req res
 		return
 	}
 
+	// Save data into Terraform state
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
+	}
+
 	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -405,13 +433,20 @@ func (r *DevicesManagementinterfaceResource) Delete(ctx context.Context, req res
 		return
 	}
 
+	// Save data into Terraform state
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
+	}
 	data.Id = jsontypes.StringValue("example-id")
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.State.RemoveResource(ctx)
 
 	// Write logs using the tflog package
 	tflog.Trace(ctx, "removed resource")
-
 }
 
 func (r *DevicesManagementinterfaceResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
