@@ -39,17 +39,10 @@ resource "meraki_organization" "test" {
 } 
 
 resource "meraki_devices_management_interface" "test" {
-	serial = "Q2HY-6LK8-AP8J"
+	serial = "Q2HY-A497-YBMG"
     wan1_wan_enabled = "not configured"
-	wan1_using_static_ip = true
-	wan1_static_ip = "1.2.3.4"
-	wan1_static_subnet_mask = "255.255.255.0"
-	wan1_static_gateway_ip = "1.2.3.1"
-	wan1_static_dns = ["1.2.3.2", "1.2.3.3"]
-	wan1_vlan = 7
-	
-	wan2_wan_enabled = "enabled"
+	wan1_using_static_ip = false
+    wan2_wan_enabled = "not configured"
 	wan2_using_static_ip = false
-	wan2_vlan = 2
 }
 `
