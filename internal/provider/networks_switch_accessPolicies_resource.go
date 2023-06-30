@@ -339,6 +339,11 @@ func (r *NetworksSwitchAccessPoliciesResource) Create(ctx context.Context, req r
 	radius := openApiClient.NewNetworksNetworkIdSwitchAccessPoliciesRadius()
 	radius.SetCriticalAuth(*criticalAuth)
 	createNetworkSwitchAccessPolicy.SetRadius(*radius)
+	var walledGardenRanges []string
+	for _, urlRange := range data.UrlRedirectWalledGardenRanges.Elements() {
+		walledGardenRanges = append(walledGardenRanges, urlRange.String())
+	}
+	createNetworkSwitchAccessPolicy.SetUrlRedirectWalledGardenRanges(walledGardenRanges)
 
 	_, httpResp, err := r.client.SwitchApi.CreateNetworkSwitchAccessPolicy(context.Background(), data.NetworkId.ValueString()).CreateNetworkSwitchAccessPolicy(*createNetworkSwitchAccessPolicy).Execute()
 	if err != nil {
@@ -481,6 +486,11 @@ func (r *NetworksSwitchAccessPoliciesResource) Update(ctx context.Context, req r
 	updateNetworkSwitchAccessPolicy.RadiusGroupAttribute = &radiusGroupAttribute
 	voiceVlanClients := data.VoiceVlanClients.ValueBool()
 	updateNetworkSwitchAccessPolicy.VoiceVlanClients = &voiceVlanClients
+	var walledGardenRanges []string
+	for _, urlRange := range data.UrlRedirectWalledGardenRanges.Elements() {
+		walledGardenRanges = append(walledGardenRanges, urlRange.String())
+	}
+	updateNetworkSwitchAccessPolicy.SetUrlRedirectWalledGardenRanges(walledGardenRanges)
 
 	_, httpResp, err := r.client.SwitchApi.UpdateNetworkSwitchAccessPolicy(context.Background(), data.NetworkId.ValueString(), data.AccessPolicyNumber.String()).UpdateNetworkSwitchAccessPolicy(*updateNetworkSwitchAccessPolicy).Execute()
 	if err != nil {

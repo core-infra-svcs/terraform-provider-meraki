@@ -59,24 +59,33 @@ resource "meraki_networks_switch_access_policies" "test" {
   host_mode                 = "Single-Host"
   increase_access_speed     = false
   name                      = "Access policy #1"
-  radius_accounting_enabled = false
-  radius_accounting_servers = []
+  radius_accounting_enabled = true
+  radius_accounting_servers = [
+	{
+      host   = "1.2.3.4"
+      port   = 22
+      secret = "secret"
+    }
+  ]
   radius_coa_support_enabled = false
   radius_group_attribute     = "11"
   radius_servers             = [
     {
-      host   = "10.20.30.40"
+      host   = "1.2.3.4"
       port   = 22
       secret = "secret"
     }
   ]
   radius_testing_enabled = false
-  url_redirect_walled_garden_enabled = false
-  voice_vlan_clients                 = false
+  url_redirect_walled_garden_enabled = true
+  voice_vlan_clients                 = true
   radius_critical_auth = {
 	data_vlan_id = 100
-	voice_vlan_id = 100
+	voice_vlan_id = 101
 	suspend_port_bounce = true
   }
+  radius_failed_auth_vlan_id = 100
+  guest_vlan_id = 100
+  url_redirect_walled_garden_ranges = ["192.168.1.0/24"]
 }
  `
