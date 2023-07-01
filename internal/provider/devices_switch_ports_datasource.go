@@ -61,10 +61,6 @@ type DevicesSwitchPortData struct {
 	Profile                 DevicesSerialSwitchPortsProfile `tfsdk:"profile"`
 }
 
-//{"portId":"1","name":null,"tags":[],"enabled":true,"poeEnabled":true,"type":"trunk","vlan":1,"voiceVlan":null,"allowedVlans":"all","isolationEnabled":false,"rstpEnabled":true,"stpGuard":"disabled","linkNegotiation":"Auto negotiate","portScheduleId":null,"udld":"Alert only","linkNegotiationCapabilities":["Auto negotiate","1 Gigabit full duplex (forced)","100 Megabit (auto)","100 Megabit half duplex (forced)","100 Megabit full duplex (forced)","10 Megabit (auto)","10 Megabit half duplex (forced)","10 Megabit full duplex (forced)"],"accessPolicyType":"Open","daiTrusted":false}
-
-//{"49" "" [] true false "trunk" 1 0 "all" false true "disabled" 0 "Open" "Auto negotiate" "" "Alert only" 0 false [] [] "" false false {false "" ""}   }
-
 type DevicesSerialSwitchPortsProfile struct {
 	Enabled jsontypes.Bool   `tfsdk:"enabled"`
 	Id      jsontypes.String `tfsdk:"id"`
@@ -405,4 +401,3 @@ func (d *DevicesSwitchPortsStatusesDataSource) Read(ctx context.Context, req dat
 	// Write logs using the tflog package
 	tflog.Trace(ctx, "read data source")
 }
-

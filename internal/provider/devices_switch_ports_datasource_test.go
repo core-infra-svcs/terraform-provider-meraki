@@ -117,4 +117,3 @@ data "meraki_devices_switch_ports" "test" {
 `, serial1, serial2)
 	return result
 }
-
