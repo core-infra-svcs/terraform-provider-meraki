@@ -1,6 +1,8 @@
 package provider
 
 import (
+	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -40,7 +42,7 @@ func TestAccDevicesCellularSimsResource(t *testing.T) {
 
 			// Update testing
 			{
-				Config: testAccDevicesCellularSimsResourceConfigUpdate,
+				Config: testAccDevicesCellularSimsResourceConfigUpdate(os.Getenv("TF_ACC_MERAKI_MG_SERIAL"), os.Getenv("TF_ACC_MERAKI_MG_SERIAL")),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_devices_cellular_sims.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_devices_cellular_sims.test", "sims.#", "1"),
@@ -85,14 +87,24 @@ resource "meraki_network" "test" {
 }
 `
 
-const testAccDevicesCellularSimsResourceConfigUpdate = `
+// testAccDevicesCellularSimsResourceConfigUpdate is a constant string that defines the configuration for creating and updating a devices cellular sims resource config update resource in your tests.
+// It depends on both the organization and network resources.
+func testAccDevicesCellularSimsResourceConfigUpdate(serial1 string, serial2 string) string {
+	result := fmt.Sprintf(`
 resource "meraki_organization" "test" {}
 resource "meraki_network" "test" {
-	depends_on = [resource.meraki_organization.test]
-	product_types = ["appliance", "switch", "wireless", "cellularGateway"]
+        depends_on = [resource.meraki_organization.test]
+        product_types = ["appliance", "switch", "wireless", "cellularGateway"]
+}
+resource "meraki_networks_devices_claim" "test" {
+    depends_on = [resource.meraki_network.test, resource.meraki_organization.test]
+    network_id = resource.meraki_network.test.network_id
+    serials = [
+      "%s"
+  ]
 }
 resource "meraki_devices_cellular_sims" "test" {
-	serial = "3333"
+	serial = "%s"
 	sims = [{
 		slot = "sim1"
 		apns = []
@@ -103,4 +115,6 @@ resource "meraki_devices_cellular_sims" "test" {
 	}
 	
 }
-`
+`, serial1, serial2)
+	return result
+}
