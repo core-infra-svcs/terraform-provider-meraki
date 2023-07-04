@@ -177,6 +177,7 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		NewNetworksSwitchDscpToCosMappingsResource,
 		NewNetworksSwitchMtuResource,
 		NewNetworksGroupPolicyResource,
+		NewNetworksDevicesClaimResource,
 	}
 }
 
@@ -190,6 +191,7 @@ func (p *CiscoMerakiProvider) DataSources(ctx context.Context) []func() datasour
 		NewOrganizationsAdaptivePolicyAclsDataSource,
 		NewOrganizationsSamlRolesDataSource,
 		NewNetworkGroupPoliciesDataSource,
+		NewNetworksAppliancePortsDataSource,
 	}
 }
 
