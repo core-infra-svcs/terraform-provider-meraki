@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
@@ -259,7 +260,6 @@ func (r *NetworksDevicesClaimResource) Delete(ctx context.Context, req resource.
 		}
 
 	}
-
 	resp.State.RemoveResource(ctx)
 
 	// Log that the resource was deleted.
