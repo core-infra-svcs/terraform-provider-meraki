@@ -225,7 +225,9 @@ func (r *NetworksDevicesClaimResource) Delete(ctx context.Context, req resource.
 	// deleting serials
 	for _, serial := range data.Serials {
 
-		removeNetworkDevices := *openApiClient.NewInlineObject76(serial.String())
+		se := fmt.Sprint(strings.Trim(serial.String(), "\""))
+
+		removeNetworkDevices := *openApiClient.NewInlineObject76(se)
 
 		httpResp, err := r.client.NetworksApi.RemoveNetworkDevices(ctx, data.NetworkId.ValueString()).RemoveNetworkDevices(removeNetworkDevices).Execute()
 
@@ -243,7 +245,7 @@ func (r *NetworksDevicesClaimResource) Delete(ctx context.Context, req resource.
 		}
 
 		// If it's not what you expect, add an error to diagnostics.
-		if httpResp.StatusCode != 200 {
+		if httpResp.StatusCode != 204 {
 			resp.Diagnostics.AddError(
 				"Unexpected HTTP Response Status Code",
 				fmt.Sprintf("%v", httpResp.StatusCode),
