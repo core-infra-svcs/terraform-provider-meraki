@@ -122,14 +122,14 @@ func (r *NetworksApplianceFirewallSettingsResource) Create(ctx context.Context, 
 		return
 	}
 
-	updateNetworksApplianceFirewallSettings := *openApiClient.NewInlineObject39()
-	var spoofingProtection openApiClient.NetworksNetworkIdApplianceFirewallSettingsSpoofingProtection
-	var ipSourceGuard openApiClient.NetworksNetworkIdApplianceFirewallSettingsSpoofingProtectionIpSourceGuard
+	updateNetworksApplianceFirewallSettings := *openApiClient.NewUpdateNetworkApplianceFirewallSettingsRequest()
+	var spoofingProtection openApiClient.UpdateNetworkApplianceFirewallSettingsRequestSpoofingProtection
+	var ipSourceGuard openApiClient.UpdateNetworkApplianceFirewallSettingsRequestSpoofingProtectionIpSourceGuard
 	ipSourceGuard.SetMode(data.SpoofingProtection.IpSourceGuard.Mode.ValueString())
 	spoofingProtection.SetIpSourceGuard(ipSourceGuard)
 	updateNetworksApplianceFirewallSettings.SetSpoofingProtection(spoofingProtection)
 
-	_, httpResp, err := r.client.SettingsApi.UpdateNetworkApplianceFirewallSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceFirewallSettings(updateNetworksApplianceFirewallSettings).Execute()
+	_, httpResp, err := r.client.SettingsApi.UpdateNetworkApplianceFirewallSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceFirewallSettingsRequest(updateNetworksApplianceFirewallSettings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to create resource",
@@ -239,14 +239,14 @@ func (r *NetworksApplianceFirewallSettingsResource) Update(ctx context.Context, 
 		return
 	}
 
-	updateNetworksApplianceFirewallSettings := *openApiClient.NewInlineObject39()
-	var spoofingProtection openApiClient.NetworksNetworkIdApplianceFirewallSettingsSpoofingProtection
-	var ipSourceGuard openApiClient.NetworksNetworkIdApplianceFirewallSettingsSpoofingProtectionIpSourceGuard
+	updateNetworksApplianceFirewallSettings := *openApiClient.NewUpdateNetworkApplianceFirewallSettingsRequest()
+	var spoofingProtection openApiClient.UpdateNetworkApplianceFirewallSettingsRequestSpoofingProtection
+	var ipSourceGuard openApiClient.UpdateNetworkApplianceFirewallSettingsRequestSpoofingProtectionIpSourceGuard
 	ipSourceGuard.SetMode(data.SpoofingProtection.IpSourceGuard.Mode.ValueString())
 	spoofingProtection.SetIpSourceGuard(ipSourceGuard)
 	updateNetworksApplianceFirewallSettings.SetSpoofingProtection(spoofingProtection)
 
-	_, httpResp, err := r.client.SettingsApi.UpdateNetworkApplianceFirewallSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceFirewallSettings(updateNetworksApplianceFirewallSettings).Execute()
+	_, httpResp, err := r.client.SettingsApi.UpdateNetworkApplianceFirewallSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceFirewallSettingsRequest(updateNetworksApplianceFirewallSettings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to update resource",
@@ -301,13 +301,13 @@ func (r *NetworksApplianceFirewallSettingsResource) Delete(ctx context.Context, 
 		return
 	}
 
-	updateNetworksApplianceFirewallSettings := *openApiClient.NewInlineObject39()
-	var spoofingProtection openApiClient.NetworksNetworkIdApplianceFirewallSettingsSpoofingProtection
-	var ipSourceGuard openApiClient.NetworksNetworkIdApplianceFirewallSettingsSpoofingProtectionIpSourceGuard
+	updateNetworksApplianceFirewallSettings := *openApiClient.NewUpdateNetworkApplianceFirewallSettingsRequest()
+	var spoofingProtection openApiClient.UpdateNetworkApplianceFirewallSettingsRequestSpoofingProtection
+	var ipSourceGuard openApiClient.UpdateNetworkApplianceFirewallSettingsRequestSpoofingProtectionIpSourceGuard
 	spoofingProtection.SetIpSourceGuard(ipSourceGuard)
 	updateNetworksApplianceFirewallSettings.SetSpoofingProtection(spoofingProtection)
 
-	_, httpResp, err := r.client.SettingsApi.UpdateNetworkApplianceFirewallSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceFirewallSettings(updateNetworksApplianceFirewallSettings).Execute()
+	_, httpResp, err := r.client.SettingsApi.UpdateNetworkApplianceFirewallSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceFirewallSettingsRequest(updateNetworksApplianceFirewallSettings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to delete resource",

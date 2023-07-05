@@ -32,23 +32,23 @@ type OrganizationsLicenseResource struct {
 // The OrganizationsLicenseResourceModel structure describes the data model.
 // This struct is where you define all the attributes that are part of this resource's state.
 type OrganizationsLicenseResourceModel struct {
-	Id                        jsontypes.String                                                             `tfsdk:"id"`
-	OrganizationId            jsontypes.String                                                             `tfsdk:"organization_id"`
-	LicenseId                 jsontypes.String                                                             `tfsdk:"license_id"`
-	LicenseType               jsontypes.String                                                             `tfsdk:"license_type"`
-	LicenseKey                jsontypes.String                                                             `tfsdk:"license_key"`
-	OrderNumber               jsontypes.String                                                             `tfsdk:"order_number"`
-	DeviceSerial              jsontypes.String                                                             `tfsdk:"device_serial"`
-	NetworkId                 jsontypes.String                                                             `tfsdk:"network_id"`
-	State                     jsontypes.String                                                             `tfsdk:"state"`
-	ClaimDate                 jsontypes.String                                                             `tfsdk:"claim_date"`
-	ActivationDate            jsontypes.String                                                             `tfsdk:"activation_date"`
-	ExpirationDate            jsontypes.String                                                             `tfsdk:"expiration_date"`
-	HeadLicenseId             jsontypes.String                                                             `tfsdk:"head_license_id"`
-	SeatCount                 jsontypes.Int64                                                              `tfsdk:"seat_count"`
-	TotalDurationInDays       jsontypes.Int64                                                              `tfsdk:"total_duration_in_days"`
-	DurationInDays            jsontypes.Int64                                                              `tfsdk:"duration_in_days"`
-	PermanentlyQueuedLicenses []openApiClient.OrganizationsOrganizationIdLicensesPermanentlyQueuedLicenses `tfsdk:"permanently_queued_licenses"`
+	Id                        jsontypes.String                                                                      `tfsdk:"id"`
+	OrganizationId            jsontypes.String                                                                      `tfsdk:"organization_id"`
+	LicenseId                 jsontypes.String                                                                      `tfsdk:"license_id"`
+	LicenseType               jsontypes.String                                                                      `tfsdk:"license_type"`
+	LicenseKey                jsontypes.String                                                                      `tfsdk:"license_key"`
+	OrderNumber               jsontypes.String                                                                      `tfsdk:"order_number"`
+	DeviceSerial              jsontypes.String                                                                      `tfsdk:"device_serial"`
+	NetworkId                 jsontypes.String                                                                      `tfsdk:"network_id"`
+	State                     jsontypes.String                                                                      `tfsdk:"state"`
+	ClaimDate                 jsontypes.String                                                                      `tfsdk:"claim_date"`
+	ActivationDate            jsontypes.String                                                                      `tfsdk:"activation_date"`
+	ExpirationDate            jsontypes.String                                                                      `tfsdk:"expiration_date"`
+	HeadLicenseId             jsontypes.String                                                                      `tfsdk:"head_license_id"`
+	SeatCount                 jsontypes.Int64                                                                       `tfsdk:"seat_count"`
+	TotalDurationInDays       jsontypes.Int64                                                                       `tfsdk:"total_duration_in_days"`
+	DurationInDays            jsontypes.Int64                                                                       `tfsdk:"duration_in_days"`
+	PermanentlyQueuedLicenses []openApiClient.GetOrganizationLicenses200ResponseInnerPermanentlyQueuedLicensesInner `tfsdk:"permanently_queued_licenses"`
 }
 
 // Metadata provides a way to define information about the resource.
@@ -241,10 +241,10 @@ func (r *OrganizationsLicenseResource) Create(ctx context.Context, req resource.
 		return
 	}
 
-	updateOrganizationLicense := *openApiClient.NewInlineObject208()
+	updateOrganizationLicense := *openApiClient.NewUpdateOrganizationLicenseRequest()
 	updateOrganizationLicense.SetDeviceSerial(data.DeviceSerial.ValueString())
 
-	inlineResp, httpResp, err := r.client.LicensesApi.UpdateOrganizationLicense(context.Background(), data.OrganizationId.ValueString(), data.LicenseId.ValueString()).UpdateOrganizationLicense(updateOrganizationLicense).Execute()
+	inlineResp, httpResp, err := r.client.LicensesApi.UpdateOrganizationLicense(context.Background(), data.OrganizationId.ValueString(), data.LicenseId.ValueString()).UpdateOrganizationLicenseRequest(updateOrganizationLicense).Execute()
 
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
@@ -373,10 +373,10 @@ func (r *OrganizationsLicenseResource) Update(ctx context.Context, req resource.
 		return
 	}
 
-	updateOrganizationLicense := *openApiClient.NewInlineObject208()
+	updateOrganizationLicense := *openApiClient.NewUpdateOrganizationLicenseRequest()
 	updateOrganizationLicense.SetDeviceSerial(data.DeviceSerial.ValueString())
 
-	inlineResp, httpResp, err := r.client.LicensesApi.UpdateOrganizationLicense(context.Background(), data.OrganizationId.ValueString(), data.LicenseId.ValueString()).UpdateOrganizationLicense(updateOrganizationLicense).Execute()
+	inlineResp, httpResp, err := r.client.LicensesApi.UpdateOrganizationLicense(context.Background(), data.OrganizationId.ValueString(), data.LicenseId.ValueString()).UpdateOrganizationLicenseRequest(updateOrganizationLicense).Execute()
 
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
@@ -443,10 +443,10 @@ func (r *OrganizationsLicenseResource) Delete(ctx context.Context, req resource.
 		return
 	}
 
-	updateOrganizationLicense := *openApiClient.NewInlineObject208()
+	updateOrganizationLicense := *openApiClient.NewUpdateOrganizationLicenseRequest()
 	updateOrganizationLicense.SetDeviceSerial(data.DeviceSerial.ValueString())
 
-	inlineResp, httpResp, err := r.client.LicensesApi.UpdateOrganizationLicense(context.Background(), data.OrganizationId.ValueString(), data.LicenseId.ValueString()).UpdateOrganizationLicense(updateOrganizationLicense).Execute()
+	inlineResp, httpResp, err := r.client.LicensesApi.UpdateOrganizationLicense(context.Background(), data.OrganizationId.ValueString(), data.LicenseId.ValueString()).UpdateOrganizationLicenseRequest(updateOrganizationLicense).Execute()
 
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {

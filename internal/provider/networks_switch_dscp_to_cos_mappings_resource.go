@@ -117,9 +117,9 @@ func (r *NetworksSwitchDscpToCosMappingsResource) Create(ctx context.Context, re
 		return
 	}
 
-	mappings := []openApiClient.NetworksNetworkIdSwitchDscpToCosMappingsMappings{}
+	mappings := []openApiClient.UpdateNetworkSwitchDscpToCosMappingsRequestMappingsInner{}
 	for _, mapping := range data.Mappings {
-		mappingsMappings := openApiClient.NetworksNetworkIdSwitchDscpToCosMappingsMappings{
+		mappingsMappings := openApiClient.UpdateNetworkSwitchDscpToCosMappingsRequestMappingsInner{
 			Dscp: int32(mapping.Dscp.ValueInt64()),
 			Cos:  int32(mapping.Cos.ValueInt64()),
 		}
@@ -127,9 +127,9 @@ func (r *NetworksSwitchDscpToCosMappingsResource) Create(ctx context.Context, re
 	}
 
 	// Create Payload
-	networkMappings := *openApiClient.NewInlineObject116(mappings)
+	networkMappings := *openApiClient.NewUpdateNetworkSwitchDscpToCosMappingsRequest(mappings)
 
-	_, httpResp, err := r.client.ConfigureApi.UpdateNetworkSwitchDscpToCosMappings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchDscpToCosMappings(networkMappings).Execute()
+	_, httpResp, err := r.client.ConfigureApi.UpdateNetworkSwitchDscpToCosMappings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchDscpToCosMappingsRequest(networkMappings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to create resource",
@@ -238,18 +238,18 @@ func (r *NetworksSwitchDscpToCosMappingsResource) Update(ctx context.Context, re
 		return
 	}
 
-	mappings := []openApiClient.NetworksNetworkIdSwitchDscpToCosMappingsMappings{}
+	mappings := []openApiClient.UpdateNetworkSwitchDscpToCosMappingsRequestMappingsInner{}
 	for _, mapping := range data.Mappings {
-		mappings = append(mappings, openApiClient.NetworksNetworkIdSwitchDscpToCosMappingsMappings{
+		mappings = append(mappings, openApiClient.UpdateNetworkSwitchDscpToCosMappingsRequestMappingsInner{
 			Dscp: int32(mapping.Dscp.ValueInt64()),
 			Cos:  int32(mapping.Cos.ValueInt64()),
 		})
 	}
 
 	// Create Payload
-	networkMappings := *openApiClient.NewInlineObject116(mappings)
+	networkMappings := *openApiClient.NewUpdateNetworkSwitchDscpToCosMappingsRequest(mappings)
 
-	_, httpResp, err := r.client.ConfigureApi.UpdateNetworkSwitchDscpToCosMappings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchDscpToCosMappings(networkMappings).Execute()
+	_, httpResp, err := r.client.ConfigureApi.UpdateNetworkSwitchDscpToCosMappings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchDscpToCosMappingsRequest(networkMappings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to update resource",
@@ -303,18 +303,18 @@ func (r *NetworksSwitchDscpToCosMappingsResource) Delete(ctx context.Context, re
 		return
 	}
 
-	mappings := []openApiClient.NetworksNetworkIdSwitchDscpToCosMappingsMappings{}
+	mappings := []openApiClient.UpdateNetworkSwitchDscpToCosMappingsRequestMappingsInner{}
 	for _, mapping := range data.Mappings {
-		mappings = append(mappings, openApiClient.NetworksNetworkIdSwitchDscpToCosMappingsMappings{
+		mappings = append(mappings, openApiClient.UpdateNetworkSwitchDscpToCosMappingsRequestMappingsInner{
 			Dscp: int32(mapping.Dscp.ValueInt64()),
 			Cos:  int32(mapping.Cos.ValueInt64()),
 		})
 	}
 
 	// Create Payload
-	networkMappings := *openApiClient.NewInlineObject116(mappings)
+	networkMappings := *openApiClient.NewUpdateNetworkSwitchDscpToCosMappingsRequest(mappings)
 
-	_, httpResp, err := r.client.ConfigureApi.UpdateNetworkSwitchDscpToCosMappings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchDscpToCosMappings(networkMappings).Execute()
+	_, httpResp, err := r.client.ConfigureApi.UpdateNetworkSwitchDscpToCosMappings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchDscpToCosMappingsRequest(networkMappings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to delete resource",

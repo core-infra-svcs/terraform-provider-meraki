@@ -206,7 +206,7 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	// Create HTTP request body
-	createOrganizationNetwork := openApiClient.NewInlineObject211(data.Name.ValueString(), nil)
+	createOrganizationNetwork := openApiClient.NewCreateOrganizationNetworkRequest(data.Name.ValueString(), nil)
 	createOrganizationNetwork.SetTimeZone(data.Timezone.ValueString())
 
 	// ProductTypes
@@ -243,7 +243,7 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	// Initialize provider client and make API call
-	_, httpResp, err := r.client.OrganizationsApi.CreateOrganizationNetwork(ctx, data.OrganizationId.ValueString()).CreateOrganizationNetwork(*createOrganizationNetwork).Execute()
+	_, httpResp, err := r.client.OrganizationsApi.CreateOrganizationNetwork(ctx, data.OrganizationId.ValueString()).CreateOrganizationNetworkRequest(*createOrganizationNetwork).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to create resource",
@@ -358,7 +358,7 @@ func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 
 	// Create HTTP request body
-	updateNetwork := openApiClient.NewInlineObject26()
+	updateNetwork := openApiClient.NewUpdateNetworkRequest()
 	updateNetwork.SetName(data.Name.ValueString())
 	updateNetwork.SetTimeZone(data.Timezone.ValueString())
 
@@ -381,7 +381,7 @@ func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest
 
 	// Initialize provider client and make API call
 	_, httpResp, err := r.client.NetworksApi.UpdateNetwork(context.Background(),
-		data.NetworkId.ValueString()).UpdateNetwork(*updateNetwork).Execute()
+		data.NetworkId.ValueString()).UpdateNetworkRequest(*updateNetwork).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to update resource",

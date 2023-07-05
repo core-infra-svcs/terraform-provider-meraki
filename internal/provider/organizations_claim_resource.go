@@ -174,7 +174,7 @@ func (r *OrganizationsClaimResource) Create(ctx context.Context, req resource.Cr
 		return
 	}
 
-	payload := openApiClient.NewInlineObject190()
+	payload := openApiClient.NewClaimIntoOrganizationRequest()
 
 	// orders
 	var orders []string
@@ -189,9 +189,9 @@ func (r *OrganizationsClaimResource) Create(ctx context.Context, req resource.Cr
 	}
 
 	// licenses
-	var licensesPayload []openApiClient.OrganizationsOrganizationIdClaimLicenses
+	var licensesPayload []openApiClient.ClaimIntoOrganizationRequestLicensesInner
 	for _, license := range data.Licences {
-		var licenseMap openApiClient.OrganizationsOrganizationIdClaimLicenses
+		var licenseMap openApiClient.ClaimIntoOrganizationRequestLicensesInner
 		licenseMap.SetKey(license.Key.ValueString())
 		licenseMap.SetMode(license.Mode.ValueString())
 		licensesPayload = append(licensesPayload, licenseMap)
@@ -203,7 +203,7 @@ func (r *OrganizationsClaimResource) Create(ctx context.Context, req resource.Cr
 
 	// Remember to handle any potential errors.
 	_, httpResp, err := r.client.OrganizationsApi.ClaimIntoOrganization(ctx,
-		data.OrganizationId.ValueString()).ClaimIntoOrganization(*payload).Execute()
+		data.OrganizationId.ValueString()).ClaimIntoOrganizationRequest(*payload).Execute()
 
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
@@ -304,7 +304,7 @@ func (r *OrganizationsClaimResource) Delete(ctx context.Context, req resource.De
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-	payload := openApiClient.NewInlineObject190()
+	payload := openApiClient.NewClaimIntoOrganizationRequest()
 
 	// serials
 	var serials []string

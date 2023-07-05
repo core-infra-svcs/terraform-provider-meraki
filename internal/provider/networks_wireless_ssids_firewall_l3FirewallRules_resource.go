@@ -179,12 +179,12 @@ func (r *NetworksWirelessSsidsFirewallL3FirewallRulesResource) Create(ctx contex
 		return
 	}
 
-	updateNetworkWirelessSsidFirewallL3FirewallRules := *openApiClient.NewInlineObject158()
+	updateNetworkWirelessSsidFirewallL3FirewallRules := *openApiClient.NewUpdateNetworkWirelessSsidFirewallL3FirewallRulesRequest()
 	updateNetworkWirelessSsidFirewallL3FirewallRules.SetAllowLanAccess(data.AllowLanAccess.ValueBool())
-	var rules []openApiClient.NetworksNetworkIdWirelessSsidsNumberFirewallL3FirewallRulesRules
+	var rules []openApiClient.UpdateNetworkWirelessSsidFirewallL3FirewallRulesRequestRulesInner
 	if len(data.Rules) > 0 {
 		for _, attribute := range data.Rules {
-			var rule openApiClient.NetworksNetworkIdWirelessSsidsNumberFirewallL3FirewallRulesRules
+			var rule openApiClient.UpdateNetworkWirelessSsidFirewallL3FirewallRulesRequestRulesInner
 			if attribute.Comment != jsontypes.StringValue("Default rule") {
 				if attribute.Comment != jsontypes.StringValue("Wireless clients accessing LAN") {
 					rule.SetComment(attribute.Comment.ValueString())
@@ -199,7 +199,7 @@ func (r *NetworksWirelessSsidsFirewallL3FirewallRulesResource) Create(ctx contex
 	}
 	updateNetworkWirelessSsidFirewallL3FirewallRules.SetRules(rules)
 
-	_, httpResp, err := r.client.FirewallApi.UpdateNetworkWirelessSsidFirewallL3FirewallRules(context.Background(), data.NetworkId.ValueString(), data.Number.ValueString()).UpdateNetworkWirelessSsidFirewallL3FirewallRules(updateNetworkWirelessSsidFirewallL3FirewallRules).Execute()
+	_, httpResp, err := r.client.FirewallApi.UpdateNetworkWirelessSsidFirewallL3FirewallRules(context.Background(), data.NetworkId.ValueString(), data.Number.ValueString()).UpdateNetworkWirelessSsidFirewallL3FirewallRulesRequest(updateNetworkWirelessSsidFirewallL3FirewallRules).Execute()
 
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
@@ -323,12 +323,12 @@ func (r *NetworksWirelessSsidsFirewallL3FirewallRulesResource) Update(ctx contex
 		return
 	}
 
-	updateNetworkWirelessSsidFirewallL3FirewallRules := *openApiClient.NewInlineObject158()
+	updateNetworkWirelessSsidFirewallL3FirewallRules := *openApiClient.NewUpdateNetworkWirelessSsidFirewallL3FirewallRulesRequest()
 	updateNetworkWirelessSsidFirewallL3FirewallRules.SetAllowLanAccess(data.AllowLanAccess.ValueBool())
-	var rules []openApiClient.NetworksNetworkIdWirelessSsidsNumberFirewallL3FirewallRulesRules
+	var rules []openApiClient.UpdateNetworkWirelessSsidFirewallL3FirewallRulesRequestRulesInner
 	if len(data.Rules) > 0 {
 		for _, attribute := range data.Rules {
-			var rule openApiClient.NetworksNetworkIdWirelessSsidsNumberFirewallL3FirewallRulesRules
+			var rule openApiClient.UpdateNetworkWirelessSsidFirewallL3FirewallRulesRequestRulesInner
 			if attribute.Comment != jsontypes.StringValue("Default rule") {
 				if attribute.Comment != jsontypes.StringValue("Wireless clients accessing LAN") {
 					rule.SetComment(attribute.Comment.ValueString())
@@ -343,7 +343,7 @@ func (r *NetworksWirelessSsidsFirewallL3FirewallRulesResource) Update(ctx contex
 	}
 	updateNetworkWirelessSsidFirewallL3FirewallRules.SetRules(rules)
 
-	_, httpResp, err := r.client.FirewallApi.UpdateNetworkWirelessSsidFirewallL3FirewallRules(context.Background(), data.NetworkId.ValueString(), data.Number.ValueString()).UpdateNetworkWirelessSsidFirewallL3FirewallRules(updateNetworkWirelessSsidFirewallL3FirewallRules).Execute()
+	_, httpResp, err := r.client.FirewallApi.UpdateNetworkWirelessSsidFirewallL3FirewallRules(context.Background(), data.NetworkId.ValueString(), data.Number.ValueString()).UpdateNetworkWirelessSsidFirewallL3FirewallRulesRequest(updateNetworkWirelessSsidFirewallL3FirewallRules).Execute()
 
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
@@ -400,10 +400,10 @@ func (r *NetworksWirelessSsidsFirewallL3FirewallRulesResource) Delete(ctx contex
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-	updateNetworkWirelessSsidFirewallL3FirewallRules := *openApiClient.NewInlineObject158()
+	updateNetworkWirelessSsidFirewallL3FirewallRules := *openApiClient.NewUpdateNetworkWirelessSsidFirewallL3FirewallRulesRequest()
 	updateNetworkWirelessSsidFirewallL3FirewallRules.SetRules(nil)
 	updateNetworkWirelessSsidFirewallL3FirewallRules.SetAllowLanAccess(true)
-	_, httpResp, err := r.client.FirewallApi.UpdateNetworkWirelessSsidFirewallL3FirewallRules(context.Background(), data.NetworkId.ValueString(), data.Number.ValueString()).UpdateNetworkWirelessSsidFirewallL3FirewallRules(updateNetworkWirelessSsidFirewallL3FirewallRules).Execute()
+	_, httpResp, err := r.client.FirewallApi.UpdateNetworkWirelessSsidFirewallL3FirewallRules(context.Background(), data.NetworkId.ValueString(), data.Number.ValueString()).UpdateNetworkWirelessSsidFirewallL3FirewallRulesRequest(updateNetworkWirelessSsidFirewallL3FirewallRules).Execute()
 
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {

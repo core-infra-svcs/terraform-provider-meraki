@@ -134,15 +134,15 @@ func (r *NetworksApplianceSettingsResource) Create(ctx context.Context, req reso
 		return
 	}
 
-	updateNetworksApplianceSettings := *openApiClient.NewInlineObject45()
+	updateNetworksApplianceSettings := *openApiClient.NewUpdateNetworkApplianceSettingsRequest()
 	updateNetworksApplianceSettings.SetClientTrackingMethod(data.ClientTrackingMethod.ValueString())
 	updateNetworksApplianceSettings.SetDeploymentMode(data.DeploymentMode.ValueString())
-	var v openApiClient.NetworksNetworkIdApplianceSettingsDynamicDns
+	var v openApiClient.UpdateNetworkApplianceSettingsRequestDynamicDns
 	v.SetEnabled(data.DynamicDnsEnabled.ValueBool())
 	v.SetPrefix(data.DynamicDnsPrefix.ValueString())
 	updateNetworksApplianceSettings.SetDynamicDns(v)
 
-	inlineResp, httpResp, err := r.client.SettingsApi.UpdateNetworkApplianceSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceSettings(updateNetworksApplianceSettings).Execute()
+	inlineResp, httpResp, err := r.client.SettingsApi.UpdateNetworkApplianceSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceSettingsRequest(updateNetworksApplianceSettings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to update resource",
@@ -244,15 +244,15 @@ func (r *NetworksApplianceSettingsResource) Update(ctx context.Context, req reso
 		return
 	}
 
-	updateNetworksApplianceSettings := *openApiClient.NewInlineObject45()
+	updateNetworksApplianceSettings := *openApiClient.NewUpdateNetworkApplianceSettingsRequest()
 	updateNetworksApplianceSettings.SetClientTrackingMethod(data.ClientTrackingMethod.ValueString())
 	updateNetworksApplianceSettings.SetDeploymentMode(data.DeploymentMode.ValueString())
-	var v openApiClient.NetworksNetworkIdApplianceSettingsDynamicDns
+	var v openApiClient.UpdateNetworkApplianceSettingsRequestDynamicDns
 	v.SetEnabled(data.DynamicDnsEnabled.ValueBool())
 	v.SetPrefix(data.DynamicDnsPrefix.ValueString())
 	updateNetworksApplianceSettings.SetDynamicDns(v)
 
-	inlineResp, httpResp, err := r.client.SettingsApi.UpdateNetworkApplianceSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceSettings(updateNetworksApplianceSettings).Execute()
+	inlineResp, httpResp, err := r.client.SettingsApi.UpdateNetworkApplianceSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceSettingsRequest(updateNetworksApplianceSettings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to update resource",
@@ -302,11 +302,11 @@ func (r *NetworksApplianceSettingsResource) Delete(ctx context.Context, req reso
 		return
 	}
 
-	updateNetworksApplianceSettings := *openApiClient.NewInlineObject45()
-	var v openApiClient.NetworksNetworkIdApplianceSettingsDynamicDns
+	updateNetworksApplianceSettings := *openApiClient.NewUpdateNetworkApplianceSettingsRequest()
+	var v openApiClient.UpdateNetworkApplianceSettingsRequestDynamicDns
 	updateNetworksApplianceSettings.SetDynamicDns(v)
 
-	_, httpResp, err := r.client.SettingsApi.UpdateNetworkApplianceSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceSettings(updateNetworksApplianceSettings).Execute()
+	_, httpResp, err := r.client.SettingsApi.UpdateNetworkApplianceSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceSettingsRequest(updateNetworksApplianceSettings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to Delete resource",

@@ -133,11 +133,11 @@ func (r *OrganizationsSamlIdpResource) Create(ctx context.Context, req resource.
 	}
 
 	// Create HTTP request body
-	createOrganizationsSamlIdp := *openApiClient.NewInlineObject218(data.X509CertSha1Fingerprint.ValueString())
+	createOrganizationsSamlIdp := *openApiClient.NewCreateOrganizationSamlIdpRequest(data.X509CertSha1Fingerprint.ValueString())
 	createOrganizationsSamlIdp.SetSloLogoutUrl(data.SloLogoutUrl.ValueString())
 
 	// Initialize provider client and make API call
-	_, httpResp, err := r.client.SamlApi.CreateOrganizationSamlIdp(context.Background(), data.OrganizationId.ValueString()).CreateOrganizationSamlIdp(createOrganizationsSamlIdp).Execute()
+	_, httpResp, err := r.client.SamlApi.CreateOrganizationSamlIdp(context.Background(), data.OrganizationId.ValueString()).CreateOrganizationSamlIdpRequest(createOrganizationsSamlIdp).Execute()
 	//nolint:staticcheck
 	if err != nil {
 		// BUG - HTTP Client is unable to unmarshal data into typed response []client.InlineResponse20095, returns empty
@@ -242,13 +242,13 @@ func (r *OrganizationsSamlIdpResource) Update(ctx context.Context, req resource.
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	// Create HTTP request body
-	updateOrganizationsSamlIdp := openApiClient.NewInlineObject219()
+	updateOrganizationsSamlIdp := openApiClient.NewUpdateOrganizationSamlIdpRequest()
 	updateOrganizationsSamlIdp.SetX509certSha1Fingerprint(data.X509CertSha1Fingerprint.ValueString())
 	updateOrganizationsSamlIdp.SetSloLogoutUrl(data.SloLogoutUrl.ValueString())
 
 	// Initialize provider client and make API call
 	_, httpResp, err := r.client.SamlApi.UpdateOrganizationSamlIdp(context.Background(),
-		data.OrganizationId.ValueString(), data.IdpId.ValueString()).UpdateOrganizationSamlIdp(*updateOrganizationsSamlIdp).Execute()
+		data.OrganizationId.ValueString(), data.IdpId.ValueString()).UpdateOrganizationSamlIdpRequest(*updateOrganizationsSamlIdp).Execute()
 
 	//nolint:staticcheck
 	if err != nil {

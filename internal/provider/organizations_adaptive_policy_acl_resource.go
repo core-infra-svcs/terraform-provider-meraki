@@ -194,10 +194,10 @@ func (r *OrganizationsAdaptivePolicyAclResource) Create(ctx context.Context, req
 	}
 
 	// rules
-	var rules []openApiClient.OrganizationsOrganizationIdAdaptivePolicyAclsRules1
+	var rules []openApiClient.CreateOrganizationAdaptivePolicyAclRequestRulesInner
 	for _, attribute := range data.Rules {
 
-		var rule openApiClient.OrganizationsOrganizationIdAdaptivePolicyAclsRules1
+		var rule openApiClient.CreateOrganizationAdaptivePolicyAclRequestRulesInner
 		rule.Protocol = attribute.Protocol.ValueString()
 		rule.Policy = attribute.Policy.ValueString()
 
@@ -211,10 +211,10 @@ func (r *OrganizationsAdaptivePolicyAclResource) Create(ctx context.Context, req
 	}
 
 	// payload
-	createOrganizationsAdaptivePolicyAcl := *openApiClient.NewInlineObject171(data.Name.ValueString(), rules, data.IpVersion.ValueString())
+	createOrganizationsAdaptivePolicyAcl := *openApiClient.NewCreateOrganizationAdaptivePolicyAclRequest(data.Name.ValueString(), rules, data.IpVersion.ValueString())
 	createOrganizationsAdaptivePolicyAcl.SetDescription(data.Description.ValueString())
 
-	_, httpResp, err := r.client.OrganizationsApi.CreateOrganizationAdaptivePolicyAcl(context.Background(), data.OrgId.ValueString()).CreateOrganizationAdaptivePolicyAcl(createOrganizationsAdaptivePolicyAcl).Execute()
+	_, httpResp, err := r.client.OrganizationsApi.CreateOrganizationAdaptivePolicyAcl(context.Background(), data.OrgId.ValueString()).CreateOrganizationAdaptivePolicyAclRequest(createOrganizationsAdaptivePolicyAcl).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to create resource",
@@ -318,10 +318,10 @@ func (r *OrganizationsAdaptivePolicyAclResource) Update(ctx context.Context, req
 	}
 
 	// rules
-	var rules []openApiClient.OrganizationsOrganizationIdAdaptivePolicyAclsRules1
+	var rules []openApiClient.CreateOrganizationAdaptivePolicyAclRequestRulesInner
 	for _, attribute := range data.Rules {
 
-		var rule openApiClient.OrganizationsOrganizationIdAdaptivePolicyAclsRules1
+		var rule openApiClient.CreateOrganizationAdaptivePolicyAclRequestRulesInner
 		rule.Protocol = attribute.Protocol.ValueString()
 		rule.Policy = attribute.Policy.ValueString()
 
@@ -335,13 +335,13 @@ func (r *OrganizationsAdaptivePolicyAclResource) Update(ctx context.Context, req
 	}
 
 	// payload
-	createOrganizationsAdaptivePolicyAcl := *openApiClient.NewInlineObject172()
+	createOrganizationsAdaptivePolicyAcl := *openApiClient.NewUpdateOrganizationAdaptivePolicyAclRequest()
 	createOrganizationsAdaptivePolicyAcl.SetName(data.Name.ValueString())
 	createOrganizationsAdaptivePolicyAcl.SetDescription(data.Description.ValueString())
 	createOrganizationsAdaptivePolicyAcl.SetRules(rules)
 	createOrganizationsAdaptivePolicyAcl.SetIpVersion(data.IpVersion.ValueString())
 
-	_, httpResp, err := r.client.OrganizationsApi.UpdateOrganizationAdaptivePolicyAcl(context.Background(), data.OrgId.ValueString(), data.AclId.ValueString()).UpdateOrganizationAdaptivePolicyAcl(createOrganizationsAdaptivePolicyAcl).Execute()
+	_, httpResp, err := r.client.OrganizationsApi.UpdateOrganizationAdaptivePolicyAcl(context.Background(), data.OrgId.ValueString(), data.AclId.ValueString()).UpdateOrganizationAdaptivePolicyAclRequest(createOrganizationsAdaptivePolicyAcl).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to update resource",

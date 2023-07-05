@@ -104,11 +104,11 @@ func (r *OrganizationSamlResource) Create(ctx context.Context, req resource.Crea
 	}
 
 	// Create HTTP request body
-	enableOrganizationSaml := *openApiClient.NewInlineObject217()
+	enableOrganizationSaml := *openApiClient.NewUpdateOrganizationSamlRequest()
 	enableOrganizationSaml.SetEnabled(data.Enabled.ValueBool())
 
 	// Initialize provider client and make API call
-	inlineResp, httpResp, err := r.client.SamlApi.UpdateOrganizationSaml(context.Background(), data.OrganizationId.ValueString()).UpdateOrganizationSaml(enableOrganizationSaml).Execute()
+	inlineResp, httpResp, err := r.client.SamlApi.UpdateOrganizationSaml(context.Background(), data.OrganizationId.ValueString()).UpdateOrganizationSamlRequest(enableOrganizationSaml).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to create resource",
@@ -198,11 +198,11 @@ func (r *OrganizationSamlResource) Update(ctx context.Context, req resource.Upda
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	// Create HTTP request body
-	enableOrganizationSaml := *openApiClient.NewInlineObject217()
+	enableOrganizationSaml := *openApiClient.NewUpdateOrganizationSamlRequest()
 	enableOrganizationSaml.SetEnabled(data.Enabled.ValueBool())
 
 	// Initialize provider client and make API call
-	inlineResp, httpResp, err := r.client.SamlApi.UpdateOrganizationSaml(context.Background(), data.OrganizationId.ValueString()).UpdateOrganizationSaml(enableOrganizationSaml).Execute()
+	inlineResp, httpResp, err := r.client.SamlApi.UpdateOrganizationSaml(context.Background(), data.OrganizationId.ValueString()).UpdateOrganizationSamlRequest(enableOrganizationSaml).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to update resource",

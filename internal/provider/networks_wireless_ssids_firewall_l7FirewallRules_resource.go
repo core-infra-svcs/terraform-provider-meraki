@@ -164,11 +164,11 @@ func (r *NetworksWirelessSsidsFirewallL7FirewallRulesResource) Create(ctx contex
 		return
 	}
 
-	updateNetworkWirelessSsidFirewallL7FirewallRules := *openApiClient.NewInlineObject159()
-	var rules []openApiClient.NetworksNetworkIdWirelessSsidsNumberFirewallL7FirewallRulesRules
+	updateNetworkWirelessSsidFirewallL7FirewallRules := *openApiClient.NewUpdateNetworkWirelessSsidFirewallL7FirewallRulesRequest()
+	var rules []openApiClient.UpdateNetworkWirelessSsidFirewallL7FirewallRulesRequestRulesInner
 	if len(data.Rules) > 0 {
 		for _, attribute := range data.Rules {
-			var rule openApiClient.NetworksNetworkIdWirelessSsidsNumberFirewallL7FirewallRulesRules
+			var rule openApiClient.UpdateNetworkWirelessSsidFirewallL7FirewallRulesRequestRulesInner
 			rule.SetPolicy(attribute.Policy.ValueString())
 			rule.SetType(attribute.Type.ValueString())
 			rule.SetValue(attribute.Value.ValueString())
@@ -177,7 +177,7 @@ func (r *NetworksWirelessSsidsFirewallL7FirewallRulesResource) Create(ctx contex
 	}
 	updateNetworkWirelessSsidFirewallL7FirewallRules.SetRules(rules)
 
-	_, httpResp, err := r.client.FirewallApi.UpdateNetworkWirelessSsidFirewallL7FirewallRules(context.Background(), data.NetworkId.ValueString(), data.Number.ValueString()).UpdateNetworkWirelessSsidFirewallL7FirewallRules(updateNetworkWirelessSsidFirewallL7FirewallRules).Execute()
+	_, httpResp, err := r.client.FirewallApi.UpdateNetworkWirelessSsidFirewallL7FirewallRules(context.Background(), data.NetworkId.ValueString(), data.Number.ValueString()).UpdateNetworkWirelessSsidFirewallL7FirewallRulesRequest(updateNetworkWirelessSsidFirewallL7FirewallRules).Execute()
 
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
@@ -301,11 +301,11 @@ func (r *NetworksWirelessSsidsFirewallL7FirewallRulesResource) Update(ctx contex
 		return
 	}
 
-	updateNetworkWirelessSsidFirewallL7FirewallRules := *openApiClient.NewInlineObject159()
-	var rules []openApiClient.NetworksNetworkIdWirelessSsidsNumberFirewallL7FirewallRulesRules
+	updateNetworkWirelessSsidFirewallL7FirewallRules := *openApiClient.NewUpdateNetworkWirelessSsidFirewallL7FirewallRulesRequest()
+	var rules []openApiClient.UpdateNetworkWirelessSsidFirewallL7FirewallRulesRequestRulesInner
 	if len(data.Rules) > 0 {
 		for _, attribute := range data.Rules {
-			var rule openApiClient.NetworksNetworkIdWirelessSsidsNumberFirewallL7FirewallRulesRules
+			var rule openApiClient.UpdateNetworkWirelessSsidFirewallL7FirewallRulesRequestRulesInner
 			rule.SetPolicy(attribute.Policy.ValueString())
 			rule.SetType(attribute.Type.ValueString())
 			rule.SetValue(attribute.Value.ValueString())
@@ -314,7 +314,7 @@ func (r *NetworksWirelessSsidsFirewallL7FirewallRulesResource) Update(ctx contex
 	}
 	updateNetworkWirelessSsidFirewallL7FirewallRules.SetRules(rules)
 
-	_, httpResp, err := r.client.FirewallApi.UpdateNetworkWirelessSsidFirewallL7FirewallRules(context.Background(), data.NetworkId.ValueString(), data.Number.ValueString()).UpdateNetworkWirelessSsidFirewallL7FirewallRules(updateNetworkWirelessSsidFirewallL7FirewallRules).Execute()
+	_, httpResp, err := r.client.FirewallApi.UpdateNetworkWirelessSsidFirewallL7FirewallRules(context.Background(), data.NetworkId.ValueString(), data.Number.ValueString()).UpdateNetworkWirelessSsidFirewallL7FirewallRulesRequest(updateNetworkWirelessSsidFirewallL7FirewallRules).Execute()
 
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
@@ -376,11 +376,11 @@ func (r *NetworksWirelessSsidsFirewallL7FirewallRulesResource) Delete(ctx contex
 		return
 	}
 
-	updateNetworkWirelessSsidFirewallL7FirewallRules := *openApiClient.NewInlineObject159()
-	var rules []openApiClient.NetworksNetworkIdWirelessSsidsNumberFirewallL7FirewallRulesRules
+	updateNetworkWirelessSsidFirewallL7FirewallRules := *openApiClient.NewUpdateNetworkWirelessSsidFirewallL7FirewallRulesRequest()
+	var rules []openApiClient.UpdateNetworkWirelessSsidFirewallL7FirewallRulesRequestRulesInner
 	if len(data.Rules) > 0 {
 		for _, attribute := range data.Rules {
-			var rule openApiClient.NetworksNetworkIdWirelessSsidsNumberFirewallL7FirewallRulesRules
+			var rule openApiClient.UpdateNetworkWirelessSsidFirewallL7FirewallRulesRequestRulesInner
 			rule.SetPolicy(attribute.Policy.ValueString())
 			rule.SetType(attribute.Type.ValueString())
 			rule.SetValue(attribute.Value.ValueString())
@@ -389,7 +389,7 @@ func (r *NetworksWirelessSsidsFirewallL7FirewallRulesResource) Delete(ctx contex
 	}
 	updateNetworkWirelessSsidFirewallL7FirewallRules.SetRules(rules)
 
-	_, httpResp, err := r.client.FirewallApi.UpdateNetworkWirelessSsidFirewallL7FirewallRules(context.Background(), data.NetworkId.ValueString(), data.Number.ValueString()).UpdateNetworkWirelessSsidFirewallL7FirewallRules(updateNetworkWirelessSsidFirewallL7FirewallRules).Execute()
+	_, httpResp, err := r.client.FirewallApi.UpdateNetworkWirelessSsidFirewallL7FirewallRules(context.Background(), data.NetworkId.ValueString(), data.Number.ValueString()).UpdateNetworkWirelessSsidFirewallL7FirewallRulesRequest(updateNetworkWirelessSsidFirewallL7FirewallRules).Execute()
 
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {

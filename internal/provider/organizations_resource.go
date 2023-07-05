@@ -149,21 +149,21 @@ func (r *OrganizationResource) Create(ctx context.Context, req resource.CreateRe
 	}
 
 	// Create HTTP request body
-	createOrganization := *openApiClient.NewInlineObject167(data.Name.ValueString())
+	createOrganization := *openApiClient.NewCreateOrganizationRequest(data.Name.ValueString())
 
 	// Set management details
 	var name = data.ManagementDetailsName.ValueString()
 	var value = data.ManagementDetailsValue.ValueString()
-	detail := openApiClient.OrganizationsManagementDetails{
+	detail := openApiClient.GetOrganizations200ResponseInnerManagementDetailsInner{
 		Name:  &name,
 		Value: &value,
 	}
-	details := []openApiClient.OrganizationsManagementDetails{detail}
-	organizationsManagement := openApiClient.OrganizationsManagement{Details: details}
+	details := []openApiClient.GetOrganizations200ResponseInnerManagementDetailsInner{detail}
+	organizationsManagement := openApiClient.GetOrganizations200ResponseInnerManagement{Details: details}
 	createOrganization.SetManagement(organizationsManagement)
 
 	// Initialize provider client and make API call
-	inlineResp, httpResp, err := r.client.OrganizationsApi.CreateOrganization(context.Background()).CreateOrganization(createOrganization).Execute()
+	inlineResp, httpResp, err := r.client.OrganizationsApi.CreateOrganization(context.Background()).CreateOrganizationRequest(createOrganization).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to create resource",
@@ -308,28 +308,28 @@ func (r *OrganizationResource) Update(ctx context.Context, req resource.UpdateRe
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	// Create HTTP request body
-	updateOrganization := openApiClient.NewInlineObject168()
+	updateOrganization := openApiClient.NewUpdateOrganizationRequest()
 	updateOrganization.SetName(data.Name.ValueString())
 
 	// Set enabled attribute
 	var enabled = data.ApiEnabled.ValueBool()
-	Api := openApiClient.OrganizationsOrganizationIdApi{Enabled: &enabled}
+	Api := openApiClient.UpdateOrganizationRequestApi{Enabled: &enabled}
 	updateOrganization.SetApi(Api)
 
 	// Set management details
 	var name = data.ManagementDetailsName.ValueString()
 	var value = data.ManagementDetailsValue.ValueString()
-	detail := openApiClient.OrganizationsManagementDetails{
+	detail := openApiClient.GetOrganizations200ResponseInnerManagementDetailsInner{
 		Name:  &name,
 		Value: &value,
 	}
-	details := []openApiClient.OrganizationsManagementDetails{detail}
-	organizationsManagement := openApiClient.OrganizationsManagement{Details: details}
+	details := []openApiClient.GetOrganizations200ResponseInnerManagementDetailsInner{detail}
+	organizationsManagement := openApiClient.GetOrganizations200ResponseInnerManagement{Details: details}
 	updateOrganization.SetManagement(organizationsManagement)
 
 	// Initialize provider client and make API call
 	inlineResp, httpResp, err := r.client.OrganizationsApi.UpdateOrganization(context.Background(),
-		data.OrgId.ValueString()).UpdateOrganization(*updateOrganization).Execute()
+		data.OrgId.ValueString()).UpdateOrganizationRequest(*updateOrganization).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to update resource",

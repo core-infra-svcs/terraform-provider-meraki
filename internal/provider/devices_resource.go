@@ -274,7 +274,7 @@ func (r *DevicesResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	// Create HTTP request body
-	updateDevice := openApiClient.NewInlineObject()
+	updateDevice := openApiClient.NewUpdateDeviceRequest()
 
 	updateDevice.SetName(data.Name.ValueString())
 	updateDevice.SetAddress(data.Address.ValueString())
@@ -306,7 +306,7 @@ func (r *DevicesResource) Create(ctx context.Context, req resource.CreateRequest
 
 	// Initialize provider client and make API call
 	_, httpResp, err := r.client.DevicesApi.UpdateDevice(context.Background(),
-		data.Serial.ValueString()).UpdateDevice(*updateDevice).Execute()
+		data.Serial.ValueString()).UpdateDeviceRequest(*updateDevice).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to update resource",
@@ -472,7 +472,7 @@ func (r *DevicesResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 
 	// Create HTTP request body
-	updateDevice := openApiClient.NewInlineObject()
+	updateDevice := openApiClient.NewUpdateDeviceRequest()
 
 	updateDevice.SetName(data.Name.ValueString())
 	updateDevice.SetAddress(data.Address.ValueString())
@@ -504,7 +504,7 @@ func (r *DevicesResource) Update(ctx context.Context, req resource.UpdateRequest
 
 	// Initialize provider client and make API call
 	_, httpResp, err := r.client.DevicesApi.UpdateDevice(context.Background(),
-		data.Serial.ValueString()).UpdateDevice(*updateDevice).Execute()
+		data.Serial.ValueString()).UpdateDeviceRequest(*updateDevice).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to update resource",
@@ -587,7 +587,7 @@ func (r *DevicesResource) Delete(ctx context.Context, req resource.DeleteRequest
 	}
 
 	// Create HTTP request body
-	updateDevice := openApiClient.NewInlineObject()
+	updateDevice := openApiClient.NewUpdateDeviceRequest()
 
 	updateDevice.SetName(data.Name.ValueString())
 	updateDevice.SetAddress(data.Address.ValueString())
@@ -619,7 +619,7 @@ func (r *DevicesResource) Delete(ctx context.Context, req resource.DeleteRequest
 
 	// Initialize provider client and make API call
 	_, httpResp, err := r.client.DevicesApi.UpdateDevice(context.Background(),
-		data.Serial.ValueString()).UpdateDevice(*updateDevice).Execute()
+		data.Serial.ValueString()).UpdateDeviceRequest(*updateDevice).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to update resource",

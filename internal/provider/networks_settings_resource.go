@@ -204,21 +204,21 @@ func (r *NetworksSettingsResource) Create(ctx context.Context, req resource.Crea
 		return
 	}
 
-	updateNetworkSettings := *openApiClient.NewInlineObject98()
+	updateNetworkSettings := *openApiClient.NewUpdateNetworkSettingsRequest()
 	updateNetworkSettings.SetLocalStatusPageEnabled(data.LocalStatusPageEnabled.ValueBool())
 	updateNetworkSettings.SetRemoteStatusPageEnabled(data.RemoteStatusPageEnabled.ValueBool())
-	var v openApiClient.InlineResponse20041SecurePort
+	var v openApiClient.GetNetworkSettings200ResponseSecurePort
 
 	v.SetEnabled(data.SecurePortEnabled.Enabled)
 	updateNetworkSettings.SetSecurePort(v)
-	var l openApiClient.NetworksNetworkIdSettingsLocalStatusPage
-	var a openApiClient.NetworksNetworkIdSettingsLocalStatusPageAuthentication
+	var l openApiClient.UpdateNetworkSettingsRequestLocalStatusPage
+	var a openApiClient.UpdateNetworkSettingsRequestLocalStatusPageAuthentication
 	a.SetEnabled(data.LocalStatusPage.Authentication.Enabled)
 	a.SetPassword(data.LocalStatusPage.Authentication.Username)
 	l.SetAuthentication(a)
 	updateNetworkSettings.SetLocalStatusPage(l)
 
-	inlineResp, httpResp, err := r.client.NetworksApi.UpdateNetworkSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSettings(updateNetworkSettings).Execute()
+	inlineResp, httpResp, err := r.client.NetworksApi.UpdateNetworkSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSettingsRequest(updateNetworkSettings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to update resource",
@@ -364,20 +364,20 @@ func (r *NetworksSettingsResource) Update(ctx context.Context, req resource.Upda
 		return
 	}
 
-	updateNetworkSettings := *openApiClient.NewInlineObject98()
+	updateNetworkSettings := *openApiClient.NewUpdateNetworkSettingsRequest()
 	updateNetworkSettings.SetLocalStatusPageEnabled(data.LocalStatusPageEnabled.ValueBool())
 	updateNetworkSettings.SetRemoteStatusPageEnabled(data.RemoteStatusPageEnabled.ValueBool())
-	var v openApiClient.InlineResponse20041SecurePort
+	var v openApiClient.GetNetworkSettings200ResponseSecurePort
 	v.SetEnabled(data.SecurePortEnabled.Enabled)
 	updateNetworkSettings.SetSecurePort(v)
-	var l openApiClient.NetworksNetworkIdSettingsLocalStatusPage
-	var a openApiClient.NetworksNetworkIdSettingsLocalStatusPageAuthentication
+	var l openApiClient.UpdateNetworkSettingsRequestLocalStatusPage
+	var a openApiClient.UpdateNetworkSettingsRequestLocalStatusPageAuthentication
 	a.SetEnabled(data.LocalStatusPage.Authentication.Enabled)
 	a.SetPassword(data.LocalStatusPage.Authentication.Username)
 	l.SetAuthentication(a)
 	updateNetworkSettings.SetLocalStatusPage(l)
 
-	inlineResp, httpResp, err := r.client.NetworksApi.UpdateNetworkSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSettings(updateNetworkSettings).Execute()
+	inlineResp, httpResp, err := r.client.NetworksApi.UpdateNetworkSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSettingsRequest(updateNetworkSettings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to update resource",
@@ -451,20 +451,20 @@ func (r *NetworksSettingsResource) Delete(ctx context.Context, req resource.Dele
 		return
 	}
 
-	updateNetworkSettings := *openApiClient.NewInlineObject98()
+	updateNetworkSettings := *openApiClient.NewUpdateNetworkSettingsRequest()
 	updateNetworkSettings.SetLocalStatusPageEnabled(data.LocalStatusPageEnabled.ValueBool())
 	updateNetworkSettings.SetRemoteStatusPageEnabled(data.RemoteStatusPageEnabled.ValueBool())
-	var v openApiClient.InlineResponse20041SecurePort
+	var v openApiClient.GetNetworkSettings200ResponseSecurePort
 	v.SetEnabled(data.SecurePortEnabled.Enabled)
 	updateNetworkSettings.SetSecurePort(v)
-	var l openApiClient.NetworksNetworkIdSettingsLocalStatusPage
-	var a openApiClient.NetworksNetworkIdSettingsLocalStatusPageAuthentication
+	var l openApiClient.UpdateNetworkSettingsRequestLocalStatusPage
+	var a openApiClient.UpdateNetworkSettingsRequestLocalStatusPageAuthentication
 	a.SetEnabled(data.LocalStatusPage.Authentication.Enabled)
 	a.SetPassword(data.LocalStatusPage.Authentication.Username)
 	l.SetAuthentication(a)
 	updateNetworkSettings.SetLocalStatusPage(l)
 
-	inlineResp, httpResp, err := r.client.NetworksApi.UpdateNetworkSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSettings(updateNetworkSettings).Execute()
+	inlineResp, httpResp, err := r.client.NetworksApi.UpdateNetworkSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSettingsRequest(updateNetworkSettings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to update resource",

@@ -134,13 +134,13 @@ func (r *NetworksSyslogServersResource) Create(ctx context.Context, req resource
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	var servers []openApiClient.NetworksNetworkIdSyslogServersServers
+	var servers []openApiClient.UpdateNetworkSyslogServersRequestServersInner
 
 	// Servers
 	if len(data.Servers) > 0 {
 
 		for _, attribute := range data.Servers {
-			var server openApiClient.NetworksNetworkIdSyslogServersServers
+			var server openApiClient.UpdateNetworkSyslogServersRequestServersInner
 			server.SetHost(attribute.Host.ValueString())
 
 			parsedStr, err := strconv.ParseInt(attribute.Port.ValueString(), 10, 32)
@@ -163,9 +163,9 @@ func (r *NetworksSyslogServersResource) Create(ctx context.Context, req resource
 
 	}
 
-	updateSyslogServers := *openApiClient.NewInlineObject140(servers)
+	updateSyslogServers := *openApiClient.NewUpdateNetworkSyslogServersRequest(servers)
 
-	_, httpResp, err := r.client.SyslogServersApi.UpdateNetworkSyslogServers(ctx, data.NetworkId.ValueString()).UpdateNetworkSyslogServers(updateSyslogServers).Execute()
+	_, httpResp, err := r.client.SyslogServersApi.UpdateNetworkSyslogServers(ctx, data.NetworkId.ValueString()).UpdateNetworkSyslogServersRequest(updateSyslogServers).Execute()
 	if err != nil && !strings.HasPrefix(err.Error(), "json:") {
 		resp.Diagnostics.AddError(
 			"Failed to Create resource",
@@ -272,13 +272,13 @@ func (r *NetworksSyslogServersResource) Update(ctx context.Context, req resource
 		return
 	}
 
-	var servers []openApiClient.NetworksNetworkIdSyslogServersServers
+	var servers []openApiClient.UpdateNetworkSyslogServersRequestServersInner
 
 	// Servers
 	if len(data.Servers) > 0 {
 
 		for _, attribute := range data.Servers {
-			var server openApiClient.NetworksNetworkIdSyslogServersServers
+			var server openApiClient.UpdateNetworkSyslogServersRequestServersInner
 			server.SetHost(attribute.Host.ValueString())
 
 			parsedStr, err := strconv.ParseInt(attribute.Port.ValueString(), 10, 32)
@@ -301,9 +301,9 @@ func (r *NetworksSyslogServersResource) Update(ctx context.Context, req resource
 
 	}
 
-	updateSyslogServers := *openApiClient.NewInlineObject140(servers)
+	updateSyslogServers := *openApiClient.NewUpdateNetworkSyslogServersRequest(servers)
 
-	_, httpResp, err := r.client.SyslogServersApi.UpdateNetworkSyslogServers(ctx, data.NetworkId.ValueString()).UpdateNetworkSyslogServers(updateSyslogServers).Execute()
+	_, httpResp, err := r.client.SyslogServersApi.UpdateNetworkSyslogServers(ctx, data.NetworkId.ValueString()).UpdateNetworkSyslogServersRequest(updateSyslogServers).Execute()
 	if err != nil && !strings.HasPrefix(err.Error(), "json:") {
 		resp.Diagnostics.AddError(
 			"Failed to Update resource",
@@ -355,9 +355,9 @@ func (r *NetworksSyslogServersResource) Delete(ctx context.Context, req resource
 		return
 	}
 
-	updateSyslogServers := *openApiClient.NewInlineObject140(nil)
+	updateSyslogServers := *openApiClient.NewUpdateNetworkSyslogServersRequest(nil)
 
-	_, httpResp, err := r.client.SyslogServersApi.UpdateNetworkSyslogServers(ctx, data.NetworkId.ValueString()).UpdateNetworkSyslogServers(updateSyslogServers).Execute()
+	_, httpResp, err := r.client.SyslogServersApi.UpdateNetworkSyslogServers(ctx, data.NetworkId.ValueString()).UpdateNetworkSyslogServersRequest(updateSyslogServers).Execute()
 	if err != nil && !strings.HasPrefix(err.Error(), "json:") {
 		resp.Diagnostics.AddError(
 			"Failed to delete resource",

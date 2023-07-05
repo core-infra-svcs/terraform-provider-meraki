@@ -130,12 +130,12 @@ func (r *NetworksApplianceFirewallL7FirewallRulesResource) Create(ctx context.Co
 		return
 	}
 
-	updateNetworkApplianceFirewallL7FirewallRules := *openApiClient.NewInlineObject35()
-	var rules []openApiClient.NetworksNetworkIdApplianceFirewallL7FirewallRulesRules
+	updateNetworkApplianceFirewallL7FirewallRules := *openApiClient.NewUpdateNetworkApplianceFirewallL7FirewallRulesRequest()
+	var rules []openApiClient.UpdateNetworkApplianceFirewallL7FirewallRulesRequestRulesInner
 
 	if len(data.Rules) > 0 {
 		for _, attribute := range data.Rules {
-			var rule openApiClient.NetworksNetworkIdApplianceFirewallL7FirewallRulesRules
+			var rule openApiClient.UpdateNetworkApplianceFirewallL7FirewallRulesRequestRulesInner
 			rule.SetPolicy(attribute.Policy.ValueString())
 			rule.SetType(attribute.Type.ValueString())
 			rule.SetValue(attribute.Value.ValueString())
@@ -145,7 +145,7 @@ func (r *NetworksApplianceFirewallL7FirewallRulesResource) Create(ctx context.Co
 
 	updateNetworkApplianceFirewallL7FirewallRules.SetRules(rules)
 
-	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceFirewallL7FirewallRules(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceFirewallL7FirewallRules(updateNetworkApplianceFirewallL7FirewallRules).Execute()
+	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceFirewallL7FirewallRules(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceFirewallL7FirewallRulesRequest(updateNetworkApplianceFirewallL7FirewallRules).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to create resource",
@@ -253,12 +253,12 @@ func (r *NetworksApplianceFirewallL7FirewallRulesResource) Update(ctx context.Co
 		return
 	}
 
-	updateNetworkApplianceFirewallL7FirewallRules := *openApiClient.NewInlineObject35()
-	var rules []openApiClient.NetworksNetworkIdApplianceFirewallL7FirewallRulesRules
+	updateNetworkApplianceFirewallL7FirewallRules := *openApiClient.NewUpdateNetworkApplianceFirewallL7FirewallRulesRequest()
+	var rules []openApiClient.UpdateNetworkApplianceFirewallL7FirewallRulesRequestRulesInner
 
 	if len(data.Rules) > 0 {
 		for _, attribute := range data.Rules {
-			var rule openApiClient.NetworksNetworkIdApplianceFirewallL7FirewallRulesRules
+			var rule openApiClient.UpdateNetworkApplianceFirewallL7FirewallRulesRequestRulesInner
 			rule.SetPolicy(attribute.Policy.ValueString())
 			rule.SetType(attribute.Type.ValueString())
 			rule.SetValue(attribute.Value.ValueString())
@@ -268,7 +268,7 @@ func (r *NetworksApplianceFirewallL7FirewallRulesResource) Update(ctx context.Co
 
 	updateNetworkApplianceFirewallL7FirewallRules.SetRules(rules)
 
-	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceFirewallL7FirewallRules(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceFirewallL7FirewallRules(updateNetworkApplianceFirewallL7FirewallRules).Execute()
+	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceFirewallL7FirewallRules(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceFirewallL7FirewallRulesRequest(updateNetworkApplianceFirewallL7FirewallRules).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to update resource",
@@ -322,11 +322,11 @@ func (r *NetworksApplianceFirewallL7FirewallRulesResource) Delete(ctx context.Co
 		return
 	}
 
-	rules := []openApiClient.NetworksNetworkIdApplianceFirewallL7FirewallRulesRules{}
-	updateNetworkApplianceFirewallL7FirewallRules := *openApiClient.NewInlineObject35()
+	rules := []openApiClient.UpdateNetworkApplianceFirewallL7FirewallRulesRequestRulesInner{}
+	updateNetworkApplianceFirewallL7FirewallRules := *openApiClient.NewUpdateNetworkApplianceFirewallL7FirewallRulesRequest()
 	updateNetworkApplianceFirewallL7FirewallRules.SetRules(rules)
 
-	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceFirewallL7FirewallRules(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceFirewallL7FirewallRules(updateNetworkApplianceFirewallL7FirewallRules).Execute()
+	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceFirewallL7FirewallRules(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceFirewallL7FirewallRulesRequest(updateNetworkApplianceFirewallL7FirewallRules).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to delete resource",

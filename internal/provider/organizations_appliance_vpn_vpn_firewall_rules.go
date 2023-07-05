@@ -164,12 +164,12 @@ func (r *OrganizationsApplianceVpnVpnFirewallRulesResource) Create(ctx context.C
 		return
 	}
 
-	organizationsApplianceVpnVpnFirewallRules := *openApiClient.NewInlineObject184()
-	var rules []openApiClient.OrganizationsOrganizationIdApplianceVpnVpnFirewallRulesRules
+	organizationsApplianceVpnVpnFirewallRules := *openApiClient.NewUpdateOrganizationApplianceVpnVpnFirewallRulesRequest()
+	var rules []openApiClient.UpdateOrganizationApplianceVpnVpnFirewallRulesRequestRulesInner
 
 	if len(data.Rules) > 0 {
 		for _, attribute := range data.Rules {
-			var rule openApiClient.OrganizationsOrganizationIdApplianceVpnVpnFirewallRulesRules
+			var rule openApiClient.UpdateOrganizationApplianceVpnVpnFirewallRulesRequestRulesInner
 			if attribute.Comment != jsontypes.StringValue("Default rule") {
 				rule.SetComment(attribute.Comment.ValueString())
 				rule.SetDestCidr(attribute.DestCidr.ValueString())
@@ -186,7 +186,7 @@ func (r *OrganizationsApplianceVpnVpnFirewallRulesResource) Create(ctx context.C
 
 	organizationsApplianceVpnVpnFirewallRules.SetRules(rules)
 
-	_, httpResp, err := r.client.ApplianceApi.UpdateOrganizationApplianceVpnVpnFirewallRules(context.Background(), data.OrganizationId.ValueString()).UpdateOrganizationApplianceVpnVpnFirewallRules(organizationsApplianceVpnVpnFirewallRules).Execute()
+	_, httpResp, err := r.client.ApplianceApi.UpdateOrganizationApplianceVpnVpnFirewallRules(context.Background(), data.OrganizationId.ValueString()).UpdateOrganizationApplianceVpnVpnFirewallRulesRequest(organizationsApplianceVpnVpnFirewallRules).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to create resource",
@@ -294,12 +294,12 @@ func (r *OrganizationsApplianceVpnVpnFirewallRulesResource) Update(ctx context.C
 		return
 	}
 
-	organizationsApplianceVpnVpnFirewallRules := *openApiClient.NewInlineObject184()
-	var rules []openApiClient.OrganizationsOrganizationIdApplianceVpnVpnFirewallRulesRules
+	organizationsApplianceVpnVpnFirewallRules := *openApiClient.NewUpdateOrganizationApplianceVpnVpnFirewallRulesRequest()
+	var rules []openApiClient.UpdateOrganizationApplianceVpnVpnFirewallRulesRequestRulesInner
 
 	if len(data.Rules) > 0 {
 		for _, attribute := range data.Rules {
-			var rule openApiClient.OrganizationsOrganizationIdApplianceVpnVpnFirewallRulesRules
+			var rule openApiClient.UpdateOrganizationApplianceVpnVpnFirewallRulesRequestRulesInner
 			if attribute.Comment != jsontypes.StringValue("Default rule") {
 				rule.SetComment(attribute.Comment.ValueString())
 				rule.SetDestCidr(attribute.DestCidr.ValueString())
@@ -316,7 +316,7 @@ func (r *OrganizationsApplianceVpnVpnFirewallRulesResource) Update(ctx context.C
 
 	organizationsApplianceVpnVpnFirewallRules.SetRules(rules)
 
-	_, httpResp, err := r.client.ApplianceApi.UpdateOrganizationApplianceVpnVpnFirewallRules(context.Background(), data.OrganizationId.ValueString()).UpdateOrganizationApplianceVpnVpnFirewallRules(organizationsApplianceVpnVpnFirewallRules).Execute()
+	_, httpResp, err := r.client.ApplianceApi.UpdateOrganizationApplianceVpnVpnFirewallRules(context.Background(), data.OrganizationId.ValueString()).UpdateOrganizationApplianceVpnVpnFirewallRulesRequest(organizationsApplianceVpnVpnFirewallRules).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to update resource",
@@ -370,12 +370,12 @@ func (r *OrganizationsApplianceVpnVpnFirewallRulesResource) Delete(ctx context.C
 		return
 	}
 
-	organizationsApplianceVpnVpnFirewallRules := *openApiClient.NewInlineObject184()
-	rules := []openApiClient.OrganizationsOrganizationIdApplianceVpnVpnFirewallRulesRules{}
+	organizationsApplianceVpnVpnFirewallRules := *openApiClient.NewUpdateOrganizationApplianceVpnVpnFirewallRulesRequest()
+	rules := []openApiClient.UpdateOrganizationApplianceVpnVpnFirewallRulesRequestRulesInner{}
 	organizationsApplianceVpnVpnFirewallRules.SetRules(rules)
 	organizationsApplianceVpnVpnFirewallRules.SetSyslogDefaultRule(false)
 
-	_, httpResp, err := r.client.ApplianceApi.UpdateOrganizationApplianceVpnVpnFirewallRules(context.Background(), data.OrganizationId.ValueString()).UpdateOrganizationApplianceVpnVpnFirewallRules(organizationsApplianceVpnVpnFirewallRules).Execute()
+	_, httpResp, err := r.client.ApplianceApi.UpdateOrganizationApplianceVpnVpnFirewallRules(context.Background(), data.OrganizationId.ValueString()).UpdateOrganizationApplianceVpnVpnFirewallRulesRequest(organizationsApplianceVpnVpnFirewallRules).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to delete resource",

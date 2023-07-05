@@ -231,16 +231,16 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 	}
 
 	// Creating and Validating Payload for Creating Administrator
-	createOrganizationAdmin := *openApiClient.NewInlineObject178(
+	createOrganizationAdmin := *openApiClient.NewCreateOrganizationAdminRequest(
 		data.Email.ValueString(),
 		data.Name.ValueString(),
 		data.OrgAccess.ValueString())
 
 	// Tags
 	if len(data.Tags) > 0 {
-		var tags []openApiClient.OrganizationsOrganizationIdAdminsTags
+		var tags []openApiClient.CreateOrganizationAdminRequestTagsInner
 		for _, attribute := range data.Tags {
-			var tag openApiClient.OrganizationsOrganizationIdAdminsTags
+			var tag openApiClient.CreateOrganizationAdminRequestTagsInner
 			tag.Tag = attribute.Tag.ValueString()
 			tag.Access = attribute.Access.ValueString()
 			tags = append(tags, tag)
@@ -250,9 +250,9 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 
 	// Networks
 	if len(data.Networks) > 0 {
-		var networks []openApiClient.OrganizationsOrganizationIdAdminsNetworks
+		var networks []openApiClient.CreateOrganizationAdminRequestNetworksInner
 		for _, attribute := range data.Networks {
-			var network openApiClient.OrganizationsOrganizationIdAdminsNetworks
+			var network openApiClient.CreateOrganizationAdminRequestNetworksInner
 			network.Id = attribute.Id.ValueString()
 			network.Access = attribute.Access.ValueString()
 			networks = append(networks, network)
@@ -264,7 +264,7 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 		createOrganizationAdmin.SetAuthenticationMethod(data.AuthenticationMethod.ValueString())
 	}
 
-	_, httpResp, err := r.client.AdminsApi.CreateOrganizationAdmin(context.Background(), data.OrgId.ValueString()).CreateOrganizationAdmin(createOrganizationAdmin).Execute()
+	_, httpResp, err := r.client.AdminsApi.CreateOrganizationAdmin(context.Background(), data.OrgId.ValueString()).CreateOrganizationAdminRequest(createOrganizationAdmin).Execute()
 	// collect diagnostics
 	if httpResp != nil {
 		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
@@ -379,15 +379,15 @@ func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.Up
 	}
 
 	// Creating and Validating Payload for Creating Administrator
-	updateOrganizationAdmin := *openApiClient.NewInlineObject179()
+	updateOrganizationAdmin := *openApiClient.NewUpdateOrganizationAdminRequest()
 	updateOrganizationAdmin.SetName(data.Name.ValueString())
 	updateOrganizationAdmin.SetOrgAccess(data.OrgAccess.ValueString())
 
 	// Tags
 	if len(data.Tags) > 0 {
-		var tags []openApiClient.OrganizationsOrganizationIdAdminsTags
+		var tags []openApiClient.CreateOrganizationAdminRequestTagsInner
 		for _, attribute := range data.Tags {
-			var tag openApiClient.OrganizationsOrganizationIdAdminsTags
+			var tag openApiClient.CreateOrganizationAdminRequestTagsInner
 			tag.Tag = attribute.Tag.ValueString()
 			tag.Access = attribute.Access.ValueString()
 			tags = append(tags, tag)
@@ -397,9 +397,9 @@ func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.Up
 
 	// Networks
 	if len(data.Networks) > 0 {
-		var networks []openApiClient.OrganizationsOrganizationIdAdminsNetworks
+		var networks []openApiClient.CreateOrganizationAdminRequestNetworksInner
 		for _, attribute := range data.Networks {
-			var network openApiClient.OrganizationsOrganizationIdAdminsNetworks
+			var network openApiClient.CreateOrganizationAdminRequestNetworksInner
 			network.Id = attribute.Id.ValueString()
 			network.Access = attribute.Access.ValueString()
 			networks = append(networks, network)
@@ -407,7 +407,7 @@ func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.Up
 		updateOrganizationAdmin.SetNetworks(networks)
 	}
 
-	_, httpResp, err := r.client.AdminsApi.UpdateOrganizationAdmin(context.Background(), data.OrgId.ValueString(), data.AdminId.ValueString()).UpdateOrganizationAdmin(updateOrganizationAdmin).Execute()
+	_, httpResp, err := r.client.AdminsApi.UpdateOrganizationAdmin(context.Background(), data.OrgId.ValueString(), data.AdminId.ValueString()).UpdateOrganizationAdminRequest(updateOrganizationAdmin).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to update resource",

@@ -102,10 +102,10 @@ func (r *NetworksApplianceVlansSettingsResource) Create(ctx context.Context, req
 		return
 	}
 
-	updateNetworksApplianceVlansSettings := *openApiClient.NewInlineObject57()
+	updateNetworksApplianceVlansSettings := *openApiClient.NewUpdateNetworkApplianceVlansSettingsRequest()
 	updateNetworksApplianceVlansSettings.SetVlansEnabled(data.VlansEnabled.ValueBool())
 
-	_, httpResp, err := r.client.SettingsApi.UpdateNetworkApplianceVlansSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceVlansSettings(updateNetworksApplianceVlansSettings).Execute()
+	_, httpResp, err := r.client.SettingsApi.UpdateNetworkApplianceVlansSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceVlansSettingsRequest(updateNetworksApplianceVlansSettings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to update resource",
@@ -215,10 +215,10 @@ func (r *NetworksApplianceVlansSettingsResource) Update(ctx context.Context, req
 		return
 	}
 
-	updateNetworksApplianceVlansSettings := *openApiClient.NewInlineObject57()
+	updateNetworksApplianceVlansSettings := *openApiClient.NewUpdateNetworkApplianceVlansSettingsRequest()
 	updateNetworksApplianceVlansSettings.SetVlansEnabled(data.VlansEnabled.ValueBool())
 
-	_, httpResp, err := r.client.SettingsApi.UpdateNetworkApplianceVlansSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceVlansSettings(updateNetworksApplianceVlansSettings).Execute()
+	_, httpResp, err := r.client.SettingsApi.UpdateNetworkApplianceVlansSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceVlansSettingsRequest(updateNetworksApplianceVlansSettings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to update resource",
@@ -272,10 +272,10 @@ func (r *NetworksApplianceVlansSettingsResource) Delete(ctx context.Context, req
 		return
 	}
 
-	updateNetworksApplianceVlansSettings := *openApiClient.NewInlineObject57()
+	updateNetworksApplianceVlansSettings := *openApiClient.NewUpdateNetworkApplianceVlansSettingsRequest()
 	updateNetworksApplianceVlansSettings.SetVlansEnabled(data.VlansEnabled.ValueBool())
 
-	_, httpResp, err := r.client.SettingsApi.UpdateNetworkApplianceVlansSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceVlansSettings(updateNetworksApplianceVlansSettings).Execute()
+	_, httpResp, err := r.client.SettingsApi.UpdateNetworkApplianceVlansSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceVlansSettingsRequest(updateNetworksApplianceVlansSettings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to update resource",

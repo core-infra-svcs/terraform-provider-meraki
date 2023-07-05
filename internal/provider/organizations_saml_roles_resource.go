@@ -176,13 +176,13 @@ func (r *OrganizationsSamlRolesResource) Create(ctx context.Context, req resourc
 		return
 	}
 
-	createOrganizationSamlRole := *openApiClient.NewInlineObject220(data.Role.ValueString(), data.OrgAccess.ValueString())
+	createOrganizationSamlRole := *openApiClient.NewCreateOrganizationSamlRoleRequest(data.Role.ValueString(), data.OrgAccess.ValueString())
 
 	// Tags
 	if len(data.Tags) > 0 {
-		var tags []openApiClient.OrganizationsOrganizationIdSamlRolesTags
+		var tags []openApiClient.CreateOrganizationSamlRoleRequestTagsInner
 		for _, attribute := range data.Tags {
-			var tag openApiClient.OrganizationsOrganizationIdSamlRolesTags
+			var tag openApiClient.CreateOrganizationSamlRoleRequestTagsInner
 			tag.Tag = attribute.Tag.ValueString()
 			tag.Access = attribute.Access.ValueString()
 			tags = append(tags, tag)
@@ -192,9 +192,9 @@ func (r *OrganizationsSamlRolesResource) Create(ctx context.Context, req resourc
 
 	// Networks
 	if len(data.Networks) > 0 {
-		var networks []openApiClient.OrganizationsOrganizationIdSamlRolesNetworks
+		var networks []openApiClient.CreateOrganizationSamlRoleRequestNetworksInner
 		for _, attribute := range data.Networks {
-			var network openApiClient.OrganizationsOrganizationIdSamlRolesNetworks
+			var network openApiClient.CreateOrganizationSamlRoleRequestNetworksInner
 			network.Id = attribute.Id.ValueString()
 			network.Access = attribute.Access.ValueString()
 			networks = append(networks, network)
@@ -202,7 +202,7 @@ func (r *OrganizationsSamlRolesResource) Create(ctx context.Context, req resourc
 		createOrganizationSamlRole.SetNetworks(networks)
 	}
 
-	_, httpResp, err := r.client.OrganizationsApi.CreateOrganizationSamlRole(context.Background(), data.OrgId.ValueString()).CreateOrganizationSamlRole(createOrganizationSamlRole).Execute()
+	_, httpResp, err := r.client.OrganizationsApi.CreateOrganizationSamlRole(context.Background(), data.OrgId.ValueString()).CreateOrganizationSamlRoleRequest(createOrganizationSamlRole).Execute()
 
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -314,15 +314,15 @@ func (r *OrganizationsSamlRolesResource) Update(ctx context.Context, req resourc
 		return
 	}
 
-	updateOrganizationSamlRole := *openApiClient.NewInlineObject221()
+	updateOrganizationSamlRole := *openApiClient.NewUpdateOrganizationSamlRoleRequest()
 	updateOrganizationSamlRole.SetRole(data.Role.ValueString())
 	updateOrganizationSamlRole.SetOrgAccess(data.OrgAccess.ValueString())
 
 	// Tags
 	if len(data.Tags) > 0 {
-		var tags []openApiClient.OrganizationsOrganizationIdSamlRolesTags
+		var tags []openApiClient.CreateOrganizationSamlRoleRequestTagsInner
 		for _, attribute := range data.Tags {
-			var tag openApiClient.OrganizationsOrganizationIdSamlRolesTags
+			var tag openApiClient.CreateOrganizationSamlRoleRequestTagsInner
 			tag.Tag = attribute.Tag.ValueString()
 			tag.Access = attribute.Access.ValueString()
 			tags = append(tags, tag)
@@ -332,9 +332,9 @@ func (r *OrganizationsSamlRolesResource) Update(ctx context.Context, req resourc
 
 	// Networks
 	if len(data.Networks) > 0 {
-		var networks []openApiClient.OrganizationsOrganizationIdSamlRolesNetworks
+		var networks []openApiClient.CreateOrganizationSamlRoleRequestNetworksInner
 		for _, attribute := range data.Networks {
-			var network openApiClient.OrganizationsOrganizationIdSamlRolesNetworks
+			var network openApiClient.CreateOrganizationSamlRoleRequestNetworksInner
 			network.Id = attribute.Id.ValueString()
 			network.Access = attribute.Access.ValueString()
 			networks = append(networks, network)
@@ -342,7 +342,7 @@ func (r *OrganizationsSamlRolesResource) Update(ctx context.Context, req resourc
 		updateOrganizationSamlRole.SetNetworks(networks)
 	}
 
-	_, httpResp, err := r.client.OrganizationsApi.UpdateOrganizationSamlRole(context.Background(), data.OrgId.ValueString(), data.RoleId.ValueString()).UpdateOrganizationSamlRole(updateOrganizationSamlRole).Execute()
+	_, httpResp, err := r.client.OrganizationsApi.UpdateOrganizationSamlRole(context.Background(), data.OrgId.ValueString(), data.RoleId.ValueString()).UpdateOrganizationSamlRoleRequest(updateOrganizationSamlRole).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to update resource",

@@ -156,7 +156,7 @@ func (r *NetworksSwitchQosRulesResource) Create(ctx context.Context, req resourc
 		return
 	}
 
-	createNetworksSwitchQosRules := *openApiClient.NewInlineObject122(int32(data.Vlan.ValueInt64()))
+	createNetworksSwitchQosRules := *openApiClient.NewCreateNetworkSwitchQosRuleRequest(int32(data.Vlan.ValueInt64()))
 
 	if !data.Dscp.IsUnknown() {
 		createNetworksSwitchQosRules.SetDscp(int32(data.Dscp.ValueInt64()))
@@ -177,7 +177,7 @@ func (r *NetworksSwitchQosRulesResource) Create(ctx context.Context, req resourc
 		createNetworksSwitchQosRules.SetSrcPort(int32(data.SrcPort.ValueFloat64()))
 	}
 
-	inlineResp, httpResp, err := r.client.QosRulesApi.CreateNetworkSwitchQosRule(context.Background(), data.NetworkId.ValueString()).CreateNetworkSwitchQosRule(createNetworksSwitchQosRules).Execute()
+	inlineResp, httpResp, err := r.client.QosRulesApi.CreateNetworkSwitchQosRule(context.Background(), data.NetworkId.ValueString()).CreateNetworkSwitchQosRuleRequest(createNetworksSwitchQosRules).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to create resource",
@@ -288,26 +288,14 @@ func (r *NetworksSwitchQosRulesResource) Read(ctx context.Context, req resource.
 		return
 	}
 
-	if dstPortRange := inlineResp["dstPortRange"]; dstPortRange != nil {
-		data.DstPortRange = jsontypes.StringValue(dstPortRange.(string))
-	} else {
-		data.DstPortRange = jsontypes.StringNull()
-	}
-	if srcPortRange := inlineResp["srcPortRange"]; srcPortRange != nil {
-		data.SrcPortRange = jsontypes.StringValue(srcPortRange.(string))
-	} else {
-		data.SrcPortRange = jsontypes.StringNull()
-	}
-	if srcPort := inlineResp["srcPort"]; srcPort != nil {
-		data.SrcPort = jsontypes.Float64Value(srcPort.(float64))
-	} else {
-		data.SrcPort = jsontypes.Float64Null()
-	}
-	if dstPort := inlineResp["dstPort"]; dstPort != nil {
-		data.DstPort = jsontypes.Float64Value(dstPort.(float64))
-	} else {
-		data.DstPort = jsontypes.Float64Null()
-	}
+	data.DstPortRange = jsontypes.StringValue(inlineResp.GetDstPortRange())
+
+	data.SrcPortRange = jsontypes.StringValue(inlineResp.GetSrcPortRange())
+
+	data.SrcPort = jsontypes.Float64Value(float64(inlineResp.GetSrcPort()))
+
+	data.DstPort = jsontypes.Float64Value(float64(inlineResp.GetDstPort()))
+
 	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -327,7 +315,7 @@ func (r *NetworksSwitchQosRulesResource) Update(ctx context.Context, req resourc
 		return
 	}
 
-	updateNetworksSwitchQosRules := *openApiClient.NewInlineObject124()
+	updateNetworksSwitchQosRules := *openApiClient.NewUpdateNetworkSwitchQosRuleRequest()
 
 	if !data.Vlan.IsUnknown() {
 		updateNetworksSwitchQosRules.SetVlan(int32(data.Vlan.ValueInt64()))
@@ -351,7 +339,7 @@ func (r *NetworksSwitchQosRulesResource) Update(ctx context.Context, req resourc
 		updateNetworksSwitchQosRules.SetSrcPort(int32(data.SrcPort.ValueFloat64()))
 	}
 
-	inlineResp, httpResp, err := r.client.QosRulesApi.UpdateNetworkSwitchQosRule(context.Background(), data.NetworkId.ValueString(), data.QosRulesId.ValueString()).UpdateNetworkSwitchQosRule(updateNetworksSwitchQosRules).Execute()
+	inlineResp, httpResp, err := r.client.QosRulesApi.UpdateNetworkSwitchQosRule(context.Background(), data.NetworkId.ValueString(), data.QosRulesId.ValueString()).UpdateNetworkSwitchQosRuleRequest(updateNetworksSwitchQosRules).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to update resource",

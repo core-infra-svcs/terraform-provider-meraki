@@ -143,13 +143,14 @@ func (r *NetworksTrafficAnalysisResource) Create(ctx context.Context, req resour
 		return
 	}
 
-	updateNetworkTrafficAnalysis := *openApiClient.NewInlineObject141()
+	updateNetworkTrafficAnalysis := *openApiClient.NewUpdateNetworkTrafficAnalysisRequest()
 	updateNetworkTrafficAnalysis.SetMode(data.Mode.ValueString())
 
 	if len(data.CustomPieChartItems) > 0 {
-		var customPieChartItems []openApiClient.NetworksNetworkIdTrafficAnalysisCustomPieChartItems
+		var customPieChartItems []openApiClient.UpdateNetworkTrafficAnalysisRequestCustomPieChartItemsInner
+
 		for _, attribute := range data.CustomPieChartItems {
-			var customPieChartItem openApiClient.NetworksNetworkIdTrafficAnalysisCustomPieChartItems
+			var customPieChartItem openApiClient.UpdateNetworkTrafficAnalysisRequestCustomPieChartItemsInner
 			customPieChartItem.Name = attribute.Name.ValueString()
 			customPieChartItem.Type = attribute.Type.ValueString()
 			customPieChartItem.Value = attribute.Value.ValueString()
@@ -160,7 +161,7 @@ func (r *NetworksTrafficAnalysisResource) Create(ctx context.Context, req resour
 		data.CustomPieChartItems = nil
 	}
 
-	_, httpResp, err := r.client.NetworksApi.UpdateNetworkTrafficAnalysis(ctx, data.NetworkId.ValueString()).UpdateNetworkTrafficAnalysis(updateNetworkTrafficAnalysis).Execute()
+	_, httpResp, err := r.client.NetworksApi.UpdateNetworkTrafficAnalysis(ctx, data.NetworkId.ValueString()).UpdateNetworkTrafficAnalysisRequest(updateNetworkTrafficAnalysis).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to create resource",
@@ -270,13 +271,13 @@ func (r *NetworksTrafficAnalysisResource) Update(ctx context.Context, req resour
 		return
 	}
 
-	updateNetworkTrafficAnalysis := *openApiClient.NewInlineObject141()
+	updateNetworkTrafficAnalysis := *openApiClient.NewUpdateNetworkTrafficAnalysisRequest()
 	updateNetworkTrafficAnalysis.SetMode(data.Mode.ValueString())
 
 	if len(data.CustomPieChartItems) > 0 {
-		var customPieChartItems []openApiClient.NetworksNetworkIdTrafficAnalysisCustomPieChartItems
+		var customPieChartItems []openApiClient.UpdateNetworkTrafficAnalysisRequestCustomPieChartItemsInner
 		for _, attribute := range data.CustomPieChartItems {
-			var customPieChartItem openApiClient.NetworksNetworkIdTrafficAnalysisCustomPieChartItems
+			var customPieChartItem openApiClient.UpdateNetworkTrafficAnalysisRequestCustomPieChartItemsInner
 			customPieChartItem.Name = attribute.Name.ValueString()
 			customPieChartItem.Type = attribute.Type.ValueString()
 			customPieChartItem.Value = attribute.Value.ValueString()
@@ -287,7 +288,7 @@ func (r *NetworksTrafficAnalysisResource) Update(ctx context.Context, req resour
 		data.CustomPieChartItems = nil
 	}
 
-	_, httpResp, err := r.client.NetworksApi.UpdateNetworkTrafficAnalysis(ctx, data.NetworkId.ValueString()).UpdateNetworkTrafficAnalysis(updateNetworkTrafficAnalysis).Execute()
+	_, httpResp, err := r.client.NetworksApi.UpdateNetworkTrafficAnalysis(ctx, data.NetworkId.ValueString()).UpdateNetworkTrafficAnalysisRequest(updateNetworkTrafficAnalysis).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to update resource",
@@ -342,11 +343,11 @@ func (r *NetworksTrafficAnalysisResource) Delete(ctx context.Context, req resour
 		return
 	}
 
-	updateNetworkTrafficAnalysis := *openApiClient.NewInlineObject141()
+	updateNetworkTrafficAnalysis := *openApiClient.NewUpdateNetworkTrafficAnalysisRequest()
 	updateNetworkTrafficAnalysis.SetMode("disabled")
 	updateNetworkTrafficAnalysis.SetCustomPieChartItems(nil)
 
-	_, httpResp, err := r.client.NetworksApi.UpdateNetworkTrafficAnalysis(ctx, data.NetworkId.ValueString()).UpdateNetworkTrafficAnalysis(updateNetworkTrafficAnalysis).Execute()
+	_, httpResp, err := r.client.NetworksApi.UpdateNetworkTrafficAnalysis(ctx, data.NetworkId.ValueString()).UpdateNetworkTrafficAnalysisRequest(updateNetworkTrafficAnalysis).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to delete resource",
