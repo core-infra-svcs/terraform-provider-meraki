@@ -36,7 +36,7 @@ type CiscoMerakiProviderModel struct {
 	ApiKey                types.String `tfsdk:"api_key"`
 	BaseUrl               types.String `tfsdk:"base_url"`
 	CertificatePath       types.String `tfsdk:"certificate_path"`
-	RequestsProxy         types.String `tfsdk:"requests_proxy"`
+	Proxy                 types.String `tfsdk:"proxy"`
 	SingleRequestTimeout  types.Int64  `tfsdk:"single_request_timeout"`
 	MaximumRetries        types.Int64  `tfsdk:"maximum_retries"`
 	Nginx429RetryWaitTime types.Int64  `tfsdk:"nginx_429_retry_wait_time"`
@@ -73,28 +73,28 @@ func (p *CiscoMerakiProvider) Schema(ctx context.Context, req provider.SchemaReq
 					)},
 			},
 			"certificate_path": schema.StringAttribute{
-				Description: "Path to a custom CA bundle used for certificate verification.",
+				Description: "Path for TLS/SSL certificate verification if behind local proxy",
 				Optional:    true,
 				Sensitive:   true,
 			},
-			"requests_proxy": schema.StringAttribute{
-				Description: "Proxy server used for making requests.",
+			"proxy": schema.StringAttribute{
+				Description: "Proxy server and port, if needed, for HTTPS",
 				Optional:    true,
 			},
 			"single_request_timeout": schema.Int64Attribute{
-				Description: "Timeout for a single HTTP request in seconds.",
+				Description: "Maximum number of seconds for each API call",
 				Optional:    true,
 			},
 			"maximum_retries": schema.Int64Attribute{
-				Description: "Maximum number of retries for a failed request.",
+				Description: "Retry up to this many times when encountering 429s or other server-side errors",
 				Optional:    true,
 			},
 			"nginx_429_retry_wait_time": schema.Int64Attribute{
-				Description: "Time to wait in seconds before retrying after encountering an NGINX 429 response.",
+				Description: "Nginx 429 retry wait time",
 				Optional:    true,
 			},
 			"wait_on_rate_limit": schema.BoolAttribute{
-				Description: "Whether to wait when rate-limited by the API.",
+				Description: "Retry if 429 rate limit error encountered",
 				Optional:    true,
 			},
 		},
@@ -161,9 +161,9 @@ func (p *CiscoMerakiProvider) Configure(ctx context.Context, req provider.Config
 		configuration.CertificatePath = data.CertificatePath.ValueString()
 	}
 
-	// RequestsProxy
-	if !data.RequestsProxy.IsNull() {
-		configuration.RequestsProxy = data.RequestsProxy.ValueString()
+	// Proxy
+	if !data.Proxy.IsNull() {
+		configuration.RequestsProxy = data.Proxy.ValueString()
 	}
 
 	// SingleRequestTimeout
@@ -211,8 +211,8 @@ func (p *CiscoMerakiProvider) Configure(ctx context.Context, req provider.Config
 
 			}
 
-			if configuration.RequestsProxy != "" {
-				proxyUrl, err := url.Parse(configuration.RequestsProxy)
+			if configuration.Proxy != "" {
+				proxyUrl, err := url.Parse(configuration.Proxy)
 				if err == nil {
 					transport.Proxy = http.ProxyURL(proxyUrl)
 				}
