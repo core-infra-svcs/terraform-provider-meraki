@@ -14,18 +14,9 @@ func TestAccDevicesCellularSimsResource(t *testing.T) {
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 
-			// Create test Organization
-			{
-				Config: testAccDevicesCellularSimsResourceConfigCreateOrganization,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
-					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_meraki_devices_cellular_sims"),
-				),
-			},
-
 			// Create and Read Network.
 			{
-				Config: testAccDevicesCellularSimsResourceConfigCreate,
+				Config: testAccDevicesCellularSimsResourceConfigCreate(os.Getenv("TF_ACC_MERAKI_ORGANZIATION_ID")),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_network.test", "name", "Main Office"),
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
@@ -42,7 +33,7 @@ func TestAccDevicesCellularSimsResource(t *testing.T) {
 
 			// Update testing
 			{
-				Config: testAccDevicesCellularSimsResourceConfigUpdate(os.Getenv("TF_ACC_MERAKI_MG_SERIAL"), os.Getenv("TF_ACC_MERAKI_MG_SERIAL")),
+				Config: testAccDevicesCellularSimsResourceConfigUpdate(os.Getenv("TF_ACC_MERAKI_ORGANZIATION_ID"), os.Getenv("TF_ACC_MERAKI_MG_SERIAL")),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_devices_cellular_sims.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_devices_cellular_sims.test", "sims.#", "1"),
@@ -67,37 +58,30 @@ func TestAccDevicesCellularSimsResource(t *testing.T) {
 	})
 }
 
-const testAccDevicesCellularSimsResourceConfigCreateOrganization = `
- resource "meraki_organization" "test" {
- 	name = "test_meraki_devices_cellular_sims"
- 	api_enabled = true
- }
- `
-
-const testAccDevicesCellularSimsResourceConfigCreate = `
-resource "meraki_organization" "test" {}
+func testAccDevicesCellularSimsResourceConfigCreate(orgId string) string {
+	result := fmt.Sprintf(`
 resource "meraki_network" "test" {
-	depends_on = [resource.meraki_organization.test]
-	organization_id = resource.meraki_organization.test.organization_id
+	organization_id = "%s"
 	product_types = ["appliance", "switch", "wireless", "cellularGateway"]
 	tags = ["tag1"]
 	name = "Main Office"
 	timezone = "America/Los_Angeles"
 	notes = "Additional description of the network"
 }
-`
+`, orgId)
+	return result
+}
 
 // testAccDevicesCellularSimsResourceConfigUpdate is a constant string that defines the configuration for creating and updating a devices cellular sims resource config update resource in your tests.
-// It depends on both the organization and network resources.
-func testAccDevicesCellularSimsResourceConfigUpdate(serial1 string, serial2 string) string {
+// It depends on network resources.
+func testAccDevicesCellularSimsResourceConfigUpdate(orgId string, serial string) string {
 	result := fmt.Sprintf(`
-resource "meraki_organization" "test" {}
 resource "meraki_network" "test" {
-        depends_on = [resource.meraki_organization.test]
+        organization_id = "%s"
         product_types = ["appliance", "switch", "wireless", "cellularGateway"]
 }
 resource "meraki_networks_devices_claim" "test" {
-    depends_on = [resource.meraki_network.test, resource.meraki_organization.test]
+    depends_on = [resource.meraki_network.test]
     network_id = resource.meraki_network.test.network_id
     serials = [
       "%s"
@@ -115,6 +99,6 @@ resource "meraki_devices_cellular_sims" "test" {
 	}
 	
 }
-`, serial1, serial2)
+`, orgId, serial, serial)
 	return result
 }
