@@ -22,11 +22,8 @@ func TestAccDevicesCellularSimsResource(t *testing.T) {
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.#", "4"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.0", "appliance"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.1", "cellularGateway"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.2", "switch"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.3", "wireless"),
+					resource.TestCheckResourceAttr("meraki_network.test", "product_types.#", "1"),
+					resource.TestCheckResourceAttr("meraki_network.test", "product_types.0", "cellularGateway"),
 					resource.TestCheckResourceAttr("meraki_network.test", "notes", "Additional description of the network"),
 				),
 			},
@@ -62,7 +59,7 @@ func testAccDevicesCellularSimsResourceConfigCreate(orgId string) string {
 	result := fmt.Sprintf(`
 resource "meraki_network" "test" {
 	organization_id = "%s"
-	product_types = ["appliance", "switch", "wireless", "cellularGateway"]
+	product_types = ["cellularGateway"]
 	tags = ["tag1"]
 	name = "Main Office"
 	timezone = "America/Los_Angeles"
@@ -78,7 +75,7 @@ func testAccDevicesCellularSimsResourceConfigUpdate(orgId string, serial string)
 	result := fmt.Sprintf(`
 resource "meraki_network" "test" {
         organization_id = "%s"
-        product_types = ["appliance", "switch", "wireless", "cellularGateway"]
+        product_types = ["cellularGateway"]
 }
 resource "meraki_networks_devices_claim" "test" {
     depends_on = [resource.meraki_network.test]
@@ -88,6 +85,7 @@ resource "meraki_networks_devices_claim" "test" {
   ]
 }
 resource "meraki_devices_cellular_sims" "test" {
+	depends_on = [resource.meraki_network.test, resource.meraki_networks_devices_claim.test]
 	serial = "%s"
 	sims = [{
 		slot = "sim1"

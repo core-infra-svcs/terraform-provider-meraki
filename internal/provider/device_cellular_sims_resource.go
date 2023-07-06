@@ -223,6 +223,13 @@ func (r *DevicesCellularSimsResource) Create(ctx context.Context, req resource.C
 
 	_, httpResp, err := r.client.CellularApi.UpdateDeviceCellularSims(context.Background(), data.Serial.ValueString()).UpdateDeviceCellularSims(updateDeviceCellularSims).Execute()
 
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to read resource",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+	}
+
 	if httpResp != nil {
 		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 	}
@@ -274,6 +281,14 @@ func (r *DevicesCellularSimsResource) Read(ctx context.Context, req resource.Rea
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
+
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to read resource",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+	}
+
 	// collect diagnostics
 	if httpResp != nil {
 		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
@@ -352,6 +367,13 @@ func (r *DevicesCellularSimsResource) Update(ctx context.Context, req resource.U
 	}
 
 	_, httpResp, err := r.client.CellularApi.UpdateDeviceCellularSims(context.Background(), data.Serial.ValueString()).UpdateDeviceCellularSims(updateDeviceCellularSims).Execute()
+
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to read resource",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+	}
 
 	if httpResp != nil {
 		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
@@ -432,6 +454,13 @@ func (r *DevicesCellularSimsResource) Delete(ctx context.Context, req resource.D
 	}
 
 	_, httpResp, err := r.client.CellularApi.UpdateDeviceCellularSims(context.Background(), data.Serial.ValueString()).UpdateDeviceCellularSims(updateDeviceCellularSims).Execute()
+
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Failed to read resource",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+	}
 
 	if httpResp != nil {
 		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
