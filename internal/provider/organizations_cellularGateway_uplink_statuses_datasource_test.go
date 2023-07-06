@@ -37,7 +37,7 @@ func TestAccOrganizationsCellularGatewayUplinkStatusesDataSource(t *testing.T) {
 
 			// Claim and Read NetworksDevicesClaim
 			{
-				Config: testAccNetworksDevicesClaimResourceConfigCreate(os.Getenv("TF_ACC_MERAKI_ORGANZIATION_ID"), os.Getenv("TF_ACC_MERAKI_MG_SERIAL")),
+				Config: testAccOrganizationsCellularGatewayUplinkStatusesNetworksDevicesClaimResourceConfigCreate(os.Getenv("TF_ACC_MERAKI_ORGANZIATION_ID"), os.Getenv("TF_ACC_MERAKI_MG_SERIAL")),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_networks_devices_claim.test", "id", "example-id"),
 				),
@@ -45,7 +45,7 @@ func TestAccOrganizationsCellularGatewayUplinkStatusesDataSource(t *testing.T) {
 
 			// Read OrganizationsCellularGatewayUplinkStatuses
 			{
-				Config: testAccOrganizationsCellularGatewayUplinkStatusesDataSourceConfigRead(os.Getenv("TF_ACC_MERAKI_ORGANZIATION_ID"), os.Getenv("TF_ACC_MERAKI_MG_SERIAL"), os.Getenv("TF_ACC_MERAKI_ORGANZIATION_ID")),
+				Config: testAccOrganizationsCellularGatewayUplinkStatusesDataSourceConfigRead(os.Getenv("TF_ACC_MERAKI_ORGANZIATION_ID"), os.Getenv("TF_ACC_MERAKI_MG_SERIAL")),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("data.meraki_organizations_cellular_gateway_uplink_statuses.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("data.meraki_organizations_cellular_gateway_uplink_statuses.test", "list.#", "1"),
@@ -56,14 +56,6 @@ func TestAccOrganizationsCellularGatewayUplinkStatusesDataSource(t *testing.T) {
 		},
 	})
 }
-
-// testAccOrganizationsCellularGatewayUplinkStatusesDataSourceConfigCreateOrganization is a constant string that defines the configuration for creating an organization resource in your tests.
-const testAccOrganizationsCellularGatewayUplinkStatusesDataSourceConfigCreateOrganization = `
- resource "meraki_organization" "test" {
- 	name = "test_meraki_organizations_cellular_gateway_uplink_statuses"
- 	api_enabled = true
- }
- `
 
 // testAccOrganizationsCellularGatewayUplinkStatusesDataSourceConfigCreateNetwork is a constant string that defines the configuration for creating a network resource in your tests.
 // It depends on the organization resource.
@@ -83,7 +75,7 @@ resource "meraki_network" "test" {
 
 // testAccNetworksDevicesClaimResourceConfigCreate is a constant string that defines the configuration for creating and reading a networks_devices_claim resource in your tests.
 // It depends on both the organization and network resources.
-func testAccNetworksDevicesClaimResourceConfigCreate(orgId string, serial string) string {
+func testAccOrganizationsCellularGatewayUplinkStatusesNetworksDevicesClaimResourceConfigCreate(orgId string, serial string) string {
 	result := fmt.Sprintf(`
 resource "meraki_network" "test" {
 	    organization_id = "%s"
@@ -102,7 +94,7 @@ resource "meraki_networks_devices_claim" "test" {
 
 // testAccOrganizationsCellularGatewayUplinkStatusesDataSourceConfigRead is a constant string that defines the configuration for creating and updating a organizations_cellularGateway_uplink_statuses resource in your tests.
 // It depends on both the organization and network resources.
-func testAccOrganizationsCellularGatewayUplinkStatusesDataSourceConfigRead(orgId string, serial string, orgId2 string) string {
+func testAccOrganizationsCellularGatewayUplinkStatusesDataSourceConfigRead(orgId string, serial string) string {
 	result := fmt.Sprintf(`
 resource "meraki_network" "test" {
 	    organization_id = "%s"
@@ -118,6 +110,6 @@ resource "meraki_networks_devices_claim" "test" {
 data "meraki_organizations_cellular_gateway_uplink_statuses" "test" {
 	organization_id = "%s"
 }	
-`, orgId, serial, orgId2)
+`, orgId, serial, orgId)
 	return result
 }
