@@ -128,9 +128,9 @@ func (r *NetworksDevicesClaimResource) Create(ctx context.Context, req resource.
 		serials = append(serials, serial.ValueString())
 	}
 
-	claimNetworkDevices := *openApiClient.NewInlineObject74(serials)
+	claimNetworkDevices := *openApiClient.NewClaimNetworkDevicesRequest(serials)
 
-	httpResp, err := r.client.NetworksApi.ClaimNetworkDevices(ctx, data.NetworkId.ValueString()).ClaimNetworkDevices(claimNetworkDevices).Execute()
+	httpResp, err := r.client.NetworksApi.ClaimNetworkDevices(ctx, data.NetworkId.ValueString()).ClaimNetworkDevicesRequest(claimNetworkDevices).Execute()
 
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
@@ -228,9 +228,9 @@ func (r *NetworksDevicesClaimResource) Delete(ctx context.Context, req resource.
 
 		se := fmt.Sprint(strings.Trim(serial.String(), "\""))
 
-		removeNetworkDevices := *openApiClient.NewInlineObject76(se)
+		removeNetworkDevices := *openApiClient.NewRemoveNetworkDevicesRequest(se)
 
-		httpResp, err := r.client.NetworksApi.RemoveNetworkDevices(ctx, data.NetworkId.ValueString()).RemoveNetworkDevices(removeNetworkDevices).Execute()
+		httpResp, err := r.client.NetworksApi.RemoveNetworkDevices(ctx, data.NetworkId.ValueString()).RemoveNetworkDevicesRequest(removeNetworkDevices).Execute()
 
 		// If there was an error during API call, add it to diagnostics.
 		if err != nil {
