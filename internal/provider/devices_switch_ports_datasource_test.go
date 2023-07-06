@@ -32,24 +32,21 @@ func TestAccDevicesSwitchPortsDataSource(t *testing.T) {
 
 			// Create and Read a Network.
 			{
-				Config: testAccDevicesSwitchPortsDataSourceConfigCreateNetwork,
+				Config: testAccDevicesSwitchPortsDataSourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANZIATION_ID")),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_network.test", "name", "Main Office"),
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.#", "4"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.0", "appliance"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.1", "cellularGateway"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.2", "switch"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.3", "wireless"),
+					resource.TestCheckResourceAttr("meraki_network.test", "product_types.#", "1"),
+					resource.TestCheckResourceAttr("meraki_network.test", "product_types.0", "switch"),
 					resource.TestCheckResourceAttr("meraki_network.test", "notes", "Additional description of the network"),
 				),
 			},
 
 			// Read Devices Switch Ports
 			{
-				Config: testAccDevicesSwitchPortsDataSourceConfigRead(os.Getenv("TF_ACC_MERAKI_MS_SERIAL"), os.Getenv("TF_ACC_MERAKI_MS_SERIAL")),
+				Config: testAccDevicesSwitchPortsDataSourceConfigRead(os.Getenv("TF_ACC_MERAKI_ORGANZIATION_ID"), os.Getenv("TF_ACC_MERAKI_MS_SERIAL")),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("data.meraki_devices_switch_ports.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("data.meraki_devices_switch_ports.test", "list.#", "52"),
@@ -82,38 +79,39 @@ const testAccDevicesSwitchPortsDataSourceConfigCreateOrganization = `
 
 // testAccDevicesSwitchPortsDataSourceConfigCreateNetwork is a constant string that defines the configuration for creating a network resource in your tests.
 // It depends on the organization resource.
-const testAccDevicesSwitchPortsDataSourceConfigCreateNetwork = `
-resource "meraki_organization" "test" {}
+func testAccDevicesSwitchPortsDataSourceConfigCreateNetwork(orgId string) string {
+	result := fmt.Sprintf(`
 resource "meraki_network" "test" {
-	depends_on = [resource.meraki_organization.test]
-	organization_id = resource.meraki_organization.test.organization_id
-	product_types = ["appliance", "switch", "wireless", "cellularGateway"]
+	organization_id = "%s"
+	product_types = ["switch"]
 	tags = ["tag1"]
 	name = "Main Office"
 	timezone = "America/Los_Angeles"
 	notes = "Additional description of the network"
 }
-`
+`, orgId)
+	return result
+}
 
 // testAccDevicesSwitchPortsDataSourceConfigRead is a constant string that defines the configuration for creating and updating a devices_switch_ports_dataSource resource in your tests.
 // It depends on both the organization and network resources.
-func testAccDevicesSwitchPortsDataSourceConfigRead(serial1 string, serial2 string) string {
+func testAccDevicesSwitchPortsDataSourceConfigRead(orgId string, serial string) string {
 	result := fmt.Sprintf(`
-resource "meraki_organization" "test" {}
 resource "meraki_network" "test" {
-        depends_on = [resource.meraki_organization.test]
-        product_types = ["appliance", "switch", "wireless", "cellularGateway"]
+	    organization_id = "%s"
+        product_types = ["switch"]
 }
 resource "meraki_networks_devices_claim" "test" {
-    depends_on = [resource.meraki_network.test, resource.meraki_organization.test]
+    depends_on = [resource.meraki_network.test]
     network_id = resource.meraki_network.test.network_id
     serials = [
       "%s"
   ]
 }
 data "meraki_devices_switch_ports" "test" {
+	depends_on = [resource.meraki_network.test, resource.meraki_networks_devices_claim.test]
 	serial = "%s"
 }
-`, serial1, serial2)
+`, orgId, serial, serial)
 	return result
 }
