@@ -14,16 +14,10 @@ func TestAccDevicesManagementinterfaceResource(t *testing.T) {
 			{
 				Config: testAccDevicesManagementinterfaceResourceConfigCreate,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("devices_management_interface.test", "serial", "serial"),
-					resource.TestCheckResourceAttr("devices_management_interface.test", "wan1_wan_enabled", "not configured"),
-					resource.TestCheckResourceAttr("devices_management_interface.test", "wan1_using_static_ip", "true"),
-					resource.TestCheckResourceAttr("devices_management_interface.test", "wan1_static_ip", "1.2.3.4"),
-					resource.TestCheckResourceAttr("devices_management_interface.test", "wan1_static_subnet_mask", "255.255.255.0"),
-					resource.TestCheckResourceAttr("devices_management_interface.test", "wan1_static_gateway_ip", "1.2.3.4"),
-					resource.TestCheckResourceAttr("devices_management_interface.test", "wan1_vlan", "7"),
-					resource.TestCheckResourceAttr("devices_management_interface.test", "wan2_wan_enabled", "enabled"),
-					resource.TestCheckResourceAttr("devices_management_interface.test", "wan2_using_static_ip", "false"),
-					resource.TestCheckResourceAttr("devices_management_interface.test", "wan2_vlan", "2"),
+					resource.TestCheckResourceAttr("meraki_devices_management_interface.test", "serial", "Q2HY-BHEX-TLTC"),
+					resource.TestCheckResourceAttr("meraki_devices_management_interface.test", "wan1.wan_enabled", "enabled"),
+					resource.TestCheckResourceAttr("meraki_devices_management_interface.test", "wan1.using_static_ip", "false"),
+					resource.TestCheckResourceAttr("meraki_devices_management_interface.test", "wan1.vlan", "1"),
 				),
 			},
 
@@ -33,16 +27,17 @@ func TestAccDevicesManagementinterfaceResource(t *testing.T) {
 }
 
 const testAccDevicesManagementinterfaceResourceConfigCreate = `
-resource "meraki_organization" "test" {
-	name = "meraki_devices_management_interface"
-	api_enabled = true
-} 
-
 resource "meraki_devices_management_interface" "test" {
-	serial = "Q2HY-A497-YBMG"
-    wan1_wan_enabled = "not configured"
-	wan1_using_static_ip = false
-    wan2_wan_enabled = "not configured"
-	wan2_using_static_ip = false
+	serial = "Q2HY-BHEX-TLTC"
+    wan1 = {
+		wan_enabled = "enabled"
+		vlan = 1
+		using_static_ip = false
+	}
+	wan2 = {
+		wan_enabled= "enabled"
+		vlan = 1
+		using_static_ip = false
+	}
 }
 `

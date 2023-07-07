@@ -1,17 +1,20 @@
 package provider
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
+)
+
+import (
+	"context"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -32,18 +35,20 @@ type DevicesManagementinterfaceResource struct {
 
 // DevicesManagementinterfaceResourceModel describes the resource data model.
 type DevicesManagementinterfaceResourceModel struct {
-	Id                   jsontypes.String `tfsdk:"id"`
-	Serial               jsontypes.String `tfsdk:"serial"`
-	Wan1WanEnabled       jsontypes.String `tfsdk:"wan1_wan_enabled"`
-	Wan1UsingStaticIp    jsontypes.Bool   `tfsdk:"wan1_using_static_ip"`
-	Wan1StaticIp         jsontypes.String `tfsdk:"wan1_static_ip"`
-	Wan1StaticSubnetMask jsontypes.String `tfsdk:"wan1_static_subnet_mask"`
-	Wan1StaticGatewayIp  jsontypes.String `tfsdk:"wan1_static_gateway_ip"`
-	Wan1StaticDns        types.List       `tfsdk:"wan1_static_dns"`
-	Wan1Vlan             jsontypes.Int64  `tfsdk:"wan1_vlan"`
-	Wan2WanEnabled       jsontypes.String `tfsdk:"wan2_wan_enabled"`
-	Wan2UsingStaticIp    jsontypes.Bool   `tfsdk:"wan2_using_static_ip"`
-	Wan2Vlan             jsontypes.Int64  `tfsdk:"wan2_vlan"`
+	Id     jsontypes.String             `tfsdk:"id"`
+	Serial jsontypes.String             `tfsdk:"serial"`
+	Wan1   DeviceManagementInterfaceWan `tfsdk:"wan1"`
+	Wan2   DeviceManagementInterfaceWan `tfsdk:"wan2"`
+}
+
+type DeviceManagementInterfaceWan struct {
+	WanEnabled       jsontypes.String `tfsdk:"wan_enabled"`
+	UsingStaticIp    jsontypes.Bool   `tfsdk:"using_static_ip"`
+	StaticIp         jsontypes.String `tfsdk:"static_ip"`
+	StaticSubnetMask jsontypes.String `tfsdk:"static_subnet_mask"`
+	StaticGatewayIp  jsontypes.String `tfsdk:"static_gateway_ip"`
+	StaticDns        types.List       `tfsdk:"static_dns"`
+	Vlan             jsontypes.Int64  `tfsdk:"vlan"`
 }
 
 func (r *DevicesManagementinterfaceResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -65,55 +70,85 @@ func (r *DevicesManagementinterfaceResource) Schema(ctx context.Context, req res
 				Computed:            true,
 				CustomType:          jsontypes.StringType,
 			},
-			"wan1_wan_enabled": schema.StringAttribute{
-				MarkdownDescription: "Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled', and 'not configured'.",
-				Optional:            true,
-				CustomType:          jsontypes.StringType,
+			"wan1": schema.SingleNestedAttribute{
+				Optional: true,
+				Attributes: map[string]schema.Attribute{
+					"wan_enabled": schema.StringAttribute{
+						MarkdownDescription: "Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled', and 'not configured'.",
+						Optional:            true,
+						CustomType:          jsontypes.StringType,
+					},
+					"using_static_ip": schema.BoolAttribute{
+						MarkdownDescription: "Configure the interface to have static IP settings or use DHCP.",
+						Optional:            true,
+						CustomType:          jsontypes.BoolType,
+					},
+					"vlan": schema.Int64Attribute{
+						MarkdownDescription: "The VLAN that management traffic should be tagged with. Applies whether usingStaticIp is true or false.",
+						Optional:            true,
+						CustomType:          jsontypes.Int64Type,
+					},
+					"static_ip": schema.StringAttribute{
+						MarkdownDescription: "The IP the device should use on the WAN.",
+						Optional:            true,
+						CustomType:          jsontypes.StringType,
+					},
+					"static_subnet_mask": schema.StringAttribute{
+						MarkdownDescription: "The subnet mask for the WAN.",
+						Optional:            true,
+						CustomType:          jsontypes.StringType,
+					},
+					"static_gateway_ip": schema.StringAttribute{
+						MarkdownDescription: "The IP of the gateway on the WAN.",
+						Optional:            true,
+						CustomType:          jsontypes.StringType,
+					},
+					"static_dns": schema.ListAttribute{
+						MarkdownDescription: "Up to two DNS IPs.",
+						Optional:            true,
+						ElementType:         jsontypes.StringType,
+					},
+				},
 			},
-			"wan1_using_static_ip": schema.BoolAttribute{
-				MarkdownDescription: "Configure the interface to have static IP settings or use DHCP.",
-				Optional:            true,
-				CustomType:          jsontypes.BoolType,
-			},
-			"wan1_vlan": schema.Int64Attribute{
-				MarkdownDescription: "The VLAN that management traffic should be tagged with. Applies whether usingStaticIp is true or false.",
-				Optional:            true,
-				CustomType:          jsontypes.Int64Type,
-			},
-			"wan1_static_ip": schema.StringAttribute{
-				MarkdownDescription: "The IP the device should use on the WAN.",
-				Optional:            true,
-				CustomType:          jsontypes.StringType,
-			},
-			"wan1_static_subnet_mask": schema.StringAttribute{
-				MarkdownDescription: "The subnet mask for the WAN.",
-				Optional:            true,
-				CustomType:          jsontypes.StringType,
-			},
-			"wan1_static_gateway_ip": schema.StringAttribute{
-				MarkdownDescription: "The IP of the gateway on the WAN.",
-				Optional:            true,
-				CustomType:          jsontypes.StringType,
-			},
-			"wan1_static_dns": schema.ListAttribute{
-				MarkdownDescription: "Up to two DNS IPs.",
-				Optional:            true,
-				ElementType:         jsontypes.StringType,
-			},
-			"wan2_wan_enabled": schema.StringAttribute{
-				MarkdownDescription: "Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled', and 'not configured'.",
-				Optional:            true,
-				CustomType:          jsontypes.StringType,
-			},
-			"wan2_using_static_ip": schema.BoolAttribute{
-				MarkdownDescription: "Configure the interface to have static IP settings or use DHCP.",
-				Optional:            true,
-				CustomType:          jsontypes.BoolType,
-			},
-			"wan2_vlan": schema.Int64Attribute{
-				MarkdownDescription: "The VLAN that management traffic should be tagged with. Applies whether usingStaticIp is true or false.",
-				Optional:            true,
-				CustomType:          jsontypes.Int64Type,
+			"wan2": schema.SingleNestedAttribute{
+				Optional: true,
+				Attributes: map[string]schema.Attribute{
+					"wan_enabled": schema.StringAttribute{
+						MarkdownDescription: "Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled', and 'not configured'.",
+						Optional:            true,
+						CustomType:          jsontypes.StringType,
+					},
+					"using_static_ip": schema.BoolAttribute{
+						MarkdownDescription: "Configure the interface to have static IP settings or use DHCP.",
+						Optional:            true,
+						CustomType:          jsontypes.BoolType,
+					},
+					"vlan": schema.Int64Attribute{
+						MarkdownDescription: "The VLAN that management traffic should be tagged with. Applies whether usingStaticIp is true or false.",
+						Optional:            true,
+						CustomType:          jsontypes.Int64Type,
+					},
+					"static_ip": schema.StringAttribute{
+						MarkdownDescription: "The IP the device should use on the WAN.",
+						Optional:            true,
+						CustomType:          jsontypes.StringType,
+					},
+					"static_subnet_mask": schema.StringAttribute{
+						MarkdownDescription: "The subnet mask for the WAN.",
+						Optional:            true,
+						CustomType:          jsontypes.StringType,
+					},
+					"static_gateway_ip": schema.StringAttribute{
+						MarkdownDescription: "The IP of the gateway on the WAN.",
+						Optional:            true,
+						CustomType:          jsontypes.StringType,
+					},
+					"static_dns": schema.ListAttribute{
+						MarkdownDescription: "Up to two DNS IPs.",
+						Optional:            true,
+						ElementType:         jsontypes.StringType,
+					},
+				},
 			},
 		},
 	}
@@ -149,39 +184,44 @@ func (r *DevicesManagementinterfaceResource) Create(ctx context.Context, req res
 		return
 	}
 
-	wan1 := openApiClient.NewDevicesSerialManagementInterfaceWan1()
-	wan2 := openApiClient.NewDevicesSerialManagementInterfaceWan2()
-	wan1.SetStaticGatewayIp(data.Wan1StaticGatewayIp.ValueString())
-	wan1.SetWanEnabled(data.Wan1WanEnabled.ValueString())
-	wan1.SetStaticSubnetMask(data.Wan1StaticSubnetMask.ValueString())
-	wan1.SetStaticIp(data.Wan1StaticIp.ValueString())
-	wan1.SetUsingStaticIp(data.Wan1UsingStaticIp.ValueBool())
-	wan1.SetVlan(int32(data.Wan1Vlan.ValueInt64()))
+	object14 := openApiClient.NewInlineObject14()
 
+	updateDeviceManagementInterfaceRequest := object14
+
+	vlan := int32(data.Wan1.Vlan.ValueInt64())
 	staticDNS := []string{}
-	for _, dns := range data.Wan1StaticDns.Elements() {
+	for _, dns := range data.Wan1.StaticDns.Elements() {
 		staticDNS = append(staticDNS, dns.String())
 	}
-	wan1.SetStaticDns(staticDNS)
+	wan1 := openApiClient.DevicesSerialManagementInterfaceWan1{
+		WanEnabled:       data.Wan1.WanEnabled.ValueStringPointer(),
+		UsingStaticIp:    data.Wan1.UsingStaticIp.ValueBoolPointer(),
+		StaticIp:         data.Wan1.StaticIp.ValueStringPointer(),
+		StaticGatewayIp:  data.Wan1.StaticGatewayIp.ValueStringPointer(),
+		StaticSubnetMask: data.Wan1.StaticSubnetMask.ValueStringPointer(),
+		StaticDns:        staticDNS,
+		Vlan:             &vlan,
+	}
 
-	//wan2.SetStaticGatewayIp(data.Wan2StaticGatewayIp.ValueString())
-	wan2.SetWanEnabled(data.Wan2WanEnabled.ValueString())
-	//wan2.SetStaticSubnetMask(data.Wan2StaticSubnetMask.ValueString())
-	//wan2.SetStaticIp(data.Wan2StaticIp.ValueString())
-	wan2.SetUsingStaticIp(data.Wan2UsingStaticIp.ValueBool())
-	wan2.SetVlan(int32(data.Wan2Vlan.ValueInt64()))
+	vlan = int32(data.Wan2.Vlan.ValueInt64())
+	staticDNS = []string{}
+	for _, dns := range data.Wan2.StaticDns.Elements() {
+		staticDNS = append(staticDNS, dns.String())
+	}
+	wan2 := openApiClient.DevicesSerialManagementInterfaceWan2{
+		WanEnabled:       data.Wan2.WanEnabled.ValueStringPointer(),
+		UsingStaticIp:    data.Wan2.UsingStaticIp.ValueBoolPointer(),
+		StaticIp:         data.Wan2.StaticIp.ValueStringPointer(),
+		StaticGatewayIp:  data.Wan2.StaticGatewayIp.ValueStringPointer(),
+		StaticSubnetMask: data.Wan2.StaticSubnetMask.ValueStringPointer(),
+		StaticDns:        staticDNS,
+		Vlan:             &vlan,
+	}
 
-	//wan2StaticDNS := []string{}
-	//for _, dns := range data.Wan2StaticDns.Elements() {
-	//	wan2StaticDNS = append(wan2StaticDNS, dns.String())
-	//}
-	//wan2.SetStaticDns(wan2StaticDNS)
+	updateDeviceManagementInterfaceRequest.Wan1 = &wan1
+	updateDeviceManagementInterfaceRequest.Wan2 = &wan2
 
-	deviceNetworkInterface := openApiClient.NewInlineObject14()
-	deviceNetworkInterface.SetWan1(*wan1)
-	deviceNetworkInterface.SetWan2(*wan2)
-
-	_, httpResp, err := r.client.DevicesApi.UpdateDeviceManagementInterface(ctx, data.Serial.ValueString()).UpdateDeviceManagementInterface(*deviceNetworkInterface).Execute()
+	_, httpResp, err := r.client.ManagementInterfaceApi.UpdateDeviceManagementInterface(context.Background(), data.Serial.ValueString()).UpdateDeviceManagementInterface(*updateDeviceManagementInterfaceRequest).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to create resource",
@@ -288,39 +328,44 @@ func (r *DevicesManagementinterfaceResource) Update(ctx context.Context, req res
 		return
 	}
 
-	wan1 := openApiClient.NewDevicesSerialManagementInterfaceWan1()
-	wan2 := openApiClient.NewDevicesSerialManagementInterfaceWan2()
-	wan1.SetStaticGatewayIp(data.Wan1StaticGatewayIp.ValueString())
-	wan1.SetWanEnabled(data.Wan1WanEnabled.ValueString())
-	wan1.SetStaticSubnetMask(data.Wan1StaticSubnetMask.ValueString())
-	wan1.SetStaticIp(data.Wan1StaticIp.ValueString())
-	wan1.SetUsingStaticIp(data.Wan1UsingStaticIp.ValueBool())
-	wan1.SetVlan(int32(data.Wan1Vlan.ValueInt64()))
+	object14 := openApiClient.NewInlineObject14()
 
+	updateDeviceManagementInterfaceRequest := object14
+
+	vlan := int32(data.Wan1.Vlan.ValueInt64())
 	staticDNS := []string{}
-	for _, dns := range data.Wan1StaticDns.Elements() {
+	for _, dns := range data.Wan1.StaticDns.Elements() {
 		staticDNS = append(staticDNS, dns.String())
 	}
-	wan1.SetStaticDns(staticDNS)
+	wan1 := openApiClient.DevicesSerialManagementInterfaceWan1{
+		WanEnabled:       data.Wan1.WanEnabled.ValueStringPointer(),
+		UsingStaticIp:    data.Wan1.UsingStaticIp.ValueBoolPointer(),
+		StaticIp:         data.Wan1.StaticIp.ValueStringPointer(),
+		StaticGatewayIp:  data.Wan1.StaticGatewayIp.ValueStringPointer(),
+		StaticSubnetMask: data.Wan1.StaticSubnetMask.ValueStringPointer(),
+		StaticDns:        staticDNS,
+		Vlan:             &vlan,
+	}
 
-	//wan2.SetStaticGatewayIp(data.Wan2StaticGatewayIp.ValueString())
-	wan2.SetWanEnabled(data.Wan2WanEnabled.ValueString())
-	//wan2.SetStaticSubnetMask(data.Wan2StaticSubnetMask.ValueString())
-	//wan2.SetStaticIp(data.Wan2StaticIp.ValueString())
-	wan2.SetUsingStaticIp(data.Wan2UsingStaticIp.ValueBool())
-	wan2.SetVlan(int32(data.Wan2Vlan.ValueInt64()))
+	vlan = int32(data.Wan2.Vlan.ValueInt64())
+	staticDNS = []string{}
+	for _, dns := range data.Wan2.StaticDns.Elements() {
+		staticDNS = append(staticDNS, dns.String())
+	}
+	wan2 := openApiClient.DevicesSerialManagementInterfaceWan2{
+		WanEnabled:       data.Wan2.WanEnabled.ValueStringPointer(),
+		UsingStaticIp:    data.Wan2.UsingStaticIp.ValueBoolPointer(),
+		StaticIp:         data.Wan2.StaticIp.ValueStringPointer(),
+		StaticGatewayIp:  data.Wan2.StaticGatewayIp.ValueStringPointer(),
+		StaticSubnetMask: data.Wan2.StaticSubnetMask.ValueStringPointer(),
+		StaticDns:        staticDNS,
+		Vlan:             &vlan,
+	}
 
-	//wan2StaticDNS := []string{}
-	//for _, dns := range data.Wan2StaticDns.Elements() {
-	//	wan2StaticDNS = append(wan2StaticDNS, dns.String())
-	//}
-	//wan2.SetStaticDns(wan2StaticDNS)
+	updateDeviceManagementInterfaceRequest.Wan1 = &wan1
+	updateDeviceManagementInterfaceRequest.Wan2 = &wan2
 
-	deviceNetworkInterface := openApiClient.NewInlineObject14()
-	deviceNetworkInterface.SetWan1(*wan1)
-	deviceNetworkInterface.SetWan2(*wan2)
-
-	_, httpResp, err := r.client.DevicesApi.UpdateDeviceManagementInterface(ctx, data.Serial.ValueString()).UpdateDeviceManagementInterface(*deviceNetworkInterface).Execute()
+	_, httpResp, err := r.client.ManagementInterfaceApi.UpdateDeviceManagementInterface(context.Background(), data.Serial.ValueString()).UpdateDeviceManagementInterface(*updateDeviceManagementInterfaceRequest).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to create resource",
@@ -374,39 +419,44 @@ func (r *DevicesManagementinterfaceResource) Delete(ctx context.Context, req res
 		return
 	}
 
-	wan1 := openApiClient.NewDevicesSerialManagementInterfaceWan1()
-	wan2 := openApiClient.NewDevicesSerialManagementInterfaceWan2()
-	wan1.SetStaticGatewayIp(data.Wan1StaticGatewayIp.ValueString())
-	wan1.SetWanEnabled(data.Wan1WanEnabled.ValueString())
-	wan1.SetStaticSubnetMask(data.Wan1StaticSubnetMask.ValueString())
-	wan1.SetStaticIp(data.Wan1StaticIp.ValueString())
-	wan1.SetUsingStaticIp(data.Wan1UsingStaticIp.ValueBool())
-	wan1.SetVlan(int32(data.Wan1Vlan.ValueInt64()))
+	object14 := openApiClient.NewInlineObject14()
 
+	updateDeviceManagementInterfaceRequest := object14
+
+	vlan := int32(data.Wan1.Vlan.ValueInt64())
 	staticDNS := []string{}
-	for _, dns := range data.Wan1StaticDns.Elements() {
+	for _, dns := range data.Wan1.StaticDns.Elements() {
 		staticDNS = append(staticDNS, dns.String())
 	}
-	wan1.SetStaticDns(staticDNS)
+	wan1 := openApiClient.DevicesSerialManagementInterfaceWan1{
+		WanEnabled:       data.Wan1.WanEnabled.ValueStringPointer(),
+		UsingStaticIp:    data.Wan1.UsingStaticIp.ValueBoolPointer(),
+		StaticIp:         data.Wan1.StaticIp.ValueStringPointer(),
+		StaticGatewayIp:  data.Wan1.StaticGatewayIp.ValueStringPointer(),
+		StaticSubnetMask: data.Wan1.StaticSubnetMask.ValueStringPointer(),
+		StaticDns:        staticDNS,
+		Vlan:             &vlan,
+	}
 
-	//wan2.SetStaticGatewayIp(data.Wan2StaticGatewayIp.ValueString())
-	wan2.SetWanEnabled(data.Wan2WanEnabled.ValueString())
-	//wan2.SetStaticSubnetMask(data.Wan2StaticSubnetMask.ValueString())
-	//wan2.SetStaticIp(data.Wan2StaticIp.ValueString())
-	wan2.SetUsingStaticIp(data.Wan2UsingStaticIp.ValueBool())
-	wan2.SetVlan(int32(data.Wan2Vlan.ValueInt64()))
+	vlan = int32(data.Wan2.Vlan.ValueInt64())
+	staticDNS = []string{}
+	for _, dns := range data.Wan2.StaticDns.Elements() {
+		staticDNS = append(staticDNS, dns.String())
+	}
+	wan2 := openApiClient.DevicesSerialManagementInterfaceWan2{
+		WanEnabled:       data.Wan2.WanEnabled.ValueStringPointer(),
+		UsingStaticIp:    data.Wan2.UsingStaticIp.ValueBoolPointer(),
+		StaticIp:         data.Wan2.StaticIp.ValueStringPointer(),
+		StaticGatewayIp:  data.Wan2.StaticGatewayIp.ValueStringPointer(),
+		StaticSubnetMask: data.Wan2.StaticSubnetMask.ValueStringPointer(),
+		StaticDns:        staticDNS,
+		Vlan:             &vlan,
+	}
 
-	//wan2StaticDNS := []string{}
-	//for _, dns := range data.Wan2StaticDns.Elements() {
-	//	wan2StaticDNS = append(wan2StaticDNS, dns.String())
-	//}
-	//wan2.SetStaticDns(wan2StaticDNS)
+	updateDeviceManagementInterfaceRequest.Wan1 = &wan1
+	updateDeviceManagementInterfaceRequest.Wan2 = &wan2
 
-	deviceNetworkInterface := openApiClient.NewInlineObject14()
-	deviceNetworkInterface.SetWan1(*wan1)
-	deviceNetworkInterface.SetWan2(*wan2)
-
-	_, httpResp, err := r.client.DevicesApi.UpdateDeviceManagementInterface(ctx, data.Serial.ValueString()).UpdateDeviceManagementInterface(*deviceNetworkInterface).Execute()
+	_, httpResp, err := r.client.ManagementInterfaceApi.UpdateDeviceManagementInterface(context.Background(), data.Serial.ValueString()).UpdateDeviceManagementInterface(*updateDeviceManagementInterfaceRequest).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to create resource",
@@ -441,6 +491,7 @@ func (r *DevicesManagementinterfaceResource) Delete(ctx context.Context, req res
 		)
 		return
 	}
+
 	data.Id = jsontypes.StringValue("example-id")
 
 	resp.State.RemoveResource(ctx)
