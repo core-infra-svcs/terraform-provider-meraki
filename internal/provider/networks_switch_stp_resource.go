@@ -141,7 +141,7 @@ func (r *NetworksSwitchStpResource) Create(ctx context.Context, req resource.Cre
 		return
 	}
 
-	object138 := openApiClient.NewInlineObject138()
+	object138 := openApiClient.NewInlineObject139()
 	object138.SetRstpEnabled(data.RstpEnabled.ValueBool())
 	var stpBridgePriority []openApiClient.NetworksNetworkIdSwitchStpStpBridgePriority
 	for _, d := range data.StpBridgePriority {
@@ -270,7 +270,7 @@ func (r *NetworksSwitchStpResource) Update(ctx context.Context, req resource.Upd
 		return
 	}
 
-	object138 := openApiClient.NewInlineObject138()
+	object138 := openApiClient.NewInlineObject139()
 	object138.SetRstpEnabled(data.RstpEnabled.ValueBool())
 	var stpBridgePriority []openApiClient.NetworksNetworkIdSwitchStpStpBridgePriority
 	for _, d := range data.StpBridgePriority {
@@ -346,7 +346,7 @@ func (r *NetworksSwitchStpResource) Delete(ctx context.Context, req resource.Del
 		return
 	}
 
-	object138 := openApiClient.NewInlineObject138()
+	object138 := openApiClient.NewInlineObject139()
 	object138.SetRstpEnabled(data.RstpEnabled.ValueBool())
 	var stpBridgePriority []openApiClient.NetworksNetworkIdSwitchStpStpBridgePriority
 	for _, d := range data.StpBridgePriority {
