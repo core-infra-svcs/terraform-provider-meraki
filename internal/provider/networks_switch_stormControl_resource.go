@@ -117,7 +117,7 @@ func (r *NetworksSwitchStormControlResource) Create(ctx context.Context, req res
 		return
 	}
 
-	payload := openApiClient.NewInlineObject137()
+	payload := openApiClient.NewInlineObject138()
 	payload.SetMulticastThreshold(int32(data.MulticastThreshold.ValueInt64()))
 	payload.SetBroadcastThreshold(int32(data.BroadcastThreshold.ValueInt64()))
 	payload.SetUnknownUnicastThreshold(int32(data.UnknownUnicastThreshold.ValueInt64()))
@@ -229,7 +229,7 @@ func (r *NetworksSwitchStormControlResource) Update(ctx context.Context, req res
 		return
 	}
 
-	payload := openApiClient.NewInlineObject137()
+	payload := openApiClient.NewInlineObject138()
 	payload.SetMulticastThreshold(int32(data.MulticastThreshold.ValueInt64()))
 	payload.SetBroadcastThreshold(int32(data.BroadcastThreshold.ValueInt64()))
 	payload.SetUnknownUnicastThreshold(int32(data.UnknownUnicastThreshold.ValueInt64()))
@@ -288,7 +288,10 @@ func (r *NetworksSwitchStormControlResource) Delete(ctx context.Context, req res
 		return
 	}
 
-	payload := openApiClient.NewInlineObject137()
+	payload := openApiClient.NewInlineObject138()
+	payload.SetMulticastThreshold(int32(data.MulticastThreshold.ValueInt64()))
+	payload.SetBroadcastThreshold(int32(data.BroadcastThreshold.ValueInt64()))
+	payload.SetUnknownUnicastThreshold(int32(data.UnknownUnicastThreshold.ValueInt64()))
 
 	_, httpResp, err := r.client.SwitchApi.UpdateNetworkSwitchStormControl(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchStormControl(*payload).Execute()
 	if err != nil {
