@@ -40,8 +40,8 @@ func TestAccNetworkApplianceTrafficShapingUplinkSelectionResource(t *testing.T) 
 			{
 				Config: testAccNetworkApplianceTrafficShapingUplinkSelectionResourceConfigUpdateNetworkApplianceTrafficShapingUplinkSelection,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_appliance_traffic_shaping_uplink_selection.test", "active_active_auto_vpn_enabled", "true"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_traffic_shaping_uplink_selection.test", "default_uplink", "wan1"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_traffic_shaping_uplink_selection.test", "active_active_auto_vpn_enabled", "false"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_traffic_shaping_uplink_selection.test", "default_uplink", "wan2"),
 					resource.TestCheckResourceAttr("meraki_networks_appliance_traffic_shaping_uplink_selection.test", "load_balancing_enabled", "true"),
 					resource.TestCheckResourceAttr("meraki_networks_appliance_traffic_shaping_uplink_selection.test", "failover_and_failback.immediate.enabled", "false"),
 				),
@@ -81,8 +81,8 @@ resource "meraki_network" "test" {
 
 resource "meraki_networks_appliance_traffic_shaping_uplink_selection" "test" {
 	depends_on = [resource.meraki_organization.test, resource.meraki_network.test]
-    network_id = resource.meraki_network.test.network_id
-	active_active_auto_vpn_enabled = true
+    network_id = "N_784752235069393518"
+	active_active_auto_vpn_enabled = false
 	default_uplink = "wan1"
 	load_balancing_enabled = true
 	vpn_traffic_uplink_preferences = []
@@ -91,6 +91,20 @@ resource "meraki_networks_appliance_traffic_shaping_uplink_selection" "test" {
 	   enabled = false
 	}
     }
-	wan_traffic_uplink_preferences = []
+	wan_traffic_uplink_preferences = [
+	{
+		preferred_uplink = "wan1"
+		traffic_filters = [{
+		value_source_port = "any"
+		value_source_cidr = "any"				
+		value_destination_cidr = "any"
+		value_destination_port = "any"
+		value_protocol = "any"
+		value_source_host = 0
+		value_source_vlan = 0
+		type = "custom"
+	}]
+		}
+	]
 }
 `
