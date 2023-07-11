@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.1.5](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.1.4...v0.1.5) (2023-07-11)
+
+
+### Bug Fixes
+
+* Github actions workflow ([13f476a](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/13f476a785342655b94ea28f80ff0bac77f47f32))
+* refactoring code and docs ([869eb82](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/869eb82981251a93fa379742cdd71ae5c6807a09))
+* refactoring test cases ([00dab30](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/00dab30a08c462f9073c851359c836183f154d07))
+* resolving value conversion and secure port enable field missing issues ([1316e2d](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/1316e2da7b516badf157d7165ebff3da79a9be1d))
+
 ## 0.1.0 (2023-06-09)
 
 
