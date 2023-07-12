@@ -49,8 +49,8 @@ func TestAccDevicesApplianceDhcpSubnetsDataSource(t *testing.T) {
 			{
 				Config: testAccDevicesApplianceDhcpSubnetsDataSourceConfigRead(os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("devices_appliance_dhcp_subnets.test", "id", "example-id"),
-					resource.TestCheckResourceAttr("devices_appliance_dhcp_subnets.test", "serial", os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
+					resource.TestCheckResourceAttr("data.meraki_devices_appliance_dhcp_subnets.test", "id", "example-id"),
+					resource.TestCheckResourceAttr("data.meraki_devices_appliance_dhcp_subnets.test", "serial", os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
 				),
 			},
 		},
@@ -87,7 +87,8 @@ resource "meraki_network" "test" {
 // It depends on both the organization and network resources.
 func testAccDevicesApplianceDhcpSubnetsDataSourceConfigRead(serialID string) string {
 	return fmt.Sprintf(
-		`resource "meraki_organization" "test" {}
+		`
+resource "meraki_organization" "test" {}
 resource "meraki_network" "test" {
 	depends_on = [resource.meraki_organization.test]
 	product_types = ["appliance", "switch", "wireless"]
@@ -95,7 +96,7 @@ resource "meraki_network" "test" {
 
 data "meraki_devices_appliance_dhcp_subnets" "test" {
 	depends_on = [resource.meraki_network.test, resource.meraki_organization.test]
-  	serial = "%s"
-}`, serialID,
-	)
+	serial = "%s"
+}
+`, serialID)
 }

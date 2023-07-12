@@ -78,7 +78,7 @@ func (d *DevicesApplianceDhcpSubnetsDataSource) Schema(ctx context.Context, req 
 				Required:   true,
 				CustomType: jsontypes.StringType,
 			},
-			"list": schema.SetNestedAttribute{
+			"list": schema.ListNestedAttribute{
 				Optional:    true,
 				Computed:    true,
 				Description: "",
