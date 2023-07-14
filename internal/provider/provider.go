@@ -178,6 +178,16 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		NewNetworksSwitchMtuResource,
 		NewNetworksGroupPolicyResource,
 		NewOrganizationsLicenseResource,
+		NewNetworksWirelessSsidsFirewallL3FirewallRulesResource,
+		NewNetworksWirelessSsidsFirewallL7FirewallRulesResource,
+		NewDevicesResource,
+		NewOrganizationsClaimResource,
+		NewNetworksDevicesClaimResource,
+		NewNetworkApplianceStaticRoutesResource,
+		NewNetworksCellularGatewaySubnetPoolResource,
+		NewNetworksCellularGatewayUplinkResource,
+		NewNetworksWirelessSsidsSplashSettingsResource,
+		NewDevicesCellularSimsResource,
 		NewNetworksApplianceVLANsResource,
 	}
 }
@@ -192,6 +202,10 @@ func (p *CiscoMerakiProvider) DataSources(ctx context.Context) []func() datasour
 		NewOrganizationsAdaptivePolicyAclsDataSource,
 		NewOrganizationsSamlRolesDataSource,
 		NewNetworkGroupPoliciesDataSource,
+		NewNetworksAppliancePortsDataSource,
+		NewOrganizationsCellularGatewayUplinkStatusesDataSource,
+		NewOrganizationsLicensesDataSource,
+		NewDevicesSwitchPortsStatusesDataSource,
 		NewNetworksApplianceVlansDataSource,
 	}
 }

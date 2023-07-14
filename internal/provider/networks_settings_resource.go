@@ -36,38 +36,14 @@ type NetworksSettingsResourceModel struct {
 	NetworkId                             jsontypes.String `tfsdk:"network_id" json:"network_id"`
 	LocalStatusPageEnabled                jsontypes.Bool   `tfsdk:"local_status_page_enabled" json:"localStatusPageEnabled"`
 	RemoteStatusPageEnabled               jsontypes.Bool   `tfsdk:"remote_status_page_enabled" json:"remoteStatusPageEnabled"`
-	SecurePortEnabled                     SecurePort       `tfsdk:"secure_port_enabled" json:"securePort"`
-	LocalStatusPage                       LocalStatusPage  `tfsdk:"local_status_page" json:"localStatusPage"`
+	SecurePortEnabled                     jsontypes.Bool   `tfsdk:"secure_port_enabled" json:"securePort"`
+	LocalStatusPageAuthenticationEnabled  jsontypes.Bool   `tfsdk:"local_status_page_authentication_enabled" json:"local_status_page_authentication_enabled"`
+	LocalStatusPageAuthenticationUsername jsontypes.String `tfsdk:"local_status_page_authentication_username" json:"local_status_page_authentication_username"`
 	LocalStatusPageAuthenticationPassword jsontypes.String `tfsdk:"local_status_page_authentication_password" json:"local_status_page_authentication_password"`
 	FipsEnabled                           jsontypes.Bool   `tfsdk:"fips_enabled"`
 	NamedVlansEnabled                     jsontypes.Bool   `tfsdk:"named_vlans_enabled"`
 	ClientPrivacyExpireDataOlderThan      jsontypes.Int64  `tfsdk:"client_privacy_expire_data_older_than"`
 	ClientPrivacyExpireDataBefore         jsontypes.String `tfsdk:"client_privacy_expire_data_before"`
-}
-
-type SecurePort struct {
-	Enabled bool `tfsdk:"enabled" json:"enabled"`
-}
-
-type LocalStatusPage struct {
-	Authentication AuthenticationInfo `tfsdk:"authentication" json:"authentication"`
-}
-
-type AuthenticationInfo struct {
-	Enabled  bool   `tfsdk:"enabled" json:"enabled"`
-	Username string `tfsdk:"username" json:"username"`
-}
-
-type Fips struct {
-	Enabled bool `tfsdk:"enabled"`
-}
-
-type NamedVlans struct {
-	Enabled bool `tfsdk:"enabled"`
-}
-type ClientPrivacy struct {
-	ExpireDataOlderThan jsontypes.Int64 `tfsdk:"expireDataOlderThan"`
-	ExpireDataBefore    string          `tfsdk:"expireDataBefore"`
 }
 
 func (r *NetworksSettingsResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -93,29 +69,17 @@ func (r *NetworksSettingsResource) Schema(ctx context.Context, req resource.Sche
 					stringvalidator.LengthBetween(1, 31),
 				},
 			},
-			"local_status_page": schema.SingleNestedAttribute{
-				Optional: true,
-				Computed: true,
-				Attributes: map[string]schema.Attribute{
-					"authentication": schema.SingleNestedAttribute{
-						Optional: true,
-						Computed: true,
-						Attributes: map[string]schema.Attribute{
-							"enabled": schema.BoolAttribute{
-								MarkdownDescription: "Enables / disables the authentication on Local Status page(s).",
-								Optional:            true,
-								Computed:            true,
-								CustomType:          jsontypes.BoolType,
-							},
-							"username": schema.StringAttribute{
-								MarkdownDescription: "The username used for Local Status Page(s).",
-								Optional:            true,
-								Computed:            true,
-								CustomType:          jsontypes.StringType,
-							},
-						},
-					},
-				},
+			"local_status_page_authentication_enabled": schema.BoolAttribute{
+				MarkdownDescription: "Enables / disables the authentication on Local Status page(s).",
+				Optional:            true,
+				Computed:            true,
+				CustomType:          jsontypes.BoolType,
+			},
+			"local_status_page_authentication_username": schema.StringAttribute{
+				MarkdownDescription: "The username used for Local Status Page(s).",
+				Optional:            true,
+				Computed:            true,
+				CustomType:          jsontypes.StringType,
 			},
 			"local_status_page_enabled": schema.BoolAttribute{
 				MarkdownDescription: "Enables / disables access to the device status page (http://[device's LAN IP]). Optional. Can only be set if localStatusPageEnabled is set to true",
@@ -129,17 +93,11 @@ func (r *NetworksSettingsResource) Schema(ctx context.Context, req resource.Sche
 				Computed:            true,
 				CustomType:          jsontypes.BoolType,
 			},
-			"secure_port_enabled": schema.SingleNestedAttribute{
-				Optional: true,
-				Computed: true,
-				Attributes: map[string]schema.Attribute{
-					"enabled": schema.BoolAttribute{
-						MarkdownDescription: "Enables / disables the secure port.",
-						Optional:            true,
-						Computed:            true,
-						CustomType:          jsontypes.BoolType,
-					},
-				},
+			"secure_port_enabled": schema.BoolAttribute{
+				MarkdownDescription: "Enables / disables the secure port.",
+				Optional:            true,
+				Computed:            true,
+				CustomType:          jsontypes.BoolType,
 			},
 			"local_status_page_authentication_password": schema.StringAttribute{
 				MarkdownDescription: "The password used for Local Status Page(s). Set this to null to clear the password.",
@@ -208,17 +166,18 @@ func (r *NetworksSettingsResource) Create(ctx context.Context, req resource.Crea
 	updateNetworkSettings.SetLocalStatusPageEnabled(data.LocalStatusPageEnabled.ValueBool())
 	updateNetworkSettings.SetRemoteStatusPageEnabled(data.RemoteStatusPageEnabled.ValueBool())
 	var v openApiClient.InlineResponse20041SecurePort
-
-	v.SetEnabled(data.SecurePortEnabled.Enabled)
+	v.SetEnabled(data.SecurePortEnabled.ValueBool())
 	updateNetworkSettings.SetSecurePort(v)
 	var l openApiClient.NetworksNetworkIdSettingsLocalStatusPage
 	var a openApiClient.NetworksNetworkIdSettingsLocalStatusPageAuthentication
-	a.SetEnabled(data.LocalStatusPage.Authentication.Enabled)
-	a.SetPassword(data.LocalStatusPage.Authentication.Username)
+	a.SetEnabled(data.LocalStatusPageAuthenticationEnabled.ValueBool())
+	a.SetPassword(data.LocalStatusPageAuthenticationUsername.ValueString())
 	l.SetAuthentication(a)
 	updateNetworkSettings.SetLocalStatusPage(l)
 
 	inlineResp, httpResp, err := r.client.NetworksApi.UpdateNetworkSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSettings(updateNetworkSettings).Execute()
+
+	fmt.Println(httpResp.Body)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to update resource",
@@ -245,10 +204,12 @@ func (r *NetworksSettingsResource) Create(ctx context.Context, req resource.Crea
 	}
 
 	data.Id = jsontypes.StringValue("example-id")
-	data.LocalStatusPage.Authentication.Enabled = *inlineResp.GetLocalStatusPage().Authentication.Enabled
-	data.LocalStatusPage.Authentication.Username = *inlineResp.GetLocalStatusPage().Authentication.Username
+	data.LocalStatusPageAuthenticationEnabled = jsontypes.BoolValue(inlineResp.LocalStatusPage.Authentication.GetEnabled())
+	data.LocalStatusPageAuthenticationUsername = jsontypes.StringValue(inlineResp.LocalStatusPage.Authentication.GetUsername())
+	fmt.Println(jsontypes.StringValue(inlineResp.LocalStatusPage.Authentication.GetUsername()))
 	data.LocalStatusPageEnabled = jsontypes.BoolValue(inlineResp.GetLocalStatusPageEnabled())
 	data.RemoteStatusPageEnabled = jsontypes.BoolValue(inlineResp.GetRemoteStatusPageEnabled())
+	data.SecurePortEnabled = jsontypes.BoolValue(bool(inlineResp.SecurePort.GetEnabled()))
 	if inlineResp.Fips.GetEnabled() {
 		data.FipsEnabled = jsontypes.BoolValue(inlineResp.Fips.GetEnabled())
 	} else {
@@ -267,7 +228,6 @@ func (r *NetworksSettingsResource) Create(ctx context.Context, req resource.Crea
 		data.ClientPrivacyExpireDataBefore = jsontypes.StringNull()
 
 	}
-
 	if inlineResp.ClientPrivacy.GetExpireDataOlderThan() != 0 {
 		data.ClientPrivacyExpireDataOlderThan = jsontypes.Int64Value(int64(inlineResp.ClientPrivacy.GetExpireDataOlderThan()))
 	} else {
@@ -318,10 +278,11 @@ func (r *NetworksSettingsResource) Read(ctx context.Context, req resource.ReadRe
 	}
 
 	data.Id = jsontypes.StringValue("example-id")
-	data.LocalStatusPage.Authentication.Enabled = *inlineResp.GetLocalStatusPage().Authentication.Enabled
-	data.LocalStatusPage.Authentication.Username = *inlineResp.GetLocalStatusPage().Authentication.Username
+	data.LocalStatusPageAuthenticationEnabled = jsontypes.BoolValue(inlineResp.LocalStatusPage.Authentication.GetEnabled())
+	data.LocalStatusPageAuthenticationUsername = jsontypes.StringValue(inlineResp.LocalStatusPage.Authentication.GetUsername())
 	data.LocalStatusPageEnabled = jsontypes.BoolValue(inlineResp.GetLocalStatusPageEnabled())
 	data.RemoteStatusPageEnabled = jsontypes.BoolValue(inlineResp.GetRemoteStatusPageEnabled())
+	data.SecurePortEnabled = jsontypes.BoolValue(bool(inlineResp.SecurePort.GetEnabled()))
 	if inlineResp.Fips.GetEnabled() {
 		data.FipsEnabled = jsontypes.BoolValue(inlineResp.Fips.GetEnabled())
 	} else {
@@ -340,7 +301,6 @@ func (r *NetworksSettingsResource) Read(ctx context.Context, req resource.ReadRe
 		data.ClientPrivacyExpireDataBefore = jsontypes.StringNull()
 
 	}
-
 	if inlineResp.ClientPrivacy.GetExpireDataOlderThan() != 0 {
 		data.ClientPrivacyExpireDataOlderThan = jsontypes.Int64Value(int64(inlineResp.ClientPrivacy.GetExpireDataOlderThan()))
 	} else {
@@ -368,12 +328,12 @@ func (r *NetworksSettingsResource) Update(ctx context.Context, req resource.Upda
 	updateNetworkSettings.SetLocalStatusPageEnabled(data.LocalStatusPageEnabled.ValueBool())
 	updateNetworkSettings.SetRemoteStatusPageEnabled(data.RemoteStatusPageEnabled.ValueBool())
 	var v openApiClient.InlineResponse20041SecurePort
-	v.SetEnabled(data.SecurePortEnabled.Enabled)
+	v.SetEnabled(data.SecurePortEnabled.ValueBool())
 	updateNetworkSettings.SetSecurePort(v)
 	var l openApiClient.NetworksNetworkIdSettingsLocalStatusPage
 	var a openApiClient.NetworksNetworkIdSettingsLocalStatusPageAuthentication
-	a.SetEnabled(data.LocalStatusPage.Authentication.Enabled)
-	a.SetPassword(data.LocalStatusPage.Authentication.Username)
+	a.SetEnabled(data.LocalStatusPageAuthenticationEnabled.ValueBool())
+	a.SetPassword(data.LocalStatusPageAuthenticationUsername.ValueString())
 	l.SetAuthentication(a)
 	updateNetworkSettings.SetLocalStatusPage(l)
 
@@ -405,10 +365,11 @@ func (r *NetworksSettingsResource) Update(ctx context.Context, req resource.Upda
 	}
 
 	data.Id = jsontypes.StringValue("example-id")
-	data.LocalStatusPage.Authentication.Enabled = *inlineResp.GetLocalStatusPage().Authentication.Enabled
-	data.LocalStatusPage.Authentication.Username = *inlineResp.GetLocalStatusPage().Authentication.Username
+	data.LocalStatusPageAuthenticationEnabled = jsontypes.BoolValue(inlineResp.LocalStatusPage.Authentication.GetEnabled())
+	data.LocalStatusPageAuthenticationUsername = jsontypes.StringValue(inlineResp.LocalStatusPage.Authentication.GetUsername())
 	data.LocalStatusPageEnabled = jsontypes.BoolValue(inlineResp.GetLocalStatusPageEnabled())
 	data.RemoteStatusPageEnabled = jsontypes.BoolValue(inlineResp.GetRemoteStatusPageEnabled())
+	data.SecurePortEnabled = jsontypes.BoolValue(bool(inlineResp.SecurePort.GetEnabled()))
 	if inlineResp.Fips.GetEnabled() {
 		data.FipsEnabled = jsontypes.BoolValue(inlineResp.Fips.GetEnabled())
 	} else {
@@ -427,7 +388,6 @@ func (r *NetworksSettingsResource) Update(ctx context.Context, req resource.Upda
 		data.ClientPrivacyExpireDataBefore = jsontypes.StringNull()
 
 	}
-
 	if inlineResp.ClientPrivacy.GetExpireDataOlderThan() != 0 {
 		data.ClientPrivacyExpireDataOlderThan = jsontypes.Int64Value(int64(inlineResp.ClientPrivacy.GetExpireDataOlderThan()))
 	} else {
@@ -455,12 +415,12 @@ func (r *NetworksSettingsResource) Delete(ctx context.Context, req resource.Dele
 	updateNetworkSettings.SetLocalStatusPageEnabled(data.LocalStatusPageEnabled.ValueBool())
 	updateNetworkSettings.SetRemoteStatusPageEnabled(data.RemoteStatusPageEnabled.ValueBool())
 	var v openApiClient.InlineResponse20041SecurePort
-	v.SetEnabled(data.SecurePortEnabled.Enabled)
+	v.SetEnabled(data.SecurePortEnabled.ValueBool())
 	updateNetworkSettings.SetSecurePort(v)
 	var l openApiClient.NetworksNetworkIdSettingsLocalStatusPage
 	var a openApiClient.NetworksNetworkIdSettingsLocalStatusPageAuthentication
-	a.SetEnabled(data.LocalStatusPage.Authentication.Enabled)
-	a.SetPassword(data.LocalStatusPage.Authentication.Username)
+	a.SetEnabled(data.LocalStatusPageAuthenticationEnabled.ValueBool())
+	a.SetPassword(data.LocalStatusPageAuthenticationUsername.ValueString())
 	l.SetAuthentication(a)
 	updateNetworkSettings.SetLocalStatusPage(l)
 
@@ -492,10 +452,11 @@ func (r *NetworksSettingsResource) Delete(ctx context.Context, req resource.Dele
 	}
 
 	data.Id = jsontypes.StringValue("example-id")
-	data.LocalStatusPage.Authentication.Enabled = *inlineResp.GetLocalStatusPage().Authentication.Enabled
-	data.LocalStatusPage.Authentication.Username = *inlineResp.GetLocalStatusPage().Authentication.Username
+	data.LocalStatusPageAuthenticationEnabled = jsontypes.BoolValue(inlineResp.LocalStatusPage.Authentication.GetEnabled())
+	data.LocalStatusPageAuthenticationUsername = jsontypes.StringValue(inlineResp.LocalStatusPage.Authentication.GetUsername())
 	data.LocalStatusPageEnabled = jsontypes.BoolValue(inlineResp.GetLocalStatusPageEnabled())
 	data.RemoteStatusPageEnabled = jsontypes.BoolValue(inlineResp.GetRemoteStatusPageEnabled())
+	data.SecurePortEnabled = jsontypes.BoolValue(bool(inlineResp.SecurePort.GetEnabled()))
 	if inlineResp.Fips.GetEnabled() {
 		data.FipsEnabled = jsontypes.BoolValue(inlineResp.Fips.GetEnabled())
 	} else {
@@ -514,7 +475,6 @@ func (r *NetworksSettingsResource) Delete(ctx context.Context, req resource.Dele
 		data.ClientPrivacyExpireDataBefore = jsontypes.StringNull()
 
 	}
-
 	if inlineResp.ClientPrivacy.GetExpireDataOlderThan() != 0 {
 		data.ClientPrivacyExpireDataOlderThan = jsontypes.Int64Value(int64(inlineResp.ClientPrivacy.GetExpireDataOlderThan()))
 	} else {
