@@ -50,10 +50,10 @@ func TestAccNetworkSettingsResource(t *testing.T) {
 			{
 				Config: testAccNetworkSettingsResourceConfigUpdateNetworkSettings,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_settings.test", "local_status_page_enabled", "false"),
-					resource.TestCheckResourceAttr("meraki_networks_settings.test", "remote_status_page_enabled", "false"),
-					resource.TestCheckResourceAttr("meraki_networks_settings.test", "secure_port_enabled.enabled", "false"),
-					resource.TestCheckResourceAttr("meraki_networks_settings.test", "local_status_page.authentication.enabled", "true"),
+					resource.TestCheckResourceAttr("meraki_networks_settings.test", "local_status_page_enabled", "true"),
+					resource.TestCheckResourceAttr("meraki_networks_settings.test", "remote_status_page_enabled", "true"),
+					resource.TestCheckResourceAttr("meraki_networks_settings.test", "secure_port_enabled", "false"),
+					resource.TestCheckResourceAttr("meraki_networks_settings.test", "local_status_page_authentication_enabled", "true"),
 				),
 			},
 		},
@@ -93,16 +93,10 @@ resource "meraki_networks_settings" "test" {
 	depends_on = [resource.meraki_organization.test,
 	resource.meraki_network.test]
       network_id = resource.meraki_network.test.network_id
-	  local_status_page = {
-		authentication = { 
-			enabled = true
-			username = "admin"
-		}
-	  }
-	  remote_status_page_enabled = false
-	  secure_port_enabled = {
-		enabled = false
-	  }
+	  local_status_page_authentication_enabled = true
 	  local_status_page_authentication_password = "testpassword"
+	  remote_status_page_enabled = true
+	  local_status_page_enabled = true
+	  secure_port_enabled = false			  
 }
 `
