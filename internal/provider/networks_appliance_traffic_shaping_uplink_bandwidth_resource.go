@@ -34,20 +34,29 @@ type NetworksApplianceTrafficShapingUplinkBandWidthResource struct {
 
 // NetworksApplianceTrafficShapingUplinkBandWidthResourceModel describes the resource data model.
 type NetworksApplianceTrafficShapingUplinkBandWidthResourceModel struct {
-	Id              jsontypes.String `tfsdk:"id"`
-	NetworkId       jsontypes.String `tfsdk:"network_id" json:"network_id"`
-	BandwidthLimits BandwidthLimits  `tfsdk:"bandwidth_limits" json:"bandwidthLimits"`
+	Id                              jsontypes.String `tfsdk:"id"`
+	NetworkId                       jsontypes.String `tfsdk:"network_id" json:"network_id"`
+	BandwidthLimitCellularLimitUp   jsontypes.Int64  `tfsdk:"bandwidth_limit_cellular_limit_up"`
+	BandwidthLimitCellularLimitDown jsontypes.Int64  `tfsdk:"bandwidth_limit_cellular_limit_down"`
+	BandwidthLimitWan2LimitUp       jsontypes.Int64  `tfsdk:"bandwidth_limit_wan2_limit_up"`
+	BandwidthLimitWan2LimitDown     jsontypes.Int64  `tfsdk:"bandwidth_limit_wan2_limit_down"`
+	BandwidthLimitWan1LimitUp       jsontypes.Int64  `tfsdk:"bandwidth_limit_wan1_limit_up"`
+	BandwidthLimitWan1LimitDown     jsontypes.Int64  `tfsdk:"bandwidth_limit_wan1_limit_down"`
 }
 
-type BandwidthLimits struct {
-	Wan1     Limits `tfsdk:"wan1" json:"wan1"`
-	Wan2     Limits `tfsdk:"wan2" json:"wan2"`
-	Cellular Limits `tfsdk:"cellular" json:"cellular"`
+type ApiResponse struct {
+	UplinkBandwidthLimits UplinkBandwidthLimits `json:"bandwidthLimits"`
+}
+
+type UplinkBandwidthLimits struct {
+	Wan1     Limits `json:"wan1"`
+	Wan2     Limits `json:"wan2"`
+	Cellular Limits `json:"cellular"`
 }
 
 type Limits struct {
-	LimitUp   jsontypes.Int64 `tfsdk:"limit_up" json:"limitUp"`
-	LimitDown jsontypes.Int64 `tfsdk:"limit_down" json:"limitDown"`
+	LimitUp   jsontypes.Int64 `json:"limitUp"`
+	LimitDown jsontypes.Int64 `json:"limitDown"`
 }
 
 func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -73,65 +82,35 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Schema(ctx cont
 					stringvalidator.LengthBetween(8, 31),
 				},
 			},
-			"bandwidth_limits": schema.SingleNestedAttribute{
-				MarkdownDescription: "A mapping of uplinks to their bandwidth settings (be sure to check which uplinks are supported for your network)",
-				Required:            true,
-				Attributes: map[string]schema.Attribute{
-					"cellular": schema.SingleNestedAttribute{
-						MarkdownDescription: "The bandwidth settings for the 'cellular' uplink",
-						Required:            true,
-						Attributes: map[string]schema.Attribute{
-							"limit_up": schema.Int64Attribute{
-								MarkdownDescription: "The maximum upload limit (integer, in Kbps). null indicates no limit",
-								Optional:            true,
-								Computed:            true,
-								CustomType:          jsontypes.Int64Type,
-							},
-							"limit_down": schema.Int64Attribute{
-								MarkdownDescription: "The maximum download limit (integer, in Kbps). null indicates no limit",
-								Optional:            true,
-								Computed:            true,
-								CustomType:          jsontypes.Int64Type,
-							},
-						},
-					},
-					"wan2": schema.SingleNestedAttribute{
-						MarkdownDescription: "The bandwidth settings for the 'wan2' uplink",
-						Required:            true,
-						Attributes: map[string]schema.Attribute{
-							"limit_up": schema.Int64Attribute{
-								MarkdownDescription: "The maximum upload limit (integer, in Kbps). null indicates no limit",
-								Optional:            true,
-								Computed:            true,
-								CustomType:          jsontypes.Int64Type,
-							},
-							"limit_down": schema.Int64Attribute{
-								MarkdownDescription: "The maximum download limit (integer, in Kbps). null indicates no limit",
-								Optional:            true,
-								Computed:            true,
-								CustomType:          jsontypes.Int64Type,
-							},
-						},
-					},
-					"wan1": schema.SingleNestedAttribute{
-						MarkdownDescription: "The bandwidth settings for the 'wan1' uplink",
-						Required:            true,
-						Attributes: map[string]schema.Attribute{
-							"limit_up": schema.Int64Attribute{
-								MarkdownDescription: "The maximum upload limit (integer, in Kbps). null indicates no limit",
-								Optional:            true,
-								Computed:            true,
-								CustomType:          jsontypes.Int64Type,
-							},
-							"limit_down": schema.Int64Attribute{
-								MarkdownDescription: "The maximum download limit (integer, in Kbps). null indicates no limit",
-								Optional:            true,
-								Computed:            true,
-								CustomType:          jsontypes.Int64Type,
-							},
-						},
-					},
-				},
+			"bandwidth_limit_cellular_limit_up": schema.Int64Attribute{
+				MarkdownDescription: "The bandwidth settings for the 'cellular' uplink. The maximum upload limit (integer, in Kbps). null indicates no limit",
+				Optional:            true,
+				CustomType:          jsontypes.Int64Type,
+			},
+			"bandwidth_limit_cellular_limit_down": schema.Int64Attribute{
+				MarkdownDescription: "The bandwidth settings for the 'cellular' uplink. The maximum download limit (integer, in Kbps). null indicates no limit",
+				Optional:            true,
+				CustomType:          jsontypes.Int64Type,
+			},
+			"bandwidth_limit_wan2_limit_up": schema.Int64Attribute{
+				MarkdownDescription: "The bandwidth settings for the 'wan2' uplink. The maximum upload limit (integer, in Kbps). null indicates no limit",
+				Optional:            true,
+				CustomType:          jsontypes.Int64Type,
+			},
+			"bandwidth_limit_wan2_limit_down": schema.Int64Attribute{
+				MarkdownDescription: "The bandwidth settings for the 'wan2' uplink. The maximum download limit (integer, in Kbps). null indicates no limit",
+				Optional:            true,
+				CustomType:          jsontypes.Int64Type,
+			},
+			"bandwidth_limit_wan1_limit_up": schema.Int64Attribute{
+				MarkdownDescription: "The bandwidth settings for the 'wan1' uplink. The maximum upload limit (integer, in Kbps). null indicates no limit",
+				Optional:            true,
+				CustomType:          jsontypes.Int64Type,
+			},
+			"bandwidth_limit_wan1_limit_down": schema.Int64Attribute{
+				MarkdownDescription: "The bandwidth settings for the 'wan1' uplink. The maximum download limit (integer, in Kbps). null indicates no limit",
+				Optional:            true,
+				CustomType:          jsontypes.Int64Type,
 			},
 		},
 	}
@@ -173,28 +152,29 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Create(ctx cont
 	var bandwidthLimit openApiClient.NetworksNetworkIdApplianceTrafficShapingUplinkBandwidthBandwidthLimits
 
 	var cellular openApiClient.NetworksNetworkIdApplianceTrafficShapingUplinkBandwidthBandwidthLimitsCellular
-	if !(data.BandwidthLimits.Cellular.LimitUp.IsUnknown() || data.BandwidthLimits.Cellular.LimitDown.IsUnknown()) {
-		if !(data.BandwidthLimits.Cellular.LimitUp.IsNull() || data.BandwidthLimits.Cellular.LimitDown.IsNull()) {
-			cellular.SetLimitUp(int32(data.BandwidthLimits.Cellular.LimitUp.ValueInt64()))
-			cellular.SetLimitDown(int32(data.BandwidthLimits.Cellular.LimitDown.ValueInt64()))
+
+	if !(data.BandwidthLimitCellularLimitUp.IsUnknown() || data.BandwidthLimitCellularLimitDown.IsUnknown()) {
+		if !(data.BandwidthLimitCellularLimitUp.IsNull() || data.BandwidthLimitCellularLimitDown.IsNull()) {
+			cellular.SetLimitUp(int32(data.BandwidthLimitCellularLimitUp.ValueInt64()))
+			cellular.SetLimitDown(int32(data.BandwidthLimitCellularLimitDown.ValueInt64()))
 			bandwidthLimit.SetCellular(cellular)
 		}
 	}
 
 	var wan1 openApiClient.NetworksNetworkIdApplianceTrafficShapingUplinkBandwidthBandwidthLimitsWan1
-	if !(data.BandwidthLimits.Wan1.LimitUp.IsUnknown() || data.BandwidthLimits.Wan1.LimitDown.IsUnknown()) {
-		if !(data.BandwidthLimits.Wan1.LimitUp.IsNull() || data.BandwidthLimits.Wan1.LimitDown.IsNull()) {
-			wan1.SetLimitUp(int32(data.BandwidthLimits.Wan1.LimitUp.ValueInt64()))
-			wan1.SetLimitDown(int32(data.BandwidthLimits.Wan1.LimitDown.ValueInt64()))
+	if !(data.BandwidthLimitWan1LimitUp.IsUnknown() || data.BandwidthLimitWan1LimitDown.IsUnknown()) {
+		if !(data.BandwidthLimitWan1LimitUp.IsNull() || data.BandwidthLimitWan1LimitDown.IsNull()) {
+			wan1.SetLimitUp(int32(data.BandwidthLimitWan1LimitUp.ValueInt64()))
+			wan1.SetLimitDown(int32(data.BandwidthLimitWan1LimitDown.ValueInt64()))
 			bandwidthLimit.SetWan1(wan1)
 		}
 	}
 
 	var wan2 openApiClient.NetworksNetworkIdApplianceTrafficShapingUplinkBandwidthBandwidthLimitsWan2
-	if !(data.BandwidthLimits.Wan2.LimitUp.IsUnknown() || data.BandwidthLimits.Wan2.LimitDown.IsUnknown()) {
-		if !(data.BandwidthLimits.Wan2.LimitUp.IsNull() || data.BandwidthLimits.Wan2.LimitDown.IsNull()) {
-			wan2.SetLimitUp(int32(data.BandwidthLimits.Wan2.LimitUp.ValueInt64()))
-			wan2.SetLimitDown(int32(data.BandwidthLimits.Wan2.LimitDown.ValueInt64()))
+	if !(data.BandwidthLimitWan2LimitUp.IsUnknown() || data.BandwidthLimitWan2LimitDown.IsUnknown()) {
+		if !(data.BandwidthLimitWan2LimitUp.IsNull() || data.BandwidthLimitWan2LimitDown.IsNull()) {
+			wan2.SetLimitUp(int32(data.BandwidthLimitWan2LimitUp.ValueInt64()))
+			wan2.SetLimitDown(int32(data.BandwidthLimitWan2LimitDown.ValueInt64()))
 			bandwidthLimit.SetWan2(wan2)
 		}
 	}
@@ -227,8 +207,10 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Create(ctx cont
 		return
 	}
 
+	// Decode the HTTP response body into your data model.
+	// If there's an error, add it to diagnostics.
 	// Save data into Terraform state
-	data, err = extractHttpResponseGroupPolicyResource(ctx, httpResp.Body, data)
+	data, err = extractHttpResponseUplinkBandwidthResource(ctx, httpResp.Body, &ApiResponse{}, data)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"JSON decoding error",
@@ -281,8 +263,10 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Read(ctx contex
 		resp.Diagnostics.Append()
 	}
 
+	// Decode the HTTP response body into your data model.
+	// If there's an error, add it to diagnostics.
 	// Save data into Terraform state
-	data, err = extractHttpResponseGroupPolicyResource(ctx, httpResp.Body, data)
+	data, err = extractHttpResponseUplinkBandwidthResource(ctx, httpResp.Body, &ApiResponse{}, data)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"JSON decoding error",
@@ -315,28 +299,29 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Update(ctx cont
 	var bandwidthLimit openApiClient.NetworksNetworkIdApplianceTrafficShapingUplinkBandwidthBandwidthLimits
 
 	var cellular openApiClient.NetworksNetworkIdApplianceTrafficShapingUplinkBandwidthBandwidthLimitsCellular
-	if !(data.BandwidthLimits.Cellular.LimitUp.IsUnknown() || data.BandwidthLimits.Cellular.LimitDown.IsUnknown()) {
-		if !(data.BandwidthLimits.Cellular.LimitUp.IsNull() || data.BandwidthLimits.Cellular.LimitDown.IsNull()) {
-			cellular.SetLimitUp(int32(data.BandwidthLimits.Cellular.LimitUp.ValueInt64()))
-			cellular.SetLimitDown(int32(data.BandwidthLimits.Cellular.LimitDown.ValueInt64()))
+
+	if !(data.BandwidthLimitCellularLimitUp.IsUnknown() || data.BandwidthLimitCellularLimitDown.IsUnknown()) {
+		if !(data.BandwidthLimitCellularLimitUp.IsNull() || data.BandwidthLimitCellularLimitDown.IsNull()) {
+			cellular.SetLimitUp(int32(data.BandwidthLimitCellularLimitUp.ValueInt64()))
+			cellular.SetLimitDown(int32(data.BandwidthLimitCellularLimitDown.ValueInt64()))
 			bandwidthLimit.SetCellular(cellular)
 		}
 	}
 
 	var wan1 openApiClient.NetworksNetworkIdApplianceTrafficShapingUplinkBandwidthBandwidthLimitsWan1
-	if !(data.BandwidthLimits.Wan1.LimitUp.IsUnknown() || data.BandwidthLimits.Wan1.LimitDown.IsUnknown()) {
-		if !(data.BandwidthLimits.Wan1.LimitUp.IsNull() || data.BandwidthLimits.Wan1.LimitDown.IsNull()) {
-			wan1.SetLimitUp(int32(data.BandwidthLimits.Wan1.LimitUp.ValueInt64()))
-			wan1.SetLimitDown(int32(data.BandwidthLimits.Wan1.LimitDown.ValueInt64()))
+	if !(data.BandwidthLimitWan1LimitUp.IsUnknown() || data.BandwidthLimitWan1LimitDown.IsUnknown()) {
+		if !(data.BandwidthLimitWan1LimitUp.IsNull() || data.BandwidthLimitWan1LimitDown.IsNull()) {
+			wan1.SetLimitUp(int32(data.BandwidthLimitWan1LimitUp.ValueInt64()))
+			wan1.SetLimitDown(int32(data.BandwidthLimitWan1LimitDown.ValueInt64()))
 			bandwidthLimit.SetWan1(wan1)
 		}
 	}
 
 	var wan2 openApiClient.NetworksNetworkIdApplianceTrafficShapingUplinkBandwidthBandwidthLimitsWan2
-	if !(data.BandwidthLimits.Wan2.LimitUp.IsUnknown() || data.BandwidthLimits.Wan2.LimitDown.IsUnknown()) {
-		if !(data.BandwidthLimits.Wan2.LimitUp.IsNull() || data.BandwidthLimits.Wan2.LimitDown.IsNull()) {
-			wan2.SetLimitUp(int32(data.BandwidthLimits.Wan2.LimitUp.ValueInt64()))
-			wan2.SetLimitDown(int32(data.BandwidthLimits.Wan2.LimitDown.ValueInt64()))
+	if !(data.BandwidthLimitWan2LimitUp.IsUnknown() || data.BandwidthLimitWan2LimitDown.IsUnknown()) {
+		if !(data.BandwidthLimitWan2LimitUp.IsNull() || data.BandwidthLimitWan2LimitDown.IsNull()) {
+			wan2.SetLimitUp(int32(data.BandwidthLimitWan2LimitUp.ValueInt64()))
+			wan2.SetLimitDown(int32(data.BandwidthLimitWan2LimitDown.ValueInt64()))
 			bandwidthLimit.SetWan2(wan2)
 		}
 	}
@@ -346,7 +331,7 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Update(ctx cont
 	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceTrafficShapingUplinkBandwidth(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceTrafficShapingUplinkBandwidth(updateApplianceTrafficShapingUplinkBandWidth).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
+			"Failed to create resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
@@ -369,8 +354,10 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Update(ctx cont
 		return
 	}
 
+	// Decode the HTTP response body into your data model.
+	// If there's an error, add it to diagnostics.
 	// Save data into Terraform state
-	data, err = extractHttpResponseGroupPolicyResource(ctx, httpResp.Body, data)
+	data, err = extractHttpResponseUplinkBandwidthResource(ctx, httpResp.Body, &ApiResponse{}, data)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"JSON decoding error",
@@ -403,22 +390,29 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Delete(ctx cont
 	var bandwidthLimit openApiClient.NetworksNetworkIdApplianceTrafficShapingUplinkBandwidthBandwidthLimits
 
 	var cellular openApiClient.NetworksNetworkIdApplianceTrafficShapingUplinkBandwidthBandwidthLimitsCellular
-	if !(data.BandwidthLimits.Cellular.LimitUp.IsUnknown() || data.BandwidthLimits.Cellular.LimitDown.IsUnknown()) {
-		if !(data.BandwidthLimits.Cellular.LimitUp.IsNull() || data.BandwidthLimits.Cellular.LimitDown.IsNull()) {
+
+	if !(data.BandwidthLimitCellularLimitUp.IsUnknown() || data.BandwidthLimitCellularLimitDown.IsUnknown()) {
+		if !(data.BandwidthLimitCellularLimitUp.IsNull() || data.BandwidthLimitCellularLimitDown.IsNull()) {
+			cellular.SetLimitUp(int32(data.BandwidthLimitCellularLimitUp.ValueInt64()))
+			cellular.SetLimitDown(int32(data.BandwidthLimitCellularLimitDown.ValueInt64()))
 			bandwidthLimit.SetCellular(cellular)
 		}
 	}
 
 	var wan1 openApiClient.NetworksNetworkIdApplianceTrafficShapingUplinkBandwidthBandwidthLimitsWan1
-	if !(data.BandwidthLimits.Wan1.LimitUp.IsUnknown() || data.BandwidthLimits.Wan1.LimitDown.IsUnknown()) {
-		if !(data.BandwidthLimits.Wan1.LimitUp.IsNull() || data.BandwidthLimits.Wan1.LimitDown.IsNull()) {
+	if !(data.BandwidthLimitWan1LimitUp.IsUnknown() || data.BandwidthLimitWan1LimitDown.IsUnknown()) {
+		if !(data.BandwidthLimitWan1LimitUp.IsNull() || data.BandwidthLimitWan1LimitDown.IsNull()) {
+			wan1.SetLimitUp(int32(data.BandwidthLimitWan1LimitUp.ValueInt64()))
+			wan1.SetLimitDown(int32(data.BandwidthLimitWan1LimitDown.ValueInt64()))
 			bandwidthLimit.SetWan1(wan1)
 		}
 	}
 
 	var wan2 openApiClient.NetworksNetworkIdApplianceTrafficShapingUplinkBandwidthBandwidthLimitsWan2
-	if !(data.BandwidthLimits.Wan2.LimitUp.IsUnknown() || data.BandwidthLimits.Wan2.LimitDown.IsUnknown()) {
-		if !(data.BandwidthLimits.Wan2.LimitUp.IsNull() || data.BandwidthLimits.Wan2.LimitDown.IsNull()) {
+	if !(data.BandwidthLimitWan2LimitUp.IsUnknown() || data.BandwidthLimitWan2LimitDown.IsUnknown()) {
+		if !(data.BandwidthLimitWan2LimitUp.IsNull() || data.BandwidthLimitWan2LimitDown.IsNull()) {
+			wan2.SetLimitUp(int32(data.BandwidthLimitWan2LimitUp.ValueInt64()))
+			wan2.SetLimitDown(int32(data.BandwidthLimitWan2LimitDown.ValueInt64()))
 			bandwidthLimit.SetWan2(wan2)
 		}
 	}
@@ -428,7 +422,7 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Delete(ctx cont
 	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceTrafficShapingUplinkBandwidth(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceTrafficShapingUplinkBandwidth(updateApplianceTrafficShapingUplinkBandWidth).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to delete resource",
+			"Failed to create resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
@@ -451,8 +445,10 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Delete(ctx cont
 		return
 	}
 
+	// Decode the HTTP response body into your data model.
+	// If there's an error, add it to diagnostics.
 	// Save data into Terraform state
-	data, err = extractHttpResponseGroupPolicyResource(ctx, httpResp.Body, data)
+	data, err = extractHttpResponseUplinkBandwidthResource(ctx, httpResp.Body, &ApiResponse{}, data)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"JSON decoding error",
@@ -481,29 +477,36 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) ImportState(ctx
 	}
 }
 
-func extractHttpResponseGroupPolicyResource(ctx context.Context, httpRespBody io.ReadCloser, data *NetworksApplianceTrafficShapingUplinkBandWidthResourceModel) (*NetworksApplianceTrafficShapingUplinkBandWidthResourceModel, error) {
+func extractHttpResponseUplinkBandwidthResource(ctx context.Context, httpRespBody io.ReadCloser, apiResponse *ApiResponse, data *NetworksApplianceTrafficShapingUplinkBandWidthResourceModel) (*NetworksApplianceTrafficShapingUplinkBandWidthResourceModel, error) {
 
-	if err := json.NewDecoder(httpRespBody).Decode(data); err != nil {
+	if err := json.NewDecoder(httpRespBody).Decode(apiResponse); err != nil {
 		return data, err
 	}
 
-	if data.BandwidthLimits.Wan1.LimitDown.IsUnknown() {
-		data.BandwidthLimits.Wan1.LimitDown = jsontypes.Int64Null()
+	data.BandwidthLimitCellularLimitDown = apiResponse.UplinkBandwidthLimits.Cellular.LimitDown
+	data.BandwidthLimitCellularLimitUp = apiResponse.UplinkBandwidthLimits.Cellular.LimitUp
+	data.BandwidthLimitWan2LimitDown = apiResponse.UplinkBandwidthLimits.Wan2.LimitDown
+	data.BandwidthLimitWan2LimitUp = apiResponse.UplinkBandwidthLimits.Wan2.LimitUp
+	data.BandwidthLimitWan1LimitDown = apiResponse.UplinkBandwidthLimits.Wan1.LimitDown
+	data.BandwidthLimitWan1LimitUp = apiResponse.UplinkBandwidthLimits.Wan1.LimitUp
+
+	if data.BandwidthLimitWan1LimitDown.IsUnknown() {
+		data.BandwidthLimitWan1LimitDown = jsontypes.Int64Null()
 	}
-	if data.BandwidthLimits.Wan1.LimitUp.IsUnknown() {
-		data.BandwidthLimits.Wan1.LimitUp = jsontypes.Int64Null()
+	if data.BandwidthLimitWan1LimitUp.IsUnknown() {
+		data.BandwidthLimitWan1LimitUp = jsontypes.Int64Null()
 	}
-	if data.BandwidthLimits.Wan2.LimitDown.Int64Value.IsUnknown() {
-		data.BandwidthLimits.Wan2.LimitDown = jsontypes.Int64Null()
+	if data.BandwidthLimitWan2LimitDown.Int64Value.IsUnknown() {
+		data.BandwidthLimitWan2LimitDown = jsontypes.Int64Null()
 	}
-	if data.BandwidthLimits.Wan2.LimitUp.IsUnknown() {
-		data.BandwidthLimits.Wan2.LimitUp = jsontypes.Int64Null()
+	if data.BandwidthLimitWan2LimitUp.IsUnknown() {
+		data.BandwidthLimitWan2LimitUp = jsontypes.Int64Null()
 	}
-	if data.BandwidthLimits.Cellular.LimitDown.IsUnknown() {
-		data.BandwidthLimits.Cellular.LimitDown = jsontypes.Int64Null()
+	if data.BandwidthLimitCellularLimitDown.IsUnknown() {
+		data.BandwidthLimitCellularLimitDown = jsontypes.Int64Null()
 	}
-	if data.BandwidthLimits.Cellular.LimitUp.IsUnknown() {
-		data.BandwidthLimits.Cellular.LimitUp = jsontypes.Int64Null()
+	if data.BandwidthLimitCellularLimitUp.IsUnknown() {
+		data.BandwidthLimitCellularLimitUp = jsontypes.Int64Null()
 	}
 
 	return data, nil

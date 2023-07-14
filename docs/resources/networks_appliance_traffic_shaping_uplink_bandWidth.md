@@ -17,46 +17,19 @@ NetworksApplianceTrafficShapingUplinkBandWidth resource for updating Network App
 
 ### Required
 
-- `bandwidth_limits` (Attributes) A mapping of uplinks to their bandwidth settings (be sure to check which uplinks are supported for your network) (see [below for nested schema](#nestedatt--bandwidth_limits))
 - `network_id` (String) Network ID
+
+### Optional
+
+- `bandwidth_limit_cellular_limit_down` (Number) The bandwidth settings for the 'cellular' uplink. The maximum download limit (integer, in Kbps). null indicates no limit
+- `bandwidth_limit_cellular_limit_up` (Number) The bandwidth settings for the 'cellular' uplink. The maximum upload limit (integer, in Kbps). null indicates no limit
+- `bandwidth_limit_wan1_limit_down` (Number) The bandwidth settings for the 'wan1' uplink. The maximum download limit (integer, in Kbps). null indicates no limit
+- `bandwidth_limit_wan1_limit_up` (Number) The bandwidth settings for the 'wan1' uplink. The maximum upload limit (integer, in Kbps). null indicates no limit
+- `bandwidth_limit_wan2_limit_down` (Number) The bandwidth settings for the 'wan2' uplink. The maximum download limit (integer, in Kbps). null indicates no limit
+- `bandwidth_limit_wan2_limit_up` (Number) The bandwidth settings for the 'wan2' uplink. The maximum upload limit (integer, in Kbps). null indicates no limit
 
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-
-<a id="nestedatt--bandwidth_limits"></a>
-### Nested Schema for `bandwidth_limits`
-
-Required:
-
-- `cellular` (Attributes) The bandwidth settings for the 'cellular' uplink (see [below for nested schema](#nestedatt--bandwidth_limits--cellular))
-- `wan1` (Attributes) The bandwidth settings for the 'wan1' uplink (see [below for nested schema](#nestedatt--bandwidth_limits--wan1))
-- `wan2` (Attributes) The bandwidth settings for the 'wan2' uplink (see [below for nested schema](#nestedatt--bandwidth_limits--wan2))
-
-<a id="nestedatt--bandwidth_limits--cellular"></a>
-### Nested Schema for `bandwidth_limits.cellular`
-
-Optional:
-
-- `limit_down` (Number) The maximum download limit (integer, in Kbps). null indicates no limit
-- `limit_up` (Number) The maximum upload limit (integer, in Kbps). null indicates no limit
-
-
-<a id="nestedatt--bandwidth_limits--wan1"></a>
-### Nested Schema for `bandwidth_limits.wan1`
-
-Optional:
-
-- `limit_down` (Number) The maximum download limit (integer, in Kbps). null indicates no limit
-- `limit_up` (Number) The maximum upload limit (integer, in Kbps). null indicates no limit
-
-
-<a id="nestedatt--bandwidth_limits--wan2"></a>
-### Nested Schema for `bandwidth_limits.wan2`
-
-Optional:
-
-- `limit_down` (Number) The maximum download limit (integer, in Kbps). null indicates no limit
-- `limit_up` (Number) The maximum upload limit (integer, in Kbps). null indicates no limit
 
 
