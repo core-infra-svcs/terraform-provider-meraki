@@ -81,14 +81,12 @@ func (r *NetworksApplianceVpnSiteToSiteVpnResource) Schema(ctx context.Context, 
 			},
 			"hubs": schema.SetNestedAttribute{
 				Description: "The list of VPN hubs, in order of preference.",
-				Optional:    true,
-				Computed:    true,
+				Required:    true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"hub_id": schema.StringAttribute{
 							MarkdownDescription: "The network ID of the hub",
-							Optional:            true,
-							Computed:            true,
+							Required:            true,
 							CustomType:          jsontypes.StringType,
 						},
 						"use_default_route": schema.BoolAttribute{
@@ -102,14 +100,12 @@ func (r *NetworksApplianceVpnSiteToSiteVpnResource) Schema(ctx context.Context, 
 			},
 			"subnets": schema.SetNestedAttribute{
 				Description: "The list of subnets and their VPN presence.",
-				Optional:    true,
-				Computed:    true,
+				Required:    true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"local_subnet": schema.StringAttribute{
 							MarkdownDescription: "The CIDR notation subnet used within the VPN",
-							Optional:            true,
-							Computed:            true,
+							Required:            true,
 							CustomType:          jsontypes.StringType,
 						},
 						"use_vpn": schema.BoolAttribute{
@@ -214,21 +210,20 @@ func (r *NetworksApplianceVpnSiteToSiteVpnResource) Create(ctx context.Context, 
 	}
 
 	data.Mode = jsontypes.StringValue(inlineResp.GetMode())
-
+	data.Hubs = nil
 	for _, attribute := range inlineResp.GetHubs() {
 		var hubData NetworksNetworkIdApplianceVpnSiteToSiteVpnHubs
 		hubData.HubId = jsontypes.StringValue(attribute.GetHubId())
 		hubData.UseDefaultRoute = jsontypes.BoolValue(attribute.GetUseDefaultRoute())
 		data.Hubs = append(data.Hubs, hubData)
 	}
-
+	data.Subnets = nil
 	for _, attribute := range inlineResp.GetSubnets() {
 		var subnetData NetworksNetworkIdApplianceVpnSiteToSiteVpnSubnets
 		subnetData.LocalSubnet = jsontypes.StringValue(attribute.GetLocalSubnet())
 		subnetData.UseVpn = jsontypes.BoolValue(attribute.GetUseVpn())
 		data.Subnets = append(data.Subnets, subnetData)
 	}
-
 	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -276,13 +271,14 @@ func (r *NetworksApplianceVpnSiteToSiteVpnResource) Read(ctx context.Context, re
 	}
 
 	data.Mode = jsontypes.StringValue(inlineResp.GetMode())
-
+	data.Hubs = nil
 	for _, attribute := range inlineResp.GetHubs() {
 		var hubData NetworksNetworkIdApplianceVpnSiteToSiteVpnHubs
 		hubData.HubId = jsontypes.StringValue(attribute.GetHubId())
 		hubData.UseDefaultRoute = jsontypes.BoolValue(attribute.GetUseDefaultRoute())
 		data.Hubs = append(data.Hubs, hubData)
 	}
+	data.Subnets = nil
 	for _, attribute := range inlineResp.GetSubnets() {
 		var subnetData NetworksNetworkIdApplianceVpnSiteToSiteVpnSubnets
 		subnetData.LocalSubnet = jsontypes.StringValue(attribute.GetLocalSubnet())
@@ -359,13 +355,14 @@ func (r *NetworksApplianceVpnSiteToSiteVpnResource) Update(ctx context.Context, 
 	}
 
 	data.Mode = jsontypes.StringValue(inlineResp.GetMode())
-
+	data.Hubs = nil
 	for _, attribute := range inlineResp.GetHubs() {
 		var hubData NetworksNetworkIdApplianceVpnSiteToSiteVpnHubs
 		hubData.HubId = jsontypes.StringValue(attribute.GetHubId())
 		hubData.UseDefaultRoute = jsontypes.BoolValue(attribute.GetUseDefaultRoute())
 		data.Hubs = append(data.Hubs, hubData)
 	}
+	data.Subnets = nil
 	for _, attribute := range inlineResp.GetSubnets() {
 		var subnetData NetworksNetworkIdApplianceVpnSiteToSiteVpnSubnets
 		subnetData.LocalSubnet = jsontypes.StringValue(attribute.GetLocalSubnet())
@@ -385,39 +382,17 @@ func (r *NetworksApplianceVpnSiteToSiteVpnResource) Delete(ctx context.Context, 
 
 	var data *NetworksApplianceVpnSiteToSiteVpnResourceModel
 
-	// Read Terraform plan data into the model
+	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	updateNetworkApplianceVpnSiteToSiteVpn := *openApiClient.NewInlineObject60(data.Mode.ValueString())
-	if len(data.Hubs) > 0 {
-		var hubs []openApiClient.NetworksNetworkIdApplianceVpnSiteToSiteVpnHubs
-		for _, attribute := range data.Hubs {
-			var hubData openApiClient.NetworksNetworkIdApplianceVpnSiteToSiteVpnHubs
-			hubData.SetHubId(attribute.HubId.ValueString())
-			hubData.SetUseDefaultRoute(attribute.UseDefaultRoute.ValueBool())
-			hubs = append(hubs, hubData)
-		}
-		updateNetworkApplianceVpnSiteToSiteVpn.SetHubs(hubs)
-	}
-	if len(data.Subnets) > 0 {
-		var subnets []openApiClient.NetworksNetworkIdApplianceVpnSiteToSiteVpnSubnets
-		for _, attribute := range data.Subnets {
-			var subnetData openApiClient.NetworksNetworkIdApplianceVpnSiteToSiteVpnSubnets
-			subnetData.SetLocalSubnet(attribute.LocalSubnet.ValueString())
-			subnetData.SetUseVpn(attribute.UseVpn.ValueBool())
-			subnets = append(subnets, subnetData)
-		}
-		updateNetworkApplianceVpnSiteToSiteVpn.SetSubnets(subnets)
-	}
-
-	inlineResp, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceVpnSiteToSiteVpn(ctx, data.NetworkId.ValueString()).UpdateNetworkApplianceVpnSiteToSiteVpn(updateNetworkApplianceVpnSiteToSiteVpn).Execute()
+	inlineResp, httpResp, err := r.client.ApplianceApi.GetNetworkApplianceVpnSiteToSiteVpn(ctx, data.NetworkId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to delete resource",
+			"Failed to read resource",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 	}
@@ -437,18 +412,20 @@ func (r *NetworksApplianceVpnSiteToSiteVpnResource) Delete(ctx context.Context, 
 
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
-		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%v", data))
 		return
+	} else {
+		resp.Diagnostics.Append()
 	}
 
 	data.Mode = jsontypes.StringValue(inlineResp.GetMode())
-
+	data.Hubs = nil
 	for _, attribute := range inlineResp.GetHubs() {
 		var hubData NetworksNetworkIdApplianceVpnSiteToSiteVpnHubs
 		hubData.HubId = jsontypes.StringValue(attribute.GetHubId())
 		hubData.UseDefaultRoute = jsontypes.BoolValue(attribute.GetUseDefaultRoute())
 		data.Hubs = append(data.Hubs, hubData)
 	}
+	data.Subnets = nil
 	for _, attribute := range inlineResp.GetSubnets() {
 		var subnetData NetworksNetworkIdApplianceVpnSiteToSiteVpnSubnets
 		subnetData.LocalSubnet = jsontypes.StringValue(attribute.GetLocalSubnet())

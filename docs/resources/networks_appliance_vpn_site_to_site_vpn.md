@@ -17,12 +17,9 @@ Networks appliance vpn site to site vpn resource for updating networks appliance
 
 ### Required
 
+- `hubs` (Attributes Set) The list of VPN hubs, in order of preference. (see [below for nested schema](#nestedatt--hubs))
 - `mode` (String) The site-to-site VPN mode.
 - `network_id` (String) Network Id
-
-### Optional
-
-- `hubs` (Attributes Set) The list of VPN hubs, in order of preference. (see [below for nested schema](#nestedatt--hubs))
 - `subnets` (Attributes Set) The list of subnets and their VPN presence. (see [below for nested schema](#nestedatt--subnets))
 
 ### Read-Only
@@ -32,18 +29,24 @@ Networks appliance vpn site to site vpn resource for updating networks appliance
 <a id="nestedatt--hubs"></a>
 ### Nested Schema for `hubs`
 
-Optional:
+Required:
 
 - `hub_id` (String) The network ID of the hub
+
+Optional:
+
 - `use_default_route` (Boolean) Indicates whether default route traffic should be sent to this hub.
 
 
 <a id="nestedatt--subnets"></a>
 ### Nested Schema for `subnets`
 
-Optional:
+Required:
 
 - `local_subnet` (String) The CIDR notation subnet used within the VPN
+
+Optional:
+
 - `use_vpn` (Boolean) Indicates the presence of the subnet in the VPN.
 
 
