@@ -177,7 +177,6 @@ func (r *NetworksSettingsResource) Create(ctx context.Context, req resource.Crea
 
 	inlineResp, httpResp, err := r.client.NetworksApi.UpdateNetworkSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSettings(updateNetworkSettings).Execute()
 
-	fmt.Println(httpResp.Body)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to update resource",

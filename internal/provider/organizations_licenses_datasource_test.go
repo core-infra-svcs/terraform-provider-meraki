@@ -32,7 +32,7 @@ func TestAccOrganizationsLicensesDataSource(t *testing.T) {
 
 			// Update and Read OrganizationsLicense
 			{
-				Config: testAccOrganizationsLicenseResourceConfigUpdate(os.Getenv("TF_ACC_MERAKI_MX_LICENCE_ID"), os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
+				Config: testAccOrganizationsLicenseDataSourceConfigUpdate(os.Getenv("TF_ACC_MERAKI_MX_LICENCE_ID"), os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_organizations_license.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_organizations_license.test", "license_id", os.Getenv("TF_ACC_MERAKI_MX_LICENCE_ID")),
