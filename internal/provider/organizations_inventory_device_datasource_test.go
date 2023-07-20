@@ -1,7 +1,9 @@
 package provider
 
 import (
+	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"os"
 	"testing"
 )
 
@@ -53,7 +55,7 @@ func TestAccOrganizationsInventoryDeviceDataSource(t *testing.T) {
 
 			// Read OrganizationsInventoryDevices
 			{
-				Config: testAccOrganizationsInventoryDeviceDataSourceConfigRead,
+				Config: testAccOrganizationsInventoryDeviceDataSourceConfigRead(os.Getenv("TF_ACC_MERAKI_ORGANZIATION_ID")),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("data.meraki_organizations_inventory_device.test", "id", "example-id"),
 				),
@@ -104,10 +106,11 @@ resource "meraki_network" "test" {
 
 // testAccOrganizationsInventoryDeviceDataSourceConfigRead is a constant string that defines the configuration for creating and updating a organizations_{organizationId}_inventory_devices resource in your tests.
 // It depends on both the organization and network resources.
-const testAccOrganizationsInventoryDeviceDataSourceConfigRead = `
-
+var testAccOrganizationsInventoryDeviceDataSourceConfigRead = func(orgID string) string {
+	return fmt.Sprintf(`
 data "meraki_organizations_inventory_device" "test" {
-  	organization_id = "1234641"
+  	organization_id = "%s"
     serial = "Q2KD-QF5S-L52G"
 }
-`
+`, orgID)
+}
