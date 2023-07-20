@@ -18,6 +18,7 @@ OrganizationsInventoryDevices
 ### Optional
 
 - `claimed_at` (String) Claimed time of the device
+- `license_expiration_date` (String) license expiration date of the device
 - `mac` (String) MAC address of the device
 - `model` (String) Model type of the device
 - `name` (String) Name of the device

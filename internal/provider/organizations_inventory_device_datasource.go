@@ -46,17 +46,18 @@ type OrganizationsInventoryDevicesDataSource struct {
 // The OrganizationsInventoryDevicesDataSourceModel structure describes the data model.
 // This struct is where you define all the attributes that are part of this data source's state.
 type OrganizationsInventoryDevicesDataSourceModel struct {
-	Id             jsontypes.String                `tfsdk:"id"`
-	OrganizationID jsontypes.String                `tfsdk:"organization_id"`
-	Mac            jsontypes.String                `tfsdk:"mac" json:"mac"`
-	Serial         jsontypes.String                `tfsdk:"serial" json:"serial"`
-	Name           jsontypes.String                `tfsdk:"name" json:"name"`
-	Model          jsontypes.String                `tfsdk:"model" json:"model"`
-	NetworkId      jsontypes.String                `tfsdk:"network_id" json:"networkId"`
-	OrderNumber    jsontypes.String                `tfsdk:"order_number" json:"orderNumber"`
-	ClaimedAt      jsontypes.String                `tfsdk:"claimed_at" json:"claimedAt"`
-	Tags           jsontypes.Set[jsontypes.String] `tfsdk:"tags" json:"tags"`
-	ProductType    jsontypes.String                `tfsdk:"product_type" json:"productType"`
+	Id                    jsontypes.String                `tfsdk:"id"`
+	OrganizationID        jsontypes.String                `tfsdk:"organization_id"`
+	Mac                   jsontypes.String                `tfsdk:"mac" json:"mac"`
+	Serial                jsontypes.String                `tfsdk:"serial" json:"serial"`
+	Name                  jsontypes.String                `tfsdk:"name" json:"name"`
+	Model                 jsontypes.String                `tfsdk:"model" json:"model"`
+	NetworkId             jsontypes.String                `tfsdk:"network_id" json:"networkId"`
+	OrderNumber           jsontypes.String                `tfsdk:"order_number" json:"orderNumber"`
+	ClaimedAt             jsontypes.String                `tfsdk:"claimed_at" json:"claimedAt"`
+	Tags                  jsontypes.Set[jsontypes.String] `tfsdk:"tags" json:"tags"`
+	ProductType           jsontypes.String                `tfsdk:"product_type" json:"productType"`
+	LicenseExpirationDate jsontypes.String                `tfsdk:"license_expiration_date" json:"licenseExpirationDate"`
 }
 
 // Metadata provides a way to define information about the data source.
@@ -141,6 +142,12 @@ func (d *OrganizationsInventoryDevicesDataSource) Schema(ctx context.Context, re
 				CustomType:          jsontypes.StringType,
 				Optional:            true,
 				MarkdownDescription: "Product type of the device",
+			},
+			"license_expiration_date": schema.StringAttribute{
+				Computed:            true,
+				CustomType:          jsontypes.StringType,
+				Optional:            true,
+				MarkdownDescription: "license expiration date of the device",
 			},
 		},
 	}
