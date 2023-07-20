@@ -38,15 +38,16 @@ func NewOrganizationsInventoryDevicesDataSource() datasource.DataSource {
 }
 
 type InventoryDevice struct {
-	Mac         jsontypes.String                `tfsdk:"mac" json:"mac"`
-	Serial      jsontypes.String                `tfsdk:"serial" json:"serial"`
-	Name        jsontypes.String                `tfsdk:"name" json:"name"`
-	Model       jsontypes.String                `tfsdk:"model" json:"model"`
-	NetworkId   jsontypes.String                `tfsdk:"network_id" json:"networkId"`
-	OrderNumber jsontypes.String                `tfsdk:"order_number" json:"orderNumber"`
-	ClaimedAt   jsontypes.String                `tfsdk:"claimed_at" json:"claimedAt"`
-	Tags        jsontypes.Set[jsontypes.String] `tfsdk:"tags" json:"tags"`
-	ProductType jsontypes.String                `tfsdk:"product_type" json:"productType"`
+	Mac               jsontypes.String                `tfsdk:"mac" json:"mac"`
+	Serial            jsontypes.String                `tfsdk:"serial" json:"serial"`
+	Name              jsontypes.String                `tfsdk:"name" json:"name"`
+	Model             jsontypes.String                `tfsdk:"model" json:"model"`
+	NetworkId         jsontypes.String                `tfsdk:"network_id" json:"networkId"`
+	OrderNumber       jsontypes.String                `tfsdk:"order_number" json:"orderNumber"`
+	ClaimedAt         jsontypes.String                `tfsdk:"claimed_at" json:"claimedAt"`
+	Tags              jsontypes.Set[jsontypes.String] `tfsdk:"tags" json:"tags"`
+	ProductType       jsontypes.String                `tfsdk:"product_type" json:"productType"`
+	LicenseExpiryDate jsontypes.String                `tfsdk:"license_expiry_date" json:"licenseExpiryDate"`
 }
 
 // OrganizationsInventoryDevicesDataSource struct defines the structure for this data source.
@@ -153,6 +154,12 @@ func (d *OrganizationsInventoryDevicesDataSource) Schema(ctx context.Context, re
 							CustomType:          jsontypes.StringType,
 							Optional:            true,
 							MarkdownDescription: "Product type of the device",
+						},
+						"license_expiry_date": schema.StringAttribute{
+							Computed:            true,
+							CustomType:          jsontypes.StringType,
+							Optional:            true,
+							MarkdownDescription: "License expiry date of the device",
 						},
 					},
 				},
