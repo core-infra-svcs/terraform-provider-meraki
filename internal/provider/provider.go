@@ -61,8 +61,8 @@ type CiscoMerakiProviderModel struct {
 	//	Retry4xxError             types.String `tfsdk:"retry_4xx_error"`
 	//	Retry4xxErrorWaitTime     types.String `tfsdk:"retry_4xx_error_wait_time"`
 	//	MaximumRetries            types.String `tfsdk:"maximum_retries"`
-	//	Simulate 				  types.String `tfsdk:" simulate"`
-	//	BeGeoId  				  types.String `tfsdk:"be_geo_id"`
+	//	Simulate 		  types.String `tfsdk:" simulate"`
+	//	BeGeoId  		  types.String `tfsdk:"be_geo_id"`
 	//	Caller                	  types.String `tfsdk:"caller"`
 	//	UseIteratorForGetPage 	  types.String `tfsdk:"use_iterator_for_get_page"`
 }
@@ -178,8 +178,17 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		NewNetworksSwitchMtuResource,
 		NewNetworksGroupPolicyResource,
 		NewOrganizationsLicenseResource,
-		NewNetworksSwitchStormControlResource,
-	}
+		NewNetworksWirelessSsidsFirewallL3FirewallRulesResource,
+		NewNetworksWirelessSsidsFirewallL7FirewallRulesResource,
+		NewDevicesResource,
+		NewOrganizationsClaimResource,
+		NewNetworksDevicesClaimResource,
+    NewNetworkApplianceStaticRoutesResource,
+    NewNetworksCellularGatewaySubnetPoolResource,
+    NewNetworksCellularGatewayUplinkResource,
+    NewNetworksWirelessSsidsSplashSettingsResource,
+    NewDevicesCellularSimsResource,
+    NewNetworksSwitchStormControlResource,
 }
 
 func (p *CiscoMerakiProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
@@ -192,6 +201,10 @@ func (p *CiscoMerakiProvider) DataSources(ctx context.Context) []func() datasour
 		NewOrganizationsAdaptivePolicyAclsDataSource,
 		NewOrganizationsSamlRolesDataSource,
 		NewNetworkGroupPoliciesDataSource,
+		NewNetworksAppliancePortsDataSource,
+		NewOrganizationsCellularGatewayUplinkStatusesDataSource,
+		NewOrganizationsLicensesDataSource,
+		NewDevicesSwitchPortsStatusesDataSource,
 	}
 }
 
