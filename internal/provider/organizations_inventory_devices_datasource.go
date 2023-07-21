@@ -61,9 +61,22 @@ type OrganizationsInventoryDevicesDataSource struct {
 // The OrganizationsInventoryDevicesDataSourceModel structure describes the data model.
 // This struct is where you define all the attributes that are part of this data source's state.
 type OrganizationsInventoryDevicesDataSourceModel struct {
-	Id             jsontypes.String  `tfsdk:"id"`
-	OrganizationID jsontypes.String  `tfsdk:"organization_id"`
-	List           []InventoryDevice `tfsdk:"list"`
+	Id             jsontypes.String                `tfsdk:"id"`
+	OrganizationID jsontypes.String                `tfsdk:"organization_id"`
+	List           []InventoryDevice               `tfsdk:"list"`
+	PerPage        jsontypes.Int64                 `tfsdk:"per_page"`
+	StartingAfter  jsontypes.String                `tfsdk:"starting_after"`
+	EndingBefore   jsontypes.String                `tfsdk:"ending_before"`
+	UsedState      jsontypes.String                `tfsdk:"used_state"`
+	Search         jsontypes.String                `tfsdk:"search"`
+	TagsFilterType jsontypes.String                `tfsdk:"tags_filter_type"`
+	Macs           jsontypes.Set[jsontypes.String] `tfsdk:"macs"`
+	NetworkIDs     jsontypes.Set[jsontypes.String] `tfsdk:"network_ids"`
+	Serials        jsontypes.Set[jsontypes.String] `tfsdk:"serials"`
+	Models         jsontypes.Set[jsontypes.String] `tfsdk:"models"`
+	OrderNumbers   jsontypes.Set[jsontypes.String] `tfsdk:"order_numbers"`
+	Tags           jsontypes.Set[jsontypes.String] `tfsdk:"tags"`
+	ProductTypes   jsontypes.Set[jsontypes.String] `tfsdk:"product_types"`
 }
 
 // Metadata provides a way to define information about the data source.
@@ -93,6 +106,85 @@ func (d *OrganizationsInventoryDevicesDataSource) Schema(ctx context.Context, re
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 31),
 				},
+			},
+			"per_page": schema.StringAttribute{
+				Computed:   true,
+				Optional:   true,
+				CustomType: jsontypes.StringType,
+			},
+			"starting_after": schema.StringAttribute{
+				Computed:   true,
+				Optional:   true,
+				CustomType: jsontypes.StringType,
+			},
+			"ending_before": schema.StringAttribute{
+				Computed:   true,
+				Optional:   true,
+				CustomType: jsontypes.StringType,
+			},
+			"used_state": schema.StringAttribute{
+				Computed:   true,
+				Optional:   true,
+				CustomType: jsontypes.StringType,
+			},
+			"search": schema.StringAttribute{
+				Computed:   true,
+				Optional:   true,
+				CustomType: jsontypes.StringType,
+			},
+			"tags_filter_type": schema.StringAttribute{
+				Computed:   true,
+				Optional:   true,
+				CustomType: jsontypes.StringType,
+			},
+			"macs": schema.SetAttribute{
+				Computed:            true,
+				CustomType:          jsontypes.SetType[jsontypes.String](),
+				ElementType:         jsontypes.StringType,
+				Optional:            true,
+				MarkdownDescription: "Device tags",
+			},
+			"network_ids": schema.SetAttribute{
+				Computed:            true,
+				CustomType:          jsontypes.SetType[jsontypes.String](),
+				ElementType:         jsontypes.StringType,
+				Optional:            true,
+				MarkdownDescription: "Device tags",
+			},
+			"serials": schema.SetAttribute{
+				Computed:            true,
+				CustomType:          jsontypes.SetType[jsontypes.String](),
+				ElementType:         jsontypes.StringType,
+				Optional:            true,
+				MarkdownDescription: "Device tags",
+			},
+			"models": schema.SetAttribute{
+				Computed:            true,
+				CustomType:          jsontypes.SetType[jsontypes.String](),
+				ElementType:         jsontypes.StringType,
+				Optional:            true,
+				MarkdownDescription: "Device tags",
+			},
+			"order_numbers": schema.SetAttribute{
+				Computed:            true,
+				CustomType:          jsontypes.SetType[jsontypes.String](),
+				ElementType:         jsontypes.StringType,
+				Optional:            true,
+				MarkdownDescription: "Device tags",
+			},
+			"tags": schema.SetAttribute{
+				Computed:            true,
+				CustomType:          jsontypes.SetType[jsontypes.String](),
+				ElementType:         jsontypes.StringType,
+				Optional:            true,
+				MarkdownDescription: "Device tags",
+			},
+			"product_types": schema.SetAttribute{
+				Computed:            true,
+				CustomType:          jsontypes.SetType[jsontypes.String](),
+				ElementType:         jsontypes.StringType,
+				Optional:            true,
+				MarkdownDescription: "Device tags",
 			},
 			"list": schema.SetNestedAttribute{
 				Optional:    true,
@@ -207,7 +299,76 @@ func (d *OrganizationsInventoryDevicesDataSource) Read(ctx context.Context, req 
 	}
 
 	// Remember to handle any potential errors.
-	_, httpResp, err := d.client.InventoryApi.GetOrganizationInventoryDevices(ctx, data.OrganizationID.ValueString()).Execute()
+	devices := d.client.InventoryApi.GetOrganizationInventoryDevices(ctx, data.OrganizationID.ValueString())
+	if !data.PerPage.IsUnknown() {
+		devices.PerPage(int32(data.PerPage.ValueInt64()))
+	}
+	if !data.StartingAfter.IsUnknown() {
+		devices.StartingAfter(data.StartingAfter.ValueString())
+	}
+	if !data.EndingBefore.IsUnknown() {
+		devices.EndingBefore(data.EndingBefore.ValueString())
+	}
+	if !data.UsedState.IsUnknown() {
+		devices.UsedState(data.UsedState.ValueString())
+	}
+	if !data.Search.IsUnknown() {
+		devices.Search(data.Search.ValueString())
+	}
+	if !data.TagsFilterType.IsUnknown() {
+		devices.TagsFilterType(data.TagsFilterType.ValueString())
+	}
+	if !data.Macs.IsUnknown() {
+		var macs []string
+		for _, value := range data.Macs.Elements() {
+			macs = append(macs, value.String())
+		}
+		devices.Macs(macs)
+	}
+	if !data.NetworkIDs.IsUnknown() {
+		var networkIds []string
+		for _, value := range data.NetworkIDs.Elements() {
+			networkIds = append(networkIds, value.String())
+		}
+		devices.NetworkIds(networkIds)
+	}
+	if !data.Serials.IsUnknown() {
+		var serials []string
+		for _, value := range data.Serials.Elements() {
+			serials = append(serials, value.String())
+		}
+		devices.Serials(serials)
+	}
+	if !data.Models.IsUnknown() {
+		var models []string
+		for _, value := range data.Models.Elements() {
+			models = append(models, value.String())
+		}
+		devices.Models(models)
+	}
+	if !data.OrderNumbers.IsUnknown() {
+		var orderNumbers []string
+		for _, value := range data.OrderNumbers.Elements() {
+			orderNumbers = append(orderNumbers, value.String())
+		}
+		devices.OrderNumbers(orderNumbers)
+	}
+	if !data.Tags.IsUnknown() {
+		var tags []string
+		for _, value := range data.Tags.Elements() {
+			tags = append(tags, value.String())
+		}
+		devices.Tags(tags)
+	}
+	if !data.ProductTypes.IsUnknown() {
+		var productTypes []string
+		for _, value := range data.ProductTypes.Elements() {
+			productTypes = append(productTypes, value.String())
+		}
+		devices.ProductTypes(productTypes)
+	}
+
+	_, httpResp, err := devices.Execute()
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
 		resp.Diagnostics.AddError(
