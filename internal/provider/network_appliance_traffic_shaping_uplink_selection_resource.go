@@ -43,12 +43,12 @@ type NetworksApplianceTrafficShapingUplinkSelectionResourceModel struct {
 }
 
 type VpnTrafficUplinkPreferences struct {
-	PreferredUplink                             jsontypes.String `tfsdk:"preferred_uplink"`
-	FailOverCriterion                           jsontypes.String `tfsdk:"failover_criterion"`
-	PerformanceClassBuiltinPerformanceClassName jsontypes.String `tfsdk:"performance_class_builtin_performance_class_name"`
-	//PerformanceClassCustomPerformanceClassId    jsontypes.String     `tfsdk:"performance_class_custom_performance_class_id"`
-	PerformanceClassType jsontypes.String     `tfsdk:"performance_class_type"`
-	TrafficFilters       []VlanTrafficFilters `tfsdk:"traffic_filters"`
+	PreferredUplink                             jsontypes.String     `tfsdk:"preferred_uplink"`
+	FailOverCriterion                           jsontypes.String     `tfsdk:"failover_criterion"`
+	PerformanceClassBuiltinPerformanceClassName jsontypes.String     `tfsdk:"performance_class_builtin_performance_class_name"`
+	PerformanceClassCustomPerformanceClassId    jsontypes.String     `tfsdk:"performance_class_custom_performance_class_id"`
+	PerformanceClassType                        jsontypes.String     `tfsdk:"performance_class_type"`
+	TrafficFilters                              []VlanTrafficFilters `tfsdk:"traffic_filters"`
 }
 
 type FailoverAndFailback struct {
@@ -74,15 +74,20 @@ type WanTrafficFilters struct {
 }
 
 type VlanTrafficFilters struct {
-	Type                 jsontypes.String `tfsdk:"type"`
-	ValueId              jsontypes.String `tfsdk:"value_id"`
-	ValueProtocol        jsontypes.String `tfsdk:"value_protocol"`
-	ValueSourcePort      jsontypes.String `tfsdk:"value_source_port"`
-	ValueSourceCidr      jsontypes.String `tfsdk:"value_source_cidr"`
-	ValueSourceVlan      jsontypes.Int64  `tfsdk:"value_source_vlan"`
-	ValueSourceHost      jsontypes.Int64  `tfsdk:"value_source_host"`
-	ValueDestinationPort jsontypes.String `tfsdk:"value_destination_port"`
-	ValueDestinationCidr jsontypes.String `tfsdk:"value_destination_cidr"`
+	Type                    jsontypes.String `tfsdk:"type"`
+	ValueId                 jsontypes.String `tfsdk:"value_id"`
+	ValueProtocol           jsontypes.String `tfsdk:"value_protocol"`
+	ValueSourcePort         jsontypes.String `tfsdk:"value_source_port"`
+	ValueSourceCidr         jsontypes.String `tfsdk:"value_source_cidr"`
+	ValueSourceVlan         jsontypes.Int64  `tfsdk:"value_source_vlan"`
+	ValueSourceHost         jsontypes.Int64  `tfsdk:"value_source_host"`
+	ValueSourceNetwork      jsontypes.String `tfsdk:"value_source_network"`
+	ValueDestinationPort    jsontypes.String `tfsdk:"value_destination_port"`
+	ValueDestinationCidr    jsontypes.String `tfsdk:"value_destination_cidr"`
+	ValueDestinationVlan    jsontypes.Int64  `tfsdk:"value_destination_vlan"`
+	ValueDestinationFqdn    jsontypes.String `tfsdk:"value_destination_fqdn"`
+	ValueDestinationNetwork jsontypes.String `tfsdk:"value_destination_network"`
+	ValueDestinationHost    jsontypes.Int64  `tfsdk:"value_destination_host"`
 }
 
 func (r *NetworksApplianceTrafficShapingUplinkSelectionResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -111,6 +116,7 @@ func (r *NetworksApplianceTrafficShapingUplinkSelectionResource) Schema(ctx cont
 			"active_active_auto_vpn_enabled": schema.BoolAttribute{
 				MarkdownDescription: "Toggle for enabling or disabling active-active AutoVPN",
 				Optional:            true,
+				Computed:            true,
 				CustomType:          jsontypes.BoolType,
 			},
 			"default_uplink": schema.StringAttribute{
@@ -133,8 +139,7 @@ func (r *NetworksApplianceTrafficShapingUplinkSelectionResource) Schema(ctx cont
 					Attributes: map[string]schema.Attribute{
 						"preferred_uplink": schema.StringAttribute{
 							MarkdownDescription: "Preferred uplink for this uplink preference rule. Must be one of: 'wan1', 'wan2', 'bestForVoIP', 'loadBalancing' or 'defaultUplink'",
-							Optional:            true,
-							Computed:            true,
+							Required:            true,
 							CustomType:          jsontypes.StringType,
 						},
 						"failover_criterion": schema.StringAttribute{
@@ -151,37 +156,33 @@ func (r *NetworksApplianceTrafficShapingUplinkSelectionResource) Schema(ctx cont
 								Attributes: map[string]schema.Attribute{
 									"type": schema.StringAttribute{
 										MarkdownDescription: "type of this traffic filter. Must be one of: 'custom'",
-										Optional:            true,
-										Computed:            true,
+										Required:            true,
 										CustomType:          jsontypes.StringType,
 									},
 									"value_id": schema.StringAttribute{
 										MarkdownDescription: "ID value of 'applicationCategory' or 'application' type traffic filter",
-										Optional:            true,
-										Computed:            true,
+										Required:            true,
 										CustomType:          jsontypes.StringType,
 									},
 									"value_protocol": schema.StringAttribute{
 										MarkdownDescription: "Protocol value of this custom type traffic filter. Must be one of: 'tcp', 'udp', 'icmp6' or 'any'",
-										Optional:            true,
-										Computed:            true,
+										Required:            true,
 										CustomType:          jsontypes.StringType,
 									},
 									"value_source_cidr": schema.StringAttribute{
 										MarkdownDescription: "Source CIDR Value format address, or any. E.g.: 192.168.10.0/24, 192.168.10.1 (same as 192.168.10.1/32), 0.0.0.0/0 (same as any)",
 										Optional:            true,
-										Computed:            true,
 										CustomType:          jsontypes.StringType,
 									},
 									"value_source_port": schema.StringAttribute{
 										MarkdownDescription: "Source Port Value E.g.: any, 0 (also means any), 8080, 1-1024",
 										Optional:            true,
-										Computed:            true,
 										CustomType:          jsontypes.StringType,
 									},
 									"value_source_host": schema.Int64Attribute{
 										MarkdownDescription: "Source Host ID Value in the VLAN, should be used along with 'vlan', and not exceed the vlan subnet capacity. Currently only available under a template network.",
 										Optional:            true,
+										Computed:            true,
 										CustomType:          jsontypes.Int64Type,
 									},
 									"value_source_vlan": schema.Int64Attribute{
@@ -190,17 +191,47 @@ func (r *NetworksApplianceTrafficShapingUplinkSelectionResource) Schema(ctx cont
 										Computed:            true,
 										CustomType:          jsontypes.Int64Type,
 									},
+									"value_source_network": schema.StringAttribute{
+										MarkdownDescription: "Meraki network ID. Currently only available under a template network, and the value should be ID of either same template network, or another template network currently. E.g.: &quot;L_12345678&quot;.",
+										Optional:            true,
+										Computed:            true,
+										CustomType:          jsontypes.StringType,
+									},
+									"value_destination_fqdn": schema.StringAttribute{
+										MarkdownDescription: "FQDN format address. Currently only availabe in 'destination' of 'vpnTrafficUplinkPreference' object. E.g.: 'www.google.com'",
+										Optional:            true,
+										Computed:            true,
+										CustomType:          jsontypes.StringType,
+									},
 									"value_destination_cidr": schema.StringAttribute{
 										MarkdownDescription: "Destination CIDR Value  format address, or any. E.g.: 192.168.10.0/24, 192.168.10.1 (same as 192.168.10.1/32), 0.0.0.0/0 (same as any)",
 										Optional:            true,
 										Computed:            true,
 										CustomType:          jsontypes.StringType,
 									},
-									"value_destination_port": schema.StringAttribute{
-										MarkdownDescription: "Destination Port Value E.g.: any, 0 (also means any), 8080, 1-1024",
+									"value_destination_host": schema.Int64Attribute{
+										MarkdownDescription: "Host ID in the VLAN, should be used along with 'vlan', and not exceed the vlan subnet capacity. Currently only available under a template network.",
+										Optional:            true,
+										Computed:            true,
+										CustomType:          jsontypes.Int64Type,
+									},
+									"value_destination_network": schema.StringAttribute{
+										MarkdownDescription: "Meraki network ID. Currently only available under a template network, and the value should be ID of either same template network, or another template network currently. E.g.: &quot;L_12345678&quot;.",
 										Optional:            true,
 										Computed:            true,
 										CustomType:          jsontypes.StringType,
+									},
+									"value_destination_port": schema.StringAttribute{
+										MarkdownDescription: "E.g.: &quot;any&quot;, &quot;0&quot; (also means &quot;any&quot;), &quot;8080&quot;, &quot;1-1024&quot;",
+										Optional:            true,
+										Computed:            true,
+										CustomType:          jsontypes.StringType,
+									},
+									"value_destination_vlan": schema.Int64Attribute{
+										MarkdownDescription: "VLAN ID of the configured VLAN in the Meraki network. Currently only available under a template network.",
+										Optional:            true,
+										Computed:            true,
+										CustomType:          jsontypes.Int64Type,
 									},
 								},
 							},
@@ -208,21 +239,16 @@ func (r *NetworksApplianceTrafficShapingUplinkSelectionResource) Schema(ctx cont
 						"performance_class_builtin_performance_class_name": schema.StringAttribute{
 							MarkdownDescription: "Name of builtin performance class, must be present when performanceClass type is 'builtin', and value must be one of: 'VoIP'",
 							Optional:            true,
-							Computed:            true,
 							CustomType:          jsontypes.StringType,
 						},
-						/*
-							"performance_class_custom_performance_class_id": schema.StringAttribute{
-								MarkdownDescription: "ID of created custom performance class, must be present when performanceClass type is 'custom'",
-								Optional:            true,
-								Computed:            true,
-								CustomType:          jsontypes.StringType,
-							},
-						*/
+						"performance_class_custom_performance_class_id": schema.StringAttribute{
+							MarkdownDescription: "ID of created custom performance class, must be present when performanceClass type is 'custom'",
+							Optional:            true,
+							CustomType:          jsontypes.StringType,
+						},
 						"performance_class_type": schema.StringAttribute{
 							MarkdownDescription: "Type of this performance class. Must be one of: 'builtin' or 'custom'",
-							Optional:            true,
-							Computed:            true,
+							Required:            true,
 							CustomType:          jsontypes.StringType,
 						},
 					},
@@ -250,7 +276,8 @@ func (r *NetworksApplianceTrafficShapingUplinkSelectionResource) Schema(ctx cont
 			},
 			"wan_traffic_uplink_preferences": schema.SetNestedAttribute{
 				MarkdownDescription: "Array of uplink preference rules for WAN traffic",
-				Required:            true,
+				Optional:            true,
+				Computed:            true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"preferred_uplink": schema.StringAttribute{
@@ -402,6 +429,7 @@ func (r *NetworksApplianceTrafficShapingUplinkSelectionResource) Create(ctx cont
 					if !trafficFilter.ValueProtocol.IsUnknown() {
 						value.SetProtocol(trafficFilter.ValueProtocol.ValueString())
 					}
+					fmt.Println(trafficFilter)
 					var destination openApiClient.NetworksNetworkIdApplianceTrafficShapingUplinkSelectionValue1Destination
 					if !trafficFilter.ValueDestinationPort.IsUnknown() {
 						destination.SetPort(trafficFilter.ValueDestinationPort.ValueString())
@@ -409,19 +437,35 @@ func (r *NetworksApplianceTrafficShapingUplinkSelectionResource) Create(ctx cont
 					if !trafficFilter.ValueDestinationCidr.IsUnknown() {
 						destination.SetCidr(trafficFilter.ValueDestinationCidr.ValueString())
 					}
+					if !trafficFilter.ValueDestinationNetwork.IsUnknown() {
+						destination.SetNetwork(trafficFilter.ValueDestinationNetwork.ValueString())
+					}
+					if !trafficFilter.ValueDestinationFqdn.IsUnknown() {
+						destination.SetFqdn(trafficFilter.ValueDestinationFqdn.ValueString())
+					}
+					if !trafficFilter.ValueDestinationHost.IsUnknown() {
+						destination.SetHost(int32(trafficFilter.ValueDestinationHost.ValueInt64()))
+					}
+					if !trafficFilter.ValueDestinationVlan.IsUnknown() {
+						destination.SetVlan(int32(trafficFilter.ValueDestinationVlan.ValueInt64()))
+					}
+					fmt.Println(destination)
 					value.SetDestination(destination)
 					var source openApiClient.NetworksNetworkIdApplianceTrafficShapingUplinkSelectionValue1Source
-					if !trafficFilter.ValueSourceCidr.IsUnknown() {
+					if !trafficFilter.ValueSourceCidr.IsNull() {
 						source.SetCidr(trafficFilter.ValueSourceCidr.ValueString())
 					}
 					if !trafficFilter.ValueSourceHost.IsUnknown() {
 						source.SetHost(int32(trafficFilter.ValueSourceHost.ValueInt64()))
 					}
-					if !trafficFilter.ValueSourcePort.IsUnknown() {
+					if !trafficFilter.ValueSourcePort.IsNull() {
 						source.SetPort(trafficFilter.ValueSourcePort.ValueString())
 					}
 					if !trafficFilter.ValueSourceVlan.IsUnknown() {
 						source.SetVlan(int32(trafficFilter.ValueSourceVlan.ValueInt64()))
+					}
+					if !trafficFilter.ValueSourceNetwork.IsUnknown() {
+						source.SetNetwork(trafficFilter.ValueSourceNetwork.ValueString())
 					}
 					value.SetSource(source)
 					trafficFilterData.SetValue(value)
@@ -523,12 +567,10 @@ func (r *NetworksApplianceTrafficShapingUplinkSelectionResource) Create(ctx cont
 	}
 
 	data.Id = jsontypes.StringValue("example-id")
-	fmt.Println(inlineResp.GetActiveActiveAutoVpnEnabled())
 	data.ActiveActiveAutoVpnEnabled = jsontypes.BoolValue(inlineResp.GetActiveActiveAutoVpnEnabled())
 	data.DefaultUplink = jsontypes.StringValue(inlineResp.GetDefaultUplink())
 	data.LoadBalancingEnabled = jsontypes.BoolValue(inlineResp.GetLoadBalancingEnabled())
 	data.FailoverAndFailback.Immediate.Enabled = jsontypes.BoolValue(inlineResp.FailoverAndFailback.Immediate.GetEnabled())
-
 	data.VpnTrafficUplinkPreferences = nil
 	for _, attribute := range inlineResp.GetVpnTrafficUplinkPreferences() {
 		var vpnTrafficUplinkPreference VpnTrafficUplinkPreferences
@@ -536,8 +578,10 @@ func (r *NetworksApplianceTrafficShapingUplinkSelectionResource) Create(ctx cont
 		vpnTrafficUplinkPreference.PreferredUplink = jsontypes.StringValue(attribute.GetPreferredUplink())
 		vpnTrafficUplinkPreference.PerformanceClassType = jsontypes.StringValue(attribute.PerformanceClass.GetType())
 		vpnTrafficUplinkPreference.PerformanceClassBuiltinPerformanceClassName = jsontypes.StringValue(attribute.PerformanceClass.GetBuiltinPerformanceClassName())
-		//vpnTrafficUplinkPreference.PerformanceClassCustomPerformanceClassId = jsontypes.StringValue(attribute.PerformanceClass.GetCustomPerformanceClassId())
-		//vpnTrafficUplinkPreference.PerformanceClassCustomPerformanceClassId = jsontypes.StringNull()
+		vpnTrafficUplinkPreference.PerformanceClassCustomPerformanceClassId = jsontypes.StringValue(attribute.PerformanceClass.GetCustomPerformanceClassId())
+		if vpnTrafficUplinkPreference.PerformanceClassCustomPerformanceClassId == jsontypes.StringValue("") {
+			vpnTrafficUplinkPreference.PerformanceClassCustomPerformanceClassId = jsontypes.StringNull()
+		}
 		for _, traffic := range attribute.GetTrafficFilters() {
 			var trafficData VlanTrafficFilters
 			trafficData.Type = jsontypes.StringValue(traffic.GetType())
@@ -545,18 +589,35 @@ func (r *NetworksApplianceTrafficShapingUplinkSelectionResource) Create(ctx cont
 			trafficData.ValueProtocol = jsontypes.StringValue(traffic.Value.GetProtocol())
 			trafficData.ValueDestinationCidr = jsontypes.StringValue(traffic.Value.Destination.GetCidr())
 			trafficData.ValueDestinationPort = jsontypes.StringValue(traffic.Value.Destination.GetPort())
-
-			trafficData.ValueSourceVlan = jsontypes.Int64Value(0)
-
-			trafficData.ValueSourceHost = jsontypes.Int64Value(0)
-
+			trafficData.ValueDestinationFqdn = jsontypes.StringValue(traffic.Value.Destination.GetFqdn())
+			if trafficData.ValueDestinationFqdn == jsontypes.StringValue("") {
+				trafficData.ValueDestinationFqdn = jsontypes.StringNull()
+			}
+			trafficData.ValueDestinationHost = jsontypes.Int64Value(int64(traffic.Value.Destination.GetHost()))
+			if trafficData.ValueDestinationHost == jsontypes.Int64Value(0) {
+				trafficData.ValueDestinationHost = jsontypes.Int64Null()
+			}
+			//trafficData.ValueDestinationNetwork = jsontypes.StringValue(traffic.Value.Destination.GetNetwork())
+			trafficData.ValueDestinationVlan = jsontypes.Int64Value(int64(traffic.Value.Destination.GetVlan()))
+			if trafficData.ValueDestinationVlan == jsontypes.Int64Value(0) {
+				trafficData.ValueDestinationVlan = jsontypes.Int64Null()
+			}
+			trafficData.ValueSourceVlan = jsontypes.Int64Value(int64(traffic.Value.Destination.GetVlan()))
+			if trafficData.ValueSourceVlan == jsontypes.Int64Value(0) {
+				trafficData.ValueSourceVlan = jsontypes.Int64Null()
+			}
+			trafficData.ValueSourceHost = jsontypes.Int64Value(int64(traffic.Value.Destination.GetHost()))
+			if trafficData.ValueSourceHost == jsontypes.Int64Value(0) {
+				trafficData.ValueSourceHost = jsontypes.Int64Null()
+			}
 			trafficData.ValueSourceCidr = jsontypes.StringValue(traffic.Value.Source.GetCidr())
 			trafficData.ValueSourcePort = jsontypes.StringValue(traffic.Value.Source.GetPort())
-			fmt.Println(trafficData.ValueSourceVlan)
+			//trafficData.ValueSourceNetwork = jsontypes.StringValue(traffic.Value.Source.GetNetwork())
+			fmt.Println(trafficData)
 			vpnTrafficUplinkPreference.TrafficFilters = append(vpnTrafficUplinkPreference.TrafficFilters, trafficData)
-			fmt.Println(vpnTrafficUplinkPreference.TrafficFilters[0])
 		}
 		data.VpnTrafficUplinkPreferences = append(data.VpnTrafficUplinkPreferences, vpnTrafficUplinkPreference)
+		fmt.Println(vpnTrafficUplinkPreference)
 		fmt.Println(data.VpnTrafficUplinkPreferences)
 	}
 
@@ -626,15 +687,17 @@ func (r *NetworksApplianceTrafficShapingUplinkSelectionResource) Read(ctx contex
 	data.DefaultUplink = jsontypes.StringValue(inlineResp.GetDefaultUplink())
 	data.LoadBalancingEnabled = jsontypes.BoolValue(inlineResp.GetLoadBalancingEnabled())
 	data.FailoverAndFailback.Immediate.Enabled = jsontypes.BoolValue(inlineResp.FailoverAndFailback.Immediate.GetEnabled())
-
+	data.VpnTrafficUplinkPreferences = nil
 	for _, attribute := range inlineResp.GetVpnTrafficUplinkPreferences() {
 		var vpnTrafficUplinkPreference VpnTrafficUplinkPreferences
 		vpnTrafficUplinkPreference.FailOverCriterion = jsontypes.StringValue(attribute.GetFailOverCriterion())
 		vpnTrafficUplinkPreference.PreferredUplink = jsontypes.StringValue(attribute.GetPreferredUplink())
 		vpnTrafficUplinkPreference.PerformanceClassType = jsontypes.StringValue(attribute.PerformanceClass.GetType())
 		vpnTrafficUplinkPreference.PerformanceClassBuiltinPerformanceClassName = jsontypes.StringValue(attribute.PerformanceClass.GetBuiltinPerformanceClassName())
-		//	vpnTrafficUplinkPreference.PerformanceClassCustomPerformanceClassId = jsontypes.StringValue(attribute.PerformanceClass.GetCustomPerformanceClassId())
-		//	vpnTrafficUplinkPreference.PerformanceClassCustomPerformanceClassId = jsontypes.StringNull()
+		vpnTrafficUplinkPreference.PerformanceClassCustomPerformanceClassId = jsontypes.StringValue(attribute.PerformanceClass.GetCustomPerformanceClassId())
+		if vpnTrafficUplinkPreference.PerformanceClassCustomPerformanceClassId.IsUnknown() {
+			vpnTrafficUplinkPreference.PerformanceClassCustomPerformanceClassId = jsontypes.StringNull()
+		}
 		for _, traffic := range attribute.GetTrafficFilters() {
 			var trafficData VlanTrafficFilters
 			trafficData.Type = jsontypes.StringValue(traffic.GetType())
@@ -642,15 +705,20 @@ func (r *NetworksApplianceTrafficShapingUplinkSelectionResource) Read(ctx contex
 			trafficData.ValueProtocol = jsontypes.StringValue(traffic.Value.GetProtocol())
 			trafficData.ValueDestinationCidr = jsontypes.StringValue(traffic.Value.Destination.GetCidr())
 			trafficData.ValueDestinationPort = jsontypes.StringValue(traffic.Value.Destination.GetPort())
-			trafficData.ValueSourceVlan = jsontypes.Int64Value(int64(traffic.Value.Source.GetVlan()))
-			trafficData.ValueSourceHost = jsontypes.Int64Value(int64(traffic.Value.Source.GetHost()))
+			trafficData.ValueDestinationFqdn = jsontypes.StringValue(traffic.Value.Destination.GetFqdn())
+			//trafficData.ValueDestinationHost = jsontypes.Int64Value(int64(traffic.Value.Destination.GetHost()))
+			trafficData.ValueDestinationNetwork = jsontypes.StringValue(traffic.Value.Destination.GetNetwork())
+			trafficData.ValueDestinationVlan = jsontypes.Int64Value(int64(traffic.Value.Destination.GetVlan()))
+			trafficData.ValueSourceVlan = jsontypes.Int64Value(int64(traffic.Value.Destination.GetVlan()))
+			trafficData.ValueSourceHost = jsontypes.Int64Value(int64(traffic.Value.Destination.GetHost()))
 			trafficData.ValueSourceCidr = jsontypes.StringValue(traffic.Value.Source.GetCidr())
 			trafficData.ValueSourcePort = jsontypes.StringValue(traffic.Value.Source.GetPort())
+			trafficData.ValueSourceNetwork = jsontypes.StringValue(traffic.Value.Source.GetNetwork())
 			vpnTrafficUplinkPreference.TrafficFilters = append(vpnTrafficUplinkPreference.TrafficFilters, trafficData)
 		}
 		data.VpnTrafficUplinkPreferences = append(data.VpnTrafficUplinkPreferences, vpnTrafficUplinkPreference)
 	}
-	data.WanTrafficUplinkPreferences = nil
+
 	for _, attribute := range inlineResp.GetWanTrafficUplinkPreferences() {
 		var wanTrafficUplinkPreference WanTrafficUplinkPreferences
 		wanTrafficUplinkPreference.PreferredUplink = jsontypes.StringValue(attribute.GetPreferredUplink())
