@@ -1,8 +1,11 @@
 package provider
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"fmt"
+	"os"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDevicesManagementinterfaceResource(t *testing.T) {
@@ -12,9 +15,9 @@ func TestAccDevicesManagementinterfaceResource(t *testing.T) {
 		Steps: []resource.TestStep{
 
 			{
-				Config: testAccDevicesManagementinterfaceResourceConfigCreate,
+				Config: testAccDevicesManagementinterfaceResourceConfigCreate(os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_devices_management_interface.test", "serial", "Q2HY-BHEX-TLTC"),
+					resource.TestCheckResourceAttr("meraki_devices_management_interface.test", "serial", os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
 					resource.TestCheckResourceAttr("meraki_devices_management_interface.test", "wan1.wan_enabled", "enabled"),
 					resource.TestCheckResourceAttr("meraki_devices_management_interface.test", "wan1.using_static_ip", "false"),
 					resource.TestCheckResourceAttr("meraki_devices_management_interface.test", "wan1.vlan", "1"),
@@ -26,9 +29,10 @@ func TestAccDevicesManagementinterfaceResource(t *testing.T) {
 	})
 }
 
-const testAccDevicesManagementinterfaceResourceConfigCreate = `
+func testAccDevicesManagementinterfaceResourceConfigCreate(serial string) string {
+	result := fmt.Sprintf(`
 resource "meraki_devices_management_interface" "test" {
-	serial = "Q2HY-BHEX-TLTC"
+	serial = "%s"
     wan1 = {
 		wan_enabled = "enabled"
 		vlan = 1
@@ -40,4 +44,6 @@ resource "meraki_devices_management_interface" "test" {
 		using_static_ip = false
 	}
 }
-`
+`, serial)
+	return result
+}
