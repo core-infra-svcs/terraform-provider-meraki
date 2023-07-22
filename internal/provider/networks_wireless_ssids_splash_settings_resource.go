@@ -448,7 +448,7 @@ func (r *NetworksWirelessSsidsSplashSettingsResource) Create(ctx context.Context
 		return
 	}
 
-	updateNetworkWirelessSsidSplashSettings := *openApiClient.NewInlineObject163()
+	updateNetworkWirelessSsidSplashSettings := *openApiClient.NewInlineObject164()
 
 	if !data.SplashUrl.IsUnknown() {
 		if !data.SplashUrl.IsNull() {
@@ -795,7 +795,7 @@ func (r *NetworksWirelessSsidsSplashSettingsResource) Update(ctx context.Context
 		return
 	}
 
-	updateNetworkWirelessSsidSplashSettings := *openApiClient.NewInlineObject163()
+	updateNetworkWirelessSsidSplashSettings := *openApiClient.NewInlineObject164()
 
 	if !data.SplashUrl.IsUnknown() {
 		if !data.SplashUrl.IsNull() {
@@ -1035,7 +1035,7 @@ func (r *NetworksWirelessSsidsSplashSettingsResource) Delete(ctx context.Context
 		return
 	}
 
-	updateNetworkWirelessSsidSplashSettings := *openApiClient.NewInlineObject163()
+	updateNetworkWirelessSsidSplashSettings := *openApiClient.NewInlineObject164()
 
 	if !data.SplashUrl.IsUnknown() {
 		if !data.SplashUrl.IsNull() {
