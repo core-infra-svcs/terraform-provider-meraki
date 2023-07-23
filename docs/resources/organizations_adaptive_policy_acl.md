@@ -39,5 +39,3 @@ Optional:
 - `policy` (String)
 - `protocol` (String)
 - `src_port` (String)
-
-
