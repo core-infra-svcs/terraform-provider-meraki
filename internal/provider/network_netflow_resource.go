@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
-	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -150,14 +150,10 @@ func (r *NetworksNetflowResource) Create(ctx context.Context, req resource.Creat
 	_, httpResp, err := r.client.NetworksApi.UpdateNetworkNetflow(ctx, data.NetworkId.ValueString()).UpdateNetworkNetflowRequest(updateNetworkNetflow).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code
@@ -217,14 +213,10 @@ func (r *NetworksNetflowResource) Read(ctx context.Context, req resource.ReadReq
 	_, httpResp, err := r.client.NetworksApi.GetNetworkNetflow(ctx, data.NetworkId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to read resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code
@@ -290,14 +282,10 @@ func (r *NetworksNetflowResource) Update(ctx context.Context, req resource.Updat
 	_, httpResp, err := r.client.NetworksApi.UpdateNetworkNetflow(ctx, data.NetworkId.ValueString()).UpdateNetworkNetflowRequest(updateNetworkNetflow).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code
@@ -365,14 +353,10 @@ func (r *NetworksNetflowResource) Delete(ctx context.Context, req resource.Delet
 	_, httpResp, err := r.client.NetworksApi.UpdateNetworkNetflow(ctx, data.NetworkId.ValueString()).UpdateNetworkNetflowRequest(updateNetworkNetflow).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to delete resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code

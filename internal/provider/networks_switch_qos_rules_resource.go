@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"strings"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
-	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -180,14 +180,10 @@ func (r *NetworksSwitchQosRulesResource) Create(ctx context.Context, req resourc
 	inlineResp, httpResp, err := r.client.QosRulesApi.CreateNetworkSwitchQosRule(context.Background(), data.NetworkId.ValueString()).CreateNetworkSwitchQosRuleRequest(createNetworksSwitchQosRules).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code
@@ -254,14 +250,10 @@ func (r *NetworksSwitchQosRulesResource) Read(ctx context.Context, req resource.
 	inlineResp, httpResp, err := r.client.QosRulesApi.GetNetworkSwitchQosRule(ctx, data.NetworkId.ValueString(), data.QosRulesId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to read resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code
@@ -342,14 +334,10 @@ func (r *NetworksSwitchQosRulesResource) Update(ctx context.Context, req resourc
 	inlineResp, httpResp, err := r.client.QosRulesApi.UpdateNetworkSwitchQosRule(context.Background(), data.NetworkId.ValueString(), data.QosRulesId.ValueString()).UpdateNetworkSwitchQosRuleRequest(updateNetworksSwitchQosRules).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	if httpResp.StatusCode != 200 {
@@ -416,14 +404,10 @@ func (r *NetworksSwitchQosRulesResource) Delete(ctx context.Context, req resourc
 	httpResp, err := r.client.QosRulesApi.DeleteNetworkSwitchQosRule(ctx, data.NetworkId.ValueString(), data.QosRulesId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to Delete resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	if httpResp.StatusCode != 204 {

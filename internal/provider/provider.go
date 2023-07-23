@@ -3,6 +3,8 @@ package provider
 import (
 	"context"
 	"crypto/tls"
+	"crypto/x509"
+	"fmt"
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -11,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
 	"net/http"
 	"net/url"
@@ -50,6 +53,7 @@ func (p *CiscoMerakiProvider) Metadata(ctx context.Context, req provider.Metadat
 
 func (p *CiscoMerakiProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		Description: "Terraform Provider Meraki is a declarative infrastructure management tool for the Cisco Meraki Dashboard API.",
 		Attributes: map[string]schema.Attribute{
 			"logging_enabled": schema.BoolAttribute{
 				Description: "Display http client debug messages in console",
@@ -191,33 +195,31 @@ func (p *CiscoMerakiProvider) Configure(ctx context.Context, req provider.Config
 		},
 	}
 
-	/*
-		// add certificate to retryClient if certificate path isn't empty
-			if configuration.CertificatePath != "" {
+	// add certificate to retryClient if certificate path isn't empty
+	if configuration.CertificatePath != "" {
 
-				// Load the certificate file
-				certFile := configuration.CertificatePath
-				cert, err := os.ReadFile(certFile)
-				if err != nil {
-					tflog.Error(ctx, fmt.Sprintf(err.Error()))
-				}
+		// Load the certificate file
+		certFile := configuration.CertificatePath
+		cert, err := os.ReadFile(certFile)
+		if err != nil {
+			tflog.Error(ctx, fmt.Sprintf(err.Error()))
+		}
 
-				// Create a certificate pool and add the certificate
-				certPool := x509.NewCertPool()
-				certPool.AppendCertsFromPEM(cert)
+		// Create a certificate pool and add the certificate
+		certPool := x509.NewCertPool()
+		certPool.AppendCertsFromPEM(cert)
 
-				// Create a custom Cert pool with the certificate and add TLS configuration to transport
-				transport.TLSClientConfig.RootCAs = certPool
+		// Create a custom Cert pool with the certificate and add TLS configuration to transport
+		transport.TLSClientConfig.RootCAs = certPool
 
-			}
+	}
 
-			if configuration.Proxy != "" {
-				proxyUrl, err := url.Parse(configuration.Proxy)
-				if err == nil {
-					transport.Proxy = http.ProxyURL(proxyUrl)
-				}
-			}
-	*/
+	if configuration.RequestsProxy != "" {
+		proxyUrl, err := url.Parse(configuration.RequestsProxy)
+		if err == nil {
+			transport.Proxy = http.ProxyURL(proxyUrl)
+		}
+	}
 
 	// Set single request timeout in transport
 	retryClient.HTTPClient.Timeout = time.Duration(configuration.SingleRequestTimeout) * time.Second
@@ -281,11 +283,11 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		NewDevicesResource,
 		NewOrganizationsClaimResource,
 		NewNetworksDevicesClaimResource,
-    NewNetworkApplianceStaticRoutesResource,
-    NewNetworksCellularGatewaySubnetPoolResource,
-    NewNetworksCellularGatewayUplinkResource,
-    NewNetworksWirelessSsidsSplashSettingsResource,
-    NewDevicesCellularSimsResource,
+		NewNetworkApplianceStaticRoutesResource,
+		NewNetworksCellularGatewaySubnetPoolResource,
+		NewNetworksCellularGatewayUplinkResource,
+		NewNetworksWirelessSsidsSplashSettingsResource,
+		NewDevicesCellularSimsResource,
 	}
 }
 

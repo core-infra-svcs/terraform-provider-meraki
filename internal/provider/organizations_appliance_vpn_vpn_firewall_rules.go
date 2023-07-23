@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
-	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -189,14 +189,10 @@ func (r *OrganizationsApplianceVpnVpnFirewallRulesResource) Create(ctx context.C
 	_, httpResp, err := r.client.ApplianceApi.UpdateOrganizationApplianceVpnVpnFirewallRules(context.Background(), data.OrganizationId.ValueString()).UpdateOrganizationApplianceVpnVpnFirewallRulesRequest(organizationsApplianceVpnVpnFirewallRules).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	if httpResp.StatusCode != 200 {
@@ -242,14 +238,10 @@ func (r *OrganizationsApplianceVpnVpnFirewallRulesResource) Read(ctx context.Con
 	_, httpResp, err := r.client.ApplianceApi.GetOrganizationApplianceVpnVpnFirewallRules(context.Background(), data.OrganizationId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to read resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	if httpResp.StatusCode != 200 {
@@ -319,14 +311,10 @@ func (r *OrganizationsApplianceVpnVpnFirewallRulesResource) Update(ctx context.C
 	_, httpResp, err := r.client.ApplianceApi.UpdateOrganizationApplianceVpnVpnFirewallRules(context.Background(), data.OrganizationId.ValueString()).UpdateOrganizationApplianceVpnVpnFirewallRulesRequest(organizationsApplianceVpnVpnFirewallRules).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	if httpResp.StatusCode != 200 {
@@ -378,14 +366,10 @@ func (r *OrganizationsApplianceVpnVpnFirewallRulesResource) Delete(ctx context.C
 	_, httpResp, err := r.client.ApplianceApi.UpdateOrganizationApplianceVpnVpnFirewallRules(context.Background(), data.OrganizationId.ValueString()).UpdateOrganizationApplianceVpnVpnFirewallRulesRequest(organizationsApplianceVpnVpnFirewallRules).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to delete resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	if httpResp.StatusCode != 200 {

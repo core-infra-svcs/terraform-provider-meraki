@@ -70,5 +70,3 @@ Optional:
 Optional:
 
 - `enabled` (Boolean) Failover to secondary SIM.
-
-

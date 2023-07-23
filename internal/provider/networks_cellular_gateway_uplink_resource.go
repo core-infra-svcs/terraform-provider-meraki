@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
-	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -147,26 +147,22 @@ func (r *NetworksCellularGatewayUplinkResource) Create(ctx context.Context, req 
 		return
 	}
 
-	updateNetworkCellularGatewayUplink := *openApiClient.NewInlineObject70()
+	updateNetworkCellularGatewayUplink := *openApiClient.NewUpdateNetworkCellularGatewayUplinkRequest()
 
-	var bandwidthLimits openApiClient.NetworksNetworkIdApplianceTrafficShapingUplinkBandwidthBandwidthLimitsCellular
+	var bandwidthLimits openApiClient.UpdateNetworkApplianceTrafficShapingUplinkBandwidthRequestBandwidthLimitsCellular
 	bandwidthLimits.SetLimitUp(int32(data.CellularGatewayBandwidthLimits.LimitUp.ValueInt64()))
 	bandwidthLimits.SetLimitDown(int32(data.CellularGatewayBandwidthLimits.LimitDown.ValueInt64()))
 	updateNetworkCellularGatewayUplink.SetBandwidthLimits(bandwidthLimits)
 
-	_, httpResp, err := r.client.CellularGatewayApi.UpdateNetworkCellularGatewayUplink(context.Background(), data.NetworkId.ValueString()).UpdateNetworkCellularGatewayUplink(updateNetworkCellularGatewayUplink).Execute()
+	_, httpResp, err := r.client.CellularGatewayApi.UpdateNetworkCellularGatewayUplink(context.Background(), data.NetworkId.ValueString()).UpdateNetworkCellularGatewayUplinkRequest(updateNetworkCellularGatewayUplink).Execute()
 
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// Collect any HTTP diagnostics that might be useful for debugging.
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// If it's not what you expect, add an error to diagnostics.
@@ -221,14 +217,10 @@ func (r *NetworksCellularGatewayUplinkResource) Read(ctx context.Context, req re
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to read resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// Collect any HTTP diagnostics that might be useful for debugging.
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// If it's not what you expect, add an error to diagnostics.
@@ -279,26 +271,22 @@ func (r *NetworksCellularGatewayUplinkResource) Update(ctx context.Context, req 
 		return
 	}
 
-	updateNetworkCellularGatewayUplink := *openApiClient.NewInlineObject70()
+	updateNetworkCellularGatewayUplink := *openApiClient.NewUpdateNetworkCellularGatewayUplinkRequest()
 
-	var bandwidthLimits openApiClient.NetworksNetworkIdApplianceTrafficShapingUplinkBandwidthBandwidthLimitsCellular
+	var bandwidthLimits openApiClient.UpdateNetworkApplianceTrafficShapingUplinkBandwidthRequestBandwidthLimitsCellular
 	bandwidthLimits.SetLimitUp(int32(data.CellularGatewayBandwidthLimits.LimitUp.ValueInt64()))
 	bandwidthLimits.SetLimitDown(int32(data.CellularGatewayBandwidthLimits.LimitDown.ValueInt64()))
 	updateNetworkCellularGatewayUplink.SetBandwidthLimits(bandwidthLimits)
 
-	_, httpResp, err := r.client.CellularGatewayApi.UpdateNetworkCellularGatewayUplink(context.Background(), data.NetworkId.ValueString()).UpdateNetworkCellularGatewayUplink(updateNetworkCellularGatewayUplink).Execute()
+	_, httpResp, err := r.client.CellularGatewayApi.UpdateNetworkCellularGatewayUplink(context.Background(), data.NetworkId.ValueString()).UpdateNetworkCellularGatewayUplinkRequest(updateNetworkCellularGatewayUplink).Execute()
 
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// Collect any HTTP diagnostics that might be useful for debugging.
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// If it's not what you expect, add an error to diagnostics.
@@ -348,26 +336,22 @@ func (r *NetworksCellularGatewayUplinkResource) Delete(ctx context.Context, req 
 		return
 	}
 
-	updateNetworkCellularGatewayUplink := *openApiClient.NewInlineObject70()
+	updateNetworkCellularGatewayUplink := *openApiClient.NewUpdateNetworkCellularGatewayUplinkRequest()
 
-	var bandwidthLimits openApiClient.NetworksNetworkIdApplianceTrafficShapingUplinkBandwidthBandwidthLimitsCellular
+	var bandwidthLimits openApiClient.UpdateNetworkApplianceTrafficShapingUplinkBandwidthRequestBandwidthLimitsCellular
 	bandwidthLimits.SetLimitUp(int32(data.CellularGatewayBandwidthLimits.LimitUp.ValueInt64()))
 	bandwidthLimits.SetLimitDown(int32(data.CellularGatewayBandwidthLimits.LimitDown.ValueInt64()))
 	updateNetworkCellularGatewayUplink.SetBandwidthLimits(bandwidthLimits)
 
-	_, httpResp, err := r.client.CellularGatewayApi.UpdateNetworkCellularGatewayUplink(context.Background(), data.NetworkId.ValueString()).UpdateNetworkCellularGatewayUplink(updateNetworkCellularGatewayUplink).Execute()
+	_, httpResp, err := r.client.CellularGatewayApi.UpdateNetworkCellularGatewayUplink(context.Background(), data.NetworkId.ValueString()).UpdateNetworkCellularGatewayUplinkRequest(updateNetworkCellularGatewayUplink).Execute()
 
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// Collect any HTTP diagnostics that might be useful for debugging.
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// If it's not what you expect, add an error to diagnostics.

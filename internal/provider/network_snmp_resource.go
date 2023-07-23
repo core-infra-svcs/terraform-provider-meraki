@@ -142,14 +142,10 @@ func (r *OrganizationsSnmpResource) Create(ctx context.Context, req resource.Cre
 	_, httpResp, err := r.client.NetworksApi.UpdateNetworkSnmp(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSnmpRequest(updateNetworkSnmp).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code
@@ -196,14 +192,10 @@ func (r *OrganizationsSnmpResource) Read(ctx context.Context, req resource.ReadR
 	_, httpResp, err := r.client.SnmpApi.GetNetworkSnmp(context.Background(), data.NetworkId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code
@@ -265,14 +257,10 @@ func (r *OrganizationsSnmpResource) Update(ctx context.Context, req resource.Upd
 	_, httpResp, err := r.client.NetworksApi.UpdateNetworkSnmp(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSnmpRequest(updateNetworkSnmp).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	if httpResp.StatusCode != 200 {
@@ -323,14 +311,10 @@ func (r *OrganizationsSnmpResource) Delete(ctx context.Context, req resource.Del
 	_, httpResp, err := r.client.NetworksApi.UpdateNetworkSnmp(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSnmpRequest(updateNetworkSnmp).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code

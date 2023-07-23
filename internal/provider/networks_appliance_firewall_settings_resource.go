@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
-	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -132,14 +132,10 @@ func (r *NetworksApplianceFirewallSettingsResource) Create(ctx context.Context, 
 	_, httpResp, err := r.client.SettingsApi.UpdateNetworkApplianceFirewallSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceFirewallSettingsRequest(updateNetworksApplianceFirewallSettings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code
@@ -186,14 +182,10 @@ func (r *NetworksApplianceFirewallSettingsResource) Read(ctx context.Context, re
 	_, httpResp, err := r.client.SettingsApi.GetNetworkApplianceFirewallSettings(context.Background(), data.NetworkId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to read resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code
@@ -249,14 +241,10 @@ func (r *NetworksApplianceFirewallSettingsResource) Update(ctx context.Context, 
 	_, httpResp, err := r.client.SettingsApi.UpdateNetworkApplianceFirewallSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceFirewallSettingsRequest(updateNetworksApplianceFirewallSettings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code
@@ -310,14 +298,10 @@ func (r *NetworksApplianceFirewallSettingsResource) Delete(ctx context.Context, 
 	_, httpResp, err := r.client.SettingsApi.UpdateNetworkApplianceFirewallSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceFirewallSettingsRequest(updateNetworksApplianceFirewallSettings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to delete resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code

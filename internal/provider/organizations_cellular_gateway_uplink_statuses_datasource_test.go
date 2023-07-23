@@ -23,9 +23,9 @@ func TestAccOrganizationsCellularGatewayUplinkStatusesDataSource(t *testing.T) {
 
 			// Create and Read a Network.
 			{
-				Config: testAccOrganizationsCellularGatewayUplinkStatusesDataSourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANZIATION_ID")),
+				Config: testAccOrganizationsCellularGatewayUplinkStatusesDataSourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "Main Office"),
+					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_network"),
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
@@ -37,7 +37,7 @@ func TestAccOrganizationsCellularGatewayUplinkStatusesDataSource(t *testing.T) {
 
 			// Claim and Read NetworksDevicesClaim
 			{
-				Config: testAccOrganizationsCellularGatewayUplinkStatusesNetworksDevicesClaimResourceConfigCreate(os.Getenv("TF_ACC_MERAKI_ORGANZIATION_ID"), os.Getenv("TF_ACC_MERAKI_MG_SERIAL")),
+				Config: testAccOrganizationsCellularGatewayUplinkStatusesNetworksDevicesClaimResourceConfigCreate(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), os.Getenv("TF_ACC_MERAKI_MG_SERIAL")),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_networks_devices_claim.test", "id", "example-id"),
 				),
@@ -45,7 +45,7 @@ func TestAccOrganizationsCellularGatewayUplinkStatusesDataSource(t *testing.T) {
 
 			// Read OrganizationsCellularGatewayUplinkStatuses
 			{
-				Config: testAccOrganizationsCellularGatewayUplinkStatusesDataSourceConfigRead(os.Getenv("TF_ACC_MERAKI_ORGANZIATION_ID"), os.Getenv("TF_ACC_MERAKI_MG_SERIAL")),
+				Config: testAccOrganizationsCellularGatewayUplinkStatusesDataSourceConfigRead(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), os.Getenv("TF_ACC_MERAKI_MG_SERIAL")),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("data.meraki_organizations_cellular_gateway_uplink_statuses.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("data.meraki_organizations_cellular_gateway_uplink_statuses.test", "list.#", "1"),
@@ -65,7 +65,7 @@ resource "meraki_network" "test" {
 	organization_id = "%s"
 	product_types = ["cellularGateway"]
 	tags = ["tag1"]
-	name = "Main Office"
+	name = "test_acc_network"
 	timezone = "America/Los_Angeles"
 	notes = "Additional description of the network"
 }
@@ -107,6 +107,7 @@ resource "meraki_networks_devices_claim" "test" {
       "%s"
   ]
 }
+
 data "meraki_organizations_cellular_gateway_uplink_statuses" "test" {
 	organization_id = "%s"
 }	

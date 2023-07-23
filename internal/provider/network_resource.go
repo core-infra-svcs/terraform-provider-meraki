@@ -115,7 +115,7 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Required:   true,
 				Validators: []validator.Set{
 					setvalidator.ValueStringsAre(
-						stringvalidator.OneOf([]string{"appliance", "switch", "wireless", "systemsManager", "camera", "cellularGateway", "sensor"}...),
+						stringvalidator.OneOf([]string{"appliance", "switch", "wireless", "systemsManager", "camera", "cellularGateway", "sensor", "cloudGateway"}...), //
 						stringvalidator.LengthAtLeast(5),
 					),
 				},
@@ -246,15 +246,10 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 	_, httpResp, err := r.client.OrganizationsApi.CreateOrganizationNetwork(ctx, data.OrganizationId.ValueString()).CreateOrganizationNetworkRequest(*createOrganizationNetwork).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
 		return
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 	}
 
 	// Check for API success response code
@@ -302,15 +297,10 @@ func (r *NetworkResource) Read(ctx context.Context, req resource.ReadRequest, re
 	_, httpResp, err := r.client.NetworksApi.GetNetwork(context.Background(), data.NetworkId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to read resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
 		return
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 	}
 
 	// Check for API success inlineResp code
@@ -384,15 +374,10 @@ func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest
 		data.NetworkId.ValueString()).UpdateNetworkRequest(*updateNetwork).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
 		return
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 	}
 
 	// Check for API success response code
@@ -447,19 +432,13 @@ func (r *NetworkResource) Delete(ctx context.Context, req resource.DeleteRequest
 		httpResp, err := r.client.NetworksApi.DeleteNetwork(context.Background(), data.NetworkId.ValueString()).Execute()
 
 		if httpResp.StatusCode == 204 {
-
 			// check for HTTP errors
 			if err != nil {
 				resp.Diagnostics.AddError(
-					"Failed to delete resource",
-					fmt.Sprintf("%v\n", err.Error()),
+					"HTTP Client Failure",
+					tools.HttpDiagnostics(httpResp),
 				)
 				return
-			}
-
-			// collect diagnostics
-			if httpResp != nil {
-				tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 			}
 
 			// Check for errors after diagnostics collected

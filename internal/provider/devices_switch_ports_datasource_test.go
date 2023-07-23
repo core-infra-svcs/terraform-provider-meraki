@@ -32,9 +32,9 @@ func TestAccDevicesSwitchPortsDataSource(t *testing.T) {
 
 			// Create and Read a Network.
 			{
-				Config: testAccDevicesSwitchPortsDataSourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANZIATION_ID")),
+				Config: testAccDevicesSwitchPortsDataSourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "Main Office"),
+					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_network"),
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
@@ -46,7 +46,7 @@ func TestAccDevicesSwitchPortsDataSource(t *testing.T) {
 
 			// Read Devices Switch Ports
 			{
-				Config: testAccDevicesSwitchPortsDataSourceConfigRead(os.Getenv("TF_ACC_MERAKI_ORGANZIATION_ID"), os.Getenv("TF_ACC_MERAKI_MS_SERIAL")),
+				Config: testAccDevicesSwitchPortsDataSourceConfigRead(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), os.Getenv("TF_ACC_MERAKI_MS_SERIAL")),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("data.meraki_devices_switch_ports.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("data.meraki_devices_switch_ports.test", "list.#", "52"),
@@ -85,7 +85,7 @@ resource "meraki_network" "test" {
 	organization_id = "%s"
 	product_types = ["switch"]
 	tags = ["tag1"]
-	name = "Main Office"
+	name = "test_acc_network"
 	timezone = "America/Los_Angeles"
 	notes = "Additional description of the network"
 }

@@ -26,5 +26,3 @@ Networks Devices Claim for Claiming devices into a network
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-
-

@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
-	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -36,7 +36,7 @@ type NetworksTrafficAnalysisResourceModel struct {
 	Id                  jsontypes.String                                          `tfsdk:"id"`
 	NetworkId           jsontypes.String                                          `tfsdk:"network_id" json:"network_id"`
 	Mode                jsontypes.String                                          `tfsdk:"mode" json:"mode"`
-	CustomPieChartItems []NetworksTrafficAnalysisResourceModelCustomPieChartItems `tfsdk:"custom_piechart_items" json:"customPieChartItems"`
+	CustomPieChartItems []NetworksTrafficAnalysisResourceModelCustomPieChartItems `tfsdk:"custom_pie_chart_items" json:"customPieChartItems"`
 }
 
 type NetworksTrafficAnalysisResourceModelCustomPieChartItems struct {
@@ -79,7 +79,7 @@ func (r *NetworksTrafficAnalysisResource) Schema(ctx context.Context, req resour
 					stringvalidator.LengthAtLeast(5),
 				},
 			},
-			"custom_piechart_items": schema.ListNestedAttribute{
+			"custom_pie_chart_items": schema.ListNestedAttribute{
 				Description: "The list of items that make up the custom pie chart for traffic reporting.",
 				Required:    true,
 				NestedObject: schema.NestedAttributeObject{
@@ -164,14 +164,10 @@ func (r *NetworksTrafficAnalysisResource) Create(ctx context.Context, req resour
 	_, httpResp, err := r.client.NetworksApi.UpdateNetworkTrafficAnalysis(ctx, data.NetworkId.ValueString()).UpdateNetworkTrafficAnalysisRequest(updateNetworkTrafficAnalysis).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code
@@ -218,14 +214,10 @@ func (r *NetworksTrafficAnalysisResource) Read(ctx context.Context, req resource
 	_, httpResp, err := r.client.NetworksApi.GetNetworkTrafficAnalysis(ctx, data.NetworkId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to read resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code
@@ -291,14 +283,10 @@ func (r *NetworksTrafficAnalysisResource) Update(ctx context.Context, req resour
 	_, httpResp, err := r.client.NetworksApi.UpdateNetworkTrafficAnalysis(ctx, data.NetworkId.ValueString()).UpdateNetworkTrafficAnalysisRequest(updateNetworkTrafficAnalysis).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code
@@ -350,14 +338,10 @@ func (r *NetworksTrafficAnalysisResource) Delete(ctx context.Context, req resour
 	_, httpResp, err := r.client.NetworksApi.UpdateNetworkTrafficAnalysis(ctx, data.NetworkId.ValueString()).UpdateNetworkTrafficAnalysisRequest(updateNetworkTrafficAnalysis).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to delete resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code

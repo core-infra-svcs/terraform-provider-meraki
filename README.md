@@ -2,6 +2,8 @@
 
 The Meraki Terraform Provider is a declarative tool that enables teams and individuals to automate their workflows and manage Cisco Meraki network infrastructure using Terraform. With this provider, you can define and manage Meraki organizations, networks, devices, and other resources as code, providing simplicity, scalability, and repeatability in your automation strategy.
 
+Additional provider information available on the [Terraform Registry](https://registry.terraform.io/providers/core-infra-svcs/meraki/latest).
+
 ## Features
 
 - Provision and manage Meraki organizations, networks, devices, and more through infrastructure as code.
