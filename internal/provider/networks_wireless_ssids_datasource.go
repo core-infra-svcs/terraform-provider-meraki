@@ -144,7 +144,7 @@ func (d *NetworksWirelessSsidsDataSource) Schema(ctx context.Context, req dataso
 							CustomType:          jsontypes.StringType,
 						},
 						"adult_content_filtering_enabled": schema.BoolAttribute{
-							MarkdownDescription: "Enable Mandatory DHCP on VLAN.",
+							MarkdownDescription: "",
 							Optional:            true,
 							Computed:            true,
 							CustomType:          jsontypes.BoolType,
@@ -229,9 +229,8 @@ func (d *NetworksWirelessSsidsDataSource) Schema(ctx context.Context, req dataso
 							Optional:    true,
 						},
 						"speed_burst": schema.SingleNestedAttribute{
-							Optional:            true,
-							Computed:            true,
-							MarkdownDescription: "",
+							Optional: true,
+							Computed: true,
 							Attributes: map[string]schema.Attribute{
 								"enabled": schema.BoolAttribute{
 									MarkdownDescription: "Whether or not the SSID is enabled.",

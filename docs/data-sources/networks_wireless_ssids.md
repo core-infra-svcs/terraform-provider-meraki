@@ -21,7 +21,7 @@ NetworksWirelessSsids
 
 ### Optional
 
-- `list` (Attributes Set) (see [below for nested schema](#nestedatt--list))
+- `list` (Attributes List) (see [below for nested schema](#nestedatt--list))
 
 ### Read-Only
 
@@ -32,22 +32,18 @@ NetworksWirelessSsids
 
 Required:
 
-- `admin_splash_url` (String) The VLAN ID of the new VLAN (must be between 1 and 4094)
 - `auth_mode` (String) The association control method for the SSID ('open', 'open-enhanced', 'psk', 'open-with-radius', 'open-with-nac', '8021x-meraki', '8021x-nac', '8021x-radius', '8021x-google', '8021x-localradius', 'ipsk-with-radius' or 'ipsk-without-radius')
-- `encryption_mode` (String) The psk encryption mode for the SSID ('wep' or 'wpa'). This param is only valid if the authMode is 'psk'
+- `band_selection` (String) This policy determines how authentication requests should be handled in the event that all of the configured RADIUS servers are unreachable ('Deny access' or 'Allow access').
 - `ip_assignment_mode` (String) The client IP assignment mode ('NAT mode', 'Bridge mode', 'Layer 3 roaming', 'Ethernet over GRE', 'Layer 3 roaming with a concentrator' or 'VPN')
 - `name` (String) The VLAN ID of the new VLAN (must be between 1 and 4094)
-- `radius_attribute_for_group_policies` (String) Specify the RADIUS attribute used to look up group policies ('Filter-Id', 'Reply-Message', 'Airespace-ACL-Name' or 'Aruba-User-Role'). Access points must receive this attribute in the RADIUS Access-Accept message
-- `radius_failover_policy` (String) This policy determines how authentication requests should be handled in the event that all of the configured RADIUS servers are unreachable ('Deny access' or 'Allow access').
-- `radius_load_balancing_policy` (String) This policy determines which RADIUS server will be contacted first in an authentication attempt and the ordering of any necessary retry attempts ('Strict priority order' or 'Round robin')
 - `splash_page` (String) The type of splash page for the SSID ('None', 'Click-through splash page', 'Billing', 'Password-protected with Meraki RADIUS', 'Password-protected with custom RADIUS', 'Password-protected with Active Directory', 'Password-protected with LDAP', 'SMS authentication', 'Systems Manager Sentry', 'Facebook Wi-Fi', 'Google OAuth', 'Sponsored guest', 'Cisco ISE' or 'Google Apps domain'). This attribute is not supported for template children.
-- `splash_timeout` (String) The VLAN ID of the new VLAN (must be between 1 and 4094)
-- `wpa_encryption_mode` (String) The types of WPA encryption. ('WPA1 only', 'WPA1 and WPA2', 'WPA2 only', 'WPA3 Transition Mode', 'WPA3 only' or 'WPA3 192-bit Security')
 
 Optional:
 
+- `adult_content_filtering_enabled` (Boolean)
 - `availability_tags` (Set of String) The IPs of the DHCP servers that DHCP requests should be relayed to
 - `available_on_all_aps` (Boolean) Enable Mandatory DHCP on VLAN.
+- `dns_rewrite` (Attributes) (see [below for nested schema](#nestedatt--list--dns_rewrite))
 - `enabled` (Boolean) Whether or not the SSID is enabled.
 - `mandatory_dhcp_enabled` (Boolean) Enable Mandatory DHCP on VLAN.
 - `min_bitrate` (Number) The minimum bitrate in Mbps of this SSID in the default indoor RF profile. ('1', '2', '5.5', '6', '9', '11', '12', '18', '24', '36', '48' or '54').
@@ -56,34 +52,24 @@ Optional:
 - `per_client_bandwidth_limit_up` (Number) The upload bandwidth limit in Kbps. (0 represents no limit.)
 - `per_ssid_bandwidth_limit_down` (Number) The total download bandwidth limit in Kbps. (0 represents no limit.).
 - `per_ssid_bandwidth_limit_up` (Number) The total upload bandwidth limit in Kbps. (0 represents no limit.)
-- `radius_accounting_enabled` (Boolean) Enable Mandatory DHCP on VLAN.
-- `radius_accounting_servers` (Attributes Set) The DHCP reserved IP ranges on the VLAN (see [below for nested schema](#nestedatt--list--radius_accounting_servers))
-- `radius_enabled` (Boolean) Enable Mandatory DHCP on VLAN.
-- `radius_servers` (Attributes Set) The DHCP reserved IP ranges on the VLAN (see [below for nested schema](#nestedatt--list--radius_servers))
+- `speed_burst` (Attributes) (see [below for nested schema](#nestedatt--list--speed_burst))
 - `ssid_admin_accessible` (Boolean) Enable Mandatory DHCP on VLAN.
 - `visible` (Boolean) Enable Mandatory DHCP on VLAN.
-- `walled_garden_enabled` (Boolean) Enable Mandatory DHCP on VLAN.
-- `walled_garden_ranges` (Set of String) The IPs of the DHCP servers that DHCP requests should be relayed to
 
-<a id="nestedatt--list--radius_accounting_servers"></a>
-### Nested Schema for `list.radius_accounting_servers`
+<a id="nestedatt--list--dns_rewrite"></a>
+### Nested Schema for `list.dns_rewrite`
 
 Optional:
 
-- `ca_certificate` (String, Sensitive) A text comment for the reserved range
-- `host` (String) The first IP in the reserved range
-- `open_roaming_certificate_id` (Number) The last IP in the reserved range
-- `port` (Number) The last IP in the reserved range
+- `dns_custom_nameservers` (Set of String) The IPs of the DHCP servers that DHCP requests should be relayed to
+- `enabled` (Boolean) Whether or not the SSID is enabled.
 
 
-<a id="nestedatt--list--radius_servers"></a>
-### Nested Schema for `list.radius_servers`
+<a id="nestedatt--list--speed_burst"></a>
+### Nested Schema for `list.speed_burst`
 
 Optional:
 
-- `ca_certificate` (String, Sensitive) A text comment for the reserved range
-- `host` (String) The first IP in the reserved range
-- `open_roaming_certificate_id` (Number) The last IP in the reserved range
-- `port` (Number) The last IP in the reserved range
+- `enabled` (Boolean) Whether or not the SSID is enabled.
 
 
