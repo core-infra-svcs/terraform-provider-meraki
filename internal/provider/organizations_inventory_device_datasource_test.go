@@ -55,7 +55,7 @@ func TestAccOrganizationsInventoryDeviceDataSource(t *testing.T) {
 
 			// Read OrganizationsInventoryDevices
 			{
-				Config: testAccOrganizationsInventoryDeviceDataSourceConfigRead(os.Getenv("TF_ACC_MERAKI_ORGANZIATION_ID")),
+				Config: testAccOrganizationsInventoryDeviceDataSourceConfigRead(os.Getenv("TF_ACC_MERAKI_ORGANZIATION_ID"), os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("data.meraki_organizations_inventory_device.test", "id", "example-id"),
 				),
@@ -106,11 +106,11 @@ resource "meraki_network" "test" {
 
 // testAccOrganizationsInventoryDeviceDataSourceConfigRead is a constant string that defines the configuration for creating and updating a organizations_{organizationId}_inventory_devices resource in your tests.
 // It depends on both the organization and network resources.
-var testAccOrganizationsInventoryDeviceDataSourceConfigRead = func(orgID string) string {
+var testAccOrganizationsInventoryDeviceDataSourceConfigRead = func(orgID string, serialID string) string {
 	return fmt.Sprintf(`
 data "meraki_organizations_inventory_device" "test" {
   	organization_id = "%s"
-    serial = "Q2KD-QF5S-L52G"
+    serial = "%s"
 }
-`, orgID)
+`, orgID, serialID)
 }
