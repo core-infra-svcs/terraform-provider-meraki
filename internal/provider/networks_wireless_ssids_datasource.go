@@ -38,44 +38,36 @@ type NetworksWirelessSsidsDataSourceModel struct {
 	List []NetworksWirelessSSIDData `tfsdk:"list" json:"-"`
 }
 
-type NetworksWirelessSSIDData struct {
-	Number                          jsontypes.Int64                 `tfsdk:"number" json:"number"`
-	MinBitrate                      jsontypes.Int64                 `tfsdk:"min_bitrate" json:"minBitrate"`
-	PerClientBandwidthLimitUp       jsontypes.Int64                 `tfsdk:"per_client_bandwidth_limit_up" json:"perClientBandwidthLimitUp"`
-	PerClientBandwidthLimitDown     jsontypes.Int64                 `tfsdk:"per_client_bandwidth_limit_down" json:"perClientBandwidthLimitDown"`
-	PerSsidBandwidthLimitUp         jsontypes.Int64                 `tfsdk:"per_ssid_bandwidth_limit_up" json:"perSsidBandwidthLimitUp"`
-	PerSsidBandwidthLimitDown       jsontypes.Int64                 `tfsdk:"per_ssid_bandwidth_limit_down" json:"perSsidBandwidthLimitDown"`
-	RadiusAttributeForGroupPolicies jsontypes.String                `tfsdk:"radius_attribute_for_group_policies" json:"radiusAttributeForGroupPolicies"`
-	RadiusFailoverPolicy            jsontypes.String                `tfsdk:"radius_failover_policy" json:"radiusFailoverPolicy"`
-	RadiusLoadBalancingPolicy       jsontypes.String                `tfsdk:"radius_load_balancing_policy" json:"radiusLoadBalancingPolicy"`
-	IpAssignmentMode                jsontypes.String                `tfsdk:"ip_assignment_mode" json:"ipAssignmentMode"`
-	AdminSplashUrl                  jsontypes.String                `tfsdk:"admin_splash_url" json:"adminSplashUrl"`
-	SplashTimeout                   jsontypes.String                `tfsdk:"splash_timeout" json:"splashTimeout"`
-	Name                            jsontypes.String                `tfsdk:"name" json:"name"`
-	SplashPage                      jsontypes.String                `tfsdk:"splash_page" json:"splashPage"`
-	AuthMode                        jsontypes.String                `tfsdk:"auth_mode" json:"authMode"`
-	EncryptionMode                  jsontypes.String                `tfsdk:"encryption_mode" json:"encryptionMode"`
-	WpaEncryptionMode               jsontypes.String                `tfsdk:"wpa_encryption_mode" json:"wpaEncryptionMode"`
-	BandSelection                   jsontypes.String                `tfsdk:"band_selection" json:"bandSelection"`
-	Enabled                         jsontypes.Bool                  `tfsdk:"enabled" json:"enabled"`
-	SsidAdminAccessible             jsontypes.Bool                  `tfsdk:"ssid_admin_accessible" json:"ssidAdminAccessible"`
-	RadiusAccountingEnabled         jsontypes.Bool                  `tfsdk:"radius_accounting_enabled" json:"radiusAccountingEnabled"`
-	RadiusEnabled                   jsontypes.Bool                  `tfsdk:"radius_enabled" json:"radiusEnabled"`
-	WalledGardenEnabled             jsontypes.Bool                  `tfsdk:"walled_garden_enabled" json:"walledGardenEnabled"`
-	Visible                         jsontypes.Bool                  `tfsdk:"visible" json:"visible"`
-	AvailableOnAllAps               jsontypes.Bool                  `tfsdk:"available_on_all_aps" json:"availableOnAllAps"`
-	MandatoryDhcpEnabled            jsontypes.Bool                  `tfsdk:"mandatory_dhcp_enabled" json:"mandatoryDhcpEnabled"`
-	AvailabilityTags                jsontypes.Set[jsontypes.String] `tfsdk:"availability_tags" json:"availabilityTags"`
-	WalledGardenRanges              jsontypes.Set[jsontypes.String] `tfsdk:"walled_garden_ranges" json:"walledGardenRanges"`
-	RadiusServers                   []RadiusServer                  `tfsdk:"radius_servers" json:"radiusServers"`
-	RadiusAccountingServers         []RadiusServer                  `tfsdk:"radius_accounting_servers" json:"radiusAccountingServers"`
+type DNSRewrite struct {
+	Enabled              jsontypes.Bool                  `tfsdk:"enabled" json:"enabled"`
+	DNSCustomNameservers jsontypes.Set[jsontypes.String] `tfsdk:"dns_custom_nameservers" json:"dnsCustomNameservers"`
 }
 
-type RadiusServer struct {
-	Host                     jsontypes.String `tfsdk:"host" json:"host"`
-	Port                     jsontypes.Int64  `tfsdk:"port" json:"port"`
-	OpenRoamingCertificateId jsontypes.Int64  `tfsdk:"open_roaming_certificate_id" json:"openRoamingCertificateId"`
-	CaCertificate            jsontypes.String `tfsdk:"ca_certificate" json:"caCertificate"`
+type SpeedBurst struct {
+	Enabled jsontypes.Bool `tfsdk:"enabled" json:"enabled"`
+}
+
+type NetworksWirelessSSIDData struct {
+	Number                       jsontypes.Int64                 `tfsdk:"number" json:"number"`
+	Name                         jsontypes.String                `tfsdk:"name" json:"name"`
+	Enabled                      jsontypes.Bool                  `tfsdk:"enabled" json:"enabled"`
+	SplashPage                   jsontypes.String                `tfsdk:"splash_page" json:"splashPage"`
+	SsidAdminAccessible          jsontypes.Bool                  `tfsdk:"ssid_admin_accessible" json:"ssidAdminAccessible"`
+	AuthMode                     jsontypes.String                `tfsdk:"auth_mode" json:"authMode"`
+	IpAssignmentMode             jsontypes.String                `tfsdk:"ip_assignment_mode" json:"ipAssignmentMode"`
+	AdultContentFilteringEnabled jsontypes.Bool                  `tfsdk:"adult_content_filtering_enabled" json:"adultContentFilteringEnabled"`
+	DNSRewrite                   DNSRewrite                      `tfsdk:"dns_rewrite" json:"dnsRewrite"`
+	MinBitrate                   jsontypes.Int64                 `tfsdk:"min_bitrate" json:"minBitrate"`
+	BandSelection                jsontypes.String                `tfsdk:"band_selection" json:"bandSelection"`
+	PerClientBandwidthLimitUp    jsontypes.Int64                 `tfsdk:"per_client_bandwidth_limit_up" json:"perClientBandwidthLimitUp"`
+	PerClientBandwidthLimitDown  jsontypes.Int64                 `tfsdk:"per_client_bandwidth_limit_down" json:"perClientBandwidthLimitDown"`
+	PerSsidBandwidthLimitUp      jsontypes.Int64                 `tfsdk:"per_ssid_bandwidth_limit_up" json:"perSsidBandwidthLimitUp"`
+	PerSsidBandwidthLimitDown    jsontypes.Int64                 `tfsdk:"per_ssid_bandwidth_limit_down" json:"perSsidBandwidthLimitDown"`
+	MandatoryDhcpEnabled         jsontypes.Bool                  `tfsdk:"mandatory_dhcp_enabled" json:"mandatoryDhcpEnabled"`
+	Visible                      jsontypes.Bool                  `tfsdk:"visible" json:"visible"`
+	AvailableOnAllAps            jsontypes.Bool                  `tfsdk:"available_on_all_aps" json:"availableOnAllAps"`
+	AvailabilityTags             jsontypes.Set[jsontypes.String] `tfsdk:"availability_tags" json:"availabilityTags"`
+	SpeedBurst                   SpeedBurst                      `tfsdk:"speed_burst" json:"speedBurst"`
 }
 
 // Metadata provides a way to define information about the data source.
@@ -107,7 +99,7 @@ func (d *NetworksWirelessSsidsDataSource) Schema(ctx context.Context, req dataso
 				Required:            true,
 				CustomType:          jsontypes.StringType,
 			},
-			"list": schema.SetNestedAttribute{
+			"list": schema.ListNestedAttribute{
 				Optional:    true,
 				Computed:    false,
 				Description: "",
@@ -119,11 +111,73 @@ func (d *NetworksWirelessSsidsDataSource) Schema(ctx context.Context, req dataso
 							Computed:            true,
 							CustomType:          jsontypes.Int64Type,
 						},
+						"name": schema.StringAttribute{
+							MarkdownDescription: "The VLAN ID of the new VLAN (must be between 1 and 4094)",
+							Required:            true,
+							CustomType:          jsontypes.StringType,
+						},
+						"enabled": schema.BoolAttribute{
+							MarkdownDescription: "Whether or not the SSID is enabled.",
+							Optional:            true,
+							Computed:            true,
+							CustomType:          jsontypes.BoolType,
+						},
+						"splash_page": schema.StringAttribute{
+							MarkdownDescription: "The type of splash page for the SSID ('None', 'Click-through splash page', 'Billing', 'Password-protected with Meraki RADIUS', 'Password-protected with custom RADIUS', 'Password-protected with Active Directory', 'Password-protected with LDAP', 'SMS authentication', 'Systems Manager Sentry', 'Facebook Wi-Fi', 'Google OAuth', 'Sponsored guest', 'Cisco ISE' or 'Google Apps domain'). This attribute is not supported for template children.",
+							Required:            true,
+							CustomType:          jsontypes.StringType,
+						},
+						"ssid_admin_accessible": schema.BoolAttribute{
+							MarkdownDescription: "Enable Mandatory DHCP on VLAN.",
+							Optional:            true,
+							Computed:            true,
+							CustomType:          jsontypes.BoolType,
+						},
+						"auth_mode": schema.StringAttribute{
+							MarkdownDescription: "The association control method for the SSID ('open', 'open-enhanced', 'psk', 'open-with-radius', 'open-with-nac', '8021x-meraki', '8021x-nac', '8021x-radius', '8021x-google', '8021x-localradius', 'ipsk-with-radius' or 'ipsk-without-radius')",
+							Required:            true,
+							CustomType:          jsontypes.StringType,
+						},
+						"ip_assignment_mode": schema.StringAttribute{
+							MarkdownDescription: "The client IP assignment mode ('NAT mode', 'Bridge mode', 'Layer 3 roaming', 'Ethernet over GRE', 'Layer 3 roaming with a concentrator' or 'VPN')",
+							Required:            true,
+							CustomType:          jsontypes.StringType,
+						},
+						"adult_content_filtering_enabled": schema.BoolAttribute{
+							MarkdownDescription: "Enable Mandatory DHCP on VLAN.",
+							Optional:            true,
+							Computed:            true,
+							CustomType:          jsontypes.BoolType,
+						},
+						"dns_rewrite": schema.SingleNestedAttribute{
+							Optional: true,
+							Computed: true,
+							Attributes: map[string]schema.Attribute{
+								"enabled": schema.BoolAttribute{
+									MarkdownDescription: "Whether or not the SSID is enabled.",
+									Optional:            true,
+									Computed:            true,
+									CustomType:          jsontypes.BoolType,
+								},
+								"dns_custom_nameservers": schema.SetAttribute{
+									CustomType:  jsontypes.SetType[jsontypes.String](),
+									ElementType: jsontypes.StringType,
+									Description: "The IPs of the DHCP servers that DHCP requests should be relayed to",
+									Computed:    true,
+									Optional:    true,
+								},
+							},
+						},
 						"min_bitrate": schema.Int64Attribute{
 							MarkdownDescription: "The minimum bitrate in Mbps of this SSID in the default indoor RF profile. ('1', '2', '5.5', '6', '9', '11', '12', '18', '24', '36', '48' or '54').",
 							Optional:            true,
 							Computed:            true,
 							CustomType:          jsontypes.Int64Type,
+						},
+						"band_selection": schema.StringAttribute{
+							MarkdownDescription: "This policy determines how authentication requests should be handled in the event that all of the configured RADIUS servers are unreachable ('Deny access' or 'Allow access').",
+							Required:            true,
+							CustomType:          jsontypes.StringType,
 						},
 						"per_client_bandwidth_limit_up": schema.Int64Attribute{
 							MarkdownDescription: "The upload bandwidth limit in Kbps. (0 represents no limit.)",
@@ -149,86 +203,7 @@ func (d *NetworksWirelessSsidsDataSource) Schema(ctx context.Context, req dataso
 							Computed:            true,
 							CustomType:          jsontypes.Int64Type,
 						},
-						"radius_attribute_for_group_policies": schema.StringAttribute{
-							MarkdownDescription: "Specify the RADIUS attribute used to look up group policies ('Filter-Id', 'Reply-Message', 'Airespace-ACL-Name' or 'Aruba-User-Role'). Access points must receive this attribute in the RADIUS Access-Accept message",
-							Required:            true,
-							CustomType:          jsontypes.StringType,
-						},
-						"radius_failover_policy": schema.StringAttribute{
-							MarkdownDescription: "This policy determines how authentication requests should be handled in the event that all of the configured RADIUS servers are unreachable ('Deny access' or 'Allow access').",
-							Required:            true,
-							CustomType:          jsontypes.StringType,
-						},
-						"radius_load_balancing_policy": schema.StringAttribute{
-							MarkdownDescription: "This policy determines which RADIUS server will be contacted first in an authentication attempt and the ordering of any necessary retry attempts ('Strict priority order' or 'Round robin')",
-							Required:            true,
-							CustomType:          jsontypes.StringType,
-						},
-						"ip_assignment_mode": schema.StringAttribute{
-							MarkdownDescription: "The client IP assignment mode ('NAT mode', 'Bridge mode', 'Layer 3 roaming', 'Ethernet over GRE', 'Layer 3 roaming with a concentrator' or 'VPN')",
-							Required:            true,
-							CustomType:          jsontypes.StringType,
-						},
-						"admin_splash_url": schema.StringAttribute{
-							MarkdownDescription: "The VLAN ID of the new VLAN (must be between 1 and 4094)",
-							Required:            true,
-							CustomType:          jsontypes.StringType,
-						},
-						"splash_timeout": schema.StringAttribute{
-							MarkdownDescription: "The VLAN ID of the new VLAN (must be between 1 and 4094)",
-							Required:            true,
-							CustomType:          jsontypes.StringType,
-						},
-						"name": schema.StringAttribute{
-							MarkdownDescription: "The VLAN ID of the new VLAN (must be between 1 and 4094)",
-							Required:            true,
-							CustomType:          jsontypes.StringType,
-						},
-						"splash_page": schema.StringAttribute{
-							MarkdownDescription: "The type of splash page for the SSID ('None', 'Click-through splash page', 'Billing', 'Password-protected with Meraki RADIUS', 'Password-protected with custom RADIUS', 'Password-protected with Active Directory', 'Password-protected with LDAP', 'SMS authentication', 'Systems Manager Sentry', 'Facebook Wi-Fi', 'Google OAuth', 'Sponsored guest', 'Cisco ISE' or 'Google Apps domain'). This attribute is not supported for template children.",
-							Required:            true,
-							CustomType:          jsontypes.StringType,
-						},
-						"auth_mode": schema.StringAttribute{
-							MarkdownDescription: "The association control method for the SSID ('open', 'open-enhanced', 'psk', 'open-with-radius', 'open-with-nac', '8021x-meraki', '8021x-nac', '8021x-radius', '8021x-google', '8021x-localradius', 'ipsk-with-radius' or 'ipsk-without-radius')",
-							Required:            true,
-							CustomType:          jsontypes.StringType,
-						},
-						"encryption_mode": schema.StringAttribute{
-							MarkdownDescription: "The psk encryption mode for the SSID ('wep' or 'wpa'). This param is only valid if the authMode is 'psk'",
-							Required:            true,
-							CustomType:          jsontypes.StringType,
-						},
-						"wpa_encryption_mode": schema.StringAttribute{
-							MarkdownDescription: "The types of WPA encryption. ('WPA1 only', 'WPA1 and WPA2', 'WPA2 only', 'WPA3 Transition Mode', 'WPA3 only' or 'WPA3 192-bit Security')",
-							Required:            true,
-							CustomType:          jsontypes.StringType,
-						},
-						"enabled": schema.BoolAttribute{
-							MarkdownDescription: "Whether or not the SSID is enabled.",
-							Optional:            true,
-							Computed:            true,
-							CustomType:          jsontypes.BoolType,
-						},
-						"ssid_admin_accessible": schema.BoolAttribute{
-							MarkdownDescription: "Enable Mandatory DHCP on VLAN.",
-							Optional:            true,
-							Computed:            true,
-							CustomType:          jsontypes.BoolType,
-						},
-						"radius_accounting_enabled": schema.BoolAttribute{
-							MarkdownDescription: "Enable Mandatory DHCP on VLAN.",
-							Optional:            true,
-							Computed:            true,
-							CustomType:          jsontypes.BoolType,
-						},
-						"radius_enabled": schema.BoolAttribute{
-							MarkdownDescription: "Enable Mandatory DHCP on VLAN.",
-							Optional:            true,
-							Computed:            true,
-							CustomType:          jsontypes.BoolType,
-						},
-						"walled_garden_enabled": schema.BoolAttribute{
+						"mandatory_dhcp_enabled": schema.BoolAttribute{
 							MarkdownDescription: "Enable Mandatory DHCP on VLAN.",
 							Optional:            true,
 							Computed:            true,
@@ -246,12 +221,6 @@ func (d *NetworksWirelessSsidsDataSource) Schema(ctx context.Context, req dataso
 							Computed:            true,
 							CustomType:          jsontypes.BoolType,
 						},
-						"mandatory_dhcp_enabled": schema.BoolAttribute{
-							MarkdownDescription: "Enable Mandatory DHCP on VLAN.",
-							Optional:            true,
-							Computed:            true,
-							CustomType:          jsontypes.BoolType,
-						},
 						"availability_tags": schema.SetAttribute{
 							CustomType:  jsontypes.SetType[jsontypes.String](),
 							ElementType: jsontypes.StringType,
@@ -259,78 +228,16 @@ func (d *NetworksWirelessSsidsDataSource) Schema(ctx context.Context, req dataso
 							Computed:    true,
 							Optional:    true,
 						},
-						"walled_garden_ranges": schema.SetAttribute{
-							CustomType:  jsontypes.SetType[jsontypes.String](),
-							ElementType: jsontypes.StringType,
-							Description: "The IPs of the DHCP servers that DHCP requests should be relayed to",
-							Computed:    true,
-							Optional:    true,
-						},
-						"radius_servers": schema.SetNestedAttribute{
-							Optional:    true,
-							Computed:    true,
-							Description: "The DHCP reserved IP ranges on the VLAN",
-							NestedObject: schema.NestedAttributeObject{
-								Attributes: map[string]schema.Attribute{
-									"host": schema.StringAttribute{
-										MarkdownDescription: "The first IP in the reserved range",
-										Optional:            true,
-										Computed:            true,
-										CustomType:          jsontypes.StringType,
-									},
-									"port": schema.Int64Attribute{
-										MarkdownDescription: "The last IP in the reserved range",
-										Optional:            true,
-										Computed:            true,
-										CustomType:          jsontypes.Int64Type,
-									},
-									"open_roaming_certificate_id": schema.Int64Attribute{
-										MarkdownDescription: "The last IP in the reserved range",
-										Optional:            true,
-										Computed:            true,
-										CustomType:          jsontypes.Int64Type,
-									},
-									"ca_certificate": schema.StringAttribute{
-										MarkdownDescription: "A text comment for the reserved range",
-										Optional:            true,
-										Computed:            true,
-										Sensitive:           true,
-										CustomType:          jsontypes.StringType,
-									},
-								},
-							},
-						},
-						"radius_accounting_servers": schema.SetNestedAttribute{
-							Optional:    true,
-							Computed:    true,
-							Description: "The DHCP reserved IP ranges on the VLAN",
-							NestedObject: schema.NestedAttributeObject{
-								Attributes: map[string]schema.Attribute{
-									"host": schema.StringAttribute{
-										MarkdownDescription: "The first IP in the reserved range",
-										Optional:            true,
-										Computed:            true,
-										CustomType:          jsontypes.StringType,
-									},
-									"port": schema.Int64Attribute{
-										MarkdownDescription: "The last IP in the reserved range",
-										Optional:            true,
-										Computed:            true,
-										CustomType:          jsontypes.Int64Type,
-									},
-									"open_roaming_certificate_id": schema.Int64Attribute{
-										MarkdownDescription: "The last IP in the reserved range",
-										Optional:            true,
-										Computed:            true,
-										CustomType:          jsontypes.Int64Type,
-									},
-									"ca_certificate": schema.StringAttribute{
-										MarkdownDescription: "A text comment for the reserved range",
-										Optional:            true,
-										Computed:            true,
-										Sensitive:           true,
-										CustomType:          jsontypes.StringType,
-									},
+						"speed_burst": schema.SingleNestedAttribute{
+							Optional:            true,
+							Computed:            true,
+							MarkdownDescription: "",
+							Attributes: map[string]schema.Attribute{
+								"enabled": schema.BoolAttribute{
+									MarkdownDescription: "Whether or not the SSID is enabled.",
+									Optional:            true,
+									Computed:            true,
+									CustomType:          jsontypes.BoolType,
 								},
 							},
 						},
@@ -423,7 +330,7 @@ func (d *NetworksWirelessSsidsDataSource) Read(ctx context.Context, req datasour
 	data.Id = jsontypes.StringValue("example-id")
 
 	// Now set the final state of the data source.
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data.List)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
 	tflog.Trace(ctx, "read data source")

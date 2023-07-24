@@ -1,7 +1,9 @@
 package provider
 
 import (
+	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"os"
 	"testing"
 )
 
@@ -44,10 +46,10 @@ func TestAccNetworksWirelessSsidsDataSource(t *testing.T) {
 			},
 
 			{
-				Config: testAccNetworksWirelessSsidsDataSourceConfigCreate,
+				Config: testAccNetworksWirelessSsidsDataSourceConfigCreate(os.Getenv("TF_ACC_MERAKI_NETWORK_ID")),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("networks_wireless_ssids.test", "id", "example-id"),
-					resource.TestCheckResourceAttr("data.meraki_networks_wireless_ssids.test", "list.#", "0"),
+					resource.TestCheckResourceAttr("data.meraki_networks_wireless_ssids.test", "id", "example-id"),
+					resource.TestCheckResourceAttr("data.meraki_networks_wireless_ssids.test", "list.#", "15"),
 				),
 			},
 		},
@@ -79,15 +81,10 @@ resource "meraki_network" "test" {
 
 // testAccNetworksWirelessSsidsDataSourceConfigCreate is a constant string that defines the configuration for creating and updating a networks__wireless_ssids resource in your tests.
 // It depends on both the organization and network resources.
-const testAccNetworksWirelessSsidsDataSourceConfigCreate = `
-resource "meraki_organization" "test" {}
-resource "meraki_network" "test" {
-	depends_on = [resource.meraki_organization.test]
-	product_types = ["appliance", "switch", "wireless"]
-}
-
+var testAccNetworksWirelessSsidsDataSourceConfigCreate = func(networkID string) string {
+	return fmt.Sprintf(`
 data "meraki_networks_wireless_ssids" "test" {
-	depends_on = [resource.meraki_network.test, resource.meraki_organization.test]
-  	network_id = resource.meraki_network.test.network_id
+  	network_id = "%s"
 }
-`
+`, networkID)
+}
