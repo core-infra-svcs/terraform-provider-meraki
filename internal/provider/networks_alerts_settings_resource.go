@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
+	"strings"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -102,7 +103,7 @@ func (r *NetworksAlertsSettingsResource) Schema(ctx context.Context, req resourc
 					"emails": schema.SetAttribute{
 						MarkdownDescription: "Enables / disables the secure port.",
 						Optional:            true,
-						Computed:            true,
+						Computed:            false,
 						CustomType:          jsontypes.SetType[jsontypes.String](),
 						ElementType:         jsontypes.StringType,
 					},
@@ -151,7 +152,7 @@ func (r *NetworksAlertsSettingsResource) Schema(ctx context.Context, req resourc
 								"emails": schema.SetAttribute{
 									MarkdownDescription: "Enables / disables the secure port.",
 									Optional:            true,
-									Computed:            true,
+									Computed:            false,
 									CustomType:          jsontypes.SetType[jsontypes.String](),
 									ElementType:         jsontypes.StringType,
 								},
@@ -254,7 +255,8 @@ func (r *NetworksAlertsSettingsResource) Create(ctx context.Context, req resourc
 	destinations.SetAllAdmins(data.DefaultDestinations.AllAdmins.ValueBool())
 	adminEmails := []string{}
 	for _, email := range data.DefaultDestinations.Emails.Elements() {
-		adminEmails = append(adminEmails, email.String())
+		pt := fmt.Sprint(strings.Trim(email.String(), "\""))
+		adminEmails = append(adminEmails, pt)
 	}
 	destinations.SetEmails(adminEmails)
 	destinations.SetSnmp(data.DefaultDestinations.Snmp.ValueBool())
@@ -275,7 +277,8 @@ func (r *NetworksAlertsSettingsResource) Create(ctx context.Context, req resourc
 		}
 		adminEmails := []string{}
 		for _, email := range alert.AlertDestinations.Emails.Elements() {
-			adminEmails = append(adminEmails, email.String())
+			pt := fmt.Sprint(strings.Trim(email.String(), "\""))
+			adminEmails = append(adminEmails, pt)
 		}
 		alertDestinations.SetEmails(adminEmails)
 		alertDestinations.SetHttpServerIds(serverIDs)
@@ -298,7 +301,7 @@ func (r *NetworksAlertsSettingsResource) Create(ctx context.Context, req resourc
 		alerts = append(alerts, *settingsAlerts)
 	}
 	object27.SetAlerts(alerts)
-	inlineResp, httpResp, err := r.client.SettingsApi.UpdateNetworkAlertsSettings(ctx, data.NetworkId.ValueString()).UpdateNetworkAlertsSettings(*object27).Execute()
+	_, httpResp, err := r.client.SettingsApi.UpdateNetworkAlertsSettings(ctx, data.NetworkId.ValueString()).UpdateNetworkAlertsSettings(*object27).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to create resource",
@@ -312,7 +315,7 @@ func (r *NetworksAlertsSettingsResource) Create(ctx context.Context, req resourc
 	}
 
 	// Check for API success response code
-	if httpResp.StatusCode != 201 {
+	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
@@ -327,19 +330,11 @@ func (r *NetworksAlertsSettingsResource) Create(ctx context.Context, req resourc
 
 	// save into the Terraform state.
 	data.Id = jsontypes.StringValue("example-id")
-	marshal, err := json.Marshal(inlineResp)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Failed to create resource",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-		return
-	}
 
-	err = json.Unmarshal(marshal, data)
-	if err != nil {
+	// Save data into Terraform state
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
+			"JSON decoding error",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 		return
@@ -424,7 +419,8 @@ func (r *NetworksAlertsSettingsResource) Update(ctx context.Context, req resourc
 	destinations.SetAllAdmins(data.DefaultDestinations.AllAdmins.ValueBool())
 	adminEmails := []string{}
 	for _, email := range data.DefaultDestinations.Emails.Elements() {
-		adminEmails = append(adminEmails, email.String())
+		pt := fmt.Sprint(strings.Trim(email.String(), "\""))
+		adminEmails = append(adminEmails, pt)
 	}
 	destinations.SetEmails(adminEmails)
 	destinations.SetSnmp(data.DefaultDestinations.Snmp.ValueBool())
@@ -445,7 +441,8 @@ func (r *NetworksAlertsSettingsResource) Update(ctx context.Context, req resourc
 		}
 		adminEmails := []string{}
 		for _, email := range alert.AlertDestinations.Emails.Elements() {
-			adminEmails = append(adminEmails, email.String())
+			pt := fmt.Sprint(strings.Trim(email.String(), "\""))
+			adminEmails = append(adminEmails, pt)
 		}
 		alertDestinations.SetEmails(adminEmails)
 		alertDestinations.SetHttpServerIds(serverIDs)
@@ -482,7 +479,7 @@ func (r *NetworksAlertsSettingsResource) Update(ctx context.Context, req resourc
 	}
 
 	// Check for API success response code
-	if httpResp.StatusCode != 201 {
+	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
@@ -536,7 +533,8 @@ func (r *NetworksAlertsSettingsResource) Delete(ctx context.Context, req resourc
 	destinations.SetAllAdmins(data.DefaultDestinations.AllAdmins.ValueBool())
 	adminEmails := []string{}
 	for _, email := range data.DefaultDestinations.Emails.Elements() {
-		adminEmails = append(adminEmails, email.String())
+		pt := fmt.Sprint(strings.Trim(email.String(), "\""))
+		adminEmails = append(adminEmails, pt)
 	}
 	destinations.SetEmails(adminEmails)
 	destinations.SetSnmp(data.DefaultDestinations.Snmp.ValueBool())
@@ -557,7 +555,8 @@ func (r *NetworksAlertsSettingsResource) Delete(ctx context.Context, req resourc
 		}
 		adminEmails := []string{}
 		for _, email := range alert.AlertDestinations.Emails.Elements() {
-			adminEmails = append(adminEmails, email.String())
+			pt := fmt.Sprint(strings.Trim(email.String(), "\""))
+			adminEmails = append(adminEmails, pt)
 		}
 		alertDestinations.SetSnmp(alert.AlertDestinations.Snmp.ValueBool())
 		alertDestinations.SetAllAdmins(alert.AlertDestinations.AllAdmins.ValueBool())
@@ -593,7 +592,7 @@ func (r *NetworksAlertsSettingsResource) Delete(ctx context.Context, req resourc
 	}
 
 	// Check for API success response code
-	if httpResp.StatusCode != 201 {
+	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
