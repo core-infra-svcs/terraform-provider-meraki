@@ -3,12 +3,12 @@
 page_title: "meraki Provider"
 subcategory: ""
 description: |-
-  
+  Terraform Provider Meraki is a declarative infrastructure management tool for the Cisco Meraki Dashboard API.
 ---
 
 # meraki Provider
 
-
+Terraform Provider Meraki is a declarative infrastructure management tool for the Cisco Meraki Dashboard API.
 
 ## Example Usage
 
@@ -34,5 +34,12 @@ provider "meraki" {
 
 ### Optional
 
-- `api_key` (String) Meraki Dashboard API Key
-- `base_url` (String) The API version must be specified in the URL:Example: `api.meraki.comFor organizations hosted in the China dashboard, use: `api.meraki.cn`Defaults to `api.meraki.com`.
+- `api_key` (String, Sensitive) Meraki Dashboard API Key
+- `base_url` (String) The API version must be specified in the URL:Example: `https://api.meraki.com/v1For organizations hosted in the China dashboard, use: `https://api.meraki.cn/v1`
+- `certificate_path` (String, Sensitive) Path for TLS/SSL certificate verification if behind local proxy
+- `logging_enabled` (Boolean) Display http client debug messages in console
+- `maximum_retries` (Number) Retry up to this many times when encountering 429s or other server-side errors
+- `nginx_429_retry_wait_time` (Number) Nginx 429 retry wait time
+- `proxy` (String) Proxy server and port, if needed, for HTTPS
+- `single_request_timeout` (Number) Maximum number of seconds for each API call
+- `wait_on_rate_limit` (Boolean) Retry if 429 rate limit error encountered

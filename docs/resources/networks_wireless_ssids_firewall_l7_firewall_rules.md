@@ -18,7 +18,7 @@ NetworksWirelessSsidsFirewallL7FirewallRules updates Networks Wireless Ssids Fir
 ### Required
 
 - `network_id` (String) Network ID
-- `number` (String) SsIds Number
+- `number` (String) SsIds SsidNumber
 - `rules` (Attributes Set) An array of L7 firewall rules for this SSID. Rules will get applied in the same order user has specified in request. Empty array will clear the L7 firewall rule configuration. (see [below for nested schema](#nestedatt--rules))
 
 ### Read-Only
@@ -36,5 +36,3 @@ Optional:
 
 - `policy` (String) Deny' traffic specified by this rule
 - `value` (String) The value of what needs to get blocked. Format of the value varies depending on type of the firewall rule selected.
-
-
