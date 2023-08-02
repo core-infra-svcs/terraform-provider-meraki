@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.1.5](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.1.4...v0.1.5) (2023-08-02)
+
+
+### Bug Fixes
+
+* fixing test case errors ([1ff3351](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/1ff335120360156503e901fdb6eac17a1e804ddf))
+* Github actions workflow ([13f476a](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/13f476a785342655b94ea28f80ff0bac77f47f32))
+* network devices claim ([5571a55](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/5571a556fbd2e77d2f9a95f7ed3f17dbcafc14f7))
+* networks_settings_resource_test.go ([ad61105](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/ad61105d65b6e6ebb7f3aba18f58216efb58ea16))
+* provider schema ([9934063](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/9934063cdcbde30e64d8d4d9692a13fac4a888ba))
+* refactoring code and docs ([869eb82](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/869eb82981251a93fa379742cdd71ae5c6807a09))
+* refactoring test cases ([00dab30](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/00dab30a08c462f9073c851359c836183f154d07))
+* resolving value conversion and secure port enable field missing issues ([1316e2d](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/1316e2da7b516badf157d7165ebff3da79a9be1d))
+
 ## 0.1.0 (2023-06-09)
 
 
