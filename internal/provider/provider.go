@@ -288,6 +288,7 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		NewNetworksCellularGatewayUplinkResource,
 		NewNetworksWirelessSsidsSplashSettingsResource,
 		NewDevicesCellularSimsResource,
+		NewNetworksApplianceTrafficShapingUplinkSelectionResource,
 	}
 }
 

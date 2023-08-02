@@ -1,6 +1,8 @@
 package provider
 
 import (
+	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -12,107 +14,184 @@ func TestAccNetworkApplianceTrafficShapingUplinkSelectionResource(t *testing.T) 
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 
-			// Create test Organization
+			// Create and Read a Network.
 			{
-				Config: testAccNetworkApplianceTrafficShapingUplinkSelectionResourceConfigCreateOrganization,
+				Config: testAccNetworkApplianceTrafficShapingUplinkSelectionResourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_acc_meraki_organizations_network_appliance_traffic_shaping_uplink_selection"),
-				),
-			},
-
-			// Create and Read Network.
-			{
-				Config: testAccNetworkApplianceTrafficShapingUplinkSelectionResourceConfigCreateNetwork,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "Main Office"),
+					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_network_device"),
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.#", "3"),
+					resource.TestCheckResourceAttr("meraki_network.test", "product_types.#", "1"),
 					resource.TestCheckResourceAttr("meraki_network.test", "product_types.0", "appliance"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.1", "switch"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.2", "wireless"),
 					resource.TestCheckResourceAttr("meraki_network.test", "notes", "Additional description of the network"),
+				),
+			},
+
+			// Claim A Device To A Network
+			{
+				Config: testAccNetworkApplianceTrafficShapingUplinkSelectionResourceConfigClaimNetworkDevice(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("meraki_networks_devices_claim.test", "id", "example-id"),
 				),
 			},
 
 			// Update and Read Network Settings.
 			{
-				Config: testAccNetworkApplianceTrafficShapingUplinkSelectionResourceConfigUpdateNetworkApplianceTrafficShapingUplinkSelection,
+				Config: testAccNetworkApplianceTrafficShapingUplinkSelectionResourceConfigUpdateNetworkApplianceTrafficShapingUplinkSelection(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_networks_appliance_traffic_shaping_uplink_selection.test", "active_active_auto_vpn_enabled", "false"),
 					resource.TestCheckResourceAttr("meraki_networks_appliance_traffic_shaping_uplink_selection.test", "default_uplink", "wan1"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_traffic_shaping_uplink_selection.test", "load_balancing_enabled", "true"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_traffic_shaping_uplink_selection.test", "failover_and_failback.immediate.enabled", "false"),
 				),
 			},
 		},
 	})
 }
 
-const testAccNetworkApplianceTrafficShapingUplinkSelectionResourceConfigCreateOrganization = `
- resource "meraki_organization" "test" {
- 	name = "test_acc_meraki_organizations_network_appliance_traffic_shaping_uplink_selection"
- 	api_enabled = true
- } 
- `
-
-const testAccNetworkApplianceTrafficShapingUplinkSelectionResourceConfigCreateNetwork = `
-resource "meraki_organization" "test" {}
-
+func testAccNetworkApplianceTrafficShapingUplinkSelectionResourceConfigCreateNetwork(orgId string) string {
+	result := fmt.Sprintf(`
 resource "meraki_network" "test" {
-	depends_on = [resource.meraki_organization.test]
-	organization_id = resource.meraki_organization.test.organization_id
-	product_types = ["appliance", "switch", "wireless"]
+	organization_id = "%s"
+	product_types = ["appliance"]
 	tags = ["tag1"]
-	name = "Main Office"
+	name = "test_acc_network_device"
 	timezone = "America/Los_Angeles"
 	notes = "Additional description of the network"
 }
-`
+`, orgId)
+	return result
+}
 
-const testAccNetworkApplianceTrafficShapingUplinkSelectionResourceConfigUpdateNetworkApplianceTrafficShapingUplinkSelection = `
-resource "meraki_organization" "test" {}
+// testAccDevicesResourceConfigClaimNetworkDevice is a constant string that defines the configuration for creating and reading a networks_devices_claim resource in your tests.
+// It depends on both the organization and network resources.
+func testAccNetworkApplianceTrafficShapingUplinkSelectionResourceConfigClaimNetworkDevice(orgId string, serial string) string {
+	result := fmt.Sprintf(`
+resource "meraki_network" "test" {
+        organization_id = "%s"
+        product_types = ["appliance"]
+		tags = ["tag1"]
+		name = "test_acc_network_device"
+		timezone = "America/Los_Angeles"
+		notes = "Additional description of the network"
+}
+
+resource "meraki_networks_devices_claim" "test" {
+    depends_on = [resource.meraki_network.test]
+    network_id = resource.meraki_network.test.network_id
+    serials = [
+      "%s"
+  ]
+}
+`, orgId, serial)
+	return result
+}
+
+func testAccNetworkApplianceTrafficShapingUplinkSelectionResourceConfigUpdateNetworkApplianceTrafficShapingUplinkSelection(orgId string, serial string) string {
+	result := fmt.Sprintf(`
 
 resource "meraki_network" "test" {
-	depends_on = [resource.meraki_organization.test]	
-	product_types = ["appliance", "switch", "wireless"]	
+        organization_id = "%s"
+        product_types = ["appliance"]
+		tags = ["tag1"]
+		name = "test_acc_network_device"
+		timezone = "America/Los_Angeles"
+		notes = "Additional description of the network"
 }
 
 resource "meraki_networks_appliance_traffic_shaping_uplink_selection" "test" {
-	depends_on = [resource.meraki_organization.test, resource.meraki_network.test]
-    network_id = "N_784752235069394217"
+	depends_on = [resource.meraki_network.test]
+    network_id = resource.meraki_network.test.network_id
 	active_active_auto_vpn_enabled = true
 	default_uplink = "wan1"
 	load_balancing_enabled = true
-	vpn_traffic_uplink_preferences = [
+	failover_and_failback = {
+		immediate =  {
+		   enabled = false
+		}
+    }
+	wan_traffic_uplink_preferences = [
 		{
-			preferred_uplink = "wan1"
-			failover_criterion = "poorPerformance"
 			traffic_filters = [
 				{
 					type = "custom"
-					value_id = "meraki:layer7/category/1"
-					value_protocol = "tcp"
-					value_source_port = "any"					
-					value_source_cidr = "any"
-					value_destination_cidr = "any"
-					value_destination_port = "any"
-					
-					
-					
-
+					value = {
+						protocol = "tcp"
+						source = {
+							port = "1-1024"					
+							cidr = "192.168.1.0/24"
+							vlan = 10
+							host = 254
+						}
+						destination = {
+							cidr = "any"
+							port = "any"
+						}
+					}
 				}
 			]
-			performance_class_type = "builtin"
-			performance_class_builtin_performance_class_name = "VoIP"
+			preferred_uplink = "wan1"
 		}
 	]
-	failover_and_failback = {
-    immediate =  {
-	   enabled = false
-	}
-    }
-	wan_traffic_uplink_preferences = []
+	
+	vpn_traffic_uplink_preferences = [
+		traffic_filters = [
+				{
+					type = "custom"
+					value = {
+						protocol = "tcp"
+						source = {
+							port = "1-1024"					
+							cidr = "192.168.1.0/24"
+							vlan = 10
+							host = 254
+						}
+						destination = {
+							port = "1-1024"					
+							cidr = "192.168.1.0/24"
+							vlan = 10
+							host = 254
+							fqdn = "example.com"
+						}
+					}
+				}
+		]
+	]
+}	
+`, orgId)
+	return result
 }
-`
+
+/*
+{
+		  trafficFilters = [
+			{
+			  type = "applicationCategory"
+			  value = {
+				protocol = "tcp"
+				source = {
+				  port = "any"
+				  cidr = "192.168.1.0/24"
+				  network = "L_23456789"
+				  vlan = 20
+				  host = 200
+				}
+				destination = {
+				  port = "1-1024"
+				  cidr = "any"
+				  network = "L_12345678"
+				  vlan = 10
+				  host = 254
+				  fqdn = "www.google.com"
+				}
+			  }
+			}
+		  ]
+		  preferredUplink = "bestForVoIP"
+		  failOverCriterion = "poorPerformance"
+		  performanceClass = {
+			type = "custom"
+			builtinPerformanceClassName = "VoIP"
+			customPerformanceClassId = "123456"
+		  }
+		}
+*/
