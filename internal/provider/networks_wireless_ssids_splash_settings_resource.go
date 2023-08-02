@@ -3,8 +3,9 @@ package provider
 import (
 	"context"
 	"fmt"
-	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"strings"
+
+	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -466,19 +467,31 @@ func (r *NetworksWirelessSsidsSplashSettingsResource) Create(ctx context.Context
 	updateNetworkWirelessSsidSplashSettings.SetBlockAllTrafficBeforeSignOn(data.BlockAllTrafficBeforeSignOn.ValueBool())
 
 	var billing openApiClient.UpdateNetworkWirelessSsidSplashSettingsRequestBilling
-	billing.SetReplyToEmailAddress(data.Billing.ReplyToEmailAddress.ValueString())
-	billing.SetPrepaidAccessFastLoginEnabled(data.Billing.PrepaidAccessFastLoginEnabled.ValueBool())
+	if !data.Billing.ReplyToEmailAddress.IsUnknown() {
+		billing.SetReplyToEmailAddress(data.Billing.ReplyToEmailAddress.ValueString())
+	}
+	if !data.Billing.PrepaidAccessFastLoginEnabled.IsUnknown() {
+		billing.SetPrepaidAccessFastLoginEnabled(data.Billing.PrepaidAccessFastLoginEnabled.ValueBool())
+	}
 
 	var freeAccess openApiClient.UpdateNetworkWirelessSsidSplashSettingsRequestBillingFreeAccess
-	freeAccess.SetDurationInMinutes(int32(data.Billing.FreeAccess.DurationInMinutes.ValueInt64()))
-	freeAccess.SetEnabled(data.Billing.FreeAccess.Enabled.ValueBool())
+	if !data.Billing.FreeAccess.DurationInMinutes.IsUnknown() {
+		freeAccess.SetDurationInMinutes(int32(data.Billing.FreeAccess.DurationInMinutes.ValueInt64()))
+	}
+	if !data.Billing.FreeAccess.Enabled.IsUnknown() {
+		freeAccess.SetEnabled(data.Billing.FreeAccess.Enabled.ValueBool())
+	}
 
 	updateNetworkWirelessSsidSplashSettings.SetBilling(billing)
 	updateNetworkWirelessSsidSplashSettings.Billing.SetFreeAccess(freeAccess)
 
 	var guestSponsorship openApiClient.UpdateNetworkWirelessSsidSplashSettingsRequestGuestSponsorship
-	guestSponsorship.SetDurationInMinutes(int32(data.GuestSponsorship.DurationInMinutes.ValueInt64()))
-	guestSponsorship.SetGuestCanRequestTimeframe(data.GuestSponsorship.GuestCanRequestTimeframe.ValueBool())
+	if !data.GuestSponsorship.DurationInMinutes.IsUnknown() {
+		guestSponsorship.SetDurationInMinutes(int32(data.GuestSponsorship.DurationInMinutes.ValueInt64()))
+	}
+	if !data.GuestSponsorship.GuestCanRequestTimeframe.IsUnknown() {
+		guestSponsorship.SetGuestCanRequestTimeframe(data.GuestSponsorship.GuestCanRequestTimeframe.ValueBool())
+	}
 	updateNetworkWirelessSsidSplashSettings.SetGuestSponsorship(guestSponsorship)
 
 	var systemsManagerNetwork openApiClient.UpdateNetworkWirelessSsidSplashSettingsRequestSentryEnrollmentSystemsManagerNetwork
@@ -530,6 +543,8 @@ func (r *NetworksWirelessSsidsSplashSettingsResource) Create(ctx context.Context
 	}
 
 	inlineResp, httpResp, err := r.client.SettingsApi.UpdateNetworkWirelessSsidSplashSettings(context.Background(), data.NetworkId.ValueString(), data.Number.ValueString()).UpdateNetworkWirelessSsidSplashSettingsRequest(updateNetworkWirelessSsidSplashSettings).Execute()
+
+	fmt.Println(httpResp.Body)
 
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
@@ -743,19 +758,31 @@ func (r *NetworksWirelessSsidsSplashSettingsResource) Update(ctx context.Context
 	updateNetworkWirelessSsidSplashSettings.SetBlockAllTrafficBeforeSignOn(data.BlockAllTrafficBeforeSignOn.ValueBool())
 
 	var billing openApiClient.UpdateNetworkWirelessSsidSplashSettingsRequestBilling
-	billing.SetReplyToEmailAddress(data.Billing.ReplyToEmailAddress.ValueString())
-	billing.SetPrepaidAccessFastLoginEnabled(data.Billing.PrepaidAccessFastLoginEnabled.ValueBool())
+	if !data.Billing.ReplyToEmailAddress.IsUnknown() {
+		billing.SetReplyToEmailAddress(data.Billing.ReplyToEmailAddress.ValueString())
+	}
+	if !data.Billing.PrepaidAccessFastLoginEnabled.IsUnknown() {
+		billing.SetPrepaidAccessFastLoginEnabled(data.Billing.PrepaidAccessFastLoginEnabled.ValueBool())
+	}
 
 	var freeAccess openApiClient.UpdateNetworkWirelessSsidSplashSettingsRequestBillingFreeAccess
-	freeAccess.SetDurationInMinutes(int32(data.Billing.FreeAccess.DurationInMinutes.ValueInt64()))
-	freeAccess.SetEnabled(data.Billing.FreeAccess.Enabled.ValueBool())
+	if !data.Billing.FreeAccess.DurationInMinutes.IsUnknown() {
+		freeAccess.SetDurationInMinutes(int32(data.Billing.FreeAccess.DurationInMinutes.ValueInt64()))
+	}
+	if !data.Billing.FreeAccess.Enabled.IsUnknown() {
+		freeAccess.SetEnabled(data.Billing.FreeAccess.Enabled.ValueBool())
+	}
 
 	updateNetworkWirelessSsidSplashSettings.SetBilling(billing)
 	updateNetworkWirelessSsidSplashSettings.Billing.SetFreeAccess(freeAccess)
 
 	var guestSponsorship openApiClient.UpdateNetworkWirelessSsidSplashSettingsRequestGuestSponsorship
-	guestSponsorship.SetDurationInMinutes(int32(data.GuestSponsorship.DurationInMinutes.ValueInt64()))
-	guestSponsorship.SetGuestCanRequestTimeframe(data.GuestSponsorship.GuestCanRequestTimeframe.ValueBool())
+	if !data.GuestSponsorship.DurationInMinutes.IsUnknown() {
+		guestSponsorship.SetDurationInMinutes(int32(data.GuestSponsorship.DurationInMinutes.ValueInt64()))
+	}
+	if !data.GuestSponsorship.GuestCanRequestTimeframe.IsUnknown() {
+		guestSponsorship.SetGuestCanRequestTimeframe(data.GuestSponsorship.GuestCanRequestTimeframe.ValueBool())
+	}
 	updateNetworkWirelessSsidSplashSettings.SetGuestSponsorship(guestSponsorship)
 
 	var systemsManagerNetwork openApiClient.UpdateNetworkWirelessSsidSplashSettingsRequestSentryEnrollmentSystemsManagerNetwork
