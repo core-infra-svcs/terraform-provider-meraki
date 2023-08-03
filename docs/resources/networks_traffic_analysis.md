@@ -17,7 +17,7 @@ NetworksTrafficAnalysis resource for updating networks traffic analysis.
 
 ### Required
 
-- `custom_piechart_items` (Attributes List) The list of items that make up the custom pie chart for traffic reporting. (see [below for nested schema](#nestedatt--custom_piechart_items))
+- `custom_pie_chart_items` (Attributes List) The list of items that make up the custom pie chart for traffic reporting. (see [below for nested schema](#nestedatt--custom_pie_chart_items))
 - `mode` (String) The traffic analysis mode for the network. Can be one of 'disabled' (do not collect traffic types) 'basic' (collect generic traffic categories), or 'detailed' (collect destination hostnames)
 - `network_id` (String) Network Id
 
@@ -25,13 +25,11 @@ NetworksTrafficAnalysis resource for updating networks traffic analysis.
 
 - `id` (String) Example identifier
 
-<a id="nestedatt--custom_piechart_items"></a>
-### Nested Schema for `custom_piechart_items`
+<a id="nestedatt--custom_pie_chart_items"></a>
+### Nested Schema for `custom_pie_chart_items`
 
 Optional:
 
 - `name` (String) The name of the custom pie chart item.
 - `type` (String) The signature type for the custom pie chart item. Can be one of 'host', 'port' or 'ipRange'.
 - `value` (String) The value of the custom pie chart item. Valid syntax depends on the signature type of the chart item.
-
-

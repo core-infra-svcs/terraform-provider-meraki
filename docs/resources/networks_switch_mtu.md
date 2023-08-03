@@ -36,5 +36,3 @@ Optional:
 - `mtu_size` (Number) MTU size for the switches or switch profiles..
 - `switch_profiles` (Set of String) List of switch profile IDs. Applicable only for template network.
 - `switches` (Set of String) List of switch serials. Applicable only for switch network.
-
-

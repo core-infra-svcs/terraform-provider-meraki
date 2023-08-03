@@ -3,9 +3,9 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
-	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -326,14 +326,10 @@ func (d *DevicesSwitchPortsStatusesDataSource) Read(ctx context.Context, req dat
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to read data source",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// Collect any HTTP diagnostics that might be useful for debugging.
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// If it's not what you expect, add an error to diagnostics.

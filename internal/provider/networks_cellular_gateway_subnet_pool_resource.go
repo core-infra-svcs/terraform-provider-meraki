@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
-	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -168,7 +168,6 @@ func (r *NetworksCellularGatewaySubnetPoolResource) Configure(ctx context.Contex
 func (r *NetworksCellularGatewaySubnetPoolResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data *NetworksCellularGatewaySubnetPoolResourceModel
 
-	// TODO: Make sure the plan data matches the structure of the data model.
 	// Unmarshal the plan data into the internal data model struct.
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
@@ -177,27 +176,20 @@ func (r *NetworksCellularGatewaySubnetPoolResource) Create(ctx context.Context, 
 		return
 	}
 
-	updateNetworkCellularGatewaySubnetPool := *openApiClient.NewInlineObject69()
+	updateNetworkCellularGatewaySubnetPool := *openApiClient.NewUpdateNetworkCellularGatewaySubnetPoolRequest()
 	updateNetworkCellularGatewaySubnetPool.SetCidr(data.Cidr.ValueString())
 	updateNetworkCellularGatewaySubnetPool.SetMask(int32(data.Mask.ValueInt64()))
 
-	_, httpResp, err := r.client.SubnetPoolApi.UpdateNetworkCellularGatewaySubnetPool(context.Background(), data.NetworkId.ValueString()).UpdateNetworkCellularGatewaySubnetPool(updateNetworkCellularGatewaySubnetPool).Execute()
-
-	// If there was an error during API call, add it to diagnostics.
+	_, httpResp, err := r.client.SubnetPoolApi.UpdateNetworkCellularGatewaySubnetPool(context.Background(), data.NetworkId.ValueString()).UpdateNetworkCellularGatewaySubnetPoolRequest(updateNetworkCellularGatewaySubnetPool).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// Collect any HTTP diagnostics that might be useful for debugging.
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// If it's not what you expect, add an error to diagnostics.
-	// TODO: Check the HTTP response status code matches the API endpoint.
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
@@ -250,21 +242,15 @@ func (r *NetworksCellularGatewaySubnetPoolResource) Read(ctx context.Context, re
 
 	_, httpResp, err := r.client.SubnetPoolApi.GetNetworkCellularGatewaySubnetPool(context.Background(), data.NetworkId.ValueString()).Execute()
 
-	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to read resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// Collect any HTTP diagnostics that might be useful for debugging.
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// If it's not what you expect, add an error to diagnostics.
-	// TODO: Check the HTTP response status code matches the API endpoint.
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
@@ -308,7 +294,6 @@ func (r *NetworksCellularGatewaySubnetPoolResource) Update(ctx context.Context, 
 
 	var data *NetworksCellularGatewaySubnetPoolResourceModel
 
-	// TODO: Make sure the plan data matches the structure of the data model.
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	// If there was an error reading the plan, return early.
@@ -316,27 +301,22 @@ func (r *NetworksCellularGatewaySubnetPoolResource) Update(ctx context.Context, 
 		return
 	}
 
-	updateNetworkCellularGatewaySubnetPool := *openApiClient.NewInlineObject69()
+	updateNetworkCellularGatewaySubnetPool := *openApiClient.NewUpdateNetworkCellularGatewaySubnetPoolRequest()
 	updateNetworkCellularGatewaySubnetPool.SetCidr(data.Cidr.ValueString())
 	updateNetworkCellularGatewaySubnetPool.SetMask(int32(data.Mask.ValueInt64()))
 
-	_, httpResp, err := r.client.SubnetPoolApi.UpdateNetworkCellularGatewaySubnetPool(context.Background(), data.NetworkId.ValueString()).UpdateNetworkCellularGatewaySubnetPool(updateNetworkCellularGatewaySubnetPool).Execute()
+	_, httpResp, err := r.client.SubnetPoolApi.UpdateNetworkCellularGatewaySubnetPool(context.Background(), data.NetworkId.ValueString()).UpdateNetworkCellularGatewaySubnetPoolRequest(updateNetworkCellularGatewaySubnetPool).Execute()
 
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// Collect any HTTP diagnostics that might be useful for debugging.
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// If it's not what you expect, add an error to diagnostics.
-	// TODO: Check the HTTP response status code matches the API endpoint.
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
@@ -387,27 +367,22 @@ func (r *NetworksCellularGatewaySubnetPoolResource) Delete(ctx context.Context, 
 		return
 	}
 
-	updateNetworkCellularGatewaySubnetPool := *openApiClient.NewInlineObject69()
+	updateNetworkCellularGatewaySubnetPool := *openApiClient.NewUpdateNetworkCellularGatewaySubnetPoolRequest()
 	updateNetworkCellularGatewaySubnetPool.SetCidr(data.Cidr.ValueString())
 	updateNetworkCellularGatewaySubnetPool.SetMask(int32(data.Mask.ValueInt64()))
 
-	_, httpResp, err := r.client.SubnetPoolApi.UpdateNetworkCellularGatewaySubnetPool(context.Background(), data.NetworkId.ValueString()).UpdateNetworkCellularGatewaySubnetPool(updateNetworkCellularGatewaySubnetPool).Execute()
+	_, httpResp, err := r.client.SubnetPoolApi.UpdateNetworkCellularGatewaySubnetPool(context.Background(), data.NetworkId.ValueString()).UpdateNetworkCellularGatewaySubnetPoolRequest(updateNetworkCellularGatewaySubnetPool).Execute()
 
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// Collect any HTTP diagnostics that might be useful for debugging.
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// If it's not what you expect, add an error to diagnostics.
-	// TODO: Check the HTTP response status code matches the API endpoint.
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
@@ -421,7 +396,6 @@ func (r *NetworksCellularGatewaySubnetPoolResource) Delete(ctx context.Context, 
 		return
 	}
 
-	// TODO: The resource has been deleted, so remove it from the state.
 	resp.State.RemoveResource(ctx)
 
 	// Log that the resource was deleted.
