@@ -24,7 +24,7 @@ func TestAccNetworksWirelessSsidsFirewallL7FirewallRulesResource(t *testing.T) {
 				Config: testAccNetworksWirelessSsidsFirewallL7FirewallRulesResourceConfigCreateOrganization,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
-					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_meraki_networks_wireless_ssids_firewall_l7_firewall_rules"),
+					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_acc_meraki_networks_wireless_ssids_firewall_l7_firewall_rules"),
 				),
 			},
 
@@ -32,7 +32,7 @@ func TestAccNetworksWirelessSsidsFirewallL7FirewallRulesResource(t *testing.T) {
 			{
 				Config: testAccNetworksWirelessSsidsFirewallL7FirewallRulesResourceConfigCreateNetwork,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "Main Office"),
+					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_network"),
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
@@ -100,7 +100,7 @@ func TestAccNetworksWirelessSsidsFirewallL7FirewallRulesResource(t *testing.T) {
 // testAccNetworksWirelessSsidsFirewallL7FirewallRulesResourceConfigCreateOrganization is a constant string that defines the configuration for creating an organization resource in your tests.
 const testAccNetworksWirelessSsidsFirewallL7FirewallRulesResourceConfigCreateOrganization = `
  resource "meraki_organization" "test" {
- 	name = "test_meraki_networks_wireless_ssids_firewall_l7_firewall_rules"
+ 	name = "test_acc_meraki_networks_wireless_ssids_firewall_l7_firewall_rules"
  	api_enabled = true
  }
  `
@@ -115,7 +115,7 @@ resource "meraki_network" "test" {
 	organization_id = resource.meraki_organization.test.organization_id
 	product_types = ["appliance", "switch", "wireless"]
 	tags = ["tag1"]
-	name = "Main Office"
+	name = "test_acc_network"
 	timezone = "America/Los_Angeles"
 	notes = "Additional description of the network"
 }

@@ -33,5 +33,3 @@ NetworksSwitchQosRules resource for updating network switch qos rules.
 ### Read-Only
 
 - `id` (String) Example identifier
-
-

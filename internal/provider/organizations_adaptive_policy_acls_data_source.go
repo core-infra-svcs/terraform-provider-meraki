@@ -176,8 +176,8 @@ func (d *OrganizationsAdaptivePolicyAclsDataSource) Read(ctx context.Context, re
 	_, httpResp, err := d.client.OrganizationsApi.GetOrganizationAdaptivePolicyAcls(context.Background(), data.OrgId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to read datasource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
 		return
 	}
@@ -189,11 +189,6 @@ func (d *OrganizationsAdaptivePolicyAclsDataSource) Read(ctx context.Context, re
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
 		return
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 	}
 
 	// Check for errors after diagnostics collected

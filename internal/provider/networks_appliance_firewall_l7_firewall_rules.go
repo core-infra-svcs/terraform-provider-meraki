@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
-	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -130,12 +130,12 @@ func (r *NetworksApplianceFirewallL7FirewallRulesResource) Create(ctx context.Co
 		return
 	}
 
-	updateNetworkApplianceFirewallL7FirewallRules := *openApiClient.NewInlineObject35()
-	var rules []openApiClient.NetworksNetworkIdApplianceFirewallL7FirewallRulesRules
+	updateNetworkApplianceFirewallL7FirewallRules := *openApiClient.NewUpdateNetworkApplianceFirewallL7FirewallRulesRequest()
+	var rules []openApiClient.UpdateNetworkApplianceFirewallL7FirewallRulesRequestRulesInner
 
 	if len(data.Rules) > 0 {
 		for _, attribute := range data.Rules {
-			var rule openApiClient.NetworksNetworkIdApplianceFirewallL7FirewallRulesRules
+			var rule openApiClient.UpdateNetworkApplianceFirewallL7FirewallRulesRequestRulesInner
 			rule.SetPolicy(attribute.Policy.ValueString())
 			rule.SetType(attribute.Type.ValueString())
 			rule.SetValue(attribute.Value.ValueString())
@@ -145,17 +145,13 @@ func (r *NetworksApplianceFirewallL7FirewallRulesResource) Create(ctx context.Co
 
 	updateNetworkApplianceFirewallL7FirewallRules.SetRules(rules)
 
-	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceFirewallL7FirewallRules(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceFirewallL7FirewallRules(updateNetworkApplianceFirewallL7FirewallRules).Execute()
+	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceFirewallL7FirewallRules(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceFirewallL7FirewallRulesRequest(updateNetworkApplianceFirewallL7FirewallRules).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	if httpResp.StatusCode != 200 {
@@ -201,14 +197,10 @@ func (r *NetworksApplianceFirewallL7FirewallRulesResource) Read(ctx context.Cont
 	_, httpResp, err := r.client.ApplianceApi.GetNetworkApplianceFirewallL7FirewallRules(context.Background(), data.NetworkId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to read resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	if httpResp.StatusCode != 200 {
@@ -253,12 +245,12 @@ func (r *NetworksApplianceFirewallL7FirewallRulesResource) Update(ctx context.Co
 		return
 	}
 
-	updateNetworkApplianceFirewallL7FirewallRules := *openApiClient.NewInlineObject35()
-	var rules []openApiClient.NetworksNetworkIdApplianceFirewallL7FirewallRulesRules
+	updateNetworkApplianceFirewallL7FirewallRules := *openApiClient.NewUpdateNetworkApplianceFirewallL7FirewallRulesRequest()
+	var rules []openApiClient.UpdateNetworkApplianceFirewallL7FirewallRulesRequestRulesInner
 
 	if len(data.Rules) > 0 {
 		for _, attribute := range data.Rules {
-			var rule openApiClient.NetworksNetworkIdApplianceFirewallL7FirewallRulesRules
+			var rule openApiClient.UpdateNetworkApplianceFirewallL7FirewallRulesRequestRulesInner
 			rule.SetPolicy(attribute.Policy.ValueString())
 			rule.SetType(attribute.Type.ValueString())
 			rule.SetValue(attribute.Value.ValueString())
@@ -268,17 +260,13 @@ func (r *NetworksApplianceFirewallL7FirewallRulesResource) Update(ctx context.Co
 
 	updateNetworkApplianceFirewallL7FirewallRules.SetRules(rules)
 
-	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceFirewallL7FirewallRules(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceFirewallL7FirewallRules(updateNetworkApplianceFirewallL7FirewallRules).Execute()
+	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceFirewallL7FirewallRules(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceFirewallL7FirewallRulesRequest(updateNetworkApplianceFirewallL7FirewallRules).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	if httpResp.StatusCode != 200 {
@@ -322,21 +310,17 @@ func (r *NetworksApplianceFirewallL7FirewallRulesResource) Delete(ctx context.Co
 		return
 	}
 
-	rules := []openApiClient.NetworksNetworkIdApplianceFirewallL7FirewallRulesRules{}
-	updateNetworkApplianceFirewallL7FirewallRules := *openApiClient.NewInlineObject35()
+	rules := []openApiClient.UpdateNetworkApplianceFirewallL7FirewallRulesRequestRulesInner{}
+	updateNetworkApplianceFirewallL7FirewallRules := *openApiClient.NewUpdateNetworkApplianceFirewallL7FirewallRulesRequest()
 	updateNetworkApplianceFirewallL7FirewallRules.SetRules(rules)
 
-	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceFirewallL7FirewallRules(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceFirewallL7FirewallRules(updateNetworkApplianceFirewallL7FirewallRules).Execute()
+	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceFirewallL7FirewallRules(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceFirewallL7FirewallRulesRequest(updateNetworkApplianceFirewallL7FirewallRules).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to delete resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	if httpResp.StatusCode != 200 {

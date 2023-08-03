@@ -30,5 +30,3 @@ NetworksApplianceSettings resource for updating network appliance settings.
 ### Read-Only
 
 - `id` (String) Example identifier
-
-
