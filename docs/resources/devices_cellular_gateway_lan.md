@@ -17,7 +17,9 @@ DevicesCellulargatewayLan
 
 ### Optional
 
+- `device_lan_ip` (String) LAN IP of the device
 - `device_name` (String) The name of a device
+- `device_subnet` (String) Subnet of the device
 - `fixed_ip_assignments` (Attributes Set) list of all fixed IP assignments for a single MG'. (see [below for nested schema](#nestedatt--fixed_ip_assignments))
 - `reserved_ip_ranges` (Attributes Set) list of all reserved IP ranges for a single MG. (see [below for nested schema](#nestedatt--reserved_ip_ranges))
 - `serial` (String) Serial

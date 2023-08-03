@@ -74,6 +74,18 @@ func (r *DevicesCellulargatewayLanResource) Schema(ctx context.Context, req reso
 				Computed:            true,
 				CustomType:          jsontypes.StringType,
 			},
+			"device_lan_ip": schema.StringAttribute{
+				MarkdownDescription: "LAN IP of the device",
+				Optional:            true,
+				Computed:            true,
+				CustomType:          jsontypes.StringType,
+			},
+			"device_subnet": schema.StringAttribute{
+				MarkdownDescription: "Subnet of the device",
+				Optional:            true,
+				Computed:            true,
+				CustomType:          jsontypes.StringType,
+			},
 			"fixed_ip_assignments": schema.SetNestedAttribute{
 				Description: "list of all fixed IP assignments for a single MG'.",
 				Optional:    true,

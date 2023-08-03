@@ -82,18 +82,18 @@ resource "meraki_network" "test" {
 }
 
 resource "meraki_devices_cellular_gateway_lan" "test" {
-	serial = "123"
+	serial = "Q2GX-4F25-JFM4"
 	device_name = "name of the MG"
 	fixed_ip_assignments = [
 		{
 			mac = "0b:00:00:00:00:ac"
 			name = "server 1"
 			ip = "192.168.0.10"
-		}
+		},
 		{
 			mac = "0b:00:00:00:00:ab"
 			name = "server 2"
-			ip = "192.168.0.20""
+			ip = "192.168.0.20"
 		}
 	]
 	reserved_ip_ranges = [
