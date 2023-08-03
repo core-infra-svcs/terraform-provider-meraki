@@ -51,7 +51,7 @@ Optional:
 - `license_key` (String) License Key.
 - `license_type` (String) License Type.
 - `network_id` (String) ID of the network the license is assigned to.
-- `order_number` (String) Order Number.
+- `order_number` (String) Order SsidNumber.
 - `permanently_queued_licenses` (Attributes) DEPRECATED List of permanently queued licenses attached to the license. Instead, use /organizations/{organizationId}/licenses?deviceSerial= to retrieved queued licenses for a given device. (see [below for nested schema](#nestedatt--list--permanently_queued_licenses))
 - `seat_count` (Number) The number of seats of the license. Only applicable to SM licenses.
 - `state` (String) The state of the license. All queued licenses have a status of `recentlyQueued`.
@@ -67,5 +67,3 @@ Optional:
 - `license_key` (String) License key.
 - `license_type` (String) License type.
 - `order_number` (String) Order number.
-
-

@@ -44,5 +44,3 @@ Optional:
 - `dest_port` (String) Comma-separated list of destination port(s) (integer in the range 1-65535), or 'Any'
 - `src_port` (String) Comma-separated list of source port(s) (integer in the range 1-65535), or 'Any'
 - `syslog_enabled` (Boolean) Log this rule to syslog (true or false, boolean value) - only applicable if a syslog has been configured (optional)
-
-

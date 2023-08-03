@@ -34,5 +34,3 @@ Optional:
 
 - `limit_down` (Number) The maximum download limit (integer, in Kbps). null indicates no limit.
 - `limit_up` (Number) The maximum upload limit (integer, in Kbps). null indicates no limit.
-
-

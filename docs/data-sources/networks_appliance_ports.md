@@ -36,8 +36,6 @@ Optional:
 - `allowed_vlans` (String) Comma-delimited list of the VLAN ID's allowed on the port, or 'all' to permit all VLAN's on the port.
 - `drop_untagged_traffic` (Boolean) Whether the trunk port can drop all untagged traffic.
 - `enabled` (Boolean) The status of the port
-- `number` (Number) Number of the port
+- `number` (Number) SsidNumber of the port
 - `type` (String) The type of the port: 'access' or 'trunk'.
 - `vlan` (Number) Native VLAN when the port is in Trunk mode. Access VLAN when the port is in Access mode.
-
-

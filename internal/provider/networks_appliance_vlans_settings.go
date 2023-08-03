@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
-	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -102,20 +102,16 @@ func (r *NetworksApplianceVlansSettingsResource) Create(ctx context.Context, req
 		return
 	}
 
-	updateNetworksApplianceVlansSettings := *openApiClient.NewInlineObject57()
+	updateNetworksApplianceVlansSettings := *openApiClient.NewUpdateNetworkApplianceVlansSettingsRequest()
 	updateNetworksApplianceVlansSettings.SetVlansEnabled(data.VlansEnabled.ValueBool())
 
-	_, httpResp, err := r.client.SettingsApi.UpdateNetworkApplianceVlansSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceVlansSettings(updateNetworksApplianceVlansSettings).Execute()
+	_, httpResp, err := r.client.SettingsApi.UpdateNetworkApplianceVlansSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceVlansSettingsRequest(updateNetworksApplianceVlansSettings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code
@@ -162,14 +158,10 @@ func (r *NetworksApplianceVlansSettingsResource) Read(ctx context.Context, req r
 	_, httpResp, err := r.client.SettingsApi.GetNetworkApplianceVlansSettings(context.Background(), data.NetworkId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to get resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code
@@ -215,20 +207,16 @@ func (r *NetworksApplianceVlansSettingsResource) Update(ctx context.Context, req
 		return
 	}
 
-	updateNetworksApplianceVlansSettings := *openApiClient.NewInlineObject57()
+	updateNetworksApplianceVlansSettings := *openApiClient.NewUpdateNetworkApplianceVlansSettingsRequest()
 	updateNetworksApplianceVlansSettings.SetVlansEnabled(data.VlansEnabled.ValueBool())
 
-	_, httpResp, err := r.client.SettingsApi.UpdateNetworkApplianceVlansSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceVlansSettings(updateNetworksApplianceVlansSettings).Execute()
+	_, httpResp, err := r.client.SettingsApi.UpdateNetworkApplianceVlansSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceVlansSettingsRequest(updateNetworksApplianceVlansSettings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	if httpResp.StatusCode != 200 {
@@ -272,19 +260,16 @@ func (r *NetworksApplianceVlansSettingsResource) Delete(ctx context.Context, req
 		return
 	}
 
-	updateNetworksApplianceVlansSettings := *openApiClient.NewInlineObject57()
+	updateNetworksApplianceVlansSettings := *openApiClient.NewUpdateNetworkApplianceVlansSettingsRequest()
 	updateNetworksApplianceVlansSettings.SetVlansEnabled(data.VlansEnabled.ValueBool())
 
-	_, httpResp, err := r.client.SettingsApi.UpdateNetworkApplianceVlansSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceVlansSettings(updateNetworksApplianceVlansSettings).Execute()
+	_, httpResp, err := r.client.SettingsApi.UpdateNetworkApplianceVlansSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceVlansSettingsRequest(updateNetworksApplianceVlansSettings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	if httpResp.StatusCode != 200 {

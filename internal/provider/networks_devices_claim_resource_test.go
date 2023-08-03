@@ -21,11 +21,11 @@ func TestAccNetworksDevicesClaimResource(t *testing.T) {
 		// Steps is a slice of TestStep where each TestStep represents a test case.
 		Steps: []resource.TestStep{
 
-			// Create and Read a Network.
+			// Create and Read a Network. If a network with the same name already exists this will not create.
 			{
-				Config: testAccNetworksDevicesClaimResourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANZIATION_ID")),
+				Config: testAccNetworksDevicesClaimResourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "Main Office"),
+					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_network_devices_claim"),
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
@@ -37,7 +37,7 @@ func TestAccNetworksDevicesClaimResource(t *testing.T) {
 
 			// Claim and Read NetworksDevicesClaim
 			{
-				Config: testAccNetworksDevicesClaimResourceConfigCreate(os.Getenv("TF_ACC_MERAKI_MX_SERIAL"), os.Getenv("TF_ACC_MERAKI_ORGANZIATION_ID")),
+				Config: testAccNetworksDevicesClaimResourceConfigCreate(os.Getenv("TF_ACC_MERAKI_MX_SERIAL"), os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_networks_devices_claim.test", "id", "example-id"),
 				),
@@ -54,7 +54,7 @@ resource "meraki_network" "test" {
 	organization_id = "%s"
 	product_types = ["appliance"]
 	tags = ["tag1"]
-	name = "Main Office"
+	name = "test_acc_network_devices_claim"
 	timezone = "America/Los_Angeles"
 	notes = "Additional description of the network"
 }
