@@ -33,5 +33,3 @@ Optional:
 - `idp_id` (String) ID associated with the SAML Identity Provider (IdP)
 - `slo_logout_url` (String) Dashboard will redirect users to this URL when they sign out.
 - `x_509_cert_sha1_fingerprint` (String) Fingerprint (SHA1) of the SAML certificate provided by your Identity Provider (IdP). This will be used for encryption / validation.
-
-

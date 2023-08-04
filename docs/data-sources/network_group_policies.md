@@ -285,5 +285,3 @@ Optional:
 
 - `settings` (String) How VLAN tagging is applied. Can be 'network default', 'ignore' or 'custom'.
 - `vlan_id` (String) The ID of the vlan you want to tag. This only applies if 'settings' is set to 'custom'.
-
-

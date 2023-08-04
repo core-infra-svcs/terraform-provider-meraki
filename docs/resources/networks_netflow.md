@@ -30,5 +30,3 @@ NetworksNetflow resource for updating networks netflow.
 ### Read-Only
 
 - `id` (String) Example identifier
-
-

@@ -58,5 +58,3 @@ Optional:
 Optional:
 
 - `enabled` (Boolean) Enables / disables the secure port.
-
-

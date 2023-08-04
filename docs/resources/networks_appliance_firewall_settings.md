@@ -37,5 +37,3 @@ Required:
 Required:
 
 - `mode` (String) Mode of protection.
-
-
