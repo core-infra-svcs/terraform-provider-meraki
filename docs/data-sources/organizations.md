@@ -34,5 +34,3 @@ Optional:
 - `name` (String) Organization name
 - `organization_id` (String) Organization ID
 - `url` (String) Organization URL
-
-
