@@ -23,5 +23,3 @@ NetworksApplianceVlansSettings resource for updating network appliance vlans set
 ### Read-Only
 
 - `id` (String) Example identifier
-
-

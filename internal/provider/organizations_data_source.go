@@ -134,8 +134,8 @@ func (d *OrganizationsDataSource) Read(ctx context.Context, req datasource.ReadR
 	inlineResp, httpResp, err := d.client.OrganizationsApi.GetOrganizations(context.Background()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to read datasource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
 		return
 	}
@@ -147,11 +147,6 @@ func (d *OrganizationsDataSource) Read(ctx context.Context, req datasource.ReadR
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
 		return
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 	}
 
 	// Check for errors after diagnostics collected
