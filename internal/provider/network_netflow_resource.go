@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
-	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -130,7 +130,7 @@ func (r *NetworksNetflowResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
-	updateNetworkNetflow := *openApiClient.NewInlineObject93()
+	updateNetworkNetflow := *openApiClient.NewUpdateNetworkNetflowRequest()
 	if !data.CollectorIp.IsUnknown() {
 		updateNetworkNetflow.SetCollectorIp(data.Id.ValueString())
 	}
@@ -147,17 +147,13 @@ func (r *NetworksNetflowResource) Create(ctx context.Context, req resource.Creat
 		updateNetworkNetflow.SetEtaDstPort(int32(data.EtaDstPort.ValueInt64()))
 	}
 
-	_, httpResp, err := r.client.NetworksApi.UpdateNetworkNetflow(ctx, data.NetworkId.ValueString()).UpdateNetworkNetflow(updateNetworkNetflow).Execute()
+	_, httpResp, err := r.client.NetworksApi.UpdateNetworkNetflow(ctx, data.NetworkId.ValueString()).UpdateNetworkNetflowRequest(updateNetworkNetflow).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code
@@ -217,14 +213,10 @@ func (r *NetworksNetflowResource) Read(ctx context.Context, req resource.ReadReq
 	_, httpResp, err := r.client.NetworksApi.GetNetworkNetflow(ctx, data.NetworkId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to read resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code
@@ -270,7 +262,7 @@ func (r *NetworksNetflowResource) Update(ctx context.Context, req resource.Updat
 		return
 	}
 
-	updateNetworkNetflow := *openApiClient.NewInlineObject93()
+	updateNetworkNetflow := *openApiClient.NewUpdateNetworkNetflowRequest()
 	if !data.CollectorIp.IsUnknown() {
 		updateNetworkNetflow.SetCollectorIp(data.Id.ValueString())
 	}
@@ -287,17 +279,13 @@ func (r *NetworksNetflowResource) Update(ctx context.Context, req resource.Updat
 		updateNetworkNetflow.SetEtaDstPort(int32(data.EtaDstPort.ValueInt64()))
 	}
 
-	_, httpResp, err := r.client.NetworksApi.UpdateNetworkNetflow(ctx, data.NetworkId.ValueString()).UpdateNetworkNetflow(updateNetworkNetflow).Execute()
+	_, httpResp, err := r.client.NetworksApi.UpdateNetworkNetflow(ctx, data.NetworkId.ValueString()).UpdateNetworkNetflowRequest(updateNetworkNetflow).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code
@@ -355,24 +343,20 @@ func (r *NetworksNetflowResource) Delete(ctx context.Context, req resource.Delet
 		return
 	}
 
-	updateNetworkNetflow := *openApiClient.NewInlineObject93()
+	updateNetworkNetflow := *openApiClient.NewUpdateNetworkNetflowRequest()
 	updateNetworkNetflow.SetReportingEnabled(false)
 	updateNetworkNetflow.CollectorPort = nil
 	updateNetworkNetflow.CollectorIp = nil
 	updateNetworkNetflow.SetEtaEnabled(false)
 	updateNetworkNetflow.EtaDstPort = nil
 
-	_, httpResp, err := r.client.NetworksApi.UpdateNetworkNetflow(ctx, data.NetworkId.ValueString()).UpdateNetworkNetflow(updateNetworkNetflow).Execute()
+	_, httpResp, err := r.client.NetworksApi.UpdateNetworkNetflow(ctx, data.NetworkId.ValueString()).UpdateNetworkNetflowRequest(updateNetworkNetflow).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to delete resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code

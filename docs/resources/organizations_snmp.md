@@ -35,5 +35,3 @@ Optional:
 
 - `passphrase` (String) The passphrase for the SNMP user.
 - `username` (String) The username for the SNMP user
-
-

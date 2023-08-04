@@ -46,5 +46,3 @@ Optional:
 - `tags` (Set of String) Network tags
 - `timezone` (String) Timezone of the network
 - `url` (String) URL to the network Dashboard UI
-
-

@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"strings"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
-	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -84,7 +84,7 @@ func (r *DevicesResource) Schema(ctx context.Context, req resource.SchemaRequest
 	// The Schema object defines the structure of the resource.
 	resp.Schema = schema.Schema{
 
-		MarkdownDescription: "Devices",
+		MarkdownDescription: "Network Devices resource. This only works for devices associated with a network.",
 
 		// The Attributes map describes the fields of the resource.
 		Attributes: map[string]schema.Attribute{
@@ -274,7 +274,7 @@ func (r *DevicesResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	// Create HTTP request body
-	updateDevice := openApiClient.NewInlineObject()
+	updateDevice := openApiClient.NewUpdateDeviceRequest()
 
 	updateDevice.SetName(data.Name.ValueString())
 	updateDevice.SetAddress(data.Address.ValueString())
@@ -305,18 +305,13 @@ func (r *DevicesResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	// Initialize provider client and make API call
-	_, httpResp, err := r.client.DevicesApi.UpdateDevice(context.Background(),
-		data.Serial.ValueString()).UpdateDevice(*updateDevice).Execute()
+	_, httpResp, err := r.client.DevicesApi.UpdateDevice(context.Background(), data.Serial.ValueString()).UpdateDeviceRequest(*updateDevice).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// Collect any HTTP diagnostics that might be useful for debugging.
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// If it's not what you expect, add an error to diagnostics.
@@ -350,6 +345,24 @@ func (r *DevicesResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 	if data.BeaconIdParams.Uuid.IsUnknown() {
 		data.BeaconIdParams.Uuid = jsontypes.StringNull()
+	}
+	if data.Firmware.IsUnknown() {
+		data.Firmware = jsontypes.StringNull()
+	}
+	if data.FloorPlanId.IsUnknown() {
+		data.FloorPlanId = jsontypes.StringNull()
+	}
+	if data.LanIp.IsUnknown() {
+		data.LanIp = jsontypes.StringNull()
+	}
+	if data.Mac.IsUnknown() {
+		data.Mac = jsontypes.StringNull()
+	}
+	if data.Url.IsUnknown() {
+		data.Url = jsontypes.StringNull()
+	}
+	if data.Model.IsUnknown() {
+		data.Model = jsontypes.StringNull()
 	}
 	if data.SwitchProfileId.IsUnknown() {
 		data.SwitchProfileId = jsontypes.StringNull()
@@ -392,14 +405,10 @@ func (r *DevicesResource) Read(ctx context.Context, req resource.ReadRequest, re
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to read resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// Collect any HTTP diagnostics that might be useful for debugging.
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// If it's not what you expect, add an error to diagnostics.
@@ -434,6 +443,24 @@ func (r *DevicesResource) Read(ctx context.Context, req resource.ReadRequest, re
 	}
 	if data.BeaconIdParams.Uuid.IsUnknown() {
 		data.BeaconIdParams.Uuid = jsontypes.StringNull()
+	}
+	if data.Firmware.IsUnknown() {
+		data.Firmware = jsontypes.StringNull()
+	}
+	if data.FloorPlanId.IsUnknown() {
+		data.FloorPlanId = jsontypes.StringNull()
+	}
+	if data.LanIp.IsUnknown() {
+		data.LanIp = jsontypes.StringNull()
+	}
+	if data.Mac.IsUnknown() {
+		data.Mac = jsontypes.StringNull()
+	}
+	if data.Url.IsUnknown() {
+		data.Url = jsontypes.StringNull()
+	}
+	if data.Model.IsUnknown() {
+		data.Model = jsontypes.StringNull()
 	}
 	if data.SwitchProfileId.IsUnknown() {
 		data.SwitchProfileId = jsontypes.StringNull()
@@ -472,7 +499,7 @@ func (r *DevicesResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 
 	// Create HTTP request body
-	updateDevice := openApiClient.NewInlineObject()
+	updateDevice := openApiClient.NewUpdateDeviceRequest()
 
 	updateDevice.SetName(data.Name.ValueString())
 	updateDevice.SetAddress(data.Address.ValueString())
@@ -504,17 +531,13 @@ func (r *DevicesResource) Update(ctx context.Context, req resource.UpdateRequest
 
 	// Initialize provider client and make API call
 	_, httpResp, err := r.client.DevicesApi.UpdateDevice(context.Background(),
-		data.Serial.ValueString()).UpdateDevice(*updateDevice).Execute()
+		data.Serial.ValueString()).UpdateDeviceRequest(*updateDevice).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// Collect any HTTP diagnostics that might be useful for debugging.
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// If it's not what you expect, add an error to diagnostics.
@@ -549,6 +572,24 @@ func (r *DevicesResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 	if data.BeaconIdParams.Uuid.IsUnknown() {
 		data.BeaconIdParams.Uuid = jsontypes.StringNull()
+	}
+	if data.Firmware.IsUnknown() {
+		data.Firmware = jsontypes.StringNull()
+	}
+	if data.FloorPlanId.IsUnknown() {
+		data.FloorPlanId = jsontypes.StringNull()
+	}
+	if data.LanIp.IsUnknown() {
+		data.LanIp = jsontypes.StringNull()
+	}
+	if data.Mac.IsUnknown() {
+		data.Mac = jsontypes.StringNull()
+	}
+	if data.Url.IsUnknown() {
+		data.Url = jsontypes.StringNull()
+	}
+	if data.Model.IsUnknown() {
+		data.Model = jsontypes.StringNull()
 	}
 	if data.SwitchProfileId.IsUnknown() {
 		data.SwitchProfileId = jsontypes.StringNull()
@@ -587,49 +628,37 @@ func (r *DevicesResource) Delete(ctx context.Context, req resource.DeleteRequest
 	}
 
 	// Create HTTP request body
-	updateDevice := openApiClient.NewInlineObject()
+	updateDevice := openApiClient.NewUpdateDeviceRequest()
 
-	updateDevice.SetName(data.Name.ValueString())
-	updateDevice.SetAddress(data.Address.ValueString())
+	var name string
+	var tags []string
+	var lat float32
+	var lng float32
+	var address string
+	var notes string
+	var moveMapMarker bool
+	//var switchProfileId string
+	//var floorPlanId string
 
-	// Tags
-	if !data.Tags.IsNull() {
-		var tags []string
-		for _, attribute := range data.Tags.Elements() {
-			tag := fmt.Sprint(strings.Trim(attribute.String(), "\""))
-			tags = append(tags, tag)
-		}
-		updateDevice.SetTags(tags)
-	}
-
-	updateDevice.SetLat(float32(data.Lat.ValueFloat64()))
-	updateDevice.SetLng(float32(data.Lng.ValueFloat64()))
-	updateDevice.SetNotes(data.Notes.ValueString())
-	updateDevice.SetMoveMapMarker(data.MoveMapMarker.ValueBool())
-
-	// SwitchProfileId
-	if len(data.SwitchProfileId.ValueString()) > 1 {
-		updateDevice.SetSwitchProfileId(data.SwitchProfileId.ValueString())
-	}
-
-	//	FloorPlanId
-	if len(data.FloorPlanId.ValueString()) > 1 {
-		updateDevice.SetFloorPlanId(data.FloorPlanId.ValueString())
-	}
+	updateDevice.Name = &name
+	updateDevice.Tags = tags
+	updateDevice.Lat = &lat
+	updateDevice.Lng = &lng
+	updateDevice.Address = &address
+	updateDevice.Notes = &notes
+	updateDevice.MoveMapMarker = &moveMapMarker
+	//updateDevice.SwitchProfileId = &switchProfileId
+	//updateDevice.FloorPlanId = &floorPlanId
 
 	// Initialize provider client and make API call
 	_, httpResp, err := r.client.DevicesApi.UpdateDevice(context.Background(),
-		data.Serial.ValueString()).UpdateDevice(*updateDevice).Execute()
+		data.Serial.ValueString()).UpdateDeviceRequest(*updateDevice).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// Collect any HTTP diagnostics that might be useful for debugging.
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// If it's not what you expect, add an error to diagnostics.
@@ -654,22 +683,6 @@ func (r *DevicesResource) Delete(ctx context.Context, req resource.DeleteRequest
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 		return
-	}
-
-	if data.BeaconIdParams.Major.IsUnknown() {
-		data.BeaconIdParams.Major = jsontypes.Int64Null()
-	}
-	if data.BeaconIdParams.Minor.IsUnknown() {
-		data.BeaconIdParams.Minor = jsontypes.Int64Null()
-	}
-	if data.BeaconIdParams.Uuid.IsUnknown() {
-		data.BeaconIdParams.Uuid = jsontypes.StringNull()
-	}
-	if data.SwitchProfileId.IsUnknown() {
-		data.SwitchProfileId = jsontypes.StringNull()
-	}
-	if data.MoveMapMarker.IsUnknown() {
-		data.MoveMapMarker = jsontypes.BoolNull()
 	}
 
 	// Set ID for the new resource.
