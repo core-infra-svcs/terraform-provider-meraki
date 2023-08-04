@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
-	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -66,7 +66,7 @@ func (r *NetworksSwitchSettingsResource) Schema(ctx context.Context, req resourc
 					stringplanmodifier.UseStateForUnknown(),
 				},
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(8, 31),
+					stringvalidator.LengthBetween(1, 31),
 				},
 			},
 			"vlan": schema.Float64Attribute{
@@ -135,14 +135,14 @@ func (r *NetworksSwitchSettingsResource) Create(ctx context.Context, req resourc
 		return
 	}
 
-	updateNetworksSwitchSettings := *openApiClient.NewInlineObject128()
+	updateNetworksSwitchSettings := *openApiClient.NewUpdateNetworkSwitchSettingsRequest()
 	updateNetworksSwitchSettings.SetUseCombinedPower(data.UseCombinedPower.ValueBool())
 	updateNetworksSwitchSettings.SetVlan(int32(data.Vlan.ValueFloat64()))
 
 	if len(data.PowerExceptions) > 0 {
-		var powerExceptions []openApiClient.NetworksNetworkIdSwitchSettingsPowerExceptions
+		var powerExceptions []openApiClient.UpdateNetworkSwitchSettingsRequestPowerExceptionsInner
 		for _, attribute := range data.PowerExceptions {
-			var powerException openApiClient.NetworksNetworkIdSwitchSettingsPowerExceptions
+			var powerException openApiClient.UpdateNetworkSwitchSettingsRequestPowerExceptionsInner
 			powerException.Serial = attribute.Serial.ValueString()
 			powerException.PowerType = attribute.PowerType.ValueString()
 			powerExceptions = append(powerExceptions, powerException)
@@ -151,17 +151,13 @@ func (r *NetworksSwitchSettingsResource) Create(ctx context.Context, req resourc
 	} else {
 		data.PowerExceptions = nil
 	}
-	_, httpResp, err := r.client.SettingsApi.UpdateNetworkSwitchSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchSettings(updateNetworksSwitchSettings).Execute()
+	_, httpResp, err := r.client.SettingsApi.UpdateNetworkSwitchSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchSettingsRequest(updateNetworksSwitchSettings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code
@@ -208,14 +204,9 @@ func (r *NetworksSwitchSettingsResource) Read(ctx context.Context, req resource.
 	_, httpResp, err := r.client.SettingsApi.GetNetworkSwitchSettings(context.Background(), data.NetworkId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to get resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 	}
 
 	// Check for API success response code
@@ -261,14 +252,14 @@ func (r *NetworksSwitchSettingsResource) Update(ctx context.Context, req resourc
 		return
 	}
 
-	updateNetworksSwitchSettings := *openApiClient.NewInlineObject128()
+	updateNetworksSwitchSettings := *openApiClient.NewUpdateNetworkSwitchSettingsRequest()
 	updateNetworksSwitchSettings.SetUseCombinedPower(data.UseCombinedPower.ValueBool())
 	updateNetworksSwitchSettings.SetVlan(int32(data.Vlan.ValueFloat64()))
 
 	if len(data.PowerExceptions) > 0 {
-		var powerExceptions []openApiClient.NetworksNetworkIdSwitchSettingsPowerExceptions
+		var powerExceptions []openApiClient.UpdateNetworkSwitchSettingsRequestPowerExceptionsInner
 		for _, attribute := range data.PowerExceptions {
-			var powerException openApiClient.NetworksNetworkIdSwitchSettingsPowerExceptions
+			var powerException openApiClient.UpdateNetworkSwitchSettingsRequestPowerExceptionsInner
 			powerException.Serial = attribute.Serial.ValueString()
 			powerException.PowerType = attribute.PowerType.ValueString()
 			powerExceptions = append(powerExceptions, powerException)
@@ -278,17 +269,13 @@ func (r *NetworksSwitchSettingsResource) Update(ctx context.Context, req resourc
 		data.PowerExceptions = nil
 	}
 
-	_, httpResp, err := r.client.SettingsApi.UpdateNetworkSwitchSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchSettings(updateNetworksSwitchSettings).Execute()
+	_, httpResp, err := r.client.SettingsApi.UpdateNetworkSwitchSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchSettingsRequest(updateNetworksSwitchSettings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	if httpResp.StatusCode != 200 {
@@ -332,14 +319,14 @@ func (r *NetworksSwitchSettingsResource) Delete(ctx context.Context, req resourc
 		return
 	}
 
-	updateNetworksSwitchSettings := *openApiClient.NewInlineObject128()
+	updateNetworksSwitchSettings := *openApiClient.NewUpdateNetworkSwitchSettingsRequest()
 	updateNetworksSwitchSettings.SetUseCombinedPower(data.UseCombinedPower.ValueBool())
 	updateNetworksSwitchSettings.SetVlan(int32(data.Vlan.ValueFloat64()))
 
 	if len(data.PowerExceptions) > 0 {
-		var powerExceptions []openApiClient.NetworksNetworkIdSwitchSettingsPowerExceptions
+		var powerExceptions []openApiClient.UpdateNetworkSwitchSettingsRequestPowerExceptionsInner
 		for _, attribute := range data.PowerExceptions {
-			var powerException openApiClient.NetworksNetworkIdSwitchSettingsPowerExceptions
+			var powerException openApiClient.UpdateNetworkSwitchSettingsRequestPowerExceptionsInner
 			powerException.Serial = attribute.Serial.ValueString()
 			powerException.PowerType = attribute.PowerType.ValueString()
 			powerExceptions = append(powerExceptions, powerException)
@@ -349,17 +336,13 @@ func (r *NetworksSwitchSettingsResource) Delete(ctx context.Context, req resourc
 		data.PowerExceptions = nil
 	}
 
-	_, httpResp, err := r.client.SettingsApi.UpdateNetworkSwitchSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchSettings(updateNetworksSwitchSettings).Execute()
+	_, httpResp, err := r.client.SettingsApi.UpdateNetworkSwitchSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchSettingsRequest(updateNetworksSwitchSettings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	if httpResp.StatusCode != 200 {

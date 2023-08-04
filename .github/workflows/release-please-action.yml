@@ -1,0 +1,34 @@
+name: release please action
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: google-github-actions/release-please-action@v3
+        with:
+          release-type: terraform-module
+          package-name: ${{env.ACTION_NAME}}
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+      - name: Add tags to PR
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const github = context.github;
+            const prNumber = context.payload.number;
+            github.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: `refs/tags/pr-${prNumber}`,
+              sha: context.payload.pull_request.head.sha
+            });

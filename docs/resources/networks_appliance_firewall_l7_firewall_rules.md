@@ -35,5 +35,3 @@ Optional:
 
 - `policy` (String) Deny' traffic specified by this rule
 - `value` (String) The 'value' of what you want to block. Format of 'value' varies depending on type of the rule. The application categories and application ids can be retrieved from the the 'MX L7 application categories' endpoint. The countries follow the two-letter ISO 3166-1 alpha-2 format.
-
-

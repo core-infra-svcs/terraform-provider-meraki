@@ -1,9 +1,8 @@
 package provider
 
 import (
-	"testing"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"testing"
 )
 
 func TestAccOrganizationResource(t *testing.T) {
@@ -21,19 +20,6 @@ func TestAccOrganizationResource(t *testing.T) {
 					resource.TestCheckResourceAttr("meraki_organization.test", "api_enabled", "true"),
 				),
 			},
-
-			// TODO - ImportState testing - Currently this only works with a hard-coded organizationId
-			/*
-				// ImportState testing
-					{
-						ResourceName:      "meraki_organization.test",
-						ImportState:       true,
-						ImportStateVerify: true,
-						// ImportStateVerifyIgnore: []string{"id"},
-						// ImportStateId:     "${ORG_ID}",
-					},
-
-			*/
 
 			// Update testing
 			{

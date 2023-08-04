@@ -1,39 +1,25 @@
 # Terraform Provider testing workflow.
-name: Tests
+name: resource development branch tests
 
 # This GitHub action runs your tests for each pull request and push.
 # Optionally, you can turn it on using a schedule for regular testing.
 on:
-  pull_request:
-    paths-ignore:
-      - 'README.md'
   push:
-    paths-ignore:
-      - 'README.md'
+    branches-ignore:
+      - main
+      - development
 
 # Testing only needs permissions to read the repository contents.
 permissions:
   contents: read
 
 jobs:
-  lint:
-    name: Lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v4
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3
-        with:
-          # Optional: version of golangci-lint to use in form of v1.2 or v1.2.3 or `latest` to use the latest version
-          version: latest
-
   # Ensure project builds before running testing matrix
   build:
     name: Build
     runs-on: ubuntu-latest
-    timeout-minutes: 5
-    needs: lint
+    timeout-minutes: 30
+    needs: lint  # Add dependency on the "lint" job in the lint.yml workflow
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
@@ -44,6 +30,7 @@ jobs:
       - run: go build -v .
 
   generate:
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -57,18 +44,12 @@ jobs:
           git diff --compact-summary --exit-code || \
             (echo; echo "Unexpected difference in directories after code generation. Run 'go generate ./...' command and commit."; exit 1)
 
-  # Run acceptance tests in a matrix with Terraform CLI versions
+  # Run acceptance tests for the resource on the development branch
   test:
     name: Terraform Provider Acceptance Tests
-    needs: build
+    needs: generate
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    strategy:
-      fail-fast: false
-      matrix:
-        # list whatever Terraform versions here you would like to support
-        terraform:
-          - '1.2.*'
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
@@ -77,12 +58,35 @@ jobs:
           cache: true
       - uses: hashicorp/setup-terraform@v2
         with:
-          terraform_version: ${{ matrix.terraform }}
+          terraform_version: '1.2.*'
           terraform_wrapper: false
       - run: go mod download
       - env:
           TF_ACC: "1"
-          # Turning this off until we get a sweeper...
-          #MERAKI_DASHBOARD_API_KEY: ${{ secrets.MERAKI_DASHBOARD_API_KEY }}
-        run: go test -v -cover ./internal/provider/
+          MERAKI_DASHBOARD_API_KEY: ${{ secrets.MERAKI_DASHBOARD_API_KEY }}
+        run: |
+          go test -sweep -v -cover ./internal/provider/
         timeout-minutes: 10
+
+  # Check test results and fail the workflow if the tests fail
+  check_results:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check test results
+        run: |
+          changed_files=$(git diff --name-only HEAD $(git merge-base HEAD main))
+          test_function=$(grep -E '^func TestAcc.*\(t \*testing.T\)' $changed_files | awk -F 'func ' '{print $2}' | awk -F '(' '{print $1}')
+          if [[ -n "$test_function" ]]; then
+            # Run the test and store the output in a variable
+            test_output=$(go test -v -cover -run "$test_function" ./internal/provider/ 2>&1)
+            # Check if the test passed by searching for a specific pattern in the output
+            if echo "$test_output" | grep -q "PASS"; then
+              echo "TestAcc Passed"
+            else
+              echo "TestAcc Failed"
+              exit 1
+            fi
+          else
+            echo "TestAcc function not found"
+          fi

@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"strings"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
-	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -73,7 +73,7 @@ func (r *OrganizationsSamlRolesResource) Schema(ctx context.Context, req resourc
 					stringplanmodifier.UseStateForUnknown(),
 				},
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(8, 31),
+					stringvalidator.LengthBetween(1, 31),
 				},
 			},
 			"role_id": schema.StringAttribute{
@@ -85,7 +85,7 @@ func (r *OrganizationsSamlRolesResource) Schema(ctx context.Context, req resourc
 					stringplanmodifier.UseStateForUnknown(),
 				},
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(8, 31),
+					stringvalidator.LengthBetween(1, 31),
 				},
 			},
 			"role": schema.StringAttribute{
@@ -176,13 +176,13 @@ func (r *OrganizationsSamlRolesResource) Create(ctx context.Context, req resourc
 		return
 	}
 
-	createOrganizationSamlRole := *openApiClient.NewInlineObject218(data.Role.ValueString(), data.OrgAccess.ValueString())
+	createOrganizationSamlRole := *openApiClient.NewCreateOrganizationSamlRoleRequest(data.Role.ValueString(), data.OrgAccess.ValueString())
 
 	// Tags
 	if len(data.Tags) > 0 {
-		var tags []openApiClient.OrganizationsOrganizationIdSamlRolesTags
+		var tags []openApiClient.CreateOrganizationSamlRoleRequestTagsInner
 		for _, attribute := range data.Tags {
-			var tag openApiClient.OrganizationsOrganizationIdSamlRolesTags
+			var tag openApiClient.CreateOrganizationSamlRoleRequestTagsInner
 			tag.Tag = attribute.Tag.ValueString()
 			tag.Access = attribute.Access.ValueString()
 			tags = append(tags, tag)
@@ -192,9 +192,9 @@ func (r *OrganizationsSamlRolesResource) Create(ctx context.Context, req resourc
 
 	// Networks
 	if len(data.Networks) > 0 {
-		var networks []openApiClient.OrganizationsOrganizationIdSamlRolesNetworks
+		var networks []openApiClient.CreateOrganizationSamlRoleRequestNetworksInner
 		for _, attribute := range data.Networks {
-			var network openApiClient.OrganizationsOrganizationIdSamlRolesNetworks
+			var network openApiClient.CreateOrganizationSamlRoleRequestNetworksInner
 			network.Id = attribute.Id.ValueString()
 			network.Access = attribute.Access.ValueString()
 			networks = append(networks, network)
@@ -202,13 +202,14 @@ func (r *OrganizationsSamlRolesResource) Create(ctx context.Context, req resourc
 		createOrganizationSamlRole.SetNetworks(networks)
 	}
 
-	_, httpResp, err := r.client.OrganizationsApi.CreateOrganizationSamlRole(context.Background(), data.OrgId.ValueString()).CreateOrganizationSamlRole(createOrganizationSamlRole).Execute()
+	_, httpResp, err := r.client.OrganizationsApi.CreateOrganizationSamlRole(context.Background(), data.OrgId.ValueString()).CreateOrganizationSamlRoleRequest(createOrganizationSamlRole).Execute()
 
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
+		return
 	}
 
 	// Check for API success response code
@@ -218,11 +219,6 @@ func (r *OrganizationsSamlRolesResource) Create(ctx context.Context, req resourc
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
 		return
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 	}
 
 	// Check for errors after diagnostics collected
@@ -261,14 +257,10 @@ func (r *OrganizationsSamlRolesResource) Read(ctx context.Context, req resource.
 	_, httpResp, err := r.client.OrganizationsApi.GetOrganizationSamlRole(ctx, data.OrgId.ValueString(), data.RoleId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to read resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success inlineResp code
@@ -314,15 +306,15 @@ func (r *OrganizationsSamlRolesResource) Update(ctx context.Context, req resourc
 		return
 	}
 
-	updateOrganizationSamlRole := *openApiClient.NewInlineObject219()
+	updateOrganizationSamlRole := *openApiClient.NewUpdateOrganizationSamlRoleRequest()
 	updateOrganizationSamlRole.SetRole(data.Role.ValueString())
 	updateOrganizationSamlRole.SetOrgAccess(data.OrgAccess.ValueString())
 
 	// Tags
 	if len(data.Tags) > 0 {
-		var tags []openApiClient.OrganizationsOrganizationIdSamlRolesTags
+		var tags []openApiClient.CreateOrganizationSamlRoleRequestTagsInner
 		for _, attribute := range data.Tags {
-			var tag openApiClient.OrganizationsOrganizationIdSamlRolesTags
+			var tag openApiClient.CreateOrganizationSamlRoleRequestTagsInner
 			tag.Tag = attribute.Tag.ValueString()
 			tag.Access = attribute.Access.ValueString()
 			tags = append(tags, tag)
@@ -332,9 +324,9 @@ func (r *OrganizationsSamlRolesResource) Update(ctx context.Context, req resourc
 
 	// Networks
 	if len(data.Networks) > 0 {
-		var networks []openApiClient.OrganizationsOrganizationIdSamlRolesNetworks
+		var networks []openApiClient.CreateOrganizationSamlRoleRequestNetworksInner
 		for _, attribute := range data.Networks {
-			var network openApiClient.OrganizationsOrganizationIdSamlRolesNetworks
+			var network openApiClient.CreateOrganizationSamlRoleRequestNetworksInner
 			network.Id = attribute.Id.ValueString()
 			network.Access = attribute.Access.ValueString()
 			networks = append(networks, network)
@@ -342,17 +334,13 @@ func (r *OrganizationsSamlRolesResource) Update(ctx context.Context, req resourc
 		updateOrganizationSamlRole.SetNetworks(networks)
 	}
 
-	_, httpResp, err := r.client.OrganizationsApi.UpdateOrganizationSamlRole(context.Background(), data.OrgId.ValueString(), data.RoleId.ValueString()).UpdateOrganizationSamlRole(updateOrganizationSamlRole).Execute()
+	_, httpResp, err := r.client.OrganizationsApi.UpdateOrganizationSamlRole(context.Background(), data.OrgId.ValueString(), data.RoleId.ValueString()).UpdateOrganizationSamlRoleRequest(updateOrganizationSamlRole).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	if httpResp.StatusCode != 200 {
@@ -398,14 +386,10 @@ func (r *OrganizationsSamlRolesResource) Delete(ctx context.Context, req resourc
 	httpResp, err := r.client.OrganizationsApi.DeleteOrganizationSamlRole(context.Background(), data.OrgId.ValueString(), data.RoleId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to delete resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	if httpResp.StatusCode != 204 {
