@@ -24,9 +24,9 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const github = context.github;
+            const gh = context.github;
             const prNumber = context.payload.number;
-            github.git.createRef({
+            gh.git.createRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
               ref: `refs/tags/pr-${prNumber}`,
