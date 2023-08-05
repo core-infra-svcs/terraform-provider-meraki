@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.6](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.1.5...v0.1.6) (2023-08-05)
+
+
+### Bug Fixes
+
+* github actions ([8209b5b](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/8209b5b4953e0de1fff594cfdc88ee75f29e4e52))
+* github actions context ([cc15368](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/cc153684ecdf64ae4f71b0547a8219ddf3371d3e))
+
 ## [0.1.5](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.1.4...v0.1.5) (2023-08-02)
 
 
