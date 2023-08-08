@@ -21,7 +21,7 @@ Devices Appliance Dhcp Subnets - Return the DHCP subnet information for an appli
 
 ### Optional
 
-- `list` (Attributes Set) (see [below for nested schema](#nestedatt--list))
+- `list` (Attributes List) (see [below for nested schema](#nestedatt--list))
 
 ### Read-Only
 
@@ -36,5 +36,3 @@ Optional:
 - `subnet` (String) Network ID
 - `used_count` (Number) used count
 - `vlan_id` (Number) VLAN ID
-
-
