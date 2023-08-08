@@ -3,9 +3,9 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
-	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -39,21 +39,21 @@ type OrganizationsLicensesDataSourceModel struct {
 }
 
 type OrganizationsLicensesDataSourceModelList struct {
-	Id                        jsontypes.String                                                             `tfsdk:"id"`
-	LicenseType               jsontypes.String                                                             `tfsdk:"license_type"`
-	LicenseKey                jsontypes.String                                                             `tfsdk:"license_key"`
-	OrderNumber               jsontypes.String                                                             `tfsdk:"order_number"`
-	DeviceSerial              jsontypes.String                                                             `tfsdk:"device_serial"`
-	NetworkId                 jsontypes.String                                                             `tfsdk:"network_id"`
-	State                     jsontypes.String                                                             `tfsdk:"state"`
-	SeatCount                 jsontypes.Int64                                                              `tfsdk:"seat_count"`
-	TotalDurationInDays       jsontypes.Int64                                                              `tfsdk:"total_duration_in_days"`
-	DurationInDays            jsontypes.Int64                                                              `tfsdk:"duration_in_days"`
-	PermanentlyQueuedLicenses []openApiClient.OrganizationsOrganizationIdLicensesPermanentlyQueuedLicenses `tfsdk:"permanently_queued_licenses"`
-	ClaimDate                 jsontypes.String                                                             `tfsdk:"claim_date"`
-	ActivationDate            jsontypes.String                                                             `tfsdk:"activation_date"`
-	ExpirationDate            jsontypes.String                                                             `tfsdk:"expiration_date"`
-	HeadLicenseId             jsontypes.String                                                             `tfsdk:"head_license_id"`
+	Id                        jsontypes.String                                                                      `tfsdk:"id"`
+	LicenseType               jsontypes.String                                                                      `tfsdk:"license_type"`
+	LicenseKey                jsontypes.String                                                                      `tfsdk:"license_key"`
+	OrderNumber               jsontypes.String                                                                      `tfsdk:"order_number"`
+	DeviceSerial              jsontypes.String                                                                      `tfsdk:"device_serial"`
+	NetworkId                 jsontypes.String                                                                      `tfsdk:"network_id"`
+	State                     jsontypes.String                                                                      `tfsdk:"state"`
+	SeatCount                 jsontypes.Int64                                                                       `tfsdk:"seat_count"`
+	TotalDurationInDays       jsontypes.Int64                                                                       `tfsdk:"total_duration_in_days"`
+	DurationInDays            jsontypes.Int64                                                                       `tfsdk:"duration_in_days"`
+	PermanentlyQueuedLicenses []openApiClient.GetOrganizationLicenses200ResponseInnerPermanentlyQueuedLicensesInner `tfsdk:"permanently_queued_licenses"`
+	ClaimDate                 jsontypes.String                                                                      `tfsdk:"claim_date"`
+	ActivationDate            jsontypes.String                                                                      `tfsdk:"activation_date"`
+	ExpirationDate            jsontypes.String                                                                      `tfsdk:"expiration_date"`
+	HeadLicenseId             jsontypes.String                                                                      `tfsdk:"head_license_id"`
 }
 
 // Metadata provides a way to define information about the data source.
@@ -70,7 +70,6 @@ func (d *OrganizationsLicensesDataSource) Schema(ctx context.Context, req dataso
 	// The Schema object defines the structure of the data source.
 	resp.Schema = schema.Schema{
 
-		// TODO: The MarkdownDescription field is used by the documentation generator and the language server.
 		// It should provide a clear and concise description of the data source.
 		MarkdownDescription: "List Organization Licenses",
 
@@ -151,7 +150,7 @@ func (d *OrganizationsLicensesDataSource) Schema(ctx context.Context, req dataso
 							Computed:            true,
 						},
 						"order_number": schema.StringAttribute{
-							MarkdownDescription: "Order Number.",
+							MarkdownDescription: "Order SsidNumber.",
 							CustomType:          jsontypes.StringType,
 							Optional:            true,
 							Computed:            true,
@@ -312,18 +311,13 @@ func (d *OrganizationsLicensesDataSource) Read(ctx context.Context, req datasour
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to read data source",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// Collect any HTTP diagnostics that might be useful for debugging.
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// If it's not what you expect, add an error to diagnostics.
-	// TODO: Check the HTTP response status code matches the API endpoint.
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",

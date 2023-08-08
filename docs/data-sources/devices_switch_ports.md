@@ -67,5 +67,3 @@ Optional:
 - `enabled` (Boolean) When enabled, override this port's configuration with a port profile.
 - `id` (String) When enabled, the ID of the port profile used to override the port's configuration.
 - `iname` (String) When enabled, the IName of the profile.
-
-

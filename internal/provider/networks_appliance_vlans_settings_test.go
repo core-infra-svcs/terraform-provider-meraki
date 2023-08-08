@@ -20,21 +20,11 @@ func TestAccNetworkApplianceVlansSettingsResource(t *testing.T) {
 				),
 			},
 
-			// TODO - ImportState testing - This only works when hard-coded networkId.
-			/*
-				{
-					ResourceName:      "meraki_networks_appliance_vlans_settings.test",
-					ImportState:       true,
-					ImportStateVerify: false,
-					ImportStateId:     "657525545596096508",
-				},
-			*/
-
 			// Create and Read Network.
 			{
 				Config: testAccNetworkApplianceVlansSettingsResourceConfigCreateNetwork,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "Main Office"),
+					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_network"),
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
@@ -70,7 +60,7 @@ resource "meraki_organization" "test" {}
 	organization_id = resource.meraki_organization.test.organization_id
 	product_types = ["appliance", "switch", "wireless"]
 	tags = ["tag1"]
-	name = "Main Office"
+	name = "test_acc_network"
 	timezone = "America/Los_Angeles"
 	notes = "Additional description of the network"
 }
@@ -86,8 +76,5 @@ resource "meraki_networks_appliance_vlans_settings" "test" {
 	  depends_on = [resource.meraki_network.test, resource.meraki_organization.test]
       network_id = resource.meraki_network.test.network_id
 	  vlans_enabled = true
-	  
-	  
-	 
 }
 `

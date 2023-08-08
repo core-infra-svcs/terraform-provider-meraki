@@ -126,12 +126,12 @@ func (r *OrganizationsSnmpResource) Create(ctx context.Context, req resource.Cre
 		return
 	}
 
-	updateNetworkSnmp := *openApiClient.NewInlineObject108()
+	updateNetworkSnmp := *openApiClient.NewUpdateNetworkSnmpRequest()
 	updateNetworkSnmp.SetAccess(data.Access.ValueString())
 	if len(data.Users) > 0 {
-		var usersData []openApiClient.NetworksNetworkIdSnmpUsers
+		var usersData []openApiClient.UpdateNetworkSnmpRequestUsersInner
 		for _, user := range data.Users {
-			var userData openApiClient.NetworksNetworkIdSnmpUsers
+			var userData openApiClient.UpdateNetworkSnmpRequestUsersInner
 			userData.Username = user.Username.ValueString()
 			userData.Passphrase = user.Passphrase.ValueString()
 			usersData = append(usersData, userData)
@@ -139,17 +139,13 @@ func (r *OrganizationsSnmpResource) Create(ctx context.Context, req resource.Cre
 		updateNetworkSnmp.SetUsers(usersData)
 	}
 
-	_, httpResp, err := r.client.NetworksApi.UpdateNetworkSnmp(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSnmp(updateNetworkSnmp).Execute()
+	_, httpResp, err := r.client.NetworksApi.UpdateNetworkSnmp(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSnmpRequest(updateNetworkSnmp).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code
@@ -196,14 +192,10 @@ func (r *OrganizationsSnmpResource) Read(ctx context.Context, req resource.ReadR
 	_, httpResp, err := r.client.SnmpApi.GetNetworkSnmp(context.Background(), data.NetworkId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code
@@ -249,12 +241,12 @@ func (r *OrganizationsSnmpResource) Update(ctx context.Context, req resource.Upd
 		return
 	}
 
-	updateNetworkSnmp := *openApiClient.NewInlineObject108()
+	updateNetworkSnmp := *openApiClient.NewUpdateNetworkSnmpRequest()
 	updateNetworkSnmp.SetAccess(data.Access.ValueString())
 	if len(data.Users) > 0 {
-		var usersData []openApiClient.NetworksNetworkIdSnmpUsers
+		var usersData []openApiClient.UpdateNetworkSnmpRequestUsersInner
 		for _, user := range data.Users {
-			var userData openApiClient.NetworksNetworkIdSnmpUsers
+			var userData openApiClient.UpdateNetworkSnmpRequestUsersInner
 			userData.Username = user.Username.ValueString()
 			userData.Passphrase = user.Passphrase.ValueString()
 			usersData = append(usersData, userData)
@@ -262,17 +254,13 @@ func (r *OrganizationsSnmpResource) Update(ctx context.Context, req resource.Upd
 		updateNetworkSnmp.SetUsers(usersData)
 	}
 
-	_, httpResp, err := r.client.NetworksApi.UpdateNetworkSnmp(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSnmp(updateNetworkSnmp).Execute()
+	_, httpResp, err := r.client.NetworksApi.UpdateNetworkSnmp(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSnmpRequest(updateNetworkSnmp).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	if httpResp.StatusCode != 200 {
@@ -316,21 +304,17 @@ func (r *OrganizationsSnmpResource) Delete(ctx context.Context, req resource.Del
 		return
 	}
 
-	updateNetworkSnmp := *openApiClient.NewInlineObject108()
+	updateNetworkSnmp := *openApiClient.NewUpdateNetworkSnmpRequest()
 	updateNetworkSnmp.SetAccess("none")
 	updateNetworkSnmp.SetUsers(nil)
 
-	_, httpResp, err := r.client.NetworksApi.UpdateNetworkSnmp(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSnmp(updateNetworkSnmp).Execute()
+	_, httpResp, err := r.client.NetworksApi.UpdateNetworkSnmp(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSnmpRequest(updateNetworkSnmp).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code

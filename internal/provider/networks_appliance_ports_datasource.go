@@ -3,9 +3,9 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
-	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -100,7 +100,7 @@ func (d *NetworksAppliancePortsDataSource) Schema(ctx context.Context, req datas
 							CustomType:          jsontypes.BoolType,
 						},
 						"number": schema.Int64Attribute{
-							MarkdownDescription: "Number of the port",
+							MarkdownDescription: "SsidNumber of the port",
 							Optional:            true,
 							Computed:            true,
 							CustomType:          jsontypes.Int64Type,
@@ -160,14 +160,9 @@ func (d *NetworksAppliancePortsDataSource) Read(ctx context.Context, req datasou
 	inlineResp, httpResp, err := d.client.ApplianceApi.GetNetworkAppliancePorts(context.Background(), data.NetworkId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to read datasource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 	}
 
 	// Check for API success inlineResp code
