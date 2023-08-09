@@ -392,7 +392,6 @@ func (r *OrganizationsAdaptivePolicyAclResource) Delete(ctx context.Context, req
 			tools.HttpDiagnostics(httpResp),
 		)
 		return
-		return
 	}
 
 	// Check for API success response code
