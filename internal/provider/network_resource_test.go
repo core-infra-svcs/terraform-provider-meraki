@@ -27,6 +27,7 @@ func TestAccOrganizationsNetworkResource(t *testing.T) {
 					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_network"),
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
+					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
 					resource.TestCheckResourceAttr("meraki_network.test", "product_types.#", "3"),
 					resource.TestCheckResourceAttr("meraki_network.test", "product_types.0", "appliance"),

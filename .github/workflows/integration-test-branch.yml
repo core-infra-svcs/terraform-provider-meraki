@@ -73,7 +73,7 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     steps:
-      - name: Check test results
+      - name: Check test result
         run: |
           changed_files=$(git diff --name-only $(git merge-base HEAD main))
           test_function=$(grep -E '^func TestAcc.*\(t \*testing.T\)' $changed_files | awk -F 'func ' '{print $2}' | awk -F '(' '{print $1}')
