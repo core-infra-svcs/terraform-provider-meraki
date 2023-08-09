@@ -64,7 +64,6 @@ jobs:
           TF_ACC: "1"
           MERAKI_DASHBOARD_API_KEY: ${{ secrets.MERAKI_DASHBOARD_API_KEY }}
         run: |
-        # TODO: add -sweep
           go test -v -cover ./internal/provider/
         timeout-minutes: 10
 
