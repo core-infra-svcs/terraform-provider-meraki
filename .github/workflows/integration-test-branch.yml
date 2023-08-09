@@ -65,17 +65,18 @@ jobs:
           TF_ACC: "1"
           MERAKI_DASHBOARD_API_KEY: ${{ secrets.MERAKI_DASHBOARD_API_KEY }}
         run: |
-          go test -sweep -v -cover ./internal/provider/
+        # TODO: add -sweep
+          go test -v -cover ./internal/provider/
         timeout-minutes: 10
 
-  # Check test results and fail the workflow if the tests fail
+  # Check test results and fail the workflow if the tests fail.
   check_results:
     needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Check test results
         run: |
-          changed_files=$(git diff --name-only HEAD $(git merge-base HEAD main))
+          changed_files=$(git diff --name-only $(git merge-base HEAD main))
           test_function=$(grep -E '^func TestAcc.*\(t \*testing.T\)' $changed_files | awk -F 'func ' '{print $2}' | awk -F '(' '{print $1}')
           if [[ -n "$test_function" ]]; then
             # Run the test and store the output in a variable
