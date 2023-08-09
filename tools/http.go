@@ -3,6 +3,7 @@ package tools
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 )
 
@@ -13,7 +14,7 @@ func HttpDiagnostics(httpResp *http.Response) string {
 	// Read the response body, so we can include it in the diagnostics message.
 	bodyBytes, err := io.ReadAll(httpResp.Body)
 	if err != nil {
-		// Handle error if needed.
+		log.Fatal(err)
 	}
 
 	// Make a copy of the request headers and exclude the 'Authorization' header
