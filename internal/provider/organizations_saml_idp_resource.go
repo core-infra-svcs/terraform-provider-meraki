@@ -198,7 +198,6 @@ func (r *OrganizationsSamlIdpResource) Read(ctx context.Context, req resource.Re
 			tools.HttpDiagnostics(httpResp),
 		)
 		return
-		return
 	}
 
 	// Check for API success inlineResp code
@@ -297,7 +296,6 @@ func (r *OrganizationsSamlIdpResource) Delete(ctx context.Context, req resource.
 			"HTTP Client Failure",
 			tools.HttpDiagnostics(httpResp),
 		)
-		return
 		return
 	}
 

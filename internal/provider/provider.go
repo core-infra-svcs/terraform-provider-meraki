@@ -202,7 +202,8 @@ func (p *CiscoMerakiProvider) Configure(ctx context.Context, req provider.Config
 		certFile := configuration.CertificatePath
 		cert, err := os.ReadFile(certFile)
 		if err != nil {
-			tflog.Error(ctx, fmt.Sprintf(err.Error()))
+			e := fmt.Sprintf("%v", err.Error())
+			tflog.Error(ctx, e)
 		}
 
 		// Create a certificate pool and add the certificate
