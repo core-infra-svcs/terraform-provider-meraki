@@ -9,6 +9,35 @@ permissions:
   contents: write
 
 jobs:
+  # Run acceptance tests in a matrix with Terraform CLI versions
+  intergration_test_all:
+    name: Terraform Provider Acceptance Tests
+    needs: generate
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        # list whatever Terraform versions here you would like to support
+        terraform:
+          - '1.2.*'
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ matrix.terraform }}
+          terraform_wrapper: false
+      - run: go mod download
+      - env:
+          TF_ACC: "1"
+          MERAKI_DASHBOARD_API_KEY: ${{ secrets.MERAKI_DASHBOARD_API_KEY }}
+        run: go test -v -cover ./internal/provider/
+        timeout-minutes: 60
+
   goreleaser:
     runs-on: ubuntu-latest
     steps:
