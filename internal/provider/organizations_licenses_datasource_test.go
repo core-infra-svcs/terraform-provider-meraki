@@ -1,7 +1,6 @@
 package provider
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -65,12 +64,13 @@ const testAccOrganizationsLicensesDataSourceConfigCreateOrganization = `
  }
  `
 
+/*
 // testAccOrganizationsLicensesDataSourceConfiggClaimLicence is a constant string that defines the configuration for creating and reading a organizations_claim resource in your tests.
 // It depends on both the organization and network resources.
 func testAccOrganizationsLicensesDataSourceConfigClaimLicence(licence string) string {
 	result := fmt.Sprintf(`
 	resource "meraki_organization" "test" {}
-	
+
 	resource "meraki_organizations_claim" "test_licence" {
 		organization_id = resource.meraki_organization.test.organization_id
 		orders = []
@@ -81,7 +81,7 @@ func testAccOrganizationsLicensesDataSourceConfigClaimLicence(licence string) st
 				mode = "addDevices"
 			}
 		]
-	
+
 	}
 `, licence)
 	return result
@@ -98,3 +98,4 @@ data "meraki_organizations_licenses" "test" {
 	organization_id = resource.meraki_organization.test.organization_id
 }
 `
+*/
