@@ -91,7 +91,7 @@ jobs:
 
   # Check test results and fail the workflow if the tests fail.
   intergration_test:
-    needs: test
+    needs: generate-docs
     runs-on: ubuntu-latest
     steps:
       - name: Check test result
