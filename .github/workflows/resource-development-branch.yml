@@ -96,7 +96,7 @@ jobs:
     steps:
       - name: Check test result
         run: |
-          changed_files=$(git diff --name-only $(git merge-base HEAD main))
+          changed_files=$(git diff --name-only HEAD $(git merge-base HEAD main))
           test_function=$(grep -E '^func TestAcc.*\(t \*testing.T\)' $changed_files | awk -F 'func ' '{print $2}' | awk -F '(' '{print $1}')
           if [[ -n "$test_function" ]]; then
             # Run the test and store the output in a variable
