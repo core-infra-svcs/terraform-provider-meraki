@@ -26,8 +26,7 @@ jobs:
 
       - name: Get changed files
         run: |
-          git fetch origin main
-          changed_files=$(git diff --name-only $(git merge-base HEAD origin/main)..HEAD)
+          changed_files=$(git diff --name-only $(git merge-base HEAD main))
           echo "Changed files: $changed_files"
           
           test_function=$(grep -E '^func TestAcc.*\(t \*testing.T\)' $changed_files | awk -F 'func ' '{print $2}' | awk -F '(' '{print $1}')
