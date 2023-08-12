@@ -11,7 +11,7 @@ import (
 // It runs the test cases in order to create, read, update, and delete the resource and checks the state at each step.
 func TestAccDevicesApplianceDhcpSubnetsDataSource(t *testing.T) {
 
-	// The resource.Test function is used to run the test cases.
+	// The resource.Test function is used to run the test cases
 	resource.Test(t, resource.TestCase{
 		// PreCheck function is used to do the necessary setup before running the test cases.
 		PreCheck:                 func() { testAccPreCheck(t) },
