@@ -91,15 +91,9 @@ jobs:
   tf-acc-resource-test:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Fetch main branch
-        run: git fetch origin main
-
-      - name: Get changed files
-        run: |
-          changed_files=$(git log -m -1 --name-only --pretty="format:" $GITHUB_SHA)
+      - uses: actions/checkout@v3
+      - run: |
+          changed_files=$(git diff --name-only origin/main...HEAD)
           echo "Changed files: $changed_files"
           
           test_function=$(grep -E '^func TestAcc.*\(t \*testing.T\)' $changed_files | awk -F 'func ' '{print $2}' | awk -F '(' '{print $1}')
