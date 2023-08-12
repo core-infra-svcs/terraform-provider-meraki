@@ -88,7 +88,7 @@ jobs:
             (echo; echo "Unexpected difference in directories after code generation. Run 'go generate ./...' command and commit."; exit 1)
 
   # Check test results and fail the workflow if the tests fail.
-  intergration_test:
+  tf-acc-resource-test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
