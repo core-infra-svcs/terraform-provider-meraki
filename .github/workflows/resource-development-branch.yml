@@ -24,9 +24,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Fetch main branch
+        run: git fetch origin main
+
       - name: Get changed files
         run: |
-          changed_files=$(git diff --name-only $(git merge-base HEAD main))
+          changed_files=$(git diff --name-only $(git merge-base HEAD origin/main)..HEAD)
           echo "Changed files: $changed_files"
           
           test_function=$(grep -E '^func TestAcc.*\(t \*testing.T\)' $changed_files | awk -F 'func ' '{print $2}' | awk -F '(' '{print $1}')
