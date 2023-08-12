@@ -21,8 +21,10 @@ jobs:
     #needs: generate-docs
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Check test result
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Get changed files
         run: |
           git fetch origin main
           changed_files=$(git diff --name-only $(git merge-base HEAD origin/main)..HEAD)
