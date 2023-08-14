@@ -92,8 +92,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v4
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
           cache: true
@@ -102,14 +105,19 @@ jobs:
           terraform_version: '1.2.*'
           terraform_wrapper: false
       - run: go mod download
-      - env:
+        env:
           TF_ACC: "1"
           MERAKI_DASHBOARD_API_KEY: ${{ secrets.MERAKI_DASHBOARD_API_KEY }}
+
+      - name: Get list of changed files
         run: |
-          # Get the list of changed files
           changed_files=$(git diff --name-only HEAD $(git merge-base HEAD main))
           echo "Changed files: $changed_files"
-          
+          echo "::set-env name=CHANGED_FILES::$changed_files"
+
+      - name: Run tests on changed files
+        run: |
+          changed_files="${{ env.CHANGED_FILES }}"
           test_function=$(grep -E '^func TestAcc.*\(t \*testing.T\)' $changed_files | awk -F 'func ' '{print $2}' | awk -F '(' '{print $1}')
           
           if [[ -n "$test_function" ]]; then
