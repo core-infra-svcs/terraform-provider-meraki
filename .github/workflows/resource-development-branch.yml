@@ -90,21 +90,24 @@ jobs:
   # Check test results and fail the workflow if the tests fail.
   tf-acc-resource-test:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
         with:
-          ref: ${{ github.event.before }} # This gets the base commit before the push
-
-      - name: Set up Go
-        uses: actions/setup-go@v4
+          go-version-file: 'go.mod'
+          cache: true
+      - uses: hashicorp/setup-terraform@v2
         with:
-          go-version: 1.20  # Use the Go version you need
-
-      - name: Run tests
+          terraform_version: '1.2.*'
+          terraform_wrapper: false
+      - run: go mod download
+      - env:
+          TF_ACC: "1"
+          MERAKI_DASHBOARD_API_KEY: ${{ secrets.MERAKI_DASHBOARD_API_KEY }}
         run: |
           # Get the list of changed files
-          changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+          changed_files=$(git diff --name-only HEAD $(git merge-base HEAD main))
           echo "Changed files: $changed_files"
           
           test_function=$(grep -E '^func TestAcc.*\(t \*testing.T\)' $changed_files | awk -F 'func ' '{print $2}' | awk -F '(' '{print $1}')
@@ -122,3 +125,4 @@ jobs:
           else
             echo "TestAcc function not found"
           fi
+        timeout-minutes: 10
