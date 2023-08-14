@@ -114,6 +114,8 @@ jobs:
       - name: Run tests on changed files
         run: |
           changed_files=$(git diff --name-only HEAD $(git merge-base HEAD main))
+          echo $changed_files
+          
           test_function=$(grep -E '^func TestAcc.*\(t \*testing.T\)' $changed_files | awk -F 'func ' '{print $2}' | awk -F '(' '{print $1}')
           
           if [[ -n "$test_function" ]]; then
