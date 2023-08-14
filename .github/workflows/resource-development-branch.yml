@@ -91,26 +91,16 @@ jobs:
   tf-acc-resource-test:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
         with:
-          ref: ${{ github.base_ref }}
-
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: 1.20
           go-version-file: 'go.mod'
+          cache: true
 
-      - name: Set base ref
-        run: echo "base_ref=${{ github.base_ref }}" >> $GITHUB_ENV
-
-      - name: TF Integration Test
-        run: |
-          # Load the base_ref environment variable
-          source $GITHUB_ENV
-
+      - run: |
           current_commit="${{ github.sha }}"
+          base_ref="${{ github.base_ref }}"
+          echo ${{ github.base_ref }}
           
           # Get the list of changed files
           changed_files=$(git diff --name-only "$base_ref" "$current_commit")
