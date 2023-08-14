@@ -99,9 +99,9 @@ jobs:
           fetch-depth: 0
 
       - name: Get list of changed files
+        id: changed-files
         run: |
-          echo 'hello world' >> $GITHUB_ENV
-          echo '${{ env.CHANGED_FILES }}'
+          echo "changed_files=$(git diff --name-only HEAD $(git merge-base HEAD main))" >> "$GITHUB_ENV"
 
       - name: Checkout resource development branch
         uses: actions/checkout@v3
@@ -124,8 +124,8 @@ jobs:
 
       - name: Run tests on changed files
         run: |
-          echo '${{ env.CHANGED_FILES }}'
-          test_function=$(grep -E '^func TestAcc.*\(t \*testing.T\)' ${{ env.CHANGED_FILES }} | awk -F 'func ' '{print $2}' | awk -F '(' '{print $1}')
+          echo $changed_files
+          test_function=$(grep -E '^func TestAcc.*\(t \*testing.T\)' $changed_files | awk -F 'func ' '{print $2}' | awk -F '(' '{print $1}')
           
           if [[ -n "$test_function" ]]; then
             # Run the test and store the output in a variable
