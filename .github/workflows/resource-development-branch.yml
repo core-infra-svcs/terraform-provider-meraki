@@ -93,6 +93,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout main branch
+        id: checkout-main
         uses: actions/checkout@v3
         with:
           ref: 'main'
@@ -101,14 +102,16 @@ jobs:
       - name: Get list of changed files
         id: changed-files
         run: |
-          echo "changed_files=$(git diff --name-only HEAD $(git merge-base HEAD main))" >> changed_files.txt
+          echo "changed_files=$(git diff --name-only HEAD $(git merge-base HEAD main))" >> "$GITHUB_ENV"
 
-      - name: Checkout resource development branch
+      - name: Checkout development branch
+        id: checkout-dev-branch
         uses: actions/checkout@v3
         with:
           ref: ${{ github.ref }}
 
       - name: Set up Go Env
+        id: go-env
         uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
@@ -123,11 +126,12 @@ jobs:
           MERAKI_DASHBOARD_API_KEY: ${{ secrets.MERAKI_DASHBOARD_API_KEY }}
 
       - name: Run tests on changed files
+        id: test-changed-files
         run: |
-          changed_files=$(cat changed_files.txt)
-          echo $changed_files
+          get_changed_files=$(printf '%s\n' "$changed_files")
+          echo $get_changed_files
           
-          test_function=$(grep -E '^func TestAcc.*\(t \*testing.T\)' $changed_files | awk -F 'func ' '{print $2}' | awk -F '(' '{print $1}')
+          test_function=$(grep -E '^func TestAcc.*\(t \*testing.T\)' $get_changed_files | awk -F 'func ' '{print $2}' | awk -F '(' '{print $1}')
           
           if [[ -n "$test_function" ]]; then
             # Run the test and store the output in a variable
