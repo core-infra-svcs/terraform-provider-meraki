@@ -102,8 +102,14 @@ jobs:
           go-version: 1.20
           go-version-file: 'go.mod'
 
+      - name: Set base ref
+        run: echo "base_ref=${{ github.base_ref }}" >> $GITHUB_ENV
+
       - name: TF Integration Test
         run: |
+          # Load the base_ref environment variable
+          source $GITHUB_ENV
+
           current_commit="${{ github.sha }}"
           
           # Get the list of changed files
