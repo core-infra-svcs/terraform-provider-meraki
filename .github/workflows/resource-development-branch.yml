@@ -99,7 +99,7 @@ jobs:
 
       - run: |
           current_commit="${{ github.sha }}"
-          base_ref="${{ github.base_ref }}"
+          base_ref=$(git rev-parse main)
           echo ${{ github.base_ref }}
           
           # Get the list of changed files
