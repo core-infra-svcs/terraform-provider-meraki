@@ -91,31 +91,20 @@ jobs:
   tf-acc-resource-test:
     runs-on: ubuntu-latest
     steps:
-      - name: Fetch Default Branch Commit
-        id: fetch_default_commit
-        run: |
-          response=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-           "https://api.github.com/repos/${{ github.repository }}/branches/main")
-          default_commit=$(echo "$response" | jq -r '.commit.sha')
-          echo "::set-output name=default_commit::$default_commit"
-
       - name: Checkout code
         uses: actions/checkout@v3
         with:
-          ref: ${{ steps.fetch_default_commit.outputs.default_commit }}
+          ref: ${{ github.event.before }} # This gets the base commit before the push
 
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version: 1.20
+          go-version: 1.20  # Use the Go version you need
 
       - name: Run tests
         run: |
-          current_commit="${{ github.sha }}"
-          base_ref="${{ steps.fetch_default_commit.outputs.default_commit }}"
-          
           # Get the list of changed files
-          changed_files=$(git diff --name-only "$base_ref" "$current_commit")
+          changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
           echo "Changed files: $changed_files"
           
           test_function=$(grep -E '^func TestAcc.*\(t \*testing.T\)' $changed_files | awk -F 'func ' '{print $2}' | awk -F '(' '{print $1}')
