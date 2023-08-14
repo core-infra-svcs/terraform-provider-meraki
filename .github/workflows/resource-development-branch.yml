@@ -92,6 +92,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      - name: Checkout main branch
+        id: checkout-main
+        uses: actions/checkout@v3
+        with:
+          ref: 'main'
+          fetch-depth: 0
 
       - name: Checkout development branch
         id: checkout-dev-branch
@@ -103,8 +109,7 @@ jobs:
       - name: Get list of changed files
         id: changed-files
         run: |
-          git log -m -1 --name-only --pretty="format:" $GITHUB_SHA
-          echo "changed_files=$(git log -m -1 --name-only --pretty="format:" $GITHUB_SHA)" >> $GITHUB_ENV
+          echo "changed_files=$(git diff --name-only HEAD $(git merge-base HEAD main))" >> $GITHUB_ENV
 
       - name: Set up Go Env
         id: go-env
