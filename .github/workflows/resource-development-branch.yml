@@ -104,6 +104,8 @@ jobs:
         run: |
           echo "changed_files=$(git diff --name-only HEAD $(git merge-base HEAD main))" >> "$GITHUB_ENV"
           printf '%s\n' "$changed_files"
+        env:
+          CHANGED_FILES: ${{ $changed_files }}
 
       - name: Checkout development branch
         id: checkout-dev-branch
@@ -129,8 +131,7 @@ jobs:
       - name: Run tests on changed files
         id: test-changed-files
         run: |
-          get_changed_files=$(printf '%s\n' "$changed_files")
-          echo $get_changed_files
+          get_changed_files=$CHANGED_FILES
           
           test_function=$(grep -E '^func TestAcc.*\(t \*testing.T\)' $get_changed_files | awk -F 'func ' '{print $2}' | awk -F '(' '{print $1}')
           
@@ -145,6 +146,6 @@ jobs:
               exit 1
             fi
           else
-            echo "TestAcc function not found"
+            echo "No test files found: $get_changed_files"
           fi
         timeout-minutes: 10
