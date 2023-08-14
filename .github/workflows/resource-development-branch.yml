@@ -95,6 +95,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
+          ref: 'main'
           fetch-depth: 0
 
       - name: Set up Go
@@ -113,7 +114,7 @@ jobs:
 
       - name: Run tests on changed files
         run: |
-          changed_files=$(git diff --name-only HEAD $(git merge-base HEAD main))
+          changed_files=$(git diff --name-only ${{ github.base_ref }} ${{ github.sha }})
           echo $changed_files
           
           test_function=$(grep -E '^func TestAcc.*\(t \*testing.T\)' $changed_files | awk -F 'func ' '{print $2}' | awk -F '(' '{print $1}')
