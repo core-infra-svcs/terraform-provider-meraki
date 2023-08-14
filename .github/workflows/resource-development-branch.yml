@@ -103,6 +103,7 @@ jobs:
         id: changed-files
         run: |
           echo "changed_files=$(git diff --name-only HEAD $(git merge-base HEAD main))" >> "$GITHUB_ENV"
+          printf '%s\n' "$changed_files"
 
       - name: Checkout development branch
         id: checkout-dev-branch
