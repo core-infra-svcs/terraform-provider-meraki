@@ -94,6 +94,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          ref: 'main'
 
       - name: Set up Go
         uses: actions/setup-go@v4
@@ -109,15 +111,9 @@ jobs:
           TF_ACC: "1"
           MERAKI_DASHBOARD_API_KEY: ${{ secrets.MERAKI_DASHBOARD_API_KEY }}
 
-      - name: Get list of changed files
-        run: |
-          changed_files=$(git diff --name-only HEAD $(git merge-base HEAD main))
-          echo "Changed files: $changed_files"
-          echo "::set-env name=CHANGED_FILES::$changed_files"
-
       - name: Run tests on changed files
         run: |
-          changed_files="${{ env.CHANGED_FILES }}"
+          changed_files=$(git diff --name-only HEAD $(git merge-base HEAD main))
           test_function=$(grep -E '^func TestAcc.*\(t \*testing.T\)' $changed_files | awk -F 'func ' '{print $2}' | awk -F '(' '{print $1}')
           
           if [[ -n "$test_function" ]]; then
