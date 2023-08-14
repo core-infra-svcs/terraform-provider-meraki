@@ -102,7 +102,7 @@ jobs:
       - name: Get list of changed files
         id: changed-files
         run: |
-          git diff --name-only HEAD $(git merge-base HEAD main
+          git diff --name-only HEAD $(git merge-base HEAD main)
           echo "changed_files=$(git diff --name-only HEAD $(git merge-base HEAD main))" >> $GITHUB_ENV
 
       - name: Checkout development branch
