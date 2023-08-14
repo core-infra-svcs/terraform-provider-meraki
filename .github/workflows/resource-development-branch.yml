@@ -92,17 +92,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - name: Checkout main branch
+      - name: Get list of changed files
         id: checkout-main
         uses: actions/checkout@v3
         with:
           ref: 'main'
           fetch-depth: 0
-
-      - name: Get list of changed files
-        id: changed-files
         run: |
-          echo "changed_files=ABC" >> $GITHUB_ENV
+          echo "changed_files=$(git diff --name-only HEAD $(git merge-base HEAD main))" >> $GITHUB_ENV
 
       - name: Checkout development branch
         id: checkout-dev-branch
