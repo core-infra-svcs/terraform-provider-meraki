@@ -93,7 +93,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: |
-          changed_files=$(git diff --name-only main HEAD)
+          changed_files=$(git diff --name-only "${{ github.base_ref }}" HEAD)
           echo "Changed files: $changed_files"
           
           test_function=$(grep -E '^func TestAcc.*\(t \*testing.T\)' $changed_files | awk -F 'func ' '{print $2}' | awk -F '(' '{print $1}')
