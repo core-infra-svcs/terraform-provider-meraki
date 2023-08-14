@@ -108,7 +108,6 @@ jobs:
       - name: Get list of changed files
         id: changed-files
         run: |
-          cd ${{ github.workspace }}
           echo "changed_files=$(git diff --name-only temp/main)" >> $GITHUB_ENV
 
       - name: Set up Go Env
