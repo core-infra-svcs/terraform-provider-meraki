@@ -87,6 +87,41 @@ jobs:
           git diff --compact-summary --exit-code || \
             (echo; echo "Unexpected difference in directories after code generation. Run 'go generate ./...' command and commit."; exit 1)
 
+  check_repo_setup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Check Default Branch Name
+        run: |
+          repo_info=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              "https://api.github.com/repos/${{ github.repository }}")
+          default_branch=$(echo "$repo_info" | jq -r '.default_branch')
+          if [[ "$default_branch" != "main" ]]; then
+            echo "Default branch is not 'main'. It's $default_branch."
+          else
+            echo "Default branch is 'main'."
+          fi
+
+      - name: Check Repository Status
+        run: |
+          repo_info=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              "https://api.github.com/repos/${{ github.repository }}")
+          if [[ $(echo "$repo_info" | jq -r '.message') == "Not Found" ]]; then
+            echo "Repository not found or inaccessible."
+          else
+            echo "Repository exists and is accessible."
+          fi
+
+      - name: Check Main Branch Availability
+        run: |
+          main_branch_info=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              "https://api.github.com/repos/${{ github.repository }}/branches/main")
+          if [[ $(echo "$main_branch_info" | jq -r '.message') == "Not Found" ]]; then
+            echo "Main branch not found."
+          else
+            echo "Main branch found."
+          fi
+
   # Check test results and fail the workflow if the tests fail.
   tf-acc-resource-test:
     runs-on: ubuntu-latest
