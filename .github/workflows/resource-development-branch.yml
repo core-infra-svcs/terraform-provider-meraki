@@ -92,11 +92,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - name: Checkout main branch
-        id: checkout-main
+
+      - name: Checkout development branch
+        id: checkout-dev-branch
         uses: actions/checkout@v3
         with:
-          ref: 'main'
+          ref: ${{ github.ref }}
           fetch-depth: 0
 
       - name: Get list of changed files
@@ -104,12 +105,6 @@ jobs:
         run: |
           git log -m -1 --name-only --pretty="format:" $GITHUB_SHA
           echo "changed_files=$(git log -m -1 --name-only --pretty="format:" $GITHUB_SHA)" >> $GITHUB_ENV
-
-      - name: Checkout development branch
-        id: checkout-dev-branch
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ github.ref }}
 
       - name: Set up Go Env
         id: go-env
