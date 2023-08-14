@@ -87,62 +87,39 @@ jobs:
           git diff --compact-summary --exit-code || \
             (echo; echo "Unexpected difference in directories after code generation. Run 'go generate ./...' command and commit."; exit 1)
 
-  check_repo_setup:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Check Default Branch Name
-        run: |
-          repo_info=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-              "https://api.github.com/repos/${{ github.repository }}")
-          default_branch=$(echo "$repo_info" | jq -r '.default_branch')
-          if [[ "$default_branch" != "main" ]]; then
-            echo "Default branch is not 'main'. It's $default_branch."
-          else
-            echo "Default branch is 'main'."
-          fi
-
-      - name: Check Repository Status
-        run: |
-          repo_info=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-              "https://api.github.com/repos/${{ github.repository }}")
-          if [[ $(echo "$repo_info" | jq -r '.message') == "Not Found" ]]; then
-            echo "Repository not found or inaccessible."
-          else
-            echo "Repository exists and is accessible."
-          fi
-
-      - name: Check Main Branch Availability
-        run: |
-          main_branch_info=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-              "https://api.github.com/repos/${{ github.repository }}/branches/main")
-          if [[ $(echo "$main_branch_info" | jq -r '.message') == "Not Found" ]]; then
-            echo "Main branch not found."
-          else
-            echo "Main branch found."
-          fi
-
   # Check test results and fail the workflow if the tests fail.
   tf-acc-resource-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v4
-        with:
-          go-version-file: 'go.mod'
-          cache: true
+      - name: Fetch Default Branch Commit
+        id: fetch_default_commit
+        run: |
+          response=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+           "https://api.github.com/repos/${{ github.repository }}/branches/main")
+          default_commit=$(echo "$response" | jq -r '.commit.sha')
+          echo "::set-output name=default_commit::$default_commit"
 
-      - run: |
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ steps.fetch_default_commit.outputs.default_commit }}
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.20
+
+      - name: Run tests
+        run: |
           current_commit="${{ github.sha }}"
-          base_ref=$(git rev-parse main)
-          echo ${{ github.base_ref }}
+          base_ref="${{ steps.fetch_default_commit.outputs.default_commit }}"
           
           # Get the list of changed files
           changed_files=$(git diff --name-only "$base_ref" "$current_commit")
           echo "Changed files: $changed_files"
           
           test_function=$(grep -E '^func TestAcc.*\(t \*testing.T\)' $changed_files | awk -F 'func ' '{print $2}' | awk -F '(' '{print $1}')
-
+          
           if [[ -n "$test_function" ]]; then
             # Run the test and store the output in a variable
             test_output=$(go test -v -cover -run "$test_function" ./internal/provider/ 2>&1)
