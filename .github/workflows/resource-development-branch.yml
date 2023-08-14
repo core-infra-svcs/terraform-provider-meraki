@@ -91,9 +91,18 @@ jobs:
   tf-acc-resource-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - run: |
-          base_ref="${{ github.base_ref }}"
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.base_ref }}
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.20
+
+      - name: TF Integration Test
+        run: |
           current_commit="${{ github.sha }}"
           
           # Get the list of changed files
