@@ -102,7 +102,7 @@ jobs:
         id: changed-files
         run: |
           cd ${{ github.workspace }}
-          changed_files=$(git diff --name-only origin/main $GITHUB_HEAD_REF)
+          changed_files=$(git diff --name-only origin/main $GITHUB_HEAD_REF | sed -e 's/ /%20/g')
           echo "changed_files=$changed_files" >> $GITHUB_ENV
 
       - name: Set up Go Env
