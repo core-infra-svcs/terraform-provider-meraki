@@ -117,6 +117,7 @@ jobs:
         id: test-changed-files
         run: |
           changed_files=$(git diff --name-only origin/main $GITHUB_HEAD_REF)
+          echo $changed_files
           test_function=$(grep -E '^func TestAcc.*\(t \*testing.T\)' $changed_files | awk -F 'func ' '{print $2}' | awk -F '(' '{print $1}')
           
           if [[ -n "$test_function" ]]; then
@@ -130,6 +131,6 @@ jobs:
               exit 1
             fi
           else
-            echo "No test files found: $changed_files"
+            echo "No test files found: $test_function"
           fi
         timeout-minutes: 10
