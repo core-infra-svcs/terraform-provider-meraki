@@ -91,12 +91,6 @@ jobs:
   tf-acc-resource-test:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    strategy:
-      fail-fast: false
-      matrix:
-        # list whatever Terraform versions here you would like to support
-        terraform:
-          - '1.2.*'
     steps:
       - name: Checkout development branch
         id: checkout-dev-branch
@@ -104,12 +98,12 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Run tests on changed files
+      - name: Set up Go Env
         id: go-env
         uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
-          cache: false
+          cache: true
       - uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: '1.2.*'
@@ -118,27 +112,31 @@ jobs:
         env:
           TF_ACC: "1"
           MERAKI_DASHBOARD_API_KEY: ${{ secrets.MERAKI_DASHBOARD_API_KEY }}
-          run: |
-            changed_files=$(git diff --name-only origin/main $GITHUB_HEAD_REF)
-            echo "changed files: $changed_files"
-            
-            acc_test_file=$(grep -E '^func TestAcc.*\(t \*testing.T\)' $changed_files | awk -F 'func ' '{print $2}' | awk -F '(' '{print $1}')
-            echo "acc test file: $acc_test_file"
-            
-            if [[ -n "$acc_test_file" ]]; then
-            
-              # Run the test and store the output in a variable
-              test_output=$(go test -v -cover -run "$acc_test_file" ./internal/provider/ 2>&1)
-            
-              # Check if the test passed by searching for a specific pattern in the output
-              echo "$test_output"
-              if echo "$test_output" | grep -q "PASS"; then
-                echo "TestAcc Passed"
-              else
-                echo "TestAcc Failed"
-                exit 1
-              fi
+
+      - name: Run tests on changed files
+        id: test-changed-files
+        run: |
+          
+          changed_files=$(git diff --name-only origin/main $GITHUB_HEAD_REF)
+          echo "changed files: $changed_files"
+          
+          acc_test_file=$(grep -E '^func TestAcc.*\(t \*testing.T\)' $changed_files | awk -F 'func ' '{print $2}' | awk -F '(' '{print $1}')
+          echo "acc test file: $acc_test_file"
+          
+          if [[ -n "$acc_test_file" ]]; then
+          
+            # Run the test and store the output in a variable
+            test_output=$(go test -v -cover -run "$acc_test_file" ./internal/provider/ 2>&1)
+            echo "$test_output"
+          
+            # Check if the test passed by searching for a specific pattern in the output
+            if echo "$test_output" | grep -q "PASS"; then
+              echo "TestAcc Passed"
             else
-              echo "No test files found: $acc_test_file"
+              echo "TestAcc Failed"
+              exit 1
             fi
-          timeout-minutes: 10
+          else
+            echo "No test files found: $acc_test_file"
+          fi
+        timeout-minutes: 10
