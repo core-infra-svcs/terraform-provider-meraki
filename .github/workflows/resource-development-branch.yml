@@ -102,7 +102,7 @@ jobs:
         id: changed-files
         run: |
           cd ${{ github.workspace }}
-          changed_files=$(git diff --name-only origin/main $GITHUB_HEAD_REF | sed -e 's/ /%20/g')
+          changed_files="ABC"
         env:
           CHANGED_FILES: $changed_files
 
