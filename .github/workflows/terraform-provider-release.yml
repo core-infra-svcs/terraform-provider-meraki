@@ -55,7 +55,7 @@ jobs:
           TF_ACC_MERAKI_MX_LICENCE: ${{ secrets.TF_ACC_MERAKI_MX_LICENCE }}
           TF_ACC_MERAKI_MX_SERIAL: ${{ secrets.TF_ACC_MERAKI_MX_SERIAL }}
           TF_ACC_MERAKI_ORDER_NUMBER: ${{ secrets.TF_ACC_MERAKI_ORDER_NUMBER }}
-          TF_ACC_MERAKI_ORGANZIATION_ID: ${{ secrets.TF_ACC_MERAKI_ORGANZIATION_ID }}
+          TF_ACC_MERAKI_ORGANIZATION_ID: ${{ secrets.TF_ACC_MERAKI_ORGANZIATION_ID }}
         run: go test -v -cover ./internal/provider/
         timeout-minutes: 60
 
