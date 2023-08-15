@@ -125,8 +125,7 @@ jobs:
       - name: Run tests on changed files
         id: test-changed-files
         run: |
-          
-          test_function=$(grep -E '^func TestAcc.*\(t \*testing.T\)' ${{env.CHANGED_FILES }} | awk -F 'func ' '{print $2}' | awk -F '(' '{print $1}')
+          test_function=$(grep -E '^func TestAcc.*\(t \*testing.T\)' ${{ steps.changed-files.outputs.CHANGED_FILES }} | awk -F 'func ' '{print $2}' | awk -F '(' '{print $1}')
           
           if [[ -n "$test_function" ]]; then
             # Run the test and store the output in a variable
@@ -139,6 +138,6 @@ jobs:
               exit 1
             fi
           else
-            echo "No test files found: ${{env.CHANGED_FILES }}"
+            echo "No test files found: ${{ steps.changed-files.outputs.CHANGED_FILES }}"
           fi
         timeout-minutes: 10
