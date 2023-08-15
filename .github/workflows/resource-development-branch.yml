@@ -126,3 +126,4 @@ jobs:
         env:
           TF_ACC: "1"
           MERAKI_DASHBOARD_API_KEY: ${{ secrets.MERAKI_DASHBOARD_API_KEY }}
+          TF_ACC_MERAKI_MX_LICENCE: ${{ secrets.TF_ACC_MERAKI_MX_LICENCE }}
