@@ -120,6 +120,7 @@ jobs:
 
             # Run the test and store the output in a variable
             go test -v -cover -run "$acc_test_file" ./internal/provider/
+          fi
 
         timeout-minutes: 10
         env:
