@@ -98,15 +98,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Get list of changed files
-        id: changed-files
-        run: |
-          cd ${{ github.workspace }}
-          changed_files=$(git diff --name-only origin/main $GITHUB_HEAD_REF)
-          echo $changed_files
-        env:
-          CHANGED_FILES: $changed_files
-
       - name: Set up Go Env
         id: go-env
         uses: actions/setup-go@v4
@@ -125,7 +116,8 @@ jobs:
       - name: Run tests on changed files
         id: test-changed-files
         run: |
-          test_function=$(grep -E '^func TestAcc.*\(t \*testing.T\)' ${{ steps.changed-files.outputs.CHANGED_FILES }} | awk -F 'func ' '{print $2}' | awk -F '(' '{print $1}')
+          changed_files=$(git diff --name-only origin/main $GITHUB_HEAD_REF)
+          test_function=$(grep -E '^func TestAcc.*\(t \*testing.T\)' $changed_files | awk -F 'func ' '{print $2}' | awk -F '(' '{print $1}')
           
           if [[ -n "$test_function" ]]; then
             # Run the test and store the output in a variable
@@ -138,6 +130,6 @@ jobs:
               exit 1
             fi
           else
-            echo "No test files found: ${{ steps.changed-files.outputs.CHANGED_FILES }}"
+            echo "No test files found: $changed_files"
           fi
         timeout-minutes: 10
