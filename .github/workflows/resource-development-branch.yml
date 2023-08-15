@@ -95,19 +95,14 @@ jobs:
       - name: Checkout development branch
         id: checkout-dev-branch
         uses: actions/checkout@v3
-
-      - name: Checkout main branch
-        id: checkout-main
-        uses: actions/checkout@v3
         with:
-          ref: 'main'
-          path: temp
+          fetch-depth: 0
 
       - name: Get list of changed files
         id: changed-files
         run: |
           cd ${{ github.workspace }}
-          echo "changed_files=$(git diff --name-only main ${GITHUB_SHA})" >> $GITHUB_ENV
+          echo "changed_files=$(git diff --name-only origin/main origin/${GITHUB_HEAD_REF})" >> $GITHUB_ENV
 
       - name: Set up Go Env
         id: go-env
