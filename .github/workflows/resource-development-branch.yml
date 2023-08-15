@@ -119,21 +119,8 @@ jobs:
           if [[ -n "$acc_test_file" ]]; then
 
             # Run the test and store the output in a variable
-            test_output=$(go test -v -cover -run "$acc_test_file" ./internal/provider/ 2>&1)
+            go test -v -cover -run "$acc_test_file" ./internal/provider/
 
-            # Check if the test passed by searching for a specific pattern in the output
-            if echo "$test_output" | grep -q "PASS"; then
-              echo "TestAcc Passed"
-            else
-              echo "TestAcc Failed"
-              exit 1
-            fi
-          else
-            echo "No test files found: $acc_test_file"
-          fi
-          
-          # print test results
-          echo "$test_output"
         timeout-minutes: 10
         env:
           TF_ACC: "1"
