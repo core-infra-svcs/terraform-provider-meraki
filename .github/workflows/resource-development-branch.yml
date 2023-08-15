@@ -103,6 +103,7 @@ jobs:
         run: |
           cd ${{ github.workspace }}
           changed_files=$(git diff --name-only origin/main $GITHUB_HEAD_REF)
+          echo $changed_files
         env:
           CHANGED_FILES: $changed_files
 
