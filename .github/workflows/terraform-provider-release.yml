@@ -49,6 +49,13 @@ jobs:
       - env:
           TF_ACC: "1"
           MERAKI_DASHBOARD_API_KEY: ${{ secrets.MERAKI_DASHBOARD_API_KEY }}
+          TF_ACC_MAIN_OFFICE_SUB_TEST_NETWORK_ID: $ {{  }}
+          TF_ACC_MERAKI_MG_SERIAL: ${{ secrets.TF_ACC_MERAKI_MG_SERIAL }}
+          TF_ACC_MERAKI_MS_SERIAL: ${{ secrets.TF_ACC_MERAKI_MS_SERIAL }}
+          TF_ACC_MERAKI_MX_LICENCE: ${{ secrets.TF_ACC_MERAKI_MX_LICENCE }}
+          TF_ACC_MERAKI_MX_SERIAL: ${{ secrets.TF_ACC_MERAKI_MX_SERIAL }}
+          TF_ACC_MERAKI_ORDER_NUMBER: ${{ secrets.TF_ACC_MERAKI_ORDER_NUMBER }}
+          TF_ACC_MERAKI_ORGANZIATION_ID: ${{ secrets.TF_ACC_MERAKI_ORGANZIATION_ID }}
         run: go test -v -cover ./internal/provider/
         timeout-minutes: 60
 
