@@ -109,7 +109,7 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
-          cache: true
+          cache: false
       - uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: '1.2.*'
