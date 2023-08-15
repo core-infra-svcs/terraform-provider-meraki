@@ -20,7 +20,7 @@ func TestAccDevicesApplianceDhcpSubnetsDataSource(t *testing.T) {
 		// Steps is a slice of TestStep where each TestStep represents a test case.
 		Steps: []resource.TestStep{
 
-			// Create and Read an Organization
+			// Create and Read an Organization.
 			{
 				Config: testAccDevicesApplianceDhcpSubnetsDataSourceConfigCreateOrganization,
 				Check: resource.ComposeAggregateTestCheckFunc(
