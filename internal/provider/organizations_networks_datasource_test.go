@@ -16,7 +16,7 @@ func TestAccOrganizationsNetworksDataSource(t *testing.T) {
 				Config: testAccOrganizationsNetworksDataSourceConfigCreateOrganization,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
-					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_meraki_organizations_networks"),
+					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_acc_meraki_organizations_networks"),
 				),
 			},
 
@@ -25,7 +25,7 @@ func TestAccOrganizationsNetworksDataSource(t *testing.T) {
 				Config: testAccOrganizationsNetworksDataSourceConfigCreateNetwork,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_network.test", "id", "example-id"),
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "Main Office"),
+					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_network"),
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "2"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
@@ -43,7 +43,7 @@ func TestAccOrganizationsNetworksDataSource(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("data.meraki_organizations_networks.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("data.meraki_organizations_networks.test", "list.#", "1"),
-					resource.TestCheckResourceAttr("data.meraki_organizations_networks.test", "list.0.name", "Main Office"),
+					resource.TestCheckResourceAttr("data.meraki_organizations_networks.test", "list.0.name", "test_acc_network"),
 
 					resource.TestCheckResourceAttr("data.meraki_organizations_networks.test", "list.0.timezone", "America/Los_Angeles"),
 					resource.TestCheckResourceAttr("data.meraki_organizations_networks.test", "list.0.tags.#", "2"),
@@ -62,7 +62,7 @@ func TestAccOrganizationsNetworksDataSource(t *testing.T) {
 
 const testAccOrganizationsNetworksDataSourceConfigCreateOrganization = `
  resource "meraki_organization" "test" {
- 	name = "test_meraki_organizations_networks"
+ 	name = "test_acc_meraki_organizations_networks"
  	api_enabled = true
  }
  `
@@ -75,7 +75,7 @@ resource "meraki_network" "test" {
 	organization_id = resource.meraki_organization.test.organization_id
 	product_types = ["appliance", "switch", "wireless"]
 	tags = ["tag1", "tag2"]
-	name = "Main Office"
+	name = "test_acc_network"
 	timezone = "America/Los_Angeles"
 	notes = "Additional description of the network"
 }

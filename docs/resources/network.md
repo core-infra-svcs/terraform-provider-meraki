@@ -35,5 +35,3 @@ Manage the networks that the user has privileges on in an organization
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-
-

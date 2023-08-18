@@ -24,16 +24,37 @@ NetworksSettings resource for updating network settings.
 - `client_privacy_expire_data_before` (String) The date to expire the data before
 - `client_privacy_expire_data_older_than` (Number) The number of days, weeks, or months in Epoch time to expire the data before
 - `fips_enabled` (Boolean) Enables / disables FIPS on the network.
-- `local_status_page_authentication_enabled` (Boolean) Enables / disables the authentication on Local Status page(s).
+- `local_status_page` (Attributes) (see [below for nested schema](#nestedatt--local_status_page))
 - `local_status_page_authentication_password` (String) The password used for Local Status Page(s). Set this to null to clear the password.
-- `local_status_page_authentication_username` (String) The username used for Local Status Page(s).
 - `local_status_page_enabled` (Boolean) Enables / disables access to the device status page (http://[device's LAN IP]). Optional. Can only be set if localStatusPageEnabled is set to true
 - `named_vlans_enabled` (Boolean) Enables / disables Named VLANs on the Network.
 - `remote_status_page_enabled` (Boolean) Enables / disables access to the device status page (http://[device's LAN IP]). Optional. Can only be set if localStatusPageEnabled is set to true
-- `secure_port_enabled` (Boolean) Enables / disables the secure port.
+- `secure_port_enabled` (Attributes) (see [below for nested schema](#nestedatt--secure_port_enabled))
 
 ### Read-Only
 
 - `id` (String) The ID of this resource.
 
+<a id="nestedatt--local_status_page"></a>
+### Nested Schema for `local_status_page`
 
+Optional:
+
+- `authentication` (Attributes) (see [below for nested schema](#nestedatt--local_status_page--authentication))
+
+<a id="nestedatt--local_status_page--authentication"></a>
+### Nested Schema for `local_status_page.authentication`
+
+Optional:
+
+- `enabled` (Boolean) Enables / disables the authentication on Local Status page(s).
+- `username` (String) The username used for Local Status Page(s).
+
+
+
+<a id="nestedatt--secure_port_enabled"></a>
+### Nested Schema for `secure_port_enabled`
+
+Optional:
+
+- `enabled` (Boolean) Enables / disables the secure port.

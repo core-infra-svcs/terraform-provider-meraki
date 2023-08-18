@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
+
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -44,7 +45,7 @@ type NetworksWirelessSsidsSplashSettingsResourceModel struct {
 	WelcomeMessage                  jsontypes.String   `tfsdk:"welcome_message"`
 	RedirectUrl                     jsontypes.String   `tfsdk:"redirect_url"`
 	UseRedirectUrl                  jsontypes.Bool     `tfsdk:"use_redirect_url"`
-	BlockAllTrafficBeforeSignOn     jsontypes.Bool     `tfsdk:"blockall_trafficbefore_signon"`
+	BlockAllTrafficBeforeSignOn     jsontypes.Bool     `tfsdk:"block_all_traffic_before_sign_on"`
 	ControllerDisconnectionBehavior jsontypes.String   `tfsdk:"controller_disconnection_behavior"`
 	AllowSimultaneousLogins         jsontypes.Bool     `tfsdk:"allow_simultaneous_logins"`
 	Billing                         Billing            `tfsdk:"billing"`
@@ -182,7 +183,7 @@ func (r *NetworksWirelessSsidsSplashSettingsResource) Schema(ctx context.Context
 				Computed:            true,
 				CustomType:          jsontypes.BoolType,
 			},
-			"blockall_trafficbefore_signon": schema.BoolAttribute{
+			"block_all_traffic_before_sign_on": schema.BoolAttribute{
 				MarkdownDescription: "How restricted allowing traffic should be. If true, all traffic types are blocked until the splash page is acknowledged. If false, all non-HTTP traffic is allowed before the splash page is acknowledged.",
 				Optional:            true,
 				Computed:            true,
@@ -193,6 +194,9 @@ func (r *NetworksWirelessSsidsSplashSettingsResource) Schema(ctx context.Context
 				Optional:            true,
 				Computed:            true,
 				CustomType:          jsontypes.StringType,
+				Validators: []validator.String{
+					stringvalidator.OneOf("open", "restricted", "default"),
+				},
 			},
 			"allow_simultaneous_logins": schema.BoolAttribute{
 				MarkdownDescription: "Whether or not to allow simultaneous logins from different devices.",
@@ -267,6 +271,9 @@ func (r *NetworksWirelessSsidsSplashSettingsResource) Schema(ctx context.Context
 						Optional:            true,
 						Computed:            true,
 						CustomType:          jsontypes.StringType,
+						Validators: []validator.String{
+							stringvalidator.OneOf("click-through", "focused", "strict"),
+						},
 					},
 					"enforced_systems": schema.SetAttribute{
 						MarkdownDescription: "The system types that the Sentry enforces. Must be included in: 'iOS, 'Android', 'macOS', and 'Windows'.",
@@ -448,71 +455,37 @@ func (r *NetworksWirelessSsidsSplashSettingsResource) Create(ctx context.Context
 		return
 	}
 
-	updateNetworkWirelessSsidSplashSettings := *openApiClient.NewInlineObject163()
+	updateNetworkWirelessSsidSplashSettings := *openApiClient.NewUpdateNetworkWirelessSsidSplashSettingsRequest()
+	updateNetworkWirelessSsidSplashSettings.SetSplashUrl(data.SplashUrl.ValueString())
+	updateNetworkWirelessSsidSplashSettings.SetUseSplashUrl(data.UseSplashUrl.ValueBool())
+	updateNetworkWirelessSsidSplashSettings.SetSplashTimeout(int32(data.SplashTimeout.ValueInt64()))
+	updateNetworkWirelessSsidSplashSettings.SetWelcomeMessage(data.WelcomeMessage.ValueString())
+	updateNetworkWirelessSsidSplashSettings.SetRedirectUrl(data.RedirectUrl.ValueString())
+	updateNetworkWirelessSsidSplashSettings.SetUseRedirectUrl(data.UseRedirectUrl.ValueBool())
+	updateNetworkWirelessSsidSplashSettings.SetAllowSimultaneousLogins(data.AllowSimultaneousLogins.ValueBool())
+	updateNetworkWirelessSsidSplashSettings.SetControllerDisconnectionBehavior(data.ControllerDisconnectionBehavior.ValueString())
+	updateNetworkWirelessSsidSplashSettings.SetBlockAllTrafficBeforeSignOn(data.BlockAllTrafficBeforeSignOn.ValueBool())
 
-	if !data.SplashUrl.IsUnknown() {
-		if !data.SplashUrl.IsNull() {
-			updateNetworkWirelessSsidSplashSettings.SetSplashUrl(data.SplashUrl.ValueString())
-		}
-	}
-	if !data.UseSplashUrl.IsUnknown() {
-		if !data.UseSplashUrl.IsNull() {
-			updateNetworkWirelessSsidSplashSettings.SetUseSplashUrl(data.UseSplashUrl.ValueBool())
-		}
-	}
-	if !data.SplashTimeout.IsUnknown() {
-		if !data.SplashTimeout.IsNull() {
-			updateNetworkWirelessSsidSplashSettings.SetSplashTimeout(int32(data.SplashTimeout.ValueInt64()))
-		}
-	}
-	if !data.WelcomeMessage.IsUnknown() {
-		if !data.WelcomeMessage.IsNull() {
-			updateNetworkWirelessSsidSplashSettings.SetWelcomeMessage(data.WelcomeMessage.ValueString())
-		}
-	}
-	if !data.RedirectUrl.IsUnknown() {
-		if !data.RedirectUrl.IsNull() {
-			updateNetworkWirelessSsidSplashSettings.SetRedirectUrl(data.RedirectUrl.ValueString())
-		}
-	}
-	if !data.UseRedirectUrl.IsUnknown() {
-		if !data.UseRedirectUrl.IsNull() {
-			updateNetworkWirelessSsidSplashSettings.SetUseRedirectUrl(data.UseRedirectUrl.ValueBool())
-		}
-	}
-	if !data.AllowSimultaneousLogins.IsUnknown() {
-		if !data.AllowSimultaneousLogins.IsNull() {
-			updateNetworkWirelessSsidSplashSettings.SetAllowSimultaneousLogins(data.AllowSimultaneousLogins.ValueBool())
-		}
-	}
-	if !data.ControllerDisconnectionBehavior.IsUnknown() {
-		if !data.ControllerDisconnectionBehavior.IsNull() {
-			updateNetworkWirelessSsidSplashSettings.SetControllerDisconnectionBehavior(data.ControllerDisconnectionBehavior.ValueString())
-		}
-	}
-	if !data.BlockAllTrafficBeforeSignOn.IsUnknown() {
-		if !data.BlockAllTrafficBeforeSignOn.IsNull() {
-			updateNetworkWirelessSsidSplashSettings.SetBlockAllTrafficBeforeSignOn(data.BlockAllTrafficBeforeSignOn.ValueBool())
-		}
-	}
-	var billing openApiClient.NetworksNetworkIdWirelessSsidsNumberSplashSettingsBilling
+	var billing openApiClient.UpdateNetworkWirelessSsidSplashSettingsRequestBilling
 	if !data.Billing.ReplyToEmailAddress.IsUnknown() {
 		billing.SetReplyToEmailAddress(data.Billing.ReplyToEmailAddress.ValueString())
 	}
 	if !data.Billing.PrepaidAccessFastLoginEnabled.IsUnknown() {
 		billing.SetPrepaidAccessFastLoginEnabled(data.Billing.PrepaidAccessFastLoginEnabled.ValueBool())
 	}
-	var freeaccess openApiClient.NetworksNetworkIdWirelessSsidsNumberSplashSettingsBillingFreeAccess
+
+	var freeAccess openApiClient.UpdateNetworkWirelessSsidSplashSettingsRequestBillingFreeAccess
 	if !data.Billing.FreeAccess.DurationInMinutes.IsUnknown() {
-		freeaccess.SetDurationInMinutes(int32(data.Billing.FreeAccess.DurationInMinutes.ValueInt64()))
+		freeAccess.SetDurationInMinutes(int32(data.Billing.FreeAccess.DurationInMinutes.ValueInt64()))
 	}
 	if !data.Billing.FreeAccess.Enabled.IsUnknown() {
-		freeaccess.SetEnabled(data.Billing.FreeAccess.Enabled.ValueBool())
+		freeAccess.SetEnabled(data.Billing.FreeAccess.Enabled.ValueBool())
 	}
-	updateNetworkWirelessSsidSplashSettings.SetBilling(billing)
-	updateNetworkWirelessSsidSplashSettings.Billing.SetFreeAccess(freeaccess)
 
-	var guestSponsorship openApiClient.NetworksNetworkIdWirelessSsidsNumberSplashSettingsGuestSponsorship
+	updateNetworkWirelessSsidSplashSettings.SetBilling(billing)
+	updateNetworkWirelessSsidSplashSettings.Billing.SetFreeAccess(freeAccess)
+
+	var guestSponsorship openApiClient.UpdateNetworkWirelessSsidSplashSettingsRequestGuestSponsorship
 	if !data.GuestSponsorship.DurationInMinutes.IsUnknown() {
 		guestSponsorship.SetDurationInMinutes(int32(data.GuestSponsorship.DurationInMinutes.ValueInt64()))
 	}
@@ -521,83 +494,65 @@ func (r *NetworksWirelessSsidsSplashSettingsResource) Create(ctx context.Context
 	}
 	updateNetworkWirelessSsidSplashSettings.SetGuestSponsorship(guestSponsorship)
 
-	if !data.SentryEnrollment.SystemsManagerNetwork.Id.IsUnknown() {
-		var systemsManagerNetwork openApiClient.NetworksNetworkIdWirelessSsidsNumberSplashSettingsSentryEnrollmentSystemsManagerNetwork
-		systemsManagerNetwork.SetId(data.SentryEnrollment.SystemsManagerNetwork.Id.ValueString())
-		var sentryEnrollment openApiClient.NetworksNetworkIdWirelessSsidsNumberSplashSettingsSentryEnrollment
-		if len(data.SentryEnrollment.EnforcedSystems) > 0 {
-			sentryEnrollment.SetEnforcedSystems(data.SentryEnrollment.EnforcedSystems)
-		}
-		if !data.SentryEnrollment.Strength.IsUnknown() {
-			sentryEnrollment.SetStrength(data.SentryEnrollment.Strength.ValueString())
-		}
-		sentryEnrollment.SetSystemsManagerNetwork(systemsManagerNetwork)
-		updateNetworkWirelessSsidSplashSettings.SetSentryEnrollment(sentryEnrollment)
-	}
-	var splashImage openApiClient.NetworksNetworkIdWirelessSsidsNumberSplashSettingsSplashImage
-	if !data.SplashImage.Extension.IsUnknown() {
-		splashImage.SetExtension(data.SplashImage.Extension.ValueString())
-	}
-	if !data.SplashImage.Md5.IsUnknown() {
-		splashImage.SetMd5(data.SplashImage.Md5.ValueString())
-	}
-	var image openApiClient.NetworksNetworkIdWirelessSsidsNumberSplashSettingsSplashImageImage
-	if !data.SplashImage.Image.Contents.IsUnknown() {
+	var systemsManagerNetwork openApiClient.UpdateNetworkWirelessSsidSplashSettingsRequestSentryEnrollmentSystemsManagerNetwork
+	systemsManagerNetwork.SetId(data.SentryEnrollment.SystemsManagerNetwork.Id.ValueString())
+
+	var sentryEnrollment openApiClient.UpdateNetworkWirelessSsidSplashSettingsRequestSentryEnrollment
+	sentryEnrollment.SetEnforcedSystems(data.SentryEnrollment.EnforcedSystems)
+	sentryEnrollment.SetStrength(data.SentryEnrollment.Strength.ValueString())
+	sentryEnrollment.SetSystemsManagerNetwork(systemsManagerNetwork)
+	updateNetworkWirelessSsidSplashSettings.SetSentryEnrollment(sentryEnrollment)
+
+	var splashImage openApiClient.UpdateNetworkWirelessSsidSplashSettingsRequestSplashImage
+	splashImage.SetExtension(data.SplashImage.Extension.ValueString())
+	splashImage.SetMd5(data.SplashImage.Md5.ValueString())
+
+	if len(data.SplashImage.Image.Contents.ValueString()) > 0 {
+		var image openApiClient.UpdateNetworkWirelessSsidSplashSettingsRequestSplashImageImage
+
 		image.SetContents(data.SplashImage.Image.Contents.ValueString())
-	}
-	if !data.SplashImage.Image.Format.IsUnknown() {
-		image.SetContents(data.SplashImage.Image.Format.ValueString())
-	}
-	splashImage.SetImage(image)
-	updateNetworkWirelessSsidSplashSettings.SetSplashImage(splashImage)
 
-	var splashLogo openApiClient.NetworksNetworkIdWirelessSsidsNumberSplashSettingsSplashLogo
-	if !data.SplashLogo.Extension.IsUnknown() {
-		splashLogo.SetExtension(data.SplashLogo.Extension.ValueString())
+		image.SetFormat(data.SplashImage.Image.Format.ValueString())
+
+		splashImage.SetImage(image)
+		updateNetworkWirelessSsidSplashSettings.SetSplashImage(splashImage)
 	}
-	if !data.SplashLogo.Md5.IsUnknown() {
-		splashLogo.SetMd5(data.SplashLogo.Md5.ValueString())
-	}
-	var imageLogo openApiClient.NetworksNetworkIdWirelessSsidsNumberSplashSettingsSplashLogoImage
-	if !data.SplashLogo.Image.Contents.IsUnknown() {
+
+	var splashLogo openApiClient.UpdateNetworkWirelessSsidSplashSettingsRequestSplashLogo
+	splashLogo.SetExtension(data.SplashLogo.Extension.ValueString())
+	splashLogo.SetMd5(data.SplashLogo.Md5.ValueString())
+
+	if len(data.SplashLogo.Image.Contents.ValueString()) > 0 {
+		var imageLogo openApiClient.UpdateNetworkWirelessSsidSplashSettingsRequestSplashLogoImage
 		imageLogo.SetContents(data.SplashLogo.Image.Contents.ValueString())
+		imageLogo.SetFormat(data.SplashLogo.Image.Format.ValueString())
+		splashLogo.SetImage(imageLogo)
+		updateNetworkWirelessSsidSplashSettings.SetSplashLogo(splashLogo)
 	}
-	if !data.SplashLogo.Image.Format.IsUnknown() {
-		imageLogo.SetContents(data.SplashLogo.Image.Format.ValueString())
-	}
-	splashLogo.SetImage(imageLogo)
-	updateNetworkWirelessSsidSplashSettings.SetSplashLogo(splashLogo)
 
-	var splashPrepaidFront openApiClient.NetworksNetworkIdWirelessSsidsNumberSplashSettingsSplashPrepaidFront
-	if !data.SplashPrepaidFront.Extension.IsUnknown() {
-		splashPrepaidFront.SetExtension(data.SplashPrepaidFront.Extension.ValueString())
-	}
-	if !data.SplashPrepaidFront.Md5.IsUnknown() {
-		splashPrepaidFront.SetMd5(data.SplashPrepaidFront.Md5.ValueString())
-	}
-	var imagePrepaidFront openApiClient.NetworksNetworkIdWirelessSsidsNumberSplashSettingsSplashPrepaidFrontImage
-	if !data.SplashPrepaidFront.Image.Contents.IsUnknown() {
+	var splashPrepaidFront openApiClient.UpdateNetworkWirelessSsidSplashSettingsRequestSplashPrepaidFront
+	splashPrepaidFront.SetExtension(data.SplashPrepaidFront.Extension.ValueString())
+	splashPrepaidFront.SetMd5(data.SplashPrepaidFront.Md5.ValueString())
+
+	if len(data.SplashPrepaidFront.Image.Contents.ValueString()) > 0 {
+		var imagePrepaidFront openApiClient.UpdateNetworkWirelessSsidSplashSettingsRequestSplashPrepaidFrontImage
 		imagePrepaidFront.SetContents(data.SplashPrepaidFront.Image.Contents.ValueString())
+		imagePrepaidFront.SetFormat(data.SplashPrepaidFront.Image.Format.ValueString())
+		splashPrepaidFront.SetImage(imagePrepaidFront)
+		updateNetworkWirelessSsidSplashSettings.SetSplashPrepaidFront(splashPrepaidFront)
 	}
-	if !data.SplashPrepaidFront.Image.Format.IsUnknown() {
-		imagePrepaidFront.SetContents(data.SplashPrepaidFront.Image.Format.ValueString())
-	}
-	splashPrepaidFront.SetImage(imagePrepaidFront)
-	updateNetworkWirelessSsidSplashSettings.SetSplashPrepaidFront(splashPrepaidFront)
 
-	inlineResp, httpResp, err := r.client.SettingsApi.UpdateNetworkWirelessSsidSplashSettings(context.Background(), data.NetworkId.ValueString(), data.Number.ValueString()).UpdateNetworkWirelessSsidSplashSettings(updateNetworkWirelessSsidSplashSettings).Execute()
+	inlineResp, httpResp, err := r.client.SettingsApi.UpdateNetworkWirelessSsidSplashSettings(context.Background(), data.NetworkId.ValueString(), data.Number.ValueString()).UpdateNetworkWirelessSsidSplashSettingsRequest(updateNetworkWirelessSsidSplashSettings).Execute()
+
+	fmt.Println(httpResp.Body)
 
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// Collect any HTTP diagnostics that might be useful for debugging.
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// If it's not what you expect, add an error to diagnostics.
@@ -697,14 +652,10 @@ func (r *NetworksWirelessSsidsSplashSettingsResource) Read(ctx context.Context, 
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to read resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// Collect any HTTP diagnostics that might be useful for debugging.
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// If it's not what you expect, add an error to diagnostics.
@@ -795,71 +746,37 @@ func (r *NetworksWirelessSsidsSplashSettingsResource) Update(ctx context.Context
 		return
 	}
 
-	updateNetworkWirelessSsidSplashSettings := *openApiClient.NewInlineObject163()
+	updateNetworkWirelessSsidSplashSettings := *openApiClient.NewUpdateNetworkWirelessSsidSplashSettingsRequest()
+	updateNetworkWirelessSsidSplashSettings.SetSplashUrl(data.SplashUrl.ValueString())
+	updateNetworkWirelessSsidSplashSettings.SetUseSplashUrl(data.UseSplashUrl.ValueBool())
+	updateNetworkWirelessSsidSplashSettings.SetSplashTimeout(int32(data.SplashTimeout.ValueInt64()))
+	updateNetworkWirelessSsidSplashSettings.SetWelcomeMessage(data.WelcomeMessage.ValueString())
+	updateNetworkWirelessSsidSplashSettings.SetRedirectUrl(data.RedirectUrl.ValueString())
+	updateNetworkWirelessSsidSplashSettings.SetUseRedirectUrl(data.UseRedirectUrl.ValueBool())
+	updateNetworkWirelessSsidSplashSettings.SetAllowSimultaneousLogins(data.AllowSimultaneousLogins.ValueBool())
+	updateNetworkWirelessSsidSplashSettings.SetControllerDisconnectionBehavior(data.ControllerDisconnectionBehavior.ValueString())
+	updateNetworkWirelessSsidSplashSettings.SetBlockAllTrafficBeforeSignOn(data.BlockAllTrafficBeforeSignOn.ValueBool())
 
-	if !data.SplashUrl.IsUnknown() {
-		if !data.SplashUrl.IsNull() {
-			updateNetworkWirelessSsidSplashSettings.SetSplashUrl(data.SplashUrl.ValueString())
-		}
-	}
-	if !data.UseSplashUrl.IsUnknown() {
-		if !data.UseSplashUrl.IsNull() {
-			updateNetworkWirelessSsidSplashSettings.SetUseSplashUrl(data.UseSplashUrl.ValueBool())
-		}
-	}
-	if !data.SplashTimeout.IsUnknown() {
-		if !data.SplashTimeout.IsNull() {
-			updateNetworkWirelessSsidSplashSettings.SetSplashTimeout(int32(data.SplashTimeout.ValueInt64()))
-		}
-	}
-	if !data.WelcomeMessage.IsUnknown() {
-		if !data.WelcomeMessage.IsNull() {
-			updateNetworkWirelessSsidSplashSettings.SetWelcomeMessage(data.WelcomeMessage.ValueString())
-		}
-	}
-	if !data.RedirectUrl.IsUnknown() {
-		if !data.RedirectUrl.IsNull() {
-			updateNetworkWirelessSsidSplashSettings.SetRedirectUrl(data.RedirectUrl.ValueString())
-		}
-	}
-	if !data.UseRedirectUrl.IsUnknown() {
-		if !data.UseRedirectUrl.IsNull() {
-			updateNetworkWirelessSsidSplashSettings.SetUseRedirectUrl(data.UseRedirectUrl.ValueBool())
-		}
-	}
-	if !data.AllowSimultaneousLogins.IsUnknown() {
-		if !data.AllowSimultaneousLogins.IsNull() {
-			updateNetworkWirelessSsidSplashSettings.SetAllowSimultaneousLogins(data.AllowSimultaneousLogins.ValueBool())
-		}
-	}
-	if !data.ControllerDisconnectionBehavior.IsUnknown() {
-		if !data.ControllerDisconnectionBehavior.IsNull() {
-			updateNetworkWirelessSsidSplashSettings.SetControllerDisconnectionBehavior(data.ControllerDisconnectionBehavior.ValueString())
-		}
-	}
-	if !data.BlockAllTrafficBeforeSignOn.IsUnknown() {
-		if !data.BlockAllTrafficBeforeSignOn.IsNull() {
-			updateNetworkWirelessSsidSplashSettings.SetBlockAllTrafficBeforeSignOn(data.BlockAllTrafficBeforeSignOn.ValueBool())
-		}
-	}
-	var billing openApiClient.NetworksNetworkIdWirelessSsidsNumberSplashSettingsBilling
+	var billing openApiClient.UpdateNetworkWirelessSsidSplashSettingsRequestBilling
 	if !data.Billing.ReplyToEmailAddress.IsUnknown() {
 		billing.SetReplyToEmailAddress(data.Billing.ReplyToEmailAddress.ValueString())
 	}
 	if !data.Billing.PrepaidAccessFastLoginEnabled.IsUnknown() {
 		billing.SetPrepaidAccessFastLoginEnabled(data.Billing.PrepaidAccessFastLoginEnabled.ValueBool())
 	}
-	var freeaccess openApiClient.NetworksNetworkIdWirelessSsidsNumberSplashSettingsBillingFreeAccess
+
+	var freeAccess openApiClient.UpdateNetworkWirelessSsidSplashSettingsRequestBillingFreeAccess
 	if !data.Billing.FreeAccess.DurationInMinutes.IsUnknown() {
-		freeaccess.SetDurationInMinutes(int32(data.Billing.FreeAccess.DurationInMinutes.ValueInt64()))
+		freeAccess.SetDurationInMinutes(int32(data.Billing.FreeAccess.DurationInMinutes.ValueInt64()))
 	}
 	if !data.Billing.FreeAccess.Enabled.IsUnknown() {
-		freeaccess.SetEnabled(data.Billing.FreeAccess.Enabled.ValueBool())
+		freeAccess.SetEnabled(data.Billing.FreeAccess.Enabled.ValueBool())
 	}
-	updateNetworkWirelessSsidSplashSettings.SetBilling(billing)
-	updateNetworkWirelessSsidSplashSettings.Billing.SetFreeAccess(freeaccess)
 
-	var guestSponsorship openApiClient.NetworksNetworkIdWirelessSsidsNumberSplashSettingsGuestSponsorship
+	updateNetworkWirelessSsidSplashSettings.SetBilling(billing)
+	updateNetworkWirelessSsidSplashSettings.Billing.SetFreeAccess(freeAccess)
+
+	var guestSponsorship openApiClient.UpdateNetworkWirelessSsidSplashSettingsRequestGuestSponsorship
 	if !data.GuestSponsorship.DurationInMinutes.IsUnknown() {
 		guestSponsorship.SetDurationInMinutes(int32(data.GuestSponsorship.DurationInMinutes.ValueInt64()))
 	}
@@ -868,84 +785,63 @@ func (r *NetworksWirelessSsidsSplashSettingsResource) Update(ctx context.Context
 	}
 	updateNetworkWirelessSsidSplashSettings.SetGuestSponsorship(guestSponsorship)
 
-	if !data.SentryEnrollment.SystemsManagerNetwork.Id.IsUnknown() {
-		var systemsManagerNetwork openApiClient.NetworksNetworkIdWirelessSsidsNumberSplashSettingsSentryEnrollmentSystemsManagerNetwork
-		systemsManagerNetwork.SetId(data.SentryEnrollment.SystemsManagerNetwork.Id.ValueString())
-		var sentryEnrollment openApiClient.NetworksNetworkIdWirelessSsidsNumberSplashSettingsSentryEnrollment
-		if len(data.SentryEnrollment.EnforcedSystems) > 0 {
-			sentryEnrollment.SetEnforcedSystems(data.SentryEnrollment.EnforcedSystems)
-		}
-		if !data.SentryEnrollment.Strength.IsUnknown() {
-			sentryEnrollment.SetStrength(data.SentryEnrollment.Strength.ValueString())
-		}
-		sentryEnrollment.SetSystemsManagerNetwork(systemsManagerNetwork)
-		updateNetworkWirelessSsidSplashSettings.SetSentryEnrollment(sentryEnrollment)
-	}
+	var systemsManagerNetwork openApiClient.UpdateNetworkWirelessSsidSplashSettingsRequestSentryEnrollmentSystemsManagerNetwork
+	systemsManagerNetwork.SetId(data.SentryEnrollment.SystemsManagerNetwork.Id.ValueString())
 
-	var splashImage openApiClient.NetworksNetworkIdWirelessSsidsNumberSplashSettingsSplashImage
-	if !data.SplashImage.Extension.IsUnknown() {
-		splashImage.SetExtension(data.SplashImage.Extension.ValueString())
-	}
-	if !data.SplashImage.Md5.IsUnknown() {
-		splashImage.SetMd5(data.SplashImage.Md5.ValueString())
-	}
-	var image openApiClient.NetworksNetworkIdWirelessSsidsNumberSplashSettingsSplashImageImage
-	if !data.SplashImage.Image.Contents.IsUnknown() {
+	var sentryEnrollment openApiClient.UpdateNetworkWirelessSsidSplashSettingsRequestSentryEnrollment
+	sentryEnrollment.SetEnforcedSystems(data.SentryEnrollment.EnforcedSystems)
+	sentryEnrollment.SetStrength(data.SentryEnrollment.Strength.ValueString())
+	sentryEnrollment.SetSystemsManagerNetwork(systemsManagerNetwork)
+	updateNetworkWirelessSsidSplashSettings.SetSentryEnrollment(sentryEnrollment)
+
+	var splashImage openApiClient.UpdateNetworkWirelessSsidSplashSettingsRequestSplashImage
+	splashImage.SetExtension(data.SplashImage.Extension.ValueString())
+	splashImage.SetMd5(data.SplashImage.Md5.ValueString())
+
+	if len(data.SplashImage.Image.Contents.ValueString()) > 0 {
+		var image openApiClient.UpdateNetworkWirelessSsidSplashSettingsRequestSplashImageImage
+
 		image.SetContents(data.SplashImage.Image.Contents.ValueString())
-	}
-	if !data.SplashImage.Image.Format.IsUnknown() {
-		image.SetContents(data.SplashImage.Image.Format.ValueString())
-	}
-	splashImage.SetImage(image)
-	updateNetworkWirelessSsidSplashSettings.SetSplashImage(splashImage)
 
-	var splashLogo openApiClient.NetworksNetworkIdWirelessSsidsNumberSplashSettingsSplashLogo
-	if !data.SplashLogo.Extension.IsUnknown() {
-		splashLogo.SetExtension(data.SplashLogo.Extension.ValueString())
+		image.SetFormat(data.SplashImage.Image.Format.ValueString())
+
+		splashImage.SetImage(image)
+		updateNetworkWirelessSsidSplashSettings.SetSplashImage(splashImage)
 	}
-	if !data.SplashLogo.Md5.IsUnknown() {
-		splashLogo.SetMd5(data.SplashLogo.Md5.ValueString())
-	}
-	var imageLogo openApiClient.NetworksNetworkIdWirelessSsidsNumberSplashSettingsSplashLogoImage
-	if !data.SplashLogo.Image.Contents.IsUnknown() {
+
+	var splashLogo openApiClient.UpdateNetworkWirelessSsidSplashSettingsRequestSplashLogo
+	splashLogo.SetExtension(data.SplashLogo.Extension.ValueString())
+	splashLogo.SetMd5(data.SplashLogo.Md5.ValueString())
+
+	if len(data.SplashLogo.Image.Contents.ValueString()) > 0 {
+		var imageLogo openApiClient.UpdateNetworkWirelessSsidSplashSettingsRequestSplashLogoImage
 		imageLogo.SetContents(data.SplashLogo.Image.Contents.ValueString())
+		imageLogo.SetFormat(data.SplashLogo.Image.Format.ValueString())
+		splashLogo.SetImage(imageLogo)
+		updateNetworkWirelessSsidSplashSettings.SetSplashLogo(splashLogo)
 	}
-	if !data.SplashLogo.Image.Format.IsUnknown() {
-		imageLogo.SetContents(data.SplashLogo.Image.Format.ValueString())
-	}
-	splashLogo.SetImage(imageLogo)
-	updateNetworkWirelessSsidSplashSettings.SetSplashLogo(splashLogo)
 
-	var splashPrepaidFront openApiClient.NetworksNetworkIdWirelessSsidsNumberSplashSettingsSplashPrepaidFront
-	if !data.SplashPrepaidFront.Extension.IsUnknown() {
-		splashPrepaidFront.SetExtension(data.SplashPrepaidFront.Extension.ValueString())
-	}
-	if !data.SplashPrepaidFront.Md5.IsUnknown() {
-		splashPrepaidFront.SetMd5(data.SplashPrepaidFront.Md5.ValueString())
-	}
-	var imagePrepaidFront openApiClient.NetworksNetworkIdWirelessSsidsNumberSplashSettingsSplashPrepaidFrontImage
-	if !data.SplashPrepaidFront.Image.Contents.IsUnknown() {
+	var splashPrepaidFront openApiClient.UpdateNetworkWirelessSsidSplashSettingsRequestSplashPrepaidFront
+	splashPrepaidFront.SetExtension(data.SplashPrepaidFront.Extension.ValueString())
+	splashPrepaidFront.SetMd5(data.SplashPrepaidFront.Md5.ValueString())
+
+	if len(data.SplashPrepaidFront.Image.Contents.ValueString()) > 0 {
+		var imagePrepaidFront openApiClient.UpdateNetworkWirelessSsidSplashSettingsRequestSplashPrepaidFrontImage
 		imagePrepaidFront.SetContents(data.SplashPrepaidFront.Image.Contents.ValueString())
+		imagePrepaidFront.SetFormat(data.SplashPrepaidFront.Image.Format.ValueString())
+		splashPrepaidFront.SetImage(imagePrepaidFront)
+		updateNetworkWirelessSsidSplashSettings.SetSplashPrepaidFront(splashPrepaidFront)
 	}
-	if !data.SplashPrepaidFront.Image.Format.IsUnknown() {
-		imagePrepaidFront.SetContents(data.SplashPrepaidFront.Image.Format.ValueString())
-	}
-	splashPrepaidFront.SetImage(imagePrepaidFront)
-	updateNetworkWirelessSsidSplashSettings.SetSplashPrepaidFront(splashPrepaidFront)
 
-	inlineResp, httpResp, err := r.client.SettingsApi.UpdateNetworkWirelessSsidSplashSettings(context.Background(), data.NetworkId.ValueString(), data.Number.ValueString()).UpdateNetworkWirelessSsidSplashSettings(updateNetworkWirelessSsidSplashSettings).Execute()
+	inlineResp, httpResp, err := r.client.SettingsApi.UpdateNetworkWirelessSsidSplashSettings(context.Background(), data.NetworkId.ValueString(), data.Number.ValueString()).UpdateNetworkWirelessSsidSplashSettingsRequest(updateNetworkWirelessSsidSplashSettings).Execute()
 
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// Collect any HTTP diagnostics that might be useful for debugging.
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// If it's not what you expect, add an error to diagnostics.
@@ -1035,7 +931,7 @@ func (r *NetworksWirelessSsidsSplashSettingsResource) Delete(ctx context.Context
 		return
 	}
 
-	updateNetworkWirelessSsidSplashSettings := *openApiClient.NewInlineObject163()
+	updateNetworkWirelessSsidSplashSettings := *openApiClient.NewUpdateNetworkWirelessSsidSplashSettingsRequest()
 
 	if !data.SplashUrl.IsUnknown() {
 		if !data.SplashUrl.IsNull() {
@@ -1043,19 +939,15 @@ func (r *NetworksWirelessSsidsSplashSettingsResource) Delete(ctx context.Context
 		}
 	}
 
-	inlineResp, httpResp, err := r.client.SettingsApi.UpdateNetworkWirelessSsidSplashSettings(context.Background(), data.NetworkId.ValueString(), data.Number.ValueString()).UpdateNetworkWirelessSsidSplashSettings(updateNetworkWirelessSsidSplashSettings).Execute()
+	inlineResp, httpResp, err := r.client.SettingsApi.UpdateNetworkWirelessSsidSplashSettings(context.Background(), data.NetworkId.ValueString(), data.Number.ValueString()).UpdateNetworkWirelessSsidSplashSettingsRequest(updateNetworkWirelessSsidSplashSettings).Execute()
 
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// Collect any HTTP diagnostics that might be useful for debugging.
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// If it's not what you expect, add an error to diagnostics.
@@ -1125,7 +1017,6 @@ func (r *NetworksWirelessSsidsSplashSettingsResource) Delete(ctx context.Context
 	// Set ID for the new resource.
 	data.Id = jsontypes.StringValue("example-id")
 
-	// TODO: The resource has been deleted, so remove it from the state.
 	resp.State.RemoveResource(ctx)
 
 	// Log that the resource was deleted.

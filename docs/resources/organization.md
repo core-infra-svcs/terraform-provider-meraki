@@ -29,5 +29,3 @@ Manage the organizations that the user has privileges on
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-
-
