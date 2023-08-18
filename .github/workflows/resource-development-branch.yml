@@ -90,30 +90,46 @@ jobs:
   # Check test results and fail the workflow if the tests fail.
   tf-acc-resource-test:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - name: Checkout code
+      - name: Checkout development branch
+        id: checkout-dev-branch
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
-      - name: Fetch main branch
-        run: git fetch origin main
+      - name: Set up Go Env
+        id: go-env
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: '1.2.*'
+          terraform_wrapper: false
+      - run: |
+          go mod download
+          changed_files=$(git diff --name-only origin/main $GITHUB_HEAD_REF)
+          echo "changed files: $changed_files"
 
-      - name: Get changed files
-        run: |
-          changed_files=$(git diff --name-only $(git merge-base HEAD origin/main)..HEAD)
-          echo "Changed files: $changed_files"
-          
-          test_function=$(grep -E '^func TestAcc.*\(t \*testing.T\)' $changed_files | awk -F 'func ' '{print $2}' | awk -F '(' '{print $1}')
+          acc_test_file=$(grep -E '^func TestAcc.*\(t \*testing.T\)' $changed_files | awk -F 'func ' '{print $2}' | awk -F '(' '{print $1}')
+          echo "acc test file: $acc_test_file"
 
-          if [[ -n "$test_function" ]]; then
+          if [[ -n "$acc_test_file" ]]; then
+
             # Run the test and store the output in a variable
-            test_output=$(go test -v -cover -run "$test_function" ./internal/provider/ 2>&1)
-            # Check if the test passed by searching for a specific pattern in the output
-            if echo "$test_output" | grep -q "PASS"; then
-              echo "TestAcc Passed"
-            else
-              echo "TestAcc Failed"
-              exit 1
-            fi
-          else
-            echo "TestAcc function not found"
+            go test -v -cover -run "$acc_test_file" ./internal/provider/
           fi
+
+        timeout-minutes: 10
+        env:
+          TF_ACC: "1"
+          MERAKI_DASHBOARD_API_KEY: ${{ secrets.MERAKI_DASHBOARD_API_KEY }}
+          TF_ACC_MAIN_OFFICE_SUB_TEST_NETWORK_ID: $ {{  }}
+          TF_ACC_MERAKI_MG_SERIAL: ${{ secrets.TF_ACC_MERAKI_MG_SERIAL }}
+          TF_ACC_MERAKI_MS_SERIAL: ${{ secrets.TF_ACC_MERAKI_MS_SERIAL }}
+          TF_ACC_MERAKI_MX_LICENCE: ${{ secrets.TF_ACC_MERAKI_MX_LICENCE }}
+          TF_ACC_MERAKI_MX_SERIAL: ${{ secrets.TF_ACC_MERAKI_MX_SERIAL }}
+          TF_ACC_MERAKI_ORDER_NUMBER: ${{ secrets.TF_ACC_MERAKI_ORDER_NUMBER }}
+          TF_ACC_MERAKI_ORGANIZATION_ID: ${{ secrets.TF_ACC_MERAKI_ORGANZIATION_ID }}
