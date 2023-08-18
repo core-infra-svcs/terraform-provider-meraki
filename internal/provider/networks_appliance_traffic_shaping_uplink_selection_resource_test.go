@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccNetworkApplianceTrafficShapingUplinkSelectionResource(t *testing.T) {
+func TestAccNetworksApplianceTrafficShapingUplinkSelectionResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
@@ -16,7 +16,7 @@ func TestAccNetworkApplianceTrafficShapingUplinkSelectionResource(t *testing.T) 
 
 			// Create and Read a Network.
 			{
-				Config: testAccNetworkApplianceTrafficShapingUplinkSelectionResourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
+				Config: testAccNetworksApplianceTrafficShapingUplinkSelectionResourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_network_device"),
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
@@ -30,7 +30,7 @@ func TestAccNetworkApplianceTrafficShapingUplinkSelectionResource(t *testing.T) 
 
 			// Claim A Device To A Network
 			{
-				Config: testAccNetworkApplianceTrafficShapingUplinkSelectionResourceConfigClaimNetworkDevice(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
+				Config: testAccNetworksApplianceTrafficShapingUplinkSelectionResourceConfigClaimNetworkDevice(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_networks_devices_claim.test", "id", "example-id"),
 				),
@@ -38,7 +38,7 @@ func TestAccNetworkApplianceTrafficShapingUplinkSelectionResource(t *testing.T) 
 
 			// Update and Read Network Settings.
 			{
-				Config: testAccNetworkApplianceTrafficShapingUplinkSelectionResourceConfigUpdateNetworkApplianceTrafficShapingUplinkSelection(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
+				Config: testAccNetworksApplianceTrafficShapingUplinkSelectionResourceConfigUpdateNetworksApplianceTrafficShapingUplinkSelection(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_networks_appliance_traffic_shaping_uplink_selection.test", "active_active_auto_vpn_enabled", "false"),
 					resource.TestCheckResourceAttr("meraki_networks_appliance_traffic_shaping_uplink_selection.test", "default_uplink", "wan1"),
@@ -48,7 +48,7 @@ func TestAccNetworkApplianceTrafficShapingUplinkSelectionResource(t *testing.T) 
 	})
 }
 
-func testAccNetworkApplianceTrafficShapingUplinkSelectionResourceConfigCreateNetwork(orgId string) string {
+func testAccNetworksApplianceTrafficShapingUplinkSelectionResourceConfigCreateNetwork(orgId string) string {
 	result := fmt.Sprintf(`
 resource "meraki_network" "test" {
 	organization_id = "%s"
@@ -64,7 +64,7 @@ resource "meraki_network" "test" {
 
 // testAccDevicesResourceConfigClaimNetworkDevice is a constant string that defines the configuration for creating and reading a networks_devices_claim resource in your tests.
 // It depends on both the organization and network resources.
-func testAccNetworkApplianceTrafficShapingUplinkSelectionResourceConfigClaimNetworkDevice(orgId string, serial string) string {
+func testAccNetworksApplianceTrafficShapingUplinkSelectionResourceConfigClaimNetworkDevice(orgId string, serial string) string {
 	result := fmt.Sprintf(`
 resource "meraki_network" "test" {
         organization_id = "%s"
@@ -86,7 +86,7 @@ resource "meraki_networks_devices_claim" "test" {
 	return result
 }
 
-func testAccNetworkApplianceTrafficShapingUplinkSelectionResourceConfigUpdateNetworkApplianceTrafficShapingUplinkSelection(orgId string, serial string) string {
+func testAccNetworksApplianceTrafficShapingUplinkSelectionResourceConfigUpdateNetworksApplianceTrafficShapingUplinkSelection(orgId string, serial string) string {
 	result := fmt.Sprintf(`
 
 resource "meraki_network" "test" {

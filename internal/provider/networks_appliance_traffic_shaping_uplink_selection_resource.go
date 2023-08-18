@@ -439,7 +439,7 @@ func (r *NetworksApplianceTrafficShapingUplinkSelectionResource) Configure(ctx c
 	r.client = client
 }
 
-func updateNetworkApplianceTrafficShapingUplinkSelectionPayload(data *resourceModel) openApiClient.UpdateNetworkApplianceTrafficShapingUplinkSelectionRequest {
+func updateNetworksApplianceTrafficShapingUplinkSelectionPayload(data *resourceModel) openApiClient.UpdateNetworkApplianceTrafficShapingUplinkSelectionRequest {
 
 	updateNetworkApplianceTrafficShapingUplinkSelection := *openApiClient.NewUpdateNetworkApplianceTrafficShapingUplinkSelectionRequest()
 
@@ -704,7 +704,7 @@ func (r *NetworksApplianceTrafficShapingUplinkSelectionResource) Create(ctx cont
 		return
 	}
 
-	updateNetworkApplianceTrafficShapingUplinkSelection := updateNetworkApplianceTrafficShapingUplinkSelectionPayload(data)
+	updateNetworkApplianceTrafficShapingUplinkSelection := updateNetworksApplianceTrafficShapingUplinkSelectionPayload(data)
 
 	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceTrafficShapingUplinkSelection(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceTrafficShapingUplinkSelectionRequest(updateNetworkApplianceTrafficShapingUplinkSelection).Execute()
 	if err != nil {
@@ -808,7 +808,7 @@ func (r *NetworksApplianceTrafficShapingUplinkSelectionResource) Update(ctx cont
 		return
 	}
 
-	updateNetworkApplianceTrafficShapingUplinkSelection := updateNetworkApplianceTrafficShapingUplinkSelectionPayload(data)
+	updateNetworkApplianceTrafficShapingUplinkSelection := updateNetworksApplianceTrafficShapingUplinkSelectionPayload(data)
 
 	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceTrafficShapingUplinkSelection(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceTrafficShapingUplinkSelectionRequest(updateNetworkApplianceTrafficShapingUplinkSelection).Execute()
 	if err != nil {
