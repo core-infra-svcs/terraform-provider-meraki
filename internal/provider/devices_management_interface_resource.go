@@ -19,22 +19,22 @@ import (
 
 // Ensure provider defined types fully satisfy framework interfaces
 var (
-	_ resource.Resource                = &DevicesManagementinterfaceResource{}
-	_ resource.ResourceWithConfigure   = &DevicesManagementinterfaceResource{}
-	_ resource.ResourceWithImportState = &DevicesManagementinterfaceResource{}
+	_ resource.Resource                = &DevicesTestAccDevicesManagementInterfaceResourceResource{}
+	_ resource.ResourceWithConfigure   = &DevicesTestAccDevicesManagementInterfaceResourceResource{}
+	_ resource.ResourceWithImportState = &DevicesTestAccDevicesManagementInterfaceResourceResource{}
 )
 
-func NewDevicesManagementinterfaceResource() resource.Resource {
-	return &DevicesManagementinterfaceResource{}
+func NewDevicesTestAccDevicesManagementInterfaceResourceResource() resource.Resource {
+	return &DevicesTestAccDevicesManagementInterfaceResourceResource{}
 }
 
-// DevicesManagementinterfaceResource defines the resource implementation.
-type DevicesManagementinterfaceResource struct {
+// DevicesTestAccDevicesManagementInterfaceResourceResource defines the resource implementation.
+type DevicesTestAccDevicesManagementInterfaceResourceResource struct {
 	client *openApiClient.APIClient
 }
 
-// DevicesManagementinterfaceResourceModel describes the resource data model.
-type DevicesManagementinterfaceResourceModel struct {
+// DevicesTestAccDevicesManagementInterfaceResourceResourceModel describes the resource data model.
+type DevicesTestAccDevicesManagementInterfaceResourceResourceModel struct {
 	Id     jsontypes.String             `tfsdk:"id"`
 	Serial jsontypes.String             `tfsdk:"serial"`
 	Wan1   DeviceManagementInterfaceWan `tfsdk:"wan1"`
@@ -51,14 +51,14 @@ type DeviceManagementInterfaceWan struct {
 	Vlan             jsontypes.Int64  `tfsdk:"vlan"`
 }
 
-func (r *DevicesManagementinterfaceResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_devices_management_interface"
 }
 
-func (r *DevicesManagementinterfaceResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 
-		MarkdownDescription: "DevicesManagementinterface",
+		MarkdownDescription: "DevicesTestAccDevicesManagementInterfaceResource",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:   true,
@@ -154,7 +154,7 @@ func (r *DevicesManagementinterfaceResource) Schema(ctx context.Context, req res
 	}
 }
 
-func (r *DevicesManagementinterfaceResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -174,8 +174,8 @@ func (r *DevicesManagementinterfaceResource) Configure(ctx context.Context, req 
 	r.client = client
 }
 
-func (r *DevicesManagementinterfaceResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *DevicesManagementinterfaceResourceModel
+func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *DevicesTestAccDevicesManagementInterfaceResourceResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -184,16 +184,14 @@ func (r *DevicesManagementinterfaceResource) Create(ctx context.Context, req res
 		return
 	}
 
-	object14 := openApiClient.NewInlineObject14()
-
-	updateDeviceManagementInterfaceRequest := object14
+	payload := openApiClient.NewUpdateDeviceManagementInterfaceRequest()
 
 	vlan := int32(data.Wan1.Vlan.ValueInt64())
 	staticDNS := []string{}
 	for _, dns := range data.Wan1.StaticDns.Elements() {
 		staticDNS = append(staticDNS, dns.String())
 	}
-	wan1 := openApiClient.DevicesSerialManagementInterfaceWan1{
+	wan1 := openApiClient.UpdateDeviceManagementInterfaceRequestWan1{
 		WanEnabled:       data.Wan1.WanEnabled.ValueStringPointer(),
 		UsingStaticIp:    data.Wan1.UsingStaticIp.ValueBoolPointer(),
 		StaticIp:         data.Wan1.StaticIp.ValueStringPointer(),
@@ -208,7 +206,7 @@ func (r *DevicesManagementinterfaceResource) Create(ctx context.Context, req res
 	for _, dns := range data.Wan2.StaticDns.Elements() {
 		staticDNS = append(staticDNS, dns.String())
 	}
-	wan2 := openApiClient.DevicesSerialManagementInterfaceWan2{
+	wan2 := openApiClient.UpdateDeviceManagementInterfaceRequestWan2{
 		WanEnabled:       data.Wan2.WanEnabled.ValueStringPointer(),
 		UsingStaticIp:    data.Wan2.UsingStaticIp.ValueBoolPointer(),
 		StaticIp:         data.Wan2.StaticIp.ValueStringPointer(),
@@ -218,20 +216,18 @@ func (r *DevicesManagementinterfaceResource) Create(ctx context.Context, req res
 		Vlan:             &vlan,
 	}
 
-	updateDeviceManagementInterfaceRequest.Wan1 = &wan1
-	updateDeviceManagementInterfaceRequest.Wan2 = &wan2
+	payload.Wan1 = &wan1
+	payload.Wan2 = &wan2
 
-	_, httpResp, err := r.client.ManagementInterfaceApi.UpdateDeviceManagementInterface(context.Background(), data.Serial.ValueString()).UpdateDeviceManagementInterface(*updateDeviceManagementInterfaceRequest).Execute()
+	_, httpResp, err := r.client.ManagementInterfaceApi.UpdateDeviceManagementInterface(context.Background(), data.Serial.ValueString()).UpdateDeviceManagementInterfaceRequest(*payload).Execute()
+
+	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code
@@ -265,8 +261,8 @@ func (r *DevicesManagementinterfaceResource) Create(ctx context.Context, req res
 	tflog.Trace(ctx, "create resource")
 }
 
-func (r *DevicesManagementinterfaceResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *DevicesManagementinterfaceResourceModel
+func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *DevicesTestAccDevicesManagementInterfaceResourceResourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -276,16 +272,14 @@ func (r *DevicesManagementinterfaceResource) Read(ctx context.Context, req resou
 	}
 
 	_, httpResp, err := r.client.DevicesApi.GetDeviceManagementInterface(context.Background(), data.Serial.ValueString()).Execute()
+
+	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to read resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success inlineResp code
@@ -318,8 +312,8 @@ func (r *DevicesManagementinterfaceResource) Read(ctx context.Context, req resou
 	tflog.Trace(ctx, "read resource")
 }
 
-func (r *DevicesManagementinterfaceResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data *DevicesManagementinterfaceResourceModel
+func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var data *DevicesTestAccDevicesManagementInterfaceResourceResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -328,16 +322,14 @@ func (r *DevicesManagementinterfaceResource) Update(ctx context.Context, req res
 		return
 	}
 
-	object14 := openApiClient.NewInlineObject14()
-
-	updateDeviceManagementInterfaceRequest := object14
+	payload := openApiClient.NewUpdateDeviceManagementInterfaceRequest()
 
 	vlan := int32(data.Wan1.Vlan.ValueInt64())
 	staticDNS := []string{}
 	for _, dns := range data.Wan1.StaticDns.Elements() {
 		staticDNS = append(staticDNS, dns.String())
 	}
-	wan1 := openApiClient.DevicesSerialManagementInterfaceWan1{
+	wan1 := openApiClient.UpdateDeviceManagementInterfaceRequestWan1{
 		WanEnabled:       data.Wan1.WanEnabled.ValueStringPointer(),
 		UsingStaticIp:    data.Wan1.UsingStaticIp.ValueBoolPointer(),
 		StaticIp:         data.Wan1.StaticIp.ValueStringPointer(),
@@ -352,7 +344,7 @@ func (r *DevicesManagementinterfaceResource) Update(ctx context.Context, req res
 	for _, dns := range data.Wan2.StaticDns.Elements() {
 		staticDNS = append(staticDNS, dns.String())
 	}
-	wan2 := openApiClient.DevicesSerialManagementInterfaceWan2{
+	wan2 := openApiClient.UpdateDeviceManagementInterfaceRequestWan2{
 		WanEnabled:       data.Wan2.WanEnabled.ValueStringPointer(),
 		UsingStaticIp:    data.Wan2.UsingStaticIp.ValueBoolPointer(),
 		StaticIp:         data.Wan2.StaticIp.ValueStringPointer(),
@@ -362,20 +354,18 @@ func (r *DevicesManagementinterfaceResource) Update(ctx context.Context, req res
 		Vlan:             &vlan,
 	}
 
-	updateDeviceManagementInterfaceRequest.Wan1 = &wan1
-	updateDeviceManagementInterfaceRequest.Wan2 = &wan2
+	payload.Wan1 = &wan1
+	payload.Wan2 = &wan2
 
-	_, httpResp, err := r.client.ManagementInterfaceApi.UpdateDeviceManagementInterface(context.Background(), data.Serial.ValueString()).UpdateDeviceManagementInterface(*updateDeviceManagementInterfaceRequest).Execute()
+	_, httpResp, err := r.client.ManagementInterfaceApi.UpdateDeviceManagementInterface(context.Background(), data.Serial.ValueString()).UpdateDeviceManagementInterfaceRequest(*payload).Execute()
+
+	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code
@@ -409,8 +399,8 @@ func (r *DevicesManagementinterfaceResource) Update(ctx context.Context, req res
 	tflog.Trace(ctx, "updated resource")
 }
 
-func (r *DevicesManagementinterfaceResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data *DevicesManagementinterfaceResourceModel
+func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data *DevicesTestAccDevicesManagementInterfaceResourceResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -419,54 +409,22 @@ func (r *DevicesManagementinterfaceResource) Delete(ctx context.Context, req res
 		return
 	}
 
-	object14 := openApiClient.NewInlineObject14()
+	payload := openApiClient.NewUpdateDeviceManagementInterfaceRequest()
+	wan1 := openApiClient.UpdateDeviceManagementInterfaceRequestWan1{}
+	wan2 := openApiClient.UpdateDeviceManagementInterfaceRequestWan2{}
 
-	updateDeviceManagementInterfaceRequest := object14
+	payload.Wan1 = &wan1
+	payload.Wan2 = &wan2
 
-	vlan := int32(data.Wan1.Vlan.ValueInt64())
-	staticDNS := []string{}
-	for _, dns := range data.Wan1.StaticDns.Elements() {
-		staticDNS = append(staticDNS, dns.String())
-	}
-	wan1 := openApiClient.DevicesSerialManagementInterfaceWan1{
-		WanEnabled:       data.Wan1.WanEnabled.ValueStringPointer(),
-		UsingStaticIp:    data.Wan1.UsingStaticIp.ValueBoolPointer(),
-		StaticIp:         data.Wan1.StaticIp.ValueStringPointer(),
-		StaticGatewayIp:  data.Wan1.StaticGatewayIp.ValueStringPointer(),
-		StaticSubnetMask: data.Wan1.StaticSubnetMask.ValueStringPointer(),
-		StaticDns:        staticDNS,
-		Vlan:             &vlan,
-	}
+	_, httpResp, err := r.client.ManagementInterfaceApi.UpdateDeviceManagementInterface(context.Background(), data.Serial.ValueString()).UpdateDeviceManagementInterfaceRequest(*payload).Execute()
 
-	vlan = int32(data.Wan2.Vlan.ValueInt64())
-	staticDNS = []string{}
-	for _, dns := range data.Wan2.StaticDns.Elements() {
-		staticDNS = append(staticDNS, dns.String())
-	}
-	wan2 := openApiClient.DevicesSerialManagementInterfaceWan2{
-		WanEnabled:       data.Wan2.WanEnabled.ValueStringPointer(),
-		UsingStaticIp:    data.Wan2.UsingStaticIp.ValueBoolPointer(),
-		StaticIp:         data.Wan2.StaticIp.ValueStringPointer(),
-		StaticGatewayIp:  data.Wan2.StaticGatewayIp.ValueStringPointer(),
-		StaticSubnetMask: data.Wan2.StaticSubnetMask.ValueStringPointer(),
-		StaticDns:        staticDNS,
-		Vlan:             &vlan,
-	}
-
-	updateDeviceManagementInterfaceRequest.Wan1 = &wan1
-	updateDeviceManagementInterfaceRequest.Wan2 = &wan2
-
-	_, httpResp, err := r.client.ManagementInterfaceApi.UpdateDeviceManagementInterface(context.Background(), data.Serial.ValueString()).UpdateDeviceManagementInterface(*updateDeviceManagementInterfaceRequest).Execute()
+	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code
@@ -500,7 +458,7 @@ func (r *DevicesManagementinterfaceResource) Delete(ctx context.Context, req res
 	tflog.Trace(ctx, "removed resource")
 }
 
-func (r *DevicesManagementinterfaceResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("serial"), req.ID)...)
