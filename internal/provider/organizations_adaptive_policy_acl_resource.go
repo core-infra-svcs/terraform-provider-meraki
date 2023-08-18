@@ -221,7 +221,6 @@ func (r *OrganizationsAdaptivePolicyAclResource) Create(ctx context.Context, req
 			tools.HttpDiagnostics(httpResp),
 		)
 		return
-		return
 	}
 
 	// Check for API success response code
@@ -271,7 +270,6 @@ func (r *OrganizationsAdaptivePolicyAclResource) Read(ctx context.Context, req r
 			"HTTP Client Failure",
 			tools.HttpDiagnostics(httpResp),
 		)
-		return
 		return
 	}
 
@@ -344,7 +342,6 @@ func (r *OrganizationsAdaptivePolicyAclResource) Update(ctx context.Context, req
 			tools.HttpDiagnostics(httpResp),
 		)
 		return
-		return
 	}
 
 	// Check for API success response code
@@ -394,7 +391,6 @@ func (r *OrganizationsAdaptivePolicyAclResource) Delete(ctx context.Context, req
 			"HTTP Client Failure",
 			tools.HttpDiagnostics(httpResp),
 		)
-		return
 		return
 	}
 
