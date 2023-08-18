@@ -18,7 +18,7 @@ func TestAccNetworksApplianceTrafficShapingUplinkSelectionResource(t *testing.T)
 			{
 				Config: testAccNetworksApplianceTrafficShapingUplinkSelectionResourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_network_device"),
+					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_network_appliance_traffic_shaping_uplink_selection"),
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
@@ -54,7 +54,7 @@ resource "meraki_network" "test" {
 	organization_id = "%s"
 	product_types = ["appliance"]
 	tags = ["tag1"]
-	name = "test_acc_network_device"
+	name = "test_acc_network_appliance_traffic_shaping_uplink_selection"
 	timezone = "America/Los_Angeles"
 	notes = "Additional description of the network"
 }
@@ -70,7 +70,7 @@ resource "meraki_network" "test" {
         organization_id = "%s"
         product_types = ["appliance"]
 		tags = ["tag1"]
-		name = "test_acc_network_device"
+		name = "test_acc_network_appliance_traffic_shaping_uplink_selection"
 		timezone = "America/Los_Angeles"
 		notes = "Additional description of the network"
 }
@@ -93,7 +93,7 @@ resource "meraki_network" "test" {
         organization_id = "%s"
         product_types = ["appliance"]
 		tags = ["tag1"]
-		name = "test_acc_network_device"
+		name = "test_acc_network_appliance_traffic_shaping_uplink_selection"
 		timezone = "America/Los_Angeles"
 		notes = "Additional description of the network"
 }
