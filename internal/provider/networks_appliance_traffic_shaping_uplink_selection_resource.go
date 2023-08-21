@@ -49,30 +49,32 @@ type failoverAndFailback struct {
 	} `json:"immediate" tfsdk:"immediate"`
 }
 
-type destination struct {
-	Port    jsontypes.String `json:"port" tfsdk:"port"`
-	CIDR    jsontypes.String `json:"cidr" tfsdk:"cidr"`
-	Network jsontypes.String `json:"network" tfsdk:"network"`
-	VLAN    jsontypes.Int64  `json:"vlan" tfsdk:"vlan"`
-	Host    jsontypes.Int64  `json:"host" tfsdk:"host"`
-	FQDN    jsontypes.String `json:"fqdn" tfsdk:"fqdn"`
+type wanDestination struct {
+	Port jsontypes.String `json:"port" tfsdk:"port"`
+	CIDR jsontypes.String `json:"cidr" tfsdk:"cidr"`
 }
 
-type value struct {
+type wanSource struct {
+	Port jsontypes.String `json:"port" tfsdk:"port"`
+	CIDR jsontypes.String `json:"cidr" tfsdk:"cidr"`
+	VLAN jsontypes.Int64  `json:"vlan" tfsdk:"vlan"`
+	Host jsontypes.Int64  `json:"host" tfsdk:"host"`
+}
+
+type wanValue struct {
 	Protocol    jsontypes.String `json:"protocol" tfsdk:"protocol"`
-	Source      destination      `json:"source" tfsdk:"source"`
-	Destination destination      `json:"destination" tfsdk:"destination"`
-	Id          jsontypes.String `tfsdk:"id"`
+	Source      wanSource        `json:"source" tfsdk:"source"`
+	Destination wanDestination   `json:"destination" tfsdk:"destination"`
 }
 
-type trafficFilter struct {
+type wanTrafficFilter struct {
 	Type  jsontypes.String `json:"type" tfsdk:"type"`
-	Value value            `json:"value" tfsdk:"value"`
+	Value wanValue         `json:"value" tfsdk:"value"`
 }
 
 type wanTrafficUplinkPreference struct {
-	TrafficFilters  []trafficFilter  `json:"trafficFilters" tfsdk:"traffic_filters"`
-	PreferredUplink jsontypes.String `json:"preferredUplink" tfsdk:"preferred_uplink"`
+	TrafficFilters  []wanTrafficFilter `json:"trafficFilters" tfsdk:"traffic_filters"`
+	PreferredUplink jsontypes.String   `json:"preferredUplink" tfsdk:"preferred_uplink"`
 }
 
 type performanceClass struct {
@@ -81,11 +83,40 @@ type performanceClass struct {
 	CustomPerformanceID    jsontypes.String `json:"customPerformanceClassId" tfsdk:"custom_performance_class_id"`
 }
 
+type vpnDestination struct {
+	Port    jsontypes.String `json:"port" tfsdk:"port"`
+	CIDR    jsontypes.String `json:"cidr" tfsdk:"cidr"`
+	Network jsontypes.String `json:"network" tfsdk:"network"`
+	VLAN    jsontypes.Int64  `json:"vlan" tfsdk:"vlan"`
+	Host    jsontypes.Int64  `json:"host" tfsdk:"host"`
+	FQDN    jsontypes.String `json:"fqdn" tfsdk:"fqdn"`
+}
+
+type vpnSource struct {
+	Port    jsontypes.String `json:"port" tfsdk:"port"`
+	CIDR    jsontypes.String `json:"cidr" tfsdk:"cidr"`
+	Network jsontypes.String `json:"network" tfsdk:"network"`
+	VLAN    jsontypes.Int64  `json:"vlan" tfsdk:"vlan"`
+	Host    jsontypes.Int64  `json:"host" tfsdk:"host"`
+}
+
+type vpnValue struct {
+	Protocol    jsontypes.String `json:"protocol" tfsdk:"protocol"`
+	Source      vpnSource        `json:"source" tfsdk:"source"`
+	Destination vpnDestination   `json:"destination" tfsdk:"destination"`
+	Id          jsontypes.String `tfsdk:"id"`
+}
+
+type vpnTrafficFilter struct {
+	Type  jsontypes.String `json:"type" tfsdk:"type"`
+	Value vpnValue         `json:"value" tfsdk:"value"`
+}
+
 type vpnTrafficUplinkPreference struct {
-	TrafficFilters    []trafficFilter  `json:"trafficFilters" tfsdk:"traffic_filters"`
-	PreferredUplink   jsontypes.String `json:"preferredUplink" tfsdk:"preferred_uplink"`
-	FailOverCriterion jsontypes.String `json:"failOverCriterion" tfsdk:"fail_over_criterion"`
-	PerformanceClass  performanceClass `json:"performanceClass" tfsdk:"performance_class"`
+	TrafficFilters    []vpnTrafficFilter `json:"trafficFilters" tfsdk:"traffic_filters"`
+	PreferredUplink   jsontypes.String   `json:"preferredUplink" tfsdk:"preferred_uplink"`
+	FailOverCriterion jsontypes.String   `json:"failOverCriterion" tfsdk:"fail_over_criterion"`
+	PerformanceClass  performanceClass   `json:"performanceClass" tfsdk:"performance_class"`
 }
 
 func (r *NetworksApplianceTrafficShapingUplinkSelectionResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -174,6 +205,108 @@ func (r *NetworksApplianceTrafficShapingUplinkSelectionResource) Schema(ctx cont
 										},
 									},
 									"value": schema.SingleNestedAttribute{
+										MarkdownDescription: "Value of traffic filter",
+										Optional:            true,
+										Computed:            true,
+										Attributes: map[string]schema.Attribute{
+											"protocol": schema.StringAttribute{
+												MarkdownDescription: "Protocol value of this custom type traffic filter. Must be one of: 'tcp', 'udp', 'icmp6' or 'any'",
+												Optional:            true,
+												Computed:            true,
+												CustomType:          jsontypes.StringType,
+												Validators: []validator.String{
+													stringvalidator.OneOf("tcp", "udp", "icmp6", "any"),
+												},
+											},
+											"source": schema.SingleNestedAttribute{
+												MarkdownDescription: "Source of 'custom' type traffic filter",
+												Optional:            true,
+												Computed:            true,
+												Attributes: map[string]schema.Attribute{
+													"port": schema.StringAttribute{
+														MarkdownDescription: "E.g.: \"any\", \"0\" (also means \"any\"), \"8080\", \"1-1024\"",
+														Optional:            true,
+														Computed:            true,
+														CustomType:          jsontypes.StringType,
+													},
+													"cidr": schema.StringAttribute{
+														MarkdownDescription: "SCIDR format address (e.g.\"192.168.10.1\", which is the same as \"192.168.10.1/32\"), or \"any\". Cannot be used in combination with the \"vlan\" property",
+														Optional:            true,
+														Computed:            true,
+														CustomType:          jsontypes.StringType,
+													},
+													"vlan": schema.Int64Attribute{
+														MarkdownDescription: "VLAN ID of the configured VLAN in the Meraki network. Cannot be used in combination with the \"cidr\" property and is currently only available under a template network.",
+														Optional:            true,
+														Computed:            true,
+														CustomType:          jsontypes.Int64Type,
+													},
+													"host": schema.Int64Attribute{
+														MarkdownDescription: "Host ID in the VLAN. Should not exceed the VLAN subnet capacity. Must be used along with the \"vlan\" property and is currently only available under a template network.",
+														Optional:            true,
+														Computed:            true,
+														CustomType:          jsontypes.Int64Type,
+													},
+												},
+											},
+											"destination": schema.SingleNestedAttribute{
+												MarkdownDescription: "Destination of 'custom' type traffic filter",
+												Optional:            true,
+												Computed:            true,
+												Attributes: map[string]schema.Attribute{
+													"port": schema.StringAttribute{
+														MarkdownDescription: "E.g.: \"any\", \"0\" (also means \"any\"), \"8080\", \"1-1024\"",
+														Optional:            true,
+														Computed:            true,
+														CustomType:          jsontypes.StringType,
+													},
+													"cidr": schema.StringAttribute{
+														MarkdownDescription: "CIDR format address (e.g.\"192.168.10.1\", which is the same as \"192.168.10.1/32\"), or \"any\". Cannot be used in combination with the \"vlan\" property",
+														Optional:            true,
+														Computed:            true,
+														CustomType:          jsontypes.StringType,
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+						"preferred_uplink": schema.StringAttribute{
+							MarkdownDescription: "Preferred uplink for this uplink preference rule. Must be one of: 'wan1' or 'wan2'",
+							Optional:            true,
+							Computed:            true,
+							CustomType:          jsontypes.StringType,
+							Validators: []validator.String{
+								stringvalidator.OneOf("wan1", "wan2"),
+							},
+						},
+					},
+				},
+			},
+			"vpn_traffic_uplink_preferences": schema.ListNestedAttribute{
+				MarkdownDescription: "Array of uplink preference rules for VPN traffic",
+				Optional:            true,
+				Computed:            true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"traffic_filters": schema.ListNestedAttribute{
+							MarkdownDescription: "Array of traffic filters for this uplink preference rule",
+							Optional:            true,
+							Computed:            true,
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"type": schema.StringAttribute{
+										MarkdownDescription: "Traffic filter type. Must be one of: 'applicationCategory', 'application' or 'custom'",
+										Optional:            true,
+										Computed:            true,
+										CustomType:          jsontypes.StringType,
+										Validators: []validator.String{
+											stringvalidator.OneOf("applicationCategory", "application", "custom"),
+										},
+									},
+									"value": schema.SingleNestedAttribute{
 										MarkdownDescription: "value of traffic filter",
 										Optional:            true,
 										Computed:            true,
@@ -222,12 +355,6 @@ func (r *NetworksApplianceTrafficShapingUplinkSelectionResource) Schema(ctx cont
 														Computed:            true,
 														CustomType:          jsontypes.Int64Type,
 													},
-													"fqdn": schema.StringAttribute{
-														MarkdownDescription: "FQDN format address. Cannot be used in combination with the \"cidr\" or \"fqdn\" property and is currently only available in the \"destination\" object of the \"vpnTrafficUplinkPreference\" object. E.g.: \"www.google.com\"",
-														Optional:            true,
-														Computed:            true,
-														CustomType:          jsontypes.StringType,
-													},
 												},
 											},
 											"destination": schema.SingleNestedAttribute{
@@ -242,7 +369,7 @@ func (r *NetworksApplianceTrafficShapingUplinkSelectionResource) Schema(ctx cont
 														CustomType:          jsontypes.StringType,
 													},
 													"cidr": schema.StringAttribute{
-														MarkdownDescription: "SCIDR format address (e.g.\"192.168.10.1\", which is the same as \"192.168.10.1/32\"), or \"any\". Cannot be used in combination with the \"vlan\" property",
+														MarkdownDescription: "CIDR format address (e.g.\"192.168.10.1\", which is the same as \"192.168.10.1/32\"), or \"any\". Cannot be used in combination with the \"vlan\" property",
 														Optional:            true,
 														Computed:            true,
 														CustomType:          jsontypes.StringType,
@@ -266,7 +393,7 @@ func (r *NetworksApplianceTrafficShapingUplinkSelectionResource) Schema(ctx cont
 														CustomType:          jsontypes.Int64Type,
 													},
 													"fqdn": schema.StringAttribute{
-														MarkdownDescription: "FQDN format address. Cannot be used in combination with the \"cidr\" or \"fqdn\" property and is currently only available in the \"destination\" object of the \"vpnTrafficUplinkPreference\" object. E.g.: \"www.google.com\"",
+														MarkdownDescription: "FQDN format address. Cannot be used in combination with the \"cidr\" or \"fqdn\" property and is currently only available in the \"vpnDestination\" object of the \"vpnTrafficUplinkPreference\" object. E.g.: \"www.google.com\"",
 														Optional:            true,
 														Computed:            true,
 														CustomType:          jsontypes.StringType,
@@ -275,90 +402,7 @@ func (r *NetworksApplianceTrafficShapingUplinkSelectionResource) Schema(ctx cont
 											},
 											"id": schema.StringAttribute{
 												MarkdownDescription: "traffic filter id",
-												Computed:            true,
-												CustomType:          jsontypes.StringType,
-											},
-										},
-									},
-								},
-							},
-						},
-						"preferred_uplink": schema.StringAttribute{
-							MarkdownDescription: "Preferred uplink for this uplink preference rule. Must be one of: 'wan1' or 'wan2'",
-							Optional:            true,
-							Computed:            true,
-							CustomType:          jsontypes.StringType,
-							Validators: []validator.String{
-								stringvalidator.OneOf("wan1", "wan2"),
-							},
-						},
-					},
-				},
-			},
-			"vpn_traffic_uplink_preferences": schema.SetNestedAttribute{
-				MarkdownDescription: "Array of uplink preference rules for VPN traffic",
-				Optional:            true,
-				Computed:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"traffic_filters": schema.SetNestedAttribute{
-							MarkdownDescription: "Array of traffic filters for this uplink preference rule",
-							Optional:            true,
-							Computed:            true,
-							NestedObject: schema.NestedAttributeObject{
-								Attributes: map[string]schema.Attribute{
-									"type": schema.StringAttribute{
-										MarkdownDescription: "Traffic filter type. Must be one of: 'applicationCategory', 'application' or 'custom'",
-										Optional:            true,
-										Computed:            true,
-										CustomType:          jsontypes.StringType,
-										Validators: []validator.String{
-											stringvalidator.OneOf("applicationCategory", "application", "custom"),
-										},
-									},
-									"value": schema.SingleNestedAttribute{
-										MarkdownDescription: "value of traffic filter",
-										Optional:            true,
-										Computed:            true,
-										Attributes: map[string]schema.Attribute{
-											"port": schema.StringAttribute{
-												MarkdownDescription: "E.g.: \"any\", \"0\" (also means \"any\"), \"8080\", \"1-1024\"",
 												Optional:            true,
-												Computed:            true,
-												CustomType:          jsontypes.StringType,
-											},
-											"cidr": schema.StringAttribute{
-												MarkdownDescription: "SCIDR format address (e.g.\"192.168.10.1\", which is the same as \"192.168.10.1/32\"), or \"any\". Cannot be used in combination with the \"vlan\" property",
-												Optional:            true,
-												Computed:            true,
-												CustomType:          jsontypes.StringType,
-											},
-											"network": schema.StringAttribute{
-												MarkdownDescription: "Meraki network ID. Currently only available under a template network, and the value should be ID of either same template network, or another template network currently. E.g.: \"L_12345678\".",
-												Optional:            true,
-												Computed:            true,
-												CustomType:          jsontypes.StringType,
-											},
-											"vlan": schema.Int64Attribute{
-												MarkdownDescription: "VLAN ID of the configured VLAN in the Meraki network. Cannot be used in combination with the \"cidr\" property and is currently only available under a template network.",
-												Optional:            true,
-												Computed:            true,
-												CustomType:          jsontypes.Int64Type,
-											},
-											"host": schema.Int64Attribute{
-												MarkdownDescription: "Host ID in the VLAN. Should not exceed the VLAN subnet capacity. Must be used along with the \"vlan\" property and is currently only available under a template network.",
-												Optional:            true,
-												Computed:            true,
-												CustomType:          jsontypes.Int64Type,
-											},
-											"fqdn": schema.StringAttribute{
-												MarkdownDescription: "FQDN format address. Cannot be used in combination with the \"cidr\" or \"fqdn\" property and is currently only available in the \"destination\" object of the \"vpnTrafficUplinkPreference\" object. E.g.: \"www.google.com\"",
-												Optional:            true,
-												Computed:            true,
-												CustomType:          jsontypes.StringType,
-											},
-											"id": schema.StringAttribute{
-												MarkdownDescription: "traffic filter id",
 												Computed:            true,
 												CustomType:          jsontypes.StringType,
 											},
@@ -529,10 +573,13 @@ func updateNetworksApplianceTrafficShapingUplinkSelectionPayload(data *resourceM
 
 					// destination
 					var destination openApiClient.UpdateNetworkApplianceTrafficShapingUplinkSelectionRequestWanTrafficUplinkPreferencesInnerTrafficFiltersInnerValueDestination
+
+					// Port
 					if !trafficFilter.Value.Destination.Port.IsUnknown() {
 						destination.SetPort(trafficFilter.Value.Destination.Port.ValueString())
 					}
 
+					// CIDR
 					if !trafficFilter.Value.Destination.CIDR.IsUnknown() {
 						destination.SetCidr(trafficFilter.Value.Destination.CIDR.ValueString())
 					}
@@ -561,8 +608,9 @@ func updateNetworksApplianceTrafficShapingUplinkSelectionPayload(data *resourceM
 
 			// TrafficFilters
 			if len(attribute.TrafficFilters) > 0 {
-				var trafficFilters []openApiClient.UpdateNetworkApplianceTrafficShapingUplinkSelectionRequestVpnTrafficUplinkPreferencesInnerTrafficFiltersInner
 
+				// Traffic Filter
+				var trafficFilters []openApiClient.UpdateNetworkApplianceTrafficShapingUplinkSelectionRequestVpnTrafficUplinkPreferencesInnerTrafficFiltersInner
 				for _, trafficFilter := range attribute.TrafficFilters {
 					var trafficFilterData openApiClient.UpdateNetworkApplianceTrafficShapingUplinkSelectionRequestVpnTrafficUplinkPreferencesInnerTrafficFiltersInner
 
@@ -613,7 +661,7 @@ func updateNetworksApplianceTrafficShapingUplinkSelectionPayload(data *resourceM
 					}
 					value.SetSource(source)
 
-					// destination
+					// vpnDestination
 					var destination openApiClient.UpdateNetworkApplianceTrafficShapingUplinkSelectionRequestVpnTrafficUplinkPreferencesInnerTrafficFiltersInnerValueDestination
 
 					// Port
