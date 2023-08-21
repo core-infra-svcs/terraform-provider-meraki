@@ -25,7 +25,7 @@ NetworksSettings resource for updating network settings.
 - `default_uplink` (String) The default uplink. Must be one of: 'wan1' or 'wan2'
 - `failover_and_failback` (Attributes) WAN failover and failback (see [below for nested schema](#nestedatt--failover_and_failback))
 - `load_balancing_enabled` (Boolean) Whether load balancing is enabled
-- `vpn_traffic_uplink_preferences` (Attributes Set) Array of uplink preference rules for VPN traffic (see [below for nested schema](#nestedatt--vpn_traffic_uplink_preferences))
+- `vpn_traffic_uplink_preferences` (Attributes List) Array of uplink preference rules for VPN traffic (see [below for nested schema](#nestedatt--vpn_traffic_uplink_preferences))
 - `wan_traffic_uplink_preferences` (Attributes Set) Uplink preference rules for WAN traffic (see [below for nested schema](#nestedatt--wan_traffic_uplink_preferences))
 
 ### Read-Only
@@ -56,7 +56,7 @@ Optional:
 - `fail_over_criterion` (String) Fail over criterion for uplink preference rule. Must be one of: 'poorPerformance' or 'uplinkDown'
 - `performance_class` (Attributes) Type of this performance class. Must be one of: 'builtin' or 'custom' (see [below for nested schema](#nestedatt--vpn_traffic_uplink_preferences--performance_class))
 - `preferred_uplink` (String) Preferred uplink for uplink preference rule. Must be one of: 'wan1', 'wan2', 'bestForVoIP', 'loadBalancing' or 'defaultUplink'
-- `traffic_filters` (Attributes Set) Array of traffic filters for this uplink preference rule (see [below for nested schema](#nestedatt--vpn_traffic_uplink_preferences--traffic_filters))
+- `traffic_filters` (Attributes List) Array of traffic filters for this uplink preference rule (see [below for nested schema](#nestedatt--vpn_traffic_uplink_preferences--traffic_filters))
 
 <a id="nestedatt--vpn_traffic_uplink_preferences--performance_class"></a>
 ### Nested Schema for `vpn_traffic_uplink_preferences.performance_class`
@@ -81,16 +81,35 @@ Optional:
 
 Optional:
 
-- `cidr` (String) SCIDR format address (e.g."192.168.10.1", which is the same as "192.168.10.1/32"), or "any". Cannot be used in combination with the "vlan" property
-- `fqdn` (String) FQDN format address. Cannot be used in combination with the "cidr" or "fqdn" property and is currently only available in the "destination" object of the "vpnTrafficUplinkPreference" object. E.g.: "www.google.com"
+- `destination` (Attributes) destination of 'custom' type traffic filter (see [below for nested schema](#nestedatt--vpn_traffic_uplink_preferences--traffic_filters--value--destination))
+- `id` (String) traffic filter id
+- `protocol` (String) Protocol value of this custom type traffic filter. Must be one of: 'tcp', 'udp', 'icmp6' or 'any'
+- `source` (Attributes) Source of 'custom' type traffic filter (see [below for nested schema](#nestedatt--vpn_traffic_uplink_preferences--traffic_filters--value--source))
+
+<a id="nestedatt--vpn_traffic_uplink_preferences--traffic_filters--value--destination"></a>
+### Nested Schema for `vpn_traffic_uplink_preferences.traffic_filters.value.source`
+
+Optional:
+
+- `cidr` (String) CIDR format address (e.g."192.168.10.1", which is the same as "192.168.10.1/32"), or "any". Cannot be used in combination with the "vlan" property
+- `fqdn` (String) FQDN format address. Cannot be used in combination with the "cidr" or "fqdn" property and is currently only available in the "vpnDestination" object of the "vpnTrafficUplinkPreference" object. E.g.: "www.google.com"
 - `host` (Number) Host ID in the VLAN. Should not exceed the VLAN subnet capacity. Must be used along with the "vlan" property and is currently only available under a template network.
 - `network` (String) Meraki network ID. Currently only available under a template network, and the value should be ID of either same template network, or another template network currently. E.g.: "L_12345678".
 - `port` (String) E.g.: "any", "0" (also means "any"), "8080", "1-1024"
 - `vlan` (Number) VLAN ID of the configured VLAN in the Meraki network. Cannot be used in combination with the "cidr" property and is currently only available under a template network.
 
-Read-Only:
 
-- `id` (String) traffic filter id
+<a id="nestedatt--vpn_traffic_uplink_preferences--traffic_filters--value--source"></a>
+### Nested Schema for `vpn_traffic_uplink_preferences.traffic_filters.value.source`
+
+Optional:
+
+- `cidr` (String) SCIDR format address (e.g."192.168.10.1", which is the same as "192.168.10.1/32"), or "any". Cannot be used in combination with the "vlan" property
+- `host` (Number) Host ID in the VLAN. Should not exceed the VLAN subnet capacity. Must be used along with the "vlan" property and is currently only available under a template network.
+- `network` (String) Meraki network ID. Currently only available under a template network, and the value should be ID of either same template network, or another template network currently. E.g.: "L_12345678".
+- `port` (String) E.g.: "any", "0" (also means "any"), "8080", "1-1024"
+- `vlan` (Number) VLAN ID of the configured VLAN in the Meraki network. Cannot be used in combination with the "cidr" property and is currently only available under a template network.
+
 
 
 
@@ -109,42 +128,32 @@ Optional:
 Optional:
 
 - `type` (String) Traffic filter type. Must be "custom"
-- `value` (Attributes) value of traffic filter (see [below for nested schema](#nestedatt--wan_traffic_uplink_preferences--traffic_filters--value))
+- `value` (Attributes) Value of traffic filter (see [below for nested schema](#nestedatt--wan_traffic_uplink_preferences--traffic_filters--value))
 
 <a id="nestedatt--wan_traffic_uplink_preferences--traffic_filters--value"></a>
 ### Nested Schema for `wan_traffic_uplink_preferences.traffic_filters.value`
 
 Optional:
 
-- `destination` (Attributes) destination of 'custom' type traffic filter (see [below for nested schema](#nestedatt--wan_traffic_uplink_preferences--traffic_filters--value--destination))
+- `destination` (Attributes) Destination of 'custom' type traffic filter (see [below for nested schema](#nestedatt--wan_traffic_uplink_preferences--traffic_filters--value--destination))
 - `protocol` (String) Protocol value of this custom type traffic filter. Must be one of: 'tcp', 'udp', 'icmp6' or 'any'
 - `source` (Attributes) Source of 'custom' type traffic filter (see [below for nested schema](#nestedatt--wan_traffic_uplink_preferences--traffic_filters--value--source))
 
-Read-Only:
-
-- `id` (String) traffic filter id
-
 <a id="nestedatt--wan_traffic_uplink_preferences--traffic_filters--value--destination"></a>
-### Nested Schema for `wan_traffic_uplink_preferences.traffic_filters.value.id`
+### Nested Schema for `wan_traffic_uplink_preferences.traffic_filters.value.source`
 
 Optional:
 
-- `cidr` (String) SCIDR format address (e.g."192.168.10.1", which is the same as "192.168.10.1/32"), or "any". Cannot be used in combination with the "vlan" property
-- `fqdn` (String) FQDN format address. Cannot be used in combination with the "cidr" or "fqdn" property and is currently only available in the "destination" object of the "vpnTrafficUplinkPreference" object. E.g.: "www.google.com"
-- `host` (Number) Host ID in the VLAN. Should not exceed the VLAN subnet capacity. Must be used along with the "vlan" property and is currently only available under a template network.
-- `network` (String) Meraki network ID. Currently only available under a template network, and the value should be ID of either same template network, or another template network currently. E.g.: "L_12345678".
+- `cidr` (String) CIDR format address (e.g."192.168.10.1", which is the same as "192.168.10.1/32"), or "any". Cannot be used in combination with the "vlan" property
 - `port` (String) E.g.: "any", "0" (also means "any"), "8080", "1-1024"
-- `vlan` (Number) VLAN ID of the configured VLAN in the Meraki network. Cannot be used in combination with the "cidr" property and is currently only available under a template network.
 
 
 <a id="nestedatt--wan_traffic_uplink_preferences--traffic_filters--value--source"></a>
-### Nested Schema for `wan_traffic_uplink_preferences.traffic_filters.value.id`
+### Nested Schema for `wan_traffic_uplink_preferences.traffic_filters.value.source`
 
 Optional:
 
 - `cidr` (String) SCIDR format address (e.g."192.168.10.1", which is the same as "192.168.10.1/32"), or "any". Cannot be used in combination with the "vlan" property
-- `fqdn` (String) FQDN format address. Cannot be used in combination with the "cidr" or "fqdn" property and is currently only available in the "destination" object of the "vpnTrafficUplinkPreference" object. E.g.: "www.google.com"
 - `host` (Number) Host ID in the VLAN. Should not exceed the VLAN subnet capacity. Must be used along with the "vlan" property and is currently only available under a template network.
-- `network` (String) Meraki network ID. Currently only available under a template network, and the value should be ID of either same template network, or another template network currently. E.g.: "L_12345678".
 - `port` (String) E.g.: "any", "0" (also means "any"), "8080", "1-1024"
 - `vlan` (Number) VLAN ID of the configured VLAN in the Meraki network. Cannot be used in combination with the "cidr" property and is currently only available under a template network.
