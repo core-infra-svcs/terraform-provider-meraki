@@ -2,10 +2,11 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
-	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -37,11 +38,33 @@ type OrganizationsCellularGatewayUplinkStatusesDataSourceModel struct {
 }
 
 type OrganizationsCellularGatewayUplinkStatusesDataSourceModelList struct {
-	NetworkId      jsontypes.String                                                                `tfsdk:"network_id"`
-	Serial         jsontypes.String                                                                `tfsdk:"serial"`
-	Model          jsontypes.String                                                                `tfsdk:"model"`
-	LastReportedAt jsontypes.String                                                                `tfsdk:"last_reported_at"`
-	Uplinks        []openApiClient.OrganizationsOrganizationIdCellularGatewayUplinkStatusesUplinks `tfsdk:"uplinks"`
+	NetworkId      jsontypes.String `tfsdk:"network_id" json:"networkId,omitempty"`
+	Serial         jsontypes.String `tfsdk:"serial"`
+	Model          jsontypes.String `tfsdk:"model"`
+	LastReportedAt jsontypes.String `tfsdk:"last_reported_at"`
+	Uplinks        []Uplink         `tfsdk:"uplinks"`
+}
+
+type Uplink struct {
+	Interface      jsontypes.String `tfsdk:"interface"`
+	Status         jsontypes.String `tfsdk:"status"`
+	Ip             jsontypes.String `tfsdk:"ip"`
+	Provider       jsontypes.String `tfsdk:"provider"`
+	PublicIp       jsontypes.String `tfsdk:"public_ip"`
+	Model          jsontypes.String `tfsdk:"model"`
+	SignalStat     SignalStat       `tfsdk:"signal_stat"`
+	ConnectionType jsontypes.String `tfsdk:"connection_type"`
+	Apn            jsontypes.String `tfsdk:"apn"`
+	Gateway        jsontypes.String `tfsdk:"gateway"`
+	Dns1           jsontypes.String `tfsdk:"dns1"`
+	Dns2           jsontypes.String `tfsdk:"dns2"`
+	SignalType     jsontypes.String `tfsdk:"signal_type"`
+	Iccid          jsontypes.String `tfsdk:"iccid"`
+}
+
+type SignalStat struct {
+	Rsrp jsontypes.String `tfsdk:"rsrp"`
+	Rsrq jsontypes.String `tfsdk:"rsrq"`
 }
 
 // Metadata provides a way to define information about the data source.
@@ -235,7 +258,7 @@ func (d *OrganizationsCellularGatewayUplinkStatusesDataSource) Schema(ctx contex
 										Computed:            true,
 									},
 									"iccid": schema.StringAttribute{
-										MarkdownDescription: "Integrated Circuit Card Identification Number.",
+										MarkdownDescription: "Integrated Circuit Card Identification SsidNumber.",
 										CustomType:          jsontypes.StringType,
 										Optional:            true,
 										Computed:            true,
@@ -322,19 +345,15 @@ func (d *OrganizationsCellularGatewayUplinkStatusesDataSource) Read(ctx context.
 		request.Iccids(iccids)
 	}
 
-	inlineResp, httpResp, err := request.Execute()
+	_, httpResp, err := request.Execute()
 
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to read data source",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// Collect any HTTP diagnostics that might be useful for debugging.
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// If it's not what you expect, add an error to diagnostics.
@@ -351,14 +370,13 @@ func (d *OrganizationsCellularGatewayUplinkStatusesDataSource) Read(ctx context.
 		return
 	}
 
-	for _, attribute := range inlineResp {
-		var statusData OrganizationsCellularGatewayUplinkStatusesDataSourceModelList
-		statusData.LastReportedAt = jsontypes.StringValue(attribute.GetLastReportedAt().String())
-		statusData.Model = jsontypes.StringValue(attribute.GetModel())
-		statusData.NetworkId = jsontypes.StringValue(attribute.GetNetworkId())
-		statusData.Serial = jsontypes.StringValue(attribute.GetSerial())
-		statusData.Uplinks = attribute.GetUplinks()
-		data.List = append(data.List, statusData)
+	// save into the Terraform state.
+	if err = json.NewDecoder(httpResp.Body).Decode(&data.List); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
 	}
 
 	// Set ID for the data source.

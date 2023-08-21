@@ -39,5 +39,3 @@ Optional:
 - `name` (String)
 - `serial` (String)
 - `subnet` (String)
-
-

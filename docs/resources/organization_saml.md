@@ -23,5 +23,3 @@ Manage the SAML SSO enabled settings for an organization.
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-
-

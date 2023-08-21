@@ -3,10 +3,10 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"strings"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
-	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -128,21 +128,17 @@ func (r *NetworksDevicesClaimResource) Create(ctx context.Context, req resource.
 		serials = append(serials, serial.ValueString())
 	}
 
-	claimNetworkDevices := *openApiClient.NewInlineObject74(serials)
+	claimNetworkDevices := *openApiClient.NewClaimNetworkDevicesRequest(serials)
 
-	httpResp, err := r.client.NetworksApi.ClaimNetworkDevices(ctx, data.NetworkId.ValueString()).ClaimNetworkDevices(claimNetworkDevices).Execute()
+	httpResp, err := r.client.NetworksApi.ClaimNetworkDevices(ctx, data.NetworkId.ValueString()).ClaimNetworkDevicesRequest(claimNetworkDevices).Execute()
 
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// Collect any HTTP diagnostics that might be useful for debugging.
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// If it's not what you expect, add an error to diagnostics.
@@ -228,21 +224,17 @@ func (r *NetworksDevicesClaimResource) Delete(ctx context.Context, req resource.
 
 		se := fmt.Sprint(strings.Trim(serial.String(), "\""))
 
-		removeNetworkDevices := *openApiClient.NewInlineObject76(se)
+		removeNetworkDevices := *openApiClient.NewRemoveNetworkDevicesRequest(se)
 
-		httpResp, err := r.client.NetworksApi.RemoveNetworkDevices(ctx, data.NetworkId.ValueString()).RemoveNetworkDevices(removeNetworkDevices).Execute()
+		httpResp, err := r.client.NetworksApi.RemoveNetworkDevices(ctx, data.NetworkId.ValueString()).RemoveNetworkDevicesRequest(removeNetworkDevices).Execute()
 
 		// If there was an error during API call, add it to diagnostics.
 		if err != nil {
 			resp.Diagnostics.AddError(
-				"Failed to create resource",
-				fmt.Sprintf("%v\n", err.Error()),
+				"HTTP Client Failure",
+				tools.HttpDiagnostics(httpResp),
 			)
-		}
-
-		// Collect any HTTP diagnostics that might be useful for debugging.
-		if httpResp != nil {
-			tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+			return
 		}
 
 		// If it's not what you expect, add an error to diagnostics.
