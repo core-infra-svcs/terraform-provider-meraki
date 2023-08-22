@@ -3,12 +3,12 @@
 page_title: "meraki_networks_appliance_vpn_site_to_site_vpn Resource - terraform-provider-meraki"
 subcategory: ""
 description: |-
-  Networks appliance vpn site to site vpn resource for updating networks appliance vpn site to site vpn.
+  Networks appliance vpn site to site vpn resource for updating networks appliance vpn site to site vpn. Only valid for MX networks in NAT mode.
 ---
 
 # meraki_networks_appliance_vpn_site_to_site_vpn (Resource)
 
-Networks appliance vpn site to site vpn resource for updating networks appliance vpn site to site vpn.
+Networks appliance vpn site to site vpn resource for updating networks appliance vpn site to site vpn. Only valid for MX networks in NAT mode.
 
 
 
@@ -48,5 +48,3 @@ Required:
 Optional:
 
 - `use_vpn` (Boolean) Indicates the presence of the subnet in the VPN.
-
-

@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
@@ -55,7 +56,7 @@ func (r *NetworksApplianceVpnSiteToSiteVpnResource) Metadata(ctx context.Context
 
 func (r *NetworksApplianceVpnSiteToSiteVpnResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Networks appliance vpn site to site vpn resource for updating networks appliance vpn site to site vpn.",
+		MarkdownDescription: "Networks appliance vpn site to site vpn resource for updating networks appliance vpn site to site vpn. Only valid for MX networks in NAT mode.",
 		Attributes: map[string]schema.Attribute{
 
 			"id": schema.StringAttribute{
@@ -151,30 +152,25 @@ func (r *NetworksApplianceVpnSiteToSiteVpnResource) Create(ctx context.Context, 
 		return
 	}
 
-	if data.Mode.ValueString() == "none" {
-		if len(data.Hubs) > 0 || len(data.Subnets) > 0 {
-			resp.Diagnostics.AddError(
-				"For mode value none",
-				"hubs and subnets should be empty",
-			)
-			return
-		}
-	}
-	updateNetworkApplianceVpnSiteToSiteVpn := *openApiClient.NewInlineObject60(data.Mode.ValueString())
-	if len(data.Hubs) > 0 {
-		var hubs []openApiClient.NetworksNetworkIdApplianceVpnSiteToSiteVpnHubs
+	updateNetworkApplianceVpnSiteToSiteVpn := *openApiClient.NewUpdateNetworkApplianceVpnSiteToSiteVpnRequest(data.Mode.ValueString())
+
+	// For mode value "none" hubs and subnets should be empty
+	if data.Mode.ValueString() != "none" {
+
+		// Hubs
+		var hubs []openApiClient.UpdateNetworkApplianceVpnSiteToSiteVpnRequestHubsInner
 		for _, attribute := range data.Hubs {
-			var hubData openApiClient.NetworksNetworkIdApplianceVpnSiteToSiteVpnHubs
+			var hubData openApiClient.UpdateNetworkApplianceVpnSiteToSiteVpnRequestHubsInner
 			hubData.SetHubId(attribute.HubId.ValueString())
 			hubData.SetUseDefaultRoute(attribute.UseDefaultRoute.ValueBool())
 			hubs = append(hubs, hubData)
 		}
 		updateNetworkApplianceVpnSiteToSiteVpn.SetHubs(hubs)
-	}
-	if len(data.Subnets) > 0 {
-		var subnets []openApiClient.NetworksNetworkIdApplianceVpnSiteToSiteVpnSubnets
+
+		// Subnets
+		var subnets []openApiClient.UpdateNetworkApplianceVpnSiteToSiteVpnRequestSubnetsInner
 		for _, attribute := range data.Subnets {
-			var subnetData openApiClient.NetworksNetworkIdApplianceVpnSiteToSiteVpnSubnets
+			var subnetData openApiClient.UpdateNetworkApplianceVpnSiteToSiteVpnRequestSubnetsInner
 			subnetData.SetLocalSubnet(attribute.LocalSubnet.ValueString())
 			subnetData.SetUseVpn(attribute.UseVpn.ValueBool())
 			subnets = append(subnets, subnetData)
@@ -182,17 +178,13 @@ func (r *NetworksApplianceVpnSiteToSiteVpnResource) Create(ctx context.Context, 
 		updateNetworkApplianceVpnSiteToSiteVpn.SetSubnets(subnets)
 	}
 
-	inlineResp, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceVpnSiteToSiteVpn(ctx, data.NetworkId.ValueString()).UpdateNetworkApplianceVpnSiteToSiteVpn(updateNetworkApplianceVpnSiteToSiteVpn).Execute()
+	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceVpnSiteToSiteVpn(ctx, data.NetworkId.ValueString()).UpdateNetworkApplianceVpnSiteToSiteVpnRequest(updateNetworkApplianceVpnSiteToSiteVpn).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code
@@ -209,21 +201,15 @@ func (r *NetworksApplianceVpnSiteToSiteVpnResource) Create(ctx context.Context, 
 		return
 	}
 
-	data.Mode = jsontypes.StringValue(inlineResp.GetMode())
-	data.Hubs = nil
-	for _, attribute := range inlineResp.GetHubs() {
-		var hubData NetworksNetworkIdApplianceVpnSiteToSiteVpnHubs
-		hubData.HubId = jsontypes.StringValue(attribute.GetHubId())
-		hubData.UseDefaultRoute = jsontypes.BoolValue(attribute.GetUseDefaultRoute())
-		data.Hubs = append(data.Hubs, hubData)
+	// Save data into Terraform state
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
 	}
-	data.Subnets = nil
-	for _, attribute := range inlineResp.GetSubnets() {
-		var subnetData NetworksNetworkIdApplianceVpnSiteToSiteVpnSubnets
-		subnetData.LocalSubnet = jsontypes.StringValue(attribute.GetLocalSubnet())
-		subnetData.UseVpn = jsontypes.BoolValue(attribute.GetUseVpn())
-		data.Subnets = append(data.Subnets, subnetData)
-	}
+
 	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -242,17 +228,13 @@ func (r *NetworksApplianceVpnSiteToSiteVpnResource) Read(ctx context.Context, re
 		return
 	}
 
-	inlineResp, httpResp, err := r.client.ApplianceApi.GetNetworkApplianceVpnSiteToSiteVpn(ctx, data.NetworkId.ValueString()).Execute()
+	_, httpResp, err := r.client.ApplianceApi.GetNetworkApplianceVpnSiteToSiteVpn(ctx, data.NetworkId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to read resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code
@@ -270,20 +252,13 @@ func (r *NetworksApplianceVpnSiteToSiteVpnResource) Read(ctx context.Context, re
 		resp.Diagnostics.Append()
 	}
 
-	data.Mode = jsontypes.StringValue(inlineResp.GetMode())
-	data.Hubs = nil
-	for _, attribute := range inlineResp.GetHubs() {
-		var hubData NetworksNetworkIdApplianceVpnSiteToSiteVpnHubs
-		hubData.HubId = jsontypes.StringValue(attribute.GetHubId())
-		hubData.UseDefaultRoute = jsontypes.BoolValue(attribute.GetUseDefaultRoute())
-		data.Hubs = append(data.Hubs, hubData)
-	}
-	data.Subnets = nil
-	for _, attribute := range inlineResp.GetSubnets() {
-		var subnetData NetworksNetworkIdApplianceVpnSiteToSiteVpnSubnets
-		subnetData.LocalSubnet = jsontypes.StringValue(attribute.GetLocalSubnet())
-		subnetData.UseVpn = jsontypes.BoolValue(attribute.GetUseVpn())
-		data.Subnets = append(data.Subnets, subnetData)
+	// Save data into Terraform state
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
 	}
 
 	data.Id = jsontypes.StringValue("example-id")
@@ -305,21 +280,25 @@ func (r *NetworksApplianceVpnSiteToSiteVpnResource) Update(ctx context.Context, 
 		return
 	}
 
-	updateNetworkApplianceVpnSiteToSiteVpn := *openApiClient.NewInlineObject60(data.Mode.ValueString())
-	if len(data.Hubs) > 0 {
-		var hubs []openApiClient.NetworksNetworkIdApplianceVpnSiteToSiteVpnHubs
+	updateNetworkApplianceVpnSiteToSiteVpn := *openApiClient.NewUpdateNetworkApplianceVpnSiteToSiteVpnRequest(data.Mode.ValueString())
+
+	// For mode value "none" hubs and subnets should be empty
+	if data.Mode.ValueString() != "none" {
+
+		// Hubs
+		var hubs []openApiClient.UpdateNetworkApplianceVpnSiteToSiteVpnRequestHubsInner
 		for _, attribute := range data.Hubs {
-			var hubData openApiClient.NetworksNetworkIdApplianceVpnSiteToSiteVpnHubs
+			var hubData openApiClient.UpdateNetworkApplianceVpnSiteToSiteVpnRequestHubsInner
 			hubData.SetHubId(attribute.HubId.ValueString())
 			hubData.SetUseDefaultRoute(attribute.UseDefaultRoute.ValueBool())
 			hubs = append(hubs, hubData)
 		}
 		updateNetworkApplianceVpnSiteToSiteVpn.SetHubs(hubs)
-	}
-	if len(data.Subnets) > 0 {
-		var subnets []openApiClient.NetworksNetworkIdApplianceVpnSiteToSiteVpnSubnets
+
+		// Subnets
+		var subnets []openApiClient.UpdateNetworkApplianceVpnSiteToSiteVpnRequestSubnetsInner
 		for _, attribute := range data.Subnets {
-			var subnetData openApiClient.NetworksNetworkIdApplianceVpnSiteToSiteVpnSubnets
+			var subnetData openApiClient.UpdateNetworkApplianceVpnSiteToSiteVpnRequestSubnetsInner
 			subnetData.SetLocalSubnet(attribute.LocalSubnet.ValueString())
 			subnetData.SetUseVpn(attribute.UseVpn.ValueBool())
 			subnets = append(subnets, subnetData)
@@ -327,17 +306,13 @@ func (r *NetworksApplianceVpnSiteToSiteVpnResource) Update(ctx context.Context, 
 		updateNetworkApplianceVpnSiteToSiteVpn.SetSubnets(subnets)
 	}
 
-	inlineResp, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceVpnSiteToSiteVpn(ctx, data.NetworkId.ValueString()).UpdateNetworkApplianceVpnSiteToSiteVpn(updateNetworkApplianceVpnSiteToSiteVpn).Execute()
+	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceVpnSiteToSiteVpn(ctx, data.NetworkId.ValueString()).UpdateNetworkApplianceVpnSiteToSiteVpnRequest(updateNetworkApplianceVpnSiteToSiteVpn).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code
@@ -354,20 +329,13 @@ func (r *NetworksApplianceVpnSiteToSiteVpnResource) Update(ctx context.Context, 
 		return
 	}
 
-	data.Mode = jsontypes.StringValue(inlineResp.GetMode())
-	data.Hubs = nil
-	for _, attribute := range inlineResp.GetHubs() {
-		var hubData NetworksNetworkIdApplianceVpnSiteToSiteVpnHubs
-		hubData.HubId = jsontypes.StringValue(attribute.GetHubId())
-		hubData.UseDefaultRoute = jsontypes.BoolValue(attribute.GetUseDefaultRoute())
-		data.Hubs = append(data.Hubs, hubData)
-	}
-	data.Subnets = nil
-	for _, attribute := range inlineResp.GetSubnets() {
-		var subnetData NetworksNetworkIdApplianceVpnSiteToSiteVpnSubnets
-		subnetData.LocalSubnet = jsontypes.StringValue(attribute.GetLocalSubnet())
-		subnetData.UseVpn = jsontypes.BoolValue(attribute.GetUseVpn())
-		data.Subnets = append(data.Subnets, subnetData)
+	// Save data into Terraform state
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
 	}
 
 	data.Id = jsontypes.StringValue("example-id")
@@ -389,17 +357,13 @@ func (r *NetworksApplianceVpnSiteToSiteVpnResource) Delete(ctx context.Context, 
 		return
 	}
 
-	inlineResp, httpResp, err := r.client.ApplianceApi.GetNetworkApplianceVpnSiteToSiteVpn(ctx, data.NetworkId.ValueString()).Execute()
+	_, httpResp, err := r.client.ApplianceApi.GetNetworkApplianceVpnSiteToSiteVpn(ctx, data.NetworkId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to read resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code
@@ -416,24 +380,6 @@ func (r *NetworksApplianceVpnSiteToSiteVpnResource) Delete(ctx context.Context, 
 	} else {
 		resp.Diagnostics.Append()
 	}
-
-	data.Mode = jsontypes.StringValue(inlineResp.GetMode())
-	data.Hubs = nil
-	for _, attribute := range inlineResp.GetHubs() {
-		var hubData NetworksNetworkIdApplianceVpnSiteToSiteVpnHubs
-		hubData.HubId = jsontypes.StringValue(attribute.GetHubId())
-		hubData.UseDefaultRoute = jsontypes.BoolValue(attribute.GetUseDefaultRoute())
-		data.Hubs = append(data.Hubs, hubData)
-	}
-	data.Subnets = nil
-	for _, attribute := range inlineResp.GetSubnets() {
-		var subnetData NetworksNetworkIdApplianceVpnSiteToSiteVpnSubnets
-		subnetData.LocalSubnet = jsontypes.StringValue(attribute.GetLocalSubnet())
-		subnetData.UseVpn = jsontypes.BoolValue(attribute.GetUseVpn())
-		data.Subnets = append(data.Subnets, subnetData)
-	}
-
-	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
