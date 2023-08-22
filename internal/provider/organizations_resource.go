@@ -170,7 +170,6 @@ func (r *OrganizationResource) Create(ctx context.Context, req resource.CreateRe
 			tools.HttpDiagnostics(httpResp),
 		)
 		return
-		return
 	}
 
 	// Check for API success response code
@@ -238,7 +237,6 @@ func (r *OrganizationResource) Read(ctx context.Context, req resource.ReadReques
 			"HTTP Client Failure",
 			tools.HttpDiagnostics(httpResp),
 		)
-		return
 		return
 	}
 
@@ -328,7 +326,6 @@ func (r *OrganizationResource) Update(ctx context.Context, req resource.UpdateRe
 			tools.HttpDiagnostics(httpResp),
 		)
 		return
-		return
 	}
 
 	// Check for API success response code
@@ -395,7 +392,6 @@ func (r *OrganizationResource) Delete(ctx context.Context, req resource.DeleteRe
 			"HTTP Client Failure",
 			tools.HttpDiagnostics(httpResp),
 		)
-		return
 		return
 	}
 
