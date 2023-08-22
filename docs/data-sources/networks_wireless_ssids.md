@@ -30,46 +30,56 @@ NetworksWirelessSsids
 <a id="nestedatt--list"></a>
 ### Nested Schema for `list`
 
-Required:
+Optional:
 
+- `admin_splash_url` (String)
 - `auth_mode` (String) The association control method for the SSID ('open', 'open-enhanced', 'psk', 'open-with-radius', 'open-with-nac', '8021x-meraki', '8021x-nac', '8021x-radius', '8021x-google', '8021x-localradius', 'ipsk-with-radius' or 'ipsk-without-radius')
-- `band_selection` (String) This policy determines how authentication requests should be handled in the event that all of the configured RADIUS servers are unreachable ('Deny access' or 'Allow access').
+- `availability_tags` (Set of String)
+- `available_on_all_aps` (Boolean)
+- `band_selection` (String)
+- `enabled` (Boolean) Whether or not the SSID is enabled.
+- `encryption_mode` (String)
 - `ip_assignment_mode` (String) The client IP assignment mode ('NAT mode', 'Bridge mode', 'Layer 3 roaming', 'Ethernet over GRE', 'Layer 3 roaming with a concentrator' or 'VPN')
+- `mandatory_dhcp_enabled` (Boolean)
+- `min_bitrate` (Number)
 - `name` (String) The VLAN ID of the new VLAN (must be between 1 and 4094)
-- `splash_page` (String) The type of splash page for the SSID ('None', 'Click-through splash page', 'Billing', 'Password-protected with Meraki RADIUS', 'Password-protected with custom RADIUS', 'Password-protected with Active Directory', 'Password-protected with LDAP', 'SMS authentication', 'Systems Manager Sentry', 'Facebook Wi-Fi', 'Google OAuth', 'Sponsored guest', 'Cisco ISE' or 'Google Apps domain'). This attribute is not supported for template children.
-
-Optional:
-
-- `adult_content_filtering_enabled` (Boolean)
-- `availability_tags` (Set of String) The IPs of the DHCP servers that DHCP requests should be relayed to
-- `available_on_all_aps` (Boolean) Enable Mandatory DHCP on VLAN.
-- `dns_rewrite` (Attributes) (see [below for nested schema](#nestedatt--list--dns_rewrite))
-- `enabled` (Boolean) Whether or not the SSID is enabled.
-- `mandatory_dhcp_enabled` (Boolean) Enable Mandatory DHCP on VLAN.
-- `min_bitrate` (Number) The minimum bitrate in Mbps of this SSID in the default indoor RF profile. ('1', '2', '5.5', '6', '9', '11', '12', '18', '24', '36', '48' or '54').
 - `number` (Number) Mask used for the subnet of all bound to the template networks. Applicable only for template network.
-- `per_client_bandwidth_limit_down` (Number) The download bandwidth limit in Kbps.
-- `per_client_bandwidth_limit_up` (Number) The upload bandwidth limit in Kbps. (0 represents no limit.)
-- `per_ssid_bandwidth_limit_down` (Number) The total download bandwidth limit in Kbps. (0 represents no limit.).
-- `per_ssid_bandwidth_limit_up` (Number) The total upload bandwidth limit in Kbps. (0 represents no limit.)
-- `speed_burst` (Attributes) (see [below for nested schema](#nestedatt--list--speed_burst))
+- `per_client_bandwidth_limit_down` (Number)
+- `per_client_bandwidth_limit_up` (Number)
+- `per_ssid_bandwidth_limit_down` (Number)
+- `per_ssid_bandwidth_limit_up` (Number)
+- `radius_accounting_enabled` (Boolean)
+- `radius_accounting_servers` (Attributes List) (see [below for nested schema](#nestedatt--list--radius_accounting_servers))
+- `radius_attribute_for_group_policies` (String)
+- `radius_enabled` (Boolean)
+- `radius_failover_policy` (String)
+- `radius_load_balancing_policy` (String)
+- `radius_servers` (Attributes List) (see [below for nested schema](#nestedatt--list--radius_servers))
+- `splash_page` (String) The type of splash page for the SSID ('None', 'Click-through splash page', 'Billing', 'Password-protected with Meraki RADIUS', 'Password-protected with custom RADIUS', 'Password-protected with Active Directory', 'Password-protected with LDAP', 'SMS authentication', 'Systems Manager Sentry', 'Facebook Wi-Fi', 'Google OAuth', 'Sponsored guest', 'Cisco ISE' or 'Google Apps domain'). This attribute is not supported for template children.
+- `splash_timeout` (String)
 - `ssid_admin_accessible` (Boolean) Enable Mandatory DHCP on VLAN.
-- `visible` (Boolean) Enable Mandatory DHCP on VLAN.
+- `visible` (Boolean)
+- `walled_garden_enabled` (Boolean)
+- `walled_garden_ranges` (Set of String)
+- `wpa_encryption_mode` (String)
 
-<a id="nestedatt--list--dns_rewrite"></a>
-### Nested Schema for `list.dns_rewrite`
-
-Optional:
-
-- `dns_custom_nameservers` (Set of String) The IPs of the DHCP servers that DHCP requests should be relayed to
-- `enabled` (Boolean) Whether or not the SSID is enabled.
-
-
-<a id="nestedatt--list--speed_burst"></a>
-### Nested Schema for `list.speed_burst`
+<a id="nestedatt--list--radius_accounting_servers"></a>
+### Nested Schema for `list.radius_accounting_servers`
 
 Optional:
 
-- `enabled` (Boolean) Whether or not the SSID is enabled.
+- `ca_certificate` (String)
+- `host` (String)
+- `open_roaming_certificate_id` (Number)
+- `port` (Number)
 
 
+<a id="nestedatt--list--radius_servers"></a>
+### Nested Schema for `list.radius_servers`
+
+Optional:
+
+- `ca_certificate` (String)
+- `host` (String)
+- `open_roaming_certificate_id` (Number)
+- `port` (Number)
