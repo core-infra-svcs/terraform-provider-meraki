@@ -115,7 +115,6 @@ func (r *OrganizationSamlResource) Create(ctx context.Context, req resource.Crea
 			tools.HttpDiagnostics(httpResp),
 		)
 		return
-		return
 	}
 
 	// Check for API success response code
