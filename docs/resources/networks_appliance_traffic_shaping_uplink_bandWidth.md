@@ -31,5 +31,3 @@ NetworksApplianceTrafficShapingUplinkBandWidth resource for updating Network App
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-
-

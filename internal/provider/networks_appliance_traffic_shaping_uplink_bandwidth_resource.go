@@ -147,11 +147,11 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Create(ctx cont
 		return
 	}
 
-	updateApplianceTrafficShapingUplinkBandWidth := *openApiClient.NewInlineObject54()
+	updateApplianceTrafficShapingUplinkBandWidth := *openApiClient.NewUpdateNetworkApplianceTrafficShapingUplinkBandwidthRequest()
 
-	var bandwidthLimit openApiClient.NetworksNetworkIdApplianceTrafficShapingUplinkBandwidthBandwidthLimits
+	var bandwidthLimit openApiClient.UpdateNetworkApplianceTrafficShapingUplinkBandwidthRequestBandwidthLimits
 
-	var cellular openApiClient.NetworksNetworkIdApplianceTrafficShapingUplinkBandwidthBandwidthLimitsCellular
+	var cellular openApiClient.UpdateNetworkApplianceTrafficShapingUplinkBandwidthRequestBandwidthLimitsCellular
 
 	if !(data.BandwidthLimitCellularLimitUp.IsUnknown() || data.BandwidthLimitCellularLimitDown.IsUnknown()) {
 		if !(data.BandwidthLimitCellularLimitUp.IsNull() || data.BandwidthLimitCellularLimitDown.IsNull()) {
@@ -161,7 +161,7 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Create(ctx cont
 		}
 	}
 
-	var wan1 openApiClient.NetworksNetworkIdApplianceTrafficShapingUplinkBandwidthBandwidthLimitsWan1
+	var wan1 openApiClient.UpdateNetworkApplianceTrafficShapingUplinkBandwidthRequestBandwidthLimitsWan1
 	if !(data.BandwidthLimitWan1LimitUp.IsUnknown() || data.BandwidthLimitWan1LimitDown.IsUnknown()) {
 		if !(data.BandwidthLimitWan1LimitUp.IsNull() || data.BandwidthLimitWan1LimitDown.IsNull()) {
 			wan1.SetLimitUp(int32(data.BandwidthLimitWan1LimitUp.ValueInt64()))
@@ -170,7 +170,7 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Create(ctx cont
 		}
 	}
 
-	var wan2 openApiClient.NetworksNetworkIdApplianceTrafficShapingUplinkBandwidthBandwidthLimitsWan2
+	var wan2 openApiClient.UpdateNetworkApplianceTrafficShapingUplinkBandwidthRequestBandwidthLimitsWan2
 	if !(data.BandwidthLimitWan2LimitUp.IsUnknown() || data.BandwidthLimitWan2LimitDown.IsUnknown()) {
 		if !(data.BandwidthLimitWan2LimitUp.IsNull() || data.BandwidthLimitWan2LimitDown.IsNull()) {
 			wan2.SetLimitUp(int32(data.BandwidthLimitWan2LimitUp.ValueInt64()))
@@ -181,17 +181,14 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Create(ctx cont
 
 	updateApplianceTrafficShapingUplinkBandWidth.SetBandwidthLimits(bandwidthLimit)
 
-	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceTrafficShapingUplinkBandwidth(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceTrafficShapingUplinkBandwidth(updateApplianceTrafficShapingUplinkBandWidth).Execute()
+	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceTrafficShapingUplinkBandwidth(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceTrafficShapingUplinkBandwidthRequest(updateApplianceTrafficShapingUplinkBandWidth).Execute()
+
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	if httpResp.StatusCode != 200 {
@@ -207,8 +204,6 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Create(ctx cont
 		return
 	}
 
-	// Decode the HTTP response body into your data model.
-	// If there's an error, add it to diagnostics.
 	// Save data into Terraform state
 	data, err = extractHttpResponseUplinkBandwidthResource(ctx, httpResp.Body, &ApiResponse{}, data)
 	if err != nil {
@@ -237,16 +232,13 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Read(ctx contex
 		return
 	}
 	_, httpResp, err := r.client.ApplianceApi.GetNetworkApplianceTrafficShapingUplinkBandwidth(context.Background(), data.NetworkId.ValueString()).Execute()
+
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to read resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	if httpResp.StatusCode != 200 {
@@ -294,11 +286,11 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Update(ctx cont
 		return
 	}
 
-	updateApplianceTrafficShapingUplinkBandWidth := *openApiClient.NewInlineObject54()
+	updateApplianceTrafficShapingUplinkBandWidth := *openApiClient.NewUpdateNetworkApplianceTrafficShapingUplinkBandwidthRequest()
 
-	var bandwidthLimit openApiClient.NetworksNetworkIdApplianceTrafficShapingUplinkBandwidthBandwidthLimits
+	var bandwidthLimit openApiClient.UpdateNetworkApplianceTrafficShapingUplinkBandwidthRequestBandwidthLimits
 
-	var cellular openApiClient.NetworksNetworkIdApplianceTrafficShapingUplinkBandwidthBandwidthLimitsCellular
+	var cellular openApiClient.UpdateNetworkApplianceTrafficShapingUplinkBandwidthRequestBandwidthLimitsCellular
 
 	if !(data.BandwidthLimitCellularLimitUp.IsUnknown() || data.BandwidthLimitCellularLimitDown.IsUnknown()) {
 		if !(data.BandwidthLimitCellularLimitUp.IsNull() || data.BandwidthLimitCellularLimitDown.IsNull()) {
@@ -308,7 +300,7 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Update(ctx cont
 		}
 	}
 
-	var wan1 openApiClient.NetworksNetworkIdApplianceTrafficShapingUplinkBandwidthBandwidthLimitsWan1
+	var wan1 openApiClient.UpdateNetworkApplianceTrafficShapingUplinkBandwidthRequestBandwidthLimitsWan1
 	if !(data.BandwidthLimitWan1LimitUp.IsUnknown() || data.BandwidthLimitWan1LimitDown.IsUnknown()) {
 		if !(data.BandwidthLimitWan1LimitUp.IsNull() || data.BandwidthLimitWan1LimitDown.IsNull()) {
 			wan1.SetLimitUp(int32(data.BandwidthLimitWan1LimitUp.ValueInt64()))
@@ -317,7 +309,7 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Update(ctx cont
 		}
 	}
 
-	var wan2 openApiClient.NetworksNetworkIdApplianceTrafficShapingUplinkBandwidthBandwidthLimitsWan2
+	var wan2 openApiClient.UpdateNetworkApplianceTrafficShapingUplinkBandwidthRequestBandwidthLimitsWan2
 	if !(data.BandwidthLimitWan2LimitUp.IsUnknown() || data.BandwidthLimitWan2LimitDown.IsUnknown()) {
 		if !(data.BandwidthLimitWan2LimitUp.IsNull() || data.BandwidthLimitWan2LimitDown.IsNull()) {
 			wan2.SetLimitUp(int32(data.BandwidthLimitWan2LimitUp.ValueInt64()))
@@ -328,17 +320,14 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Update(ctx cont
 
 	updateApplianceTrafficShapingUplinkBandWidth.SetBandwidthLimits(bandwidthLimit)
 
-	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceTrafficShapingUplinkBandwidth(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceTrafficShapingUplinkBandwidth(updateApplianceTrafficShapingUplinkBandWidth).Execute()
+	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceTrafficShapingUplinkBandwidth(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceTrafficShapingUplinkBandwidthRequest(updateApplianceTrafficShapingUplinkBandWidth).Execute()
+
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	if httpResp.StatusCode != 200 {
@@ -385,51 +374,26 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Delete(ctx cont
 		return
 	}
 
-	updateApplianceTrafficShapingUplinkBandWidth := *openApiClient.NewInlineObject54()
+	updateApplianceTrafficShapingUplinkBandWidth := *openApiClient.NewUpdateNetworkApplianceTrafficShapingUplinkBandwidthRequest()
 
-	var bandwidthLimit openApiClient.NetworksNetworkIdApplianceTrafficShapingUplinkBandwidthBandwidthLimits
+	var bandwidthLimit openApiClient.UpdateNetworkApplianceTrafficShapingUplinkBandwidthRequestBandwidthLimits
+	var cellular openApiClient.UpdateNetworkApplianceTrafficShapingUplinkBandwidthRequestBandwidthLimitsCellular
+	var wan1 openApiClient.UpdateNetworkApplianceTrafficShapingUplinkBandwidthRequestBandwidthLimitsWan1
+	var wan2 openApiClient.UpdateNetworkApplianceTrafficShapingUplinkBandwidthRequestBandwidthLimitsWan2
 
-	var cellular openApiClient.NetworksNetworkIdApplianceTrafficShapingUplinkBandwidthBandwidthLimitsCellular
-
-	if !(data.BandwidthLimitCellularLimitUp.IsUnknown() || data.BandwidthLimitCellularLimitDown.IsUnknown()) {
-		if !(data.BandwidthLimitCellularLimitUp.IsNull() || data.BandwidthLimitCellularLimitDown.IsNull()) {
-			cellular.SetLimitUp(int32(data.BandwidthLimitCellularLimitUp.ValueInt64()))
-			cellular.SetLimitDown(int32(data.BandwidthLimitCellularLimitDown.ValueInt64()))
-			bandwidthLimit.SetCellular(cellular)
-		}
-	}
-
-	var wan1 openApiClient.NetworksNetworkIdApplianceTrafficShapingUplinkBandwidthBandwidthLimitsWan1
-	if !(data.BandwidthLimitWan1LimitUp.IsUnknown() || data.BandwidthLimitWan1LimitDown.IsUnknown()) {
-		if !(data.BandwidthLimitWan1LimitUp.IsNull() || data.BandwidthLimitWan1LimitDown.IsNull()) {
-			wan1.SetLimitUp(int32(data.BandwidthLimitWan1LimitUp.ValueInt64()))
-			wan1.SetLimitDown(int32(data.BandwidthLimitWan1LimitDown.ValueInt64()))
-			bandwidthLimit.SetWan1(wan1)
-		}
-	}
-
-	var wan2 openApiClient.NetworksNetworkIdApplianceTrafficShapingUplinkBandwidthBandwidthLimitsWan2
-	if !(data.BandwidthLimitWan2LimitUp.IsUnknown() || data.BandwidthLimitWan2LimitDown.IsUnknown()) {
-		if !(data.BandwidthLimitWan2LimitUp.IsNull() || data.BandwidthLimitWan2LimitDown.IsNull()) {
-			wan2.SetLimitUp(int32(data.BandwidthLimitWan2LimitUp.ValueInt64()))
-			wan2.SetLimitDown(int32(data.BandwidthLimitWan2LimitDown.ValueInt64()))
-			bandwidthLimit.SetWan2(wan2)
-		}
-	}
-
+	bandwidthLimit.SetCellular(cellular)
+	bandwidthLimit.SetWan1(wan1)
+	bandwidthLimit.SetWan2(wan2)
 	updateApplianceTrafficShapingUplinkBandWidth.SetBandwidthLimits(bandwidthLimit)
 
-	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceTrafficShapingUplinkBandwidth(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceTrafficShapingUplinkBandwidth(updateApplianceTrafficShapingUplinkBandWidth).Execute()
+	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceTrafficShapingUplinkBandwidth(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceTrafficShapingUplinkBandwidthRequest(updateApplianceTrafficShapingUplinkBandWidth).Execute()
+
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	if httpResp.StatusCode != 200 {
@@ -444,20 +408,6 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Delete(ctx cont
 		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%v", data))
 		return
 	}
-
-	// Decode the HTTP response body into your data model.
-	// If there's an error, add it to diagnostics.
-	// Save data into Terraform state
-	data, err = extractHttpResponseUplinkBandwidthResource(ctx, httpResp.Body, &ApiResponse{}, data)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"JSON decoding error",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-		return
-	}
-
-	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
