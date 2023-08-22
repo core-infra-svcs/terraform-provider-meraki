@@ -1,8 +1,6 @@
 package provider
 
 import (
-	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -26,19 +24,22 @@ func TestAccOrganizationsLicensesDataSource(t *testing.T) {
 				Config: testAccOrganizationsLicensesDataSourceConfigCreateOrganization,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
-					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_meraki_organizations_licenses"),
+					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_acc_meraki_organizations_move_license_source"),
 				),
 			},
 
-			// Update and Read OrganizationsLicense
+			// Claim a Licence into the Organization
+			/* TODO - Need a valid Licence
 			{
-				Config: testAccOrganizationsLicenseDataSourceConfigUpdate(os.Getenv("TF_ACC_MERAKI_MX_LICENCE_ID"), os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organizations_license.test", "id", "example-id"),
-					resource.TestCheckResourceAttr("meraki_organizations_license.test", "license_id", os.Getenv("TF_ACC_MERAKI_MX_LICENCE_ID")),
-					resource.TestCheckResourceAttr("meraki_organizations_license.test", "device_serial", os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
-				),
-			},
+					Config: testAccOrganizationsLicensesDataSourceConfigClaimLicence(os.Getenv("TF_ACC_MERAKI_MX_LICENCE")),
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr("meraki_organizations_claim.test_licence", "id", "example-id"),
+						resource.TestCheckResourceAttr("meraki_organizations_claim.test_licence", "licenses.#", "1"),
+						resource.TestCheckResourceAttr("meraki_organizations_claim.test_licence", "licenses.0.key", os.Getenv("TF_ACC_MERAKI_MX_LICENCE")),
+						resource.TestCheckResourceAttr("meraki_organizations_claim.test_licence", "licenses.0.mode", "addDevices"),
+					),
+				},
+
 
 			// Read Organizations Licenses
 			{
@@ -47,9 +48,10 @@ func TestAccOrganizationsLicensesDataSource(t *testing.T) {
 					resource.TestCheckResourceAttr("data.meraki_organizations_licenses.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("data.meraki_organizations_licenses.test", "list.#", "1"),
 					resource.TestCheckResourceAttr("data.meraki_organizations_licenses.test", "list.0.license_id", os.Getenv("TF_ACC_MERAKI_MX_LICENCE_ID")),
-					resource.TestCheckResourceAttr("data.meraki_organizations_licenses.test", "list.0.device_serial", os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
 				),
 			},
+
+			*/
 		},
 	})
 }
@@ -57,41 +59,43 @@ func TestAccOrganizationsLicensesDataSource(t *testing.T) {
 // testAccOrganizationsLicensesDataSourceConfigCreateOrganization is a constant string that defines the configuration for creating an organization resource in your tests.
 const testAccOrganizationsLicensesDataSourceConfigCreateOrganization = `
  resource "meraki_organization" "test" {
- 	name = "test_meraki_organizations_licenses"
+ 	name = "test_acc_meraki_organizations_move_license_source"
  	api_enabled = true
  }
  `
 
-// testAccOrganizationsLicenseResourceConfigUpdate is a constant string that defines the configuration for updating a organizations_license resource in your tests.
+/*
+// testAccOrganizationsLicensesDataSourceConfiggClaimLicence is a constant string that defines the configuration for creating and reading a organizations_claim resource in your tests.
 // It depends on both the organization and network resources.
-func testAccOrganizationsLicenseDataSourceConfigUpdate(licenceId, serial string) string {
+func testAccOrganizationsLicensesDataSourceConfigClaimLicence(licence string) string {
 	result := fmt.Sprintf(`
-resource "meraki_organization" "test" {}
+	resource "meraki_organization" "test" {}
 
-resource "meraki_organizations_license" "test" {
-	depends_on = [resource.meraki_organization.test]
-    organization_id = resource.meraki_organization.test.organization_id
-    license_id = "%s"
-    device_serial = "%s"
-}
-`, licenceId, serial)
+	resource "meraki_organizations_claim" "test_licence" {
+		organization_id = resource.meraki_organization.test.organization_id
+		orders = []
+		serials = []
+		licences = [
+			{
+				key = "%s"
+				mode = "addDevices"
+			}
+		]
+
+	}
+`, licence)
 	return result
 }
 
 // testAccOrganizationsLicensesDataSourceConfigRead is a constant string that defines the configuration for creating and updating a organizations_licenses resource in your tests.
 // It depends on both the organization and network resources.
-func testAccOrganizationsLicensesDataSourceConfigRead(licenceId, serial string) string {
-	result := fmt.Sprintf(`
+const testAccOrganizationsLicensesDataSourceConfigRead = `
 resource "meraki_organization" "test" {}
-resource "meraki_organizations_license" "test" {
-	depends_on = [resource.meraki_organization.test]
-    organization_id = resource.meraki_organization.test.organization_id
-    license_id = "%s"
-    device_serial = "%s"
-}
+resource "meraki_organizations_license" "test_licence" {}
+
 data "meraki_organizations_licenses" "test" {
+    depends_on = ["resource.meraki_organization.test", "resource.meraki_organizations_claim.test_licence"]
 	organization_id = resource.meraki_organization.test.organization_id
 }
-`, licenceId, serial)
-	return result
-}
+`
+*/

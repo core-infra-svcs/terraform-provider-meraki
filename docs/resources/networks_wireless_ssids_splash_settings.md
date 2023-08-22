@@ -24,7 +24,7 @@ NetworksWirelessSsidsSplashSettings
 
 - `allow_simultaneous_logins` (Boolean) Whether or not to allow simultaneous logins from different devices.
 - `billing` (Attributes) Details associated with billing splash. (see [below for nested schema](#nestedatt--billing))
-- `blockall_trafficbefore_signon` (Boolean) How restricted allowing traffic should be. If true, all traffic types are blocked until the splash page is acknowledged. If false, all non-HTTP traffic is allowed before the splash page is acknowledged.
+- `block_all_traffic_before_sign_on` (Boolean) How restricted allowing traffic should be. If true, all traffic types are blocked until the splash page is acknowledged. If false, all non-HTTP traffic is allowed before the splash page is acknowledged.
 - `controller_disconnection_behavior` (String) How login attempts should be handled when the controller is unreachable. Can be either 'open', 'restricted', or 'default'.
 - `guest_sponsorship` (Attributes) Details associated with guest sponsored splash. (see [below for nested schema](#nestedatt--guest_sponsorship))
 - `redirect_url` (String) The custom redirect URL where the users will go after the splash page.
@@ -142,5 +142,3 @@ Optional:
 
 - `contents` (String) The file contents (a base 64 encoded string) of your new prepaid.
 - `format` (String) The format of the encoded contents. Supported formats are 'png', 'gif', and jpg'.
-
-

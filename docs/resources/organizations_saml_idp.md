@@ -26,5 +26,3 @@ Manage the SAML IdPs in your organization
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-
-

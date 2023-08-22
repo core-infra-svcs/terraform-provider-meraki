@@ -1,58 +1,39 @@
 package tools
 
 import (
-	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"io"
+	"log"
 	"net/http"
-	"net/http/httputil"
-	"regexp"
 )
 
-func obfuscateMerakiApiKey(data string) string {
-	re := regexp.MustCompile("(?m)^.*X-Cisco-Meraki-Api-Key.*$[\r\n]+")
-	obfuscated := re.ReplaceAllString(data, "X-Cisco-Meraki-Api-Key: ***OBFUSCATED***\n")
-	return obfuscated
-}
+// HttpDiagnostics - responsible for gathering and logging HTTP driven events
+func HttpDiagnostics(httpResp *http.Response) string {
+	defer httpResp.Body.Close()
 
-// CollectHttpDiagnostics - responsible for gathering and logging HTTP driven events
-func CollectHttpDiagnostics(ctx context.Context, diags *diag.Diagnostics, httpResp *http.Response) *diag.Diagnostics {
-
-	// Collect HTTP request diagnostics
-	reqDump, err := httputil.DumpRequestOut(httpResp.Request, false) // already consumed
+	// Read the response body, so we can include it in the diagnostics message.
+	bodyBytes, err := io.ReadAll(httpResp.Body)
 	if err != nil {
-		diags.AddWarning(
-			"Failed to gather HTTP request diagnostics", fmt.Sprintf("\n%s", err),
-		)
+		log.Fatal(err)
 	}
 
-	// Collect HTTP response diagnostics
-	respDump, err := httputil.DumpResponse(httpResp, true)
-	if err != nil {
-		diags.AddWarning(
-			"Failed to gather HTTP inlineResp diagnostics", fmt.Sprintf("\n%s", err),
-		)
+	// Make a copy of the request headers and exclude the 'Authorization' header
+	requestHeaders := make(http.Header, len(httpResp.Request.Header))
+
+	for key, values := range httpResp.Request.Header {
+		if key == "Authorization" {
+			requestHeaders["Authorization"] = append([]string{}, "**REDACTED**")
+		} else {
+			requestHeaders[key] = append([]string{}, values...)
+		}
 	}
 
-	// Check for errors after diagnostics collected
-	if diags.HasError() {
+	results := fmt.Sprintf(
+		"HTTP Method: %v\n\nRequest URL: %v\n\nRequest Headers: %v\n\nRequest Payload: %v\n\n"+
+			"Response Headers: %v\n\nResponse Time: %v\n\nStatus Code: %d\n\nResponse Body: %s\n\n",
+		httpResp.Request.Method, httpResp.Request.URL, requestHeaders, httpResp.Request.Body,
+		httpResp.Header, httpResp.Header.Get("Date"), httpResp.StatusCode, string(bodyBytes),
+	)
 
-		diags.AddError(
-			"Request Diagnostics:",
-			fmt.Sprintf("\n%s", obfuscateMerakiApiKey(string(reqDump))),
-		)
-
-		diags.AddError(
-			"Response Diagnostics:",
-			fmt.Sprintf("\n%s", respDump),
-		)
-	} else {
-		// Write logs
-		tflog.Trace(ctx, fmt.Sprintf("Request Diagnostics\n%s", obfuscateMerakiApiKey(string(reqDump))))
-		tflog.Trace(ctx, fmt.Sprintf("Response Diagnostics\n%s", respDump))
-	}
-
-	return diags
-
+	return results
 }
