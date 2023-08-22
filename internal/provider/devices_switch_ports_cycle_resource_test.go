@@ -1,58 +1,123 @@
 package provider
 
 import (
+	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"os"
 	"testing"
 )
 
-// TODO - DON'T FORGET TO DELETE ALL "TODO" COMMENTS!
-// TODO - Testing is meant to be atomic in that we give very specific instructions for how to create, read, update, and delete infrastructure across test steps.
-// TODO - This is really useful for troubleshooting resources/data sources during development and provides a high level of confidence that our provider works as intended.
 func TestAccDevicesSwitchPortsCycleResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 
-			// Create test Organization
+			// Create and Read a Network.
 			{
-				Config: testAccDevicesSwitchPortsCycleResourceConfigCreateOrganization,
+				Config: testAccDevicesSwitchPortsCycleResourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_meraki_devices_switch_ports_cycle"),
+					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_meraki_devices_switch_ports_cycle"),
+					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
+					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
+					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
+					resource.TestCheckResourceAttr("meraki_network.test", "product_types.#", "1"),
+					resource.TestCheckResourceAttr("meraki_network.test", "product_types.0", "switch"),
+					resource.TestCheckResourceAttr("meraki_network.test", "notes", "Additional description of the network"),
 				),
 			},
 
-			//Create and Read testing
-			{
-				Config: testAccDevicesSwitchPortsCycleResourceConfigCreate,
-				Check:  resource.ComposeAggregateTestCheckFunc(
-				//resource.TestCheckResourceAttr("meraki_devices_switch_ports_cycle.test", "id", "example-id"),
-				),
-			},
+			/*
+				// Claim A Device To A Network
+				{
+					Config: testAccDevicesSwitchPortsCycleResourceConfigClaimNetworkDevice(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), os.Getenv("TF_ACC_MERAKI_MS_SERIAL")),
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr("meraki_networks_devices_claim.test", "id", "example-id"),
+					),
+				},
 
-			//
-			//{
-			//	ResourceName:      "meraki_devices_switch_ports_cycle.test",
-			//	ImportState:       true,
-			//	ImportStateVerify: false,
-			//	ImportStateId:     "1234567890, 0987654321",
-			//},
+				// Create and Read testing
+				{
+					Config: testAccDevicesSwitchPortsCycleResourceConfigCycle(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), os.Getenv("TF_ACC_MERAKI_MS_SERIAL")),
+					Check: resource.ComposeAggregateTestCheckFunc(
+						resource.TestCheckResourceAttr("meraki_devices_switch_ports_cycle.test", "id", "example-id"),
+					),
+				},
+			*/
 
 			// Delete testing automatically occurs in TestCase
 		},
 	})
 }
 
-const testAccDevicesSwitchPortsCycleResourceConfigCreateOrganization = `
- resource "meraki_organization" "test" {
- 	name = "test_meraki_devices_switch_ports_cycle"
- 	api_enabled = true
- }
- `
-
-const testAccDevicesSwitchPortsCycleResourceConfigCreate = `
-resource "meraki_devices_switch_ports_cycle" "test" {
-	serial = "Q2GX-AQWX-FZW9"
-	ports = ["1"]
+func testAccDevicesSwitchPortsCycleResourceConfigCreateNetwork(orgId string) string {
+	result := fmt.Sprintf(`
+resource "meraki_network" "test" {
+	organization_id = "%s"
+	product_types = ["switch"]
+	tags = ["tag1"]
+	name = "test_meraki_devices_switch_ports_cycle"
+	timezone = "America/Los_Angeles"
+	notes = "Additional description of the network"
 }
-`
+`, orgId)
+	return result
+}
+
+// TODO: Response Body: {"errors":["Temporary overload, please try again"]} (Need a switch that is online for this to work
+/*
+func testAccDevicesSwitchPortsCycleResourceConfigClaimNetworkDevice(orgId string, serial string) string {
+	result := fmt.Sprintf(`
+resource "meraki_network" "test" {
+        organization_id = "%s"
+        product_types = ["switch"]
+	tags = ["tag1"]
+	name = "test_meraki_devices_switch_ports_cycle"
+	timezone = "America/Los_Angeles"
+	notes = "Additional description of the network"
+}
+
+resource "meraki_networks_devices_claim" "test" {
+    depends_on = [resource.meraki_network.test]
+    network_id = resource.meraki_network.test.network_id
+    serials = [
+      "%s"
+  ]
+}
+`, orgId, serial)
+	return result
+}
+
+
+// It seems like this is a bug or a response given when the switch is not online.
+
+func testAccDevicesSwitchPortsCycleResourceConfigCycle(orgId string, serial string) string {
+	result := fmt.Sprintf(`
+
+resource "meraki_network" "test" {
+        organization_id = "%s"
+        product_types = ["switch"]
+		tags = ["tag1"]
+		name = "test_meraki_devices_switch_ports_cycle"
+		timezone = "America/Los_Angeles"
+		notes = "Additional description of the network"
+}
+
+resource "meraki_networks_devices_claim" "test" {
+    depends_on = [resource.meraki_network.test]
+    network_id = resource.meraki_network.test.network_id
+    serials = [
+      "%s"
+  ]
+}
+
+resource "meraki_devices_switch_ports_cycle" "test" {
+	depends_on = [resource.meraki_network.test, meraki_networks_devices_claim.test]
+	serial = "%s"
+	ports = ["3"]
+}
+`, orgId, serial, serial)
+	return result
+}
+
+*/

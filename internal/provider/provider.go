@@ -291,6 +291,7 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		NewDevicesCellularSimsResource,
 		NewDevicesTestAccDevicesManagementInterfaceResourceResource,
 		NewNetworksApplianceVpnSiteToSiteVpnResource,
+		NewDevicesSwitchPortsCycleResource,
 	}
 }
 
