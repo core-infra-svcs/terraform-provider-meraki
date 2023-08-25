@@ -40,5 +40,3 @@ Optional:
 - `stacks` (Set of String) List of stack IDs
 - `switch_profiles` (Set of String) List of switch profile IDs
 - `switches` (Set of String) List of switch serial numbers
-
-

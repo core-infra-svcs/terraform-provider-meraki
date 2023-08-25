@@ -141,11 +141,11 @@ func (r *NetworksSwitchStpResource) Create(ctx context.Context, req resource.Cre
 		return
 	}
 
-	object138 := openApiClient.NewInlineObject139()
-	object138.SetRstpEnabled(data.RstpEnabled.ValueBool())
-	var stpBridgePriority []openApiClient.NetworksNetworkIdSwitchStpStpBridgePriority
+	payload := openApiClient.NewUpdateNetworkSwitchStpRequest()
+	payload.SetRstpEnabled(data.RstpEnabled.ValueBool())
+	var stpBridgePriority []openApiClient.UpdateNetworkSwitchStpRequestStpBridgePriorityInner
 	for _, d := range data.StpBridgePriority {
-		priority := openApiClient.NewNetworksNetworkIdSwitchStpStpBridgePriority(int32(d.StpPriority.ValueInt64()))
+		priority := openApiClient.NewUpdateNetworkSwitchStpRequestStpBridgePriorityInner(int32(d.StpPriority.ValueInt64()))
 		stacks := []string{}
 		for _, stack := range d.Stacks.Elements() {
 			stacks = append(stacks, stack.String())
@@ -163,17 +163,15 @@ func (r *NetworksSwitchStpResource) Create(ctx context.Context, req resource.Cre
 		priority.SetSwitchProfiles(switcheProfiles)
 		stpBridgePriority = append(stpBridgePriority, *priority)
 	}
-	object138.SetStpBridgePriority(stpBridgePriority)
-	_, httpResp, err := r.client.SwitchApi.UpdateNetworkSwitchStp(ctx, data.NetworkId.ValueString()).UpdateNetworkSwitchStp(*object138).Execute()
+	payload.SetStpBridgePriority(stpBridgePriority)
+	_, httpResp, err := r.client.SwitchApi.UpdateNetworkSwitchStp(ctx, data.NetworkId.ValueString()).UpdateNetworkSwitchStpRequest(*payload).Execute()
 
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code
@@ -218,16 +216,13 @@ func (r *NetworksSwitchStpResource) Read(ctx context.Context, req resource.ReadR
 	}
 
 	_, httpResp, err := r.client.SwitchApi.GetNetworkSwitchStp(context.Background(), data.NetworkId.ValueString()).Execute()
+
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to read resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success inlineResp code
@@ -270,11 +265,11 @@ func (r *NetworksSwitchStpResource) Update(ctx context.Context, req resource.Upd
 		return
 	}
 
-	object138 := openApiClient.NewInlineObject139()
-	object138.SetRstpEnabled(data.RstpEnabled.ValueBool())
-	var stpBridgePriority []openApiClient.NetworksNetworkIdSwitchStpStpBridgePriority
+	payload := openApiClient.NewUpdateNetworkSwitchStpRequest()
+	payload.SetRstpEnabled(data.RstpEnabled.ValueBool())
+	var stpBridgePriority []openApiClient.UpdateNetworkSwitchStpRequestStpBridgePriorityInner
 	for _, d := range data.StpBridgePriority {
-		priority := openApiClient.NewNetworksNetworkIdSwitchStpStpBridgePriority(int32(d.StpPriority.ValueInt64()))
+		priority := openApiClient.NewUpdateNetworkSwitchStpRequestStpBridgePriorityInner(int32(d.StpPriority.ValueInt64()))
 		stacks := []string{}
 		for _, stack := range d.Stacks.Elements() {
 			stacks = append(stacks, stack.String())
@@ -285,24 +280,22 @@ func (r *NetworksSwitchStpResource) Update(ctx context.Context, req resource.Upd
 		}
 		priority.SetSwitches(switches)
 		priority.SetStacks(stacks)
-		switchProfiles := []string{}
+		switcheProfiles := []string{}
 		for _, switchProfile := range d.SwitchProfiles.Elements() {
-			switchProfiles = append(switchProfiles, switchProfile.String())
+			switcheProfiles = append(switcheProfiles, switchProfile.String())
 		}
-		priority.SetSwitchProfiles(switchProfiles)
+		priority.SetSwitchProfiles(switcheProfiles)
 		stpBridgePriority = append(stpBridgePriority, *priority)
 	}
-	object138.SetStpBridgePriority(stpBridgePriority)
-	_, httpResp, err := r.client.SwitchApi.UpdateNetworkSwitchStp(ctx, data.NetworkId.String()).UpdateNetworkSwitchStp(*object138).Execute()
+	payload.SetStpBridgePriority(stpBridgePriority)
+	_, httpResp, err := r.client.SwitchApi.UpdateNetworkSwitchStp(ctx, data.NetworkId.ValueString()).UpdateNetworkSwitchStpRequest(*payload).Execute()
 
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to Update resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code
@@ -346,39 +339,16 @@ func (r *NetworksSwitchStpResource) Delete(ctx context.Context, req resource.Del
 		return
 	}
 
-	object138 := openApiClient.NewInlineObject139()
-	object138.SetRstpEnabled(data.RstpEnabled.ValueBool())
-	var stpBridgePriority []openApiClient.NetworksNetworkIdSwitchStpStpBridgePriority
-	for _, d := range data.StpBridgePriority {
-		priority := openApiClient.NewNetworksNetworkIdSwitchStpStpBridgePriority(int32(d.StpPriority.ValueInt64()))
-		stacks := []string{}
-		for _, stack := range d.Stacks.Elements() {
-			stacks = append(stacks, stack.String())
-		}
-		switches := []string{}
-		for _, switchs := range d.Switches.Elements() {
-			switches = append(switches, switchs.String())
-		}
-		priority.SetSwitches(switches)
-		priority.SetStacks(stacks)
-		switcheProfiles := []string{}
-		for _, switchProfile := range d.SwitchProfiles.Elements() {
-			switcheProfiles = append(switcheProfiles, switchProfile.String())
-		}
-		priority.SetSwitchProfiles(switcheProfiles)
-		stpBridgePriority = append(stpBridgePriority, *priority)
-	}
-	object138.SetStpBridgePriority(stpBridgePriority)
-	_, httpResp, err := r.client.SwitchApi.UpdateNetworkSwitchStp(ctx, data.NetworkId.String()).UpdateNetworkSwitchStp(*object138).Execute()
+	payload := openApiClient.NewUpdateNetworkSwitchStpRequest()
+
+	_, httpResp, err := r.client.SwitchApi.UpdateNetworkSwitchStp(ctx, data.NetworkId.ValueString()).UpdateNetworkSwitchStpRequest(*payload).Execute()
 
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code
