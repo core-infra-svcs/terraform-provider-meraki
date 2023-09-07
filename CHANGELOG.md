@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.1.7](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.1.6...v0.1.7) (2023-09-07)
+
+
+### Bug Fixes
+
+* error handling ([a7359ad](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/a7359ad04bf3c75dce40a89953604586e91df02e))
+* finalize linting ([0484912](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/048491270c700160ee852ca0eaa3872ad7e01f2d))
+* github actions dependancies ([0864f56](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/0864f563957d4644200bed8dfd503e81fa3e6bf7))
+* issue exit code ([4c9df56](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/4c9df56270f7c154a5c1b7dd32c2aaeb5757716c))
+* lint tiemout command ([abaaff4](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/abaaff4f35d4c2116f2230bc04913b98511479db))
+* linter job ([d042a91](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/d042a91545af361fddd2e1edf10889155a4c7034))
+* linter timeout context ([4cafe06](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/4cafe065e51e2a82204185bf99718295163776a3))
+
 ## [0.1.6](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.1.5...v0.1.6) (2023-08-05)
 
 
