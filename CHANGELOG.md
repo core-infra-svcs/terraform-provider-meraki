@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.0](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.1.7...v0.2.0) (2023-09-07)
+
+
+### Features
+
+* Update README.md ([f70a369](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/f70a369d11af680613ec1904b60f06bcf8447ccb))
+* workflow docs ([580bbb4](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/580bbb436809ddb814aba9759045e2aef92a3f41))
+
 ## [0.1.7](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.1.6...v0.1.7) (2023-09-07)
 
 
