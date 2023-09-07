@@ -11,7 +11,6 @@ Additional provider information available on the [Terraform Registry](https://re
 - Leverage the power of Terraform to plan, apply, and manage changes to your Meraki environment in a controlled and auditable manner.
 - Enable collaboration and version control for your Meraki configurations, allowing teams to work together efficiently and track changes over time.
 
-
 ## Requirements
 
 - [Terraform](https://www.terraform.io/downloads.html) >= 1.0
