@@ -41,7 +41,7 @@ This workflow publishes assets for release when a tag is created with the patter
 
 1. Checks out the repository.
 2. Sets up the Go environment.
-3. Runs acceptance tests for all resources and data sources using Terraform CLI. It sets the `TF_ACC` environment variable to enable acceptance tests and provides the `MERAKI_DASHBOARD_API_KEY` secret as an environment variable.
+3. Runs acceptance tests for all resources and data sources using go test. It sets the `TF_ACC` environment variable to enable acceptance tests and provides the `MERAKI_DASHBOARD_API_KEY` secret as an environment variable.
 4. Checks the test results and fails the workflow if the tests fail.
 5. Imports the GPG key using the `crazy-max/ghaction-import-gpg` action.
 6. Runs GoReleaser using the `goreleaser/goreleaser-action` to build and package the release assets.
