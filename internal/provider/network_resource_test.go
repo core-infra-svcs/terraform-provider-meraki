@@ -12,7 +12,7 @@ func TestAccOrganizationsNetworkResource(t *testing.T) {
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 
-			// Create test organization
+			// Create test organization.
 			{
 				Config: testAccOrganizationsNetworkResourceConfigCreateOrganization,
 				Check: resource.ComposeAggregateTestCheckFunc(
@@ -20,7 +20,7 @@ func TestAccOrganizationsNetworkResource(t *testing.T) {
 				),
 			},
 
-			// Create and Read testing (network)
+			// Create and Read testing (network).
 			{
 				Config: testAccOrganizationsNetworkResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(

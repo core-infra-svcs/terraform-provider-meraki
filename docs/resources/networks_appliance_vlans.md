@@ -29,7 +29,7 @@ NetworksApplianceVlans
 - `dhcp_handling` (String) The appliance's handling of DHCP requests on this VLAN. One of: 'Run a DHCP server', 'Relay DHCP to another server' or 'Do not respond to DHCP requests'
 - `dhcp_lease_time` (String) The term of DHCP leases if the appliance is running a DHCP server on this VLAN. One of: '30 minutes', '1 hour', '4 hours', '12 hours', '1 day' or '1 week'
 - `dhcp_options` (Attributes Set) The list of DHCP options that will be included in DHCP responses. Each object in the list should have "code", "type", and "value" properties. (see [below for nested schema](#nestedatt--dhcp_options))
-- `dhcp_relay_server_ips` (Set of String) The IPs of the DHCP servers that DHCP requests should be relayed to
+- `dhcp_relay_server_ips` (Set of String) An array of DHCP relay server IPs to which DHCP packets would get relayed for this VLAN
 - `dns_nameservers` (String) The DNS nameservers used for DHCP responses, either "upstream_dns", "google_dns", "opendns", or a newline seperated string of IP addresses or domain names
 - `fixed_ip_assignments` (Attributes) The DHCP fixed IP assignments on the VLAN. This should be an object that contains mappings from MAC addresses to objects that themselves each contain "ip" and "name" string fields. See the sample request/response for more details (see [below for nested schema](#nestedatt--fixed_ip_assignments))
 - `group_policy_id` (String) desired group policy to apply to the VLAN
@@ -40,7 +40,7 @@ NetworksApplianceVlans
 - `reserved_ip_ranges` (Attributes Set) The DHCP reserved IP ranges on the VLAN (see [below for nested schema](#nestedatt--reserved_ip_ranges))
 - `subnet` (String) The subnet of the VLAN
 - `template_vlan_type` (String) Type of subnetting of the VLAN. Applicable only for template network.
-- `vlan_id` (String)
+- `vlan_id` (Number)
 - `vpn_nat_subnet` (String) The translated VPN subnet if VPN and VPN subnet translation are enabled on the VLAN
 
 ### Read-Only
@@ -111,5 +111,3 @@ Optional:
 - `comment` (String) A text comment for the reserved range
 - `end` (String) The last IP in the reserved range
 - `start` (String) The first IP in the reserved range
-
-
