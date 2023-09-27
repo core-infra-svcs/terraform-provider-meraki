@@ -10,8 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
@@ -38,7 +36,7 @@ type NetworksApplianceVLANsResourceModel struct {
 	Id        jsontypes.String `tfsdk:"id" json:"-"`
 	NetworkId jsontypes.String `tfsdk:"network_id" json:"networkId"`
 
-	VlanId                 jsontypes.String                `tfsdk:"vlan_id" json:"id"`
+	VlanId                 jsontypes.Int64                 `tfsdk:"vlan_id" json:"id"`
 	Name                   jsontypes.String                `tfsdk:"name" json:"name"`
 	Subnet                 jsontypes.String                `tfsdk:"subnet" json:"subnet"`
 	ApplianceIp            jsontypes.String                `tfsdk:"appliance_ip" json:"applianceIp"`
@@ -96,7 +94,7 @@ type origin struct {
 }
 
 type mandatoryDhcp struct {
-	Enabled bool `tfsdk:"enabled" json:"enabled"`
+	Enabled jsontypes.Bool `tfsdk:"enabled" json:"enabled"`
 }
 
 func (r *NetworksApplianceVLANsResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -112,18 +110,15 @@ func (r *NetworksApplianceVLANsResource) Schema(ctx context.Context, req resourc
 				Computed:   true,
 				CustomType: jsontypes.StringType,
 			},
-			"vlan_id": schema.StringAttribute{
-				Computed:   false,
+			"vlan_id": schema.Int64Attribute{
 				Optional:   true,
-				CustomType: jsontypes.StringType,
+				Computed:   true,
+				CustomType: jsontypes.Int64Type,
 			},
 			"network_id": schema.StringAttribute{
 				MarkdownDescription: "The VLAN ID of the new VLAN (must be between 1 and 4094)",
 				Required:            true,
 				CustomType:          jsontypes.StringType,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(8, 31),
 				},
@@ -149,13 +144,11 @@ func (r *NetworksApplianceVLANsResource) Schema(ctx context.Context, req resourc
 			"group_policy_id": schema.StringAttribute{
 				MarkdownDescription: " desired group policy to apply to the VLAN",
 				Optional:            true,
-				Computed:            true,
 				CustomType:          jsontypes.StringType,
 			},
 			"vpn_nat_subnet": schema.StringAttribute{
 				MarkdownDescription: "The translated VPN subnet if VPN and VPN subnet translation are enabled on the VLAN",
 				Optional:            true,
-				Computed:            true,
 				CustomType:          jsontypes.StringType,
 			},
 			"dhcp_handling": schema.StringAttribute{
@@ -168,7 +161,6 @@ func (r *NetworksApplianceVLANsResource) Schema(ctx context.Context, req resourc
 				CustomType:  jsontypes.SetType[jsontypes.String](),
 				ElementType: jsontypes.StringType,
 				Description: "An array of DHCP relay server IPs to which DHCP packets would get relayed for this VLAN",
-				Computed:    true,
 				Optional:    true,
 			},
 			"dhcp_lease_time": schema.StringAttribute{
@@ -186,30 +178,25 @@ func (r *NetworksApplianceVLANsResource) Schema(ctx context.Context, req resourc
 			"dhcp_boot_next_server": schema.StringAttribute{
 				MarkdownDescription: "DHCP boot option to direct boot clients to the server to load the boot file from",
 				Optional:            true,
-				Computed:            true,
 				CustomType:          jsontypes.StringType,
 			},
 			"dhcp_boot_filename": schema.StringAttribute{
 				MarkdownDescription: "DHCP boot option for boot filename ",
 				Optional:            true,
-				Computed:            true,
 				CustomType:          jsontypes.StringType,
 			},
 			"fixed_ip_assignments": schema.SingleNestedAttribute{
 				Description: "The DHCP fixed IP assignments on the VLAN. This should be an object that contains mappings from MAC addresses to objects that themselves each contain \"ip\" and \"name\" string fields. See the sample request/response for more details",
 				Optional:    true,
-				Computed:    false,
 				Attributes: map[string]schema.Attribute{
 					"ip": schema.StringAttribute{
 						MarkdownDescription: "Enable IPv6 on VLAN.",
 						Optional:            true,
-						Computed:            true,
 						CustomType:          jsontypes.StringType,
 					},
 					"name": schema.StringAttribute{
 						MarkdownDescription: "Enable IPv6 on VLAN.",
 						Optional:            true,
-						Computed:            true,
 						CustomType:          jsontypes.StringType,
 					},
 				},
@@ -295,7 +282,6 @@ func (r *NetworksApplianceVLANsResource) Schema(ctx context.Context, req resourc
 			"ipv6": schema.SingleNestedAttribute{
 				Description: "IPv6 configuration on the VLAN",
 				Optional:    true,
-				Computed:    true,
 				Attributes: map[string]schema.Attribute{
 					"enabled": schema.BoolAttribute{
 						MarkdownDescription: "Enable IPv6 on VLAN.",
@@ -305,7 +291,6 @@ func (r *NetworksApplianceVLANsResource) Schema(ctx context.Context, req resourc
 					},
 					"prefix_assignments": schema.SetNestedAttribute{
 						Optional:    true,
-						Computed:    true,
 						Description: "Prefix assignments on the VLAN",
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
@@ -342,7 +327,6 @@ func (r *NetworksApplianceVLANsResource) Schema(ctx context.Context, req resourc
 											CustomType:  jsontypes.SetType[jsontypes.String](),
 											ElementType: jsontypes.StringType,
 											Description: "Interfaces associated with the prefix",
-											Computed:    true,
 											Optional:    true,
 										},
 									},
@@ -355,7 +339,6 @@ func (r *NetworksApplianceVLANsResource) Schema(ctx context.Context, req resourc
 			"mandatory_dhcp": schema.SingleNestedAttribute{
 				Description: "Mandatory DHCP will enforce that clients connecting to this VLAN must use the IP address assigned by the DHCP server. Clients who use a static IP address won't be able to associate. Only available on firmware versions 17.0 and above",
 				Optional:    true,
-				Computed:    false,
 				Attributes: map[string]schema.Attribute{
 					"enabled": schema.BoolAttribute{
 						MarkdownDescription: "Enable Mandatory DHCP on VLAN.",
@@ -401,7 +384,7 @@ func (r *NetworksApplianceVLANsResource) Create(ctx context.Context, req resourc
 
 	object56 := openApiClient.NewCreateNetworkApplianceVlanRequest(data.Id.ValueString(), data.Name.ValueString())
 	object56.SetCidr(data.Cidr.ValueString())
-	object56.SetId(data.VlanId.ValueString())
+	object56.SetId(fmt.Sprintf("%v", data.VlanId.ValueInt64()))
 	object56.SetApplianceIp(data.ApplianceIp.ValueString())
 	object56.SetGroupPolicyId(data.GroupPolicyId.ValueString())
 	object56.SetMask(int32(data.Mask.ValueInt64()))
@@ -429,10 +412,10 @@ func (r *NetworksApplianceVLANsResource) Create(ctx context.Context, req resourc
 	ipv6.SetPrefixAssignments(prefixAssignments)
 	object56.SetIpv6(*ipv6)
 	dhcp := openApiClient.NewGetNetworkApplianceVlans200ResponseInnerMandatoryDhcp()
-	dhcp.SetEnabled(data.MandatoryDhcp.Enabled)
+	dhcp.SetEnabled(data.MandatoryDhcp.Enabled.ValueBool())
 	object56.SetMandatoryDhcp(*dhcp)
 
-	i, httpResp, err := r.client.ApplianceApi.CreateNetworkApplianceVlan(ctx, data.NetworkId.ValueString()).CreateNetworkApplianceVlanRequest(*object56).Execute()
+	_, httpResp, err := r.client.ApplianceApi.CreateNetworkApplianceVlan(ctx, data.NetworkId.ValueString()).CreateNetworkApplianceVlanRequest(*object56).Execute()
 
 	// Meraki API seems to return http status code 201 as an error.
 	if err != nil && httpResp.StatusCode != 201 {
@@ -461,10 +444,12 @@ func (r *NetworksApplianceVLANsResource) Create(ctx context.Context, req resourc
 	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
 		resp.Diagnostics.AddError(
 			"Create JSON Decode issue",
-			fmt.Sprintf("%v, %v", httpResp.Body, i.Subnet),
+			fmt.Sprintf("%v, %v", err, httpResp.Body),
 		)
 		return
 	}
+
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -482,8 +467,8 @@ func (r *NetworksApplianceVLANsResource) Read(ctx context.Context, req resource.
 		return
 	}
 
-	_, httpResp, err := r.client.ApplianceApi.GetNetworkApplianceVlan(ctx, data.NetworkId.ValueString(), data.VlanId.ValueString()).Execute()
-	if err != nil {
+	_, httpResp, err := r.client.ApplianceApi.GetNetworkApplianceVlan(ctx, data.NetworkId.ValueString(), fmt.Sprintf("%v", data.VlanId.ValueInt64())).Execute()
+	if err != nil && httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"HTTP Client Read Failure",
 			tools.HttpDiagnostics(httpResp),
@@ -557,11 +542,11 @@ func (r *NetworksApplianceVLANsResource) Update(ctx context.Context, req resourc
 	ipv6.SetPrefixAssignments(prefixAssignments)
 	updateNetworkApplianceVlan.SetIpv6(*ipv6)
 	dhcp := openApiClient.NewGetNetworkApplianceVlans200ResponseInnerMandatoryDhcp()
-	dhcp.SetEnabled(data.MandatoryDhcp.Enabled)
+	dhcp.SetEnabled(data.MandatoryDhcp.Enabled.ValueBool())
 	updateNetworkApplianceVlan.SetMandatoryDhcp(*dhcp)
 
-	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceVlan(ctx, data.NetworkId.ValueString(), data.VlanId.ValueString()).UpdateNetworkApplianceVlanRequest(*updateNetworkApplianceVlan).Execute()
-	if err != nil {
+	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceVlan(ctx, data.NetworkId.ValueString(), fmt.Sprintf("%v", data.VlanId.ValueInt64())).UpdateNetworkApplianceVlanRequest(*updateNetworkApplianceVlan).Execute()
+	if err != nil && httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"HTTP Client Update Failure",
 			tools.HttpDiagnostics(httpResp),
@@ -591,7 +576,7 @@ func (r *NetworksApplianceVLANsResource) Update(ctx context.Context, req resourc
 		)
 		return
 	}
-
+	data.Id = jsontypes.StringValue("example-id")
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
@@ -608,8 +593,8 @@ func (r *NetworksApplianceVLANsResource) Delete(ctx context.Context, req resourc
 		return
 	}
 
-	httpResp, err := r.client.ApplianceApi.DeleteNetworkApplianceVlan(ctx, data.NetworkId.ValueString(), data.VlanId.ValueString()).Execute()
-	if err != nil {
+	httpResp, err := r.client.ApplianceApi.DeleteNetworkApplianceVlan(ctx, data.NetworkId.ValueString(), fmt.Sprintf("%v", data.VlanId.ValueInt64())).Execute()
+	if err != nil && httpResp.StatusCode != 204 {
 		resp.Diagnostics.AddError(
 			"HTTP Client Delete Failure",
 			tools.HttpDiagnostics(httpResp),
@@ -628,15 +613,6 @@ func (r *NetworksApplianceVLANsResource) Delete(ctx context.Context, req resourc
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%v", data))
-		return
-	}
-
-	// save inlineResp data into Terraform state.
-	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
-		resp.Diagnostics.AddError(
-			"JSON Decode issue",
-			fmt.Sprintf("%v", httpResp.StatusCode),
-		)
 		return
 	}
 

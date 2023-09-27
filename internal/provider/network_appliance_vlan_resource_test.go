@@ -99,29 +99,22 @@ resource "meraki_networks_appliance_vlans" "test" {
     appliance_ip = "192.168.1.2"
     template_vlan_type = "same"
     cidr = "192.168.1.0/24"
-    mask = 28
-	reserved_ip_ranges = [
-		{
-			start = "192.168.1.0"
-			end = "192.168.1.1"
-			comment = "A reserved IP range"
-      	}
-	]
-	dhcp_options = [
-		{
-			code = "5"
-			type = "text"
-			value = "five"
-      	}
-    ]
-	fixed_ip_assignments = {
-	}
+    mask = 24
+
+	reserved_ip_ranges = []
+
+	dhcp_options = []
+
+	fixed_ip_assignments = {}
+
     ipv6 = {
-        enabled = false
+        enabled = false,
         prefix_assignments = []
     }
+
 	mandatory_dhcp = {
-		enabled = true
+		enabled = false
 	}
+
 }
 `
