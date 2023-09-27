@@ -41,7 +41,7 @@ type NetworksApplianceVlansDataSourceModel struct {
 }
 
 type NetworksApplianceVLANsDataSource struct {
-	VlanId                 jsontypes.String                `tfsdk:"vlan_id" json:"id"`
+	VlanId                 jsontypes.Int64                 `tfsdk:"vlan_id" json:"id"`
 	Name                   jsontypes.String                `tfsdk:"name" json:"name"`
 	Subnet                 jsontypes.String                `tfsdk:"subnet" json:"subnet"`
 	ApplianceIp            jsontypes.String                `tfsdk:"appliance_ip" json:"applianceIp"`
@@ -53,20 +53,39 @@ type NetworksApplianceVLANsDataSource struct {
 	DhcpBootOptionsEnabled jsontypes.Bool                  `tfsdk:"dhcp_boot_options_enabled" json:"dhcpBootOptionsEnabled"`
 	DhcpBootNextServer     jsontypes.String                `tfsdk:"dhcp_boot_next_server" json:"dhcpBootNextServer"`
 	DhcpBootFilename       jsontypes.String                `tfsdk:"dhcp_boot_filename" json:"dhcpBootFilename"`
-	FixedIpAssignments     FixedIpAssignments              `tfsdk:"fixed_ip_assignments" json:"fixedIpAssignments"`
-	ReservedIpRanges       []ReservedIPRange               `tfsdk:"reserved_ip_ranges" json:"reservedIpRanges"`
-	DnsNameservers         jsontypes.String                `tfsdk:"dns_nameservers" json:"dnsNameservers"`
-	DhcpOptions            []DHCPOption                    `tfsdk:"dhcp_options" json:"dhcpOptions"`
-	TemplateVlanType       jsontypes.String                `tfsdk:"template_vlan_type" json:"templateVlanType"`
-	Cidr                   jsontypes.String                `tfsdk:"cidr" json:"cidr"`
-	Mask                   jsontypes.Int64                 `tfsdk:"mask" json:"mask"`
-	Ipv6                   IPV6                            `tfsdk:"ipv6" json:"ipv6"`
-	MandatoryDHCP          MandatoryDHCP                   `tfsdk:"mandatory_dhcp" json:"mandatoryDhcp"`
-}
-
-type FixedIPAssignments struct {
-	IP   jsontypes.String `tfsdk:"ip" json:"IP"`
-	Name jsontypes.String `tfsdk:"name" json:"Name"`
+	FixedIpAssignments     struct {
+		Ip   jsontypes.String `tfsdk:"ip" json:"ip"`
+		Name jsontypes.String `tfsdk:"name" json:"name"`
+	} `tfsdk:"fixed_ip_assignments" json:"fixedIpAssignments"`
+	ReservedIpRanges []struct {
+		Start   jsontypes.String `tfsdk:"start" json:"start"`
+		End     jsontypes.String `tfsdk:"end" json:"end"`
+		Comment jsontypes.String `tfsdk:"comment" json:"comment"`
+	} `tfsdk:"reserved_ip_ranges" json:"reservedIpRanges"`
+	DnsNameservers jsontypes.String `tfsdk:"dns_nameservers" json:"dnsNameservers"`
+	DhcpOptions    []struct {
+		Code  jsontypes.String `tfsdk:"code" json:"code"`
+		Type  jsontypes.String `tfsdk:"type" json:"type"`
+		Value jsontypes.String `tfsdk:"value" json:"value"`
+	} `tfsdk:"dhcp_options" json:"dhcpOptions"`
+	TemplateVlanType jsontypes.String `tfsdk:"template_vlan_type" json:"templateVlanType"`
+	Cidr             jsontypes.String `tfsdk:"cidr" json:"cidr"`
+	Mask             jsontypes.Int64  `tfsdk:"mask" json:"mask"`
+	IPv6             struct {
+		Enabled           jsontypes.Bool `tfsdk:"enabled" json:"enabled"`
+		PrefixAssignments []struct {
+			Autonomous         jsontypes.Bool   `tfsdk:"autonomous" json:"autonomous"`
+			StaticPrefix       jsontypes.String `tfsdk:"static_prefix" json:"staticPrefix"`
+			StaticApplianceIp6 jsontypes.String `tfsdk:"static_appliance_ip6" json:"staticApplianceIp6"`
+			Origin             struct {
+				Type       jsontypes.String   `tfsdk:"type" json:"type"`
+				Interfaces []jsontypes.String `tfsdk:"interfaces" json:"interfaces"`
+			} `tfsdk:"origin" json:"origin"`
+		} `tfsdk:"prefix_assignments" json:"prefixAssignments"`
+	} `tfsdk:"ipv6" json:"ipv6"`
+	MandatoryDhcp struct {
+		Enabled jsontypes.Bool `tfsdk:"enabled" json:"enabled"`
+	} `tfsdk:"mandatory_dhcp" json:"mandatoryDhcp"`
 }
 
 // Metadata provides a way to define information about the data source.
@@ -87,250 +106,247 @@ func (d *NetworksApplianceVlansDataSource) Schema(ctx context.Context, req datas
 				Computed:   true,
 				CustomType: jsontypes.StringType,
 			},
-			"vlan_id": schema.StringAttribute{
-				Computed:   false,
-				Optional:   true,
-				CustomType: jsontypes.StringType,
-			},
 			"network_id": schema.StringAttribute{
 				MarkdownDescription: "The VLAN ID of the new VLAN (must be between 1 and 4094)",
 				Required:            true,
 				CustomType:          jsontypes.StringType,
 			},
-			"name": schema.StringAttribute{
-				MarkdownDescription: "The name of the new VLAN",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.StringType,
-			},
-			"subnet": schema.StringAttribute{
-				MarkdownDescription: "The subnet of the VLAN",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.StringType,
-			},
-			"appliance_ip": schema.StringAttribute{
-				MarkdownDescription: "The local IP of the appliance on the VLAN",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.StringType,
-			},
-			"group_policy_id": schema.StringAttribute{
-				MarkdownDescription: " desired group policy to apply to the VLAN",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.StringType,
-			},
-			"template_vlan_type": schema.StringAttribute{
-				MarkdownDescription: "Type of subnetting of the VLAN. Applicable only for template network.",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.StringType,
-			},
-			"cidr": schema.StringAttribute{
-				MarkdownDescription: "CIDR of the pool of subnets. Applicable only for template network. Each network bound to the template will automatically pick a subnet from this pool to build its own VLAN.",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.StringType,
-			},
-			"dhcp_handling": schema.StringAttribute{
-				MarkdownDescription: "The appliance's handling of DHCP requests on this VLAN. One of: 'Run a DHCP server', 'Relay DHCP to another server' or 'Do not respond to DHCP requests'",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.StringType,
-			},
-			"dhcp_lease_time": schema.StringAttribute{
-				MarkdownDescription: "The term of DHCP leases if the appliance is running a DHCP server on this VLAN. One of: '30 minutes', '1 hour', '4 hours', '12 hours', '1 day' or '1 week'",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.StringType,
-			},
-			"dhcp_boot_next_server": schema.StringAttribute{
-				MarkdownDescription: "DHCP boot option to direct boot clients to the server to load the boot file from",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.StringType,
-			},
-			"dhcp_boot_filename": schema.StringAttribute{
-				MarkdownDescription: "DHCP boot option for boot filename ",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.StringType,
-			},
-			"dns_nameservers": schema.StringAttribute{
-				MarkdownDescription: "The DNS nameservers used for DHCP responses, either \"upstream_dns\", \"google_dns\", \"opendns\", or a newline seperated string of IP addresses or domain names",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.StringType,
-			},
-			"vpn_nat_subnet": schema.StringAttribute{
-				MarkdownDescription: "The translated VPN subnet if VPN and VPN subnet translation are enabled on the VLAN",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.StringType,
-			},
-			"mask": schema.Int64Attribute{
-				MarkdownDescription: "Mask used for the subnet of all bound to the template networks. Applicable only for template network.",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.Int64Type,
-			},
-			"dhcp_boot_options_enabled": schema.BoolAttribute{
-				MarkdownDescription: "Use DHCP boot options specified in other properties",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.BoolType,
-			},
-			"dhcp_relay_server_ips": schema.SetAttribute{
-				CustomType:  jsontypes.SetType[jsontypes.String](),
-				ElementType: jsontypes.StringType,
-				Description: "The IPs of the DHCP servers that DHCP requests should be relayed to",
-				Computed:    true,
-				Optional:    true,
-			},
-			"reserved_ip_ranges": schema.SetNestedAttribute{
+			"list": schema.SetNestedAttribute{
 				Optional:    true,
 				Computed:    true,
-				Description: "The DHCP reserved IP ranges on the VLAN",
+				Description: "",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
-						"start": schema.StringAttribute{
-							MarkdownDescription: "The first IP in the reserved range",
+						"vlan_id": schema.Int64Attribute{
+							Optional:   true,
+							Computed:   true,
+							CustomType: jsontypes.Int64Type,
+						},
+						"name": schema.StringAttribute{
+							MarkdownDescription: "The name of the new VLAN",
 							Optional:            true,
 							Computed:            true,
 							CustomType:          jsontypes.StringType,
 						},
-						"end": schema.StringAttribute{
-							MarkdownDescription: "The last IP in the reserved range",
+						"subnet": schema.StringAttribute{
+							MarkdownDescription: "The subnet of the VLAN",
 							Optional:            true,
 							Computed:            true,
 							CustomType:          jsontypes.StringType,
 						},
-						"comment": schema.StringAttribute{
-							MarkdownDescription: "A text comment for the reserved range",
+						"appliance_ip": schema.StringAttribute{
+							MarkdownDescription: "The local IP of the appliance on the VLAN",
 							Optional:            true,
 							Computed:            true,
 							CustomType:          jsontypes.StringType,
 						},
-					},
-				},
-			},
-			"dhcp_options": schema.SetNestedAttribute{
-				Optional:    true,
-				Computed:    true,
-				Description: "The list of DHCP options that will be included in DHCP responses. Each object in the list should have \"code\", \"type\", and \"value\" properties.",
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"code": schema.StringAttribute{
-							MarkdownDescription: "The code for the DHCP option. This should be an integer between 2 and 254.",
+						"group_policy_id": schema.StringAttribute{
+							MarkdownDescription: " desired group policy to apply to the VLAN",
+							Optional:            true,
+							CustomType:          jsontypes.StringType,
+						},
+						"vpn_nat_subnet": schema.StringAttribute{
+							MarkdownDescription: "The translated VPN subnet if VPN and VPN subnet translation are enabled on the VLAN",
+							Optional:            true,
+							CustomType:          jsontypes.StringType,
+						},
+						"dhcp_handling": schema.StringAttribute{
+							MarkdownDescription: "The appliance's handling of DHCP requests on this VLAN. One of: 'Run a DHCP server', 'Relay DHCP to another server' or 'Do not respond to DHCP requests'",
 							Optional:            true,
 							Computed:            true,
 							CustomType:          jsontypes.StringType,
 						},
-						"type": schema.StringAttribute{
-							MarkdownDescription: "The type for the DHCP option. One of: 'text', 'ip', 'hex' or 'integer'",
+						"dhcp_relay_server_ips": schema.SetAttribute{
+							CustomType:  jsontypes.SetType[jsontypes.String](),
+							ElementType: jsontypes.StringType,
+							Description: "An array of DHCP relay server IPs to which DHCP packets would get relayed for this VLAN",
+							Optional:    true,
+						},
+						"dhcp_lease_time": schema.StringAttribute{
+							MarkdownDescription: "The term of DHCP leases if the appliance is running a DHCP server on this VLAN. One of: '30 minutes', '1 hour', '4 hours', '12 hours', '1 day' or '1 week'",
 							Optional:            true,
 							Computed:            true,
 							CustomType:          jsontypes.StringType,
 						},
-						"value": schema.StringAttribute{
-							MarkdownDescription: "The value for the DHCP option",
+						"dhcp_boot_options_enabled": schema.BoolAttribute{
+							MarkdownDescription: "Use DHCP boot options specified in other properties",
 							Optional:            true,
 							Computed:            true,
+							CustomType:          jsontypes.BoolType,
+						},
+						"dhcp_boot_next_server": schema.StringAttribute{
+							MarkdownDescription: "DHCP boot option to direct boot clients to the server to load the boot file from",
+							Optional:            true,
 							CustomType:          jsontypes.StringType,
 						},
-					},
-				},
-			},
-			"ipv6": schema.SingleNestedAttribute{
-				Description: "IPv6 configuration on the VLAN",
-				Optional:    true,
-				Computed:    true,
-				Attributes: map[string]schema.Attribute{
-					"enabled": schema.BoolAttribute{
-						MarkdownDescription: "Enable IPv6 on VLAN.",
-						Optional:            true,
-						Computed:            true,
-						CustomType:          jsontypes.BoolType,
-					},
-					"prefix_assignments": schema.SetNestedAttribute{
-						Optional:    true,
-						Computed:    true,
-						Description: "Prefix assignments on the VLAN",
-						NestedObject: schema.NestedAttributeObject{
+						"dhcp_boot_filename": schema.StringAttribute{
+							MarkdownDescription: "DHCP boot option for boot filename ",
+							Optional:            true,
+							CustomType:          jsontypes.StringType,
+						},
+						"fixed_ip_assignments": schema.SingleNestedAttribute{
+							Description: "The DHCP fixed IP assignments on the VLAN. This should be an object that contains mappings from MAC addresses to objects that themselves each contain \"ip\" and \"name\" string fields. See the sample request/response for more details",
+							Optional:    true,
 							Attributes: map[string]schema.Attribute{
-								"autonomous": schema.BoolAttribute{
-									MarkdownDescription: "Auto assign a /64 prefix from the origin to the VLAN",
+								"ip": schema.StringAttribute{
+									MarkdownDescription: "Enable IPv6 on VLAN.",
+									Optional:            true,
+									CustomType:          jsontypes.StringType,
+								},
+								"name": schema.StringAttribute{
+									MarkdownDescription: "Enable IPv6 on VLAN.",
+									Optional:            true,
+									CustomType:          jsontypes.StringType,
+								},
+							},
+						},
+						"reserved_ip_ranges": schema.SetNestedAttribute{
+							Optional:    true,
+							Computed:    true,
+							Description: "The DHCP reserved IP ranges on the VLAN",
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"start": schema.StringAttribute{
+										MarkdownDescription: "The first IP in the reserved range",
+										Optional:            true,
+										Computed:            true,
+										CustomType:          jsontypes.StringType,
+									},
+									"end": schema.StringAttribute{
+										MarkdownDescription: "The last IP in the reserved range",
+										Optional:            true,
+										Computed:            true,
+										CustomType:          jsontypes.StringType,
+									},
+									"comment": schema.StringAttribute{
+										MarkdownDescription: "A text comment for the reserved range",
+										Optional:            true,
+										Computed:            true,
+										CustomType:          jsontypes.StringType,
+									},
+								},
+							},
+						},
+						"dns_nameservers": schema.StringAttribute{
+							MarkdownDescription: "The DNS nameservers used for DHCP responses, either \"upstream_dns\", \"google_dns\", \"opendns\", or a newline seperated string of IP addresses or domain names",
+							Optional:            true,
+							Computed:            true,
+							CustomType:          jsontypes.StringType,
+						},
+						"dhcp_options": schema.SetNestedAttribute{
+							Optional:    true,
+							Computed:    true,
+							Description: "The list of DHCP options that will be included in DHCP responses. Each object in the list should have \"code\", \"type\", and \"value\" properties.",
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"code": schema.StringAttribute{
+										MarkdownDescription: "The code for the DHCP option. This should be an integer between 2 and 254.",
+										Optional:            true,
+										Computed:            true,
+										CustomType:          jsontypes.StringType,
+									},
+									"type": schema.StringAttribute{
+										MarkdownDescription: "The type for the DHCP option. One of: 'text', 'ip', 'hex' or 'integer'",
+										Optional:            true,
+										Computed:            true,
+										CustomType:          jsontypes.StringType,
+									},
+									"value": schema.StringAttribute{
+										MarkdownDescription: "The value for the DHCP option",
+										Optional:            true,
+										Computed:            true,
+										CustomType:          jsontypes.StringType,
+									},
+								},
+							},
+						},
+						"template_vlan_type": schema.StringAttribute{
+							MarkdownDescription: "Type of subnetting of the VLAN. Applicable only for template network.",
+							Optional:            true,
+							Computed:            true,
+							CustomType:          jsontypes.StringType,
+						},
+						"cidr": schema.StringAttribute{
+							MarkdownDescription: "CIDR of the pool of subnets. Applicable only for template network. Each network bound to the template will automatically pick a subnet from this pool to build its own VLAN.",
+							Optional:            true,
+							Computed:            true,
+							CustomType:          jsontypes.StringType,
+						},
+						"mask": schema.Int64Attribute{
+							MarkdownDescription: "Mask used for the subnet of all bound to the template networks. Applicable only for template network.",
+							Optional:            true,
+							Computed:            true,
+							CustomType:          jsontypes.Int64Type,
+						},
+						"ipv6": schema.SingleNestedAttribute{
+							Description: "IPv6 configuration on the VLAN",
+							Optional:    true,
+							Attributes: map[string]schema.Attribute{
+								"enabled": schema.BoolAttribute{
+									MarkdownDescription: "Enable IPv6 on VLAN.",
 									Optional:            true,
 									Computed:            true,
 									CustomType:          jsontypes.BoolType,
 								},
-								"static_prefix": schema.StringAttribute{
-									MarkdownDescription: "Manual configuration of a /64 prefix on the VLAN",
-									Optional:            true,
-									Computed:            true,
-									CustomType:          jsontypes.StringType,
-								},
-								"static_appliance_ip6": schema.StringAttribute{
-									MarkdownDescription: "Manual configuration of the IPv6 Appliance IP",
-									Optional:            true,
-									Computed:            true,
-									CustomType:          jsontypes.StringType,
-								},
-								"origin": schema.SingleNestedAttribute{
-									MarkdownDescription: "The origin of the prefix",
-									Optional:            true,
-									Computed:            true,
-									Attributes: map[string]schema.Attribute{
-										"type": schema.StringAttribute{
-											MarkdownDescription: "Type of the origin",
-											Optional:            true,
-											Computed:            true,
-											CustomType:          jsontypes.StringType,
-										},
-										"interfaces": schema.SetAttribute{
-											CustomType:  jsontypes.SetType[jsontypes.String](),
-											ElementType: jsontypes.StringType,
-											Description: "Interfaces associated with the prefix",
-											Computed:    true,
-											Optional:    true,
+								"prefix_assignments": schema.SetNestedAttribute{
+									Optional:    true,
+									Description: "Prefix assignments on the VLAN",
+									NestedObject: schema.NestedAttributeObject{
+										Attributes: map[string]schema.Attribute{
+											"autonomous": schema.BoolAttribute{
+												MarkdownDescription: "Auto assign a /64 prefix from the origin to the VLAN",
+												Optional:            true,
+												Computed:            true,
+												CustomType:          jsontypes.BoolType,
+											},
+											"static_prefix": schema.StringAttribute{
+												MarkdownDescription: "Manual configuration of a /64 prefix on the VLAN",
+												Optional:            true,
+												Computed:            true,
+												CustomType:          jsontypes.StringType,
+											},
+											"static_appliance_ip6": schema.StringAttribute{
+												MarkdownDescription: "Manual configuration of the IPv6 Appliance IP",
+												Optional:            true,
+												Computed:            true,
+												CustomType:          jsontypes.StringType,
+											},
+											"origin": schema.SingleNestedAttribute{
+												MarkdownDescription: "The origin of the prefix",
+												Optional:            true,
+												Computed:            true,
+												Attributes: map[string]schema.Attribute{
+													"type": schema.StringAttribute{
+														MarkdownDescription: "Type of the origin",
+														Optional:            true,
+														Computed:            true,
+														CustomType:          jsontypes.StringType,
+													},
+													"interfaces": schema.SetAttribute{
+														CustomType:  jsontypes.SetType[jsontypes.String](),
+														ElementType: jsontypes.StringType,
+														Description: "Interfaces associated with the prefix",
+														Optional:    true,
+													},
+												},
+											},
 										},
 									},
 								},
 							},
 						},
-					},
-				},
-			},
-			"fixed_ip_assignments": schema.SingleNestedAttribute{
-				Description: "The DHCP fixed IP assignments on the VLAN. This should be an object that contains mappings from MAC addresses to objects that themselves each contain \"ip\" and \"name\" string fields. See the sample request/response for more details",
-				Optional:    true,
-				Computed:    false,
-				Attributes: map[string]schema.Attribute{
-					"ip": schema.StringAttribute{
-						MarkdownDescription: "Enable IPv6 on VLAN.",
-						Optional:            true,
-						Computed:            true,
-						CustomType:          jsontypes.StringType,
-					},
-					"name": schema.StringAttribute{
-						MarkdownDescription: "Enable IPv6 on VLAN.",
-						Optional:            true,
-						Computed:            true,
-						CustomType:          jsontypes.StringType,
-					},
-				},
-			},
-			"mandatory_dhcp": schema.SingleNestedAttribute{
-				Description: "Mandatory DHCP will enforce that clients connecting to this VLAN must use the IP address assigned by the DHCP server. Clients who use a static IP address won't be able to associate. Only available on firmware versions 17.0 and above",
-				Optional:    true,
-				Computed:    false,
-				Attributes: map[string]schema.Attribute{
-					"enabled": schema.BoolAttribute{
-						MarkdownDescription: "Enable Mandatory DHCP on VLAN.",
-						Optional:            true,
-						Computed:            true,
-						CustomType:          jsontypes.BoolType,
+						"mandatory_dhcp": schema.SingleNestedAttribute{
+							Description: "Mandatory DHCP will enforce that clients connecting to this VLAN must use the IP address assigned by the DHCP server. Clients who use a static IP address won't be able to associate. Only available on firmware versions 17.0 and above",
+							Optional:    true,
+							Attributes: map[string]schema.Attribute{
+								"enabled": schema.BoolAttribute{
+									MarkdownDescription: "Enable Mandatory DHCP on VLAN.",
+									Optional:            true,
+									Computed:            true,
+									CustomType:          jsontypes.BoolType,
+								},
+							},
+						},
 					},
 				},
 			},
@@ -379,20 +395,15 @@ func (d *NetworksApplianceVlansDataSource) Read(ctx context.Context, req datasou
 	// Remember to handle any potential errors.
 	_, httpResp, err := d.client.ApplianceApi.GetNetworkApplianceVlans(ctx, data.NetworkId.ValueString()).Execute()
 
-	// If there was an error during API call, add it to diagnostics.
-	if err != nil {
+	if err != nil && httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
-			"Failed to read data source",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Read Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
+		return
 	}
 
-	// Collect any HTTP diagnostics that might be useful for debugging.
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
-	}
-
-	// If it's not what you expect, add an error to diagnostics.
+	// Check for API success inlineResp code
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",

@@ -21,6 +21,17 @@ NetworksApplianceVlans
 
 ### Optional
 
+- `list` (Attributes Set) (see [below for nested schema](#nestedatt--list))
+
+### Read-Only
+
+- `id` (String) The ID of this resource.
+
+<a id="nestedatt--list"></a>
+### Nested Schema for `list`
+
+Optional:
+
 - `appliance_ip` (String) The local IP of the appliance on the VLAN
 - `cidr` (String) CIDR of the pool of subnets. Applicable only for template network. Each network bound to the template will automatically pick a subnet from this pool to build its own VLAN.
 - `dhcp_boot_filename` (String) DHCP boot option for boot filename
@@ -28,27 +39,23 @@ NetworksApplianceVlans
 - `dhcp_boot_options_enabled` (Boolean) Use DHCP boot options specified in other properties
 - `dhcp_handling` (String) The appliance's handling of DHCP requests on this VLAN. One of: 'Run a DHCP server', 'Relay DHCP to another server' or 'Do not respond to DHCP requests'
 - `dhcp_lease_time` (String) The term of DHCP leases if the appliance is running a DHCP server on this VLAN. One of: '30 minutes', '1 hour', '4 hours', '12 hours', '1 day' or '1 week'
-- `dhcp_options` (Attributes Set) The list of DHCP options that will be included in DHCP responses. Each object in the list should have "code", "type", and "value" properties. (see [below for nested schema](#nestedatt--dhcp_options))
-- `dhcp_relay_server_ips` (Set of String) The IPs of the DHCP servers that DHCP requests should be relayed to
+- `dhcp_options` (Attributes Set) The list of DHCP options that will be included in DHCP responses. Each object in the list should have "code", "type", and "value" properties. (see [below for nested schema](#nestedatt--list--dhcp_options))
+- `dhcp_relay_server_ips` (Set of String) An array of DHCP relay server IPs to which DHCP packets would get relayed for this VLAN
 - `dns_nameservers` (String) The DNS nameservers used for DHCP responses, either "upstream_dns", "google_dns", "opendns", or a newline seperated string of IP addresses or domain names
-- `fixed_ip_assignments` (Attributes) The DHCP fixed IP assignments on the VLAN. This should be an object that contains mappings from MAC addresses to objects that themselves each contain "ip" and "name" string fields. See the sample request/response for more details (see [below for nested schema](#nestedatt--fixed_ip_assignments))
+- `fixed_ip_assignments` (Attributes) The DHCP fixed IP assignments on the VLAN. This should be an object that contains mappings from MAC addresses to objects that themselves each contain "ip" and "name" string fields. See the sample request/response for more details (see [below for nested schema](#nestedatt--list--fixed_ip_assignments))
 - `group_policy_id` (String) desired group policy to apply to the VLAN
-- `ipv6` (Attributes) IPv6 configuration on the VLAN (see [below for nested schema](#nestedatt--ipv6))
-- `mandatory_dhcp` (Attributes) Mandatory DHCP will enforce that clients connecting to this VLAN must use the IP address assigned by the DHCP server. Clients who use a static IP address won't be able to associate. Only available on firmware versions 17.0 and above (see [below for nested schema](#nestedatt--mandatory_dhcp))
+- `ipv6` (Attributes) IPv6 configuration on the VLAN (see [below for nested schema](#nestedatt--list--ipv6))
+- `mandatory_dhcp` (Attributes) Mandatory DHCP will enforce that clients connecting to this VLAN must use the IP address assigned by the DHCP server. Clients who use a static IP address won't be able to associate. Only available on firmware versions 17.0 and above (see [below for nested schema](#nestedatt--list--mandatory_dhcp))
 - `mask` (Number) Mask used for the subnet of all bound to the template networks. Applicable only for template network.
 - `name` (String) The name of the new VLAN
-- `reserved_ip_ranges` (Attributes Set) The DHCP reserved IP ranges on the VLAN (see [below for nested schema](#nestedatt--reserved_ip_ranges))
+- `reserved_ip_ranges` (Attributes Set) The DHCP reserved IP ranges on the VLAN (see [below for nested schema](#nestedatt--list--reserved_ip_ranges))
 - `subnet` (String) The subnet of the VLAN
 - `template_vlan_type` (String) Type of subnetting of the VLAN. Applicable only for template network.
-- `vlan_id` (String)
+- `vlan_id` (Number)
 - `vpn_nat_subnet` (String) The translated VPN subnet if VPN and VPN subnet translation are enabled on the VLAN
 
-### Read-Only
-
-- `id` (String) The ID of this resource.
-
-<a id="nestedatt--dhcp_options"></a>
-### Nested Schema for `dhcp_options`
+<a id="nestedatt--list--dhcp_options"></a>
+### Nested Schema for `list.dhcp_options`
 
 Optional:
 
@@ -57,8 +64,8 @@ Optional:
 - `value` (String) The value for the DHCP option
 
 
-<a id="nestedatt--fixed_ip_assignments"></a>
-### Nested Schema for `fixed_ip_assignments`
+<a id="nestedatt--list--fixed_ip_assignments"></a>
+### Nested Schema for `list.fixed_ip_assignments`
 
 Optional:
 
@@ -66,26 +73,26 @@ Optional:
 - `name` (String) Enable IPv6 on VLAN.
 
 
-<a id="nestedatt--ipv6"></a>
-### Nested Schema for `ipv6`
+<a id="nestedatt--list--ipv6"></a>
+### Nested Schema for `list.ipv6`
 
 Optional:
 
 - `enabled` (Boolean) Enable IPv6 on VLAN.
-- `prefix_assignments` (Attributes Set) Prefix assignments on the VLAN (see [below for nested schema](#nestedatt--ipv6--prefix_assignments))
+- `prefix_assignments` (Attributes Set) Prefix assignments on the VLAN (see [below for nested schema](#nestedatt--list--ipv6--prefix_assignments))
 
-<a id="nestedatt--ipv6--prefix_assignments"></a>
-### Nested Schema for `ipv6.prefix_assignments`
+<a id="nestedatt--list--ipv6--prefix_assignments"></a>
+### Nested Schema for `list.ipv6.prefix_assignments`
 
 Optional:
 
 - `autonomous` (Boolean) Auto assign a /64 prefix from the origin to the VLAN
-- `origin` (Attributes) The origin of the prefix (see [below for nested schema](#nestedatt--ipv6--prefix_assignments--origin))
+- `origin` (Attributes) The origin of the prefix (see [below for nested schema](#nestedatt--list--ipv6--prefix_assignments--origin))
 - `static_appliance_ip6` (String) Manual configuration of the IPv6 Appliance IP
 - `static_prefix` (String) Manual configuration of a /64 prefix on the VLAN
 
-<a id="nestedatt--ipv6--prefix_assignments--origin"></a>
-### Nested Schema for `ipv6.prefix_assignments.origin`
+<a id="nestedatt--list--ipv6--prefix_assignments--origin"></a>
+### Nested Schema for `list.ipv6.prefix_assignments.static_prefix`
 
 Optional:
 
@@ -95,21 +102,19 @@ Optional:
 
 
 
-<a id="nestedatt--mandatory_dhcp"></a>
-### Nested Schema for `mandatory_dhcp`
+<a id="nestedatt--list--mandatory_dhcp"></a>
+### Nested Schema for `list.mandatory_dhcp`
 
 Optional:
 
 - `enabled` (Boolean) Enable Mandatory DHCP on VLAN.
 
 
-<a id="nestedatt--reserved_ip_ranges"></a>
-### Nested Schema for `reserved_ip_ranges`
+<a id="nestedatt--list--reserved_ip_ranges"></a>
+### Nested Schema for `list.reserved_ip_ranges`
 
 Optional:
 
 - `comment` (String) A text comment for the reserved range
 - `end` (String) The last IP in the reserved range
 - `start` (String) The first IP in the reserved range
-
-

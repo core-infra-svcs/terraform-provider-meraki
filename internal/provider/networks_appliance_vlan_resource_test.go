@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestAccNetworksApplianceVlansResource(t *testing.T) {
+func TestAccNetworksApplianceVlanResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
@@ -13,7 +13,7 @@ func TestAccNetworksApplianceVlansResource(t *testing.T) {
 
 			// Create and Read an Organization.
 			{
-				Config: testAccNetworksApplianceVlansResourceConfigCreateOrganization,
+				Config: testAccNetworksApplianceVlanResourceConfigCreateOrganization,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_meraki_networks_appliance_vlans"),
@@ -22,7 +22,7 @@ func TestAccNetworksApplianceVlansResource(t *testing.T) {
 
 			// Create and Read a Network.
 			{
-				Config: testAccNetworksApplianceVlansResourceConfigCreate,
+				Config: testAccNetworksApplianceVlanResourceConfigCreate,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_network.test", "name", "Main Office"),
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
@@ -38,26 +38,26 @@ func TestAccNetworksApplianceVlansResource(t *testing.T) {
 
 			// Update testing
 			{
-				Config: testAccNetworksApplianceVlansResourceConfigUpdate,
+				Config: testAccNetworksApplianceVlanResourceConfigUpdate,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "name", "My VLAN"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "name", "My VLAN"),
 				),
 			},
 		},
 	})
 }
 
-// testAccDevicesApplianceDhcpSubnetsDataSourceConfigCreateOrganization is a constant string that defines the configuration for creating an organization resource in your tests.
-const testAccNetworksApplianceVlansResourceConfigCreateOrganization = `
+// testAccNetworksApplianceVlanResourceConfigCreateOrganization is a constant string that defines the configuration for creating an organization resource in your tests.
+const testAccNetworksApplianceVlanResourceConfigCreateOrganization = `
  resource "meraki_organization" "test" {
  	name = "test_meraki_networks_appliance_vlans"
  	api_enabled = true
  }
  `
 
-// testAccDevicesApplianceDhcpSubnetsDataSourceConfigCreateNetwork is a constant string that defines the configuration for creating a network resource in your tests.
+// testAccNetworksApplianceVlanResourceConfigCreate is a constant string that defines the configuration for creating a network resource in your tests.
 // It depends on the organization resource.
-const testAccNetworksApplianceVlansResourceConfigCreate = `
+const testAccNetworksApplianceVlanResourceConfigCreate = `
 resource "meraki_organization" "test" {}
 
 resource "meraki_network" "test" {
@@ -71,7 +71,7 @@ resource "meraki_network" "test" {
 }
 `
 
-const testAccNetworksApplianceVlansResourceConfigUpdate = `
+const testAccNetworksApplianceVlanResourceConfigUpdate = `
 resource "meraki_organization" "test" {}
 
 resource "meraki_network" "test" {
@@ -90,7 +90,7 @@ resource "meraki_networks_appliance_vlans_settings" "test" {
 	vlans_enabled = true
 }
 
-resource "meraki_networks_appliance_vlans" "test" {
+resource "meraki_networks_appliance_vlan" "test" {
 	depends_on = [resource.meraki_networks_appliance_vlans_settings.test]
 	network_id = resource.meraki_network.test.network_id
 	vlan_id = "123"
@@ -99,29 +99,22 @@ resource "meraki_networks_appliance_vlans" "test" {
     appliance_ip = "192.168.1.2"
     template_vlan_type = "same"
     cidr = "192.168.1.0/24"
-    mask = 28
-	reserved_ip_ranges = [
-		{
-			start = "192.168.1.0"
-			end = "192.168.1.1"
-			comment = "A reserved IP range"
-      	}
-	]
-	dhcp_options = [
-		{
-			code = "5"
-			type = "text"
-			value = "five"
-      	}
-    ]
-	fixed_ip_assignments = {
-	}
+    mask = 24
+
+	reserved_ip_ranges = []
+
+	dhcp_options = []
+
+	fixed_ip_assignments = {}
+
     ipv6 = {
-        enabled = true
+        enabled = false,
         prefix_assignments = []
     }
+
 	mandatory_dhcp = {
-		enabled = true
+		enabled = false
 	}
+
 }
 `

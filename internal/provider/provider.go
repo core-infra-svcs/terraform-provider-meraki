@@ -293,7 +293,7 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		NewNetworksApplianceVpnSiteToSiteVpnResource,
 		NewDevicesSwitchPortsCycleResource,
 		NewNetworksApplianceTrafficShapingUplinkBandWidthResource,
-		NewNetworksApplianceVLANsResource,
+		NewNetworksApplianceVLANResource,
 	}
 }
 
@@ -313,6 +313,7 @@ func (p *CiscoMerakiProvider) DataSources(ctx context.Context) []func() datasour
 		NewDevicesSwitchPortsStatusesDataSource,
 		NewDevicesApplianceDhcpSubnetsDataSource,
 		NewNetworksWirelessSsidsDataSource,
+		NewNetworksApplianceVlansDataSource,
 	}
 }
 
