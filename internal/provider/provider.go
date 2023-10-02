@@ -158,7 +158,7 @@ func (p *CiscoMerakiProvider) Configure(ctx context.Context, req provider.Config
 	}
 
 	// UserAgent
-	configuration.UserAgent = configuration.UserAgent + "terraform" + p.version
+	configuration.UserAgent = configuration.UserAgent + " terraform/" + p.version
 
 	// Set certificate path
 	if !data.CertificatePath.IsNull() {
