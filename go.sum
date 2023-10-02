@@ -126,8 +126,8 @@ github.com/mattn/go-isatty v0.0.12/go.mod h1:cbi8OIDigv2wuxKPP5vlRcQ1OAZbq2CE4Ky
 github.com/mattn/go-isatty v0.0.14/go.mod h1:7GGIvUiUoEMVVmxf/4nioHXj79iQHKdU27kJ6hsGG94=
 github.com/mattn/go-isatty v0.0.16 h1:bq3VjFmv/sOjHtdEhmkEV4x1AJtvUvOJ2PFAZ5+peKQ=
 github.com/mattn/go-isatty v0.0.16/go.mod h1:kYGgaQfpe5nmfYZH+SKPsOc2e4SrIfOl2e/yFXSvRLM=
-github.com/meraki/dashboard-api-go/client v0.0.0-20230715080202-f9b9727a5725 h1:lpxyhcSIiP+wAhK6TI7soZ4QdfFKC4ufOZUAStKnDZ8=
-github.com/meraki/dashboard-api-go/client v0.0.0-20230715080202-f9b9727a5725/go.mod h1:XCDamx9nFNupUvbP4U5HpMH3AlXu4x/tvZdH2ZCHAJs=
+github.com/meraki/dashboard-api-go/client v0.0.0-20231002034758-dc714fc84efe h1:cu/+PABnWDV4LitBprBNo8w2hw9a2sX+uFQO8HtoxwA=
+github.com/meraki/dashboard-api-go/client v0.0.0-20231002034758-dc714fc84efe/go.mod h1:XCDamx9nFNupUvbP4U5HpMH3AlXu4x/tvZdH2ZCHAJs=
 github.com/mitchellh/cli v1.1.5 h1:OxRIeJXpAMztws/XHlN2vu6imG5Dpq+j61AzAX5fLng=
 github.com/mitchellh/cli v1.1.5/go.mod h1:v8+iFts2sPIKUV1ltktPXMCC8fumSKFItNcD2cLtRR4=
 github.com/mitchellh/copystructure v1.0.0/go.mod h1:SNtv71yrdKgLRyLFxmLdkAbkKEFWgYaq1OVrnRcwhnw=
