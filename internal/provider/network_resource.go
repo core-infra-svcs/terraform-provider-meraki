@@ -207,7 +207,9 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 
 	// Create HTTP request body
 	createOrganizationNetwork := openApiClient.NewCreateOrganizationNetworkRequest(data.Name.ValueString(), nil)
-	createOrganizationNetwork.SetTimeZone(data.Timezone.ValueString())
+	if !data.Timezone.IsUnknown() {
+		createOrganizationNetwork.SetTimeZone(data.Timezone.ValueString())
+	}
 
 	// ProductTypes
 	var productTypes []string
@@ -249,6 +251,7 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 			"HTTP Client Failure",
 			tools.HttpDiagnostics(httpResp),
 		)
+
 		return
 	}
 
