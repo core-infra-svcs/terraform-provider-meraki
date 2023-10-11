@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
 )
@@ -64,7 +65,14 @@ type NetworkResourceModel struct {
 	Url                     jsontypes.String                `tfsdk:"url"`
 	Notes                   jsontypes.String                `tfsdk:"notes"`
 	IsBoundToConfigTemplate jsontypes.Bool                  `tfsdk:"is_bound_to_config_template" json:"IsBoundToConfigTemplate"`
+	ConfigTemplateId        jsontypes.String                `tfsdk:"config_template_id" json:"configTemplateId"`
 	CopyFromNetworkId       jsontypes.String                `tfsdk:"copy_from_network_id" json:"copyFromNetworkId"`
+	Bind                    types.Object                    `tfsdk:"bind"`
+}
+
+type BindNetwork struct {
+	ConfigTemplateId types.String `tfsdk:"config_template_id" json:"configTemplateId"`
+	AutoBind         types.Bool   `tfsdk:"auto_bind" json:"autoBind"`
 }
 
 func (r *NetworkResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -74,7 +82,6 @@ func (r *NetworkResource) Metadata(ctx context.Context, req resource.MetadataReq
 func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description: "Manage the networks that the user has privileges on in an organization",
-
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
@@ -164,6 +171,14 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Computed:            true,
 				CustomType:          jsontypes.BoolType,
 			},
+			"config_template_id": schema.StringAttribute{
+				MarkdownDescription: "Config Template Id",
+				Computed:            true,
+				CustomType:          jsontypes.StringType,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
 			"copy_from_network_id": schema.StringAttribute{
 				MarkdownDescription: "The ID of the network to copy configuration from. Other provided parameters will override the copied configuration, except type which must match this network's type exactly.",
 				Optional:            true,
@@ -171,6 +186,30 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 				CustomType:          jsontypes.StringType,
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 31),
+				},
+			},
+		},
+		Blocks: map[string]schema.Block{
+			"bind": schema.SingleNestedBlock{
+				Attributes: map[string]schema.Attribute{
+					"config_template_id": schema.StringAttribute{
+						MarkdownDescription: "Config Template Id",
+						Optional:            true,
+						Computed:            true,
+						//CustomType:          types.String,
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.UseStateForUnknown(),
+						},
+						Validators: []validator.String{
+							stringvalidator.LengthBetween(1, 31),
+						},
+					},
+					"auto_bind": schema.BoolAttribute{
+						MarkdownDescription: "Optional boolean indicating whether the network's switches should automatically bind to profiles of the same model. Defaults to false if left unspecified. This option only affects switch networks and switch templates. Auto-bind is not valid unless the switch template has at least one profile and has at most one profile per switch model.",
+						Optional:            true,
+						Computed:            true,
+						//CustomType:          types.Bool,
+					},
 				},
 			},
 		},
@@ -283,6 +322,52 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 		data.CopyFromNetworkId = jsontypes.StringNull()
 	}
 
+	// Set up network bind
+	if !data.Bind.IsUnknown() {
+		var bindDetails BindNetwork
+		data.Bind.As(ctx, &bindDetails, basetypes.ObjectAsOptions{})
+
+		if !bindDetails.ConfigTemplateId.IsUnknown() {
+			createNetworkBindRequest := openApiClient.NewBindNetworkRequest(bindDetails.ConfigTemplateId.ValueString())
+			// CopyFromNetworkId
+
+			if !bindDetails.AutoBind.IsUnknown() {
+				createNetworkBindRequest.SetAutoBind(bindDetails.AutoBind.ValueBool())
+			}
+
+			_, bindHttpResp, bindErr := r.client.NetworksApi.BindNetwork(ctx, data.NetworkId.ValueString()).BindNetworkRequest(*createNetworkBindRequest).Execute()
+
+			if bindErr != nil {
+				resp.Diagnostics.AddError(
+					"HTTP Client Failure",
+					tools.HttpDiagnostics(bindHttpResp),
+				)
+				return
+			}
+
+			// Check for API success response code
+			if bindHttpResp.StatusCode != 201 {
+				resp.Diagnostics.AddError(
+					"Unexpected HTTP Response Status Code",
+					fmt.Sprintf("%v", bindHttpResp.StatusCode),
+				)
+				return
+			}
+			var bindRes *NetworkResourceModel
+
+			if err = json.NewDecoder(bindHttpResp.Body).Decode(bindRes); err != nil {
+				resp.Diagnostics.AddError(
+					"JSON Decode issue",
+					fmt.Sprintf("%v", bindHttpResp.StatusCode),
+				)
+				return
+			}
+
+			data.ConfigTemplateId = bindRes.ConfigTemplateId
+			data.IsBoundToConfigTemplate = bindRes.IsBoundToConfigTemplate
+		}
+	}
+
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -391,6 +476,9 @@ func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest
 		)
 		return
 	}
+
+	// TODO Handle change of bind
+	//httpResp, err := r.client.NetworksApi.UnbindNetwork(context.Background(), data.NetworkId.ValueString()).Execute()
 
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
