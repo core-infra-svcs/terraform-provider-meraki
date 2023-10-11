@@ -67,7 +67,7 @@ type NetworkResourceModel struct {
 	IsBoundToConfigTemplate jsontypes.Bool                  `tfsdk:"is_bound_to_config_template" json:"IsBoundToConfigTemplate"`
 	ConfigTemplateId        jsontypes.String                `tfsdk:"config_template_id" json:"configTemplateId"`
 	CopyFromNetworkId       jsontypes.String                `tfsdk:"copy_from_network_id" json:"copyFromNetworkId"`
-	Bind                    types.Object                    `tfsdk:"bind"`
+	Bind                    types.Object                    `tfsdk:"bind" json:"bind"`
 }
 
 type BindNetwork struct {
@@ -132,6 +132,9 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Optional:            true,
 				Computed:            true,
 				CustomType:          jsontypes.StringType,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"tags": schema.SetAttribute{
 				Description: "Network tags",
@@ -158,6 +161,9 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Optional:            true,
 				Computed:            true,
 				CustomType:          jsontypes.StringType,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"notes": schema.StringAttribute{
 				MarkdownDescription: "Notes for the network",
@@ -167,7 +173,6 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 			},
 			"is_bound_to_config_template": schema.BoolAttribute{
 				MarkdownDescription: "If the network is bound to a config template",
-				Optional:            true,
 				Computed:            true,
 				CustomType:          jsontypes.BoolType,
 			},
@@ -195,7 +200,6 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 					"config_template_id": schema.StringAttribute{
 						MarkdownDescription: "Config Template Id",
 						Optional:            true,
-						Computed:            true,
 						//CustomType:          types.String,
 						PlanModifiers: []planmodifier.String{
 							stringplanmodifier.UseStateForUnknown(),
@@ -207,7 +211,6 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 					"auto_bind": schema.BoolAttribute{
 						MarkdownDescription: "Optional boolean indicating whether the network's switches should automatically bind to profiles of the same model. Defaults to false if left unspecified. This option only affects switch networks and switch templates. Auto-bind is not valid unless the switch template has at least one profile and has at most one profile per switch model.",
 						Optional:            true,
-						Computed:            true,
 						//CustomType:          types.Bool,
 					},
 				},
@@ -316,7 +319,9 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 		)
 		return
 	}
-	data.Id = types.StringValue("example-id")
+
+	// Note: Id is properly returned here, shouldnt be example
+	data.Id = data.NetworkId.StringValue
 
 	if data.CopyFromNetworkId.IsUnknown() {
 		data.CopyFromNetworkId = jsontypes.StringNull()
@@ -346,7 +351,7 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 			}
 
 			// Check for API success response code
-			if bindHttpResp.StatusCode != 201 {
+			if bindHttpResp.StatusCode != 200 {
 				resp.Diagnostics.AddError(
 					"Unexpected HTTP Response Status Code",
 					fmt.Sprintf("%v", bindHttpResp.StatusCode),
@@ -355,11 +360,14 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 			}
 			var bindRes *NetworkResourceModel
 
+			req.Plan.Get(ctx, &bindRes)
+
 			if err = json.NewDecoder(bindHttpResp.Body).Decode(bindRes); err != nil {
 				resp.Diagnostics.AddError(
 					"JSON Decode issue",
 					fmt.Sprintf("%v", bindHttpResp.StatusCode),
 				)
+
 				return
 			}
 
@@ -405,10 +413,12 @@ func (r *NetworkResource) Read(ctx context.Context, req resource.ReadRequest, re
 		return
 	}
 	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+
 		resp.Diagnostics.AddError(
 			"JSON Decode issue",
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
+
 		return
 	}
 	// save inlineResp data into Terraform state.
