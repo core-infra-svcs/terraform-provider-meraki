@@ -401,7 +401,7 @@ func (r *NetworkResource) Read(ctx context.Context, req resource.ReadRequest, re
 		return
 	}
 	// save inlineResp data into Terraform state.
-	data.Id = types.StringValue("example-id")
+	data.Id = data.NetworkId.StringValue
 
 	if data.CopyFromNetworkId.IsUnknown() {
 		data.CopyFromNetworkId = jsontypes.StringNull()
