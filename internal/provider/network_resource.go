@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
 )
@@ -67,12 +66,7 @@ type NetworkResourceModel struct {
 	IsBoundToConfigTemplate jsontypes.Bool                  `tfsdk:"is_bound_to_config_template" json:"IsBoundToConfigTemplate"`
 	ConfigTemplateId        jsontypes.String                `tfsdk:"config_template_id" json:"configTemplateId"`
 	CopyFromNetworkId       jsontypes.String                `tfsdk:"copy_from_network_id" json:"copyFromNetworkId"`
-	Bind                    types.Object                    `tfsdk:"bind" json:"bind"`
-}
-
-type BindNetwork struct {
-	ConfigTemplateId types.String `tfsdk:"config_template_id" json:"configTemplateId"`
-	AutoBind         types.Bool   `tfsdk:"auto_bind" json:"autoBind"`
+	AutoBind                types.Bool                      `tfsdk:"auto_bind" json:"autoBind"`
 }
 
 func (r *NetworkResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -155,6 +149,9 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 					stringvalidator.NoneOf([]string{";", ":", "@", "=", "&", "$", "!", "‘", "“", ",", "?", ".", "(", ")", "{", "}", "[", "]", "\\", "*", "+", "/", "#", "<", ">", "|", "^", "%"}...),
 					stringvalidator.LengthBetween(4, 50),
 				},
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"url": schema.StringAttribute{
 				MarkdownDescription: "URL to the network Dashboard UI",
@@ -170,6 +167,9 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Optional:            true,
 				Computed:            true,
 				CustomType:          jsontypes.StringType,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"is_bound_to_config_template": schema.BoolAttribute{
 				MarkdownDescription: "If the network is bound to a config template",
@@ -178,10 +178,10 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 			},
 			"config_template_id": schema.StringAttribute{
 				MarkdownDescription: "Config Template Id",
-				Computed:            true,
+				Optional:            true,
 				CustomType:          jsontypes.StringType,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(1, 31),
 				},
 			},
 			"copy_from_network_id": schema.StringAttribute{
@@ -192,28 +192,13 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 31),
 				},
-			},
-		},
-		Blocks: map[string]schema.Block{
-			"bind": schema.SingleNestedBlock{
-				Attributes: map[string]schema.Attribute{
-					"config_template_id": schema.StringAttribute{
-						MarkdownDescription: "Config Template Id",
-						Optional:            true,
-						//CustomType:          types.String,
-						PlanModifiers: []planmodifier.String{
-							stringplanmodifier.UseStateForUnknown(),
-						},
-						Validators: []validator.String{
-							stringvalidator.LengthBetween(1, 31),
-						},
-					},
-					"auto_bind": schema.BoolAttribute{
-						MarkdownDescription: "Optional boolean indicating whether the network's switches should automatically bind to profiles of the same model. Defaults to false if left unspecified. This option only affects switch networks and switch templates. Auto-bind is not valid unless the switch template has at least one profile and has at most one profile per switch model.",
-						Optional:            true,
-						//CustomType:          types.Bool,
-					},
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
 				},
+			},
+			"auto_bind": schema.BoolAttribute{
+				MarkdownDescription: "Optional boolean indicating whether the network's switches should automatically bind to profiles of the same model. Defaults to false if left unspecified. This option only affects switch networks and switch templates. Auto-bind is not valid unless the switch template has at least one profile and has at most one profile per switch model.",
+				Optional:            true,
 			},
 		},
 	}
@@ -327,53 +312,47 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 		data.CopyFromNetworkId = jsontypes.StringNull()
 	}
 
-	// Set up network bind
-	if !data.Bind.IsUnknown() {
-		var bindDetails BindNetwork
-		data.Bind.As(ctx, &bindDetails, basetypes.ObjectAsOptions{})
+	// Validate Whether we need to bind a template
+	if !data.ConfigTemplateId.IsUnknown() {
+		createNetworkBindRequest := openApiClient.NewBindNetworkRequest(data.ConfigTemplateId.ValueString())
 
-		if !bindDetails.ConfigTemplateId.IsUnknown() {
-			createNetworkBindRequest := openApiClient.NewBindNetworkRequest(bindDetails.ConfigTemplateId.ValueString())
-			// CopyFromNetworkId
-
-			if !bindDetails.AutoBind.IsUnknown() {
-				createNetworkBindRequest.SetAutoBind(bindDetails.AutoBind.ValueBool())
-			}
-
-			_, bindHttpResp, bindErr := r.client.NetworksApi.BindNetwork(ctx, data.NetworkId.ValueString()).BindNetworkRequest(*createNetworkBindRequest).Execute()
-
-			if bindErr != nil {
-				resp.Diagnostics.AddError(
-					"HTTP Client Failure",
-					tools.HttpDiagnostics(bindHttpResp),
-				)
-				return
-			}
-
-			// Check for API success response code
-			if bindHttpResp.StatusCode != 200 {
-				resp.Diagnostics.AddError(
-					"Unexpected HTTP Response Status Code",
-					fmt.Sprintf("%v", bindHttpResp.StatusCode),
-				)
-				return
-			}
-			var bindRes *NetworkResourceModel
-
-			req.Plan.Get(ctx, &bindRes)
-
-			if err = json.NewDecoder(bindHttpResp.Body).Decode(bindRes); err != nil {
-				resp.Diagnostics.AddError(
-					"JSON Decode issue",
-					fmt.Sprintf("%v", bindHttpResp.StatusCode),
-				)
-
-				return
-			}
-
-			data.ConfigTemplateId = bindRes.ConfigTemplateId
-			data.IsBoundToConfigTemplate = bindRes.IsBoundToConfigTemplate
+		if !data.AutoBind.IsUnknown() {
+			createNetworkBindRequest.SetAutoBind(data.AutoBind.ValueBool())
 		}
+
+		_, bindHttpResp, bindErr := r.client.NetworksApi.BindNetwork(ctx, data.NetworkId.ValueString()).BindNetworkRequest(*createNetworkBindRequest).Execute()
+
+		if bindErr != nil {
+			resp.Diagnostics.AddError(
+				"HTTP Client Failure",
+				tools.HttpDiagnostics(bindHttpResp),
+			)
+			return
+		}
+
+		// Check for API success response code
+		if bindHttpResp.StatusCode != 200 {
+			resp.Diagnostics.AddError(
+				"Unexpected HTTP Response Status Code",
+				fmt.Sprintf("%v", bindHttpResp.StatusCode),
+			)
+			return
+		}
+		var bindRes *NetworkResourceModel
+
+		req.Plan.Get(ctx, &bindRes)
+
+		if err = json.NewDecoder(bindHttpResp.Body).Decode(bindRes); err != nil {
+			resp.Diagnostics.AddError(
+				"JSON Decode issue",
+				fmt.Sprintf("%v", bindHttpResp.StatusCode),
+			)
+
+			return
+		}
+
+		data.ConfigTemplateId = bindRes.ConfigTemplateId
+		data.IsBoundToConfigTemplate = bindRes.IsBoundToConfigTemplate
 	}
 
 	// Save data into Terraform state
@@ -436,10 +415,12 @@ func (r *NetworkResource) Read(ctx context.Context, req resource.ReadRequest, re
 }
 
 func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data *NetworkResourceModel
+	var data, state, plan *NetworkResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -487,9 +468,6 @@ func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest
 		return
 	}
 
-	// TODO Handle change of bind
-	//httpResp, err := r.client.NetworksApi.UnbindNetwork(context.Background(), data.NetworkId.ValueString()).Execute()
-
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
@@ -503,7 +481,92 @@ func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest
 		)
 		return
 	}
-	data.Id = types.StringValue("example-id")
+
+	// If a new template is being added, unbind
+	if (plan.ConfigTemplateId.IsUnknown() && len(state.ConfigTemplateId.ValueString()) > 0) ||
+		state.ConfigTemplateId.StringValue != plan.ConfigTemplateId.StringValue && len(state.ConfigTemplateId.ValueString()) > 0 {
+
+		_, httpResp, err := r.client.NetworksApi.UnbindNetwork(context.Background(), plan.NetworkId.ValueString()).Execute()
+
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"HTTP Client Failure",
+				tools.HttpDiagnostics(httpResp),
+			)
+			return
+		}
+
+		// Check for API success response code
+		if httpResp.StatusCode != 200 {
+			resp.Diagnostics.AddError(
+				"Unexpected HTTP Response Status Code",
+				fmt.Sprintf("%v", httpResp.StatusCode),
+			)
+			return
+		}
+		var bindRes *NetworkResourceModel
+
+		req.Plan.Get(ctx, &bindRes)
+
+		if err = json.NewDecoder(httpResp.Body).Decode(bindRes); err != nil {
+			resp.Diagnostics.AddError(
+				"JSON Decode issue",
+				fmt.Sprintf("%v", httpResp.StatusCode),
+			)
+
+			return
+		}
+
+		data = bindRes
+	}
+
+	// If new template, or swappng, bind
+	if (state.ConfigTemplateId.IsUnknown() && len(plan.ConfigTemplateId.ValueString()) > 0) ||
+		state.ConfigTemplateId.StringValue != plan.ConfigTemplateId.StringValue && len(plan.ConfigTemplateId.ValueString()) > 0 {
+		tflog.Debug(ctx, "binding")
+
+		createNetworkBindRequest := openApiClient.NewBindNetworkRequest(plan.ConfigTemplateId.ValueString())
+
+		if !plan.AutoBind.IsUnknown() {
+			createNetworkBindRequest.SetAutoBind(plan.AutoBind.ValueBool())
+		}
+
+		_, bindHttpResp, bindErr := r.client.NetworksApi.BindNetwork(ctx, plan.NetworkId.ValueString()).BindNetworkRequest(*createNetworkBindRequest).Execute()
+
+		if bindErr != nil {
+			resp.Diagnostics.AddError(
+				"HTTP Client Failure",
+				tools.HttpDiagnostics(bindHttpResp),
+			)
+			return
+		}
+
+		// Check for API success response code
+		if bindHttpResp.StatusCode != 200 {
+			resp.Diagnostics.AddError(
+				"Unexpected HTTP Response Status Code",
+				fmt.Sprintf("%v", bindHttpResp.StatusCode),
+			)
+			return
+		}
+		var bindRes *NetworkResourceModel
+
+		req.Plan.Get(ctx, &bindRes)
+
+		if err = json.NewDecoder(bindHttpResp.Body).Decode(bindRes); err != nil {
+			resp.Diagnostics.AddError(
+				"JSON Decode issue",
+				fmt.Sprintf("%v", bindHttpResp.StatusCode),
+			)
+
+			return
+		}
+
+		data = bindRes
+	}
+
+	data.Id = data.NetworkId.StringValue
+
 	if data.CopyFromNetworkId.IsUnknown() {
 		data.CopyFromNetworkId = jsontypes.StringNull()
 	}
