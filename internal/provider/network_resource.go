@@ -313,7 +313,7 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	// Validate Whether we need to bind a template
-	if !data.ConfigTemplateId.IsUnknown() {
+	if !data.ConfigTemplateId.IsNull() {
 		createNetworkBindRequest := openApiClient.NewBindNetworkRequest(data.ConfigTemplateId.ValueString())
 
 		if !data.AutoBind.IsUnknown() {
