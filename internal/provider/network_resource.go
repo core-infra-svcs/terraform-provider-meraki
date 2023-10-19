@@ -312,8 +312,11 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 		data.CopyFromNetworkId = jsontypes.StringNull()
 	}
 
+	resp.State.Set(ctx, &data)
+
 	// Validate Whether we need to bind a template
 	if !data.ConfigTemplateId.IsNull() {
+
 		createNetworkBindRequest := openApiClient.NewBindNetworkRequest(data.ConfigTemplateId.ValueString())
 
 		if !data.AutoBind.IsUnknown() {
@@ -482,6 +485,8 @@ func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest
 		return
 	}
 
+	resp.State.Set(ctx, &data)
+
 	// If a new template is being added, unbind
 	if (plan.ConfigTemplateId.IsUnknown() && len(state.ConfigTemplateId.ValueString()) > 0) ||
 		state.ConfigTemplateId.StringValue != plan.ConfigTemplateId.StringValue && len(state.ConfigTemplateId.ValueString()) > 0 {
@@ -519,6 +524,8 @@ func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest
 
 		data = bindRes
 	}
+
+	resp.State.Set(ctx, &data)
 
 	// If new template, or swappng, bind
 	if (state.ConfigTemplateId.IsUnknown() && len(plan.ConfigTemplateId.ValueString()) > 0) ||
