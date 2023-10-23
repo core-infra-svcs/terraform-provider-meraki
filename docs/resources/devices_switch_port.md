@@ -30,7 +30,8 @@ Network Devices resource. This only works for devices associated with a network.
 - `flexible_stacking_enabled` (Boolean) For supported switches (e.g. MS420/MS425), whether or not the port has flexible stacking enabled.
 - `isolation_enabled` (Boolean) The isolation status of the switch port.
 - `link_negotiation` (String) The link speed for the switch port.
-- `mac_white_list` (Set of String) Only devices with MAC addresses specified in this list will have access to this port. Up to 20 MAC addresses can be defined. Only applicable when 'accessPolicyType' is 'MAC allow list'.
+- `link_negotiation_capabilities` (String) The link speeds for the switch port.
+- `mac_allow_list` (Set of String) Only devices with MAC addresses specified in this list will have access to this port. Up to 20 MAC addresses can be defined. Only applicable when 'accessPolicyType' is 'MAC allow list'.
 - `name` (String) The name of the switch port.
 - `peer_sgt_capable` (Boolean) If true, Peer SGT is enabled for traffic through this switch port. Applicable to trunk port only, not access port. Cannot be applied to a port on a switch bound to profile.
 - `poe_enabled` (Boolean) The PoE status of the switch port.
@@ -38,8 +39,8 @@ Network Devices resource. This only works for devices associated with a network.
 - `port_schedule_id` (String) The ID of the port schedule. A value of null will clear the port schedule.
 - `profile` (Attributes) (see [below for nested schema](#nestedatt--profile))
 - `rstp_enabled` (Boolean) The rapid spanning tree protocol status.
-- `sticky_mac_white_list` (Set of String) The initial list of MAC addresses for sticky Mac allow list. Only applicable when 'accessPolicyType' is 'Sticky MAC allow list'.
-- `sticky_mac_white_list_limit` (Number) The maximum number of MAC addresses for sticky MAC allow list. Only applicable when 'accessPolicyType' is 'Sticky MAC allow list'.
+- `sticky_mac_allow_list` (Set of String) The initial list of MAC addresses for sticky Mac allow list. Only applicable when 'accessPolicyType' is 'Sticky MAC allow list'.
+- `sticky_mac_allow_list_limit` (Number) The maximum number of MAC addresses for sticky MAC allow list. Only applicable when 'accessPolicyType' is 'Sticky MAC allow list'.
 - `storm_control_enabled` (Boolean) The storm control status of the switch port.
 - `stp_guard` (String) The state of the STP guard ('disabled', 'root guard', 'bpdu guard' or 'loop guard').
 - `tags` (Set of String) The list of tags of the switch port.
