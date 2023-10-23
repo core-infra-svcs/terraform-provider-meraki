@@ -155,7 +155,6 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 			},
 			"url": schema.StringAttribute{
 				MarkdownDescription: "URL to the network Dashboard UI",
-				Optional:            true,
 				Computed:            true,
 				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{

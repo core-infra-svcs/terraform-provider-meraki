@@ -31,9 +31,9 @@ Manage the networks that the user has privileges on in an organization
 - `organization_id` (String) Organization ID
 - `tags` (Set of String) Network tags
 - `timezone` (String) Timezone of the network
-- `url` (String) URL to the network Dashboard UI
 
 ### Read-Only
 
 - `id` (String) The ID of this resource.
 - `is_bound_to_config_template` (Boolean) If the network is bound to a config template
+- `url` (String) URL to the network Dashboard UI
