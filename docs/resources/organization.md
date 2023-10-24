@@ -23,6 +23,7 @@ Manage the organizations that the user has privileges on
 - `management_details_name` (String) Name of management data
 - `management_details_value` (String) Value of management data
 - `name` (String) Organization name
+- `org_to_clone` (String) ID or org which to clone from
 - `organization_id` (String) Organization ID
 - `url` (String) Organization URL
 

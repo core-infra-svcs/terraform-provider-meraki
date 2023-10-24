@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"net/http"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -45,6 +46,7 @@ type OrganizationResourceModel struct {
 	LicensingModel         jsontypes.String `tfsdk:"licensing_model"`
 	Name                   jsontypes.String `tfsdk:"name"`
 	Url                    jsontypes.String `tfsdk:"url"`
+	OrgToClone             jsontypes.String `tfsdk:"org_to_clone"`
 }
 
 func (r *OrganizationResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -116,6 +118,11 @@ func (r *OrganizationResource) Schema(ctx context.Context, req resource.SchemaRe
 				Computed:            true,
 				CustomType:          jsontypes.StringType,
 			},
+			"org_to_clone": schema.StringAttribute{
+				MarkdownDescription: "ID or org which to clone from",
+				Optional:            true,
+				CustomType:          jsontypes.StringType,
+			},
 		},
 	}
 }
@@ -148,22 +155,34 @@ func (r *OrganizationResource) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
-	// Create HTTP request body
-	createOrganization := *openApiClient.NewCreateOrganizationRequest(data.Name.ValueString())
+	var inlineResp *openApiClient.GetOrganizations200ResponseInner
+	var httpResp *http.Response
+	var err error
 
-	// Set management details
-	var name = data.ManagementDetailsName.ValueString()
-	var value = data.ManagementDetailsValue.ValueString()
-	detail := openApiClient.GetOrganizations200ResponseInnerManagementDetailsInner{
-		Name:  &name,
-		Value: &value,
+	if !data.OrgToClone.IsNull() {
+		cloneOrganization := *openApiClient.NewCloneOrganizationRequest(data.Name.ValueString())
+
+		// Initialize provider client and make API call
+		inlineResp, httpResp, err = r.client.OrganizationsApi.CloneOrganization(context.Background(), data.OrgToClone.ValueString()).CloneOrganizationRequest(cloneOrganization).Execute()
+	} else {
+		// Create HTTP request body
+		createOrganization := *openApiClient.NewCreateOrganizationRequest(data.Name.ValueString())
+
+		// Set management details
+		var name = data.ManagementDetailsName.ValueString()
+		var value = data.ManagementDetailsValue.ValueString()
+		detail := openApiClient.GetOrganizations200ResponseInnerManagementDetailsInner{
+			Name:  &name,
+			Value: &value,
+		}
+		details := []openApiClient.GetOrganizations200ResponseInnerManagementDetailsInner{detail}
+		organizationsManagement := openApiClient.GetOrganizations200ResponseInnerManagement{Details: details}
+		createOrganization.SetManagement(organizationsManagement)
+
+		// Initialize provider client and make API call
+		inlineResp, httpResp, err = r.client.OrganizationsApi.CreateOrganization(context.Background()).CreateOrganizationRequest(createOrganization).Execute()
 	}
-	details := []openApiClient.GetOrganizations200ResponseInnerManagementDetailsInner{detail}
-	organizationsManagement := openApiClient.GetOrganizations200ResponseInnerManagement{Details: details}
-	createOrganization.SetManagement(organizationsManagement)
 
-	// Initialize provider client and make API call
-	inlineResp, httpResp, err := r.client.OrganizationsApi.CreateOrganization(context.Background()).CreateOrganizationRequest(createOrganization).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"HTTP Client Failure",
@@ -171,7 +190,6 @@ func (r *OrganizationResource) Create(ctx context.Context, req resource.CreateRe
 		)
 		return
 	}
-
 	// Check for API success response code
 	if httpResp.StatusCode != 201 {
 		resp.Diagnostics.AddError(
