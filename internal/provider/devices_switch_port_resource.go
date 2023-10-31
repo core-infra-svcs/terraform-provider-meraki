@@ -8,17 +8,18 @@ import (
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
+	"io"
 )
 
 var (
@@ -40,35 +41,35 @@ type DevicesSwitchPortResource struct {
 // The DevicesSwitchPortResourceModel structure describes the data model.
 // This struct is where you define all the attributes that are part of this resource's state.
 type DevicesSwitchPortResourceModel struct {
-	Id                          jsontypes.String                `tfsdk:"id" json:"-"`
-	Serial                      jsontypes.String                `tfsdk:"serial" json:"serial"`
-	PortId                      jsontypes.String                `tfsdk:"port_id" json:"portId"`
-	Name                        jsontypes.String                `tfsdk:"name" json:"name"`
-	Tags                        []jsontypes.String              `tfsdk:"tags" json:"tags"`
-	Enabled                     jsontypes.Bool                  `tfsdk:"enabled" json:"enabled"`
-	PoeEnabled                  jsontypes.Bool                  `tfsdk:"poe_enabled" json:"poeEnabled"`
-	Type                        jsontypes.String                `tfsdk:"type" json:"type"`
-	Vlan                        jsontypes.Int64                 `tfsdk:"vlan" json:"vlan"`
-	VoiceVlan                   jsontypes.Int64                 `tfsdk:"voice_vlan" json:"voiceVlan"`
-	AllowedVlans                jsontypes.String                `tfsdk:"allowed_vlans" json:"allowedVlans"`
-	IsolationEnabled            jsontypes.Bool                  `tfsdk:"isolation_enabled" json:"isolationEnabled"`
-	RstpEnabled                 jsontypes.Bool                  `tfsdk:"rstp_enabled" json:"rstpEnabled"`
-	StpGuard                    jsontypes.String                `tfsdk:"stp_guard" json:"stpGuard"`
-	AccessPolicyNumber          jsontypes.Int64                 `tfsdk:"access_policy_number" json:"accessPolicyNumber"`
-	AccessPolicyType            jsontypes.String                `tfsdk:"access_policy_type" json:"accessPolicyType"`
-	LinkNegotiation             jsontypes.String                `tfsdk:"link_negotiation" json:"linkNegotiation"`
-	LinkNegotiationCapabilities jsontypes.Set[jsontypes.String] `tfsdk:"link_negotiation_capabilities" json:"linkNegotiationCapabilities"`
-	PortScheduleId              jsontypes.String                `tfsdk:"port_schedule_id" json:"portScheduleId"`
-	Udld                        jsontypes.String                `tfsdk:"udld" json:"udld"`
-	StickyMacAllowListLimit     jsontypes.Int64                 `tfsdk:"sticky_mac_allow_list_limit" json:"stickyMacWhitelistLimit"`
-	StormControlEnabled         jsontypes.Bool                  `tfsdk:"storm_control_enabled" json:"stormControlEnabled"`
-	MacAllowList                jsontypes.Set[jsontypes.String] `tfsdk:"mac_allow_list" json:"macWhitelist"`
-	StickyMacAllowList          jsontypes.Set[jsontypes.String] `tfsdk:"sticky_mac_allow_list" json:"stickyMacWhitelist"`
-	AdaptivePolicyGroupId       jsontypes.String                `tfsdk:"adaptive_policy_group_id" json:"adaptivePolicyGroupId"`
-	PeerSgtCapable              jsontypes.Bool                  `tfsdk:"peer_sgt_capable" json:"peerSgtCapable"`
-	FlexibleStackingEnabled     jsontypes.Bool                  `tfsdk:"flexible_stacking_enabled" json:"flexibleStackingEnabled"`
-	DaiTrusted                  jsontypes.Bool                  `tfsdk:"dai_trusted" json:"daiTrusted"`
-	Profile                     types.Object                    `tfsdk:"profile" json:"profile"`
+	Id                 jsontypes.String   `tfsdk:"id"`
+	Serial             jsontypes.String   `tfsdk:"serial" json:"serial"`
+	PortId             jsontypes.String   `tfsdk:"port_id" json:"portId"`
+	Name               jsontypes.String   `tfsdk:"name" json:"name"`
+	Tags               []jsontypes.String `tfsdk:"tags" json:"tags"`
+	Enabled            jsontypes.Bool     `tfsdk:"enabled" json:"enabled"`
+	PoeEnabled         jsontypes.Bool     `tfsdk:"poe_enabled" json:"poeEnabled"`
+	Type               jsontypes.String   `tfsdk:"type" json:"type"`
+	Vlan               jsontypes.Int64    `tfsdk:"vlan" json:"vlan"`
+	VoiceVlan          jsontypes.Int64    `tfsdk:"voice_vlan" json:"voiceVlan"`
+	AllowedVlans       jsontypes.String   `tfsdk:"allowed_vlans" json:"allowedVlans"`
+	IsolationEnabled   jsontypes.Bool     `tfsdk:"isolation_enabled" json:"isolationEnabled"`
+	RstpEnabled        jsontypes.Bool     `tfsdk:"rstp_enabled" json:"rstpEnabled"`
+	StpGuard           jsontypes.String   `tfsdk:"stp_guard" json:"stpGuard"`
+	AccessPolicyNumber jsontypes.Int64    `tfsdk:"access_policy_number" json:"accessPolicyNumber"`
+	AccessPolicyType   jsontypes.String   `tfsdk:"access_policy_type" json:"accessPolicyType"`
+	LinkNegotiation    jsontypes.String   `tfsdk:"link_negotiation" json:"linkNegotiation"`
+	//LinkNegotiationCapabilities types.List                      `tfsdk:"link_negotiation_capabilities" json:"linkNegotiationCapabilities"`
+	PortScheduleId          jsontypes.String                `tfsdk:"port_schedule_id" json:"portScheduleId"`
+	Udld                    jsontypes.String                `tfsdk:"udld" json:"udld"`
+	StickyMacAllowListLimit jsontypes.Int64                 `tfsdk:"sticky_mac_allow_list_limit" json:"stickyMacWhitelistLimit"`
+	StormControlEnabled     jsontypes.Bool                  `tfsdk:"storm_control_enabled" json:"stormControlEnabled"`
+	MacAllowList            jsontypes.Set[jsontypes.String] `tfsdk:"mac_allow_list" json:"macWhitelist"`
+	StickyMacAllowList      jsontypes.Set[jsontypes.String] `tfsdk:"sticky_mac_allow_list" json:"stickyMacWhitelist"`
+	AdaptivePolicyGroupId   jsontypes.String                `tfsdk:"adaptive_policy_group_id" json:"adaptivePolicyGroupId"`
+	PeerSgtCapable          jsontypes.Bool                  `tfsdk:"peer_sgt_capable" json:"peerSgtCapable"`
+	FlexibleStackingEnabled jsontypes.Bool                  `tfsdk:"flexible_stacking_enabled" json:"flexibleStackingEnabled"`
+	DaiTrusted              jsontypes.Bool                  `tfsdk:"dai_trusted" json:"daiTrusted"`
+	Profile                 DevicesSerialSwitchPortProfile  `tfsdk:"profile" json:"profile"`
 }
 
 type DevicesSerialSwitchPortProfile struct {
@@ -77,13 +78,35 @@ type DevicesSerialSwitchPortProfile struct {
 	Iname   jsontypes.String `tfsdk:"iname" json:"iname"`
 }
 
-func (m DevicesSerialSwitchPortProfile) AttributeTypes() map[string]attr.Type {
-	return map[string]attr.Type{
-		"enabled": jsontypes.BoolType,
-		"id":      jsontypes.StringType,
-		"iname":   jsontypes.StringType,
-	}
+var devicesSerialSwitchPortProfile map[string]attr.Type = map[string]attr.Type{
+	"enabled": types.BoolType,
+	"id":      types.StringType,
+	"iname":   types.StringType,
 }
+
+func MyModelGoToTerraform(ctx context.Context, my sdk.My) (types.Object, diag.Diagnostics) {
+	return types.ObjectValueFrom(ctx, devicesSerialSwitchPortProfile, DevicesSerialSwitchPortProfile{
+		Enabled: types.BoolValue(my.Enabled),
+		Id:      types.StringValue(my.Id),
+		Iname:   types.StringValue(my.Iname),
+	})
+}
+
+/*
+func (p *DevicesSerialSwitchPortProfile) UnmarshalJSON(b []byte) error {
+	var s string
+	if err := json.Unmarshal(b, &s); err != nil {
+		return err
+	}
+
+	*p = DevicesSerialSwitchPortProfile{
+		Enabled: jsontypes.BoolNull(),
+		Id:      jsontypes.StringNull(),
+		Iname:   jsontypes.StringNull(),
+	}
+	return nil
+}
+*/
 
 // Metadata provides a way to define information about the resource.
 // This method is called by the framework to retrieve metadata about the resource.
@@ -215,12 +238,14 @@ func (r *DevicesSwitchPortResource) Schema(ctx context.Context, req resource.Sch
 				Optional:            true,
 				Computed:            true,
 			},
-			"link_negotiation_capabilities": schema.SetAttribute{
-				MarkdownDescription: "The link speeds for the switch port.",
-				CustomType:          jsontypes.SetType[jsontypes.String](),
-				ElementType:         jsontypes.StringType,
-				Computed:            true,
-			},
+			/*
+				"link_negotiation_capabilities": schema.ListAttribute{
+						MarkdownDescription: "The link speeds for the switch port.",
+						ElementType:         jsontypes.StringType,
+						Optional:            true,
+						Computed:            true,
+					},
+			*/
 			"port_schedule_id": schema.StringAttribute{
 				MarkdownDescription: "The ID of the port schedule. A value of null will clear the port schedule.",
 				CustomType:          jsontypes.StringType,
@@ -249,24 +274,18 @@ func (r *DevicesSwitchPortResource) Schema(ctx context.Context, req resource.Sch
 				},
 			},
 			"mac_allow_list": schema.SetAttribute{
-				CustomType:          jsontypes.SetType[jsontypes.String](),
 				MarkdownDescription: "Only devices with MAC addresses specified in this list will have access to this port. Up to 20 MAC addresses can be defined. Only applicable when 'accessPolicyType' is 'MAC allow list'.",
+				CustomType:          jsontypes.SetType[jsontypes.String](),
 				ElementType:         jsontypes.StringType,
 				Optional:            true,
 				Computed:            true,
-				PlanModifiers: []planmodifier.Set{
-					setplanmodifier.UseStateForUnknown(),
-				},
 			},
 			"sticky_mac_allow_list": schema.SetAttribute{
-				CustomType:          jsontypes.SetType[jsontypes.String](),
 				MarkdownDescription: "The initial list of MAC addresses for sticky Mac allow list. Only applicable when 'accessPolicyType' is 'Sticky MAC allow list'.",
+				CustomType:          jsontypes.SetType[jsontypes.String](),
 				ElementType:         jsontypes.StringType,
 				Optional:            true,
 				Computed:            true,
-				PlanModifiers: []planmodifier.Set{
-					setplanmodifier.UseStateForUnknown(),
-				},
 			},
 			"adaptive_policy_group_id": schema.StringAttribute{
 				MarkdownDescription: "The adaptive policy group ID that will be used to tag traffic through this switch port. This ID must pre-exist during the configuration, else needs to be created using adaptivePolicy/groups API. Cannot be applied to a port on a switch bound to profile.",
@@ -297,23 +316,21 @@ func (r *DevicesSwitchPortResource) Schema(ctx context.Context, req resource.Sch
 			},
 			"profile": schema.SingleNestedAttribute{
 				Optional: true,
-				Computed: true,
 				Attributes: map[string]schema.Attribute{
 					"enabled": schema.BoolAttribute{
 						MarkdownDescription: "When enabled, override this port's configuration with a port profile.",
 						Optional:            true,
-						Computed:            true,
 						CustomType:          jsontypes.BoolType,
 					},
 					"id": schema.StringAttribute{
 						MarkdownDescription: "When enabled, the ID of the port profile used to override the port's configuration.",
-						Required:            true,
+						Optional:            true,
+						Computed:            true,
 						CustomType:          jsontypes.StringType,
 					},
 					"iname": schema.StringAttribute{
 						MarkdownDescription: "When enabled, the IName of the profile.",
 						Optional:            true,
-						Computed:            true,
 						CustomType:          jsontypes.StringType,
 					},
 				},
@@ -362,184 +379,24 @@ func (r *DevicesSwitchPortResource) Create(ctx context.Context, req resource.Cre
 		return
 	}
 
-	// Create HTTP request body
-	payload := *openApiClient.NewUpdateDeviceSwitchPortRequest()
-
-	payload.SetEnabled(data.Enabled.ValueBool())
-	payload.SetName(data.Name.ValueString())
-	payload.SetPoeEnabled(data.PoeEnabled.ValueBool())
-	payload.SetType(data.Type.ValueString())
-	payload.SetIsolationEnabled(data.IsolationEnabled.ValueBool())
-	payload.SetRstpEnabled(data.RstpEnabled.ValueBool())
-	payload.SetStpGuard(data.StpGuard.ValueString())
-	payload.SetLinkNegotiation(data.LinkNegotiation.ValueString())
-	payload.SetUdld(data.Udld.ValueString())
-
-	if !data.AccessPolicyType.IsUnknown() && !data.AccessPolicyType.IsNull() {
-		payload.SetAccessPolicyType(data.AccessPolicyType.ValueString())
-	}
-
-	payload.SetDaiTrusted(data.DaiTrusted.ValueBool())
-
-	if !data.Vlan.IsUnknown() && !data.Vlan.IsNull() {
-		payload.SetVlan(int32(data.Vlan.ValueInt64()))
-	}
-
-	// PortScheduleId
-	if !data.PortScheduleId.IsNull() && !data.PortScheduleId.IsUnknown() {
-		payload.SetPortScheduleId(data.PortScheduleId.ValueString())
-	}
-
-	// StormControlEnabled
-	if data.StormControlEnabled.ValueBool() == true {
-		payload.SetStormControlEnabled(data.StormControlEnabled.ValueBool())
-	}
-
-	// FlexibleStackingEnabled
-	if data.FlexibleStackingEnabled.ValueBool() == true {
-		payload.SetFlexibleStackingEnabled(data.FlexibleStackingEnabled.ValueBool())
-	}
-
-	var profile DevicesSerialSwitchPortProfile
-
-	attributeTypes := profile.AttributeTypes()
-	objectValue, diags := types.ObjectValueFrom(ctx, attributeTypes, profile)
-	if diags.HasError() {
-		// Print or log the errors
-		for _, diag := range diags {
-			fmt.Println(diag)
-		}
-		return
-	}
-
-	diags = resp.State.SetAttribute(ctx, path.Root("profile"), objectValue)
-	if diags.HasError() {
-		// Handle the error
-		return
-	}
-
-	if !data.Profile.IsNull() && !data.Profile.IsUnknown() {
-
-		profilePayload := openApiClient.NewGetDeviceSwitchPorts200ResponseInnerProfile()
-		//profilePayload.SetIname(data.Profile.Iname.ValueString())
-		//profilePayload.SetEnabled(data.Profile.Enabled.ValueBool())
-		payload.SetProfile(*profilePayload)
-
-	} else if !data.AdaptivePolicyGroupId.IsNull() && !data.AdaptivePolicyGroupId.IsUnknown() {
-
-		// AdaptivePolicyGroupId
-		payload.SetAdaptivePolicyGroupId(data.AdaptivePolicyGroupId.ValueString())
-	}
+	payload, err := DevicesSwitchPortResourcePayload(data)
 
 	/*
-		if data.Profile.IsNull() {
-			// handle null case
-		} else if data.Profile.IsUnknown() {
-			// handle unknown case
-		} else {
-			//var attributes = data.Profile.Attributes()
 
+		if !data.Profile.IsNull() && !data.Profile.IsUnknown() {
+
+			profilePayload := openApiClient.NewGetDeviceSwitchPorts200ResponseInnerProfile()
+			//profilePayload.SetIname(data.Profile.Iname.ValueString())
+			//profilePayload.SetEnabled(data.Profile.Enabled.ValueBool())
+			payload.SetProfile(*profilePayload)
+
+		} else if !data.AdaptivePolicyGroupId.IsNull() && !data.AdaptivePolicyGroupId.IsUnknown() {
+
+			// AdaptivePolicyGroupId
+			payload.SetAdaptivePolicyGroupId(data.AdaptivePolicyGroupId.ValueString())
 		}
 
-		attributeTypes := map[string]attr.Type{
-			"enabled": types.BoolType,
-			"id":      types.StringType,
-			"iname":   types.StringType,
-		}
-
-		attributeValues := map[string]attr.Value{
-			"enabled": types.BoolValue(true),
-			"id":      types.StringValue("id_value"),
-			"iname":   types.StringValue("iname_value"),
-		}
-
-		objectValue, diags := types.ObjectValue(attributeTypes, attributeValues)
-		if diags.HasError() {
-			// handle the error
-			return
-		}
-
-		// set the attribute
-		diags = resp.State.SetAttribute(ctx, path.Path{}.AtName("profile"), objectValue)
-		if diags.HasError() {
-			// handle the error
-		}
-
-
-			if data.Profile != nil {
-					if !data.Profile.Enabled.IsUnknown() && !data.Profile.Id.IsUnknown() {
-						profile := openApiClient.NewGetDeviceSwitchPorts200ResponseInnerProfile()
-						profile.SetIname(data.Profile.Iname.ValueString())
-						profile.SetEnabled(data.Profile.Enabled.ValueBool())
-						payload.SetProfile(*profile)
-					}
-				} else if !data.AdaptivePolicyGroupId.IsNull() {
-
-					// AdaptivePolicyGroupId
-					payload.SetAdaptivePolicyGroupId(data.AdaptivePolicyGroupId.ValueString())
-				}
 	*/
-
-	// Tags
-	var tags []string
-	for _, tag := range data.Tags {
-		tags = append(tags, tag.ValueString())
-	}
-	payload.SetTags(tags)
-
-	// Trunk Port Settings
-	if data.Type.ValueString() == "trunk" {
-
-		// Allowed VLANS
-		if !data.AllowedVlans.IsUnknown() && !data.AllowedVlans.IsNull() {
-			payload.SetAllowedVlans(data.AllowedVlans.ValueString())
-		}
-
-		// PeerSgtCapable
-		if !data.PeerSgtCapable.IsNull() && !data.PeerSgtCapable.IsUnknown() {
-			payload.SetPeerSgtCapable(data.PeerSgtCapable.ValueBool())
-		}
-
-	}
-
-	// Access Port Settings
-	if data.Type.ValueString() == "access" {
-
-		// Voice VLAN
-		if !data.VoiceVlan.IsNull() {
-			payload.SetVoiceVlan(int32(data.VoiceVlan.ValueInt64()))
-		}
-
-	}
-
-	// AccessPolicyType
-	if data.AccessPolicyType.ValueString() == "Custom access policy" {
-
-		// AccessPolicyNumber
-		payload.SetAccessPolicyNumber(int32(data.AccessPolicyNumber.ValueInt64()))
-
-	} else if data.AccessPolicyType.ValueString() == "MAC allow list" {
-
-		// MacAllowList
-		var macAllowList []string
-		for _, mac := range data.MacAllowList.Elements() {
-			macAllowList = append(macAllowList, mac.String())
-		}
-		payload.SetMacAllowList(macAllowList)
-
-	} else if data.AccessPolicyType.ValueString() == "Sticky MAC allow list" {
-
-		// StickyMacAllowList
-		var stickyMacAllowList []string
-		for _, mac := range data.StickyMacAllowList.Elements() {
-			stickyMacAllowList = append(stickyMacAllowList, mac.String())
-		}
-		payload.SetStickyMacAllowList(stickyMacAllowList)
-
-		// StickyMacAllowListLimit
-		payload.SetStickyMacAllowListLimit(int32(data.StickyMacAllowListLimit.ValueInt64()))
-	}
-
 	// Initialize provider client and make API call
 	_, httpResp, err := r.client.SwitchApi.UpdateDeviceSwitchPort(context.Background(), data.Serial.ValueString(), data.PortId.ValueString()).UpdateDeviceSwitchPortRequest(payload).Execute()
 	if err != nil {
@@ -564,63 +421,17 @@ func (r *DevicesSwitchPortResource) Create(ctx context.Context, req resource.Cre
 		return
 	}
 
-	// Decode the HTTP response body into your data model.
-	// If there's an error, add it to diagnostics.
-	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+	newData, err := DevicesSwitchPortResourceResponse(httpResp.Body)
+	if err != nil {
 		resp.Diagnostics.AddError(
-			"JSON decoding error",
-			fmt.Sprintf("%v\n", err.Error()),
+			"Create JSON Decode issue",
+			fmt.Sprintf("%v", err.Error()),
 		)
 		return
 	}
 
-	if data.Profile.IsUnknown() {
-
-		data.Profile = types.ObjectNull(map[string]attr.Type{
-			"enabled": types.BoolType,
-			"id":      types.StringType,
-			"iname":   types.StringType,
-		})
-	}
-
-	if data.AccessPolicyNumber.IsUnknown() {
-		data.AccessPolicyNumber = jsontypes.Int64Null()
-	}
-
-	if data.AdaptivePolicyGroupId.IsUnknown() {
-		data.AdaptivePolicyGroupId = jsontypes.StringNull()
-	}
-
-	if data.FlexibleStackingEnabled.IsUnknown() {
-		data.FlexibleStackingEnabled = jsontypes.BoolNull()
-	}
-
-	if data.MacAllowList.IsUnknown() {
-		data.MacAllowList = jsontypes.SetNull[jsontypes.String]()
-	}
-
-	if data.PeerSgtCapable.IsUnknown() {
-		data.PeerSgtCapable = jsontypes.BoolNull()
-	}
-
-	if data.StickyMacAllowList.IsUnknown() {
-		//data.StickyMacAllowList = jsontypes.Set[jsontypes.String]{}
-		data.StickyMacAllowList = jsontypes.SetNull[jsontypes.String]()
-	}
-
-	if data.StickyMacAllowListLimit.IsUnknown() {
-		data.StickyMacAllowListLimit = jsontypes.Int64Null()
-	}
-
-	if data.StormControlEnabled.IsUnknown() {
-		data.StormControlEnabled = jsontypes.BoolNull()
-	}
-
-	// Set ID for the new resource.
-	data.Id = jsontypes.StringValue("example-id")
-
 	// Now set the final state of the resource.
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &newData)...)
 
 	// Log that the resource was created.
 	tflog.Trace(ctx, "created resource")
@@ -697,113 +508,23 @@ func (r *DevicesSwitchPortResource) Update(ctx context.Context, req resource.Upd
 		return
 	}
 
-	// Check for required parameters
-	if len(data.Serial.ValueString()) < 1 {
-		resp.Diagnostics.AddError("Missing device serial number", fmt.Sprintf("S/N: %s", data.Serial.ValueString()))
-		return
-	}
+	payload, err := DevicesSwitchPortResourcePayload(data)
 
-	// Create HTTP request body
-	payload := *openApiClient.NewUpdateDeviceSwitchPortRequest()
+	/*
+		if !data.Profile.IsNull() && !data.Profile.IsUnknown() {
 
-	payload.SetEnabled(data.Enabled.ValueBool())
-	payload.SetName(data.Name.ValueString())
-	payload.SetPoeEnabled(data.PoeEnabled.ValueBool())
-	payload.SetType(data.Type.ValueString())
-	payload.SetIsolationEnabled(data.IsolationEnabled.ValueBool())
-	payload.SetRstpEnabled(data.RstpEnabled.ValueBool())
-	payload.SetStpGuard(data.StpGuard.ValueString())
-	payload.SetLinkNegotiation(data.LinkNegotiation.ValueString())
-	payload.SetUdld(data.Udld.ValueString())
-	payload.SetAccessPolicyType(data.AccessPolicyType.ValueString())
-	payload.SetDaiTrusted(data.DaiTrusted.ValueBool())
-	payload.SetVlan(int32(data.Vlan.ValueInt64()))
+				profilePayload := openApiClient.NewGetDeviceSwitchPorts200ResponseInnerProfile()
+				//profilePayload.SetIname(data.Profile.Iname.ValueString())
+				//profilePayload.SetEnabled(data.Profile.Enabled.ValueBool())
+				payload.SetProfile(*profilePayload)
 
-	// PortScheduleId
-	if !data.PortScheduleId.IsNull() {
-		payload.SetPortScheduleId(data.PortScheduleId.ValueString())
-	}
+			} else if !data.AdaptivePolicyGroupId.IsNull() && !data.AdaptivePolicyGroupId.IsUnknown() {
 
-	// StormControlEnabled
-	if data.StormControlEnabled.ValueBool() == true {
-		payload.SetStormControlEnabled(data.StormControlEnabled.ValueBool())
-	}
+				// AdaptivePolicyGroupId
+				payload.SetAdaptivePolicyGroupId(data.AdaptivePolicyGroupId.ValueString())
+			}
 
-	// FlexibleStackingEnabled
-	if data.FlexibleStackingEnabled.ValueBool() == true {
-		payload.SetFlexibleStackingEnabled(data.FlexibleStackingEnabled.ValueBool())
-	}
-
-	var profile DevicesSerialSwitchPortProfile
-
-	attributeTypes := profile.AttributeTypes()
-	objectValue, diags := types.ObjectValueFrom(ctx, attributeTypes, profile)
-	if diags.HasError() {
-		// Print or log the errors
-		for _, diag := range diags {
-			fmt.Println(diag)
-		}
-		return
-	}
-
-	diags = resp.State.SetAttribute(ctx, path.Root("profile"), objectValue)
-	if diags.HasError() {
-		// Handle the error
-		return
-	}
-
-	// Tags
-	var tags []string
-	for _, tag := range data.Tags {
-		tags = append(tags, tag.ValueString())
-	}
-	payload.SetTags(tags)
-
-	// Allowed VLANS
-	payload.SetAllowedVlans(data.AllowedVlans.ValueString())
-
-	// Trunk Port Settings
-	if data.Type.ValueString() == "trunk" {
-
-		// PeerSgtCapable
-		payload.SetPeerSgtCapable(data.PeerSgtCapable.ValueBool())
-	}
-
-	// Access Port Settings
-	if data.Type.ValueString() == "access" {
-
-		// Voice VLAN
-		payload.SetVoiceVlan(int32(data.VoiceVlan.ValueInt64()))
-
-	}
-
-	// AccessPolicyType
-	if data.AccessPolicyType.ValueString() == "Custom access policy" {
-
-		// AccessPolicyNumber
-		payload.SetAccessPolicyNumber(int32(data.AccessPolicyNumber.ValueInt64()))
-
-	} else if data.AccessPolicyType.ValueString() == "MAC allow list" {
-
-		// MacAllowList
-		var macAllowList []string
-		for _, mac := range data.MacAllowList.Elements() {
-			macAllowList = append(macAllowList, mac.String())
-		}
-		payload.SetMacAllowList(macAllowList)
-
-	} else if data.AccessPolicyType.ValueString() == "Sticky MAC allow list" {
-
-		// StickyMacAllowList
-		var stickyMacAllowList []string
-		for _, mac := range data.StickyMacAllowList.Elements() {
-			stickyMacAllowList = append(stickyMacAllowList, mac.String())
-		}
-		payload.SetStickyMacAllowList(stickyMacAllowList)
-
-		// StickyMacAllowListLimit
-		payload.SetStickyMacAllowListLimit(int32(data.StickyMacAllowListLimit.ValueInt64()))
-	}
+	*/
 
 	// Initialize provider client and make API call
 	_, httpResp, err := r.client.SwitchApi.UpdateDeviceSwitchPort(context.Background(), data.Serial.ValueString(), data.PortId.ValueString()).UpdateDeviceSwitchPortRequest(payload).Execute()
@@ -829,21 +550,17 @@ func (r *DevicesSwitchPortResource) Update(ctx context.Context, req resource.Upd
 		return
 	}
 
-	// Decode the HTTP response body into your data model.
-	// If there's an error, add it to diagnostics.
-	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+	newData, err := DevicesSwitchPortResourceResponse(httpResp.Body)
+	if err != nil {
 		resp.Diagnostics.AddError(
-			"JSON decoding error",
-			fmt.Sprintf("%v\n", err.Error()),
+			"JSON Decode issue",
+			fmt.Sprintf("%v", err.Error()),
 		)
 		return
 	}
 
-	// Set ID for the new resource.
-	data.Id = jsontypes.StringValue("example-id")
-
-	// Now set the updated state of the resource.
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	// Now set the final state of the resource.
+	resp.Diagnostics.Append(resp.State.Set(ctx, &newData)...)
 
 	// Log that the resource was updated.
 	tflog.Trace(ctx, "updated resource")
@@ -911,4 +628,167 @@ func (r *DevicesSwitchPortResource) ImportState(ctx context.Context, req resourc
 	// Pass through the ID directly from the ImportStateRequest to the ImportStateResponse
 	resource.ImportStatePassthroughID(ctx, path.Root("serial"), req, resp)
 
+}
+
+func DevicesSwitchPortResourcePayload(data *DevicesSwitchPortResourceModel) (openApiClient.UpdateDeviceSwitchPortRequest, error) {
+
+	// Create HTTP request body
+	payload := *openApiClient.NewUpdateDeviceSwitchPortRequest()
+
+	payload.SetEnabled(data.Enabled.ValueBool())
+	payload.SetName(data.Name.ValueString())
+	payload.SetPoeEnabled(data.PoeEnabled.ValueBool())
+	payload.SetType(data.Type.ValueString())
+	payload.SetIsolationEnabled(data.IsolationEnabled.ValueBool())
+	payload.SetRstpEnabled(data.RstpEnabled.ValueBool())
+	payload.SetStpGuard(data.StpGuard.ValueString())
+	payload.SetLinkNegotiation(data.LinkNegotiation.ValueString())
+	payload.SetUdld(data.Udld.ValueString())
+
+	if !data.AccessPolicyType.IsUnknown() && !data.AccessPolicyType.IsNull() {
+		payload.SetAccessPolicyType(data.AccessPolicyType.ValueString())
+	}
+
+	payload.SetDaiTrusted(data.DaiTrusted.ValueBool())
+
+	if !data.Vlan.IsUnknown() && !data.Vlan.IsNull() {
+		payload.SetVlan(int32(data.Vlan.ValueInt64()))
+	}
+
+	// PortScheduleId
+	if !data.PortScheduleId.IsNull() && !data.PortScheduleId.IsUnknown() {
+		payload.SetPortScheduleId(data.PortScheduleId.ValueString())
+	}
+
+	// StormControlEnabled
+	if data.StormControlEnabled.ValueBool() == true {
+		payload.SetStormControlEnabled(data.StormControlEnabled.ValueBool())
+	}
+
+	// FlexibleStackingEnabled
+	if data.FlexibleStackingEnabled.ValueBool() == true {
+		payload.SetFlexibleStackingEnabled(data.FlexibleStackingEnabled.ValueBool())
+	}
+
+	// Tags
+	var tags []string
+	for _, tag := range data.Tags {
+		tags = append(tags, tag.ValueString())
+	}
+	payload.SetTags(tags)
+
+	// Trunk Port Settings
+	if data.Type.ValueString() == "trunk" {
+
+		// Allowed VLANS
+		if !data.AllowedVlans.IsUnknown() && !data.AllowedVlans.IsNull() {
+			payload.SetAllowedVlans(data.AllowedVlans.ValueString())
+		}
+
+		// PeerSgtCapable
+		if !data.PeerSgtCapable.IsNull() && !data.PeerSgtCapable.IsUnknown() {
+			payload.SetPeerSgtCapable(data.PeerSgtCapable.ValueBool())
+		}
+
+	}
+
+	// Access Port Settings
+	if data.Type.ValueString() == "access" {
+
+		// Voice VLAN
+		if !data.VoiceVlan.IsNull() {
+			payload.SetVoiceVlan(int32(data.VoiceVlan.ValueInt64()))
+		}
+
+	}
+
+	// AccessPolicyType
+	if data.AccessPolicyType.ValueString() == "Custom access policy" {
+
+		// AccessPolicyNumber
+		payload.SetAccessPolicyNumber(int32(data.AccessPolicyNumber.ValueInt64()))
+
+	} else if data.AccessPolicyType.ValueString() == "MAC allow list" {
+
+		// MacAllowList
+		var macAllowList []string
+		for _, mac := range data.MacAllowList.Elements() {
+			macAllowList = append(macAllowList, mac.String())
+		}
+		payload.SetMacAllowList(macAllowList)
+
+	} else if data.AccessPolicyType.ValueString() == "Sticky MAC allow list" {
+
+		// StickyMacAllowList
+		var stickyMacAllowList []string
+		for _, mac := range data.StickyMacAllowList.Elements() {
+			stickyMacAllowList = append(stickyMacAllowList, mac.String())
+		}
+		payload.SetStickyMacAllowList(stickyMacAllowList)
+
+		// StickyMacAllowListLimit
+		payload.SetStickyMacAllowListLimit(int32(data.StickyMacAllowListLimit.ValueInt64()))
+	}
+	return payload, nil
+}
+
+func DevicesSwitchPortResourceResponse(httpRespBody io.ReadCloser) (DevicesSwitchPortResourceModel, error) {
+	var data DevicesSwitchPortResourceModel
+	var profile DevicesSerialSwitchPortProfile
+
+	data.Profile = profile
+
+	if err := json.NewDecoder(httpRespBody).Decode(&data); err != nil {
+		return data, err
+	}
+
+	if data.Profile.Enabled.IsUnknown() || data.Profile.Enabled.IsNull() {
+		data.Profile.Enabled = jsontypes.BoolNull()
+	}
+
+	if data.Profile.Id.IsUnknown() || data.Profile.Id.IsNull() {
+		data.Profile.Id = jsontypes.StringNull()
+	}
+
+	if data.Profile.Iname.IsUnknown() || data.Profile.Iname.IsNull() {
+		data.Profile.Iname = jsontypes.StringNull()
+	}
+
+	if data.AccessPolicyNumber.IsUnknown() {
+		data.AccessPolicyNumber = jsontypes.Int64Null()
+	}
+
+	if data.AdaptivePolicyGroupId.IsUnknown() {
+		data.AdaptivePolicyGroupId = jsontypes.StringNull()
+	}
+
+	if data.FlexibleStackingEnabled.IsUnknown() {
+		data.FlexibleStackingEnabled = jsontypes.BoolNull()
+	}
+
+	if data.PeerSgtCapable.IsUnknown() {
+		data.PeerSgtCapable = jsontypes.BoolNull()
+	}
+
+	if data.StickyMacAllowList.IsUnknown() {
+		var stickyMacAllowList jsontypes.Set[jsontypes.String]
+		data.StickyMacAllowList = stickyMacAllowList
+	}
+
+	if data.MacAllowList.IsUnknown() {
+		var macAllowList jsontypes.Set[jsontypes.String]
+		data.MacAllowList = macAllowList
+	}
+
+	if data.StickyMacAllowListLimit.IsUnknown() {
+		data.StickyMacAllowListLimit = jsontypes.Int64Null()
+	}
+
+	if data.StormControlEnabled.IsUnknown() {
+		data.StormControlEnabled = jsontypes.BoolNull()
+	}
+
+	data.Id = jsontypes.StringValue("example-id")
+
+	return data, nil
 }
