@@ -37,15 +37,15 @@ type NetworksCellularGatewaySubnetPoolResource struct {
 // The NetworksCellularGatewaySubnetPoolResourceModel structure describes the data model.
 // This struct is where you define all the attributes that are part of this resource's state.
 type NetworksCellularGatewaySubnetPoolResourceModel struct {
-	Id             jsontypes.String `tfsdk:"id"`
-	NetworkId      jsontypes.String `tfsdk:"network_id"`
-	Mask           jsontypes.Int64  `tfsdk:"mask"`
-	Cidr           jsontypes.String `tfsdk:"cidr"`
-	DeploymentMode jsontypes.String `tfsdk:"deployment_mode"`
-	Subnets        []Subnet         `tfsdk:"subnets"`
+	Id             jsontypes.String                                       `tfsdk:"id"`
+	NetworkId      jsontypes.String                                       `tfsdk:"network_id"`
+	Mask           jsontypes.Int64                                        `tfsdk:"mask"`
+	Cidr           jsontypes.String                                       `tfsdk:"cidr"`
+	DeploymentMode jsontypes.String                                       `tfsdk:"deployment_mode"`
+	Subnets        []NetworksCellularGatewaySubnetPoolResourceModelSubnet `tfsdk:"subnets"`
 }
 
-type Subnet struct {
+type NetworksCellularGatewaySubnetPoolResourceModelSubnet struct {
 	Serial      jsontypes.String `tfsdk:"serial"`
 	Name        jsontypes.String `tfsdk:"name"`
 	ApplianceIp jsontypes.String `tfsdk:"appliance_ip"`
@@ -66,7 +66,7 @@ func (r *NetworksCellularGatewaySubnetPoolResource) Schema(ctx context.Context, 
 	// The Schema object defines the structure of the resource.
 	resp.Schema = schema.Schema{
 
-		MarkdownDescription: "NetworksCellular Gateway SubnetPool Updates the subnet pool and mask configuration for MGs in the network.",
+		MarkdownDescription: "Manage the subnet pool and mask configuration for MGs in the network.",
 
 		// The Attributes map describes the fields of the resource.
 		Attributes: map[string]schema.Attribute{

@@ -30,13 +30,13 @@ type OrganizationsSnmpResource struct {
 
 // OrganizationsSnmpResourceModel describes the resource data model.
 type OrganizationsSnmpResourceModel struct {
-	Id        jsontypes.String                 `tfsdk:"id"`
-	NetworkId jsontypes.String                 `tfsdk:"network_id" json:"network_id"`
-	Access    jsontypes.String                 `tfsdk:"access" json:"access"`
-	Users     []NetworksSnmpUsersResourceModel `tfsdk:"users" json:"users"`
+	Id        jsontypes.String                      `tfsdk:"id"`
+	NetworkId jsontypes.String                      `tfsdk:"network_id" json:"network_id"`
+	Access    jsontypes.String                      `tfsdk:"access" json:"access"`
+	Users     []OrganizationsSnmpResourceModelUsers `tfsdk:"users" json:"users"`
 }
 
-type NetworksSnmpUsersResourceModel struct {
+type OrganizationsSnmpResourceModelUsers struct {
 	Username   jsontypes.String `tfsdk:"username"`
 	Passphrase jsontypes.String `tfsdk:"passphrase"`
 }

@@ -52,7 +52,7 @@ func (r *NetworksDevicesClaimResource) Schema(ctx context.Context, req resource.
 	// The Schema object defines the structure of the resource.
 	resp.Schema = schema.Schema{
 
-		MarkdownDescription: "Networks Devices Claim for Claiming devices into a network",
+		MarkdownDescription: "Claim devices into a network",
 
 		// The Attributes map describes the fields of the resource.
 		Attributes: map[string]schema.Attribute{

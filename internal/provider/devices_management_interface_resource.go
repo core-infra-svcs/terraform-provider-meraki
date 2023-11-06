@@ -35,13 +35,13 @@ type DevicesTestAccDevicesManagementInterfaceResourceResource struct {
 
 // DevicesTestAccDevicesManagementInterfaceResourceResourceModel describes the resource data model.
 type DevicesTestAccDevicesManagementInterfaceResourceResourceModel struct {
-	Id     jsontypes.String             `tfsdk:"id"`
-	Serial jsontypes.String             `tfsdk:"serial"`
-	Wan1   DeviceManagementInterfaceWan `tfsdk:"wan1"`
-	Wan2   DeviceManagementInterfaceWan `tfsdk:"wan2"`
+	Id     jsontypes.String                                                 `tfsdk:"id"`
+	Serial jsontypes.String                                                 `tfsdk:"serial"`
+	Wan1   DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan `tfsdk:"wan1"`
+	Wan2   DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan `tfsdk:"wan2"`
 }
 
-type DeviceManagementInterfaceWan struct {
+type DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan struct {
 	WanEnabled       jsontypes.String `tfsdk:"wan_enabled"`
 	UsingStaticIp    jsontypes.Bool   `tfsdk:"using_static_ip"`
 	StaticIp         jsontypes.String `tfsdk:"static_ip"`
@@ -58,7 +58,7 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Metadata(ctx 
 func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 
-		MarkdownDescription: "DevicesTestAccDevicesManagementInterfaceResource",
+		MarkdownDescription: "Manage the management interface settings for a device",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:   true,
@@ -221,36 +221,44 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Create(ctx co
 
 	_, httpResp, err := r.client.ManagementInterfaceApi.UpdateDeviceManagementInterface(context.Background(), data.Serial.ValueString()).UpdateDeviceManagementInterfaceRequest(*payload).Execute()
 
-	// If there was an error during API call, add it to diagnostics.
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"HTTP Client Failure",
+	// Check for API success response code
+	if httpResp.StatusCode == 404 {
+		resp.Diagnostics.AddWarning(
+			"No Management interface information found in API",
 			tools.HttpDiagnostics(httpResp),
 		)
-		return
-	}
 
-	// Check for API success response code
-	if httpResp.StatusCode != 200 {
+	} else if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
-	}
 
-	// Check for errors after diagnostics collected
-	if resp.Diagnostics.HasError() {
-		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
-		return
-	}
+		// HTTP 400 counts as an error so moving this here
+		// If there was an error during API call, add it to diagnostics.
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"HTTP Client Failure",
+				tools.HttpDiagnostics(httpResp),
+			)
+			return
+		}
 
-	// Save data into Terraform state
-	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
-		resp.Diagnostics.AddError(
-			"JSON decoding error",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-		return
+		// If there were any errors up to this point, log the state data and return.
+		if resp.Diagnostics.HasError() {
+			resp.Diagnostics.AddError("State Data", fmt.Sprintf("\n%v", data))
+			return
+		}
+
+		// Decode the HTTP response body into your data model.
+		// If there's an error, add it to diagnostics.
+		if err = json.NewDecoder(httpResp.Body).Decode(&data); err != nil {
+			resp.Diagnostics.AddError(
+				"JSON decoding error",
+				fmt.Sprintf("%v\n", err.Error()),
+			)
+			return
+		}
 	}
 
 	data.Id = jsontypes.StringValue("example-id")
@@ -273,35 +281,44 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Read(ctx cont
 
 	_, httpResp, err := r.client.DevicesApi.GetDeviceManagementInterface(context.Background(), data.Serial.ValueString()).Execute()
 
-	// If there was an error during API call, add it to diagnostics.
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"HTTP Client Failure",
+	// Check for API success response code
+	if httpResp.StatusCode == 404 {
+		resp.Diagnostics.AddWarning(
+			"No Management interface information found in API",
 			tools.HttpDiagnostics(httpResp),
 		)
-		return
-	}
 
-	// Check for API success inlineResp code
-	if httpResp.StatusCode != 200 {
+	} else if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
-	}
 
-	// Check for errors after diagnostics collected
-	if resp.Diagnostics.HasError() {
-		return
-	}
+		// HTTP 400 counts as an error so moving this here
+		// If there was an error during API call, add it to diagnostics.
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"HTTP Client Failure",
+				tools.HttpDiagnostics(httpResp),
+			)
+			return
+		}
 
-	// Save data into Terraform state
-	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
-		resp.Diagnostics.AddError(
-			"JSON decoding error",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-		return
+		// If there were any errors up to this point, log the state data and return.
+		if resp.Diagnostics.HasError() {
+			resp.Diagnostics.AddError("State Data", fmt.Sprintf("\n%v", data))
+			return
+		}
+
+		// Decode the HTTP response body into your data model.
+		// If there's an error, add it to diagnostics.
+		if err = json.NewDecoder(httpResp.Body).Decode(&data); err != nil {
+			resp.Diagnostics.AddError(
+				"JSON decoding error",
+				fmt.Sprintf("%v\n", err.Error()),
+			)
+			return
+		}
 	}
 
 	data.Id = jsontypes.StringValue("example-id")
@@ -359,36 +376,44 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Update(ctx co
 
 	_, httpResp, err := r.client.ManagementInterfaceApi.UpdateDeviceManagementInterface(context.Background(), data.Serial.ValueString()).UpdateDeviceManagementInterfaceRequest(*payload).Execute()
 
-	// If there was an error during API call, add it to diagnostics.
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"HTTP Client Failure",
+	// Check for API success response code
+	if httpResp.StatusCode == 404 {
+		resp.Diagnostics.AddWarning(
+			"No Management interface information found in API",
 			tools.HttpDiagnostics(httpResp),
 		)
-		return
-	}
 
-	// Check for API success response code
-	if httpResp.StatusCode != 200 {
+	} else if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
-	}
 
-	// Check for errors after diagnostics collected
-	if resp.Diagnostics.HasError() {
-		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
-		return
-	}
+		// HTTP 400 counts as an error so moving this here
+		// If there was an error during API call, add it to diagnostics.
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"HTTP Client Failure",
+				tools.HttpDiagnostics(httpResp),
+			)
+			return
+		}
 
-	// Save data into Terraform state
-	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
-		resp.Diagnostics.AddError(
-			"JSON decoding error",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-		return
+		// If there were any errors up to this point, log the state data and return.
+		if resp.Diagnostics.HasError() {
+			resp.Diagnostics.AddError("State Data", fmt.Sprintf("\n%v", data))
+			return
+		}
+
+		// Decode the HTTP response body into your data model.
+		// If there's an error, add it to diagnostics.
+		if err = json.NewDecoder(httpResp.Body).Decode(&data); err != nil {
+			resp.Diagnostics.AddError(
+				"JSON decoding error",
+				fmt.Sprintf("%v\n", err.Error()),
+			)
+			return
+		}
 	}
 
 	data.Id = jsontypes.StringValue("example-id")
@@ -418,36 +443,34 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Delete(ctx co
 
 	_, httpResp, err := r.client.ManagementInterfaceApi.UpdateDeviceManagementInterface(context.Background(), data.Serial.ValueString()).UpdateDeviceManagementInterfaceRequest(*payload).Execute()
 
-	// If there was an error during API call, add it to diagnostics.
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"HTTP Client Failure",
+	// Check for API success response code
+	if httpResp.StatusCode == 404 {
+		resp.Diagnostics.AddWarning(
+			"No Management interface information found in API",
 			tools.HttpDiagnostics(httpResp),
 		)
-		return
-	}
 
-	// Check for API success response code
-	if httpResp.StatusCode != 200 {
+	} else if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
-	}
 
-	// Check for errors after diagnostics collected
-	if resp.Diagnostics.HasError() {
-		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
-		return
-	}
+		// HTTP 400 counts as an error so moving this here
+		// If there was an error during API call, add it to diagnostics.
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"HTTP Client Failure",
+				tools.HttpDiagnostics(httpResp),
+			)
+			return
+		}
 
-	// Save data into Terraform state
-	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
-		resp.Diagnostics.AddError(
-			"JSON decoding error",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-		return
+		// If there were any errors up to this point, log the state data and return.
+		if resp.Diagnostics.HasError() {
+			resp.Diagnostics.AddError("State Data", fmt.Sprintf("\n%v", data))
+			return
+		}
 	}
 
 	data.Id = jsontypes.StringValue("example-id")
