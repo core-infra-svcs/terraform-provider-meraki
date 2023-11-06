@@ -1,6 +1,8 @@
 package provider
 
 import (
+	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -19,20 +21,11 @@ func TestAccNetworksCellularGatewaySubnetPoolResource(t *testing.T) {
 		// Steps is a slice of TestStep where each TestStep represents a test case.
 		Steps: []resource.TestStep{
 
-			// Create and Read an Organization.
-			{
-				Config: testAccNetworksCellularGatewaySubnetPoolResourceConfigCreateOrganization,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
-					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_meraki_networks_cellular_gateway_subnet_pool"),
-				),
-			},
-
 			// Create and Read a Network.
 			{
-				Config: testAccNetworksCellularGatewaySubnetPoolResourceConfigCreateNetwork,
+				Config: testAccNetworksCellularGatewaySubnetPoolResourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_network"),
+					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_networks_cellular_gateway_subnet_pool"),
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
@@ -69,41 +62,32 @@ func TestAccNetworksCellularGatewaySubnetPoolResource(t *testing.T) {
 	})
 }
 
-// testAccNetworksCellularGatewaySubnetPoolResourceConfigCreateOrganization is a constant string that defines the configuration for creating an organization resource in your tests.
-const testAccNetworksCellularGatewaySubnetPoolResourceConfigCreateOrganization = `
- resource "meraki_organization" "test" {
- 	name = "test_meraki_networks_cellular_gateway_subnet_pool"
- 	api_enabled = true
- }
- `
-
 // testAccNetworksCellularGatewaySubnetPoolResourceConfigCreateNetwork is a constant string that defines the configuration for creating a network resource in your tests.
 // It depends on the organization resource.
-const testAccNetworksCellularGatewaySubnetPoolResourceConfigCreateNetwork = `
-resource "meraki_organization" "test" {}
+func testAccNetworksCellularGatewaySubnetPoolResourceConfigCreateNetwork(orgId string) string {
+	result := fmt.Sprintf(`
 
 resource "meraki_network" "test" {
-	depends_on = [resource.meraki_organization.test]
-	organization_id = resource.meraki_organization.test.organization_id
+	organization_id = %s
 	product_types = ["appliance", "switch", "wireless", "cellularGateway"]
 	tags = ["tag1"]
-	name = "test_acc_network"
+	name = "test_acc_networks_cellular_gateway_subnet_pool"
 	timezone = "America/Los_Angeles"
 	notes = "Additional description of the network"
 }
-`
+`, orgId)
+	return result
+}
 
 // testAccNetworksCellularGatewaySubnetPoolResourceConfigUpdate is a constant string that defines the configuration for updating a networks_cellularGateway_subnetPool resource in your tests.
 // It depends on both the organization and network resources.
 const testAccNetworksCellularGatewaySubnetPoolResourceConfigUpdate = `
-resource "meraki_organization" "test" {}
 resource "meraki_network" "test" {
-	depends_on = [resource.meraki_organization.test]
 	product_types = ["appliance", "switch", "wireless", "cellularGateway"]
 }
 
 resource "meraki_networks_cellular_gateway_subnet_pool" "test" {
-	depends_on = [resource.meraki_network.test, resource.meraki_organization.test]
+	depends_on = [resource.meraki_network.test]
   	network_id = resource.meraki_network.test.network_id
     cidr = "192.168.0.0/22"
     mask = 24    

@@ -3,12 +3,12 @@
 page_title: "meraki_devices_appliance_dhcp_subnets Data Source - terraform-provider-meraki"
 subcategory: ""
 description: |-
-  Devices Appliance Dhcp Subnets - Return the DHCP subnet information for an appliance
+  Return the DHCP subnet information for an appliance
 ---
 
 # meraki_devices_appliance_dhcp_subnets (Data Source)
 
-Devices Appliance Dhcp Subnets - Return the DHCP subnet information for an appliance
+Return the DHCP subnet information for an appliance
 
 
 
@@ -21,7 +21,7 @@ Devices Appliance Dhcp Subnets - Return the DHCP subnet information for an appli
 
 ### Optional
 
-- `list` (Attributes List) (see [below for nested schema](#nestedatt--list))
+- `list` (Attributes List) List of DHCP subnets (see [below for nested schema](#nestedatt--list))
 
 ### Read-Only
 
