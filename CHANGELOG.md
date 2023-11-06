@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.2.0...v0.3.0) (2023-11-06)
+
+
+### Features
+
+* Adding in clone as an attribute to organization ([#194](https://github.com/core-infra-svcs/terraform-provider-meraki/issues/194)) ([3bb8d45](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/3bb8d45677c20aa80a7793845b2129af13280f4e))
+
 ## [0.2.0](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.1.7...v0.2.0) (2023-09-07)
 
 
