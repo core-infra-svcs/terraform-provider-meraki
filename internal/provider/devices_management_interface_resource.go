@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
 )
@@ -35,20 +36,20 @@ type DevicesTestAccDevicesManagementInterfaceResourceResource struct {
 
 // DevicesTestAccDevicesManagementInterfaceResourceResourceModel describes the resource data model.
 type DevicesTestAccDevicesManagementInterfaceResourceResourceModel struct {
-	Id     jsontypes.String                                                 `tfsdk:"id"`
-	Serial jsontypes.String                                                 `tfsdk:"serial"`
-	Wan1   DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan `tfsdk:"wan1"`
-	Wan2   DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan `tfsdk:"wan2"`
+	Id     jsontypes.String `tfsdk:"id"`
+	Serial jsontypes.String `tfsdk:"serial"`
+	Wan1   types.Object     `tfsdk:"wan1"`
+	Wan2   types.Object     `tfsdk:"wan2"`
 }
 
-type DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan struct {
+type DeviceManagementInterfaceWan struct {
 	WanEnabled       jsontypes.String `tfsdk:"wan_enabled"`
 	UsingStaticIp    jsontypes.Bool   `tfsdk:"using_static_ip"`
 	StaticIp         jsontypes.String `tfsdk:"static_ip"`
 	StaticSubnetMask jsontypes.String `tfsdk:"static_subnet_mask"`
 	StaticGatewayIp  jsontypes.String `tfsdk:"static_gateway_ip"`
-	StaticDns        types.List       `tfsdk:"static_dns"`
-	Vlan             jsontypes.Int64  `tfsdk:"vlan"`
+	StaticDns        types.List       `tfsdk:"static_dns" json:"staticDns"`
+	Vlan             jsontypes.Int64  `tfsdk:"vlan" json:"vlan,omitempty"`
 }
 
 func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -58,7 +59,7 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Metadata(ctx 
 func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 
-		MarkdownDescription: "Manage the management interface settings for a device",
+		MarkdownDescription: "DevicesTestAccDevicesManagementInterfaceResource",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:   true,
@@ -186,79 +187,83 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Create(ctx co
 
 	payload := openApiClient.NewUpdateDeviceManagementInterfaceRequest()
 
-	vlan := int32(data.Wan1.Vlan.ValueInt64())
-	staticDNS := []string{}
-	for _, dns := range data.Wan1.StaticDns.Elements() {
-		staticDNS = append(staticDNS, dns.String())
-	}
-	wan1 := openApiClient.UpdateDeviceManagementInterfaceRequestWan1{
-		WanEnabled:       data.Wan1.WanEnabled.ValueStringPointer(),
-		UsingStaticIp:    data.Wan1.UsingStaticIp.ValueBoolPointer(),
-		StaticIp:         data.Wan1.StaticIp.ValueStringPointer(),
-		StaticGatewayIp:  data.Wan1.StaticGatewayIp.ValueStringPointer(),
-		StaticSubnetMask: data.Wan1.StaticSubnetMask.ValueStringPointer(),
-		StaticDns:        staticDNS,
-		Vlan:             &vlan,
-	}
+	var wan1Plan DeviceManagementInterfaceWan
+	data.Wan1.As(ctx, &wan1Plan, basetypes.ObjectAsOptions{})
 
-	vlan = int32(data.Wan2.Vlan.ValueInt64())
-	staticDNS = []string{}
-	for _, dns := range data.Wan2.StaticDns.Elements() {
-		staticDNS = append(staticDNS, dns.String())
-	}
-	wan2 := openApiClient.UpdateDeviceManagementInterfaceRequestWan2{
-		WanEnabled:       data.Wan2.WanEnabled.ValueStringPointer(),
-		UsingStaticIp:    data.Wan2.UsingStaticIp.ValueBoolPointer(),
-		StaticIp:         data.Wan2.StaticIp.ValueStringPointer(),
-		StaticGatewayIp:  data.Wan2.StaticGatewayIp.ValueStringPointer(),
-		StaticSubnetMask: data.Wan2.StaticSubnetMask.ValueStringPointer(),
+	var staticDNS []string
+	wan1Plan.StaticDns.ElementsAs(ctx, &staticDNS, false)
+
+	wan1 := openApiClient.UpdateDeviceManagementInterfaceRequestWan1{
+		WanEnabled:       wan1Plan.WanEnabled.ValueStringPointer(),
+		UsingStaticIp:    wan1Plan.UsingStaticIp.ValueBoolPointer(),
+		StaticIp:         wan1Plan.StaticIp.ValueStringPointer(),
+		StaticGatewayIp:  wan1Plan.StaticGatewayIp.ValueStringPointer(),
+		StaticSubnetMask: wan1Plan.StaticSubnetMask.ValueStringPointer(),
 		StaticDns:        staticDNS,
-		Vlan:             &vlan,
+	}
+	if !wan1Plan.Vlan.IsNull() {
+		var vlan = int32(wan1Plan.Vlan.ValueInt64())
+		wan1.Vlan = &vlan
 	}
 
 	payload.Wan1 = &wan1
-	payload.Wan2 = &wan2
+
+	if !data.Wan2.IsNull() {
+
+		var wan2Plan DeviceManagementInterfaceWan
+		data.Wan2.As(ctx, &wan2Plan, basetypes.ObjectAsOptions{})
+
+		var staticDNS []string
+		wan2Plan.StaticDns.ElementsAs(ctx, &staticDNS, false)
+
+		wan2 := openApiClient.UpdateDeviceManagementInterfaceRequestWan2{
+			WanEnabled:       wan2Plan.WanEnabled.ValueStringPointer(),
+			UsingStaticIp:    wan2Plan.UsingStaticIp.ValueBoolPointer(),
+			StaticIp:         wan2Plan.StaticIp.ValueStringPointer(),
+			StaticGatewayIp:  wan2Plan.StaticGatewayIp.ValueStringPointer(),
+			StaticSubnetMask: wan2Plan.StaticSubnetMask.ValueStringPointer(),
+			StaticDns:        staticDNS,
+		}
+		if !wan2Plan.Vlan.IsNull() {
+			var vlan = int32(wan2Plan.Vlan.ValueInt64())
+			wan2.Vlan = &vlan
+		}
+
+		payload.Wan2 = &wan2
+	}
 
 	_, httpResp, err := r.client.ManagementInterfaceApi.UpdateDeviceManagementInterface(context.Background(), data.Serial.ValueString()).UpdateDeviceManagementInterfaceRequest(*payload).Execute()
 
-	// Check for API success response code
-	if httpResp.StatusCode == 404 {
-		resp.Diagnostics.AddWarning(
-			"No Management interface information found in API",
+	// If there was an error during API call, add it to diagnostics.
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"HTTP Client Failure",
 			tools.HttpDiagnostics(httpResp),
 		)
+		return
+	}
 
-	} else if httpResp.StatusCode != 200 {
+	// Check for API success response code
+	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
+	}
 
-		// HTTP 400 counts as an error so moving this here
-		// If there was an error during API call, add it to diagnostics.
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"HTTP Client Failure",
-				tools.HttpDiagnostics(httpResp),
-			)
-			return
-		}
+	// Check for errors after diagnostics collected
+	if resp.Diagnostics.HasError() {
+		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
+		return
+	}
 
-		// If there were any errors up to this point, log the state data and return.
-		if resp.Diagnostics.HasError() {
-			resp.Diagnostics.AddError("State Data", fmt.Sprintf("\n%v", data))
-			return
-		}
-
-		// Decode the HTTP response body into your data model.
-		// If there's an error, add it to diagnostics.
-		if err = json.NewDecoder(httpResp.Body).Decode(&data); err != nil {
-			resp.Diagnostics.AddError(
-				"JSON decoding error",
-				fmt.Sprintf("%v\n", err.Error()),
-			)
-			return
-		}
+	// Save data into Terraform state
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
 	}
 
 	data.Id = jsontypes.StringValue("example-id")
@@ -281,44 +286,35 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Read(ctx cont
 
 	_, httpResp, err := r.client.DevicesApi.GetDeviceManagementInterface(context.Background(), data.Serial.ValueString()).Execute()
 
-	// Check for API success response code
-	if httpResp.StatusCode == 404 {
-		resp.Diagnostics.AddWarning(
-			"No Management interface information found in API",
+	// If there was an error during API call, add it to diagnostics.
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"HTTP Client Failure",
 			tools.HttpDiagnostics(httpResp),
 		)
+		return
+	}
 
-	} else if httpResp.StatusCode != 200 {
+	// Check for API success inlineResp code
+	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
+	}
 
-		// HTTP 400 counts as an error so moving this here
-		// If there was an error during API call, add it to diagnostics.
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"HTTP Client Failure",
-				tools.HttpDiagnostics(httpResp),
-			)
-			return
-		}
+	// Check for errors after diagnostics collected
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
-		// If there were any errors up to this point, log the state data and return.
-		if resp.Diagnostics.HasError() {
-			resp.Diagnostics.AddError("State Data", fmt.Sprintf("\n%v", data))
-			return
-		}
-
-		// Decode the HTTP response body into your data model.
-		// If there's an error, add it to diagnostics.
-		if err = json.NewDecoder(httpResp.Body).Decode(&data); err != nil {
-			resp.Diagnostics.AddError(
-				"JSON decoding error",
-				fmt.Sprintf("%v\n", err.Error()),
-			)
-			return
-		}
+	// Save data into Terraform state
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
 	}
 
 	data.Id = jsontypes.StringValue("example-id")
@@ -341,79 +337,82 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Update(ctx co
 
 	payload := openApiClient.NewUpdateDeviceManagementInterfaceRequest()
 
-	vlan := int32(data.Wan1.Vlan.ValueInt64())
-	staticDNS := []string{}
-	for _, dns := range data.Wan1.StaticDns.Elements() {
-		staticDNS = append(staticDNS, dns.String())
-	}
-	wan1 := openApiClient.UpdateDeviceManagementInterfaceRequestWan1{
-		WanEnabled:       data.Wan1.WanEnabled.ValueStringPointer(),
-		UsingStaticIp:    data.Wan1.UsingStaticIp.ValueBoolPointer(),
-		StaticIp:         data.Wan1.StaticIp.ValueStringPointer(),
-		StaticGatewayIp:  data.Wan1.StaticGatewayIp.ValueStringPointer(),
-		StaticSubnetMask: data.Wan1.StaticSubnetMask.ValueStringPointer(),
-		StaticDns:        staticDNS,
-		Vlan:             &vlan,
-	}
+	var wan1Plan DeviceManagementInterfaceWan
+	data.Wan1.As(ctx, &wan1Plan, basetypes.ObjectAsOptions{})
 
-	vlan = int32(data.Wan2.Vlan.ValueInt64())
-	staticDNS = []string{}
-	for _, dns := range data.Wan2.StaticDns.Elements() {
-		staticDNS = append(staticDNS, dns.String())
-	}
-	wan2 := openApiClient.UpdateDeviceManagementInterfaceRequestWan2{
-		WanEnabled:       data.Wan2.WanEnabled.ValueStringPointer(),
-		UsingStaticIp:    data.Wan2.UsingStaticIp.ValueBoolPointer(),
-		StaticIp:         data.Wan2.StaticIp.ValueStringPointer(),
-		StaticGatewayIp:  data.Wan2.StaticGatewayIp.ValueStringPointer(),
-		StaticSubnetMask: data.Wan2.StaticSubnetMask.ValueStringPointer(),
+	var staticDNS []string
+	wan1Plan.StaticDns.ElementsAs(ctx, &staticDNS, false)
+
+	wan1 := openApiClient.UpdateDeviceManagementInterfaceRequestWan1{
+		WanEnabled:       wan1Plan.WanEnabled.ValueStringPointer(),
+		UsingStaticIp:    wan1Plan.UsingStaticIp.ValueBoolPointer(),
+		StaticIp:         wan1Plan.StaticIp.ValueStringPointer(),
+		StaticGatewayIp:  wan1Plan.StaticGatewayIp.ValueStringPointer(),
+		StaticSubnetMask: wan1Plan.StaticSubnetMask.ValueStringPointer(),
 		StaticDns:        staticDNS,
-		Vlan:             &vlan,
+	}
+	if !wan1Plan.Vlan.IsNull() {
+		var vlan = int32(wan1Plan.Vlan.ValueInt64())
+		wan1.Vlan = &vlan
 	}
 
 	payload.Wan1 = &wan1
-	payload.Wan2 = &wan2
 
+	if !data.Wan2.IsNull() {
+
+		var wan2Plan DeviceManagementInterfaceWan
+		data.Wan2.As(ctx, &wan2Plan, basetypes.ObjectAsOptions{})
+
+		var staticDNS []string
+		wan2Plan.StaticDns.ElementsAs(ctx, &staticDNS, false)
+
+		wan2 := openApiClient.UpdateDeviceManagementInterfaceRequestWan2{
+			WanEnabled:       wan2Plan.WanEnabled.ValueStringPointer(),
+			UsingStaticIp:    wan2Plan.UsingStaticIp.ValueBoolPointer(),
+			StaticIp:         wan2Plan.StaticIp.ValueStringPointer(),
+			StaticGatewayIp:  wan2Plan.StaticGatewayIp.ValueStringPointer(),
+			StaticSubnetMask: wan2Plan.StaticSubnetMask.ValueStringPointer(),
+			StaticDns:        staticDNS,
+		}
+		if !wan2Plan.Vlan.IsNull() {
+			var vlan = int32(wan2Plan.Vlan.ValueInt64())
+			wan2.Vlan = &vlan
+		}
+
+		payload.Wan2 = &wan2
+	}
 	_, httpResp, err := r.client.ManagementInterfaceApi.UpdateDeviceManagementInterface(context.Background(), data.Serial.ValueString()).UpdateDeviceManagementInterfaceRequest(*payload).Execute()
 
-	// Check for API success response code
-	if httpResp.StatusCode == 404 {
-		resp.Diagnostics.AddWarning(
-			"No Management interface information found in API",
+	// If there was an error during API call, add it to diagnostics.
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"HTTP Client Failure",
 			tools.HttpDiagnostics(httpResp),
 		)
+		return
+	}
 
-	} else if httpResp.StatusCode != 200 {
+	// Check for API success response code
+	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
+	}
 
-		// HTTP 400 counts as an error so moving this here
-		// If there was an error during API call, add it to diagnostics.
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"HTTP Client Failure",
-				tools.HttpDiagnostics(httpResp),
-			)
-			return
-		}
+	// Check for errors after diagnostics collected
+	if resp.Diagnostics.HasError() {
+		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
+		return
+	}
 
-		// If there were any errors up to this point, log the state data and return.
-		if resp.Diagnostics.HasError() {
-			resp.Diagnostics.AddError("State Data", fmt.Sprintf("\n%v", data))
-			return
-		}
-
-		// Decode the HTTP response body into your data model.
-		// If there's an error, add it to diagnostics.
-		if err = json.NewDecoder(httpResp.Body).Decode(&data); err != nil {
-			resp.Diagnostics.AddError(
-				"JSON decoding error",
-				fmt.Sprintf("%v\n", err.Error()),
-			)
-			return
-		}
+	// Save data into Terraform state
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
 	}
 
 	data.Id = jsontypes.StringValue("example-id")
@@ -443,34 +442,36 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Delete(ctx co
 
 	_, httpResp, err := r.client.ManagementInterfaceApi.UpdateDeviceManagementInterface(context.Background(), data.Serial.ValueString()).UpdateDeviceManagementInterfaceRequest(*payload).Execute()
 
-	// Check for API success response code
-	if httpResp.StatusCode == 404 {
-		resp.Diagnostics.AddWarning(
-			"No Management interface information found in API",
+	// If there was an error during API call, add it to diagnostics.
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"HTTP Client Failure",
 			tools.HttpDiagnostics(httpResp),
 		)
+		return
+	}
 
-	} else if httpResp.StatusCode != 200 {
+	// Check for API success response code
+	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
+	}
 
-		// HTTP 400 counts as an error so moving this here
-		// If there was an error during API call, add it to diagnostics.
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"HTTP Client Failure",
-				tools.HttpDiagnostics(httpResp),
-			)
-			return
-		}
+	// Check for errors after diagnostics collected
+	if resp.Diagnostics.HasError() {
+		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
+		return
+	}
 
-		// If there were any errors up to this point, log the state data and return.
-		if resp.Diagnostics.HasError() {
-			resp.Diagnostics.AddError("State Data", fmt.Sprintf("\n%v", data))
-			return
-		}
+	// Save data into Terraform state
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
 	}
 
 	data.Id = jsontypes.StringValue("example-id")
