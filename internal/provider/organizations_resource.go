@@ -46,7 +46,7 @@ type OrganizationResourceModel struct {
 	LicensingModel         jsontypes.String `tfsdk:"licensing_model"`
 	Name                   jsontypes.String `tfsdk:"name"`
 	Url                    jsontypes.String `tfsdk:"url"`
-	OrgToClone             jsontypes.String `tfsdk:"org_to_clone"`
+	OrgToClone             jsontypes.String `tfsdk:"clone_organization_id"`
 }
 
 func (r *OrganizationResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -118,8 +118,8 @@ func (r *OrganizationResource) Schema(ctx context.Context, req resource.SchemaRe
 				Computed:            true,
 				CustomType:          jsontypes.StringType,
 			},
-			"org_to_clone": schema.StringAttribute{
-				MarkdownDescription: "ID or org which to clone from",
+			"clone_organization_id": schema.StringAttribute{
+				MarkdownDescription: "Create a new organization by cloning the addressed organization",
 				Optional:            true,
 				CustomType:          jsontypes.StringType,
 			},

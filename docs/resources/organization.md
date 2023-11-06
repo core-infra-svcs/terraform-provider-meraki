@@ -18,12 +18,12 @@ Manage the organizations that the user has privileges on
 ### Optional
 
 - `api_enabled` (Boolean) Enable API access
+- `clone_organization_id` (String) Create a new organization by cloning the addressed organization
 - `cloud_region_name` (String) Name of region
 - `licensing_model` (String) Organization licensing model. Can be 'co-term', 'per-device', or 'subscription'.
 - `management_details_name` (String) Name of management data
 - `management_details_value` (String) Value of management data
 - `name` (String) Organization name
-- `org_to_clone` (String) ID or org which to clone from
 - `organization_id` (String) Organization ID
 - `url` (String) Organization URL
 
