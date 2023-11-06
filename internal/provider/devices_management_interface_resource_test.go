@@ -38,11 +38,6 @@ resource "meraki_devices_management_interface" "test" {
 		vlan = 1
 		using_static_ip = false
 	}
-	wan2 = {
-			wan_enabled = "enabled"
-			vlan = 1
-			using_static_ip = false
-		}
 }
 `, serial)
 	return result
