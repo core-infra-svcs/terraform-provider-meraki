@@ -192,12 +192,90 @@ func (r *NetworksDevicesClaimResource) Read(ctx context.Context, req resource.Re
 // It uses an UpdateRequest and responds with an UpdateResponse which contains the updated state of the resource or an error.
 func (r *NetworksDevicesClaimResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 
-	var data *NetworksDevicesClaimResourceModel
+	var data, state *NetworksDevicesClaimResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
 	// If there was an error reading the plan, return early.
 	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// serials
+	var planSerials, stateSerials, serialsToAdd, serialsToRemove []string
+	for _, serial := range data.Serials {
+		planSerials = append(planSerials, serial.ValueString())
+	}
+
+	for _, serial := range state.Serials {
+		stateSerials = append(stateSerials, serial.ValueString())
+	}
+
+	serialsToAdd = difference(planSerials, stateSerials)
+	serialsToRemove = difference(stateSerials, planSerials)
+
+	fmt.Println("random plan serials: ", planSerials)
+	fmt.Println("random state serials: ", stateSerials)
+
+	claimNetworkDevices := *openApiClient.NewClaimNetworkDevicesRequest(serialsToAdd)
+
+	httpResp, err := r.client.NetworksApi.ClaimNetworkDevices(ctx, data.NetworkId.ValueString()).ClaimNetworkDevicesRequest(claimNetworkDevices).Execute()
+
+	// If there was an error during API call, add it to diagnostics.
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
+		)
+		return
+	}
+
+	// If it's not what you expect, add an error to diagnostics.
+	if httpResp.StatusCode != 200 {
+		resp.Diagnostics.AddError(
+			"Unexpected HTTP Response Status Code",
+			fmt.Sprintf("%v", httpResp.StatusCode),
+		)
+	}
+
+	// deleting serials
+	for _, serial := range serialsToRemove {
+
+		se := fmt.Sprint(strings.Trim(serial, "\""))
+
+		removeNetworkDevices := *openApiClient.NewRemoveNetworkDevicesRequest(se)
+
+		httpResp, err := r.client.NetworksApi.RemoveNetworkDevices(ctx, data.NetworkId.ValueString()).RemoveNetworkDevicesRequest(removeNetworkDevices).Execute()
+
+		// If there was an error during API call, add it to diagnostics.
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"HTTP Client Failure",
+				tools.HttpDiagnostics(httpResp),
+			)
+			return
+		}
+
+		// If it's not what you expect, add an error to diagnostics.
+		if httpResp.StatusCode != 204 {
+			resp.Diagnostics.AddError(
+				"Unexpected HTTP Response Status Code",
+				fmt.Sprintf("%v", httpResp.StatusCode),
+			)
+		}
+
+		// If there were any errors up to this point, log the plan data and return.
+		if resp.Diagnostics.HasError() {
+			resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%v", data))
+			return
+		}
+
+	}
+
+	// If there were any errors up to this point, log the plan data and return.
+	if resp.Diagnostics.HasError() {
+		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%v", data))
 		return
 	}
 
@@ -256,4 +334,19 @@ func (r *NetworksDevicesClaimResource) Delete(ctx context.Context, req resource.
 
 	// Log that the resource was deleted.
 	tflog.Trace(ctx, "removed resource")
+}
+
+// difference returns the elements in `a` that aren't in `b`.
+func difference(a, b []string) []string {
+	mb := make(map[string]struct{}, len(b))
+	for _, x := range b {
+		mb[x] = struct{}{}
+	}
+	var diff []string
+	for _, x := range a {
+		if _, found := mb[x]; !found {
+			diff = append(diff, x)
+		}
+	}
+	return diff
 }
