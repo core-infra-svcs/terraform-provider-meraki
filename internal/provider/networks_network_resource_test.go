@@ -116,6 +116,42 @@ func TestAccOrganizationsNetworkResource(t *testing.T) {
 				),
 			},
 
+			/* TODO: Need OrganizationConfigTemplate resource in order to test...
+			// Bind Network Test
+				{
+					Config: testAccOrganizationsNetworkResourceConfigBind(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
+					Check: resource.ComposeAggregateTestCheckFunc(
+						//resource.TestCheckResourceAttr("meraki_network.test", "enrollment_string", "my-enrollment-string"),
+						resource.TestCheckResourceAttr("meraki_network.bind", "product_types.#", "3"),
+						resource.TestCheckResourceAttr("meraki_network.bind", "product_types.0", "appliance"),
+						resource.TestCheckResourceAttr("meraki_network.bind", "product_types.1", "switch"),
+						resource.TestCheckResourceAttr("meraki_network.bind", "product_types.2", "wireless"),
+						resource.TestCheckResourceAttr("meraki_network.bind", "tags.#", "2"),
+						resource.TestCheckResourceAttr("meraki_network.bind", "tags.0", "tag1"),
+						resource.TestCheckResourceAttr("meraki_network.bind", "tags.1", "tag2"),
+						resource.TestCheckResourceAttr("meraki_network.bind", "auto_bind", "true"),
+					),
+				},
+
+				// Unbind Network Test
+				{
+					Config: testAccOrganizationsNetworkResourceConfigUnBind(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
+					Check: resource.ComposeAggregateTestCheckFunc(
+						//resource.TestCheckResourceAttr("meraki_network.test", "enrollment_string", "my-enrollment-string"),
+						resource.TestCheckResourceAttr("meraki_network.bind", "product_types.#", "3"),
+						resource.TestCheckResourceAttr("meraki_network.bind", "product_types.0", "appliance"),
+						resource.TestCheckResourceAttr("meraki_network.bind", "product_types.1", "switch"),
+						resource.TestCheckResourceAttr("meraki_network.bind", "product_types.2", "wireless"),
+						resource.TestCheckResourceAttr("meraki_network.bind", "tags.#", "2"),
+						resource.TestCheckResourceAttr("meraki_network.bind", "tags.0", "tag1"),
+						resource.TestCheckResourceAttr("meraki_network.bind", "tags.1", "tag2"),
+						resource.TestCheckResourceAttr("meraki_network.bind", "auto_bind", "false"),
+					),
+				},
+
+
+			*/
+
 			// Delete testing automatically occurs in TestCase
 		},
 	})
@@ -146,3 +182,50 @@ resource "meraki_network" "test" {
 	notes = "Additional description of the network-2"
 }
 `
+
+/* TODO: Need OrganizationConfigTemplate resource in order to test...
+func testAccOrganizationsNetworkResourceConfigBind(orgId string) string {
+	result := fmt.Sprintf(`
+
+resource "meraki_network" "test" {
+	organization_id = %s
+	product_types = ["appliance", "switch", "wireless"]
+}
+
+resource "meraki_network" "bind" {
+	depends_on = [resource.meraki_network.test]
+	auto_bind = true
+    config_template_id = resource.meraki_network.test.network_id
+	organization_id = %s
+	product_types = ["appliance", "switch", "wireless"]
+	tags = ["tag1"]
+	name = "test_acc_network_bind"
+	timezone = "America/Los_Angeles"
+	notes = "Additional description of the network"
+}
+`, orgId, orgId)
+	return result
+}
+
+func testAccOrganizationsNetworkResourceConfigUnBind(orgId string) string {
+	result := fmt.Sprintf(`
+
+resource "meraki_network" "test" {
+	organization_id = %s
+	product_types = ["appliance", "switch", "wireless"]
+}
+
+resource "meraki_network" "bind" {
+	depends_on = [resource.meraki_network.test]
+	auto_bind = false
+	organization_id = %s
+	product_types = ["appliance", "switch", "wireless"]
+	tags = ["tag1"]
+	name = "test_acc_network_bind"
+	timezone = "America/Los_Angeles"
+	notes = "Additional description of the network"
+}
+`, orgId, orgId)
+	return result
+}
+*/
