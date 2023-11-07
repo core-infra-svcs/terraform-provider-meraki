@@ -3,12 +3,12 @@
 page_title: "meraki_devices Resource - terraform-provider-meraki"
 subcategory: ""
 description: |-
-  Network Devices resource. This only works for devices associated with a network.
+  Manage network Devices resource. This only works for devices associated with a network.
 ---
 
 # meraki_devices (Resource)
 
-Network Devices resource. This only works for devices associated with a network.
+Manage network Devices resource. This only works for devices associated with a network.
 
 
 

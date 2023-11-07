@@ -33,19 +33,19 @@ type NetworksApplianceVpnSiteToSiteVpnResource struct {
 
 // NetworksApplianceVpnSiteToSiteVpnResourceModel describes the resource data model.
 type NetworksApplianceVpnSiteToSiteVpnResourceModel struct {
-	Id        jsontypes.String                                    `tfsdk:"id"`
-	NetworkId jsontypes.String                                    `tfsdk:"network_id" json:"network_id"`
-	Mode      jsontypes.String                                    `tfsdk:"mode" json:"mode"`
-	Hubs      []NetworksNetworkIdApplianceVpnSiteToSiteVpnHubs    `tfsdk:"hubs" json:"hubs"`
-	Subnets   []NetworksNetworkIdApplianceVpnSiteToSiteVpnSubnets `tfsdk:"subnets" json:"subnets"`
+	Id        jsontypes.String                                        `tfsdk:"id"`
+	NetworkId jsontypes.String                                        `tfsdk:"network_id" json:"network_id"`
+	Mode      jsontypes.String                                        `tfsdk:"mode" json:"mode"`
+	Hubs      []NetworksApplianceVpnSiteToSiteVpnResourceModelHubs    `tfsdk:"hubs" json:"hubs"`
+	Subnets   []NetworksApplianceVpnSiteToSiteVpnResourceModelSubnets `tfsdk:"subnets" json:"subnets"`
 }
 
-type NetworksNetworkIdApplianceVpnSiteToSiteVpnHubs struct {
+type NetworksApplianceVpnSiteToSiteVpnResourceModelHubs struct {
 	HubId           jsontypes.String `tfsdk:"hub_id" json:"hubId"`
 	UseDefaultRoute jsontypes.Bool   `tfsdk:"use_default_route" json:"useDefaultRoute"`
 }
 
-type NetworksNetworkIdApplianceVpnSiteToSiteVpnSubnets struct {
+type NetworksApplianceVpnSiteToSiteVpnResourceModelSubnets struct {
 	LocalSubnet jsontypes.String `tfsdk:"local_subnet" json:"localSubnet"`
 	UseVpn      jsontypes.Bool   `tfsdk:"use_vpn" json:"useVpn"`
 }
@@ -56,13 +56,12 @@ func (r *NetworksApplianceVpnSiteToSiteVpnResource) Metadata(ctx context.Context
 
 func (r *NetworksApplianceVpnSiteToSiteVpnResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Networks appliance vpn site to site vpn resource for updating networks appliance vpn site to site vpn. Only valid for MX networks in NAT mode.",
+		MarkdownDescription: "Manage networks appliance vpn site to site vpn. Only valid for MX networks in NAT mode.",
 		Attributes: map[string]schema.Attribute{
 
 			"id": schema.StringAttribute{
-				MarkdownDescription: "Example identifier",
-				Computed:            true,
-				CustomType:          jsontypes.StringType,
+				Computed:   true,
+				CustomType: jsontypes.StringType,
 			},
 			"network_id": schema.StringAttribute{
 				MarkdownDescription: "Network Id",

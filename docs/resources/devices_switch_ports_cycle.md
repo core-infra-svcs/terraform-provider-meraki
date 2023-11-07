@@ -3,12 +3,12 @@
 page_title: "meraki_devices_switch_ports_cycle Resource - terraform-provider-meraki"
 subcategory: ""
 description: |-
-  DevicesSwitchPortsCycle
+  Cycle a set of switch ports
 ---
 
 # meraki_devices_switch_ports_cycle (Resource)
 
-DevicesSwitchPortsCycle
+Cycle a set of switch ports
 
 
 

@@ -25,7 +25,7 @@ func TestAccDevicesSwitchPortResource(t *testing.T) {
 			{
 				Config: testAccDevicesSwitchPortResourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_network"),
+					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_devices_switch_port_resource"),
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
@@ -70,7 +70,7 @@ resource "meraki_network" "test" {
 	organization_id = "%s"
 	product_types = ["switch"]
 	tags = ["tag1"]
-	name = "test_acc_network"
+	name = "test_acc_devices_switch_port_resource"
 	timezone = "America/Los_Angeles"
 	notes = "Additional description of the network"
 }

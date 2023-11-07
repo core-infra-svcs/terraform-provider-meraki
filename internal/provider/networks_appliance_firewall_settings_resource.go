@@ -33,16 +33,16 @@ type NetworksApplianceFirewallSettingsResource struct {
 
 // NetworksApplianceFirewallSettingsResourceModel describes the resource data model.
 type NetworksApplianceFirewallSettingsResourceModel struct {
-	Id                 jsontypes.String   `tfsdk:"id"`
-	NetworkId          jsontypes.String   `tfsdk:"network_id" json:"network_id"`
-	SpoofingProtection SpoofingProtection `tfsdk:"spoofing_protection" json:"spoofingProtection"`
+	Id                 jsontypes.String                                                 `tfsdk:"id"`
+	NetworkId          jsontypes.String                                                 `tfsdk:"network_id" json:"network_id"`
+	SpoofingProtection NetworksApplianceFirewallSettingsResourceModelSpoofingProtection `tfsdk:"spoofing_protection" json:"spoofingProtection"`
 }
 
-type SpoofingProtection struct {
-	IpSourceGuard IpSourceGuard `tfsdk:"ip_source_guard" json:"ipSourceGuard"`
+type NetworksApplianceFirewallSettingsResourceModelSpoofingProtection struct {
+	IpSourceGuard NetworksApplianceFirewallSettingsResourceModelIpSourceGuard `tfsdk:"ip_source_guard" json:"ipSourceGuard"`
 }
 
-type IpSourceGuard struct {
+type NetworksApplianceFirewallSettingsResourceModelIpSourceGuard struct {
 	Mode jsontypes.String `tfsdk:"mode" json:"mode"`
 }
 
@@ -52,7 +52,7 @@ func (r *NetworksApplianceFirewallSettingsResource) Metadata(ctx context.Context
 
 func (r *NetworksApplianceFirewallSettingsResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Networks Appliance Firewall Settings resource for updating network appliance firewall settings.",
+		MarkdownDescription: "Manage network appliance firewall settings.",
 		Attributes: map[string]schema.Attribute{
 
 			"id": schema.StringAttribute{

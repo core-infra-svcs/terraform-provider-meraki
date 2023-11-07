@@ -3,12 +3,12 @@
 page_title: "meraki_networks_appliance_traffic_shaping_uplink_bandwidth Resource - terraform-provider-meraki"
 subcategory: ""
 description: |-
-  NetworksApplianceTrafficShapingUplinkBandWidth resource for updating Network Appliance Traffic Shaping UplinkBandWidth.
+  Manage Network Appliance Traffic Shaping UplinkBandWidth
 ---
 
 # meraki_networks_appliance_traffic_shaping_uplink_bandwidth (Resource)
 
-NetworksApplianceTrafficShapingUplinkBandWidth resource for updating Network Appliance Traffic Shaping UplinkBandWidth.
+Manage Network Appliance Traffic Shaping UplinkBandWidth
 
 
 

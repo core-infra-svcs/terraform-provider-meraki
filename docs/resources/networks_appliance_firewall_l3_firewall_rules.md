@@ -3,12 +3,12 @@
 page_title: "meraki_networks_appliance_firewall_l3_firewall_rules Resource - terraform-provider-meraki"
 subcategory: ""
 description: |-
-  NetworksApplianceFirewallL3FirewallRules resource for updating Network Appliance Firewall L3 Firewall Rules.
+  Manage Network Appliance L3 Firewall Rules
 ---
 
 # meraki_networks_appliance_firewall_l3_firewall_rules (Resource)
 
-NetworksApplianceFirewallL3FirewallRules resource for updating Network Appliance Firewall L3 Firewall Rules.
+Manage Network Appliance L3 Firewall Rules
 
 
 

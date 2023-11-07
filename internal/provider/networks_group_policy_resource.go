@@ -36,27 +36,27 @@ type NetworksGroupPolicyResource struct {
 
 // NetworksGroupPolicyResourceModel describes the resource data model.
 type NetworksGroupPolicyResourceModel struct {
-	Id                        jsontypes.String          `tfsdk:"id"`
-	NetworkId                 jsontypes.String          `tfsdk:"network_id"`
-	GroupPolicyId             jsontypes.String          `tfsdk:"group_policy_id" json:"groupPolicyId"`
-	Name                      jsontypes.String          `tfsdk:"name" json:"name"`
-	SplashAuthSettings        jsontypes.String          `tfsdk:"splash_auth_settings" json:"splashAuthSettings"`
-	Bandwidth                 Bandwidth                 `tfsdk:"bandwidth" json:"bandwidth"`
-	BonjourForwarding         BonjourForwarding         `tfsdk:"bonjour_forwarding" json:"bonjourForwarding"`
-	FirewallAndTrafficShaping FirewallAndTrafficShaping `tfsdk:"firewall_and_traffic_shaping" json:"firewallAndTrafficShaping"`
-	Scheduling                Scheduling                `tfsdk:"scheduling" json:"scheduling"`
-	VlanTagging               VlanTagging               `tfsdk:"vlan_tagging" json:"vlanTagging"`
-	ContentFiltering          ContentFiltering          `tfsdk:"content_filtering" json:"contentFiltering"`
+	Id                        jsontypes.String                                          `tfsdk:"id"`
+	NetworkId                 jsontypes.String                                          `tfsdk:"network_id"`
+	GroupPolicyId             jsontypes.String                                          `tfsdk:"group_policy_id" json:"groupPolicyId"`
+	Name                      jsontypes.String                                          `tfsdk:"name" json:"name"`
+	SplashAuthSettings        jsontypes.String                                          `tfsdk:"splash_auth_settings" json:"splashAuthSettings"`
+	Bandwidth                 NetworksGroupPolicyResourceModelBandwidth                 `tfsdk:"bandwidth" json:"bandwidth"`
+	BonjourForwarding         NetworksGroupPolicyResourceModelBonjourForwarding         `tfsdk:"bonjour_forwarding" json:"bonjourForwarding"`
+	FirewallAndTrafficShaping NetworksGroupPolicyResourceModelFirewallAndTrafficShaping `tfsdk:"firewall_and_traffic_shaping" json:"firewallAndTrafficShaping"`
+	Scheduling                NetworksGroupPolicyResourceModelScheduling                `tfsdk:"scheduling" json:"scheduling"`
+	VlanTagging               NetworksGroupPolicyResourceModelVlanTagging               `tfsdk:"vlan_tagging" json:"vlanTagging"`
+	ContentFiltering          NetworksGroupPolicyResourceModelContentFiltering          `tfsdk:"content_filtering" json:"contentFiltering"`
 }
 
-type FirewallAndTrafficShaping struct {
-	Settings            jsontypes.String     `tfsdk:"settings" json:"settings"`
-	L3FirewallRules     []L3FirewallRule     `tfsdk:"l3_firewall_rules" json:"l3FirewallRules"`
-	L7FirewallRules     []L7FirewallRule     `tfsdk:"l7_firewall_rules" json:"l7FirewallRules"`
-	TrafficShapingRules []TrafficShapingRule `tfsdk:"traffic_shaping_rules" json:"trafficShapingRules"`
+type NetworksGroupPolicyResourceModelFirewallAndTrafficShaping struct {
+	Settings            jsontypes.String                                     `tfsdk:"settings" json:"settings"`
+	L3FirewallRules     []NetworksGroupPolicyResourceModelL3FirewallRule     `tfsdk:"l3_firewall_rules" json:"l3FirewallRules"`
+	L7FirewallRules     []NetworksGroupPolicyResourceModelL7FirewallRule     `tfsdk:"l7_firewall_rules" json:"l7FirewallRules"`
+	TrafficShapingRules []NetworksGroupPolicyResourceModelTrafficShapingRule `tfsdk:"traffic_shaping_rules" json:"trafficShapingRules"`
 }
 
-type L3FirewallRule struct {
+type NetworksGroupPolicyResourceModelL3FirewallRule struct {
 	Comment  jsontypes.String `tfsdk:"comment" json:"comment"`
 	DestCidr jsontypes.String `tfsdk:"dest_cidr" json:"destCidr"`
 	DestPort jsontypes.String `tfsdk:"dest_port" json:"destPort"`
@@ -64,87 +64,87 @@ type L3FirewallRule struct {
 	Protocol jsontypes.String `tfsdk:"protocol" json:"protocol"`
 }
 
-type L7FirewallRule struct {
+type NetworksGroupPolicyResourceModelL7FirewallRule struct {
 	Value  jsontypes.String `tfsdk:"value" json:"value"`
 	Type   jsontypes.String `tfsdk:"type" json:"type"`
 	Policy jsontypes.String `tfsdk:"policy" json:"policy"`
 }
 
-type TrafficShapingRule struct {
-	DscpTagValue             jsontypes.Int64          `tfsdk:"dscp_tag_value" json:"dscpTagValue"`
-	PcpTagValue              jsontypes.Int64          `tfsdk:"pcp_tag_value" json:"pcpTagValue"`
-	PerClientBandwidthLimits PerClientBandwidthLimits `tfsdk:"per_client_bandwidth_limits" json:"perClientBandwidthLimits,,omitempty"`
-	Definitions              []Definition             `tfsdk:"definitions" json:"definitions"`
+type NetworksGroupPolicyResourceModelTrafficShapingRule struct {
+	DscpTagValue             jsontypes.Int64                                          `tfsdk:"dscp_tag_value" json:"dscpTagValue"`
+	PcpTagValue              jsontypes.Int64                                          `tfsdk:"pcp_tag_value" json:"pcpTagValue"`
+	PerClientBandwidthLimits NetworksGroupPolicyResourceModelPerClientBandwidthLimits `tfsdk:"per_client_bandwidth_limits" json:"perClientBandwidthLimits,,omitempty"`
+	Definitions              []NetworksGroupPolicyResourceModelDefinition             `tfsdk:"definitions" json:"definitions"`
 }
 
-type PerClientBandwidthLimits struct {
-	BandwidthLimits BandwidthLimits  `tfsdk:"bandwidth_limits" json:"bandwidthLimits,,omitempty"`
-	Settings        jsontypes.String `tfsdk:"settings" json:"settings,,omitempty"`
+type NetworksGroupPolicyResourceModelPerClientBandwidthLimits struct {
+	BandwidthLimits NetworksGroupPolicyResourceModelBandwidthLimits `tfsdk:"bandwidth_limits" json:"bandwidthLimits,,omitempty"`
+	Settings        jsontypes.String                                `tfsdk:"settings" json:"settings,,omitempty"`
 }
 
-type Definition struct {
+type NetworksGroupPolicyResourceModelDefinition struct {
 	Value jsontypes.String `tfsdk:"value" json:"value"`
 	Type  jsontypes.String `tfsdk:"type" json:"type"`
 }
 
-type Bandwidth struct {
-	BandwidthLimits BandwidthLimits  `tfsdk:"bandwidth_limits" json:"bandwidthLimits"`
-	Settings        jsontypes.String `tfsdk:"settings" json:"settings"`
+type NetworksGroupPolicyResourceModelBandwidth struct {
+	BandwidthLimits NetworksGroupPolicyResourceModelBandwidthLimits `tfsdk:"bandwidth_limits" json:"bandwidthLimits"`
+	Settings        jsontypes.String                                `tfsdk:"settings" json:"settings"`
 }
 
-type BandwidthLimits struct {
+type NetworksGroupPolicyResourceModelBandwidthLimits struct {
 	LimitUp   jsontypes.Int64 `tfsdk:"limit_up" json:"limitUp"`
 	LimitDown jsontypes.Int64 `tfsdk:"limit_down" json:"limitDown"`
 }
 
-type BonjourForwarding struct {
-	BonjourForwardingSettings jsontypes.String `tfsdk:"settings" json:"settings"`
-	BonjourForwardingRules    []Rule           `tfsdk:"rules" json:"rules"`
+type NetworksGroupPolicyResourceModelBonjourForwarding struct {
+	BonjourForwardingSettings jsontypes.String                       `tfsdk:"settings" json:"settings"`
+	BonjourForwardingRules    []NetworksGroupPolicyResourceModelRule `tfsdk:"rules" json:"rules"`
 }
 
-type Rule struct {
+type NetworksGroupPolicyResourceModelRule struct {
 	Description jsontypes.String `tfsdk:"description" json:"description"`
 	VlanId      jsontypes.String `tfsdk:"vlan_id" json:"vlanId"`
 	Services    []string         `tfsdk:"services" json:"services"`
 }
 
-type Scheduling struct {
-	Enabled   jsontypes.Bool `tfsdk:"enabled" json:"enabled"`
-	Friday    Schedule       `tfsdk:"friday" json:"friday"`
-	Monday    Schedule       `tfsdk:"monday" json:"monday"`
-	Saturday  Schedule       `tfsdk:"saturday" json:"saturday"`
-	Sunday    Schedule       `tfsdk:"sunday" json:"sunday"`
-	Thursday  Schedule       `tfsdk:"thursday" json:"thursday"`
-	Tuesday   Schedule       `tfsdk:"tuesday" json:"tuesday"`
-	Wednesday Schedule       `tfsdk:"wednesday" json:"wednesday"`
+type NetworksGroupPolicyResourceModelScheduling struct {
+	Enabled   jsontypes.Bool                           `tfsdk:"enabled" json:"enabled"`
+	Friday    NetworksGroupPolicyResourceModelSchedule `tfsdk:"friday" json:"friday"`
+	Monday    NetworksGroupPolicyResourceModelSchedule `tfsdk:"monday" json:"monday"`
+	Saturday  NetworksGroupPolicyResourceModelSchedule `tfsdk:"saturday" json:"saturday"`
+	Sunday    NetworksGroupPolicyResourceModelSchedule `tfsdk:"sunday" json:"sunday"`
+	Thursday  NetworksGroupPolicyResourceModelSchedule `tfsdk:"thursday" json:"thursday"`
+	Tuesday   NetworksGroupPolicyResourceModelSchedule `tfsdk:"tuesday" json:"tuesday"`
+	Wednesday NetworksGroupPolicyResourceModelSchedule `tfsdk:"wednesday" json:"wednesday"`
 }
 
-type Schedule struct {
+type NetworksGroupPolicyResourceModelSchedule struct {
 	From   jsontypes.String `tfsdk:"from" json:"from"`
 	To     jsontypes.String `tfsdk:"to" json:"to"`
 	Active jsontypes.Bool   `tfsdk:"active" json:"active"`
 }
 
-type VlanTagging struct {
+type NetworksGroupPolicyResourceModelVlanTagging struct {
 	Settings jsontypes.String `tfsdk:"settings" json:"settings"`
 	VlanId   jsontypes.String `tfsdk:"vlan_id" json:"vlanId"`
 }
 
-type ContentFiltering struct {
-	AllowedUrlPatterns   AllowedUrlPatterns   `tfsdk:"allowed_url_patterns" json:"allowedUrlPatterns"`
-	BlockedUrlCategories BlockedUrlCategories `tfsdk:"blocked_url_categories" json:"blockedUrlCategories"`
-	BlockedUrlPatterns   BlockedUrlPatterns   `tfsdk:"blocked_url_patterns" json:"blockedUrlPatterns"`
+type NetworksGroupPolicyResourceModelContentFiltering struct {
+	AllowedUrlPatterns   NetworksGroupPolicyResourceModelAllowedUrlPatterns   `tfsdk:"allowed_url_patterns" json:"allowedUrlPatterns"`
+	BlockedUrlCategories NetworksGroupPolicyResourceModelBlockedUrlCategories `tfsdk:"blocked_url_categories" json:"blockedUrlCategories"`
+	BlockedUrlPatterns   NetworksGroupPolicyResourceModelBlockedUrlPatterns   `tfsdk:"blocked_url_patterns" json:"blockedUrlPatterns"`
 }
 
-type AllowedUrlPatterns struct {
+type NetworksGroupPolicyResourceModelAllowedUrlPatterns struct {
 	Settings jsontypes.String `tfsdk:"settings" json:"settings"`
 	Patterns []string         `tfsdk:"patterns" json:"patterns"`
 }
-type BlockedUrlCategories struct {
+type NetworksGroupPolicyResourceModelBlockedUrlCategories struct {
 	Settings   jsontypes.String `tfsdk:"settings" json:"settings"`
 	Categories []string         `tfsdk:"categories" json:"categories"`
 }
-type BlockedUrlPatterns struct {
+type NetworksGroupPolicyResourceModelBlockedUrlPatterns struct {
 	Settings jsontypes.String `tfsdk:"settings" json:"settings"`
 	Patterns []string         `tfsdk:"patterns" json:"patterns"`
 }
@@ -1374,12 +1374,12 @@ func extractHttpResponseGroupPolicyResource(ctx context.Context, inlineResp map[
 	if err := json.NewDecoder(httpRespBody).Decode(data); err != nil {
 		return data, err
 	}
-	var trafficShapingRule []TrafficShapingRule
+	var trafficShapingRule []NetworksGroupPolicyResourceModelTrafficShapingRule
 	jsonData, _ := json.Marshal(inlineResp["firewallAndTrafficShaping"].(map[string]interface{})["trafficShapingRules"])
 	json.Unmarshal(jsonData, &trafficShapingRule)
 	if len(trafficShapingRule) > 0 {
 		for _, attribute := range trafficShapingRule {
-			var trafficShapingRule TrafficShapingRule
+			var trafficShapingRule NetworksGroupPolicyResourceModelTrafficShapingRule
 			trafficShapingRule.DscpTagValue = attribute.DscpTagValue
 			trafficShapingRule.PcpTagValue = attribute.PcpTagValue
 			trafficShapingRule.PerClientBandwidthLimits.Settings = attribute.PerClientBandwidthLimits.Settings
@@ -1387,7 +1387,7 @@ func extractHttpResponseGroupPolicyResource(ctx context.Context, inlineResp map[
 			trafficShapingRule.PerClientBandwidthLimits.BandwidthLimits.LimitUp = attribute.PerClientBandwidthLimits.BandwidthLimits.LimitUp
 			if len(attribute.Definitions) > 0 {
 				for _, attribute := range attribute.Definitions {
-					var definition Definition
+					var definition NetworksGroupPolicyResourceModelDefinition
 					definition.Type = attribute.Type
 					definition.Value = attribute.Value
 					trafficShapingRule.Definitions = append(trafficShapingRule.Definitions, definition)
