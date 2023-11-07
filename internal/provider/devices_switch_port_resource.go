@@ -72,7 +72,7 @@ type DevicesSwitchPortResourceModel struct {
 	Profile                     types.Object     `tfsdk:"profile" json:"profile"`
 }
 
-type DevicesSerialSwitchPortProfile struct {
+type DevicesSwitchPortResourceModelProfile struct {
 	Enabled jsontypes.Bool   `tfsdk:"enabled" json:"enabled"`
 	Id      jsontypes.String `tfsdk:"id" json:"id"`
 	Iname   jsontypes.String `tfsdk:"iname" json:"iname"`
@@ -521,6 +521,7 @@ func (r *DevicesSwitchPortResource) Delete(ctx context.Context, req resource.Del
 	payload.SetVlan(1)
 	payload.SetVoiceVlan(1)
 	payload.SetAllowedVlans("1")
+	payload.SetAccessPolicyType("Open")
 
 	// Initialize provider client and make API call
 	_, httpResp, err := r.client.SwitchApi.UpdateDeviceSwitchPort(context.Background(), data.Serial.ValueString(), data.PortId.ValueString()).UpdateDeviceSwitchPortRequest(payload).Execute()
@@ -678,7 +679,7 @@ func DevicesSwitchPortResourcePayload(ctx context.Context, data *DevicesSwitchPo
 
 	if !data.Profile.IsUnknown() && !data.Profile.IsNull() {
 		var profile openApiClient.GetDeviceSwitchPorts200ResponseInnerProfile
-		var profileData DevicesSerialSwitchPortProfile
+		var profileData DevicesSwitchPortResourceModelProfile
 		data.Profile.As(ctx, &profileData, basetypes.ObjectAsOptions{})
 		profile.SetEnabled(profileData.Enabled.ValueBool())
 		profile.SetId(profileData.Id.ValueString())
@@ -696,7 +697,7 @@ func DevicesSwitchPortResourceResponse(ctx context.Context, response *openApiCli
 		"id":      jsontypes.StringType,
 		"iname":   jsontypes.StringType,
 	}
-	var profileData DevicesSerialSwitchPortProfile
+	var profileData DevicesSwitchPortResourceModelProfile
 	profileData.Enabled = jsontypes.BoolValue(response.Profile.GetEnabled())
 	profileData.Id = jsontypes.StringValue(response.Profile.GetId())
 	profileData.Iname = jsontypes.StringValue(response.Profile.GetIname())
