@@ -734,7 +734,7 @@ func DevicesSwitchPortResourceResponse(ctx context.Context, response *openApiCli
 	for _, element := range response.GetMacAllowList() {
 		macAllowList = append(macAllowList, jsontypes.StringValue(element))
 	}
-	macAllowListValues, diags := types.SetValueFrom(ctx, types.StringType, tags)
+	macAllowListValues, diags := types.SetValueFrom(ctx, types.StringType, macAllowList)
 	if diags.HasError() {
 		return data, diags
 	}
