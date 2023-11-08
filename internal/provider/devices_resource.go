@@ -42,27 +42,27 @@ type DevicesResourceModel struct {
 
 	// The Id field is mandatory for all resources. It's used for resource identification and is required
 	// for the acceptance tests to run.
-	Id              jsontypes.String                `tfsdk:"id"`
-	Serial          jsontypes.String                `tfsdk:"serial"`
-	Name            jsontypes.String                `tfsdk:"name"`
-	Mac             jsontypes.String                `tfsdk:"mac"`
-	Model           jsontypes.String                `tfsdk:"model"`
-	Tags            jsontypes.Set[jsontypes.String] `tfsdk:"tags"`
-	LanIp           jsontypes.String                `tfsdk:"lan_ip"`
-	Firmware        jsontypes.String                `tfsdk:"firmware"`
-	Lat             jsontypes.Float64               `tfsdk:"lat"`
-	Lng             jsontypes.Float64               `tfsdk:"lng"`
-	Address         jsontypes.String                `tfsdk:"address"`
-	Notes           jsontypes.String                `tfsdk:"notes"`
-	Url             jsontypes.String                `tfsdk:"url"`
-	FloorPlanId     jsontypes.String                `tfsdk:"floor_plan_id"`
-	NetworkId       jsontypes.String                `tfsdk:"network_id"`
-	BeaconIdParams  BeaconIdParams                  `tfsdk:"beacon_id_params"`
-	SwitchProfileId jsontypes.String                `tfsdk:"switch_profile_id"`
-	MoveMapMarker   jsontypes.Bool                  `tfsdk:"move_map_marker"`
+	Id              jsontypes.String                   `tfsdk:"id"`
+	Serial          jsontypes.String                   `tfsdk:"serial"`
+	Name            jsontypes.String                   `tfsdk:"name"`
+	Mac             jsontypes.String                   `tfsdk:"mac"`
+	Model           jsontypes.String                   `tfsdk:"model"`
+	Tags            jsontypes.Set[jsontypes.String]    `tfsdk:"tags"`
+	LanIp           jsontypes.String                   `tfsdk:"lan_ip"`
+	Firmware        jsontypes.String                   `tfsdk:"firmware"`
+	Lat             jsontypes.Float64                  `tfsdk:"lat"`
+	Lng             jsontypes.Float64                  `tfsdk:"lng"`
+	Address         jsontypes.String                   `tfsdk:"address"`
+	Notes           jsontypes.String                   `tfsdk:"notes"`
+	Url             jsontypes.String                   `tfsdk:"url"`
+	FloorPlanId     jsontypes.String                   `tfsdk:"floor_plan_id"`
+	NetworkId       jsontypes.String                   `tfsdk:"network_id"`
+	BeaconIdParams  DevicesResourceModelBeaconIdParams `tfsdk:"beacon_id_params"`
+	SwitchProfileId jsontypes.String                   `tfsdk:"switch_profile_id"`
+	MoveMapMarker   jsontypes.Bool                     `tfsdk:"move_map_marker"`
 }
 
-type BeaconIdParams struct {
+type DevicesResourceModelBeaconIdParams struct {
 	Uuid  jsontypes.String `tfsdk:"uuid"`
 	Major jsontypes.Int64  `tfsdk:"major"`
 	Minor jsontypes.Int64  `tfsdk:"minor"`
@@ -84,7 +84,7 @@ func (r *DevicesResource) Schema(ctx context.Context, req resource.SchemaRequest
 	// The Schema object defines the structure of the resource.
 	resp.Schema = schema.Schema{
 
-		MarkdownDescription: "Network Devices resource. This only works for devices associated with a network.",
+		MarkdownDescription: "Manage network Devices resource. This only works for devices associated with a network.",
 
 		// The Attributes map describes the fields of the resource.
 		Attributes: map[string]schema.Attribute{

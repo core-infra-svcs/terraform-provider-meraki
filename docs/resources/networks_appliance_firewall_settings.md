@@ -3,12 +3,12 @@
 page_title: "meraki_networks_appliance_firewall_settings Resource - terraform-provider-meraki"
 subcategory: ""
 description: |-
-  Networks Appliance Firewall Settings resource for updating network appliance firewall settings.
+  Manage network appliance firewall settings.
 ---
 
 # meraki_networks_appliance_firewall_settings (Resource)
 
-Networks Appliance Firewall Settings resource for updating network appliance firewall settings.
+Manage network appliance firewall settings.
 
 
 

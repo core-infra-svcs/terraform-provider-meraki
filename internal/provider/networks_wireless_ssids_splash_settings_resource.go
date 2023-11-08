@@ -36,72 +36,72 @@ type NetworksWirelessSsidsSplashSettingsResource struct {
 // The NetworksWirelessSsidsSplashSettingsResourceModel structure describes the data model.
 // This struct is where you define all the attributes that are part of this resource's state.
 type NetworksWirelessSsidsSplashSettingsResourceModel struct {
-	Id                              jsontypes.String   `tfsdk:"id"`
-	NetworkId                       jsontypes.String   `tfsdk:"network_id"`
-	Number                          jsontypes.String   `tfsdk:"number"`
-	SplashUrl                       jsontypes.String   `tfsdk:"splash_url"`
-	UseSplashUrl                    jsontypes.Bool     `tfsdk:"use_splash_url"`
-	SplashTimeout                   jsontypes.Int64    `tfsdk:"splash_timeout"`
-	WelcomeMessage                  jsontypes.String   `tfsdk:"welcome_message"`
-	RedirectUrl                     jsontypes.String   `tfsdk:"redirect_url"`
-	UseRedirectUrl                  jsontypes.Bool     `tfsdk:"use_redirect_url"`
-	BlockAllTrafficBeforeSignOn     jsontypes.Bool     `tfsdk:"block_all_traffic_before_sign_on"`
-	ControllerDisconnectionBehavior jsontypes.String   `tfsdk:"controller_disconnection_behavior"`
-	AllowSimultaneousLogins         jsontypes.Bool     `tfsdk:"allow_simultaneous_logins"`
-	Billing                         Billing            `tfsdk:"billing"`
-	GuestSponsorship                GuestSponsorship   `tfsdk:"guest_sponsorship"`
-	SentryEnrollment                SentryEnrollment   `tfsdk:"sentry_enrollment"`
-	SplashImage                     SplashImage        `tfsdk:"splash_image"`
-	SplashLogo                      SplashLogo         `tfsdk:"splash_logo"`
-	SplashPrepaidFront              SplashPrepaidFront `tfsdk:"splash_prepaid_front"`
+	Id                              jsontypes.String                                                   `tfsdk:"id"`
+	NetworkId                       jsontypes.String                                                   `tfsdk:"network_id"`
+	Number                          jsontypes.String                                                   `tfsdk:"number"`
+	SplashUrl                       jsontypes.String                                                   `tfsdk:"splash_url"`
+	UseSplashUrl                    jsontypes.Bool                                                     `tfsdk:"use_splash_url"`
+	SplashTimeout                   jsontypes.Int64                                                    `tfsdk:"splash_timeout"`
+	WelcomeMessage                  jsontypes.String                                                   `tfsdk:"welcome_message"`
+	RedirectUrl                     jsontypes.String                                                   `tfsdk:"redirect_url"`
+	UseRedirectUrl                  jsontypes.Bool                                                     `tfsdk:"use_redirect_url"`
+	BlockAllTrafficBeforeSignOn     jsontypes.Bool                                                     `tfsdk:"block_all_traffic_before_sign_on"`
+	ControllerDisconnectionBehavior jsontypes.String                                                   `tfsdk:"controller_disconnection_behavior"`
+	AllowSimultaneousLogins         jsontypes.Bool                                                     `tfsdk:"allow_simultaneous_logins"`
+	Billing                         NetworksWirelessSsidsSplashSettingsResourceModelBilling            `tfsdk:"billing"`
+	GuestSponsorship                NetworksWirelessSsidsSplashSettingsResourceModelGuestSponsorship   `tfsdk:"guest_sponsorship"`
+	SentryEnrollment                NetworksWirelessSsidsSplashSettingsResourceModelSentryEnrollment   `tfsdk:"sentry_enrollment"`
+	SplashImage                     NetworksWirelessSsidsSplashSettingsResourceModelSplashImage        `tfsdk:"splash_image"`
+	SplashLogo                      NetworksWirelessSsidsSplashSettingsResourceModelSplashLogo         `tfsdk:"splash_logo"`
+	SplashPrepaidFront              NetworksWirelessSsidsSplashSettingsResourceModelSplashPrepaidFront `tfsdk:"splash_prepaid_front"`
 }
 
-type Billing struct {
-	ReplyToEmailAddress           jsontypes.String `tfsdk:"reply_to_email_address"`
-	PrepaidAccessFastLoginEnabled jsontypes.Bool   `tfsdk:"prepaid_access_fast_login_enabled"`
-	FreeAccess                    FreeAccess       `tfsdk:"free_access"`
+type NetworksWirelessSsidsSplashSettingsResourceModelBilling struct {
+	ReplyToEmailAddress           jsontypes.String                                           `tfsdk:"reply_to_email_address"`
+	PrepaidAccessFastLoginEnabled jsontypes.Bool                                             `tfsdk:"prepaid_access_fast_login_enabled"`
+	FreeAccess                    NetworksWirelessSsidsSplashSettingsResourceModelFreeAccess `tfsdk:"free_access"`
 }
 
-type FreeAccess struct {
+type NetworksWirelessSsidsSplashSettingsResourceModelFreeAccess struct {
 	DurationInMinutes jsontypes.Int64 `tfsdk:"duration_in_minutes"`
 	Enabled           jsontypes.Bool  `tfsdk:"enabled"`
 }
 
-type GuestSponsorship struct {
+type NetworksWirelessSsidsSplashSettingsResourceModelGuestSponsorship struct {
 	DurationInMinutes        jsontypes.Int64 `tfsdk:"duration_in_minutes"`
 	GuestCanRequestTimeframe jsontypes.Bool  `tfsdk:"guest_can_request_time_frame"`
 }
 
-type SplashImage struct {
-	Extension jsontypes.String `tfsdk:"extension"`
-	Md5       jsontypes.String `tfsdk:"md5"`
-	Image     Image            `tfsdk:"image"`
+type NetworksWirelessSsidsSplashSettingsResourceModelSplashImage struct {
+	Extension jsontypes.String                                      `tfsdk:"extension"`
+	Md5       jsontypes.String                                      `tfsdk:"md5"`
+	Image     NetworksWirelessSsidsSplashSettingsResourceModelImage `tfsdk:"image"`
 }
 
-type SplashLogo struct {
-	Extension jsontypes.String `tfsdk:"extension"`
-	Md5       jsontypes.String `tfsdk:"md5"`
-	Image     Image            `tfsdk:"image"`
+type NetworksWirelessSsidsSplashSettingsResourceModelSplashLogo struct {
+	Extension jsontypes.String                                      `tfsdk:"extension"`
+	Md5       jsontypes.String                                      `tfsdk:"md5"`
+	Image     NetworksWirelessSsidsSplashSettingsResourceModelImage `tfsdk:"image"`
 }
 
-type SplashPrepaidFront struct {
-	Extension jsontypes.String `tfsdk:"extension"`
-	Md5       jsontypes.String `tfsdk:"md5"`
-	Image     Image            `tfsdk:"image"`
+type NetworksWirelessSsidsSplashSettingsResourceModelSplashPrepaidFront struct {
+	Extension jsontypes.String                                      `tfsdk:"extension"`
+	Md5       jsontypes.String                                      `tfsdk:"md5"`
+	Image     NetworksWirelessSsidsSplashSettingsResourceModelImage `tfsdk:"image"`
 }
 
-type Image struct {
+type NetworksWirelessSsidsSplashSettingsResourceModelImage struct {
 	Contents jsontypes.String `tfsdk:"contents"`
 	Format   jsontypes.String `tfsdk:"format"`
 }
 
-type SentryEnrollment struct {
-	Strength              jsontypes.String      `tfsdk:"strength"`
-	EnforcedSystems       []string              `tfsdk:"enforced_systems"`
-	SystemsManagerNetwork SystemsManagerNetwork `tfsdk:"systems_manager_network"`
+type NetworksWirelessSsidsSplashSettingsResourceModelSentryEnrollment struct {
+	Strength              jsontypes.String                                                      `tfsdk:"strength"`
+	EnforcedSystems       []string                                                              `tfsdk:"enforced_systems"`
+	SystemsManagerNetwork NetworksWirelessSsidsSplashSettingsResourceModelSystemsManagerNetwork `tfsdk:"systems_manager_network"`
 }
 
-type SystemsManagerNetwork struct {
+type NetworksWirelessSsidsSplashSettingsResourceModelSystemsManagerNetwork struct {
 	Id jsontypes.String `tfsdk:"id"`
 }
 
@@ -543,9 +543,6 @@ func (r *NetworksWirelessSsidsSplashSettingsResource) Create(ctx context.Context
 	}
 
 	inlineResp, httpResp, err := r.client.SettingsApi.UpdateNetworkWirelessSsidSplashSettings(context.Background(), data.NetworkId.ValueString(), data.Number.ValueString()).UpdateNetworkWirelessSsidSplashSettingsRequest(updateNetworkWirelessSsidSplashSettings).Execute()
-
-	fmt.Println(httpResp.Body)
-
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -555,19 +552,17 @@ func (r *NetworksWirelessSsidsSplashSettingsResource) Create(ctx context.Context
 		return
 	}
 
-	// If it's not what you expect, add an error to diagnostics.
-	// TODO: Check the HTTP response status code matches the API endpoint.
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
-	}
 
-	// If there were any errors up to this point, log the plan data and return.
-	if resp.Diagnostics.HasError() {
-		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%v", data))
-		return
+		// If there were any errors up to this point, log the plan data and return.
+		if resp.Diagnostics.HasError() {
+			resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%v", data))
+			return
+		}
 	}
 
 	data.SplashUrl = jsontypes.StringValue(inlineResp.GetSplashUrl())

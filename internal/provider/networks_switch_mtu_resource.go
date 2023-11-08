@@ -33,13 +33,13 @@ type NetworksSwitchMtuResource struct {
 
 // NetworksSwitchMtuResourceModel describes the resource data model.
 type NetworksSwitchMtuResourceModel struct {
-	Id             jsontypes.String `tfsdk:"id"`
-	NetworkId      jsontypes.String `tfsdk:"network_id" json:"network_id"`
-	DefaultMtuSize jsontypes.Int64  `tfsdk:"default_mtu_size" json:"defaultMtuSize"`
-	Overrides      []Override       `tfsdk:"overrides" json:"overrides"`
+	Id             jsontypes.String                         `tfsdk:"id"`
+	NetworkId      jsontypes.String                         `tfsdk:"network_id" json:"network_id"`
+	DefaultMtuSize jsontypes.Int64                          `tfsdk:"default_mtu_size" json:"defaultMtuSize"`
+	Overrides      []NetworksSwitchMtuResourceModelOverride `tfsdk:"overrides" json:"overrides"`
 }
 
-type Override struct {
+type NetworksSwitchMtuResourceModelOverride struct {
 	Switches       []string        `tfsdk:"switches" json:"switches"`
 	SwitchProfiles []string        `tfsdk:"switch_profiles" json:"switchProfiles"`
 	MtuSize        jsontypes.Int64 `tfsdk:"mtu_size" json:"mtuSize"`
