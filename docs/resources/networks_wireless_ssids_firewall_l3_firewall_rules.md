@@ -18,7 +18,7 @@ NetworksWirelessSsidsFirewallL3FirewallRules for Updating Networks Wireless Ssid
 ### Required
 
 - `network_id` (String) Network ID
-- `number` (String) SsIds Number
+- `number` (String) SsIds SsidNumber
 
 ### Optional
 
@@ -42,5 +42,3 @@ Optional:
 
 - `comment` (String) Description of the rule (optional)
 - `dest_port` (String) Comma-separated list of destination port(s) (integer in the range 1-65535), or 'Any'
-
-

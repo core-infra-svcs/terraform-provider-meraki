@@ -3,12 +3,12 @@
 page_title: "meraki_networks_appliance_firewall_l7_firewall_rules Resource - terraform-provider-meraki"
 subcategory: ""
 description: |-
-  NetworksApplianceFirewallL7FirewallRules resource for updating Network Appliance Firewall L7 Firewall Rules.
+  Manage Network Appliance L7 Firewall Rules
 ---
 
 # meraki_networks_appliance_firewall_l7_firewall_rules (Resource)
 
-NetworksApplianceFirewallL7FirewallRules resource for updating Network Appliance Firewall L7 Firewall Rules.
+Manage Network Appliance L7 Firewall Rules
 
 
 
@@ -35,5 +35,3 @@ Optional:
 
 - `policy` (String) Deny' traffic specified by this rule
 - `value` (String) The 'value' of what you want to block. Format of 'value' varies depending on type of the rule. The application categories and application ids can be retrieved from the the 'MX L7 application categories' endpoint. The countries follow the two-letter ISO 3166-1 alpha-2 format.
-
-

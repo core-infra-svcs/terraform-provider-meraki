@@ -16,9 +16,9 @@ func TestAccDevicesCellularSimsResource(t *testing.T) {
 
 			// Create and Read Network.
 			{
-				Config: testAccDevicesCellularSimsResourceConfigCreate(os.Getenv("TF_ACC_MERAKI_ORGANZIATION_ID")),
+				Config: testAccDevicesCellularSimsResourceConfigCreate(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "Main Office"),
+					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_device_cellular_sims"),
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
@@ -30,7 +30,7 @@ func TestAccDevicesCellularSimsResource(t *testing.T) {
 
 			// Update testing
 			{
-				Config: testAccDevicesCellularSimsResourceConfigUpdate(os.Getenv("TF_ACC_MERAKI_ORGANZIATION_ID"), os.Getenv("TF_ACC_MERAKI_MG_SERIAL")),
+				Config: testAccDevicesCellularSimsResourceConfigUpdate(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), os.Getenv("TF_ACC_MERAKI_MG_SERIAL")),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_devices_cellular_sims.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_devices_cellular_sims.test", "sims.#", "1"),
@@ -61,7 +61,7 @@ resource "meraki_network" "test" {
 	organization_id = "%s"
 	product_types = ["cellularGateway"]
 	tags = ["tag1"]
-	name = "Main Office"
+	name = "test_acc_device_cellular_sims"
 	timezone = "America/Los_Angeles"
 	notes = "Additional description of the network"
 }

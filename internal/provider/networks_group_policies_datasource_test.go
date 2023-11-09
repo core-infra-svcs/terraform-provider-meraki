@@ -1,6 +1,8 @@
 package provider
 
 import (
+	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -12,19 +14,11 @@ func TestAccNetworkGroupPoliciesDataSource(t *testing.T) {
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 
-			// Create test Organization
-			{
-				Config: testAccNetworkGroupPoliciesDataSourceConfigCreateOrganizations,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_acc_meraki_network_group_policies"),
-				),
-			},
-
 			// Create and Read Network.
 			{
-				Config: testAccNetworkGroupPoliciesDataSourceConfigCreateNetwork,
+				Config: testAccNetworkGroupPoliciesDataSourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "Main Office"),
+					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_networks_group_policies"),
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
@@ -170,34 +164,26 @@ func TestAccNetworkGroupPoliciesDataSource(t *testing.T) {
 	})
 }
 
-const testAccNetworkGroupPoliciesDataSourceConfigCreateOrganizations = `
-resource "meraki_organization" "test" {
-	name = "test_acc_meraki_network_group_policies"
-	api_enabled = true
-}
-`
-
-const testAccNetworkGroupPoliciesDataSourceConfigCreateNetwork = `
-resource "meraki_organization" "test" {}
+func testAccNetworkGroupPoliciesDataSourceConfigCreateNetwork(orgId string) string {
+	result := fmt.Sprintf(`
 resource "meraki_network" "test" {
-	depends_on = [resource.meraki_organization.test]
-	organization_id = resource.meraki_organization.test.organization_id
+	organization_id = %s
 	product_types = ["appliance", "switch", "wireless"]
 	tags = ["tag1"]
-	name = "Main Office"
+	name = "test_acc_networks_group_policies"
 	timezone = "America/Los_Angeles"
 	notes = "Additional description of the network"
 }
-`
+`, orgId)
+	return result
+}
 
 const testAccNetworkGroupPoliciesDataSourceConfigCreateNetworksGroupPolicy = `
-resource "meraki_organization" "test" {}
 resource "meraki_network" "test" {
-	depends_on = [resource.meraki_organization.test]
 	product_types = ["appliance", "switch", "wireless"]
 }
 resource "meraki_networks_group_policy" "test" {
-    depends_on = [resource.meraki_network.test, resource.meraki_organization.test]
+    depends_on = [resource.meraki_network.test]
     network_id = resource.meraki_network.test.network_id
     name = "testpolicy"
     splash_auth_settings = "network default"
@@ -336,21 +322,15 @@ resource "meraki_networks_group_policy" "test" {
             patterns = []
         }
     }
-    
-       
-
-  
 }
 `
 
 const testAccNetworkGroupPoliciesDataSourceConfigRead = `
-resource "meraki_organization" "test" {}
 resource "meraki_network" "test" {
-	depends_on = [resource.meraki_organization.test]
 	product_types = ["appliance", "switch", "wireless"]
 }
 resource "meraki_networks_group_policy" "test" {
-    depends_on = [resource.meraki_network.test, resource.meraki_organization.test]
+    depends_on = [resource.meraki_network.test]
     network_id = resource.meraki_network.test.network_id
     name = "testpolicy"
     splash_auth_settings = "network default"
@@ -492,7 +472,7 @@ resource "meraki_networks_group_policy" "test" {
 }
 
 data "meraki_network_group_policies" "test" {	
-	depends_on = [resource.meraki_networks_group_policy.test, resource.meraki_network.test, resource.meraki_organization.test]
+	depends_on = [resource.meraki_networks_group_policy.test, resource.meraki_network.test]
     network_id = resource.meraki_network.test.network_id
 }
 `

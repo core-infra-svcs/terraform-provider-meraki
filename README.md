@@ -2,13 +2,14 @@
 
 The Meraki Terraform Provider is a declarative tool that enables teams and individuals to automate their workflows and manage Cisco Meraki network infrastructure using Terraform. With this provider, you can define and manage Meraki organizations, networks, devices, and other resources as code, providing simplicity, scalability, and repeatability in your automation strategy.
 
+Additional provider information available on the [Terraform Registry](https://registry.terraform.io/providers/core-infra-svcs/meraki/latest).
+
 ## Features
 
 - Provision and manage Meraki organizations, networks, devices, and more through infrastructure as code.
 - Configure and control various aspects of your Meraki infrastructure, including network settings, security policies, and device configurations.
 - Leverage the power of Terraform to plan, apply, and manage changes to your Meraki environment in a controlled and auditable manner.
 - Enable collaboration and version control for your Meraki configurations, allowing teams to work together efficiently and track changes over time.
-
 
 ## Requirements
 
@@ -110,9 +111,9 @@ For even more detailed information and usage examples, please refer to the follo
 
 ## Contributing
 
-Contributions are welcome! If you are interested in contributing to the Meraki Terraform Provider, please refer to the [Contributing Guidelines](./CONTRIBUTING.md) for detailed instructions on how to get started.
+Contributions are welcome! If you are interested in contributing to the Meraki Terraform Provider, please refer to the [Contributing Guidelines](CONTRIBUTING.md) for detailed instructions on how to get started.
 
-See the [Getting Started Document](.github/workflow-docs/getting-started.md) for detailed instructions.
+See the [Getting Started Document](contributing/getting-started.md) for detailed instructions.
 
 ## License
 
@@ -129,3 +130,5 @@ We would like to express our gratitude to the contributors who have made this pr
 ## Disclaimer
 
 This project is not officially supported by Cisco or Meraki. It is maintained and supported by a community of enthusiastic engineers and developers.
+
+

@@ -1,5 +1,48 @@
 # Changelog
 
+## [0.2.0](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.1.7...v0.2.0) (2023-09-07)
+
+
+### Features
+
+* Update README.md ([f70a369](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/f70a369d11af680613ec1904b60f06bcf8447ccb))
+* workflow docs ([580bbb4](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/580bbb436809ddb814aba9759045e2aef92a3f41))
+
+## [0.1.7](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.1.6...v0.1.7) (2023-09-07)
+
+
+### Bug Fixes
+
+* error handling ([a7359ad](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/a7359ad04bf3c75dce40a89953604586e91df02e))
+* finalize linting ([0484912](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/048491270c700160ee852ca0eaa3872ad7e01f2d))
+* github actions dependancies ([0864f56](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/0864f563957d4644200bed8dfd503e81fa3e6bf7))
+* issue exit code ([4c9df56](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/4c9df56270f7c154a5c1b7dd32c2aaeb5757716c))
+* lint tiemout command ([abaaff4](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/abaaff4f35d4c2116f2230bc04913b98511479db))
+* linter job ([d042a91](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/d042a91545af361fddd2e1edf10889155a4c7034))
+* linter timeout context ([4cafe06](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/4cafe065e51e2a82204185bf99718295163776a3))
+
+## [0.1.6](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.1.5...v0.1.6) (2023-08-05)
+
+
+### Bug Fixes
+
+* github actions ([8209b5b](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/8209b5b4953e0de1fff594cfdc88ee75f29e4e52))
+* github actions context ([cc15368](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/cc153684ecdf64ae4f71b0547a8219ddf3371d3e))
+
+## [0.1.5](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.1.4...v0.1.5) (2023-08-02)
+
+
+### Bug Fixes
+
+* fixing test case errors ([1ff3351](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/1ff335120360156503e901fdb6eac17a1e804ddf))
+* Github actions workflow ([13f476a](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/13f476a785342655b94ea28f80ff0bac77f47f32))
+* network devices claim ([5571a55](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/5571a556fbd2e77d2f9a95f7ed3f17dbcafc14f7))
+* networks_settings_resource_test.go ([ad61105](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/ad61105d65b6e6ebb7f3aba18f58216efb58ea16))
+* provider schema ([9934063](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/9934063cdcbde30e64d8d4d9692a13fac4a888ba))
+* refactoring code and docs ([869eb82](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/869eb82981251a93fa379742cdd71ae5c6807a09))
+* refactoring test cases ([00dab30](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/00dab30a08c462f9073c851359c836183f154d07))
+* resolving value conversion and secure port enable field missing issues ([1316e2d](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/1316e2da7b516badf157d7165ebff3da79a9be1d))
+
 ## 0.1.0 (2023-06-09)
 
 

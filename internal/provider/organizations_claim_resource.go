@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
-	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -45,14 +45,14 @@ type OrganizationsClaimResourceModel struct {
 
 	// The Id field is mandatory for all resources. It's used for resource identification and is required
 	// for the acceptance tests to run.
-	Id             jsontypes.String                    `tfsdk:"id"`
-	OrganizationId jsontypes.String                    `tfsdk:"organization_id"`
-	Orders         []jsontypes.String                  `tfsdk:"orders"`
-	Serials        []jsontypes.String                  `tfsdk:"serials"`
-	Licences       []OrganizationsClaimResourceLicence `tfsdk:"licences"`
+	Id             jsontypes.String                         `tfsdk:"id"`
+	OrganizationId jsontypes.String                         `tfsdk:"organization_id"`
+	Orders         []jsontypes.String                       `tfsdk:"orders"`
+	Serials        []jsontypes.String                       `tfsdk:"serials"`
+	Licences       []OrganizationsClaimResourceModelLicence `tfsdk:"licences"`
 }
 
-type OrganizationsClaimResourceLicence struct {
+type OrganizationsClaimResourceModelLicence struct {
 	Key  jsontypes.String `tfsdk:"key"`
 	Mode jsontypes.String `tfsdk:"mode"`
 }
@@ -62,7 +62,7 @@ type OrganizationsClaimResourceLicence struct {
 func (r *OrganizationsClaimResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 
 	// The TypeName attribute is important as it provides the user-friendly name for the resource/data source.
-	// This is the name users will use to reference the resource/data source and it's also used in the acceptance tests.
+	// This is the name users will use to reference the resource/data source, and it's also used in the acceptance tests.
 	resp.TypeName = req.ProviderTypeName + "_organizations_claim"
 }
 
@@ -74,7 +74,7 @@ func (r *OrganizationsClaimResource) Schema(ctx context.Context, req resource.Sc
 	resp.Schema = schema.Schema{
 
 		// It should provide a clear and concise description of the resource.
-		MarkdownDescription: "Organizations Claim Resource. DISCLAIMER: Can only claim, does not have full CRUD capabilities.",
+		MarkdownDescription: "Claim a list of devices, licenses, and/or orders into an organization. When claiming by order, all devices and licenses in the order will be claimed; licenses will be added to the organization and devices will be placed in the organization's inventory.",
 
 		// The Attributes map describes the fields of the resource.
 		Attributes: map[string]schema.Attribute{
@@ -174,7 +174,7 @@ func (r *OrganizationsClaimResource) Create(ctx context.Context, req resource.Cr
 		return
 	}
 
-	payload := openApiClient.NewInlineObject190()
+	claimIntoOrganizationInventoryRequest := *openApiClient.NewClaimIntoOrganizationInventoryRequest()
 
 	// orders
 	var orders []string
@@ -189,37 +189,35 @@ func (r *OrganizationsClaimResource) Create(ctx context.Context, req resource.Cr
 	}
 
 	// licenses
-	var licensesPayload []openApiClient.OrganizationsOrganizationIdClaimLicenses
+	var licenses []openApiClient.ClaimIntoOrganizationInventoryRequestLicensesInner
 	for _, license := range data.Licences {
-		var licenseMap openApiClient.OrganizationsOrganizationIdClaimLicenses
+		var licenseMap openApiClient.ClaimIntoOrganizationInventoryRequestLicensesInner
 		licenseMap.SetKey(license.Key.ValueString())
 		licenseMap.SetMode(license.Mode.ValueString())
-		licensesPayload = append(licensesPayload, licenseMap)
+		licenses = append(licenses, licenseMap)
 	}
 
-	payload.SetOrders(orders)
-	payload.SetLicenses(licensesPayload)
-	payload.SetSerials(serials)
+	claimIntoOrganizationInventoryRequest.SetSerials(orders)
+	claimIntoOrganizationInventoryRequest.SetLicenses(licenses)
+	claimIntoOrganizationInventoryRequest.SetSerials(serials)
 
 	// Remember to handle any potential errors.
-	_, httpResp, err := r.client.OrganizationsApi.ClaimIntoOrganization(ctx,
-		data.OrganizationId.ValueString()).ClaimIntoOrganization(*payload).Execute()
+	_, httpResp, err := r.client.ConfigureApi.ClaimIntoOrganizationInventory(ctx,
+		data.OrganizationId.ValueString()).ClaimIntoOrganizationInventoryRequest(claimIntoOrganizationInventoryRequest).Execute()
 
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Failed to create resource",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-	}
 
-	// Collect any HTTP diagnostics that might be useful for debugging.
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		resp.Diagnostics.AddError(
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
+		)
+		return
 	}
 
 	// If it's not what you expect, add an error to diagnostics.
 	if httpResp.StatusCode != 200 {
+
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
@@ -264,6 +262,55 @@ func (r *OrganizationsClaimResource) Read(ctx context.Context, req resource.Read
 		return
 	}
 
+	inlineRespSerials, httpResp, err := r.client.OrganizationsApi.GetOrganizationDevices(ctx, data.OrganizationId.ValueString()).Execute()
+	// If there was an error during API call, add it to diagnostics.
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
+		)
+		return
+	}
+
+	// If it's not what you expect, add an error to diagnostics.
+	if httpResp.StatusCode != 200 {
+		resp.Diagnostics.AddError(
+			"Unexpected HTTP Response Status Code",
+			fmt.Sprintf("%v", httpResp.StatusCode),
+		)
+	}
+
+	// If there were any errors up to this point, log the plan data and return.
+	if resp.Diagnostics.HasError() {
+		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%v", data))
+		return
+	}
+
+	// Create a list to store the extracted strings
+	var extractedSerials []jsontypes.String
+
+	// Iterate over each serial in data.Serials
+	for _, serial := range data.Serials {
+
+		// Iterate over each inner response in inlineRespSerials
+		for _, innerResp := range inlineRespSerials {
+
+			// Check if the serials match
+			if innerResp.Serial != nil && *innerResp.Serial == serial.ValueString() {
+
+				// Extract the desired serial and add it to the list of strings
+				if innerResp.Serial != nil {
+					extractedSerials = append(extractedSerials, jsontypes.StringValue(*innerResp.Serial))
+				}
+			}
+		}
+	}
+
+	// Add to list if found
+	if len(extractedSerials) != 0 {
+		data.Serials = extractedSerials
+	}
+
 	// Set ID for the resource.
 	data.Id = jsontypes.StringValue("example-id")
 
@@ -304,30 +351,24 @@ func (r *OrganizationsClaimResource) Delete(ctx context.Context, req resource.De
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-	payload := openApiClient.NewInlineObject190()
-
 	// serials
 	var serials []string
 	for _, serial := range data.Serials {
 		serials = append(serials, serial.ValueString())
 	}
 
-	payload.SetSerials(serials)
+	releaseFromOrganizationInventoryRequest := *openApiClient.NewReleaseFromOrganizationInventoryRequest() // ReleaseFromOrganizationInventoryRequest |  (optional)
+	releaseFromOrganizationInventoryRequest.SetSerials(serials)
 
-	// Remember to handle any potential errors.
-	_, httpResp, err := r.client.OrganizationsApi.ReleaseFromOrganizationInventory(ctx, data.OrganizationId.ValueString()).Execute()
+	_, httpResp, err := r.client.ConfigureApi.ReleaseFromOrganizationInventory(ctx, data.OrganizationId.ValueString()).ReleaseFromOrganizationInventoryRequest(releaseFromOrganizationInventoryRequest).Execute()
 
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// Collect any HTTP diagnostics that might be useful for debugging.
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// If it's not what you expect, add an error to diagnostics.
