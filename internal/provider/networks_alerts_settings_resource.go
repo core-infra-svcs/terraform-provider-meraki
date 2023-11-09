@@ -7,15 +7,17 @@ import (
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
-	"strings"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -36,39 +38,44 @@ type NetworksAlertsSettingsResource struct {
 
 // NetworksAlertsSettingsResourceModel describes the resource data model.
 type NetworksAlertsSettingsResourceModel struct {
-	Id                  jsontypes.String    `tfsdk:"id" json:"id"`
-	NetworkId           jsontypes.String    `tfsdk:"network_id" json:"networkId"`
-	DefaultDestinations DefaultDestinations `tfsdk:"default_destinations" json:"defaultDestinations"`
-	Alerts              []Alert             `tfsdk:"alerts" json:"alerts"`
+	Id                  jsontypes.String `tfsdk:"id"`
+	NetworkId           jsontypes.String `tfsdk:"network_id" json:"networkId"`
+	DefaultDestinations types.Object     `tfsdk:"default_destinations" json:"defaultDestinations,omitempty"`
+	Alerts              types.Set        `tfsdk:"alerts" json:"alerts,omitempty"`
+	Muting              types.Object     `tfsdk:"muting" json:"muting,omitempty"`
 }
 
-type DefaultDestinations struct {
+type NetworksAlertsSettingsResourceModelMuting struct {
+	ByPortSchedules types.Object `tfsdk:"by_port_schedules" json:"byPortSchedules,omitempty"`
+}
+
+type NetworksAlertsSettingsResourceModelMutingByPortSchedules struct {
+	Enabled jsontypes.Bool `tfsdk:" enabled" json:"enabled"`
+}
+
+type NetworksAlertsSettingsResourceModelDefaultDestinations struct {
 	Emails        jsontypes.Set[jsontypes.String] `tfsdk:"emails" json:"emails"`
 	Snmp          jsontypes.Bool                  `tfsdk:"snmp" json:"snmp"`
 	AllAdmins     jsontypes.Bool                  `tfsdk:"all_admins" json:"allAdmins"`
 	HttpServerIds jsontypes.Set[jsontypes.String] `tfsdk:"http_server_ids" json:"httpServerIds"`
 }
 
-type AlertDestinations struct {
+type NetworksAlertsSettingsResourceModelAlert struct {
+	Type              jsontypes.String `tfsdk:"type" json:"type"`
+	Enabled           jsontypes.Bool   `tfsdk:"enabled" json:"enabled"`
+	AlertDestinations types.Object     `tfsdk:"alert_destinations" json:"alertDestinations"`
+	Filters           types.Object     `tfsdk:"filters" json:"filters"`
+}
+
+type NetworksAlertsSettingsResourceModelAlertDestinations struct {
 	Emails        jsontypes.Set[jsontypes.String] `tfsdk:"emails" json:"emails"`
 	Snmp          jsontypes.Bool                  `tfsdk:"snmp" json:"snmp"`
 	AllAdmins     jsontypes.Bool                  `tfsdk:"all_admins" json:"allAdmins"`
 	HttpServerIds jsontypes.Set[jsontypes.String] `tfsdk:"http_server_ids" json:"httpServerIds"`
 }
 
-type Filter struct {
-	Timeout   jsontypes.Int64                 `tfsdk:"timeout" json:"timeout"`
-	Selector  jsontypes.String                `tfsdk:"selector" json:"selector"`
-	Threshold jsontypes.Int64                 `tfsdk:"threshold" json:"threshold"`
-	Period    jsontypes.Int64                 `tfsdk:"period" json:"period"`
-	Clients   jsontypes.Set[jsontypes.String] `tfsdk:"clients" json:"clients"`
-}
-
-type Alert struct {
-	Type              jsontypes.String  `tfsdk:"type" json:"type"`
-	Enabled           jsontypes.Bool    `tfsdk:"enabled" json:"enabled"`
-	AlertDestinations AlertDestinations `tfsdk:"alert_destinations" json:"alertDestinations"`
-	Filters           Filter            `tfsdk:"filters" json:"filters"`
+type NetworksAlertsSettingsResourceModelFilter struct {
+	Timeout jsontypes.Int64 `tfsdk:"timeout" json:"timeout"`
 }
 
 func (r *NetworksAlertsSettingsResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -78,16 +85,15 @@ func (r *NetworksAlertsSettingsResource) Metadata(ctx context.Context, req resou
 func (r *NetworksAlertsSettingsResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 
-		MarkdownDescription: "NetworksAlertsSettings",
+		MarkdownDescription: "Manage network alerts settings",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:   true,
 				CustomType: jsontypes.StringType,
 			},
 			"network_id": schema.StringAttribute{
-				MarkdownDescription: "Organization ID",
-				Optional:            true,
-				Computed:            true,
+				MarkdownDescription: "Network ID",
+				Required:            true,
 				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
@@ -97,8 +103,7 @@ func (r *NetworksAlertsSettingsResource) Schema(ctx context.Context, req resourc
 				},
 			},
 			"default_destinations": schema.SingleNestedAttribute{
-				Optional: true,
-				Computed: true,
+				Required: true,
 				Attributes: map[string]schema.Attribute{
 					"emails": schema.SetAttribute{
 						MarkdownDescription: "Enables / disables the secure port.",
@@ -128,9 +133,9 @@ func (r *NetworksAlertsSettingsResource) Schema(ctx context.Context, req resourc
 					},
 				},
 			},
-			"alerts": schema.ListNestedAttribute{
-				Description: "Exceptions on a per switch basis to &quot;useCombinedPower&quot;",
-				Required:    true,
+			"alerts": schema.SetNestedAttribute{
+				MarkdownDescription: "Exceptions on a per switch basis to &quot;useCombinedPower&quot;",
+				Required:            true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"type": schema.StringAttribute{
@@ -187,30 +192,25 @@ func (r *NetworksAlertsSettingsResource) Schema(ctx context.Context, req resourc
 									Computed:            true,
 									CustomType:          jsontypes.Int64Type,
 								},
-								"selector": schema.StringAttribute{
-									MarkdownDescription: "Per switch exception (combined, redundant, useNetworkSetting)",
-									Optional:            true,
-									Computed:            true,
-									CustomType:          jsontypes.StringType,
-								},
-								"threshold": schema.Int64Attribute{
-									MarkdownDescription: "Per switch exception (combined, redundant, useNetworkSetting)",
-									Optional:            true,
-									Computed:            true,
-									CustomType:          jsontypes.Int64Type,
-								},
-								"period": schema.Int64Attribute{
-									MarkdownDescription: "Per switch exception (combined, redundant, useNetworkSetting)",
-									Optional:            true,
-									Computed:            true,
-									CustomType:          jsontypes.Int64Type,
-								},
-								"clients": schema.SetAttribute{
-									MarkdownDescription: "Per switch exception (combined, redundant, useNetworkSetting)",
-									Optional:            true,
-									Computed:            true,
-									CustomType:          jsontypes.SetType[jsontypes.String](),
-								},
+							},
+						},
+					},
+				},
+			},
+			"muting": schema.SingleNestedAttribute{
+				MarkdownDescription: "",
+				Required:            true,
+				Attributes: map[string]schema.Attribute{
+					"by_port_schedules": schema.SingleNestedAttribute{
+						MarkdownDescription: "",
+						Optional:            true,
+						Computed:            true,
+						Attributes: map[string]schema.Attribute{
+							"enabled": schema.BoolAttribute{
+								MarkdownDescription: "",
+								Optional:            true,
+								Computed:            true,
+								CustomType:          jsontypes.BoolType,
 							},
 						},
 					},
@@ -250,71 +250,22 @@ func (r *NetworksAlertsSettingsResource) Create(ctx context.Context, req resourc
 		return
 	}
 
-	object27 := openApiClient.NewInlineObject27()
-	destinations := openApiClient.NewNetworksNetworkIdAlertsSettingsDefaultDestinations()
-	destinations.SetAllAdmins(data.DefaultDestinations.AllAdmins.ValueBool())
-	adminEmails := []string{}
-	for _, email := range data.DefaultDestinations.Emails.Elements() {
-		pt := fmt.Sprint(strings.Trim(email.String(), "\""))
-		adminEmails = append(adminEmails, pt)
+	payload, payloadDiag := NetworksAlertSettingsResourcePayload(context.Background(), data)
+	if payloadDiag.HasError() {
+		resp.Diagnostics.AddError("Resource Payload Error", fmt.Sprintf("\n%v", payloadDiag.Errors()))
+		resp.Diagnostics.AddError("Resource Payload Error", fmt.Sprintf("\n%v", data))
+		return
 	}
-	destinations.SetEmails(adminEmails)
-	destinations.SetSnmp(data.DefaultDestinations.Snmp.ValueBool())
-	serverIDs := []string{}
-	for _, serverID := range data.DefaultDestinations.HttpServerIds.Elements() {
-		serverIDs = append(serverIDs, serverID.String())
-	}
-	destinations.SetHttpServerIds(serverIDs)
-	object27.SetDefaultDestinations(*destinations)
-	alerts := []openApiClient.NetworksNetworkIdAlertsSettingsAlerts{}
-	for _, alert := range data.Alerts {
-		settingsAlerts := openApiClient.NewNetworksNetworkIdAlertsSettingsAlerts(alert.Type.ValueString())
-		settingsAlerts.SetEnabled(alert.Enabled.ValueBool())
-		alertDestinations := openApiClient.NewNetworksNetworkIdAlertsSettingsAlertDestinations()
-		serverIDs := []string{}
-		for _, serverID := range alert.AlertDestinations.HttpServerIds.Elements() {
-			serverIDs = append(serverIDs, serverID.String())
-		}
-		adminEmails := []string{}
-		for _, email := range alert.AlertDestinations.Emails.Elements() {
-			pt := fmt.Sprint(strings.Trim(email.String(), "\""))
-			adminEmails = append(adminEmails, pt)
-		}
-		alertDestinations.SetEmails(adminEmails)
-		alertDestinations.SetHttpServerIds(serverIDs)
-		alertDestinations.SetSnmp(alert.AlertDestinations.Snmp.ValueBool())
-		alertDestinations.SetAllAdmins(alert.AlertDestinations.AllAdmins.ValueBool())
-		settingsAlerts.SetAlertDestinations(*alertDestinations)
-		clients := []string{}
-		for _, client := range alert.Filters.Clients.Elements() {
-			clients = append(clients, client.String())
-		}
-		alert.Filters.Clients.Elements()
-		filters := map[string]interface{}{}
-		filters["selector"] = alert.Filters.Selector.ValueString()
-		filters["period"] = alert.Filters.Period.ValueInt64()
-		filters["threshold"] = alert.Filters.Threshold.ValueInt64()
-		filters["timeout"] = alert.Filters.Timeout.ValueInt64()
-		filters["clients"] = clients
-		settingsAlerts.SetFilters(filters)
 
-		alerts = append(alerts, *settingsAlerts)
-	}
-	object27.SetAlerts(alerts)
-	_, httpResp, err := r.client.SettingsApi.UpdateNetworkAlertsSettings(ctx, data.NetworkId.ValueString()).UpdateNetworkAlertsSettings(*object27).Execute()
+	_, httpResp, err := r.client.SettingsApi.UpdateNetworkAlertsSettings(ctx, data.NetworkId.ValueString()).UpdateNetworkAlertsSettingsRequest(payload).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
+		return
 	}
 
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
-	}
-
-	// Check for API success response code
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
@@ -327,9 +278,6 @@ func (r *NetworksAlertsSettingsResource) Create(ctx context.Context, req resourc
 		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
 		return
 	}
-
-	// save into the Terraform state.
-	data.Id = jsontypes.StringValue("example-id")
 
 	// Save data into Terraform state
 	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
@@ -356,20 +304,16 @@ func (r *NetworksAlertsSettingsResource) Read(ctx context.Context, req resource.
 		return
 	}
 
-	inlineResp, httpResp, err := r.client.SettingsApi.GetNetworkAlertsSettings(ctx, data.NetworkId.ValueString()).Execute()
+	_, httpResp, err := r.client.SettingsApi.GetNetworkAlertsSettings(ctx, data.NetworkId.ValueString()).Execute()
+	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to read resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"Read HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
+		return
 	}
 
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
-	}
-
-	// Check for API success inlineResp code
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
@@ -379,23 +323,17 @@ func (r *NetworksAlertsSettingsResource) Read(ctx context.Context, req resource.
 
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
+		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
 		return
 	}
 
-	marshal, err := json.Marshal(inlineResp)
-	if err != nil {
+	// Save data into Terraform state
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to read resource",
+			"JSON decoding error",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
-	}
-
-	err = json.Unmarshal(marshal, data)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Failed to read resource",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
+		return
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -414,71 +352,21 @@ func (r *NetworksAlertsSettingsResource) Update(ctx context.Context, req resourc
 		return
 	}
 
-	object27 := openApiClient.NewInlineObject27()
-	destinations := openApiClient.NewNetworksNetworkIdAlertsSettingsDefaultDestinations()
-	destinations.SetAllAdmins(data.DefaultDestinations.AllAdmins.ValueBool())
-	adminEmails := []string{}
-	for _, email := range data.DefaultDestinations.Emails.Elements() {
-		pt := fmt.Sprint(strings.Trim(email.String(), "\""))
-		adminEmails = append(adminEmails, pt)
+	payload, payloadDiag := NetworksAlertSettingsResourcePayload(context.Background(), data)
+	if payloadDiag.HasError() {
+		resp.Diagnostics.AddError("Resource Payload Error", fmt.Sprintf("\n%v", payloadDiag))
+		return
 	}
-	destinations.SetEmails(adminEmails)
-	destinations.SetSnmp(data.DefaultDestinations.Snmp.ValueBool())
-	serverIDs := []string{}
-	for _, serverID := range data.DefaultDestinations.HttpServerIds.Elements() {
-		serverIDs = append(serverIDs, serverID.String())
-	}
-	destinations.SetHttpServerIds(serverIDs)
-	object27.SetDefaultDestinations(*destinations)
-	alerts := []openApiClient.NetworksNetworkIdAlertsSettingsAlerts{}
-	for _, alert := range data.Alerts {
-		settingsAlerts := openApiClient.NewNetworksNetworkIdAlertsSettingsAlerts(alert.Type.ValueString())
-		settingsAlerts.SetEnabled(alert.Enabled.ValueBool())
-		alertDestinations := openApiClient.NewNetworksNetworkIdAlertsSettingsAlertDestinations()
-		serverIDs := []string{}
-		for _, serverID := range alert.AlertDestinations.HttpServerIds.Elements() {
-			serverIDs = append(serverIDs, serverID.String())
-		}
-		adminEmails := []string{}
-		for _, email := range alert.AlertDestinations.Emails.Elements() {
-			pt := fmt.Sprint(strings.Trim(email.String(), "\""))
-			adminEmails = append(adminEmails, pt)
-		}
-		alertDestinations.SetEmails(adminEmails)
-		alertDestinations.SetHttpServerIds(serverIDs)
-		alertDestinations.SetSnmp(alert.AlertDestinations.Snmp.ValueBool())
-		alertDestinations.SetAllAdmins(alert.AlertDestinations.AllAdmins.ValueBool())
-		settingsAlerts.SetAlertDestinations(*alertDestinations)
-		clients := []string{}
-		for _, client := range alert.Filters.Clients.Elements() {
-			clients = append(clients, client.String())
-		}
-		alert.Filters.Clients.Elements()
-		filters := map[string]interface{}{}
-		filters["selector"] = alert.Filters.Selector.ValueString()
-		filters["period"] = alert.Filters.Period.ValueInt64()
-		filters["threshold"] = alert.Filters.Threshold.ValueInt64()
-		filters["timeout"] = alert.Filters.Timeout.ValueInt64()
-		filters["clients"] = clients
-		settingsAlerts.SetFilters(filters)
 
-		alerts = append(alerts, *settingsAlerts)
-	}
-	object27.SetAlerts(alerts)
-	inlineResp, httpResp, err := r.client.SettingsApi.UpdateNetworkAlertsSettings(ctx, data.NetworkId.ValueString()).UpdateNetworkAlertsSettings(*object27).Execute()
+	_, httpResp, err := r.client.SettingsApi.UpdateNetworkAlertsSettings(ctx, data.NetworkId.ValueString()).UpdateNetworkAlertsSettingsRequest(payload).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"Create HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
+		return
 	}
 
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
-	}
-
-	// Check for API success response code
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
@@ -492,21 +380,10 @@ func (r *NetworksAlertsSettingsResource) Update(ctx context.Context, req resourc
 		return
 	}
 
-	// save into the Terraform state.
-	data.Id = jsontypes.StringValue("example-id")
-	marshal, err := json.Marshal(inlineResp)
-	if err != nil {
+	// Save data into Terraform state
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-		return
-	}
-
-	err = json.Unmarshal(marshal, data)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Failed to update resource",
+			"JSON decoding error",
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 		return
@@ -528,70 +405,39 @@ func (r *NetworksAlertsSettingsResource) Delete(ctx context.Context, req resourc
 		return
 	}
 
-	object27 := openApiClient.NewInlineObject27()
-	destinations := openApiClient.NewNetworksNetworkIdAlertsSettingsDefaultDestinations()
-	destinations.SetAllAdmins(data.DefaultDestinations.AllAdmins.ValueBool())
-	adminEmails := []string{}
-	for _, email := range data.DefaultDestinations.Emails.Elements() {
-		pt := fmt.Sprint(strings.Trim(email.String(), "\""))
-		adminEmails = append(adminEmails, pt)
-	}
-	destinations.SetEmails(adminEmails)
-	destinations.SetSnmp(data.DefaultDestinations.Snmp.ValueBool())
-	serverIDs := []string{}
-	for _, serverID := range data.DefaultDestinations.HttpServerIds.Elements() {
-		serverIDs = append(serverIDs, serverID.String())
-	}
-	destinations.SetHttpServerIds(serverIDs)
-	object27.SetDefaultDestinations(*destinations)
-	alerts := []openApiClient.NetworksNetworkIdAlertsSettingsAlerts{}
-	for _, alert := range data.Alerts {
-		settingsAlerts := openApiClient.NewNetworksNetworkIdAlertsSettingsAlerts(alert.Type.ValueString())
-		settingsAlerts.SetEnabled(alert.Enabled.ValueBool())
-		alertDestinations := openApiClient.NewNetworksNetworkIdAlertsSettingsAlertDestinations()
-		serverIDs := []string{}
-		for _, serverID := range alert.AlertDestinations.HttpServerIds.Elements() {
-			serverIDs = append(serverIDs, serverID.String())
-		}
-		adminEmails := []string{}
-		for _, email := range alert.AlertDestinations.Emails.Elements() {
-			pt := fmt.Sprint(strings.Trim(email.String(), "\""))
-			adminEmails = append(adminEmails, pt)
-		}
-		alertDestinations.SetSnmp(alert.AlertDestinations.Snmp.ValueBool())
-		alertDestinations.SetAllAdmins(alert.AlertDestinations.AllAdmins.ValueBool())
-		alertDestinations.SetEmails(adminEmails)
-		alertDestinations.SetHttpServerIds(serverIDs)
-		settingsAlerts.SetAlertDestinations(*alertDestinations)
-		clients := []string{}
-		for _, client := range alert.Filters.Clients.Elements() {
-			clients = append(clients, client.String())
-		}
-		filters := map[string]interface{}{}
-		filters["selector"] = alert.Filters.Selector.ValueString()
-		filters["period"] = alert.Filters.Period.ValueInt64()
-		filters["threshold"] = alert.Filters.Threshold.ValueInt64()
-		filters["timeout"] = alert.Filters.Timeout.ValueInt64()
-		filters["clients"] = clients
-		settingsAlerts.SetFilters(filters)
+	payload := *openApiClient.NewUpdateNetworkAlertsSettingsRequest()
 
-		alerts = append(alerts, *settingsAlerts)
-	}
-	object27.SetAlerts(alerts)
-	inlineResp, httpResp, err := r.client.SettingsApi.UpdateNetworkAlertsSettings(ctx, data.NetworkId.ValueString()).UpdateNetworkAlertsSettings(*object27).Execute()
+	var muting openApiClient.UpdateNetworkAlertsSettingsRequestMuting
+	payload.SetMuting(muting)
+
+	// Destinations
+	var destinations openApiClient.UpdateNetworkAlertsSettingsRequestDefaultDestinations
+	destinations.SetAllAdmins(false)
+	destinations.SetSnmp(false)
+
+	//emails
+	var adminEmails []string
+	destinations.SetEmails(adminEmails)
+
+	// serverIds
+	var serverIDs []string
+	destinations.SetHttpServerIds(serverIDs)
+
+	payload.SetDefaultDestinations(destinations)
+	//Alerts
+	var alerts []openApiClient.UpdateNetworkAlertsSettingsRequestAlertsInner
+	payload.SetAlerts(alerts)
+
+	_, httpResp, err := r.client.SettingsApi.UpdateNetworkAlertsSettings(ctx, data.NetworkId.ValueString()).UpdateNetworkAlertsSettingsRequest(payload).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to remove resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"Delete HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
+		return
 	}
 
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
-	}
-
-	// Check for API success response code
+	// If it's not what you expect, add an error to diagnostics.
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
@@ -599,33 +445,13 @@ func (r *NetworksAlertsSettingsResource) Delete(ctx context.Context, req resourc
 		)
 	}
 
-	// Check for errors after diagnostics collected
+	// If there were any errors up to this point, log the plan data and return.
 	if resp.Diagnostics.HasError() {
-		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
+		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%v", data))
 		return
 	}
 
-	// save into the Terraform state.
-	data.Id = jsontypes.StringValue("example-id")
-	marshal, err := json.Marshal(inlineResp)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Failed to remove resource",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-		return
-	}
-
-	err = json.Unmarshal(marshal, data)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Failed to remove resource",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.State.RemoveResource(ctx)
 
 	// Write logs using the tflog package
 	tflog.Trace(ctx, "removed resource")
@@ -634,4 +460,47 @@ func (r *NetworksAlertsSettingsResource) Delete(ctx context.Context, req resourc
 func (r *NetworksAlertsSettingsResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("network_id"), req.ID)...)
+}
+
+func NetworksAlertSettingsResourcePayload(ctx context.Context, data *NetworksAlertsSettingsResourceModel) (openApiClient.UpdateNetworkAlertsSettingsRequest, diag.Diagnostics) {
+
+	// Create HTTP request body
+	payload := *openApiClient.NewUpdateNetworkAlertsSettingsRequest()
+
+	// DefaultDestinations
+	if !data.DefaultDestinations.IsUnknown() && !data.DefaultDestinations.IsNull() {
+		var defaultDestinations openApiClient.UpdateNetworkAlertsSettingsRequestDefaultDestinations
+		var defaultDestinationsData NetworksAlertsSettingsResourceModelDefaultDestinations
+		data.DefaultDestinations.As(ctx, &defaultDestinationsData, basetypes.ObjectAsOptions{})
+		payload.SetDefaultDestinations(defaultDestinations)
+	}
+
+	// Muting
+	if !data.Muting.IsUnknown() && !data.Muting.IsNull() {
+		var muting openApiClient.UpdateNetworkAlertsSettingsRequestMuting
+		var mutingData NetworksAlertsSettingsResourceModelMuting
+
+		data.Muting.As(ctx, &mutingData, basetypes.ObjectAsOptions{})
+
+		var byPortSchedules openApiClient.UpdateNetworkAlertsSettingsRequestMutingByPortSchedules
+		mutingData.ByPortSchedules.As(ctx, &mutingData.ByPortSchedules, basetypes.ObjectAsOptions{})
+
+		muting.SetByPortSchedules(byPortSchedules)
+
+		payload.SetMuting(muting)
+	}
+
+	// Alerts
+	if !data.Alerts.IsUnknown() && !data.Alerts.IsNull() {
+		var alerts []openApiClient.UpdateNetworkAlertsSettingsRequestAlertsInner
+		var alertsData []NetworksAlertsSettingsResourceModelAlert
+		diags := data.Alerts.ElementsAs(ctx, &alertsData, false)
+		if diags.HasError() {
+			return payload, diags
+
+		}
+		payload.SetAlerts(alerts)
+	}
+
+	return payload, nil
 }

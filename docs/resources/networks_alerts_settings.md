@@ -3,12 +3,12 @@
 page_title: "meraki_networks_alerts_settings Resource - terraform-provider-meraki"
 subcategory: ""
 description: |-
-  NetworksAlertsSettings
+  Manage network alerts settings
 ---
 
 # meraki_networks_alerts_settings (Resource)
 
-NetworksAlertsSettings
+Manage network alerts settings
 
 
 
@@ -17,12 +17,10 @@ NetworksAlertsSettings
 
 ### Required
 
-- `alerts` (Attributes List) Exceptions on a per switch basis to &quot;useCombinedPower&quot; (see [below for nested schema](#nestedatt--alerts))
-
-### Optional
-
+- `alerts` (Attributes Set) Exceptions on a per switch basis to &quot;useCombinedPower&quot; (see [below for nested schema](#nestedatt--alerts))
 - `default_destinations` (Attributes) (see [below for nested schema](#nestedatt--default_destinations))
-- `network_id` (String) Organization ID
+- `muting` (Attributes) (see [below for nested schema](#nestedatt--muting))
+- `network_id` (String) Network ID
 
 ### Read-Only
 
@@ -46,10 +44,6 @@ Optional:
 
 Optional:
 
-- `clients` (Set of String) Per switch exception (combined, redundant, useNetworkSetting)
-- `period` (Number) Per switch exception (combined, redundant, useNetworkSetting)
-- `selector` (String) Per switch exception (combined, redundant, useNetworkSetting)
-- `threshold` (Number) Per switch exception (combined, redundant, useNetworkSetting)
 - `timeout` (Number) Serial number of the switch
 
 
@@ -76,3 +70,16 @@ Optional:
 - `snmp` (Boolean) Enables / disables the secure port.
 
 
+<a id="nestedatt--muting"></a>
+### Nested Schema for `muting`
+
+Optional:
+
+- `by_port_schedules` (Attributes) (see [below for nested schema](#nestedatt--muting--by_port_schedules))
+
+<a id="nestedatt--muting--by_port_schedules"></a>
+### Nested Schema for `muting.by_port_schedules`
+
+Optional:
+
+- `enabled` (Boolean)
