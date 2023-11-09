@@ -24,7 +24,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const prNumber = github.event.pull_request.number;
+            const prNumber = ${{ github.event.pull_request.number }};
             github.rest.git.createRef({
               owner: github.repository_owner,
               repo: github.repository,
