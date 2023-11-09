@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"context"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"os"
@@ -28,7 +29,7 @@ func init() {
 
 			// Search test organization for networks
 			perPage := int32(100000)
-			inlineResp, _, err := client.NetworksApi.GetOrganizationNetworks(nil, organization).PerPage(perPage).Execute()
+			inlineResp, _, err := client.NetworksApi.GetOrganizationNetworks(context.Background(), organization).PerPage(perPage).Execute()
 			if err != nil {
 				return fmt.Errorf("error getting network list from organization:%s \nerror: %s", organization, err)
 			}
@@ -37,17 +38,17 @@ func init() {
 
 				// match on networks starting with "test_acc" in name
 				if strings.HasPrefix(*merakiNetwork.Name, "test_acc") {
-					fmt.Println(fmt.Sprintf("deleting network: %s, id: %s", *merakiNetwork.Name, *merakiNetwork.Id))
+					fmt.Printf("deleting network: %s, id: %s", *merakiNetwork.Name, *merakiNetwork.Id)
 
 					for retries > 0 {
 						// Delete test network
-						httpResp, err2 := client.NetworksApi.DeleteNetwork(nil, *merakiNetwork.Id).Execute()
+						httpResp, err2 := client.NetworksApi.DeleteNetwork(context.Background(), *merakiNetwork.Id).Execute()
 						if err2 != nil {
 							return fmt.Errorf("error deleting network from organization:%s \nerror: %s", organization, err2)
 						}
 
 						if httpResp.StatusCode == 204 {
-							fmt.Println(fmt.Sprintf("Successfully deleted network: %s, id: %s", *merakiNetwork.Name, *merakiNetwork.Id))
+							fmt.Printf("Successfully deleted network: %s, id: %s", *merakiNetwork.Name, *merakiNetwork.Id)
 							deletedFromMerakiPortal = true
 
 							// escape loop
@@ -64,8 +65,8 @@ func init() {
 						}
 
 						if !deletedFromMerakiPortal {
-							fmt.Println(fmt.Sprintf("Failed to delete network: %s, id: %s", *merakiNetwork.Name, *merakiNetwork.Id))
-							fmt.Println(fmt.Sprintf("HTTP response: \n%v", httpResp))
+							fmt.Printf("Failed to delete network: %s, id: %s", *merakiNetwork.Name, *merakiNetwork.Id)
+							fmt.Printf("HTTP response: \n%v", httpResp)
 						}
 
 					}
