@@ -64,13 +64,6 @@ func TestAccNetworksApplianceFirewallL7FirewallRulesResource(t *testing.T) {
 	})
 }
 
-const testAccNetworksApplianceFirewallL7FirewallRulesResourceConfigCreateOrganization = `
-resource "meraki_organization" "test" {
-    name = "test_acc_meraki_organizations_networks_appliance_firewall_l7_firewall_rules"
-    api_enabled = true
-}
-`
-
 func testAccNetworksApplianceFirewallL7FirewallRulesResourceConfigCreateNetwork(orgId string) string {
 	result := fmt.Sprintf(`
 resource "meraki_network" "test" {
