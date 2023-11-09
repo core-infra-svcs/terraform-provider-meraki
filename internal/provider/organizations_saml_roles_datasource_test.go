@@ -35,7 +35,7 @@ func TestAccOrganizationsSamlRolesDataSource(t *testing.T) {
 				Config: testAccOrganizationsSamlRolesDataSourceConfigCreateNetwork,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_network.test", "id", "example-id"),
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_network"),
+					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_organizations_saml_roles"),
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
@@ -107,7 +107,7 @@ resource "meraki_network" "test" {
 	organization_id = resource.meraki_organization.test.organization_id
 	product_types = ["appliance", "switch", "wireless"]
 	tags = ["tag1"]
-	name = "test_acc_network"
+	name = "test_acc_organizations_saml_roles"
 	timezone = "America/Los_Angeles"
 	notes = "Additional description of the network"
 }

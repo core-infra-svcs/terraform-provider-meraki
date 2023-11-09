@@ -38,19 +38,19 @@ type OrganizationsAdaptivePolicyAclResource struct {
 
 // OrganizationsAdaptivePolicyAclResourceModel describes the resource data model.
 type OrganizationsAdaptivePolicyAclResourceModel struct {
-	Id          types.String                         `tfsdk:"id"`
-	OrgId       jsontypes.String                     `tfsdk:"organization_id" json:"organizationId"`
-	AclId       jsontypes.String                     `tfsdk:"acl_id" json:"aclId"`
-	Name        jsontypes.String                     `tfsdk:"name"`
-	Description jsontypes.String                     `tfsdk:"description"`
-	IpVersion   jsontypes.String                     `tfsdk:"ip_version" json:"ipVersion"`
-	Rules       []OrganizationsAdaptivePolicyAclRule `tfsdk:"rules"`
-	CreatedAt   jsontypes.String                     `tfsdk:"created_at" json:"createdAt"`
-	UpdatedAt   jsontypes.String                     `tfsdk:"updated_at" json:"updatedAt"`
+	Id          types.String                                       `tfsdk:"id"`
+	OrgId       jsontypes.String                                   `tfsdk:"organization_id" json:"organizationId"`
+	AclId       jsontypes.String                                   `tfsdk:"acl_id" json:"aclId"`
+	Name        jsontypes.String                                   `tfsdk:"name"`
+	Description jsontypes.String                                   `tfsdk:"description"`
+	IpVersion   jsontypes.String                                   `tfsdk:"ip_version" json:"ipVersion"`
+	Rules       []OOrganizationsAdaptivePolicyAclResourceModelRule `tfsdk:"rules"`
+	CreatedAt   jsontypes.String                                   `tfsdk:"created_at" json:"createdAt"`
+	UpdatedAt   jsontypes.String                                   `tfsdk:"updated_at" json:"updatedAt"`
 }
 
-// OrganizationsAdaptivePolicyAclRule  describes the rules data model
-type OrganizationsAdaptivePolicyAclRule struct {
+// OOrganizationsAdaptivePolicyAclResourceModelRule  describes the rules data model
+type OOrganizationsAdaptivePolicyAclResourceModelRule struct {
 	Policy   jsontypes.String `tfsdk:"policy"`
 	Protocol jsontypes.String `tfsdk:"protocol"`
 	SrcPort  jsontypes.String `tfsdk:"src_port" json:"srcPort"`
@@ -221,7 +221,6 @@ func (r *OrganizationsAdaptivePolicyAclResource) Create(ctx context.Context, req
 			tools.HttpDiagnostics(httpResp),
 		)
 		return
-		return
 	}
 
 	// Check for API success response code
@@ -271,7 +270,6 @@ func (r *OrganizationsAdaptivePolicyAclResource) Read(ctx context.Context, req r
 			"HTTP Client Failure",
 			tools.HttpDiagnostics(httpResp),
 		)
-		return
 		return
 	}
 
@@ -344,7 +342,6 @@ func (r *OrganizationsAdaptivePolicyAclResource) Update(ctx context.Context, req
 			tools.HttpDiagnostics(httpResp),
 		)
 		return
-		return
 	}
 
 	// Check for API success response code
@@ -394,7 +391,6 @@ func (r *OrganizationsAdaptivePolicyAclResource) Delete(ctx context.Context, req
 			"HTTP Client Failure",
 			tools.HttpDiagnostics(httpResp),
 		)
-		return
 		return
 	}
 

@@ -5,6 +5,12 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"net/http"
+	"net/url"
+	"os"
+	"regexp"
+	"time"
+
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -15,11 +21,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
-	"net/http"
-	"net/url"
-	"os"
-	"regexp"
-	"time"
 )
 
 // Ensure CiscoMerakiProvider satisfies various provider interfaces.
@@ -158,7 +159,7 @@ func (p *CiscoMerakiProvider) Configure(ctx context.Context, req provider.Config
 	}
 
 	// UserAgent
-	configuration.UserAgent = configuration.UserAgent + "terraform" + p.version
+	configuration.UserAgent = configuration.UserAgent + " terraform/" + p.version
 
 	// Set certificate path
 	if !data.CertificatePath.IsNull() {
@@ -202,7 +203,8 @@ func (p *CiscoMerakiProvider) Configure(ctx context.Context, req provider.Config
 		certFile := configuration.CertificatePath
 		cert, err := os.ReadFile(certFile)
 		if err != nil {
-			tflog.Error(ctx, fmt.Sprintf(err.Error()))
+			e := fmt.Sprintf("%v", err.Error())
+			tflog.Error(ctx, e)
 		}
 
 		// Create a certificate pool and add the certificate
@@ -288,7 +290,12 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		NewNetworksCellularGatewayUplinkResource,
 		NewNetworksWirelessSsidsSplashSettingsResource,
 		NewDevicesCellularSimsResource,
-		NewDevicesCellularGatewayLanResource,
+		NewDevicesTestAccDevicesManagementInterfaceResourceResource,
+		NewNetworksApplianceVpnSiteToSiteVpnResource,
+		NewDevicesSwitchPortsCycleResource,
+		NewNetworksApplianceTrafficShapingUplinkBandWidthResource,
+		NewNetworksApplianceVLANsResource,
+		NewDevicesSwitchPortResource,
 	}
 }
 
@@ -306,6 +313,8 @@ func (p *CiscoMerakiProvider) DataSources(ctx context.Context) []func() datasour
 		NewOrganizationsCellularGatewayUplinkStatusesDataSource,
 		NewOrganizationsLicensesDataSource,
 		NewDevicesSwitchPortsStatusesDataSource,
+		NewDevicesApplianceDhcpSubnetsDataSource,
+		NewNetworksWirelessSsidsDataSource,
 	}
 }
 
