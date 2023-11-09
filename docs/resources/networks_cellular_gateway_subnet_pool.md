@@ -3,12 +3,12 @@
 page_title: "meraki_networks_cellular_gateway_subnet_pool Resource - terraform-provider-meraki"
 subcategory: ""
 description: |-
-  NetworksCellular Gateway SubnetPool Updates the subnet pool and mask configuration for MGs in the network.
+  Manage the subnet pool and mask configuration for MGs in the network.
 ---
 
 # meraki_networks_cellular_gateway_subnet_pool (Resource)
 
-NetworksCellular Gateway SubnetPool Updates the subnet pool and mask configuration for MGs in the network.
+Manage the subnet pool and mask configuration for MGs in the network.
 
 
 

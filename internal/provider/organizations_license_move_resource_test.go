@@ -1,7 +1,6 @@
 package provider
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -75,6 +74,7 @@ const testAccOrganizationsLicenseMoveResourceConfigCreateOrganizationDestination
  }
  `
 
+/*
 // testAccOrganizationsLicenseMoveResourceConfigMoveLicenceToDestinationOrganization is a constant string that defines the configuration for updating a organizations_license resource in your tests.
 // It depends on both the organization and network resources.
 func testAccOrganizationsLicenseMoveResourceConfigMoveLicenceToDestinationOrganization(organizationId, licenceId string) string {
@@ -106,3 +106,4 @@ resource "meraki_organizations_license" "test_source_move" {
 `, organizationId, licenceId)
 	return result
 }
+*/

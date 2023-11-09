@@ -25,7 +25,7 @@ func TestAccOrganizationsCellularGatewayUplinkStatusesDataSource(t *testing.T) {
 			{
 				Config: testAccOrganizationsCellularGatewayUplinkStatusesDataSourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_network"),
+					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_organizations_cellular_gateway_uplink_statuses"),
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
@@ -65,7 +65,7 @@ resource "meraki_network" "test" {
 	organization_id = "%s"
 	product_types = ["cellularGateway"]
 	tags = ["tag1"]
-	name = "test_acc_network"
+	name = "test_acc_organizations_cellular_gateway_uplink_statuses"
 	timezone = "America/Los_Angeles"
 	notes = "Additional description of the network"
 }

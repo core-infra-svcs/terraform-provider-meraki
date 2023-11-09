@@ -1,6 +1,8 @@
 package provider
 
 import (
+	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -11,14 +13,6 @@ func TestAccNetworksSyslogServersResource(t *testing.T) {
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-
-			// Create test Organization
-			{
-				Config: testAccNetworksSyslogServersResourceConfigCreateOrganization,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_acc_meraki_organizations_networks_syslog_servers"),
-				),
-			},
 
 			// TODO - ImportState testing - This only works when hard-coded networkId.
 			/*
@@ -32,9 +26,9 @@ func TestAccNetworksSyslogServersResource(t *testing.T) {
 
 			// Create and Read Network.
 			{
-				Config: testAccNetworksSyslogServersResourceConfigCreateNetwork,
+				Config: testAccNetworksSyslogServersResourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_network"),
+					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_networks_syslog_servers"),
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
@@ -60,34 +54,27 @@ func TestAccNetworksSyslogServersResource(t *testing.T) {
 	})
 }
 
-const testAccNetworksSyslogServersResourceConfigCreateOrganization = `
- resource "meraki_organization" "test" {
- 	name = "test_acc_meraki_organizations_networks_syslog_servers"
- 	api_enabled = true
- } 
- `
-const testAccNetworksSyslogServersResourceConfigCreateNetwork = `
-resource "meraki_organization" "test" {}
+func testAccNetworksSyslogServersResourceConfigCreateNetwork(orgId string) string {
+	result := fmt.Sprintf(`
  resource "meraki_network" "test" {
-	depends_on = [resource.meraki_organization.test]
-	organization_id = resource.meraki_organization.test.organization_id
+	organization_id = %s
 	product_types = ["appliance", "switch", "wireless"]
 	tags = ["tag1"]
-	name = "test_acc_network"
+	name = "test_acc_networks_syslog_servers"
 	timezone = "America/Los_Angeles"
 	notes = "Additional description of the network"
 }
- `
+ `, orgId)
+	return result
+}
 
 const testAccSyslogServersResourceConfigUpdateNetworkSyslogServersSettings = `
-resource "meraki_organization" "test" {}
 resource "meraki_network" "test" {
-	depends_on = [resource.meraki_organization.test]
 	product_types = ["appliance", "switch", "wireless"]
 	
 }
 resource "meraki_networks_syslog_servers" "test" {
-	  depends_on = [resource.meraki_network.test, resource.meraki_organization.test]
+	  depends_on = [resource.meraki_network.test]
       network_id = resource.meraki_network.test.network_id
 	  servers = [{
 		host = "1.2.3.67"
