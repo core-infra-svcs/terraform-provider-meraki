@@ -6,57 +6,62 @@ import (
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
 var (
-	_ resource.Resource                = &DevicesCellulargatewayLanResource{}
-	_ resource.ResourceWithConfigure   = &DevicesCellulargatewayLanResource{}
-	_ resource.ResourceWithImportState = &DevicesCellulargatewayLanResource{}
+	_ resource.Resource                = &DevicesCellularGatewayLanResource{}
+	_ resource.ResourceWithConfigure   = &DevicesCellularGatewayLanResource{}
+	_ resource.ResourceWithImportState = &DevicesCellularGatewayLanResource{}
 )
 
 func NewDevicesCellularGatewayLanResource() resource.Resource {
-	return &DevicesCellulargatewayLanResource{}
+	return &DevicesCellularGatewayLanResource{}
 }
 
-// DevicesCellulargatewayLanResource defines the resource implementation.
-type DevicesCellulargatewayLanResource struct {
+// DevicesCellularGatewayLanResource defines the resource implementation.
+type DevicesCellularGatewayLanResource struct {
 	client *openApiClient.APIClient
 }
 
-// DevicesCellulargatewayLanResourceModel describes the resource data model.
-type DevicesCellulargatewayLanResourceModel struct {
-	Id     jsontypes.String `tfsdk:"id"`
-	Serial jsontypes.String `tfsdk:"serial"`
-
+// DevicesCellularGatewayLanResourceModel describes the resource data model.
+type DevicesCellularGatewayLanResourceModel struct {
+	Id                 jsontypes.String `tfsdk:"id"`
+	Serial             jsontypes.String `tfsdk:"serial"`
 	DeviceName         jsontypes.String `tfsdk:"device_name" json:"deviceName"`
 	DeviceLanIp        jsontypes.String `tfsdk:"device_lan_ip" json:"deviceLanIp"`
 	DeviceSubnet       jsontypes.String `tfsdk:"device_subnet" json:"deviceSubnet"`
-	FixedIpAssignments []struct {
-		Mac  jsontypes.String `tfsdk:"mac" json:"mac"`
-		Name jsontypes.String `tfsdk:"name" json:"name"`
-		Ip   jsontypes.String `tfsdk:"ip" json:"ip"`
-	} `tfsdk:"fixed_ip_assignments" json:"fixedIpAssignments"`
-	ReservedIpRanges []struct {
-		Start   jsontypes.String `tfsdk:"start" json:"start"`
-		End     jsontypes.String `tfsdk:"end" json:"end"`
-		Comment jsontypes.String `tfsdk:"comment" json:"comment"`
-	} `tfsdk:"reserved_ip_ranges" json:"reservedIpRanges"`
+	FixedIpAssignments types.Set        `tfsdk:"fixed_ip_assignments" json:"fixedIpAssignments"`
+	ReservedIpRanges   types.Set        `tfsdk:"reserved_ip_ranges" json:"reservedIpRanges"`
 }
 
-func (r *DevicesCellulargatewayLanResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+type DevicesCellularGatewayLanResourceModelFixedIpAssignments struct {
+	Mac  jsontypes.String `tfsdk:"mac" json:"mac"`
+	Name jsontypes.String `tfsdk:"name" json:"name"`
+	Ip   jsontypes.String `tfsdk:"ip" json:"ip"`
+}
+
+type DevicesCellularGatewayLanResourceModelReservedIpRanges struct {
+	Start   jsontypes.String `tfsdk:"start" json:"start"`
+	End     jsontypes.String `tfsdk:"end" json:"end"`
+	Comment jsontypes.String `tfsdk:"comment" json:"comment"`
+}
+
+func (r *DevicesCellularGatewayLanResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_devices_cellular_gateway_lan"
 }
 
-func (r *DevicesCellulargatewayLanResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *DevicesCellularGatewayLanResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 
-		MarkdownDescription: "DevicesCellulargatewayLan",
+		MarkdownDescription: "Manage Cellular Gateway Lan",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:   true,
@@ -142,7 +147,7 @@ func (r *DevicesCellulargatewayLanResource) Schema(ctx context.Context, req reso
 	}
 }
 
-func (r *DevicesCellulargatewayLanResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *DevicesCellularGatewayLanResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -162,8 +167,8 @@ func (r *DevicesCellulargatewayLanResource) Configure(ctx context.Context, req r
 	r.client = client
 }
 
-func (r *DevicesCellulargatewayLanResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *DevicesCellulargatewayLanResourceModel
+func (r *DevicesCellularGatewayLanResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *DevicesCellularGatewayLanResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -172,39 +177,23 @@ func (r *DevicesCellulargatewayLanResource) Create(ctx context.Context, req reso
 		return
 	}
 
-	object10 := openApiClient.NewInlineObject10()
-
-	v := []openApiClient.DevicesSerialCellularGatewayLanReservedIpRanges{}
-
-	for _, reservedIP := range data.ReservedIpRanges {
-		ranges := openApiClient.NewDevicesSerialCellularGatewayLanReservedIpRanges(reservedIP.Start.ValueString(), reservedIP.End.ValueString(), reservedIP.Comment.ValueString())
-		v = append(v, *ranges)
+	payload, payloadDiag := DevicesCellularGatewayLanResourcePayload(ctx, data)
+	if payloadDiag.HasError() {
+		resp.Diagnostics.AddError("Resource Payload Error", fmt.Sprintf("\n%v", payloadDiag))
+		return
 	}
 
-	object10.SetReservedIpRanges(v)
-
-	fixedAssignments := []openApiClient.DevicesSerialCellularGatewayLanFixedIpAssignments{}
-
-	for _, fixedAssignment := range data.FixedIpAssignments {
-		assignment := openApiClient.NewDevicesSerialCellularGatewayLanFixedIpAssignments(fixedAssignment.Ip.ValueString(), fixedAssignment.Mac.ValueString())
-		fixedAssignments = append(fixedAssignments, *assignment)
-	}
-	object10.SetFixedIpAssignments(fixedAssignments)
-
-	_, httpResp, err := r.client.CellularGatewayApi.UpdateDeviceCellularGatewayLan(ctx, data.Serial.ValueString()).UpdateDeviceCellularGatewayLan(*object10).Execute()
+	_, httpResp, err := r.client.CellularGatewayApi.UpdateDeviceCellularGatewayLan(ctx, data.Serial.ValueString()).UpdateDeviceCellularGatewayLanRequest(payload).Execute()
 
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"Create HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
-	// Check for API success response code
+	// If it's not what you expect, add an error to diagnostics.
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
@@ -212,9 +201,9 @@ func (r *DevicesCellulargatewayLanResource) Create(ctx context.Context, req reso
 		)
 	}
 
-	// Check for errors after diagnostics collected
+	// If there were any errors up to this point, log the plan data and return.
 	if resp.Diagnostics.HasError() {
-		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
+		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%v", data))
 		return
 	}
 
@@ -227,16 +216,14 @@ func (r *DevicesCellulargatewayLanResource) Create(ctx context.Context, req reso
 		return
 	}
 
-	data.Id = jsontypes.StringValue("example-id")
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
 	tflog.Trace(ctx, "create resource")
 }
 
-func (r *DevicesCellulargatewayLanResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *DevicesCellulargatewayLanResourceModel
+func (r *DevicesCellularGatewayLanResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *DevicesCellularGatewayLanResourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -246,19 +233,15 @@ func (r *DevicesCellulargatewayLanResource) Read(ctx context.Context, req resour
 	}
 
 	_, httpResp, err := r.client.CellularGatewayApi.GetDeviceCellularGatewayLan(ctx, data.Serial.ValueString()).Execute()
-
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to read resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"Read HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
-	// Check for API success inlineResp code
+	// If it's not what you expect, add an error to diagnostics.
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
@@ -266,8 +249,9 @@ func (r *DevicesCellulargatewayLanResource) Read(ctx context.Context, req resour
 		)
 	}
 
-	// Check for errors after diagnostics collected
+	// If there were any errors up to this point, log the plan data and return.
 	if resp.Diagnostics.HasError() {
+		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%v", data))
 		return
 	}
 
@@ -288,8 +272,8 @@ func (r *DevicesCellulargatewayLanResource) Read(ctx context.Context, req resour
 	tflog.Trace(ctx, "read resource")
 }
 
-func (r *DevicesCellulargatewayLanResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data *DevicesCellulargatewayLanResourceModel
+func (r *DevicesCellularGatewayLanResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var data *DevicesCellularGatewayLanResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -298,39 +282,22 @@ func (r *DevicesCellulargatewayLanResource) Update(ctx context.Context, req reso
 		return
 	}
 
-	object10 := openApiClient.NewInlineObject10()
-
-	v := []openApiClient.DevicesSerialCellularGatewayLanReservedIpRanges{}
-
-	for _, reservedIP := range data.ReservedIpRanges {
-		ranges := openApiClient.NewDevicesSerialCellularGatewayLanReservedIpRanges(reservedIP.Start.ValueString(), reservedIP.End.ValueString(), reservedIP.Comment.ValueString())
-		v = append(v, *ranges)
+	payload, payloadDiag := DevicesCellularGatewayLanResourcePayload(ctx, data)
+	if payloadDiag.HasError() {
+		resp.Diagnostics.AddError("Resource Payload Error", fmt.Sprintf("\n%v", payloadDiag))
+		return
 	}
 
-	object10.SetReservedIpRanges(v)
-
-	fixedAssignments := []openApiClient.DevicesSerialCellularGatewayLanFixedIpAssignments{}
-
-	for _, fixedAssignment := range data.FixedIpAssignments {
-		assignment := openApiClient.NewDevicesSerialCellularGatewayLanFixedIpAssignments(fixedAssignment.Ip.ValueString(), fixedAssignment.Mac.ValueString())
-		fixedAssignments = append(fixedAssignments, *assignment)
-	}
-	object10.SetFixedIpAssignments(fixedAssignments)
-
-	_, httpResp, err := r.client.CellularGatewayApi.UpdateDeviceCellularGatewayLan(ctx, data.Serial.ValueString()).UpdateDeviceCellularGatewayLan(*object10).Execute()
-
+	_, httpResp, err := r.client.CellularGatewayApi.UpdateDeviceCellularGatewayLan(ctx, data.Serial.ValueString()).UpdateDeviceCellularGatewayLanRequest(payload).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"Update HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
-	// Check for API success response code
+	// If it's not what you expect, add an error to diagnostics.
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
@@ -338,9 +305,9 @@ func (r *DevicesCellulargatewayLanResource) Update(ctx context.Context, req reso
 		)
 	}
 
-	// Check for errors after diagnostics collected
+	// If there were any errors up to this point, log the plan data and return.
 	if resp.Diagnostics.HasError() {
-		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
+		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%v", data))
 		return
 	}
 
@@ -353,16 +320,14 @@ func (r *DevicesCellulargatewayLanResource) Update(ctx context.Context, req reso
 		return
 	}
 
-	data.Id = jsontypes.StringValue("example-id")
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
 	tflog.Trace(ctx, "updated resource")
 }
 
-func (r *DevicesCellulargatewayLanResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data *DevicesCellulargatewayLanResourceModel
+func (r *DevicesCellularGatewayLanResource)3A	1 Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data *DevicesCellularGatewayLanResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -371,22 +336,19 @@ func (r *DevicesCellulargatewayLanResource) Delete(ctx context.Context, req reso
 		return
 	}
 
-	object10 := openApiClient.NewInlineObject10()
+	payload := *openApiClient.NewUpdateDeviceCellularGatewayLanRequest()
 
-	_, httpResp, err := r.client.CellularGatewayApi.UpdateDeviceCellularGatewayLan(ctx, data.Serial.ValueString()).UpdateDeviceCellularGatewayLan(*object10).Execute()
+	_, httpResp, err := r.client.CellularGatewayApi.UpdateDeviceCellularGatewayLan(ctx, data.Serial.ValueString()).UpdateDeviceCellularGatewayLanRequest(payload).Execute()
 
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"Delete HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
-	// Check for API success response code
+	// If it's not what you expect, add an error to diagnostics.
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
@@ -394,9 +356,9 @@ func (r *DevicesCellulargatewayLanResource) Delete(ctx context.Context, req reso
 		)
 	}
 
-	// Check for errors after diagnostics collected
+	// If there were any errors up to this point, log the plan data and return.
 	if resp.Diagnostics.HasError() {
-		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
+		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%v", data))
 		return
 	}
 
@@ -409,15 +371,13 @@ func (r *DevicesCellulargatewayLanResource) Delete(ctx context.Context, req reso
 		return
 	}
 
-	data.Id = jsontypes.StringValue("example-id")
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.State.RemoveResource(ctx)
 
 	// Write logs using the tflog package
 	tflog.Trace(ctx, "removed resource")
 }
 
-func (r *DevicesCellulargatewayLanResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *DevicesCellularGatewayLanResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("serial"), req.ID)...)
@@ -425,4 +385,32 @@ func (r *DevicesCellulargatewayLanResource) ImportState(ctx context.Context, req
 	if resp.Diagnostics.HasError() {
 		return
 	}
+}
+
+func DevicesCellularGatewayLanResourcePayload(ctx context.Context, data *DevicesCellularGatewayLanResourceModel) (openApiClient.UpdateDeviceCellularGatewayLanRequest, diag.Diagnostics) {
+
+	payload := *openApiClient.NewUpdateDeviceCellularGatewayLanRequest()
+
+	// Reserved IP Ranges
+	if !data.ReservedIpRanges.IsUnknown() && !data.ReservedIpRanges.IsNull() {
+		var reservedIpRanges []openApiClient.UpdateDeviceCellularGatewayLanRequestReservedIpRangesInner
+		diags := data.ReservedIpRanges.ElementsAs(ctx, &reservedIpRanges, false)
+		if diags.HasError() {
+			return payload, diags
+		}
+		payload.SetReservedIpRanges(reservedIpRanges)
+	}
+
+	// Fixed IP Assignment
+	if !data.FixedIpAssignments.IsUnknown() && !data.FixedIpAssignments.IsNull() {
+		var fixedAssignments []openApiClient.UpdateDeviceCellularGatewayLanRequestFixedIpAssignmentsInner
+
+		diags := data.FixedIpAssignments.ElementsAs(ctx, &fixedAssignments, false)
+		if diags.HasError() {
+			return payload, diags
+		}
+		payload.SetFixedIpAssignments(fixedAssignments)
+	}
+
+	return payload, nil
 }

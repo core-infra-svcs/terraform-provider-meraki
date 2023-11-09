@@ -261,6 +261,7 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		NewOrganizationsSamlIdpResource,
 		NewOrganizationsAdminResource,
 		NewOrganizationsAdaptivePolicyAclResource,
+		NewDevicesCellularGatewayLanResource,
 		NewNetworkResource,
 		NewOrganizationsSamlRolesResource,
 		NewNetworksSwitchSettingsResource,

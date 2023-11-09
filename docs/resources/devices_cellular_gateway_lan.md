@@ -3,12 +3,12 @@
 page_title: "meraki_devices_cellular_gateway_lan Resource - terraform-provider-meraki"
 subcategory: ""
 description: |-
-  DevicesCellulargatewayLan
+  Manage Cellular Gateway Lan
 ---
 
 # meraki_devices_cellular_gateway_lan (Resource)
 
-DevicesCellulargatewayLan
+Manage Cellular Gateway Lan
 
 
 
@@ -48,5 +48,3 @@ Optional:
 - `comment` (String) Comment explaining the reserved IP range.
 - `end` (String) Ending IP included in the reserved range of IPs.
 - `start` (String) Starting IP included in the reserved range of IPs
-
-
