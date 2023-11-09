@@ -26,7 +26,7 @@ jobs:
           git config --global user.email "sysuser@starbucks.com"
 
       - name: Create new tag
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/make-release'
         run: |
           git fetch --all --tags -f
           latest_tag=$(git tag | awk '/^v[0-9]+\.[0-9]+\.[0-9]+$/ {print $0}' | sort -rV | head -n 1)
