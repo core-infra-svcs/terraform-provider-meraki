@@ -52,7 +52,7 @@ func TestAccNetworksAppliancePortResource(t *testing.T) {
 					resource.TestCheckResourceAttr("meraki_networks_appliance_ports.test", "allowed_vlans", "all"),
 					resource.TestCheckResourceAttr("meraki_networks_appliance_ports.test", "drop_untagged_traffic", "true"),
 					resource.TestCheckResourceAttr("meraki_networks_appliance_ports.test", "enabled", "true"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_ports.test", "number", "2"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_ports.test", "number", "1"),
 					resource.TestCheckResourceAttr("meraki_networks_appliance_ports.test", "type", "trunk"),
 				),
 			},
@@ -129,7 +129,7 @@ resource "meraki_networks_appliance_vlans_settings" "test" {
 resource "meraki_networks_appliance_ports" "test" {
 	depends_on = ["resource.meraki_network.test", "resource.meraki_networks_devices_claim.test", "resource.meraki_networks_appliance_vlans_settings.test"]
 	network_id = resource.meraki_network.test.network_id
-	port_id = 2
+	port_id = 1
 	allowed_vlans = "all"
 	drop_untagged_traffic = true
 	enabled = true	
