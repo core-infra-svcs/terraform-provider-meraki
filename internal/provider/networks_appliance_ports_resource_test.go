@@ -48,13 +48,12 @@ func TestAccNetworksAppliancePortResource(t *testing.T) {
 			{
 				Config: testAccNetworksAppliancePortResourceConfigListNetworkAppliancePorts,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("data.meraki_networks_appliance_port.test", "port_id", "1"),
-					resource.TestCheckResourceAttr("data.meraki_networks_appliance_port.test", "allowed_vlans", "all"),
-					resource.TestCheckResourceAttr("data.meraki_networks_appliance_port.test", "drop_untagged_traffic", "true"),
-					resource.TestCheckResourceAttr("data.meraki_networks_appliance_port.test", "enabled", "true"),
-					resource.TestCheckResourceAttr("data.meraki_networks_appliance_port.test", "number", "2"),
-					resource.TestCheckResourceAttr("data.meraki_networks_appliance_port.test", "type", "trunk"),
-					resource.TestCheckResourceAttr("data.meraki_networks_appliance_port.test", "vlan", "0"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_ports.test", "port_id", "2"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_ports.test", "allowed_vlans", "all"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_ports.test", "drop_untagged_traffic", "true"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_ports.test", "enabled", "true"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_ports.test", "number", "2"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_ports.test", "type", "trunk"),
 				),
 			},
 		},
@@ -127,16 +126,13 @@ resource "meraki_networks_appliance_vlans_settings" "test" {
 	vlans_enabled = true
 }
 	
-resource "meraki_networks_appliance_port" "test" {
+resource "meraki_networks_appliance_ports" "test" {
 	depends_on = ["resource.meraki_network.test", "resource.meraki_networks_devices_claim.test", "resource.meraki_networks_appliance_vlans_settings.test"]
 	network_id = resource.meraki_network.test.network_id
-	port_id = 1
+	port_id = 2
 	allowed_vlans = "all"
 	drop_untagged_traffic = true
-	enabled = true
-	number = 2
-	type = trunk
-	vlan = 0
-	
+	enabled = true	
+	type = "trunk"	
     }
 `

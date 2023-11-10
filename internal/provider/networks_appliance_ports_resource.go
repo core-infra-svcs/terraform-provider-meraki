@@ -2,10 +2,10 @@ package provider
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"strings"
+
+	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -164,17 +164,30 @@ func (r *NetworksAppliancePortsResource) Create(ctx context.Context, req resourc
 
 	payload := *openApiClient.NewUpdateNetworkAppliancePortRequest()
 
-	payload.Type = data.Type.ValueStringPointer()
-	payload.Enabled = data.Enabled.ValueBoolPointer()
+	if !data.Vlan.IsUnknown() && !data.Vlan.IsNull() && data.Vlan != jsontypes.Int64Value(0) {
+		var vlan = int32(data.Vlan.ValueInt64())
+		payload.Vlan = &vlan
+	}
 
-	var vlan = int32(data.Vlan.ValueInt64())
-	payload.Vlan = &vlan
+	if !data.Type.IsUnknown() && !data.Type.IsNull() && data.Type != jsontypes.StringValue("") {
+		payload.Type = data.Type.ValueStringPointer()
+	}
 
-	payload.AccessPolicy = data.Accesspolicy.ValueStringPointer()
-	payload.AllowedVlans = data.Allowedvlans.ValueStringPointer()
-	payload.DropUntaggedTraffic = data.Dropuntaggedtraffic.ValueBoolPointer()
+	if !data.Enabled.IsUnknown() && !data.Enabled.IsNull() {
+		payload.Enabled = data.Enabled.ValueBoolPointer()
+	}
 
-	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkAppliancePort(context.Background(), data.NetworkId.ValueString(), data.PortId.ValueString()).UpdateNetworkAppliancePortRequest(payload).Execute()
+	if !data.Accesspolicy.IsUnknown() && !data.Accesspolicy.IsNull() && data.Accesspolicy != jsontypes.StringValue("") {
+		payload.AccessPolicy = data.Accesspolicy.ValueStringPointer()
+	}
+	if !data.Allowedvlans.IsUnknown() && !data.Allowedvlans.IsNull() && data.Allowedvlans != jsontypes.StringValue("") {
+		payload.AllowedVlans = data.Allowedvlans.ValueStringPointer()
+	}
+	if !data.Dropuntaggedtraffic.IsUnknown() && !data.Dropuntaggedtraffic.IsNull() {
+		payload.DropUntaggedTraffic = data.Dropuntaggedtraffic.ValueBoolPointer()
+	}
+
+	response, httpResp, err := r.client.ApplianceApi.UpdateNetworkAppliancePort(context.Background(), data.NetworkId.ValueString(), data.PortId.ValueString()).UpdateNetworkAppliancePortRequest(payload).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"HTTP Client Failure",
@@ -196,15 +209,13 @@ func (r *NetworksAppliancePortsResource) Create(ctx context.Context, req resourc
 		return
 	}
 
-	// Save data into Terraform state
-	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
-		resp.Diagnostics.AddError(
-			"JSON decoding error",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-		return
-	}
-
+	data.Enabled = jsontypes.BoolValue(response.GetEnabled())
+	data.Type = jsontypes.StringValue(response.GetType())
+	data.Allowedvlans = jsontypes.StringValue(response.GetAllowedVlans())
+	data.Dropuntaggedtraffic = jsontypes.BoolValue(response.GetDropUntaggedTraffic())
+	data.Vlan = jsontypes.Int64Value(int64(response.GetVlan()))
+	data.Accesspolicy = jsontypes.StringValue(response.GetAccessPolicy())
+	data.Number = jsontypes.Int64Value(int64(response.GetNumber()))
 	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -223,7 +234,7 @@ func (r *NetworksAppliancePortsResource) Read(ctx context.Context, req resource.
 		return
 	}
 
-	_, httpResp, err := r.client.ApplianceApi.GetNetworkAppliancePort(context.Background(), data.NetworkId.ValueString(), data.PortId.ValueString()).Execute()
+	response, httpResp, err := r.client.ApplianceApi.GetNetworkAppliancePort(context.Background(), data.NetworkId.ValueString(), data.PortId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"HTTP Client Failure",
@@ -245,15 +256,13 @@ func (r *NetworksAppliancePortsResource) Read(ctx context.Context, req resource.
 		resp.Diagnostics.Append()
 	}
 
-	// Save data into Terraform state
-	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
-		resp.Diagnostics.AddError(
-			"JSON decoding error",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-		return
-	}
-
+	data.Enabled = jsontypes.BoolValue(response.GetEnabled())
+	data.Type = jsontypes.StringValue(response.GetType())
+	data.Allowedvlans = jsontypes.StringValue(response.GetAllowedVlans())
+	data.Dropuntaggedtraffic = jsontypes.BoolValue(response.GetDropUntaggedTraffic())
+	data.Vlan = jsontypes.Int64Value(int64(response.GetVlan()))
+	data.Accesspolicy = jsontypes.StringValue(response.GetAccessPolicy())
+	data.Number = jsontypes.Int64Value(int64(response.GetNumber()))
 	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -275,17 +284,30 @@ func (r *NetworksAppliancePortsResource) Update(ctx context.Context, req resourc
 
 	payload := *openApiClient.NewUpdateNetworkAppliancePortRequest()
 
-	payload.Type = data.Type.ValueStringPointer()
-	payload.Enabled = data.Enabled.ValueBoolPointer()
+	if !data.Vlan.IsUnknown() && !data.Vlan.IsNull() && data.Vlan != jsontypes.Int64Value(0) {
+		var vlan = int32(data.Vlan.ValueInt64())
+		payload.Vlan = &vlan
+	}
 
-	var vlan = int32(data.Vlan.ValueInt64())
-	payload.Vlan = &vlan
+	if !data.Type.IsUnknown() && !data.Type.IsNull() && data.Type != jsontypes.StringValue("") {
+		payload.Type = data.Type.ValueStringPointer()
+	}
 
-	payload.AccessPolicy = data.Accesspolicy.ValueStringPointer()
-	payload.AllowedVlans = data.Allowedvlans.ValueStringPointer()
-	payload.DropUntaggedTraffic = data.Dropuntaggedtraffic.ValueBoolPointer()
+	if !data.Enabled.IsUnknown() && !data.Enabled.IsNull() {
+		payload.Enabled = data.Enabled.ValueBoolPointer()
+	}
 
-	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkAppliancePort(context.Background(), data.NetworkId.ValueString(), data.PortId.ValueString()).UpdateNetworkAppliancePortRequest(payload).Execute()
+	if !data.Accesspolicy.IsUnknown() && !data.Accesspolicy.IsNull() && data.Accesspolicy != jsontypes.StringValue("") {
+		payload.AccessPolicy = data.Accesspolicy.ValueStringPointer()
+	}
+	if !data.Allowedvlans.IsUnknown() && !data.Allowedvlans.IsNull() && data.Allowedvlans != jsontypes.StringValue("") {
+		payload.AllowedVlans = data.Allowedvlans.ValueStringPointer()
+	}
+	if !data.Dropuntaggedtraffic.IsUnknown() && !data.Dropuntaggedtraffic.IsNull() {
+		payload.DropUntaggedTraffic = data.Dropuntaggedtraffic.ValueBoolPointer()
+	}
+
+	response, httpResp, err := r.client.ApplianceApi.UpdateNetworkAppliancePort(context.Background(), data.NetworkId.ValueString(), data.PortId.ValueString()).UpdateNetworkAppliancePortRequest(payload).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"HTTP Client Failure",
@@ -307,15 +329,13 @@ func (r *NetworksAppliancePortsResource) Update(ctx context.Context, req resourc
 		return
 	}
 
-	// Save data into Terraform state
-	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
-		resp.Diagnostics.AddError(
-			"JSON decoding error",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-		return
-	}
-
+	data.Enabled = jsontypes.BoolValue(response.GetEnabled())
+	data.Type = jsontypes.StringValue(response.GetType())
+	data.Allowedvlans = jsontypes.StringValue(response.GetAllowedVlans())
+	data.Dropuntaggedtraffic = jsontypes.BoolValue(response.GetDropUntaggedTraffic())
+	data.Vlan = jsontypes.Int64Value(int64(response.GetVlan()))
+	data.Accesspolicy = jsontypes.StringValue(response.GetAccessPolicy())
+	data.Number = jsontypes.Int64Value(int64(response.GetNumber()))
 	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -337,7 +357,30 @@ func (r *NetworksAppliancePortsResource) Delete(ctx context.Context, req resourc
 
 	payload := *openApiClient.NewUpdateNetworkAppliancePortRequest()
 
-	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkAppliancePort(context.Background(), data.NetworkId.ValueString(), data.PortId.ValueString()).UpdateNetworkAppliancePortRequest(payload).Execute()
+	if !data.Vlan.IsUnknown() && !data.Vlan.IsNull() && data.Vlan != jsontypes.Int64Value(0) {
+		var vlan = int32(data.Vlan.ValueInt64())
+		payload.Vlan = &vlan
+	}
+
+	if !data.Type.IsUnknown() && !data.Type.IsNull() && data.Type != jsontypes.StringValue("") {
+		payload.Type = data.Type.ValueStringPointer()
+	}
+
+	if !data.Enabled.IsUnknown() && !data.Enabled.IsNull() {
+		payload.Enabled = data.Enabled.ValueBoolPointer()
+	}
+
+	if !data.Accesspolicy.IsUnknown() && !data.Accesspolicy.IsNull() && data.Accesspolicy != jsontypes.StringValue("") {
+		payload.AccessPolicy = data.Accesspolicy.ValueStringPointer()
+	}
+	if !data.Allowedvlans.IsUnknown() && !data.Allowedvlans.IsNull() && data.Allowedvlans != jsontypes.StringValue("") {
+		payload.AllowedVlans = data.Allowedvlans.ValueStringPointer()
+	}
+	if !data.Dropuntaggedtraffic.IsUnknown() && !data.Dropuntaggedtraffic.IsNull() {
+		payload.DropUntaggedTraffic = data.Dropuntaggedtraffic.ValueBoolPointer()
+	}
+
+	response, httpResp, err := r.client.ApplianceApi.UpdateNetworkAppliancePort(context.Background(), data.NetworkId.ValueString(), data.PortId.ValueString()).UpdateNetworkAppliancePortRequest(payload).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"HTTP Client Failure",
@@ -359,15 +402,13 @@ func (r *NetworksAppliancePortsResource) Delete(ctx context.Context, req resourc
 		return
 	}
 
-	// Save data into Terraform state
-	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
-		resp.Diagnostics.AddError(
-			"JSON decoding error",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-		return
-	}
-
+	data.Enabled = jsontypes.BoolValue(response.GetEnabled())
+	data.Type = jsontypes.StringValue(response.GetType())
+	data.Allowedvlans = jsontypes.StringValue(response.GetAllowedVlans())
+	data.Dropuntaggedtraffic = jsontypes.BoolValue(response.GetDropUntaggedTraffic())
+	data.Vlan = jsontypes.Int64Value(int64(response.GetVlan()))
+	data.Accesspolicy = jsontypes.StringValue(response.GetAccessPolicy())
+	data.Number = jsontypes.Int64Value(int64(response.GetNumber()))
 	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
