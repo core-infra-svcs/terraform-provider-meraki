@@ -111,9 +111,9 @@ For even more detailed information and usage examples, please refer to the follo
 
 ## Contributing
 
-Contributions are welcome! If you are interested in contributing to the Meraki Terraform Provider, please refer to the [Contributing Guidelines](./CONTRIBUTING.md) for detailed instructions on how to get started.
+Contributions are welcome! If you are interested in contributing to the Meraki Terraform Provider, please refer to the [Contributing Guidelines](CONTRIBUTING.md) for detailed instructions on how to get started.
 
-See the [Getting Started Document](.github/workflow-docs/getting-started.md) for detailed instructions.
+See the [Getting Started Document](contributing/getting-started.md) for detailed instructions.
 
 ## License
 

@@ -1,7 +1,9 @@
 package provider
 
 import (
+	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"os"
 	"testing"
 )
 
@@ -18,20 +20,11 @@ func TestAccNetworksWirelessSsidsDataSource(t *testing.T) {
 		// Steps is a slice of TestStep where each TestStep represents a test case.
 		Steps: []resource.TestStep{
 
-			// Create and Read an Organization.
-			{
-				Config: testAccNetworksWirelessSsidsDataSourceConfigCreateOrganization,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
-					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_meraki_networks_wireless_ssids"),
-				),
-			},
-
 			// Create and Read a Network.
 			{
-				Config: testAccNetworksWirelessSsidsDataSourceConfigCreateNetwork,
+				Config: testAccNetworksWirelessSsidsDataSourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "Main Office"),
+					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_networks_wireless_ssids"),
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
@@ -54,44 +47,27 @@ func TestAccNetworksWirelessSsidsDataSource(t *testing.T) {
 	})
 }
 
-// testAccNetworksWirelessSsidsDataSourceConfigCreateOrganization is a constant string that defines the configuration for creating an organization resource in your tests.
-const testAccNetworksWirelessSsidsDataSourceConfigCreateOrganization = `
- resource "meraki_organization" "test" {
- 	name = "test_meraki_networks_wireless_ssids"
- 	api_enabled = true
- }
- `
-
 // testAccNetworksWirelessSsidsDataSourceConfigCreateNetwork is a constant string that defines the configuration for creating a network resource in your tests.
 // It depends on the organization resource.
-const testAccNetworksWirelessSsidsDataSourceConfigCreateNetwork = `
-resource "meraki_organization" "test" {}
-
+func testAccNetworksWirelessSsidsDataSourceConfigCreateNetwork(orgId string) string {
+	result := fmt.Sprintf(`
 resource "meraki_network" "test" {
-    depends_on = [resource.meraki_organization.test]
-    organization_id = resource.meraki_organization.test.organization_id
+    organization_id = %s
     product_types = ["appliance", "switch", "wireless"]
     tags = ["tag1"]
-    name = "Main Office"
+    name = "test_acc_networks_wireless_ssids"
     timezone = "America/Los_Angeles"
     notes = "Additional description of the network"
 }
-`
+`, orgId)
+	return result
+}
 
-// testAccNetworksWirelessSsidsDataSourceConfigCreate is a constant string that defines the configuration for creating and updating a networks__wireless_ssids resource in your tests.
+// testAccNetworksWirelessSsidsDataSourceConfigCreate is a constant string that defines the configuration for creating and updating a networks__test_acc_networks_wireless_ssids resource in your tests.
 // It depends on both the organization and network resources.
 const testAccNetworksWirelessSsidsDataSourceConfigCreate = `
-
-resource "meraki_organization" "test" {}
-
 resource "meraki_network" "test" {
-    depends_on = [resource.meraki_organization.test]
-    organization_id = resource.meraki_organization.test.organization_id
     product_types = ["appliance", "switch", "wireless"]
-    tags = ["tag1"]
-    name = "Main Office"
-    timezone = "America/Los_Angeles"
-    notes = "Additional description of the network"
 }
 
 data "meraki_networks_wireless_ssids" "test" {

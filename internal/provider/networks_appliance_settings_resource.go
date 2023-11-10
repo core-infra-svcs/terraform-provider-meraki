@@ -47,7 +47,7 @@ func (r *NetworksApplianceSettingsResource) Metadata(ctx context.Context, req re
 
 func (r *NetworksApplianceSettingsResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "NetworksApplianceSettings resource for updating network appliance settings.",
+		MarkdownDescription: "Manage network appliance settings.",
 		Attributes: map[string]schema.Attribute{
 
 			"id": schema.StringAttribute{

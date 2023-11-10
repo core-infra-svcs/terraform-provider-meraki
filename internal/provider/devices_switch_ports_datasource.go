@@ -27,41 +27,41 @@ type DevicesSwitchPortsStatusesDataSource struct {
 // The DevicesSwitchPortsStatusesDataSourceModel structure describes the data model.
 // This struct is where you define all the attributes that are part of this data source's state.
 type DevicesSwitchPortsStatusesDataSourceModel struct {
-	Id     jsontypes.String        `tfsdk:"id"`
-	Serial jsontypes.String        `tfsdk:"serial"`
-	List   []DevicesSwitchPortData `tfsdk:"list"`
+	Id     jsontypes.String                                `tfsdk:"id"`
+	Serial jsontypes.String                                `tfsdk:"serial"`
+	List   []DevicesSwitchPortsStatusesDataSourceModelList `tfsdk:"list"`
 }
 
-type DevicesSwitchPortData struct {
-	PortId                  jsontypes.String                `tfsdk:"port_id"`
-	Name                    jsontypes.String                `tfsdk:"name"`
-	Tags                    []jsontypes.String              `tfsdk:"tags"`
-	Enabled                 jsontypes.Bool                  `tfsdk:"enabled"`
-	PoeEnabled              jsontypes.Bool                  `tfsdk:"poe_enabled"`
-	Type                    jsontypes.String                `tfsdk:"type"`
-	Vlan                    jsontypes.Int64                 `tfsdk:"vlan"`
-	VoiceVlan               jsontypes.Int64                 `tfsdk:"voice_vlan"`
-	AllowedVlans            jsontypes.String                `tfsdk:"allowed_vlans"`
-	IsolationEnabled        jsontypes.Bool                  `tfsdk:"isolation_enabled"`
-	RstpEnabled             jsontypes.Bool                  `tfsdk:"rstp_enabled"`
-	StpGuard                jsontypes.String                `tfsdk:"stp_guard"`
-	AccessPolicyNumber      jsontypes.Int64                 `tfsdk:"access_policy_number"`
-	AccessPolicyType        jsontypes.String                `tfsdk:"access_policy_type"`
-	LinkNegotiation         jsontypes.String                `tfsdk:"link_negotiation"`
-	PortScheduleId          jsontypes.String                `tfsdk:"port_schedule_id"`
-	Udld                    jsontypes.String                `tfsdk:"udld"`
-	StickyMacWhitelistLimit jsontypes.Int64                 `tfsdk:"sticky_mac_white_list_limit"`
-	StormControlEnabled     jsontypes.Bool                  `tfsdk:"storm_control_enabled"`
-	MacWhitelist            []jsontypes.String              `tfsdk:"mac_white_list"`
-	StickyMacWhitelist      []jsontypes.String              `tfsdk:"sticky_mac_white_list"`
-	AdaptivePolicyGroupId   jsontypes.String                `tfsdk:"adaptive_policy_group_id"`
-	PeerSgtCapable          jsontypes.Bool                  `tfsdk:"peer_sgt_capable"`
-	FlexibleStackingEnabled jsontypes.Bool                  `tfsdk:"flexible_stacking_enabled"`
-	DaiTrusted              jsontypes.Bool                  `tfsdk:"dai_trusted"`
-	Profile                 DevicesSerialSwitchPortsProfile `tfsdk:"profile"`
+type DevicesSwitchPortsStatusesDataSourceModelList struct {
+	PortId                  jsontypes.String                                 `tfsdk:"port_id"`
+	Name                    jsontypes.String                                 `tfsdk:"name"`
+	Tags                    []jsontypes.String                               `tfsdk:"tags"`
+	Enabled                 jsontypes.Bool                                   `tfsdk:"enabled"`
+	PoeEnabled              jsontypes.Bool                                   `tfsdk:"poe_enabled"`
+	Type                    jsontypes.String                                 `tfsdk:"type"`
+	Vlan                    jsontypes.Int64                                  `tfsdk:"vlan"`
+	VoiceVlan               jsontypes.Int64                                  `tfsdk:"voice_vlan"`
+	AllowedVlans            jsontypes.String                                 `tfsdk:"allowed_vlans"`
+	IsolationEnabled        jsontypes.Bool                                   `tfsdk:"isolation_enabled"`
+	RstpEnabled             jsontypes.Bool                                   `tfsdk:"rstp_enabled"`
+	StpGuard                jsontypes.String                                 `tfsdk:"stp_guard"`
+	AccessPolicyNumber      jsontypes.Int64                                  `tfsdk:"access_policy_number"`
+	AccessPolicyType        jsontypes.String                                 `tfsdk:"access_policy_type"`
+	LinkNegotiation         jsontypes.String                                 `tfsdk:"link_negotiation"`
+	PortScheduleId          jsontypes.String                                 `tfsdk:"port_schedule_id"`
+	Udld                    jsontypes.String                                 `tfsdk:"udld"`
+	StickyMacWhitelistLimit jsontypes.Int64                                  `tfsdk:"sticky_mac_white_list_limit"`
+	StormControlEnabled     jsontypes.Bool                                   `tfsdk:"storm_control_enabled"`
+	MacWhitelist            []jsontypes.String                               `tfsdk:"mac_white_list"`
+	StickyMacWhitelist      []jsontypes.String                               `tfsdk:"sticky_mac_white_list"`
+	AdaptivePolicyGroupId   jsontypes.String                                 `tfsdk:"adaptive_policy_group_id"`
+	PeerSgtCapable          jsontypes.Bool                                   `tfsdk:"peer_sgt_capable"`
+	FlexibleStackingEnabled jsontypes.Bool                                   `tfsdk:"flexible_stacking_enabled"`
+	DaiTrusted              jsontypes.Bool                                   `tfsdk:"dai_trusted"`
+	Profile                 DevicesSwitchPortsStatusesDataSourceModelProfile `tfsdk:"profile"`
 }
 
-type DevicesSerialSwitchPortsProfile struct {
+type DevicesSwitchPortsStatusesDataSourceModelProfile struct {
 	Enabled jsontypes.Bool   `tfsdk:"enabled"`
 	Id      jsontypes.String `tfsdk:"id"`
 	Iname   jsontypes.String `tfsdk:"iname"`
@@ -79,8 +79,6 @@ func (d *DevicesSwitchPortsStatusesDataSource) Schema(ctx context.Context, req d
 	// The Schema object defines the structure of the data source.
 	resp.Schema = schema.Schema{
 
-		// TODO: The MarkdownDescription field is used by the documentation generator and the language server.
-		// It should provide a clear and concise description of the data source.
 		MarkdownDescription: "List the switch ports for a switch",
 
 		// The Attributes map describes the fields of the data source.
@@ -349,7 +347,7 @@ func (d *DevicesSwitchPortsStatusesDataSource) Read(ctx context.Context, req dat
 
 	for _, switchData := range inlineResp {
 
-		var devicesSwitchPortData DevicesSwitchPortData
+		var devicesSwitchPortData DevicesSwitchPortsStatusesDataSourceModelList
 		devicesSwitchPortData.Name = jsontypes.StringValue(switchData.GetName())
 		devicesSwitchPortData.PortId = jsontypes.StringValue(switchData.GetPortId())
 		devicesSwitchPortData.Enabled = jsontypes.BoolValue(switchData.GetEnabled())

@@ -38,12 +38,12 @@ type NetworksCellularGatewayUplinkResourceModel struct {
 
 	// The Id field is mandatory for all resources. It's used for resource identification and is required
 	// for the acceptance tests to run.
-	Id                             jsontypes.String               `tfsdk:"id"`
-	NetworkId                      jsontypes.String               `tfsdk:"network_id"`
-	CellularGatewayBandwidthLimits CellularGatewayBandwidthLimits `tfsdk:"bandwidth_limits"`
+	Id                             jsontypes.String                                                         `tfsdk:"id"`
+	NetworkId                      jsontypes.String                                                         `tfsdk:"network_id"`
+	CellularGatewayBandwidthLimits NetworksCellularGatewayUplinkResourceModelCellularGatewayBandwidthLimits `tfsdk:"bandwidth_limits"`
 }
 
-type CellularGatewayBandwidthLimits struct {
+type NetworksCellularGatewayUplinkResourceModelCellularGatewayBandwidthLimits struct {
 	LimitUp   jsontypes.Int64 `tfsdk:"limit_up"`
 	LimitDown jsontypes.Int64 `tfsdk:"limit_down"`
 }
@@ -62,7 +62,7 @@ func (r *NetworksCellularGatewayUplinkResource) Schema(ctx context.Context, req 
 	// The Schema object defines the structure of the resource.
 	resp.Schema = schema.Schema{
 
-		MarkdownDescription: "Networks Cellular Gateway Uplink Updates the uplink settings for your MG network.",
+		MarkdownDescription: "Manage the uplink settings for your MG network.",
 
 		// The Attributes map describes the fields of the resource.
 		Attributes: map[string]schema.Attribute{

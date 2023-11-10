@@ -36,64 +36,64 @@ type NetworksApplianceVLANsResourceModel struct {
 	Id        jsontypes.String `tfsdk:"id" json:"-"`
 	NetworkId jsontypes.String `tfsdk:"network_id" json:"networkId"`
 
-	VlanId                 jsontypes.Int64                 `tfsdk:"vlan_id" json:"id"`
-	Name                   jsontypes.String                `tfsdk:"name" json:"name"`
-	Subnet                 jsontypes.String                `tfsdk:"subnet" json:"subnet"`
-	ApplianceIp            jsontypes.String                `tfsdk:"appliance_ip" json:"applianceIp"`
-	GroupPolicyId          jsontypes.String                `tfsdk:"group_policy_id" json:"groupPolicyId"`
-	VpnNatSubnet           jsontypes.String                `tfsdk:"vpn_nat_subnet" json:"vpnNatSubnet"`
-	DhcpHandling           jsontypes.String                `tfsdk:"dhcp_handling" json:"dhcpHandling"`
-	DhcpRelayServerIps     jsontypes.Set[jsontypes.String] `tfsdk:"dhcp_relay_server_ips" json:"dhcpRelayServerIps"`
-	DhcpLeaseTime          jsontypes.String                `tfsdk:"dhcp_lease_time" json:"dhcpLeaseTime"`
-	DhcpBootOptionsEnabled jsontypes.Bool                  `tfsdk:"dhcp_boot_options_enabled" json:"dhcpBootOptionsEnabled"`
-	DhcpBootNextServer     jsontypes.String                `tfsdk:"dhcp_boot_next_server" json:"dhcpBootNextServer"`
-	DhcpBootFilename       jsontypes.String                `tfsdk:"dhcp_boot_filename" json:"dhcpBootFilename"`
-	FixedIpAssignments     ipNameMapping                   `tfsdk:"fixed_ip_assignments" json:"fixedIpAssignments"`
-	ReservedIpRanges       []reservedIpRange               `tfsdk:"reserved_ip_ranges" json:"reservedIpRanges"`
-	DnsNameservers         jsontypes.String                `tfsdk:"dns_nameservers" json:"dnsNameservers"`
-	DhcpOptions            []dhcpOption                    `tfsdk:"dhcp_options" json:"dhcpOptions"`
-	TemplateVlanType       jsontypes.String                `tfsdk:"template_vlan_type" json:"templateVlanType"`
-	Cidr                   jsontypes.String                `tfsdk:"cidr" json:"cidr"`
-	Mask                   jsontypes.Int64                 `tfsdk:"mask" json:"mask"`
-	IPv6                   ipv6Configuration               `tfsdk:"ipv6" json:"ipv6"`
-	MandatoryDhcp          mandatoryDhcp                   `tfsdk:"mandatory_dhcp" json:"mandatoryDhcp"`
+	VlanId                 jsontypes.Int64                                      `tfsdk:"vlan_id" json:"id"`
+	Name                   jsontypes.String                                     `tfsdk:"name" json:"name"`
+	Subnet                 jsontypes.String                                     `tfsdk:"subnet" json:"subnet"`
+	ApplianceIp            jsontypes.String                                     `tfsdk:"appliance_ip" json:"applianceIp"`
+	GroupPolicyId          jsontypes.String                                     `tfsdk:"group_policy_id" json:"groupPolicyId"`
+	VpnNatSubnet           jsontypes.String                                     `tfsdk:"vpn_nat_subnet" json:"vpnNatSubnet"`
+	DhcpHandling           jsontypes.String                                     `tfsdk:"dhcp_handling" json:"dhcpHandling"`
+	DhcpRelayServerIps     jsontypes.Set[jsontypes.String]                      `tfsdk:"dhcp_relay_server_ips" json:"dhcpRelayServerIps"`
+	DhcpLeaseTime          jsontypes.String                                     `tfsdk:"dhcp_lease_time" json:"dhcpLeaseTime"`
+	DhcpBootOptionsEnabled jsontypes.Bool                                       `tfsdk:"dhcp_boot_options_enabled" json:"dhcpBootOptionsEnabled"`
+	DhcpBootNextServer     jsontypes.String                                     `tfsdk:"dhcp_boot_next_server" json:"dhcpBootNextServer"`
+	DhcpBootFilename       jsontypes.String                                     `tfsdk:"dhcp_boot_filename" json:"dhcpBootFilename"`
+	FixedIpAssignments     NetworksApplianceVLANsResourceModelIpNameMapping     `tfsdk:"fixed_ip_assignments" json:"fixedIpAssignments"`
+	ReservedIpRanges       []NetworksApplianceVLANsResourceModelReservedIpRange `tfsdk:"reserved_ip_ranges" json:"reservedIpRanges"`
+	DnsNameservers         jsontypes.String                                     `tfsdk:"dns_nameservers" json:"dnsNameservers"`
+	DhcpOptions            []NetworksApplianceVLANsResourceModelDhcpOption      `tfsdk:"dhcp_options" json:"dhcpOptions"`
+	TemplateVlanType       jsontypes.String                                     `tfsdk:"template_vlan_type" json:"templateVlanType"`
+	Cidr                   jsontypes.String                                     `tfsdk:"cidr" json:"cidr"`
+	Mask                   jsontypes.Int64                                      `tfsdk:"mask" json:"mask"`
+	IPv6                   ipv6Configuration                                    `tfsdk:"ipv6" json:"ipv6"`
+	MandatoryDhcp          NetworksApplianceVLANsResourceModelMandatoryDhcp     `tfsdk:"mandatory_dhcp" json:"NetworksApplianceVLANsResourceModelMandatoryDhcp"`
 }
 
-type ipNameMapping struct {
+type NetworksApplianceVLANsResourceModelIpNameMapping struct {
 	Ip   jsontypes.String `tfsdk:"ip" json:"ip"`
 	Name jsontypes.String `tfsdk:"name" json:"name"`
 }
 
-type reservedIpRange struct {
+type NetworksApplianceVLANsResourceModelReservedIpRange struct {
 	Start   jsontypes.String `tfsdk:"start" json:"start"`
 	End     jsontypes.String `tfsdk:"end" json:"end"`
 	Comment jsontypes.String `tfsdk:"comment" json:"comment"`
 }
 
-type dhcpOption struct {
+type NetworksApplianceVLANsResourceModelDhcpOption struct {
 	Code  jsontypes.String `tfsdk:"code" json:"code"`
 	Type  jsontypes.String `tfsdk:"type" json:"type"`
 	Value jsontypes.String `tfsdk:"value" json:"value"`
 }
 
 type ipv6Configuration struct {
-	Enabled           jsontypes.Bool     `tfsdk:"enabled" json:"enabled"`
-	PrefixAssignments []prefixAssignment `tfsdk:"prefix_assignments" json:"prefixAssignments"`
+	Enabled           jsontypes.Bool                                        `tfsdk:"enabled" json:"enabled"`
+	PrefixAssignments []NetworksApplianceVLANsResourceModelPrefixAssignment `tfsdk:"prefix_assignments" json:"prefixAssignments"`
 }
 
-type prefixAssignment struct {
-	Autonomous         jsontypes.Bool   `tfsdk:"autonomous" json:"autonomous"`
-	StaticPrefix       jsontypes.String `tfsdk:"static_prefix" json:"staticPrefix"`
-	StaticApplianceIp6 jsontypes.String `tfsdk:"static_appliance_ip6" json:"staticApplianceIp6"`
-	Origin             origin           `tfsdk:"origin" json:"origin"`
+type NetworksApplianceVLANsResourceModelPrefixAssignment struct {
+	Autonomous         jsontypes.Bool                            `tfsdk:"autonomous" json:"autonomous"`
+	StaticPrefix       jsontypes.String                          `tfsdk:"static_prefix" json:"staticPrefix"`
+	StaticApplianceIp6 jsontypes.String                          `tfsdk:"static_appliance_ip6" json:"staticApplianceIp6"`
+	Origin             NetworksApplianceVLANsResourceModelOrigin `tfsdk:"origin" json:"origin"`
 }
 
-type origin struct {
+type NetworksApplianceVLANsResourceModelOrigin struct {
 	Type       jsontypes.String   `tfsdk:"type" json:"type"`
 	Interfaces []jsontypes.String `tfsdk:"interfaces" json:"interfaces"`
 }
 
-type mandatoryDhcp struct {
+type NetworksApplianceVLANsResourceModelMandatoryDhcp struct {
 	Enabled jsontypes.Bool `tfsdk:"enabled" json:"enabled"`
 }
 
@@ -104,7 +104,7 @@ func (r *NetworksApplianceVLANsResource) Metadata(ctx context.Context, req resou
 func (r *NetworksApplianceVLANsResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 
-		MarkdownDescription: "NetworksApplianceVlans",
+		MarkdownDescription: "Manage the VLANs for an MX network",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:   true,
