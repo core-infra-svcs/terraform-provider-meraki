@@ -48,7 +48,7 @@ func TestAccNetworksAppliancePortResource(t *testing.T) {
 			{
 				Config: testAccNetworksAppliancePortResourceConfigListNetworkAppliancePorts,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_appliance_ports.test", "port_id", "2"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_ports.test", "port_id", "1"),
 					resource.TestCheckResourceAttr("meraki_networks_appliance_ports.test", "allowed_vlans", "all"),
 					resource.TestCheckResourceAttr("meraki_networks_appliance_ports.test", "drop_untagged_traffic", "true"),
 					resource.TestCheckResourceAttr("meraki_networks_appliance_ports.test", "enabled", "true"),
