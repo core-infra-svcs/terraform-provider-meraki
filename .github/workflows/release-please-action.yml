@@ -20,19 +20,15 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
       - name: Add tags to PR
-        uses: actions/github-script@v6
+        uses: actions/github-script@v4
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const prNumber = process.env.PR_NUMBER;
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
-            await github.rest.git.createRef({
-              owner: owner,
-              repo: repo,
+            const github = context.github;
+            const prNumber = context.payload.number;
+            github.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
               ref: `refs/tags/pr-${prNumber}`,
-              sha: github.sha
+              sha: context.payload.pull_request.head.sha
             });
-        env:
-          PR_NUMBER: ${{ github.event.number }}
-      
