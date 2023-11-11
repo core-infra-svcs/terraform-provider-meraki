@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.4](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.3.3...v0.3.4) (2023-11-11)
+
+
+### Bug Fixes
+
+* git tagging ([#227](https://github.com/core-infra-svcs/terraform-provider-meraki/issues/227)) ([e7991a5](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/e7991a56599213660a6c72376ccbdb4027eef80a))
+
 ## [0.3.3](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.3.2...v0.3.3) (2023-11-11)
 
 
