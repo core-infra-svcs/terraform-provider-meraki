@@ -1,4 +1,4 @@
-name: release please action
+name: Release Workflow
 
 on:
   push:
@@ -12,24 +12,25 @@ permissions:
 jobs:
   release-please:
     runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      upload_url: ${{ steps.release.outputs.upload_url }}
+      labels: ${{ steps.release.outputs.labels }}
     steps:
-      - uses: google-github-actions/release-please-action@v3
+      - name: Release Please
+        id: release
+        uses: google-github-actions/release-please-action@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           release-type: terraform-module
-          package-name: ${{env.ACTION_NAME}}
-      - name: Checkout Repository
-        uses: actions/checkout@v3
-      - name: Tag Major and Minor Versions
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const prNumber = context.payload.pull_request.number;
-            await github.rest.git.createRef({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: `refs/tags/pr-${prNumber}`,
-              sha: github.event.pull_request.head.sha
-            });
+          package-name: ${{ env.ACTION_NAME }}
+
+      - name: tag major and patch versions
+        if: "steps.release.outputs.labels && contains(steps.release.outputs.labels, 'autorelease: pending')"
+        run: |
+          echo "Running step because autorelease: pending label is present"
+
+      - name: tag major and patch versions
+        if: "steps.release.outputs.labels && contains(steps.release.outputs.labels, 'autorelease: tagged')"
+        run: |
+          echo "Running step because autorelease: tagged label is present"
