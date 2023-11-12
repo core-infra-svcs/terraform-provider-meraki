@@ -1,62 +1,14 @@
-name: Manual Trigger for Release
+name: release
 
 on:
-  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
 
 permissions:
   contents: write
 
 jobs:
-  # Ensure project builds before running testing matrix
-  build:
-    name: build
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v4
-        with:
-          go-version-file: 'go.mod'
-          cache: true
-      - run: go mod download
-      - run: go build -v .
-
-  # Run acceptance tests in a matrix with Terraform CLI versions
-  intergration_test_all:
-    name: Terraform Provider Acceptance Tests
-    needs: build
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    strategy:
-      fail-fast: false
-      matrix:
-        # list whatever Terraform versions here you would like to support
-        terraform:
-          - '1.2.*'
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v4
-        with:
-          go-version-file: 'go.mod'
-          cache: true
-      - uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: ${{ matrix.terraform }}
-          terraform_wrapper: false
-      - run: go mod download
-      - env:
-          TF_ACC: "1"
-          MERAKI_DASHBOARD_API_KEY: ${{ secrets.MERAKI_DASHBOARD_API_KEY }}
-          TF_ACC_MAIN_OFFICE_SUB_TEST_NETWORK_ID: $ {{  }}
-          TF_ACC_MERAKI_MG_SERIAL: ${{ secrets.TF_ACC_MERAKI_MG_SERIAL }}
-          TF_ACC_MERAKI_MS_SERIAL: ${{ secrets.TF_ACC_MERAKI_MS_SERIAL }}
-          TF_ACC_MERAKI_MX_LICENCE: ${{ secrets.TF_ACC_MERAKI_MX_LICENCE }}
-          TF_ACC_MERAKI_MX_SERIAL: ${{ secrets.TF_ACC_MERAKI_MX_SERIAL }}
-          TF_ACC_MERAKI_ORDER_NUMBER: ${{ secrets.TF_ACC_MERAKI_ORDER_NUMBER }}
-          TF_ACC_MERAKI_ORGANIZATION_ID: ${{ secrets.TF_ACC_MERAKI_ORGANZIATION_ID }}
-        run: go test -v -cover ./internal/provider/
-        timeout-minutes: 60
-
   goreleaser:
     runs-on: ubuntu-latest
     steps:
@@ -77,7 +29,7 @@ jobs:
         uses: goreleaser/goreleaser-action@v4.3.0
         with:
           version: latest
-          args: release --clean
+          args: release --rm-dist
         env:
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

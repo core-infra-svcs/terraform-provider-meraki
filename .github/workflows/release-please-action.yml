@@ -1,4 +1,4 @@
-name: Full Release Workflow
+name: release please action
 
 on:
   push:
@@ -10,91 +10,25 @@ permissions:
   pull-requests: write
 
 jobs:
-  create-prerelease:
+  release-please:
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, 'chore(main): release')"
     steps:
       - uses: google-github-actions/release-please-action@v3
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
           release-type: terraform-module
-          package-name: ${{ env.ACTION_NAME }}
-          prerelease: true
-
-  test-and-release:
-    runs-on: ubuntu-latest
-    if: "contains(github.event.head_commit.message, 'chore(main): release')"
-    strategy:
-      fail-fast: false
-      matrix:
-        # list whatever Terraform versions here you would like to support
-        terraform:
-          - '1.2.*'
-    steps:
-
-      # Build
-      - uses: actions/setup-go@v4
-        with:
-          go-version-file: 'go.mod'
-          cache: true
-      - run: go mod download
-      - run: go build -v .
-
-      # Extensive Integration Test
-      - uses: actions/setup-go@v4
-        with:
-          go-version-file: 'go.mod'
-          cache: true
-      - uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: ${{ matrix.terraform }}
-          terraform_wrapper: false
-      - run: go mod download
-      - env:
-          TF_ACC: "1"
-          MERAKI_DASHBOARD_API_KEY: ${{ secrets.MERAKI_DASHBOARD_API_KEY }}
-          TF_ACC_MAIN_OFFICE_SUB_TEST_NETWORK_ID: $ {{  }}
-          TF_ACC_MERAKI_MG_SERIAL: ${{ secrets.TF_ACC_MERAKI_MG_SERIAL }}
-          TF_ACC_MERAKI_MS_SERIAL: ${{ secrets.TF_ACC_MERAKI_MS_SERIAL }}
-          TF_ACC_MERAKI_MX_LICENCE: ${{ secrets.TF_ACC_MERAKI_MX_LICENCE }}
-          TF_ACC_MERAKI_MX_SERIAL: ${{ secrets.TF_ACC_MERAKI_MX_SERIAL }}
-          TF_ACC_MERAKI_ORDER_NUMBER: ${{ secrets.TF_ACC_MERAKI_ORDER_NUMBER }}
-          TF_ACC_MERAKI_ORGANIZATION_ID: ${{ secrets.TF_ACC_MERAKI_ORGANIZATION_ID }}
-        run: go test -v -cover ./internal/provider/
-        timeout-minutes: 60
-
-      # Git Tagging
-      - name: Create Release with Git Tag
-        uses: google-github-actions/release-please-action@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          release-type: terraform-module
-          package-name: ${{ env.ACTION_NAME }}
-
-  run-goreleaser:
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
-    steps:
-      - name: Checkout
+          package-name: ${{env.ACTION_NAME}}
+      - name: Checkout Repository
         uses: actions/checkout@v3
-        #with:
-        #fetch-depth: 0
-      - name: Set up Go
-        uses: actions/setup-go@v3.5.0
+      - name: Add tags to PR
+        uses: actions/github-script@v6
         with:
-          go-version-file: 'go.mod'
-          cache: true
-      - name: Import GPG key
-        uses: crazy-max/ghaction-import-gpg@v5.3.0
-        id: import_gpg
-        with:
-          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
-          passphrase: ${{ secrets.PASSPHRASE }}
-      - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v4.3.0
-        with:
-          version: latest
-          args: release --clean
-        env:
-          GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const github = context.github;
+            const prNumber = context.payload.number;
+            github.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: `refs/tags/pr-${prNumber}`,
+              sha: context.payload.pull_request.head.sha
+            });
