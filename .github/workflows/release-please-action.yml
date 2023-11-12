@@ -28,7 +28,7 @@ jobs:
       - name: tag major and patch versions
         if: "steps.release.outputs.labels && contains(steps.release.outputs.labels, 'autorelease: pending')"
         run: |
-          echo "Running step because autorelease: pending label is present"
+          echo "Running step because autorelease: pending label is present "
 
       - name: tag major and patch versions
         if: "steps.release.outputs.labels && contains(steps.release.outputs.labels, 'autorelease: tagged')"
