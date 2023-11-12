@@ -24,10 +24,11 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const prNumber = context.payload.pull_request.number;
-            await github.rest.git.createRef({
+            const github = context.github;
+            const prNumber = context.payload.number;
+            github.git.createRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
               ref: `refs/tags/pr-${prNumber}`,
-              sha: github.event.pull_request.head.sha
+              sha: context.payload.pull_request.head.sha
             });
