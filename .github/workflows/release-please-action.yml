@@ -21,7 +21,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           release-type: terraform-module
           package-name: ${{ env.ACTION_NAME }}
-          pre-release: true
+          prerelease: true
 
   test-and-release:
     runs-on: ubuntu-latest
