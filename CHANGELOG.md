@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.5.0](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.4.0...v0.5.0) (2023-11-12)
+
+
+### Features
+
+* pr-based-workflow ([#231](https://github.com/core-infra-svcs/terraform-provider-meraki/issues/231)) ([b3adc37](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/b3adc37503c237083e9c74b0e8224d0c9953795f))
+
+
+### Bug Fixes
+
+* prerelease ([#233](https://github.com/core-infra-svcs/terraform-provider-meraki/issues/233)) ([35e1621](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/35e1621a848ae6d894652c7e0218920960113202))
+
 ## [0.4.0](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.3.4...v0.4.0) (2023-11-12)
 
 
