@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.3.4...v0.4.0) (2023-11-12)
+
+
+### Features
+
+* test workflow ([#229](https://github.com/core-infra-svcs/terraform-provider-meraki/issues/229)) ([26a329f](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/26a329f7daa2de740a7af989dc20ec9bb1887911))
+
 ## [0.3.4](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.3.3...v0.3.4) (2023-11-11)
 
 
