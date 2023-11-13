@@ -3,9 +3,9 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
-	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -32,40 +32,40 @@ type NetworksSettingsResource struct {
 
 // NetworksSettingsResourceModel describes the resource data model.
 type NetworksSettingsResourceModel struct {
-	Id                                    jsontypes.String `tfsdk:"id"`
-	NetworkId                             jsontypes.String `tfsdk:"network_id" json:"network_id"`
-	LocalStatusPageEnabled                jsontypes.Bool   `tfsdk:"local_status_page_enabled" json:"localStatusPageEnabled"`
-	RemoteStatusPageEnabled               jsontypes.Bool   `tfsdk:"remote_status_page_enabled" json:"remoteStatusPageEnabled"`
-	SecurePortEnabled                     SecurePort       `tfsdk:"secure_port_enabled" json:"securePort"`
-	LocalStatusPage                       LocalStatusPage  `tfsdk:"local_status_page" json:"localStatusPage"`
-	LocalStatusPageAuthenticationPassword jsontypes.String `tfsdk:"local_status_page_authentication_password" json:"local_status_page_authentication_password"`
-	FipsEnabled                           jsontypes.Bool   `tfsdk:"fips_enabled"`
-	NamedVlansEnabled                     jsontypes.Bool   `tfsdk:"named_vlans_enabled"`
-	ClientPrivacyExpireDataOlderThan      jsontypes.Int64  `tfsdk:"client_privacy_expire_data_older_than"`
-	ClientPrivacyExpireDataBefore         jsontypes.String `tfsdk:"client_privacy_expire_data_before"`
+	Id                                    jsontypes.String                             `tfsdk:"id"`
+	NetworkId                             jsontypes.String                             `tfsdk:"network_id" json:"network_id"`
+	LocalStatusPageEnabled                jsontypes.Bool                               `tfsdk:"local_status_page_enabled" json:"localStatusPageEnabled"`
+	RemoteStatusPageEnabled               jsontypes.Bool                               `tfsdk:"remote_status_page_enabled" json:"remoteStatusPageEnabled"`
+	SecurePortEnabled                     NetworksSettingsResourceModelSecurePort      `tfsdk:"secure_port_enabled" json:"securePort"`
+	LocalStatusPage                       NetworksSettingsResourceModelLocalStatusPage `tfsdk:"local_status_page" json:"localStatusPage"`
+	LocalStatusPageAuthenticationPassword jsontypes.String                             `tfsdk:"local_status_page_authentication_password" json:"local_status_page_authentication_password"`
+	FipsEnabled                           jsontypes.Bool                               `tfsdk:"fips_enabled"`
+	NamedVlansEnabled                     jsontypes.Bool                               `tfsdk:"named_vlans_enabled"`
+	ClientPrivacyExpireDataOlderThan      jsontypes.Int64                              `tfsdk:"client_privacy_expire_data_older_than"`
+	ClientPrivacyExpireDataBefore         jsontypes.String                             `tfsdk:"client_privacy_expire_data_before"`
 }
 
-type SecurePort struct {
+type NetworksSettingsResourceModelSecurePort struct {
 	Enabled bool `tfsdk:"enabled" json:"enabled"`
 }
 
-type LocalStatusPage struct {
-	Authentication AuthenticationInfo `tfsdk:"authentication" json:"authentication"`
+type NetworksSettingsResourceModelLocalStatusPage struct {
+	Authentication NetworksSettingsResourceModelAuthenticationInfo `tfsdk:"authentication" json:"authentication"`
 }
 
-type AuthenticationInfo struct {
+type NetworksSettingsResourceModelAuthenticationInfo struct {
 	Enabled  bool   `tfsdk:"enabled" json:"enabled"`
 	Username string `tfsdk:"username" json:"username"`
 }
 
-type Fips struct {
+type NetworksSettingsResourceModelFips struct {
 	Enabled bool `tfsdk:"enabled"`
 }
 
-type NamedVlans struct {
+type NetworksSettingsResourceModelNamedVlans struct {
 	Enabled bool `tfsdk:"enabled"`
 }
-type ClientPrivacy struct {
+type NetworksSettingsResourceModelClientPrivacy struct {
 	ExpireDataOlderThan jsontypes.Int64 `tfsdk:"expireDataOlderThan"`
 	ExpireDataBefore    string          `tfsdk:"expireDataBefore"`
 }
@@ -204,31 +204,27 @@ func (r *NetworksSettingsResource) Create(ctx context.Context, req resource.Crea
 		return
 	}
 
-	updateNetworkSettings := *openApiClient.NewInlineObject98()
+	updateNetworkSettings := *openApiClient.NewUpdateNetworkSettingsRequest()
 	updateNetworkSettings.SetLocalStatusPageEnabled(data.LocalStatusPageEnabled.ValueBool())
 	updateNetworkSettings.SetRemoteStatusPageEnabled(data.RemoteStatusPageEnabled.ValueBool())
-	var v openApiClient.InlineResponse20041SecurePort
+	var v openApiClient.GetNetworkSettings200ResponseSecurePort
 
 	v.SetEnabled(data.SecurePortEnabled.Enabled)
 	updateNetworkSettings.SetSecurePort(v)
-	var l openApiClient.NetworksNetworkIdSettingsLocalStatusPage
-	var a openApiClient.NetworksNetworkIdSettingsLocalStatusPageAuthentication
+	var l openApiClient.UpdateNetworkSettingsRequestLocalStatusPage
+	var a openApiClient.UpdateNetworkSettingsRequestLocalStatusPageAuthentication
 	a.SetEnabled(data.LocalStatusPage.Authentication.Enabled)
 	a.SetPassword(data.LocalStatusPage.Authentication.Username)
 	l.SetAuthentication(a)
 	updateNetworkSettings.SetLocalStatusPage(l)
 
-	inlineResp, httpResp, err := r.client.NetworksApi.UpdateNetworkSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSettings(updateNetworkSettings).Execute()
+	inlineResp, httpResp, err := r.client.NetworksApi.UpdateNetworkSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSettingsRequest(updateNetworkSettings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	if httpResp.StatusCode != 200 {
@@ -293,14 +289,10 @@ func (r *NetworksSettingsResource) Read(ctx context.Context, req resource.ReadRe
 	inlineResp, httpResp, err := r.client.NetworksApi.GetNetworkSettings(context.Background(), data.NetworkId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to read resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	if httpResp.StatusCode != 200 {
@@ -364,30 +356,26 @@ func (r *NetworksSettingsResource) Update(ctx context.Context, req resource.Upda
 		return
 	}
 
-	updateNetworkSettings := *openApiClient.NewInlineObject98()
+	updateNetworkSettings := *openApiClient.NewUpdateNetworkSettingsRequest()
 	updateNetworkSettings.SetLocalStatusPageEnabled(data.LocalStatusPageEnabled.ValueBool())
 	updateNetworkSettings.SetRemoteStatusPageEnabled(data.RemoteStatusPageEnabled.ValueBool())
-	var v openApiClient.InlineResponse20041SecurePort
+	var v openApiClient.GetNetworkSettings200ResponseSecurePort
 	v.SetEnabled(data.SecurePortEnabled.Enabled)
 	updateNetworkSettings.SetSecurePort(v)
-	var l openApiClient.NetworksNetworkIdSettingsLocalStatusPage
-	var a openApiClient.NetworksNetworkIdSettingsLocalStatusPageAuthentication
+	var l openApiClient.UpdateNetworkSettingsRequestLocalStatusPage
+	var a openApiClient.UpdateNetworkSettingsRequestLocalStatusPageAuthentication
 	a.SetEnabled(data.LocalStatusPage.Authentication.Enabled)
 	a.SetPassword(data.LocalStatusPage.Authentication.Username)
 	l.SetAuthentication(a)
 	updateNetworkSettings.SetLocalStatusPage(l)
 
-	inlineResp, httpResp, err := r.client.NetworksApi.UpdateNetworkSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSettings(updateNetworkSettings).Execute()
+	inlineResp, httpResp, err := r.client.NetworksApi.UpdateNetworkSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSettingsRequest(updateNetworkSettings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code
@@ -451,30 +439,26 @@ func (r *NetworksSettingsResource) Delete(ctx context.Context, req resource.Dele
 		return
 	}
 
-	updateNetworkSettings := *openApiClient.NewInlineObject98()
+	updateNetworkSettings := *openApiClient.NewUpdateNetworkSettingsRequest()
 	updateNetworkSettings.SetLocalStatusPageEnabled(data.LocalStatusPageEnabled.ValueBool())
 	updateNetworkSettings.SetRemoteStatusPageEnabled(data.RemoteStatusPageEnabled.ValueBool())
-	var v openApiClient.InlineResponse20041SecurePort
+	var v openApiClient.GetNetworkSettings200ResponseSecurePort
 	v.SetEnabled(data.SecurePortEnabled.Enabled)
 	updateNetworkSettings.SetSecurePort(v)
-	var l openApiClient.NetworksNetworkIdSettingsLocalStatusPage
-	var a openApiClient.NetworksNetworkIdSettingsLocalStatusPageAuthentication
+	var l openApiClient.UpdateNetworkSettingsRequestLocalStatusPage
+	var a openApiClient.UpdateNetworkSettingsRequestLocalStatusPageAuthentication
 	a.SetEnabled(data.LocalStatusPage.Authentication.Enabled)
 	a.SetPassword(data.LocalStatusPage.Authentication.Username)
 	l.SetAuthentication(a)
 	updateNetworkSettings.SetLocalStatusPage(l)
 
-	inlineResp, httpResp, err := r.client.NetworksApi.UpdateNetworkSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSettings(updateNetworkSettings).Execute()
+	inlineResp, httpResp, err := r.client.NetworksApi.UpdateNetworkSettings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSettingsRequest(updateNetworkSettings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code

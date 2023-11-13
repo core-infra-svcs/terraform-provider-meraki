@@ -32,12 +32,12 @@ type NetworksSwitchDscpToCosMappingsResource struct {
 
 // NetworksSwitchDscpToCosMappingsResourceModel describes the resource data model.
 type NetworksSwitchDscpToCosMappingsResourceModel struct {
-	Id        jsontypes.String `tfsdk:"id"`
-	NetworkId jsontypes.String `tfsdk:"network_id"`
-	Mappings  []Mapping        `tfsdk:"mappings" json:"mappings"`
+	Id        jsontypes.String                                      `tfsdk:"id"`
+	NetworkId jsontypes.String                                      `tfsdk:"network_id"`
+	Mappings  []NetworksSwitchDscpToCosMappingsResourceModelMapping `tfsdk:"mappings" json:"mappings"`
 }
 
-type Mapping struct {
+type NetworksSwitchDscpToCosMappingsResourceModelMapping struct {
 	Dscp jsontypes.Int64 `tfsdk:"dscp" json:"dscp"`
 	Cos  jsontypes.Int64 `tfsdk:"cos" json:"cos"`
 }
@@ -117,9 +117,9 @@ func (r *NetworksSwitchDscpToCosMappingsResource) Create(ctx context.Context, re
 		return
 	}
 
-	mappings := []openApiClient.NetworksNetworkIdSwitchDscpToCosMappingsMappings{}
+	mappings := []openApiClient.UpdateNetworkSwitchDscpToCosMappingsRequestMappingsInner{}
 	for _, mapping := range data.Mappings {
-		mappingsMappings := openApiClient.NetworksNetworkIdSwitchDscpToCosMappingsMappings{
+		mappingsMappings := openApiClient.UpdateNetworkSwitchDscpToCosMappingsRequestMappingsInner{
 			Dscp: int32(mapping.Dscp.ValueInt64()),
 			Cos:  int32(mapping.Cos.ValueInt64()),
 		}
@@ -127,19 +127,15 @@ func (r *NetworksSwitchDscpToCosMappingsResource) Create(ctx context.Context, re
 	}
 
 	// Create Payload
-	networkMappings := *openApiClient.NewInlineObject116(mappings)
+	networkMappings := *openApiClient.NewUpdateNetworkSwitchDscpToCosMappingsRequest(mappings)
 
-	_, httpResp, err := r.client.ConfigureApi.UpdateNetworkSwitchDscpToCosMappings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchDscpToCosMappings(networkMappings).Execute()
+	_, httpResp, err := r.client.ConfigureApi.UpdateNetworkSwitchDscpToCosMappings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchDscpToCosMappingsRequest(networkMappings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code
@@ -186,14 +182,9 @@ func (r *NetworksSwitchDscpToCosMappingsResource) Read(ctx context.Context, req 
 	_, httpResp, err := r.client.ConfigureApi.GetNetworkSwitchDscpToCosMappings(context.Background(), data.NetworkId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to get resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 	}
 
 	// Check for API success response code
@@ -238,28 +229,24 @@ func (r *NetworksSwitchDscpToCosMappingsResource) Update(ctx context.Context, re
 		return
 	}
 
-	mappings := []openApiClient.NetworksNetworkIdSwitchDscpToCosMappingsMappings{}
+	mappings := []openApiClient.UpdateNetworkSwitchDscpToCosMappingsRequestMappingsInner{}
 	for _, mapping := range data.Mappings {
-		mappings = append(mappings, openApiClient.NetworksNetworkIdSwitchDscpToCosMappingsMappings{
+		mappings = append(mappings, openApiClient.UpdateNetworkSwitchDscpToCosMappingsRequestMappingsInner{
 			Dscp: int32(mapping.Dscp.ValueInt64()),
 			Cos:  int32(mapping.Cos.ValueInt64()),
 		})
 	}
 
 	// Create Payload
-	networkMappings := *openApiClient.NewInlineObject116(mappings)
+	networkMappings := *openApiClient.NewUpdateNetworkSwitchDscpToCosMappingsRequest(mappings)
 
-	_, httpResp, err := r.client.ConfigureApi.UpdateNetworkSwitchDscpToCosMappings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchDscpToCosMappings(networkMappings).Execute()
+	_, httpResp, err := r.client.ConfigureApi.UpdateNetworkSwitchDscpToCosMappings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchDscpToCosMappingsRequest(networkMappings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code
@@ -303,28 +290,24 @@ func (r *NetworksSwitchDscpToCosMappingsResource) Delete(ctx context.Context, re
 		return
 	}
 
-	mappings := []openApiClient.NetworksNetworkIdSwitchDscpToCosMappingsMappings{}
+	mappings := []openApiClient.UpdateNetworkSwitchDscpToCosMappingsRequestMappingsInner{}
 	for _, mapping := range data.Mappings {
-		mappings = append(mappings, openApiClient.NetworksNetworkIdSwitchDscpToCosMappingsMappings{
+		mappings = append(mappings, openApiClient.UpdateNetworkSwitchDscpToCosMappingsRequestMappingsInner{
 			Dscp: int32(mapping.Dscp.ValueInt64()),
 			Cos:  int32(mapping.Cos.ValueInt64()),
 		})
 	}
 
 	// Create Payload
-	networkMappings := *openApiClient.NewInlineObject116(mappings)
+	networkMappings := *openApiClient.NewUpdateNetworkSwitchDscpToCosMappingsRequest(mappings)
 
-	_, httpResp, err := r.client.ConfigureApi.UpdateNetworkSwitchDscpToCosMappings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchDscpToCosMappings(networkMappings).Execute()
+	_, httpResp, err := r.client.ConfigureApi.UpdateNetworkSwitchDscpToCosMappings(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSwitchDscpToCosMappingsRequest(networkMappings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to delete resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code

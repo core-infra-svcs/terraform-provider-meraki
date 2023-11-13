@@ -27,12 +27,12 @@ type OrganizationsDataSource struct {
 
 // OrganizationsDataSourceModel describes the data source data model.
 type OrganizationsDataSourceModel struct {
-	Id   jsontypes.String              `tfsdk:"id"`
-	List []OrganizationDataSourceModel `tfsdk:"list"`
+	Id   jsontypes.String                   `tfsdk:"id"`
+	List []OrganizationsDataSourceModelList `tfsdk:"list"`
 }
 
-// OrganizationDataSourceModel describes the data source data model.
-type OrganizationDataSourceModel struct {
+// OrganizationsDataSourceModelList describes the data source data model.
+type OrganizationsDataSourceModelList struct {
 	ApiEnabled     jsontypes.Bool   `tfsdk:"api_enabled"`
 	CloudRegion    jsontypes.String `tfsdk:"cloud_region_name"`
 	OrgId          jsontypes.String `tfsdk:"organization_id"`
@@ -134,8 +134,8 @@ func (d *OrganizationsDataSource) Read(ctx context.Context, req datasource.ReadR
 	inlineResp, httpResp, err := d.client.OrganizationsApi.GetOrganizations(context.Background()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to read datasource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
 		return
 	}
@@ -149,11 +149,6 @@ func (d *OrganizationsDataSource) Read(ctx context.Context, req datasource.ReadR
 		return
 	}
 
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
-	}
-
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
@@ -163,7 +158,7 @@ func (d *OrganizationsDataSource) Read(ctx context.Context, req datasource.ReadR
 	data.Id = jsontypes.StringValue("example-id")
 
 	for _, organization := range inlineResp {
-		var result OrganizationDataSourceModel
+		var result OrganizationsDataSourceModelList
 
 		result.OrgId = jsontypes.StringValue(organization.GetId())
 		result.Name = jsontypes.StringValue(organization.GetName())

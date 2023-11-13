@@ -36,7 +36,7 @@ func TestAccOrganizationsApplianceVpnVpnFirewallRulesResource(t *testing.T) {
 			{
 				Config: testAccOrganizationsApplianceVpnVpnFirewallRulesResourceConfigCreateNetwork,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "Main Office"),
+					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_organizations_appliance_vpn_vpn_firewall_rules"),
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
@@ -80,7 +80,7 @@ resource "meraki_network" "test" {
     organization_id = resource.meraki_organization.test.organization_id
     product_types = ["appliance", "switch", "wireless"]
     tags = ["tag1"]
-    name = "Main Office"
+    name = "test_acc_organizations_appliance_vpn_vpn_firewall_rules"
     timezone = "America/Los_Angeles"
     notes = "Additional description of the network"
 }

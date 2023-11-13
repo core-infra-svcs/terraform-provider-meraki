@@ -2,7 +2,7 @@ name: resource pull request tests
 
 on:
   pull_request:
-    branches-ignore:
+    branches:
       - main
 
 permissions:
@@ -68,5 +68,5 @@ jobs:
       - env:
           TF_ACC: "1"
           MERAKI_DASHBOARD_API_KEY: ${{ secrets.MERAKI_DASHBOARD_API_KEY }}
-        run: go test -v -cover ./internal/provider/
+        run: go test -sweep -v -cover ./internal/provider/
         timeout-minutes: 60
