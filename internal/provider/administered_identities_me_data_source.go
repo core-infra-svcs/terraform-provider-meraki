@@ -3,11 +3,11 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"time"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
-	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -128,8 +128,8 @@ func (d *AdministeredIdentitiesMeDataSource) Read(ctx context.Context, req datas
 	inlineResp, httpResp, err := d.client.AdministeredApi.GetAdministeredIdentitiesMe(context.Background()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to read datasource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
 		return
 	}
@@ -141,11 +141,6 @@ func (d *AdministeredIdentitiesMeDataSource) Read(ctx context.Context, req datas
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
 		return
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 	}
 
 	// Check for errors after diagnostics collected

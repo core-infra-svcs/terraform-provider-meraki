@@ -3,12 +3,12 @@
 page_title: "meraki_organizations_claim Resource - terraform-provider-meraki"
 subcategory: ""
 description: |-
-  Organizations Claim Resource. DISCLAIMER: Can only claim, does not have full CRUD capabilities.
+  Claim a list of devices, licenses, and/or orders into an organization. When claiming by order, all devices and licenses in the order will be claimed; licenses will be added to the organization and devices will be placed in the organization's inventory.
 ---
 
 # meraki_organizations_claim (Resource)
 
-Organizations Claim Resource. DISCLAIMER: Can only claim, does not have full CRUD capabilities.
+Claim a list of devices, licenses, and/or orders into an organization. When claiming by order, all devices and licenses in the order will be claimed; licenses will be added to the organization and devices will be placed in the organization's inventory.
 
 
 
@@ -39,5 +39,3 @@ Required:
 Optional:
 
 - `mode` (String) Either 'renew' or 'addDevices'. 'addDevices' will increase the license limit, while 'renew' will extend the amount of time until expiration. Defaults to 'addDevices'. All licenses must be claimed with the same mode, and at most one renewal can be claimed at a time. This parameter is legacy and does not apply to organizations with per-device licensing enabled.
-
-

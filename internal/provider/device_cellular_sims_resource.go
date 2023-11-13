@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
-	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -32,31 +32,31 @@ type DevicesCellularSimsResource struct {
 
 // DevicesCellularSimsResourceModel describes the resource data model.
 type DevicesCellularSimsResourceModel struct {
-	Id          jsontypes.String `tfsdk:"id"`
-	Serial      jsontypes.String `tfsdk:"serial" json:"serial"`
-	Sims        []Sim            `tfsdk:"sims" json:"sims"`
-	SimFailover SimFailover      `tfsdk:"sim_failover" json:"simFailover"`
+	Id          jsontypes.String                            `tfsdk:"id"`
+	Serial      jsontypes.String                            `tfsdk:"serial" json:"serial"`
+	Sims        []DevicesCellularSimsResourceModelSim       `tfsdk:"sims" json:"sims"`
+	SimFailOver DevicesCellularSimsResourceModelSimFailOver `tfsdk:"sim_failover" json:"simFailover"`
 }
 
-type Sim struct {
-	Slot      jsontypes.String `tfsdk:"slot" json:"slot"`
-	IsPrimary jsontypes.Bool   `tfsdk:"is_primary" json:"isPrimary"`
-	Apns      []Apns           `tfsdk:"apns" json:"apns"`
+type DevicesCellularSimsResourceModelSim struct {
+	Slot      jsontypes.String                       `tfsdk:"slot" json:"slot"`
+	IsPrimary jsontypes.Bool                         `tfsdk:"is_primary" json:"isPrimary"`
+	Apns      []DevicesCellularSimsResourceModelApns `tfsdk:"apns" json:"apns"`
 }
 
-type Apns struct {
-	Name           jsontypes.String `tfsdk:"name" json:"name"`
-	AllowedIpTypes []string         `tfsdk:"allowed_ip_types" json:"allowedIpTypes"`
-	Authentication Authentication   `tfsdk:"authentication" json:"authentication"`
+type DevicesCellularSimsResourceModelApns struct {
+	Name           jsontypes.String                               `tfsdk:"name" json:"name"`
+	AllowedIpTypes []string                                       `tfsdk:"allowed_ip_types" json:"allowedIpTypes"`
+	Authentication DevicesCellularSimsResourceModelAuthentication `tfsdk:"authentication" json:"authentication"`
 }
 
-type Authentication struct {
+type DevicesCellularSimsResourceModelAuthentication struct {
 	Password jsontypes.String `tfsdk:"password" json:"password"`
 	Username jsontypes.String `tfsdk:"username" json:"username"`
 	Type     jsontypes.String `tfsdk:"type" json:"type"`
 }
 
-type SimFailover struct {
+type DevicesCellularSimsResourceModelSimFailOver struct {
 	Enabled jsontypes.Bool `tfsdk:"enabled" json:"enabled"`
 }
 
@@ -66,7 +66,7 @@ func (r *DevicesCellularSimsResource) Metadata(ctx context.Context, req resource
 
 func (r *DevicesCellularSimsResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Updates the SIM and APN configurations for a cellular device.",
+		MarkdownDescription: "Manages the SIM and APN configurations for a cellular device.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:   true,
@@ -187,27 +187,27 @@ func (r *DevicesCellularSimsResource) Create(ctx context.Context, req resource.C
 		return
 	}
 
-	updateDeviceCellularSims := *openApiClient.NewInlineObject9()
+	updateDeviceCellularSims := *openApiClient.NewUpdateDeviceCellularSimsRequest()
 
-	if !data.SimFailover.Enabled.IsUnknown() {
-		var enabled openApiClient.DevicesSerialCellularSimsSimFailover
-		enabled.SetEnabled(data.SimFailover.Enabled.ValueBool())
+	if !data.SimFailOver.Enabled.IsUnknown() {
+		var enabled openApiClient.UpdateDeviceCellularSimsRequestSimFailover
+		enabled.SetEnabled(data.SimFailOver.Enabled.ValueBool())
 		updateDeviceCellularSims.SetSimFailover(enabled)
 	}
 
 	if len(data.Sims) > 0 {
-		var devicesSerialCellularSims []openApiClient.DevicesSerialCellularSimsSims
+		var devicesSerialCellularSims []openApiClient.UpdateDeviceCellularSimsRequestSimsInner
 		for _, attribute := range data.Sims {
-			var devicesSerialCellularSim openApiClient.DevicesSerialCellularSimsSims
+			var devicesSerialCellularSim openApiClient.UpdateDeviceCellularSimsRequestSimsInner
 			devicesSerialCellularSim.SetIsPrimary(attribute.IsPrimary.ValueBool())
 			devicesSerialCellularSim.SetSlot(attribute.Slot.ValueString())
 			if len(attribute.Apns) > 0 {
-				var devicesSerialCellularSimsApns []openApiClient.DevicesSerialCellularSimsApns
+				var devicesSerialCellularSimsApns []openApiClient.UpdateDeviceCellularSimsRequestSimsInnerApnsInner
 				for _, apn := range attribute.Apns {
-					var devicesSerialCellularSimsApn openApiClient.DevicesSerialCellularSimsApns
+					var devicesSerialCellularSimsApn openApiClient.UpdateDeviceCellularSimsRequestSimsInnerApnsInner
 					devicesSerialCellularSimsApn.SetName(apn.Name.ValueString())
 					devicesSerialCellularSimsApn.SetAllowedIpTypes(apn.AllowedIpTypes)
-					var devicesSerialCellularSimsAuthentication openApiClient.DevicesSerialCellularSimsAuthentication
+					var devicesSerialCellularSimsAuthentication openApiClient.UpdateDeviceCellularSimsRequestSimsInnerApnsInnerAuthentication
 					devicesSerialCellularSimsAuthentication.SetPassword(apn.Authentication.Password.ValueString())
 					devicesSerialCellularSimsAuthentication.SetUsername(apn.Authentication.Username.ValueString())
 					devicesSerialCellularSimsAuthentication.SetType(apn.Authentication.Type.ValueString())
@@ -221,17 +221,14 @@ func (r *DevicesCellularSimsResource) Create(ctx context.Context, req resource.C
 		updateDeviceCellularSims.SetSims(devicesSerialCellularSims)
 	}
 
-	_, httpResp, err := r.client.CellularApi.UpdateDeviceCellularSims(context.Background(), data.Serial.ValueString()).UpdateDeviceCellularSims(updateDeviceCellularSims).Execute()
+	_, httpResp, err := r.client.CellularApi.UpdateDeviceCellularSims(context.Background(), data.Serial.ValueString()).UpdateDeviceCellularSimsRequest(updateDeviceCellularSims).Execute()
 
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to read resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code
@@ -277,21 +274,18 @@ func (r *DevicesCellularSimsResource) Read(ctx context.Context, req resource.Rea
 	_, httpResp, err := r.client.CellularApi.GetDeviceCellularSims(context.Background(), data.Serial.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to read resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
+		return
 	}
 
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to read resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success inlineResp code
@@ -332,27 +326,27 @@ func (r *DevicesCellularSimsResource) Update(ctx context.Context, req resource.U
 		return
 	}
 
-	updateDeviceCellularSims := *openApiClient.NewInlineObject9()
+	updateDeviceCellularSims := *openApiClient.NewUpdateDeviceCellularSimsRequest()
 
-	if !data.SimFailover.Enabled.IsUnknown() {
-		var enabled openApiClient.DevicesSerialCellularSimsSimFailover
-		enabled.SetEnabled(data.SimFailover.Enabled.ValueBool())
+	if !data.SimFailOver.Enabled.IsUnknown() {
+		var enabled openApiClient.UpdateDeviceCellularSimsRequestSimFailover
+		enabled.SetEnabled(data.SimFailOver.Enabled.ValueBool())
 		updateDeviceCellularSims.SetSimFailover(enabled)
 	}
 
 	if len(data.Sims) > 0 {
-		var devicesSerialCellularSims []openApiClient.DevicesSerialCellularSimsSims
+		var devicesSerialCellularSims []openApiClient.UpdateDeviceCellularSimsRequestSimsInner
 		for _, attribute := range data.Sims {
-			var devicesSerialCellularSim openApiClient.DevicesSerialCellularSimsSims
+			var devicesSerialCellularSim openApiClient.UpdateDeviceCellularSimsRequestSimsInner
 			devicesSerialCellularSim.SetIsPrimary(attribute.IsPrimary.ValueBool())
 			devicesSerialCellularSim.SetSlot(attribute.Slot.ValueString())
 			if len(attribute.Apns) > 0 {
-				var devicesSerialCellularSimsApns []openApiClient.DevicesSerialCellularSimsApns
+				var devicesSerialCellularSimsApns []openApiClient.UpdateDeviceCellularSimsRequestSimsInnerApnsInner
 				for _, apn := range attribute.Apns {
-					var devicesSerialCellularSimsApn openApiClient.DevicesSerialCellularSimsApns
+					var devicesSerialCellularSimsApn openApiClient.UpdateDeviceCellularSimsRequestSimsInnerApnsInner
 					devicesSerialCellularSimsApn.SetName(apn.Name.ValueString())
 					devicesSerialCellularSimsApn.SetAllowedIpTypes(apn.AllowedIpTypes)
-					var devicesSerialCellularSimsAuthentication openApiClient.DevicesSerialCellularSimsAuthentication
+					var devicesSerialCellularSimsAuthentication openApiClient.UpdateDeviceCellularSimsRequestSimsInnerApnsInnerAuthentication
 					devicesSerialCellularSimsAuthentication.SetPassword(apn.Authentication.Password.ValueString())
 					devicesSerialCellularSimsAuthentication.SetUsername(apn.Authentication.Username.ValueString())
 					devicesSerialCellularSimsAuthentication.SetType(apn.Authentication.Type.ValueString())
@@ -366,17 +360,13 @@ func (r *DevicesCellularSimsResource) Update(ctx context.Context, req resource.U
 		updateDeviceCellularSims.SetSims(devicesSerialCellularSims)
 	}
 
-	_, httpResp, err := r.client.CellularApi.UpdateDeviceCellularSims(context.Background(), data.Serial.ValueString()).UpdateDeviceCellularSims(updateDeviceCellularSims).Execute()
-
+	_, httpResp, err := r.client.CellularApi.UpdateDeviceCellularSims(context.Background(), data.Serial.ValueString()).UpdateDeviceCellularSimsRequest(updateDeviceCellularSims).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to read resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code
@@ -419,27 +409,27 @@ func (r *DevicesCellularSimsResource) Delete(ctx context.Context, req resource.D
 		return
 	}
 
-	updateDeviceCellularSims := *openApiClient.NewInlineObject9()
+	updateDeviceCellularSims := *openApiClient.NewUpdateDeviceCellularSimsRequest()
 
-	if !data.SimFailover.Enabled.IsUnknown() {
-		var enabled openApiClient.DevicesSerialCellularSimsSimFailover
-		enabled.SetEnabled(data.SimFailover.Enabled.ValueBool())
+	if !data.SimFailOver.Enabled.IsUnknown() {
+		var enabled openApiClient.UpdateDeviceCellularSimsRequestSimFailover
+		enabled.SetEnabled(data.SimFailOver.Enabled.ValueBool())
 		updateDeviceCellularSims.SetSimFailover(enabled)
 	}
 
 	if len(data.Sims) > 0 {
-		var devicesSerialCellularSims []openApiClient.DevicesSerialCellularSimsSims
+		var devicesSerialCellularSims []openApiClient.UpdateDeviceCellularSimsRequestSimsInner
 		for _, attribute := range data.Sims {
-			var devicesSerialCellularSim openApiClient.DevicesSerialCellularSimsSims
+			var devicesSerialCellularSim openApiClient.UpdateDeviceCellularSimsRequestSimsInner
 			devicesSerialCellularSim.SetIsPrimary(attribute.IsPrimary.ValueBool())
 			devicesSerialCellularSim.SetSlot(attribute.Slot.ValueString())
 			if len(attribute.Apns) > 0 {
-				var devicesSerialCellularSimsApns []openApiClient.DevicesSerialCellularSimsApns
+				var devicesSerialCellularSimsApns []openApiClient.UpdateDeviceCellularSimsRequestSimsInnerApnsInner
 				for _, apn := range attribute.Apns {
-					var devicesSerialCellularSimsApn openApiClient.DevicesSerialCellularSimsApns
+					var devicesSerialCellularSimsApn openApiClient.UpdateDeviceCellularSimsRequestSimsInnerApnsInner
 					devicesSerialCellularSimsApn.SetName(apn.Name.ValueString())
 					devicesSerialCellularSimsApn.SetAllowedIpTypes(apn.AllowedIpTypes)
-					var devicesSerialCellularSimsAuthentication openApiClient.DevicesSerialCellularSimsAuthentication
+					var devicesSerialCellularSimsAuthentication openApiClient.UpdateDeviceCellularSimsRequestSimsInnerApnsInnerAuthentication
 					devicesSerialCellularSimsAuthentication.SetPassword(apn.Authentication.Password.ValueString())
 					devicesSerialCellularSimsAuthentication.SetUsername(apn.Authentication.Username.ValueString())
 					devicesSerialCellularSimsAuthentication.SetType(apn.Authentication.Type.ValueString())
@@ -453,17 +443,13 @@ func (r *DevicesCellularSimsResource) Delete(ctx context.Context, req resource.D
 		updateDeviceCellularSims.SetSims(devicesSerialCellularSims)
 	}
 
-	_, httpResp, err := r.client.CellularApi.UpdateDeviceCellularSims(context.Background(), data.Serial.ValueString()).UpdateDeviceCellularSims(updateDeviceCellularSims).Execute()
-
+	_, httpResp, err := r.client.CellularApi.UpdateDeviceCellularSims(context.Background(), data.Serial.ValueString()).UpdateDeviceCellularSimsRequest(updateDeviceCellularSims).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to read resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code

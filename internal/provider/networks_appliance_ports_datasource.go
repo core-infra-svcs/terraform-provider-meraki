@@ -3,9 +3,9 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
-	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -26,14 +26,14 @@ type NetworksAppliancePortsDataSource struct {
 	client *openApiClient.APIClient
 }
 
-type NetworksAppliancePortsDataSourceListModel struct {
-	Id        jsontypes.String                        `tfsdk:"id"`
-	NetworkId jsontypes.String                        `tfsdk:"network_id"`
-	List      []NetworksAppliancePortsDataSourceModel `tfsdk:"list"`
+type NetworksAppliancePortsDataSourceModel struct {
+	Id        jsontypes.String                            `tfsdk:"id"`
+	NetworkId jsontypes.String                            `tfsdk:"network_id"`
+	List      []NetworksAppliancePortsDataSourceModelList `tfsdk:"list"`
 }
 
-// NetworksAppliancePortsDataSourceModel describes the data source data model.
-type NetworksAppliancePortsDataSourceModel struct {
+// NetworksAppliancePortsDataSourceModelList describes the data source data model.
+type NetworksAppliancePortsDataSourceModelList struct {
 	Accesspolicy        jsontypes.String `tfsdk:"access_policy" json:"access_policy"`
 	Allowedvlans        jsontypes.String `tfsdk:"allowed_vlans" json:"allowed_vlans"`
 	Dropuntaggedtraffic jsontypes.Bool   `tfsdk:"drop_untagged_traffic" json:"drop_untagged_traffic"`
@@ -49,7 +49,7 @@ func (d *NetworksAppliancePortsDataSource) Metadata(ctx context.Context, req dat
 
 func (d *NetworksAppliancePortsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "NetworksAppliancePorts data source for listing appliance ports",
+		MarkdownDescription: "Get appliance ports",
 
 		Attributes: map[string]schema.Attribute{
 
@@ -71,7 +71,6 @@ func (d *NetworksAppliancePortsDataSource) Schema(ctx context.Context, req datas
 				MarkdownDescription: "List of Network Appliance Ports",
 				Optional:            true,
 				Computed:            true,
-				Description:         "",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"access_policy": schema.StringAttribute{
@@ -100,7 +99,7 @@ func (d *NetworksAppliancePortsDataSource) Schema(ctx context.Context, req datas
 							CustomType:          jsontypes.BoolType,
 						},
 						"number": schema.Int64Attribute{
-							MarkdownDescription: "Number of the port",
+							MarkdownDescription: "SsidNumber of the port",
 							Optional:            true,
 							Computed:            true,
 							CustomType:          jsontypes.Int64Type,
@@ -148,7 +147,7 @@ func (d *NetworksAppliancePortsDataSource) Configure(ctx context.Context, req da
 }
 
 func (d *NetworksAppliancePortsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data NetworksAppliancePortsDataSourceListModel
+	var data NetworksAppliancePortsDataSourceModel
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
@@ -160,14 +159,9 @@ func (d *NetworksAppliancePortsDataSource) Read(ctx context.Context, req datasou
 	inlineResp, httpResp, err := d.client.ApplianceApi.GetNetworkAppliancePorts(context.Background(), data.NetworkId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to read datasource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 	}
 
 	// Check for API success inlineResp code
@@ -187,7 +181,7 @@ func (d *NetworksAppliancePortsDataSource) Read(ctx context.Context, req datasou
 	// Save data into Terraform state
 	data.Id = jsontypes.StringValue("example-id")
 	for _, appliance_port := range inlineResp {
-		var result NetworksAppliancePortsDataSourceModel
+		var result NetworksAppliancePortsDataSourceModelList
 		result.Accesspolicy = jsontypes.StringValue(appliance_port.GetAccessPolicy())
 		result.Allowedvlans = jsontypes.StringValue(appliance_port.GetAllowedVlans())
 		result.Dropuntaggedtraffic = jsontypes.BoolValue(appliance_port.GetDropUntaggedTraffic())

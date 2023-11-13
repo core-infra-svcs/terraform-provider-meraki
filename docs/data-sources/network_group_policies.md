@@ -3,12 +3,12 @@
 page_title: "meraki_network_group_policies Data Source - terraform-provider-meraki"
 subcategory: ""
 description: |-
-  List the group policy's in this network
+  Manage the group policy's in this network
 ---
 
 # meraki_network_group_policies (Data Source)
 
-List the group policy's in this network
+Manage the group policy's in this network
 
 
 
@@ -285,5 +285,3 @@ Optional:
 
 - `settings` (String) How VLAN tagging is applied. Can be 'network default', 'ignore' or 'custom'.
 - `vlan_id` (String) The ID of the vlan you want to tag. This only applies if 'settings' is set to 'custom'.
-
-

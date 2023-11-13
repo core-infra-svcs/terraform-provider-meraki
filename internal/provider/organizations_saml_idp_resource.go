@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
-	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -133,25 +133,22 @@ func (r *OrganizationsSamlIdpResource) Create(ctx context.Context, req resource.
 	}
 
 	// Create HTTP request body
-	createOrganizationsSamlIdp := *openApiClient.NewInlineObject218(data.X509CertSha1Fingerprint.ValueString())
+	createOrganizationsSamlIdp := *openApiClient.NewCreateOrganizationSamlIdpRequest(data.X509CertSha1Fingerprint.ValueString())
 	createOrganizationsSamlIdp.SetSloLogoutUrl(data.SloLogoutUrl.ValueString())
 
 	// Initialize provider client and make API call
-	_, httpResp, err := r.client.SamlApi.CreateOrganizationSamlIdp(context.Background(), data.OrganizationId.ValueString()).CreateOrganizationSamlIdp(createOrganizationsSamlIdp).Execute()
+	_, httpResp, err := r.client.SamlApi.CreateOrganizationSamlIdp(context.Background(), data.OrganizationId.ValueString()).CreateOrganizationSamlIdpRequest(createOrganizationsSamlIdp).Execute()
 	//nolint:staticcheck
 	if err != nil {
 		// BUG - HTTP Client is unable to unmarshal data into typed response []client.InlineResponse20095, returns empty
 	}
 	if httpResp == nil {
 		resp.Diagnostics.AddError(
-			"Failed to get http response",
-			fmt.Sprintf("%v", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
 		return
 	}
-
-	// collect diagnostics
-	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 
 	// Check for API success response code
 	if httpResp.StatusCode != 201 {
@@ -197,15 +194,10 @@ func (r *OrganizationsSamlIdpResource) Read(ctx context.Context, req resource.Re
 	_, httpResp, err := r.client.SamlApi.GetOrganizationSamlIdp(context.Background(), data.OrganizationId.ValueString(), data.IdpId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to read resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
 		return
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 	}
 
 	// Check for API success inlineResp code
@@ -242,13 +234,13 @@ func (r *OrganizationsSamlIdpResource) Update(ctx context.Context, req resource.
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	// Create HTTP request body
-	updateOrganizationsSamlIdp := openApiClient.NewInlineObject219()
+	updateOrganizationsSamlIdp := openApiClient.NewUpdateOrganizationSamlIdpRequest()
 	updateOrganizationsSamlIdp.SetX509certSha1Fingerprint(data.X509CertSha1Fingerprint.ValueString())
 	updateOrganizationsSamlIdp.SetSloLogoutUrl(data.SloLogoutUrl.ValueString())
 
 	// Initialize provider client and make API call
 	_, httpResp, err := r.client.SamlApi.UpdateOrganizationSamlIdp(context.Background(),
-		data.OrganizationId.ValueString(), data.IdpId.ValueString()).UpdateOrganizationSamlIdp(*updateOrganizationsSamlIdp).Execute()
+		data.OrganizationId.ValueString(), data.IdpId.ValueString()).UpdateOrganizationSamlIdpRequest(*updateOrganizationsSamlIdp).Execute()
 
 	//nolint:staticcheck
 	if err != nil {
@@ -256,14 +248,11 @@ func (r *OrganizationsSamlIdpResource) Update(ctx context.Context, req resource.
 	}
 	if httpResp == nil {
 		resp.Diagnostics.AddError(
-			"Failed to get http response",
-			fmt.Sprintf("%v", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
 		return
 	}
-
-	// collect diagnostics
-	tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 
 	// Check for API success response code
 	if httpResp.StatusCode != 200 {
@@ -304,15 +293,10 @@ func (r *OrganizationsSamlIdpResource) Delete(ctx context.Context, req resource.
 	httpResp, err := r.client.SamlApi.DeleteOrganizationSamlIdp(context.Background(), data.OrganizationId.ValueString(), data.IdpId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to delete resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
 		return
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 	}
 
 	// Check for API success response code

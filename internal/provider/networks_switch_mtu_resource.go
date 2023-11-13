@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
-	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -33,13 +33,13 @@ type NetworksSwitchMtuResource struct {
 
 // NetworksSwitchMtuResourceModel describes the resource data model.
 type NetworksSwitchMtuResourceModel struct {
-	Id             jsontypes.String `tfsdk:"id"`
-	NetworkId      jsontypes.String `tfsdk:"network_id" json:"network_id"`
-	DefaultMtuSize jsontypes.Int64  `tfsdk:"default_mtu_size" json:"defaultMtuSize"`
-	Overrides      []Override       `tfsdk:"overrides" json:"overrides"`
+	Id             jsontypes.String                         `tfsdk:"id"`
+	NetworkId      jsontypes.String                         `tfsdk:"network_id" json:"network_id"`
+	DefaultMtuSize jsontypes.Int64                          `tfsdk:"default_mtu_size" json:"defaultMtuSize"`
+	Overrides      []NetworksSwitchMtuResourceModelOverride `tfsdk:"overrides" json:"overrides"`
 }
 
-type Override struct {
+type NetworksSwitchMtuResourceModelOverride struct {
 	Switches       []string        `tfsdk:"switches" json:"switches"`
 	SwitchProfiles []string        `tfsdk:"switch_profiles" json:"switchProfiles"`
 	MtuSize        jsontypes.Int64 `tfsdk:"mtu_size" json:"mtuSize"`
@@ -137,14 +137,14 @@ func (r *NetworksSwitchMtuResource) Create(ctx context.Context, req resource.Cre
 		return
 	}
 
-	updateNetworkSwitchMtu := *openApiClient.NewInlineObject119()
+	updateNetworkSwitchMtu := *openApiClient.NewUpdateNetworkSwitchMtuRequest()
 	if !data.DefaultMtuSize.IsUnknown() {
 		updateNetworkSwitchMtu.SetDefaultMtuSize(int32(data.DefaultMtuSize.ValueInt64()))
 	}
-	var overrides []openApiClient.InlineResponse20069Overrides
+	var overrides []openApiClient.GetNetworkSwitchMtu200ResponseOverridesInner
 	if len(data.Overrides) > 0 {
 		for _, attribute := range data.Overrides {
-			var override openApiClient.InlineResponse20069Overrides
+			var override openApiClient.GetNetworkSwitchMtu200ResponseOverridesInner
 			if !attribute.MtuSize.IsUnknown() {
 				override.SetMtuSize(int32(attribute.MtuSize.ValueInt64()))
 			}
@@ -159,17 +159,13 @@ func (r *NetworksSwitchMtuResource) Create(ctx context.Context, req resource.Cre
 		}
 	}
 
-	_, httpResp, err := r.client.MtuApi.UpdateNetworkSwitchMtu(ctx, data.NetworkId.ValueString()).UpdateNetworkSwitchMtu(updateNetworkSwitchMtu).Execute()
+	_, httpResp, err := r.client.MtuApi.UpdateNetworkSwitchMtu(ctx, data.NetworkId.ValueString()).UpdateNetworkSwitchMtuRequest(updateNetworkSwitchMtu).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code
@@ -215,14 +211,10 @@ func (r *NetworksSwitchMtuResource) Read(ctx context.Context, req resource.ReadR
 	_, httpResp, err := r.client.MtuApi.GetNetworkSwitchMtu(ctx, data.NetworkId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to read resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code
@@ -267,14 +259,14 @@ func (r *NetworksSwitchMtuResource) Update(ctx context.Context, req resource.Upd
 		return
 	}
 
-	updateNetworkSwitchMtu := *openApiClient.NewInlineObject119()
+	updateNetworkSwitchMtu := *openApiClient.NewUpdateNetworkSwitchMtuRequest()
 	if !data.DefaultMtuSize.IsUnknown() {
 		updateNetworkSwitchMtu.SetDefaultMtuSize(int32(data.DefaultMtuSize.ValueInt64()))
 	}
-	var overrides []openApiClient.InlineResponse20069Overrides
+	var overrides []openApiClient.GetNetworkSwitchMtu200ResponseOverridesInner
 	if len(data.Overrides) > 0 {
 		for _, attribute := range data.Overrides {
-			var override openApiClient.InlineResponse20069Overrides
+			var override openApiClient.GetNetworkSwitchMtu200ResponseOverridesInner
 			if !attribute.MtuSize.IsUnknown() {
 				override.SetMtuSize(int32(attribute.MtuSize.ValueInt64()))
 			}
@@ -289,17 +281,13 @@ func (r *NetworksSwitchMtuResource) Update(ctx context.Context, req resource.Upd
 		}
 	}
 
-	_, httpResp, err := r.client.MtuApi.UpdateNetworkSwitchMtu(ctx, data.NetworkId.ValueString()).UpdateNetworkSwitchMtu(updateNetworkSwitchMtu).Execute()
+	_, httpResp, err := r.client.MtuApi.UpdateNetworkSwitchMtu(ctx, data.NetworkId.ValueString()).UpdateNetworkSwitchMtuRequest(updateNetworkSwitchMtu).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code
@@ -343,14 +331,14 @@ func (r *NetworksSwitchMtuResource) Delete(ctx context.Context, req resource.Del
 		return
 	}
 
-	updateNetworkSwitchMtu := *openApiClient.NewInlineObject119()
+	updateNetworkSwitchMtu := *openApiClient.NewUpdateNetworkSwitchMtuRequest()
 	if !data.DefaultMtuSize.IsUnknown() {
 		updateNetworkSwitchMtu.SetDefaultMtuSize(int32(data.DefaultMtuSize.ValueInt64()))
 	}
-	var overrides []openApiClient.InlineResponse20069Overrides
+	var overrides []openApiClient.GetNetworkSwitchMtu200ResponseOverridesInner
 	if len(data.Overrides) > 0 {
 		for _, attribute := range data.Overrides {
-			var override openApiClient.InlineResponse20069Overrides
+			var override openApiClient.GetNetworkSwitchMtu200ResponseOverridesInner
 			if !attribute.MtuSize.IsUnknown() {
 				override.SetMtuSize(int32(attribute.MtuSize.ValueInt64()))
 			}
@@ -365,17 +353,13 @@ func (r *NetworksSwitchMtuResource) Delete(ctx context.Context, req resource.Del
 		}
 	}
 
-	_, httpResp, err := r.client.MtuApi.UpdateNetworkSwitchMtu(ctx, data.NetworkId.ValueString()).UpdateNetworkSwitchMtu(updateNetworkSwitchMtu).Execute()
+	_, httpResp, err := r.client.MtuApi.UpdateNetworkSwitchMtu(ctx, data.NetworkId.ValueString()).UpdateNetworkSwitchMtuRequest(updateNetworkSwitchMtu).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
+		return
 	}
 
 	// Check for API success response code

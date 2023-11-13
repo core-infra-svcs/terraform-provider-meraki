@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
-	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -30,32 +30,32 @@ type OrganizationsAdminsDataSource struct {
 
 // OrganizationsAdminsDataSourceModel describes the data source data model.
 type OrganizationsAdminsDataSourceModel struct {
-	Id    types.String                        `tfsdk:"id"`
-	OrgId jsontypes.String                    `tfsdk:"organization_id"`
-	List  []OrganizationAdminsDataSourceModel `tfsdk:"list"`
+	Id    types.String                             `tfsdk:"id"`
+	OrgId jsontypes.String                         `tfsdk:"organization_id"`
+	List  []OrganizationsAdminsDataSourceModelList `tfsdk:"list"`
 }
 
-// OrganizationAdminsDataSourceModel describes the data source data model.
-type OrganizationAdminsDataSourceModel struct {
-	Id                   jsontypes.String                           `tfsdk:"id" json:"id"`
-	Name                 jsontypes.String                           `tfsdk:"name"`
-	Email                jsontypes.String                           `tfsdk:"email"`
-	OrgAccess            jsontypes.String                           `tfsdk:"org_access" json:"orgAccess"`
-	AccountStatus        jsontypes.String                           `tfsdk:"account_status" json:"accountStatus"`
-	TwoFactorAuthEnabled jsontypes.Bool                             `tfsdk:"two_factor_auth_enabled" json:"twoFactorAuthEnabled"`
-	HasApiKey            jsontypes.Bool                             `tfsdk:"has_api_key" json:"hasApiKey"`
-	LastActive           jsontypes.String                           `tfsdk:"last_active" json:"lastActive"`
-	Tags                 []OrganizationAdminsDataSourceModelTag     `tfsdk:"tags"`
-	Networks             []OrganizationAdminsDataSourceModelNetwork `tfsdk:"networks"`
-	AuthenticationMethod jsontypes.String                           `tfsdk:"authentication_method" json:"authenticationMethod"`
+// OrganizationsAdminsDataSourceModelList describes the data source data model.
+type OrganizationsAdminsDataSourceModelList struct {
+	Id                   jsontypes.String                             `tfsdk:"id" json:"id"`
+	Name                 jsontypes.String                             `tfsdk:"name"`
+	Email                jsontypes.String                             `tfsdk:"email"`
+	OrgAccess            jsontypes.String                             `tfsdk:"org_access" json:"orgAccess"`
+	AccountStatus        jsontypes.String                             `tfsdk:"account_status" json:"accountStatus"`
+	TwoFactorAuthEnabled jsontypes.Bool                               `tfsdk:"two_factor_auth_enabled" json:"twoFactorAuthEnabled"`
+	HasApiKey            jsontypes.Bool                               `tfsdk:"has_api_key" json:"hasApiKey"`
+	LastActive           jsontypes.String                             `tfsdk:"last_active" json:"lastActive"`
+	Tags                 []OrganizationsAdminsDataSourceModelTags     `tfsdk:"tags"`
+	Networks             []OrganizationsAdminsDataSourceModelNetworks `tfsdk:"networks"`
+	AuthenticationMethod jsontypes.String                             `tfsdk:"authentication_method" json:"authenticationMethod"`
 }
 
-type OrganizationAdminsDataSourceModelNetwork struct {
+type OrganizationsAdminsDataSourceModelNetworks struct {
 	Id     jsontypes.String `tfsdk:"id"`
 	Access jsontypes.String `tfsdk:"access"`
 }
 
-type OrganizationAdminsDataSourceModelTag struct {
+type OrganizationsAdminsDataSourceModelTags struct {
 	Tag    jsontypes.String `tfsdk:"tag"`
 	Access jsontypes.String `tfsdk:"access"`
 }
@@ -207,14 +207,11 @@ func (d *OrganizationsAdminsDataSource) Read(ctx context.Context, req datasource
 	}
 
 	_, httpResp, err := d.client.AdminsApi.GetOrganizationAdmins(context.Background(), data.OrgId.ValueString()).Execute()
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
-	}
 
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to read datasource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
 		return
 	}

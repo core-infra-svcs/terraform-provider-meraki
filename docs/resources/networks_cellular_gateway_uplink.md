@@ -3,12 +3,12 @@
 page_title: "meraki_networks_cellular_gateway_uplink Resource - terraform-provider-meraki"
 subcategory: ""
 description: |-
-  Networks Cellular Gateway Uplink Updates the uplink settings for your MG network.
+  Manage the uplink settings for your MG network.
 ---
 
 # meraki_networks_cellular_gateway_uplink (Resource)
 
-Networks Cellular Gateway Uplink Updates the uplink settings for your MG network.
+Manage the uplink settings for your MG network.
 
 
 
@@ -34,5 +34,3 @@ Optional:
 
 - `limit_down` (Number) The maximum download limit (integer, in Kbps). null indicates no limit.
 - `limit_up` (Number) The maximum upload limit (integer, in Kbps). null indicates no limit.
-
-

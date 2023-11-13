@@ -3,12 +3,12 @@
 page_title: "meraki_networks_appliance_firewall_l3_firewall_rules Resource - terraform-provider-meraki"
 subcategory: ""
 description: |-
-  NetworksApplianceFirewallL3FirewallRules resource for updating Network Appliance Firewall L3 Firewall Rules.
+  Manage Network Appliance L3 Firewall Rules
 ---
 
 # meraki_networks_appliance_firewall_l3_firewall_rules (Resource)
 
-NetworksApplianceFirewallL3FirewallRules resource for updating Network Appliance Firewall L3 Firewall Rules.
+Manage Network Appliance L3 Firewall Rules
 
 
 
@@ -44,5 +44,3 @@ Optional:
 - `dest_port` (String) Comma-separated list of destination port(s) (integer in the range 1-65535), or 'Any'
 - `src_port` (String) Comma-separated list of source port(s) (integer in the range 1-65535), or 'Any'
 - `syslog_enabled` (Boolean) Log this rule to syslog (true or false, boolean value) - only applicable if a syslog has been configured (optional)
-
-

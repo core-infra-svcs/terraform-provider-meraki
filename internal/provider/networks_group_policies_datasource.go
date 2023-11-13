@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
-	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -30,94 +30,94 @@ type NetworkGroupPoliciesDataSource struct {
 
 // NetworkGroupPoliciesDataSourceModel describes the data source data model.
 type NetworkGroupPoliciesDataSourceModel struct {
-	Id        jsontypes.String                    `tfsdk:"id"`
-	NetworkId jsontypes.String                    `tfsdk:"network_id"`
-	List      []NetworkGroupPolicyDataSourceModel `tfsdk:"list"`
+	Id        jsontypes.String                          `tfsdk:"id"`
+	NetworkId jsontypes.String                          `tfsdk:"network_id"`
+	List      []NetworkGroupPoliciesDataSourceModelList `tfsdk:"list"`
 }
 
-// NetworkGroupPolicyDataSourceModel describes the data source data model.
-type NetworkGroupPolicyDataSourceModel struct {
-	GroupPolicyId             jsontypes.String                    `tfsdk:"group_policy_id" json:"groupPolicyId"`
-	Name                      jsontypes.String                    `tfsdk:"name" json:"name"`
-	SplashAuthSettings        jsontypes.String                    `tfsdk:"splash_auth_settings" json:"splashAuthSettings"`
-	BandWidth                 BandwidthDataSource                 `tfsdk:"bandwidth" json:"bandwidth"`
-	BonjourForwarding         BonjourForwardingDatasource         `tfsdk:"bonjour_forwarding" json:"bonjourForwarding"`
-	Scheduling                SchedulingDatasource                `tfsdk:"scheduling" json:"scheduling"`
-	FirewallAndTrafficShaping FirewallAndTrafficShapingDatasource `tfsdk:"firewall_and_traffic_shaping" json:"firewallAndTrafficShaping"`
-	VlanTagging               VlanTaggingDatasource               `tfsdk:"vlan_tagging" json:"vlanTagging"`
-	ContentFiltering          ContentFilteringDatasource          `tfsdk:"content_filtering" json:"contentFiltering"`
+// NetworkGroupPoliciesDataSourceModelList describes the data source data model.
+type NetworkGroupPoliciesDataSourceModelList struct {
+	GroupPolicyId             jsontypes.String                                             `tfsdk:"group_policy_id" json:"groupPolicyId"`
+	Name                      jsontypes.String                                             `tfsdk:"name" json:"name"`
+	SplashAuthSettings        jsontypes.String                                             `tfsdk:"splash_auth_settings" json:"splashAuthSettings"`
+	BandWidth                 NetworkGroupPoliciesDataSourceModelBandwidthDataSource       `tfsdk:"bandwidth" json:"bandwidth"`
+	BonjourForwarding         NetworkGroupPoliciesDataSourceModelBonjourForwarding         `tfsdk:"bonjour_forwarding" json:"bonjourForwarding"`
+	Scheduling                NetworkGroupPoliciesDataSourceModelScheduling                `tfsdk:"scheduling" json:"scheduling"`
+	FirewallAndTrafficShaping NetworkGroupPoliciesDataSourceModelFirewallAndTrafficShaping `tfsdk:"firewall_and_traffic_shaping" json:"firewallAndTrafficShaping"`
+	VlanTagging               NetworkGroupPoliciesDataSourceModelVlanTagging               `tfsdk:"vlan_tagging" json:"vlanTagging"`
+	ContentFiltering          NetworkGroupPoliciesDataSourceModelContentFiltering          `tfsdk:"content_filtering" json:"contentFiltering"`
 }
 
-type BandwidthDataSource struct {
-	BandwidthLimitsDataSource BandwidthLimitsDataSource `tfsdk:"bandwidth_limits" json:"bandwidthLimits"`
-	Settings                  jsontypes.String          `tfsdk:"settings" json:"settings"`
+type NetworkGroupPoliciesDataSourceModelBandwidthDataSource struct {
+	BandwidthLimitsDataSource NetworkGroupPoliciesDataSourceModelBandwidthLimits `tfsdk:"bandwidth_limits" json:"bandwidthLimits"`
+	Settings                  jsontypes.String                                   `tfsdk:"settings" json:"settings"`
 }
 
-type BandwidthLimitsDataSource struct {
+type NetworkGroupPoliciesDataSourceModelBandwidthLimits struct {
 	LimitUp   jsontypes.Int64 `tfsdk:"limit_up" json:"limitUp"`
 	LimitDown jsontypes.Int64 `tfsdk:"limit_down" json:"limitDown"`
 }
 
-type BonjourForwardingDatasource struct {
-	BonjourForwardingSettings string           `tfsdk:"settings" json:"settings"`
-	BonjourForwardingRules    []RuleDatasource `tfsdk:"rules" json:"rules"`
+type NetworkGroupPoliciesDataSourceModelBonjourForwarding struct {
+	BonjourForwardingSettings string                                    `tfsdk:"settings" json:"settings"`
+	BonjourForwardingRules    []NetworkGroupPoliciesDataSourceModelRule `tfsdk:"rules" json:"rules"`
 }
 
-type RuleDatasource struct {
+type NetworkGroupPoliciesDataSourceModelRule struct {
 	Description jsontypes.String `tfsdk:"description" json:"description"`
 	VlanId      jsontypes.String `tfsdk:"vlan_id" json:"vlanId"`
 	Services    []string         `tfsdk:"services" json:"services"`
 }
 
-type SchedulingDatasource struct {
-	Enabled   jsontypes.Bool     `tfsdk:"enabled" json:"enabled"`
-	Friday    ScheduleDatasource `tfsdk:"friday" json:"friday"`
-	Monday    ScheduleDatasource `tfsdk:"monday" json:"monday"`
-	Saturday  ScheduleDatasource `tfsdk:"saturday" json:"saturday"`
-	Sunday    ScheduleDatasource `tfsdk:"sunday" json:"sunday"`
-	Thursday  ScheduleDatasource `tfsdk:"thursday" json:"thursday"`
-	Tuesday   ScheduleDatasource `tfsdk:"tuesday" json:"tuesday"`
-	Wednesday ScheduleDatasource `tfsdk:"wednesday" json:"wednesday"`
+type NetworkGroupPoliciesDataSourceModelScheduling struct {
+	Enabled   jsontypes.Bool                              `tfsdk:"enabled" json:"enabled"`
+	Friday    NetworkGroupPoliciesDataSourceModelSchedule `tfsdk:"friday" json:"friday"`
+	Monday    NetworkGroupPoliciesDataSourceModelSchedule `tfsdk:"monday" json:"monday"`
+	Saturday  NetworkGroupPoliciesDataSourceModelSchedule `tfsdk:"saturday" json:"saturday"`
+	Sunday    NetworkGroupPoliciesDataSourceModelSchedule `tfsdk:"sunday" json:"sunday"`
+	Thursday  NetworkGroupPoliciesDataSourceModelSchedule `tfsdk:"thursday" json:"thursday"`
+	Tuesday   NetworkGroupPoliciesDataSourceModelSchedule `tfsdk:"tuesday" json:"tuesday"`
+	Wednesday NetworkGroupPoliciesDataSourceModelSchedule `tfsdk:"wednesday" json:"wednesday"`
 }
 
-type ScheduleDatasource struct {
+type NetworkGroupPoliciesDataSourceModelSchedule struct {
 	From   jsontypes.String `tfsdk:"from" json:"from"`
 	To     jsontypes.String `tfsdk:"to" json:"to"`
 	Active jsontypes.Bool   `tfsdk:"active" json:"active"`
 }
 
-type VlanTaggingDatasource struct {
+type NetworkGroupPoliciesDataSourceModelVlanTagging struct {
 	Settings jsontypes.String `tfsdk:"settings" json:"settings"`
 	VlanId   jsontypes.String `tfsdk:"vlan_id" json:"vlanId"`
 }
 
-type ContentFilteringDatasource struct {
-	AllowedUrlPatterns   AllowedUrlPatternsDatasource   `tfsdk:"allowed_url_patterns" json:"allowedUrlPatterns"`
-	BlockedUrlCategories BlockedUrlCategoriesDatasource `tfsdk:"blocked_url_categories" json:"blockedUrlCategories"`
-	BlockedUrlPatterns   BlockedUrlPatternsDatasource   `tfsdk:"blocked_url_patterns" json:"blockedUrlPatterns"`
+type NetworkGroupPoliciesDataSourceModelContentFiltering struct {
+	AllowedUrlPatterns   NetworkGroupPoliciesDataSourceModelAllowedUrlPatterns   `tfsdk:"allowed_url_patterns" json:"allowedUrlPatterns"`
+	BlockedUrlCategories NetworkGroupPoliciesDataSourceModelBlockedUrlCategories `tfsdk:"blocked_url_categories" json:"blockedUrlCategories"`
+	BlockedUrlPatterns   NetworkGroupPoliciesDataSourceModelBlockedUrlPatterns   `tfsdk:"blocked_url_patterns" json:"blockedUrlPatterns"`
 }
 
-type AllowedUrlPatternsDatasource struct {
+type NetworkGroupPoliciesDataSourceModelAllowedUrlPatterns struct {
 	Settings jsontypes.String `tfsdk:"settings" json:"settings"`
 	Patterns []string         `tfsdk:"patterns" json:"patterns"`
 }
-type BlockedUrlCategoriesDatasource struct {
+type NetworkGroupPoliciesDataSourceModelBlockedUrlCategories struct {
 	Settings   jsontypes.String `tfsdk:"settings" json:"settings"`
 	Categories []string         `tfsdk:"categories" json:"categories"`
 }
-type BlockedUrlPatternsDatasource struct {
+type NetworkGroupPoliciesDataSourceModelBlockedUrlPatterns struct {
 	Settings jsontypes.String `tfsdk:"settings" json:"settings"`
 	Patterns []string         `tfsdk:"patterns" json:"patterns"`
 }
 
-type FirewallAndTrafficShapingDatasource struct {
-	Settings            jsontypes.String               `tfsdk:"settings" json:"settings"`
-	L3FirewallRules     []L3FirewallRuleDatasource     `tfsdk:"l3_firewall_rules" json:"l3FirewallRules"`
-	L7FirewallRules     []L7FirewallRuleDatasource     `tfsdk:"l7_firewall_rules" json:"l7FirewallRules"`
-	TrafficShapingRules []TrafficShapingRuleDatasource `tfsdk:"traffic_shaping_rules" json:"trafficShapingRules"`
+type NetworkGroupPoliciesDataSourceModelFirewallAndTrafficShaping struct {
+	Settings            jsontypes.String                                        `tfsdk:"settings" json:"settings"`
+	L3FirewallRules     []NetworkGroupPoliciesDataSourceModelL3FirewallRule     `tfsdk:"l3_firewall_rules" json:"l3FirewallRules"`
+	L7FirewallRules     []NetworkGroupPoliciesDataSourceModelL7FirewallRule     `tfsdk:"l7_firewall_rules" json:"l7FirewallRules"`
+	TrafficShapingRules []NetworkGroupPoliciesDataSourceModelTrafficShapingRule `tfsdk:"traffic_shaping_rules" json:"trafficShapingRules"`
 }
 
-type L3FirewallRuleDatasource struct {
+type NetworkGroupPoliciesDataSourceModelL3FirewallRule struct {
 	Comment  jsontypes.String `tfsdk:"comment" json:"comment"`
 	DestCidr jsontypes.String `tfsdk:"dest_cidr" json:"destCidr"`
 	DestPort jsontypes.String `tfsdk:"dest_port" json:"destPort"`
@@ -125,25 +125,25 @@ type L3FirewallRuleDatasource struct {
 	Protocol jsontypes.String `tfsdk:"protocol" json:"protocol"`
 }
 
-type L7FirewallRuleDatasource struct {
+type NetworkGroupPoliciesDataSourceModelL7FirewallRule struct {
 	Value  jsontypes.String `tfsdk:"value" json:"value"`
 	Type   jsontypes.String `tfsdk:"type" json:"type"`
 	Policy jsontypes.String `tfsdk:"policy" json:"policy"`
 }
 
-type TrafficShapingRuleDatasource struct {
-	DscpTagValue             jsontypes.Int64                    `tfsdk:"dscp_tag_value" json:"dscpTagValue"`
-	PcpTagValue              jsontypes.Int64                    `tfsdk:"pcp_tag_value" json:"pcpTagValue"`
-	PerClientBandwidthLimits PerClientBandwidthLimitsDataSource `tfsdk:"per_client_bandwidth_limits" json:"perClientBandwidthLimits"`
-	Definitions              []DefinitionDatasource             `tfsdk:"definitions" json:"definitions"`
+type NetworkGroupPoliciesDataSourceModelTrafficShapingRule struct {
+	DscpTagValue             jsontypes.Int64                                             `tfsdk:"dscp_tag_value" json:"dscpTagValue"`
+	PcpTagValue              jsontypes.Int64                                             `tfsdk:"pcp_tag_value" json:"pcpTagValue"`
+	PerClientBandwidthLimits NetworkGroupPoliciesDataSourceModelPerClientBandwidthLimits `tfsdk:"per_client_bandwidth_limits" json:"perClientBandwidthLimits"`
+	Definitions              []NetworkGroupPoliciesDataSourceModelDefinition             `tfsdk:"definitions" json:"definitions"`
 }
 
-type PerClientBandwidthLimitsDataSource struct {
-	BandwidthLimitsDataSource BandwidthLimitsDataSource `tfsdk:"bandwidth_limits" json:"bandwidthLimits"`
-	Settings                  jsontypes.String          `tfsdk:"settings" json:"settings"`
+type NetworkGroupPoliciesDataSourceModelPerClientBandwidthLimits struct {
+	BandwidthLimitsDataSource NetworkGroupPoliciesDataSourceModelBandwidthLimits `tfsdk:"bandwidth_limits" json:"bandwidthLimits"`
+	Settings                  jsontypes.String                                   `tfsdk:"settings" json:"settings"`
 }
 
-type DefinitionDatasource struct {
+type NetworkGroupPoliciesDataSourceModelDefinition struct {
 	Value jsontypes.String `tfsdk:"value" json:"value"`
 	Type  jsontypes.String `tfsdk:"type" json:"type"`
 }
@@ -154,7 +154,7 @@ func (d *NetworkGroupPoliciesDataSource) Metadata(ctx context.Context, req datas
 
 func (d *NetworkGroupPoliciesDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "List the group policy's in this network",
+		MarkdownDescription: "Manage the group policy's in this network",
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -713,14 +713,9 @@ func (d *NetworkGroupPoliciesDataSource) Read(ctx context.Context, req datasourc
 	inlineResp, httpResp, err := d.client.NetworksApi.GetNetworkGroupPolicies(ctx, data.NetworkId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to get resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 	}
 
 	// Check for API success response code

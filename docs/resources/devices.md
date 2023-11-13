@@ -3,12 +3,12 @@
 page_title: "meraki_devices Resource - terraform-provider-meraki"
 subcategory: ""
 description: |-
-  Devices
+  Manage network Devices resource. This only works for devices associated with a network.
 ---
 
 # meraki_devices (Resource)
 
-Devices
+Manage network Devices resource. This only works for devices associated with a network.
 
 
 
@@ -50,5 +50,3 @@ Optional:
 - `major` (Number)
 - `minor` (Number)
 - `uuid` (String)
-
-

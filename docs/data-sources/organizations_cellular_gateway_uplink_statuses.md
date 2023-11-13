@@ -54,7 +54,7 @@ Optional:
 - `dns1` (String) Primary DNS IP.
 - `dns2` (String) Secondary DNS IP.
 - `gateway` (String) Gateway IP.
-- `iccid` (String) Integrated Circuit Card Identification Number.
+- `iccid` (String) Integrated Circuit Card Identification SsidNumber.
 - `interface` (String) Uplink interface.
 - `ip` (String) Uplink ip.
 - `model` (String) Uplink model.
@@ -71,5 +71,3 @@ Optional:
 
 - `rsrp` (String) Reference Signal Received Power.
 - `rsrq` (String) Reference Signal Received Quality.
-
-

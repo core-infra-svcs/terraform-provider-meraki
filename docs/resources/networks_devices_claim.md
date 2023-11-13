@@ -3,12 +3,12 @@
 page_title: "meraki_networks_devices_claim Resource - terraform-provider-meraki"
 subcategory: ""
 description: |-
-  Networks Devices Claim for Claiming devices into a network
+  Claim devices into a network
 ---
 
 # meraki_networks_devices_claim (Resource)
 
-Networks Devices Claim for Claiming devices into a network
+Claim devices into a network
 
 
 
@@ -26,5 +26,3 @@ Networks Devices Claim for Claiming devices into a network
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-
-

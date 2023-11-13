@@ -1,6 +1,8 @@
 package provider
 
 import (
+	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -13,15 +15,6 @@ func TestAccNetworksSwitchMtuResource(t *testing.T) {
 		},
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-
-			// Create test Organization
-			{
-				Config: testAccNetworksSwitchMtuResourceConfigCreateOrganization,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_acc_meraki_organizations_networks_switch_mtu"),
-				),
-			},
-
 			// TODO - ImportState testing - This only works when hard-coded networkId.
 			/*
 				{
@@ -34,9 +27,9 @@ func TestAccNetworksSwitchMtuResource(t *testing.T) {
 
 			// Create and Read Network.
 			{
-				Config: testAccNetworksSwitchMtuResourceConfigCreateNetwork,
+				Config: testAccNetworksSwitchMtuResourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "Main Office"),
+					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_networks_switch_mtu"),
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
@@ -58,35 +51,27 @@ func TestAccNetworksSwitchMtuResource(t *testing.T) {
 	})
 }
 
-const testAccNetworksSwitchMtuResourceConfigCreateOrganization = `
-resource "meraki_organization" "test" {
-    name = "test_acc_meraki_organizations_networks_switch_mtu"
-    api_enabled = true
-}
-`
-const testAccNetworksSwitchMtuResourceConfigCreateNetwork = `
-resource "meraki_organization" "test" {}
+func testAccNetworksSwitchMtuResourceConfigCreateNetwork(orgId string) string {
+	result := fmt.Sprintf(`
 resource "meraki_network" "test" {
-    depends_on = [resource.meraki_organization.test]
-    organization_id = resource.meraki_organization.test.organization_id
+    organization_id = %s
     product_types = ["appliance", "switch", "wireless"]
     tags = ["tag1"]
-    name = "Main Office"
+    name = "test_acc_networks_switch_mtu"
     timezone = "America/Los_Angeles"
     notes = "Additional description of the network"
 }
-
-`
+`, orgId)
+	return result
+}
 
 const testAccSwitchMtuResourceConfigUpdateNetworkSwitchMtuSettings = `
-resource "meraki_organization" "test" {}
 resource "meraki_network" "test" {
-    depends_on = [resource.meraki_organization.test]
     product_types = ["appliance", "switch", "wireless"]
 
 }
 resource "meraki_networks_switch_mtu" "test" {
-    depends_on = [resource.meraki_network.test, resource.meraki_organization.test]
+    depends_on = [resource.meraki_network.test]
     network_id = resource.meraki_network.test.network_id
     default_mtu_size = 9578
     overrides = []

@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"strings"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
-	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -38,25 +38,25 @@ type NetworkApplianceStaticRoutesResource struct {
 
 // NetworkApplianceStaticRoutesResourceModel describes the resource data model.
 type NetworkApplianceStaticRoutesResourceModel struct {
-	Id                             types.String      `tfsdk:"id"`
-	NetworkId                      jsontypes.String  `tfsdk:"network_id" json:"networkId"`
-	StaticRoutId                   jsontypes.String  `tfsdk:"static_route_id" json:"id"`
-	Enable                         jsontypes.Bool    `tfsdk:"enable" json:"enabled"`
-	Name                           jsontypes.String  `tfsdk:"name" json:"name"`
-	GatewayIp                      jsontypes.String  `tfsdk:"gateway_ip" json:"gatewayIp"`
-	Subnet                         jsontypes.String  `tfsdk:"subnet" json:"subnet"`
-	FixedIpAssignmentsMacAddress   jsontypes.String  `tfsdk:"fixed_ip_assignments_mac_address"`
-	FixedIpAssignmentsMacIpAddress jsontypes.String  `tfsdk:"fixed_ip_assignments_mac_ip_address"`
-	FixedIpAssignmentsMacName      jsontypes.String  `tfsdk:"fixed_ip_assignments_mac_name"`
-	ReservedIpRanges               []ReservedIpRange `tfsdk:"reserved_ip_ranges" json:"reservedIpRanges"`
+	Id                             types.String                                               `tfsdk:"id"`
+	NetworkId                      jsontypes.String                                           `tfsdk:"network_id" json:"networkId"`
+	StaticRoutId                   jsontypes.String                                           `tfsdk:"static_route_id" json:"id"`
+	Enable                         jsontypes.Bool                                             `tfsdk:"enable" json:"enabled"`
+	Name                           jsontypes.String                                           `tfsdk:"name" json:"name"`
+	GatewayIp                      jsontypes.String                                           `tfsdk:"gateway_ip" json:"gatewayIp"`
+	Subnet                         jsontypes.String                                           `tfsdk:"subnet" json:"subnet"`
+	FixedIpAssignmentsMacAddress   jsontypes.String                                           `tfsdk:"fixed_ip_assignments_mac_address"`
+	FixedIpAssignmentsMacIpAddress jsontypes.String                                           `tfsdk:"fixed_ip_assignments_mac_ip_address"`
+	FixedIpAssignmentsMacName      jsontypes.String                                           `tfsdk:"fixed_ip_assignments_mac_name"`
+	ReservedIpRanges               []NetworkApplianceStaticRoutesResourceModelReservedIpRange `tfsdk:"reserved_ip_ranges" json:"reservedIpRanges"`
 }
 
-type MacData struct {
+type NetworkApplianceStaticRoutesResourceModelMacData struct {
 	Ip   string `json:"ip"`
 	Name string `json:"name"`
 }
 
-type ReservedIpRange struct {
+type NetworkApplianceStaticRoutesResourceModelReservedIpRange struct {
 	Comment jsontypes.String `tfsdk:"comment" json:"comment"`
 	End     jsontypes.String `tfsdk:"end" json:"end"`
 	Start   jsontypes.String `tfsdk:"start" json:"start"`
@@ -194,21 +194,16 @@ func (r *NetworkApplianceStaticRoutesResource) Create(ctx context.Context, req r
 		return
 	}
 
-	createNetworkApplianceStaticRoutes := *openApiClient.NewInlineObject48(data.Name.ValueString(), data.Subnet.ValueString(), data.GatewayIp.ValueString())
+	createNetworkApplianceStaticRoutes := *openApiClient.NewCreateNetworkApplianceStaticRouteRequest(data.Name.ValueString(), data.Subnet.ValueString(), data.GatewayIp.ValueString())
 
-	inlineResp, httpResp, err := r.client.ApplianceApi.CreateNetworkApplianceStaticRoute(context.Background(), data.NetworkId.ValueString()).CreateNetworkApplianceStaticRoute(createNetworkApplianceStaticRoutes).Execute()
+	inlineResp, httpResp, err := r.client.ApplianceApi.CreateNetworkApplianceStaticRoute(context.Background(), data.NetworkId.ValueString()).CreateNetworkApplianceStaticRouteRequest(createNetworkApplianceStaticRoutes).Execute()
 	if err != nil {
-
 		resp.Diagnostics.AddError(
-			"Failed to create resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
+		return
 
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 	}
 
 	// Check for API success response code
@@ -241,12 +236,12 @@ func (r *NetworkApplianceStaticRoutesResource) Create(ctx context.Context, req r
 	}
 
 	if reservedIpRangesResponse := inlineResp["reservedIpRanges"]; reservedIpRangesResponse != nil {
-		var reservedIpRanges []ReservedIpRange
+		var reservedIpRanges []NetworkApplianceStaticRoutesResourceModelReservedIpRange
 		jsonData, _ := json.Marshal(reservedIpRangesResponse)
 		json.Unmarshal(jsonData, &reservedIpRanges)
-		data.ReservedIpRanges = make([]ReservedIpRange, 0)
+		data.ReservedIpRanges = make([]NetworkApplianceStaticRoutesResourceModelReservedIpRange, 0)
 		for _, attribute := range reservedIpRanges {
-			var reservedIpRange ReservedIpRange
+			var reservedIpRange NetworkApplianceStaticRoutesResourceModelReservedIpRange
 			reservedIpRange.Comment = attribute.Comment
 			reservedIpRange.End = attribute.End
 			reservedIpRange.Start = attribute.Start
@@ -257,7 +252,7 @@ func (r *NetworkApplianceStaticRoutesResource) Create(ctx context.Context, req r
 
 	if fixedIpAssignmentsResponse := inlineResp["fixedIpAssignments"]; fixedIpAssignmentsResponse != nil {
 		if macresponse := fixedIpAssignmentsResponse.(map[string]interface{})[data.FixedIpAssignmentsMacAddress.ValueString()]; macresponse != nil {
-			var macData MacData
+			var macData NetworkApplianceStaticRoutesResourceModelMacData
 			jsonData, _ := json.Marshal(fixedIpAssignmentsResponse.(map[string]interface{})[data.FixedIpAssignmentsMacAddress.ValueString()])
 			json.Unmarshal(jsonData, &macData)
 			data.FixedIpAssignmentsMacIpAddress = jsontypes.StringValue(macData.Ip)
@@ -294,17 +289,12 @@ func (r *NetworkApplianceStaticRoutesResource) Read(ctx context.Context, req res
 
 	inlineResp, httpResp, err := r.client.ApplianceApi.GetNetworkApplianceStaticRoute(ctx, data.NetworkId.ValueString(), data.StaticRoutId.ValueString()).Execute()
 	if err != nil {
-
 		resp.Diagnostics.AddError(
-			"Failed to read resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
+		return
 
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 	}
 
 	// Check for API success response code
@@ -333,12 +323,12 @@ func (r *NetworkApplianceStaticRoutesResource) Read(ctx context.Context, req res
 	}
 
 	if reservedIpRangesResponse := inlineResp["reservedIpRanges"]; reservedIpRangesResponse != nil {
-		var reservedIpRanges []ReservedIpRange
+		var reservedIpRanges []NetworkApplianceStaticRoutesResourceModelReservedIpRange
 		jsonData, _ := json.Marshal(reservedIpRangesResponse)
 		json.Unmarshal(jsonData, &reservedIpRanges)
-		data.ReservedIpRanges = make([]ReservedIpRange, 0)
+		data.ReservedIpRanges = make([]NetworkApplianceStaticRoutesResourceModelReservedIpRange, 0)
 		for _, attribute := range reservedIpRanges {
-			var reservedIpRange ReservedIpRange
+			var reservedIpRange NetworkApplianceStaticRoutesResourceModelReservedIpRange
 			reservedIpRange.Comment = attribute.Comment
 			reservedIpRange.End = attribute.End
 			reservedIpRange.Start = attribute.Start
@@ -348,7 +338,7 @@ func (r *NetworkApplianceStaticRoutesResource) Read(ctx context.Context, req res
 
 	if fixedIpAssignmentsResponse := inlineResp["fixedIpAssignments"]; fixedIpAssignmentsResponse != nil {
 		if macresponse := fixedIpAssignmentsResponse.(map[string]interface{})[data.FixedIpAssignmentsMacAddress.ValueString()]; macresponse != nil {
-			var macData MacData
+			var macData NetworkApplianceStaticRoutesResourceModelMacData
 			jsonData, _ := json.Marshal(fixedIpAssignmentsResponse.(map[string]interface{})[data.FixedIpAssignmentsMacAddress.ValueString()])
 			json.Unmarshal(jsonData, &macData)
 			data.FixedIpAssignmentsMacIpAddress = jsontypes.StringValue(macData.Ip)
@@ -379,7 +369,7 @@ func (r *NetworkApplianceStaticRoutesResource) Update(ctx context.Context, req r
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
-	updateNetworkApplianceStaticRoutes := *openApiClient.NewInlineObject49()
+	updateNetworkApplianceStaticRoutes := *openApiClient.NewUpdateNetworkApplianceStaticRouteRequest()
 
 	if !data.Name.IsUnknown() {
 		updateNetworkApplianceStaticRoutes.SetName(data.Name.ValueString())
@@ -395,9 +385,9 @@ func (r *NetworkApplianceStaticRoutesResource) Update(ctx context.Context, req r
 	}
 
 	if len(data.ReservedIpRanges) > 0 {
-		var networksNetworkIdApplianceStaticRoutesStaticRouteIdReservedIpRanges []openApiClient.NetworksNetworkIdApplianceStaticRoutesStaticRouteIdReservedIpRanges
+		var networksNetworkIdApplianceStaticRoutesStaticRouteIdReservedIpRanges []openApiClient.UpdateNetworkApplianceStaticRouteRequestReservedIpRangesInner
 		for _, attribute := range data.ReservedIpRanges {
-			var networksNetworkIdApplianceStaticRoutesStaticRouteIdReservedIpRangesData openApiClient.NetworksNetworkIdApplianceStaticRoutesStaticRouteIdReservedIpRanges
+			var networksNetworkIdApplianceStaticRoutesStaticRouteIdReservedIpRangesData openApiClient.UpdateNetworkApplianceStaticRouteRequestReservedIpRangesInner
 			networksNetworkIdApplianceStaticRoutesStaticRouteIdReservedIpRangesData.SetComment(attribute.Comment.ValueString())
 			networksNetworkIdApplianceStaticRoutesStaticRouteIdReservedIpRangesData.SetEnd(attribute.End.ValueString())
 			networksNetworkIdApplianceStaticRoutesStaticRouteIdReservedIpRangesData.SetStart(attribute.Start.ValueString())
@@ -427,19 +417,14 @@ func (r *NetworkApplianceStaticRoutesResource) Update(ctx context.Context, req r
 		}
 	}
 
-	inlineResp, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceStaticRoute(context.Background(), data.NetworkId.ValueString(), data.StaticRoutId.ValueString()).UpdateNetworkApplianceStaticRoute(updateNetworkApplianceStaticRoutes).Execute()
+	inlineResp, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceStaticRoute(context.Background(), data.NetworkId.ValueString(), data.StaticRoutId.ValueString()).UpdateNetworkApplianceStaticRouteRequest(updateNetworkApplianceStaticRoutes).Execute()
 	if err != nil {
-
 		resp.Diagnostics.AddError(
-			"Failed to update resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
+		return
 
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 	}
 
 	// Check for API success response code
@@ -468,12 +453,12 @@ func (r *NetworkApplianceStaticRoutesResource) Update(ctx context.Context, req r
 	}
 
 	if reservedIpRangesResponse := inlineResp["reservedIpRanges"]; reservedIpRangesResponse != nil {
-		var reservedIpRanges []ReservedIpRange
+		var reservedIpRanges []NetworkApplianceStaticRoutesResourceModelReservedIpRange
 		jsonData, _ := json.Marshal(reservedIpRangesResponse)
 		json.Unmarshal(jsonData, &reservedIpRanges)
-		data.ReservedIpRanges = make([]ReservedIpRange, 0)
+		data.ReservedIpRanges = make([]NetworkApplianceStaticRoutesResourceModelReservedIpRange, 0)
 		for _, attribute := range reservedIpRanges {
-			var reservedIpRange ReservedIpRange
+			var reservedIpRange NetworkApplianceStaticRoutesResourceModelReservedIpRange
 			reservedIpRange.Comment = attribute.Comment
 			reservedIpRange.End = attribute.End
 			reservedIpRange.Start = attribute.Start
@@ -483,7 +468,7 @@ func (r *NetworkApplianceStaticRoutesResource) Update(ctx context.Context, req r
 
 	if fixedIpAssignmentsResponse := inlineResp["fixedIpAssignments"]; fixedIpAssignmentsResponse != nil {
 		if macresponse := inlineResp["fixedIpAssignments"].(map[string]interface{})[data.FixedIpAssignmentsMacAddress.ValueString()]; macresponse != nil {
-			var macData MacData
+			var macData NetworkApplianceStaticRoutesResourceModelMacData
 			jsonData, _ := json.Marshal(inlineResp["fixedIpAssignments"].(map[string]interface{})[data.FixedIpAssignmentsMacAddress.ValueString()])
 			json.Unmarshal(jsonData, &macData)
 			data.FixedIpAssignmentsMacIpAddress = jsontypes.StringValue(macData.Ip)
@@ -516,17 +501,12 @@ func (r *NetworkApplianceStaticRoutesResource) Delete(ctx context.Context, req r
 
 	httpResp, err := r.client.ApplianceApi.DeleteNetworkApplianceStaticRoute(ctx, data.NetworkId.ValueString(), data.StaticRoutId.ValueString()).Execute()
 	if err != nil {
-
 		resp.Diagnostics.AddError(
-			"Failed to delete resource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
+		return
 
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 	}
 
 	// Check for API success response code

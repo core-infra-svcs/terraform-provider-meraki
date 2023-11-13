@@ -36,5 +36,3 @@ Optional:
 
 - `power_type` (String) Per switch exception (combined, redundant, useNetworkSetting)
 - `serial` (String) Serial number of the switch
-
-

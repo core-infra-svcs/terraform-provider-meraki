@@ -1,6 +1,8 @@
 package provider
 
 import (
+	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -11,14 +13,6 @@ func TestAccNetworkSettingsResource(t *testing.T) {
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-
-			// Create test Organization
-			{
-				Config: testAccNetworkSettingsResourceConfigCreateOrganization,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_acc_meraki_organizations_network_settings"),
-				),
-			},
 
 			// TODO - ImportState testing - This only works when hard-coded networkId.
 			/*
@@ -32,9 +26,9 @@ func TestAccNetworkSettingsResource(t *testing.T) {
 
 			// Create and Read Network.
 			{
-				Config: testAccNetworkSettingsResourceConfigCreateNetwork,
+				Config: testAccNetworkSettingsResourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "Main Office"),
+					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_networks_settings"),
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
@@ -50,53 +44,49 @@ func TestAccNetworkSettingsResource(t *testing.T) {
 			{
 				Config: testAccNetworkSettingsResourceConfigUpdateNetworkSettings,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_settings.test", "local_status_page_enabled", "true"),
-					resource.TestCheckResourceAttr("meraki_networks_settings.test", "remote_status_page_enabled", "true"),
-					resource.TestCheckResourceAttr("meraki_networks_settings.test", "secure_port_enabled", "false"),
-					resource.TestCheckResourceAttr("meraki_networks_settings.test", "local_status_page_authentication_enabled", "true"),
+					resource.TestCheckResourceAttr("meraki_networks_settings.test", "local_status_page_enabled", "false"),
+					resource.TestCheckResourceAttr("meraki_networks_settings.test", "remote_status_page_enabled", "false"),
+					resource.TestCheckResourceAttr("meraki_networks_settings.test", "secure_port_enabled.enabled", "false"),
+					resource.TestCheckResourceAttr("meraki_networks_settings.test", "local_status_page.authentication.enabled", "true"),
 				),
 			},
 		},
 	})
 }
 
-const testAccNetworkSettingsResourceConfigCreateOrganization = `
- resource "meraki_organization" "test" {
- 	name = "test_acc_meraki_organizations_network_settings"
- 	api_enabled = true
- } 
- `
-
-const testAccNetworkSettingsResourceConfigCreateNetwork = `
-resource "meraki_organization" "test" {}
-
+func testAccNetworkSettingsResourceConfigCreateNetwork(orgId string) string {
+	result := fmt.Sprintf(`
 resource "meraki_network" "test" {
-	depends_on = [resource.meraki_organization.test]
-	organization_id = resource.meraki_organization.test.organization_id
+	organization_id = %s
 	product_types = ["appliance", "switch", "wireless"]
 	tags = ["tag1"]
-	name = "Main Office"
+	name = "test_acc_networks_settings"
 	timezone = "America/Los_Angeles"
 	notes = "Additional description of the network"
 }
-`
+`, orgId)
+	return result
+}
 
 const testAccNetworkSettingsResourceConfigUpdateNetworkSettings = `
-resource "meraki_organization" "test" {}
 
 resource "meraki_network" "test" {
-	depends_on = [resource.meraki_organization.test]	
 	product_types = ["appliance", "switch", "wireless"]	
 }
 
 resource "meraki_networks_settings" "test" {
-	depends_on = [resource.meraki_organization.test,
-	resource.meraki_network.test]
+	depends_on = [resource.meraki_network.test]
       network_id = resource.meraki_network.test.network_id
-	  local_status_page_authentication_enabled = true
+	  local_status_page = {
+		authentication = { 
+			enabled = true
+			username = "admin"
+		}
+	  }
+	  remote_status_page_enabled = false
+	  secure_port_enabled = {
+		enabled = false
+	  }
 	  local_status_page_authentication_password = "testpassword"
-	  remote_status_page_enabled = true
-	  local_status_page_enabled = true
-	  secure_port_enabled = false			  
 }
 `
