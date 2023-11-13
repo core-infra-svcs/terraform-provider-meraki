@@ -1,6 +1,8 @@
 package provider
 
 import (
+	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -19,20 +21,11 @@ func TestAccNetworksCellularGatewayUplinkResource(t *testing.T) {
 		// Steps is a slice of TestStep where each TestStep represents a test case.
 		Steps: []resource.TestStep{
 
-			// Create and Read an Organization.
-			{
-				Config: testAccNetworksCellularGatewayUplinkResourceConfigCreateOrganization,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
-					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_meraki_networks_cellular_gateway_uplink"),
-				),
-			},
-
 			// Create and Read a Network.
 			{
-				Config: testAccNetworksCellularGatewayUplinkResourceConfigCreateNetwork,
+				Config: testAccNetworksCellularGatewayUplinkResourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_network"),
+					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_networks_cellular_gateway_uplink"),
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
@@ -68,41 +61,31 @@ func TestAccNetworksCellularGatewayUplinkResource(t *testing.T) {
 	})
 }
 
-// testAccNetworksCellularGatewayUplinkResourceConfigCreateOrganization is a constant string that defines the configuration for creating an organization resource in your tests.
-const testAccNetworksCellularGatewayUplinkResourceConfigCreateOrganization = `
- resource "meraki_organization" "test" {
- 	name = "test_meraki_networks_cellular_gateway_uplink"
- 	api_enabled = true
- }
- `
-
 // testAccNetworksCellularGatewayUplinkResourceConfigCreateNetwork is a constant string that defines the configuration for creating a network resource in your tests.
 // It depends on the organization resource.
-const testAccNetworksCellularGatewayUplinkResourceConfigCreateNetwork = `
-resource "meraki_organization" "test" {}
-
+func testAccNetworksCellularGatewayUplinkResourceConfigCreateNetwork(orgId string) string {
+	result := fmt.Sprintf(`
 resource "meraki_network" "test" {
-	depends_on = [resource.meraki_organization.test]
-	organization_id = resource.meraki_organization.test.organization_id
+	organization_id = %s
 	product_types = ["appliance", "switch", "wireless", "cellularGateway"]
 	tags = ["tag1"]
-	name = "test_acc_network"
+	name = "test_acc_networks_cellular_gateway_uplink"
 	timezone = "America/Los_Angeles"
 	notes = "Additional description of the network"
 }
-`
+`, orgId)
+	return result
+}
 
 // testAccNetworksCellularGatewayUplinkResourceConfigUpdate is a constant string that defines the configuration for updating a networks_cellularGateway_uplink resource in your tests.
 // It depends on both the organization and network resources.
 const testAccNetworksCellularGatewayUplinkResourceConfigUpdate = `
-resource "meraki_organization" "test" {}
 resource "meraki_network" "test" {
-	depends_on = [resource.meraki_organization.test]
 	product_types = ["appliance", "switch", "wireless", "cellularGateway"]
 }
 
 resource "meraki_networks_cellular_gateway_uplink" "test" {
-	depends_on = [resource.meraki_network.test, resource.meraki_organization.test]
+	depends_on = [resource.meraki_network.test]
   	network_id = resource.meraki_network.test.network_id
     bandwidth_limits = {
         limit_up = 51200

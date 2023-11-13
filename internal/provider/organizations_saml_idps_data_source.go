@@ -29,13 +29,13 @@ type OrganizationsSamlIdpsDataSource struct {
 }
 
 type OrganizationsSamlIdpsDataSourceModel struct {
-	Id             types.String                          `tfsdk:"id"`
-	OrganizationId jsontypes.String                      `tfsdk:"organization_id"`
-	List           []OrganizationsSamlIdpDataSourceModel `tfsdk:"list"`
+	Id             types.String                               `tfsdk:"id"`
+	OrganizationId jsontypes.String                           `tfsdk:"organization_id"`
+	List           []OrganizationsSamlIdpsDataSourceModelList `tfsdk:"list"`
 }
 
-// OrganizationsSamlIdpDataSourceModel describes the data source data model.
-type OrganizationsSamlIdpDataSourceModel struct {
+// OrganizationsSamlIdpsDataSourceModelList describes the data source data model.
+type OrganizationsSamlIdpsDataSourceModelList struct {
 	ConsumerUrl             jsontypes.String `tfsdk:"consumer_url"`
 	IdpId                   jsontypes.String `tfsdk:"idp_id"`
 	SloLogOutUrl            jsontypes.String `tfsdk:"slo_logout_url"`

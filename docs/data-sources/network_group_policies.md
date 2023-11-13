@@ -3,12 +3,12 @@
 page_title: "meraki_network_group_policies Data Source - terraform-provider-meraki"
 subcategory: ""
 description: |-
-  List the group policy's in this network
+  Manage the group policy's in this network
 ---
 
 # meraki_network_group_policies (Data Source)
 
-List the group policy's in this network
+Manage the group policy's in this network
 
 
 

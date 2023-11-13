@@ -3,12 +3,12 @@
 page_title: "meraki_networks_appliance_settings Resource - terraform-provider-meraki"
 subcategory: ""
 description: |-
-  NetworksApplianceSettings resource for updating network appliance settings.
+  Manage network appliance settings.
 ---
 
 # meraki_networks_appliance_settings (Resource)
 
-NetworksApplianceSettings resource for updating network appliance settings.
+Manage network appliance settings.
 
 
 

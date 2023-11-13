@@ -1,6 +1,8 @@
 package provider
 
 import (
+	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -19,20 +21,11 @@ func TestAccNetworksWirelessSsidsSplashSettingsResource(t *testing.T) {
 		// Steps is a slice of TestStep where each TestStep represents a test case.
 		Steps: []resource.TestStep{
 
-			// Create and Read an Organization.
-			{
-				Config: testAccNetworksWirelessSsidsSplashSettingsResourceConfigCreateOrganization,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
-					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_meraki_networks_wireless_ssids_splash_settings"),
-				),
-			},
-
 			// Create and Read a Network.
 			{
-				Config: testAccNetworksWirelessSsidsSplashSettingsResourceConfigCreateNetwork,
+				Config: testAccNetworksWirelessSsidsSplashSettingsResourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "Main Office"),
+					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_networks_wireless_ssids_splash_settings"),
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
@@ -46,21 +39,21 @@ func TestAccNetworksWirelessSsidsSplashSettingsResource(t *testing.T) {
 
 			// Create and Read a SystemsManager Network.
 			{
-				Config: testAccNetworksWirelessSsidsSplashSettingsResourceConfigCreateNetworkSystemsManager,
+				Config: testAccNetworksWirelessSsidsSplashSettingsResourceConfigCreateNetworkSystemsManager(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test_systems_manager", "name", "SM"),
-					resource.TestCheckResourceAttr("meraki_network.test_systems_manager", "timezone", "America/Los_Angeles"),
-					resource.TestCheckResourceAttr("meraki_network.test_systems_manager", "tags.#", "1"),
-					resource.TestCheckResourceAttr("meraki_network.test_systems_manager", "tags.0", "tag1"),
-					resource.TestCheckResourceAttr("meraki_network.test_systems_manager", "product_types.#", "1"),
-					resource.TestCheckResourceAttr("meraki_network.test_systems_manager", "product_types.0", "systemsManager"),
-					resource.TestCheckResourceAttr("meraki_network.test_systems_manager", "notes", "Additional description of the network"),
+					resource.TestCheckResourceAttr("meraki_network.testhub", "name", "test_acc_networks_wireless_ssids_splash_settings_hub"),
+					resource.TestCheckResourceAttr("meraki_network.testhub", "timezone", "America/Los_Angeles"),
+					resource.TestCheckResourceAttr("meraki_network.testhub", "tags.#", "1"),
+					resource.TestCheckResourceAttr("meraki_network.testhub", "tags.0", "tag1"),
+					resource.TestCheckResourceAttr("meraki_network.testhub", "product_types.#", "1"),
+					resource.TestCheckResourceAttr("meraki_network.testhub", "product_types.0", "systemsManager"),
+					resource.TestCheckResourceAttr("meraki_network.testhub", "notes", "Additional description of the network"),
 				),
 			},
 
-			// TODO: Create and Read NetworksWirelessSsidsSplashSettings
+			// Create and Read NetworksWirelessSsidsSplashSettings
 			{
-				Config: testAccNetworksWirelessSsidsSplashSettingsResourceConfigCreate,
+				Config: testAccNetworksWirelessSsidsSplashSettingsResourceConfigCreate(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "splash_url", "https://www.custom_splash_url.com"),
@@ -81,7 +74,7 @@ func TestAccNetworksWirelessSsidsSplashSettingsResource(t *testing.T) {
 				),
 			},
 
-			// TODO: Update and Read NetworksWirelessSsidsSplashSettings
+			// Update and Read NetworksWirelessSsidsSplashSettings
 			{
 				Config: testAccNetworksWirelessSsidsSplashSettingsResourceConfigUpdate,
 				Check: resource.ComposeAggregateTestCheckFunc(
@@ -104,7 +97,7 @@ func TestAccNetworksWirelessSsidsSplashSettingsResource(t *testing.T) {
 				),
 			},
 		},
-		// TODO: Optionally, you can add an ImportState test case.
+		// Optionally, you can add an ImportState test case.
 		/*
 		   {
 		       ResourceName:      "meraki_networks_wireless_ssids_splash_settings.test",
@@ -118,68 +111,64 @@ func TestAccNetworksWirelessSsidsSplashSettingsResource(t *testing.T) {
 	})
 }
 
-// testAccNetworksWirelessSsidsSplashSettingsResourceConfigCreateOrganization is a constant string that defines the configuration for creating an organization resource in your tests.
-const testAccNetworksWirelessSsidsSplashSettingsResourceConfigCreateOrganization = `
- resource "meraki_organization" "test" {
- 	name = "test_meraki_networks_wireless_ssids_splash_settings"
- 	api_enabled = true
- }
- `
-
 // testAccNetworksWirelessSsidsSplashSettingsResourceConfigCreateNetwork is a constant string that defines the configuration for creating a network resource in your tests.
 // It depends on the organization resource.
-const testAccNetworksWirelessSsidsSplashSettingsResourceConfigCreateNetwork = `
-resource "meraki_organization" "test" {}
+func testAccNetworksWirelessSsidsSplashSettingsResourceConfigCreateNetwork(orgId string) string {
+	result := fmt.Sprintf(`
 resource "meraki_network" "test" {
-	depends_on = [resource.meraki_organization.test]
-	organization_id = resource.meraki_organization.test.organization_id
+	organization_id = "%s"
 	product_types = ["appliance", "switch", "wireless"]
 	tags = ["tag1"]
-	name = "Main Office"
+	name = "test_acc_networks_wireless_ssids_splash_settings"
 	timezone = "America/Los_Angeles"
 	notes = "Additional description of the network"
 }
-`
+`, orgId)
+	return result
+}
 
 // testAccNetworksWirelessSsidsSplashSettingsResourceConfigCreateNetworkSystemsManager is a constant string that defines the configuration for creating a network resource in your tests.
 // It depends on the organization resource.
-const testAccNetworksWirelessSsidsSplashSettingsResourceConfigCreateNetworkSystemsManager = `
-resource "meraki_organization" "test" {}
+func testAccNetworksWirelessSsidsSplashSettingsResourceConfigCreateNetworkSystemsManager(orgId string) string {
+	result := fmt.Sprintf(`
 
-resource "meraki_network" "test_systems_manager" {
-	depends_on = [resource.meraki_organization.test]
-	organization_id = resource.meraki_organization.test.organization_id
+resource "meraki_network" "testhub" {
+	organization_id = "%s"
 	product_types = ["systemsManager"]
 	tags = ["tag1"]
-	name = "SM"
+	name = "test_acc_networks_wireless_ssids_splash_settings_hub"
 	timezone = "America/Los_Angeles"
 	notes = "Additional description of the network"
 }
-`
+
+`, orgId)
+	return result
+}
 
 // testAccNetworksWirelessSsidsSplashSettingsResourceConfigCreate is a constant string that defines the configuration for creating and reading a networks_wireless_ssids_splash_settings resource in your tests.
 // It depends on both the organization and network resources.
-const testAccNetworksWirelessSsidsSplashSettingsResourceConfigCreate = `
-resource "meraki_organization" "test" {}
+func testAccNetworksWirelessSsidsSplashSettingsResourceConfigCreate(orgId string) string {
+	result := fmt.Sprintf(`
 resource "meraki_network" "test" {
-	depends_on = [resource.meraki_organization.test]
-	organization_id = resource.meraki_organization.test.organization_id
+	organization_id = "%s"
 	product_types = ["appliance", "switch", "wireless"]
-	name = "Main office"
-	timezone = "America/Los_Angeles"
 	tags = ["tag1"]
+	name = "test_acc_networks_wireless_ssids_splash_settings"
+	timezone = "America/Los_Angeles"
+	notes = "Additional description of the network"
 }
-resource "meraki_network" "test_systems_manager" {
-	depends_on = [resource.meraki_network.test, resource.meraki_organization.test]
-	organization_id = resource.meraki_organization.test.organization_id
-	product_types = ["systemsManager"]	
-	timezone = "America/Los_Angeles"
-	name = "SM"
+
+resource "meraki_network" "testhub" {
+	organization_id = "%s"
+	product_types = ["systemsManager"]
 	tags = ["tag1"]
+	name = "test_acc_networks_wireless_ssids_splash_settings_hub"
+	timezone = "America/Los_Angeles"
+	notes = "Additional description of the network"
 }
 
 resource "meraki_networks_wireless_ssids_splash_settings" "test" {
-    depends_on = [resource.meraki_network.test, resource.meraki_organization.test]
+    depends_on = [resource.meraki_network.test, resource.meraki_network.testhub]
   	network_id = resource.meraki_network.test.network_id
     number = "0"
     splash_url = "https://www.custom_splash_url.com"
@@ -214,35 +203,31 @@ resource "meraki_networks_wireless_ssids_splash_settings" "test" {
 	 } 
 	sentry_enrollment =  {
         systems_manager_network = {
-			id = resource.meraki_network.test_systems_manager.network_id
+			id = resource.meraki_network.testhub.network_id
 		}  
 		enforced_systems = ["iOS"]	
 		strength = "focused"	
     }
 }
-`
+`, orgId, orgId)
+	return result
+}
 
-// TODO: Make a change to the configuration to test
 // testAccNetworksWirelessSsidsSplashSettingsResourceConfigUpdate is a constant string that defines the configuration for updating a networks_wireless_ssids_splash_settings resource in your tests.
 // It depends on both the organization and network resources.
 const testAccNetworksWirelessSsidsSplashSettingsResourceConfigUpdate = `
-resource "meraki_organization" "test" {}
 resource "meraki_network" "test" {
-	depends_on = [resource.meraki_organization.test]
-	organization_id = resource.meraki_organization.test.organization_id
 	product_types = ["appliance", "switch", "wireless"]
-	name = "Main office"
 	tags = ["tag1"]
 }
-resource "meraki_network" "test_systems_manager" {
-	depends_on = [resource.meraki_network.test, resource.meraki_organization.test]
-	organization_id = resource.meraki_organization.test.organization_id
-	product_types = ["systemsManager"]	
-	name = "SM"
+
+resource "meraki_network" "testhub" {
+	product_types = ["systemsManager"]
 	tags = ["tag1"]
 }
+
 resource "meraki_networks_wireless_ssids_splash_settings" "test" {
-	depends_on = [resource.meraki_network.test, resource.meraki_organization.test]
+	depends_on = [resource.meraki_network.test]
   	network_id = resource.meraki_network.test.network_id
     number = "0"
     splash_url = "https://www.updatedcustom_splash_url.com"
@@ -277,7 +262,7 @@ resource "meraki_networks_wireless_ssids_splash_settings" "test" {
 	 } 
 	sentry_enrollment =  {
         systems_manager_network = {
-			id = resource.meraki_network.test_systems_manager.network_id
+			id = resource.meraki_network.testhub.network_id
 		}  
 		enforced_systems = ["iOS"]	
 		strength = "focused"		

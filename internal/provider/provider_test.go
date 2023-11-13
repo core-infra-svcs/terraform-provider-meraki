@@ -29,4 +29,7 @@ func testAccPreCheck(t *testing.T) {
 			t.Fatalf("%s must be set for acceptance tests", v)
 		}
 	}
+
+	// Sweep for test networks prefixed with "acc_test" to delete
+
 }
