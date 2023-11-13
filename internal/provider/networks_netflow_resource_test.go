@@ -1,6 +1,8 @@
 package provider
 
 import (
+	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -12,19 +14,11 @@ func TestAccNetworksNetFlowResource(t *testing.T) {
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 
-			// Create test Organization
-			{
-				Config: testAccNetworksNetFlowResourceConfigCreateOrganization,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_acc_meraki_organizations_networks_netflow"),
-				),
-			},
-
 			// Create and Read Network.
 			{
-				Config: testAccNetworksNetFlowResourceConfigCreateNetwork,
+				Config: testAccNetworksNetFlowResourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_network"),
+					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_networks_netflow"),
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
@@ -51,34 +45,27 @@ func TestAccNetworksNetFlowResource(t *testing.T) {
 	})
 }
 
-const testAccNetworksNetFlowResourceConfigCreateOrganization = `
- resource "meraki_organization" "test" {
- 	name = "test_acc_meraki_organizations_networks_netflow"
- 	api_enabled = true
- } 
- `
-const testAccNetworksNetFlowResourceConfigCreateNetwork = `
-resource "meraki_organization" "test" {}
+func testAccNetworksNetFlowResourceConfigCreateNetwork(orgId string) string {
+	result := fmt.Sprintf(`
  resource "meraki_network" "test" {
-	depends_on = [resource.meraki_organization.test]
-	organization_id = resource.meraki_organization.test.organization_id
+	organization_id = %s
 	product_types = ["appliance", "switch", "wireless"]
 	tags = ["tag1"]
-	name = "test_acc_network"
+	name = "test_acc_networks_netflow"
 	timezone = "America/Los_Angeles"
 	notes = "Additional description of the network"
 }
- `
+ `, orgId)
+	return result
+}
 
 const testAccNetFlowResourceConfigUpdateNetworkNetFlowSettings = `
-resource "meraki_organization" "test" {}
 resource "meraki_network" "test" {
-	depends_on = [resource.meraki_organization.test]
 	product_types = ["appliance", "switch", "wireless"]
 	
 }
 resource "meraki_networks_netflow" "test" {
-	  depends_on = [resource.meraki_network.test, resource.meraki_organization.test]
+	  depends_on = [resource.meraki_network.test]
       network_id = resource.meraki_network.test.network_id
 	  reporting_enabled = false     
       eta_enabled = false   

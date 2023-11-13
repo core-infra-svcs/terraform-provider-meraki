@@ -3,12 +3,12 @@
 page_title: "meraki_devices_cellular_sims Resource - terraform-provider-meraki"
 subcategory: ""
 description: |-
-  Updates the SIM and APN configurations for a cellular device.
+  Manages the SIM and APN configurations for a cellular device.
 ---
 
 # meraki_devices_cellular_sims (Resource)
 
-Updates the SIM and APN configurations for a cellular device.
+Manages the SIM and APN configurations for a cellular device.
 
 
 

@@ -32,31 +32,31 @@ type DevicesCellularSimsResource struct {
 
 // DevicesCellularSimsResourceModel describes the resource data model.
 type DevicesCellularSimsResourceModel struct {
-	Id          jsontypes.String `tfsdk:"id"`
-	Serial      jsontypes.String `tfsdk:"serial" json:"serial"`
-	Sims        []Sim            `tfsdk:"sims" json:"sims"`
-	SimFailOver SimFailover      `tfsdk:"sim_failover" json:"simFailover"`
+	Id          jsontypes.String                            `tfsdk:"id"`
+	Serial      jsontypes.String                            `tfsdk:"serial" json:"serial"`
+	Sims        []DevicesCellularSimsResourceModelSim       `tfsdk:"sims" json:"sims"`
+	SimFailOver DevicesCellularSimsResourceModelSimFailOver `tfsdk:"sim_failover" json:"simFailover"`
 }
 
-type Sim struct {
-	Slot      jsontypes.String `tfsdk:"slot" json:"slot"`
-	IsPrimary jsontypes.Bool   `tfsdk:"is_primary" json:"isPrimary"`
-	Apns      []Apns           `tfsdk:"apns" json:"apns"`
+type DevicesCellularSimsResourceModelSim struct {
+	Slot      jsontypes.String                       `tfsdk:"slot" json:"slot"`
+	IsPrimary jsontypes.Bool                         `tfsdk:"is_primary" json:"isPrimary"`
+	Apns      []DevicesCellularSimsResourceModelApns `tfsdk:"apns" json:"apns"`
 }
 
-type Apns struct {
-	Name           jsontypes.String `tfsdk:"name" json:"name"`
-	AllowedIpTypes []string         `tfsdk:"allowed_ip_types" json:"allowedIpTypes"`
-	Authentication Authentication   `tfsdk:"authentication" json:"authentication"`
+type DevicesCellularSimsResourceModelApns struct {
+	Name           jsontypes.String                               `tfsdk:"name" json:"name"`
+	AllowedIpTypes []string                                       `tfsdk:"allowed_ip_types" json:"allowedIpTypes"`
+	Authentication DevicesCellularSimsResourceModelAuthentication `tfsdk:"authentication" json:"authentication"`
 }
 
-type Authentication struct {
+type DevicesCellularSimsResourceModelAuthentication struct {
 	Password jsontypes.String `tfsdk:"password" json:"password"`
 	Username jsontypes.String `tfsdk:"username" json:"username"`
 	Type     jsontypes.String `tfsdk:"type" json:"type"`
 }
 
-type SimFailover struct {
+type DevicesCellularSimsResourceModelSimFailOver struct {
 	Enabled jsontypes.Bool `tfsdk:"enabled" json:"enabled"`
 }
 
@@ -66,7 +66,7 @@ func (r *DevicesCellularSimsResource) Metadata(ctx context.Context, req resource
 
 func (r *DevicesCellularSimsResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Updates the SIM and APN configurations for a cellular device.",
+		MarkdownDescription: "Manages the SIM and APN configurations for a cellular device.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:   true,

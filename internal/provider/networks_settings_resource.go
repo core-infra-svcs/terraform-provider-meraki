@@ -32,40 +32,40 @@ type NetworksSettingsResource struct {
 
 // NetworksSettingsResourceModel describes the resource data model.
 type NetworksSettingsResourceModel struct {
-	Id                                    jsontypes.String `tfsdk:"id"`
-	NetworkId                             jsontypes.String `tfsdk:"network_id" json:"network_id"`
-	LocalStatusPageEnabled                jsontypes.Bool   `tfsdk:"local_status_page_enabled" json:"localStatusPageEnabled"`
-	RemoteStatusPageEnabled               jsontypes.Bool   `tfsdk:"remote_status_page_enabled" json:"remoteStatusPageEnabled"`
-	SecurePortEnabled                     SecurePort       `tfsdk:"secure_port_enabled" json:"securePort"`
-	LocalStatusPage                       LocalStatusPage  `tfsdk:"local_status_page" json:"localStatusPage"`
-	LocalStatusPageAuthenticationPassword jsontypes.String `tfsdk:"local_status_page_authentication_password" json:"local_status_page_authentication_password"`
-	FipsEnabled                           jsontypes.Bool   `tfsdk:"fips_enabled"`
-	NamedVlansEnabled                     jsontypes.Bool   `tfsdk:"named_vlans_enabled"`
-	ClientPrivacyExpireDataOlderThan      jsontypes.Int64  `tfsdk:"client_privacy_expire_data_older_than"`
-	ClientPrivacyExpireDataBefore         jsontypes.String `tfsdk:"client_privacy_expire_data_before"`
+	Id                                    jsontypes.String                             `tfsdk:"id"`
+	NetworkId                             jsontypes.String                             `tfsdk:"network_id" json:"network_id"`
+	LocalStatusPageEnabled                jsontypes.Bool                               `tfsdk:"local_status_page_enabled" json:"localStatusPageEnabled"`
+	RemoteStatusPageEnabled               jsontypes.Bool                               `tfsdk:"remote_status_page_enabled" json:"remoteStatusPageEnabled"`
+	SecurePortEnabled                     NetworksSettingsResourceModelSecurePort      `tfsdk:"secure_port_enabled" json:"securePort"`
+	LocalStatusPage                       NetworksSettingsResourceModelLocalStatusPage `tfsdk:"local_status_page" json:"localStatusPage"`
+	LocalStatusPageAuthenticationPassword jsontypes.String                             `tfsdk:"local_status_page_authentication_password" json:"local_status_page_authentication_password"`
+	FipsEnabled                           jsontypes.Bool                               `tfsdk:"fips_enabled"`
+	NamedVlansEnabled                     jsontypes.Bool                               `tfsdk:"named_vlans_enabled"`
+	ClientPrivacyExpireDataOlderThan      jsontypes.Int64                              `tfsdk:"client_privacy_expire_data_older_than"`
+	ClientPrivacyExpireDataBefore         jsontypes.String                             `tfsdk:"client_privacy_expire_data_before"`
 }
 
-type SecurePort struct {
+type NetworksSettingsResourceModelSecurePort struct {
 	Enabled bool `tfsdk:"enabled" json:"enabled"`
 }
 
-type LocalStatusPage struct {
-	Authentication AuthenticationInfo `tfsdk:"authentication" json:"authentication"`
+type NetworksSettingsResourceModelLocalStatusPage struct {
+	Authentication NetworksSettingsResourceModelAuthenticationInfo `tfsdk:"authentication" json:"authentication"`
 }
 
-type AuthenticationInfo struct {
+type NetworksSettingsResourceModelAuthenticationInfo struct {
 	Enabled  bool   `tfsdk:"enabled" json:"enabled"`
 	Username string `tfsdk:"username" json:"username"`
 }
 
-type Fips struct {
+type NetworksSettingsResourceModelFips struct {
 	Enabled bool `tfsdk:"enabled"`
 }
 
-type NamedVlans struct {
+type NetworksSettingsResourceModelNamedVlans struct {
 	Enabled bool `tfsdk:"enabled"`
 }
-type ClientPrivacy struct {
+type NetworksSettingsResourceModelClientPrivacy struct {
 	ExpireDataOlderThan jsontypes.Int64 `tfsdk:"expireDataOlderThan"`
 	ExpireDataBefore    string          `tfsdk:"expireDataBefore"`
 }

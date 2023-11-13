@@ -44,7 +44,7 @@ func (r *NetworksApplianceVlansSettingsResource) Metadata(ctx context.Context, r
 
 func (r *NetworksApplianceVlansSettingsResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "NetworksApplianceVlansSettings resource for updating network appliance vlans settings.",
+		MarkdownDescription: "Manage network appliance vlans settings.",
 		Attributes: map[string]schema.Attribute{
 
 			"id": schema.StringAttribute{

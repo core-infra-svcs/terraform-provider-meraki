@@ -1,6 +1,8 @@
 package provider
 
 import (
+	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -14,14 +16,6 @@ func TestAccNetworksApplianceFirewallL7FirewallRulesResource(t *testing.T) {
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 
-			// Create test Organization
-			{
-				Config: testAccNetworksApplianceFirewallL7FirewallRulesResourceConfigCreateOrganization,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_acc_meraki_organizations_networks_appliance_firewall_l7_firewall_rules"),
-				),
-			},
-
 			// TODO - ImportState testing - This only works when hard-coded networkId.
 			/*
 				{
@@ -34,9 +28,9 @@ func TestAccNetworksApplianceFirewallL7FirewallRulesResource(t *testing.T) {
 
 			// Create and Read Network.
 			{
-				Config: testAccNetworksApplianceFirewallL7FirewallRulesResourceConfigCreateNetwork,
+				Config: testAccNetworksApplianceFirewallL7FirewallRulesResourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_network"),
+					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_networks_appliance_firewall_l7_firewall_rules"),
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
@@ -70,35 +64,27 @@ func TestAccNetworksApplianceFirewallL7FirewallRulesResource(t *testing.T) {
 	})
 }
 
-const testAccNetworksApplianceFirewallL7FirewallRulesResourceConfigCreateOrganization = `
-resource "meraki_organization" "test" {
-    name = "test_acc_meraki_organizations_networks_appliance_firewall_l7_firewall_rules"
-    api_enabled = true
-}
-`
-const testAccNetworksApplianceFirewallL7FirewallRulesResourceConfigCreateNetwork = `
-        resource "meraki_organization" "test" {}
+func testAccNetworksApplianceFirewallL7FirewallRulesResourceConfigCreateNetwork(orgId string) string {
+	result := fmt.Sprintf(`
 resource "meraki_network" "test" {
-    depends_on = [resource.meraki_organization.test]
-    organization_id = resource.meraki_organization.test.organization_id
+    organization_id = %s
     product_types = ["appliance", "switch", "wireless"]
     tags = ["tag1"]
-    name = "test_acc_network"
+    name = "test_acc_networks_appliance_firewall_l7_firewall_rules"
     timezone = "America/Los_Angeles"
     notes = "Additional description of the network"
 }
-`
+`, orgId)
+	return result
+}
 
 const testAccNetworksApplianceFirewallL7FirewallRulesResourceConfigCreateNetworksApplianceFirewallL7FirewallRules = `
-        resource "meraki_organization" "test" {}
-
 resource "meraki_network" "test" {
-    depends_on = [resource.meraki_organization.test]
     product_types = ["appliance", "switch", "wireless"]
 }
 
 resource "meraki_networks_appliance_firewall_l7_firewall_rules" "test" {
-    depends_on = [resource.meraki_organization.test, resource.meraki_network.test]
+    depends_on = [resource.meraki_network.test]
     network_id = resource.meraki_network.test.network_id
     rules = [
     {
