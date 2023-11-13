@@ -1,5 +1,53 @@
 # Changelog
 
+## [0.5.0](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.4.0...v0.5.0) (2023-11-12)
+
+
+### Features
+
+* pr-based-workflow ([#231](https://github.com/core-infra-svcs/terraform-provider-meraki/issues/231)) ([b3adc37](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/b3adc37503c237083e9c74b0e8224d0c9953795f))
+
+
+### Bug Fixes
+
+* prerelease ([#233](https://github.com/core-infra-svcs/terraform-provider-meraki/issues/233)) ([35e1621](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/35e1621a848ae6d894652c7e0218920960113202))
+
+## [0.4.0](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.3.4...v0.4.0) (2023-11-12)
+
+
+### Features
+
+* test workflow ([#229](https://github.com/core-infra-svcs/terraform-provider-meraki/issues/229)) ([26a329f](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/26a329f7daa2de740a7af989dc20ec9bb1887911))
+
+## [0.3.4](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.3.3...v0.3.4) (2023-11-11)
+
+
+### Bug Fixes
+
+* git tagging ([#227](https://github.com/core-infra-svcs/terraform-provider-meraki/issues/227)) ([e7991a5](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/e7991a56599213660a6c72376ccbdb4027eef80a))
+
+## [0.3.3](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.3.2...v0.3.3) (2023-11-11)
+
+
+### Bug Fixes
+
+* fix-manual-release ([#224](https://github.com/core-infra-svcs/terraform-provider-meraki/issues/224)) ([d9e7265](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/d9e72652fbce1c3d0b8e5992033b54ad6b47b44e))
+* git tag ([#226](https://github.com/core-infra-svcs/terraform-provider-meraki/issues/226)) ([28887cd](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/28887cdc55ac78d60bdd2371da1876e26e0d2d17))
+
+## [0.3.2](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.3.1...v0.3.2) (2023-11-11)
+
+
+### Bug Fixes
+
+* github actions workflow ([#222](https://github.com/core-infra-svcs/terraform-provider-meraki/issues/222)) ([e009e96](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/e009e96179078940ab62b9453ff6be9b9fc9f518))
+
+## [0.3.0](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.2.0...v0.3.0) (2023-11-09)
+
+
+### Features
+
+* Adding in clone as an attribute to organization ([#194](https://github.com/core-infra-svcs/terraform-provider-meraki/issues/194)) ([3bb8d45](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/3bb8d45677c20aa80a7793845b2129af13280f4e))
+
 ## [0.2.0](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.1.7...v0.2.0) (2023-09-07)
 
 
