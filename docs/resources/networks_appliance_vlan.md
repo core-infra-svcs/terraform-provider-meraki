@@ -3,12 +3,12 @@
 page_title: "meraki_networks_appliance_vlan Resource - terraform-provider-meraki"
 subcategory: ""
 description: |-
-  NetworksApplianceVlans
+  Manage the VLANs for an MX network
 ---
 
 # meraki_networks_appliance_vlan (Resource)
 
-NetworksApplianceVlans
+Manage the VLANs for an MX network
 
 
 

@@ -32,7 +32,7 @@ type OrganizationsLicenseResource struct {
 // The OrganizationsLicenseResourceModel structure describes the data model.
 // This struct is where you define all the attributes that are part of this resource's state.
 type OrganizationsLicenseResourceModel struct {
-	Id                 jsontypes.String   `tfsdk:"id"`
+	Id                 jsontypes.String   `tfsdk:"id" json:"-"`
 	OrganizationId     jsontypes.String   `tfsdk:"organization_id"`
 	DestOrganizationId jsontypes.String   `tfsdk:"dest_organization_id"`
 	LicenseIds         []jsontypes.String `tfsdk:"license_ids"`

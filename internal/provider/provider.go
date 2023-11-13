@@ -5,6 +5,12 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"net/http"
+	"net/url"
+	"os"
+	"regexp"
+	"time"
+
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -15,11 +21,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
-	"net/http"
-	"net/url"
-	"os"
-	"regexp"
-	"time"
 )
 
 // Ensure CiscoMerakiProvider satisfies various provider interfaces.
@@ -293,7 +294,9 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		NewNetworksApplianceVpnSiteToSiteVpnResource,
 		NewDevicesSwitchPortsCycleResource,
 		NewNetworksApplianceTrafficShapingUplinkBandWidthResource,
-		NewNetworksApplianceVLANResource,
+		NewNetworksApplianceVLANsResource,
+		NewDevicesSwitchPortResource,
+		NewNetworksAppliancePortsResource,
 	}
 }
 
@@ -304,6 +307,7 @@ func (p *CiscoMerakiProvider) DataSources(ctx context.Context) []func() datasour
 		NewAdministeredIdentitiesMeDataSource,
 		NewOrganizationsAdminsDataSource,
 		NewOrganizationsSamlIdpsDataSource,
+		NewOrganizationsInventoryDevicesDataSource,
 		NewOrganizationsAdaptivePolicyAclsDataSource,
 		NewOrganizationsSamlRolesDataSource,
 		NewNetworkGroupPoliciesDataSource,
@@ -313,7 +317,6 @@ func (p *CiscoMerakiProvider) DataSources(ctx context.Context) []func() datasour
 		NewDevicesSwitchPortsStatusesDataSource,
 		NewDevicesApplianceDhcpSubnetsDataSource,
 		NewNetworksWirelessSsidsDataSource,
-		NewNetworksApplianceVlansDataSource,
 	}
 }
 

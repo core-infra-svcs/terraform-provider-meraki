@@ -3,12 +3,12 @@
 page_title: "meraki_networks_appliance_vlans_settings Resource - terraform-provider-meraki"
 subcategory: ""
 description: |-
-  NetworksApplianceVlansSettings resource for updating network appliance vlans settings.
+  Manage network appliance vlans settings.
 ---
 
 # meraki_networks_appliance_vlans_settings (Resource)
 
-NetworksApplianceVlansSettings resource for updating network appliance vlans settings.
+Manage network appliance vlans settings.
 
 
 

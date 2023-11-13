@@ -38,25 +38,25 @@ type NetworkApplianceStaticRoutesResource struct {
 
 // NetworkApplianceStaticRoutesResourceModel describes the resource data model.
 type NetworkApplianceStaticRoutesResourceModel struct {
-	Id                             types.String      `tfsdk:"id"`
-	NetworkId                      jsontypes.String  `tfsdk:"network_id" json:"networkId"`
-	StaticRoutId                   jsontypes.String  `tfsdk:"static_route_id" json:"id"`
-	Enable                         jsontypes.Bool    `tfsdk:"enable" json:"enabled"`
-	Name                           jsontypes.String  `tfsdk:"name" json:"name"`
-	GatewayIp                      jsontypes.String  `tfsdk:"gateway_ip" json:"gatewayIp"`
-	Subnet                         jsontypes.String  `tfsdk:"subnet" json:"subnet"`
-	FixedIpAssignmentsMacAddress   jsontypes.String  `tfsdk:"fixed_ip_assignments_mac_address"`
-	FixedIpAssignmentsMacIpAddress jsontypes.String  `tfsdk:"fixed_ip_assignments_mac_ip_address"`
-	FixedIpAssignmentsMacName      jsontypes.String  `tfsdk:"fixed_ip_assignments_mac_name"`
-	ReservedIpRanges               []ReservedIpRange `tfsdk:"reserved_ip_ranges" json:"reservedIpRanges"`
+	Id                             types.String                                               `tfsdk:"id"`
+	NetworkId                      jsontypes.String                                           `tfsdk:"network_id" json:"networkId"`
+	StaticRoutId                   jsontypes.String                                           `tfsdk:"static_route_id" json:"id"`
+	Enable                         jsontypes.Bool                                             `tfsdk:"enable" json:"enabled"`
+	Name                           jsontypes.String                                           `tfsdk:"name" json:"name"`
+	GatewayIp                      jsontypes.String                                           `tfsdk:"gateway_ip" json:"gatewayIp"`
+	Subnet                         jsontypes.String                                           `tfsdk:"subnet" json:"subnet"`
+	FixedIpAssignmentsMacAddress   jsontypes.String                                           `tfsdk:"fixed_ip_assignments_mac_address"`
+	FixedIpAssignmentsMacIpAddress jsontypes.String                                           `tfsdk:"fixed_ip_assignments_mac_ip_address"`
+	FixedIpAssignmentsMacName      jsontypes.String                                           `tfsdk:"fixed_ip_assignments_mac_name"`
+	ReservedIpRanges               []NetworkApplianceStaticRoutesResourceModelReservedIpRange `tfsdk:"reserved_ip_ranges" json:"reservedIpRanges"`
 }
 
-type MacData struct {
+type NetworkApplianceStaticRoutesResourceModelMacData struct {
 	Ip   string `json:"ip"`
 	Name string `json:"name"`
 }
 
-type ReservedIpRange struct {
+type NetworkApplianceStaticRoutesResourceModelReservedIpRange struct {
 	Comment jsontypes.String `tfsdk:"comment" json:"comment"`
 	End     jsontypes.String `tfsdk:"end" json:"end"`
 	Start   jsontypes.String `tfsdk:"start" json:"start"`
@@ -236,12 +236,12 @@ func (r *NetworkApplianceStaticRoutesResource) Create(ctx context.Context, req r
 	}
 
 	if reservedIpRangesResponse := inlineResp["reservedIpRanges"]; reservedIpRangesResponse != nil {
-		var reservedIpRanges []ReservedIpRange
+		var reservedIpRanges []NetworkApplianceStaticRoutesResourceModelReservedIpRange
 		jsonData, _ := json.Marshal(reservedIpRangesResponse)
 		json.Unmarshal(jsonData, &reservedIpRanges)
-		data.ReservedIpRanges = make([]ReservedIpRange, 0)
+		data.ReservedIpRanges = make([]NetworkApplianceStaticRoutesResourceModelReservedIpRange, 0)
 		for _, attribute := range reservedIpRanges {
-			var reservedIpRange ReservedIpRange
+			var reservedIpRange NetworkApplianceStaticRoutesResourceModelReservedIpRange
 			reservedIpRange.Comment = attribute.Comment
 			reservedIpRange.End = attribute.End
 			reservedIpRange.Start = attribute.Start
@@ -252,7 +252,7 @@ func (r *NetworkApplianceStaticRoutesResource) Create(ctx context.Context, req r
 
 	if fixedIpAssignmentsResponse := inlineResp["fixedIpAssignments"]; fixedIpAssignmentsResponse != nil {
 		if macresponse := fixedIpAssignmentsResponse.(map[string]interface{})[data.FixedIpAssignmentsMacAddress.ValueString()]; macresponse != nil {
-			var macData MacData
+			var macData NetworkApplianceStaticRoutesResourceModelMacData
 			jsonData, _ := json.Marshal(fixedIpAssignmentsResponse.(map[string]interface{})[data.FixedIpAssignmentsMacAddress.ValueString()])
 			json.Unmarshal(jsonData, &macData)
 			data.FixedIpAssignmentsMacIpAddress = jsontypes.StringValue(macData.Ip)
@@ -323,12 +323,12 @@ func (r *NetworkApplianceStaticRoutesResource) Read(ctx context.Context, req res
 	}
 
 	if reservedIpRangesResponse := inlineResp["reservedIpRanges"]; reservedIpRangesResponse != nil {
-		var reservedIpRanges []ReservedIpRange
+		var reservedIpRanges []NetworkApplianceStaticRoutesResourceModelReservedIpRange
 		jsonData, _ := json.Marshal(reservedIpRangesResponse)
 		json.Unmarshal(jsonData, &reservedIpRanges)
-		data.ReservedIpRanges = make([]ReservedIpRange, 0)
+		data.ReservedIpRanges = make([]NetworkApplianceStaticRoutesResourceModelReservedIpRange, 0)
 		for _, attribute := range reservedIpRanges {
-			var reservedIpRange ReservedIpRange
+			var reservedIpRange NetworkApplianceStaticRoutesResourceModelReservedIpRange
 			reservedIpRange.Comment = attribute.Comment
 			reservedIpRange.End = attribute.End
 			reservedIpRange.Start = attribute.Start
@@ -338,7 +338,7 @@ func (r *NetworkApplianceStaticRoutesResource) Read(ctx context.Context, req res
 
 	if fixedIpAssignmentsResponse := inlineResp["fixedIpAssignments"]; fixedIpAssignmentsResponse != nil {
 		if macresponse := fixedIpAssignmentsResponse.(map[string]interface{})[data.FixedIpAssignmentsMacAddress.ValueString()]; macresponse != nil {
-			var macData MacData
+			var macData NetworkApplianceStaticRoutesResourceModelMacData
 			jsonData, _ := json.Marshal(fixedIpAssignmentsResponse.(map[string]interface{})[data.FixedIpAssignmentsMacAddress.ValueString()])
 			json.Unmarshal(jsonData, &macData)
 			data.FixedIpAssignmentsMacIpAddress = jsontypes.StringValue(macData.Ip)
@@ -453,12 +453,12 @@ func (r *NetworkApplianceStaticRoutesResource) Update(ctx context.Context, req r
 	}
 
 	if reservedIpRangesResponse := inlineResp["reservedIpRanges"]; reservedIpRangesResponse != nil {
-		var reservedIpRanges []ReservedIpRange
+		var reservedIpRanges []NetworkApplianceStaticRoutesResourceModelReservedIpRange
 		jsonData, _ := json.Marshal(reservedIpRangesResponse)
 		json.Unmarshal(jsonData, &reservedIpRanges)
-		data.ReservedIpRanges = make([]ReservedIpRange, 0)
+		data.ReservedIpRanges = make([]NetworkApplianceStaticRoutesResourceModelReservedIpRange, 0)
 		for _, attribute := range reservedIpRanges {
-			var reservedIpRange ReservedIpRange
+			var reservedIpRange NetworkApplianceStaticRoutesResourceModelReservedIpRange
 			reservedIpRange.Comment = attribute.Comment
 			reservedIpRange.End = attribute.End
 			reservedIpRange.Start = attribute.Start
@@ -468,7 +468,7 @@ func (r *NetworkApplianceStaticRoutesResource) Update(ctx context.Context, req r
 
 	if fixedIpAssignmentsResponse := inlineResp["fixedIpAssignments"]; fixedIpAssignmentsResponse != nil {
 		if macresponse := inlineResp["fixedIpAssignments"].(map[string]interface{})[data.FixedIpAssignmentsMacAddress.ValueString()]; macresponse != nil {
-			var macData MacData
+			var macData NetworkApplianceStaticRoutesResourceModelMacData
 			jsonData, _ := json.Marshal(inlineResp["fixedIpAssignments"].(map[string]interface{})[data.FixedIpAssignmentsMacAddress.ValueString()])
 			json.Unmarshal(jsonData, &macData)
 			data.FixedIpAssignmentsMacIpAddress = jsontypes.StringValue(macData.Ip)

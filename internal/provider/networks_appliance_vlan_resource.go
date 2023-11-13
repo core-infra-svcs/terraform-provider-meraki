@@ -18,92 +18,93 @@ import (
 
 // Ensure provider defined types fully satisfy framework interfaces
 var (
-	_ resource.Resource                = &NetworksApplianceVLANResource{}
-	_ resource.ResourceWithConfigure   = &NetworksApplianceVLANResource{}
-	_ resource.ResourceWithImportState = &NetworksApplianceVLANResource{}
+	_ resource.Resource                = &NetworksApplianceVLANsResource{}
+	_ resource.ResourceWithConfigure   = &NetworksApplianceVLANsResource{}
+	_ resource.ResourceWithImportState = &NetworksApplianceVLANsResource{}
 )
 
-func NewNetworksApplianceVLANResource() resource.Resource {
-	return &NetworksApplianceVLANResource{}
+func NewNetworksApplianceVLANsResource() resource.Resource {
+	return &NetworksApplianceVLANsResource{}
 }
 
-// NetworksApplianceVLANResource defines the resource implementation.
-type NetworksApplianceVLANResource struct {
+// NetworksApplianceVLANsResource defines the resource implementation.
+type NetworksApplianceVLANsResource struct {
 	client *openApiClient.APIClient
 }
 
-type NetworksApplianceVLANResourceModel struct {
-	Id                     jsontypes.String                `tfsdk:"id" json:"-"`
-	NetworkId              jsontypes.String                `tfsdk:"network_id" json:"networkId"`
-	VlanId                 jsontypes.Int64                 `tfsdk:"vlan_id" json:"id"`
-	Name                   jsontypes.String                `tfsdk:"name" json:"name"`
-	Subnet                 jsontypes.String                `tfsdk:"subnet" json:"subnet"`
-	ApplianceIp            jsontypes.String                `tfsdk:"appliance_ip" json:"applianceIp"`
-	GroupPolicyId          jsontypes.String                `tfsdk:"group_policy_id" json:"groupPolicyId"`
-	VpnNatSubnet           jsontypes.String                `tfsdk:"vpn_nat_subnet" json:"vpnNatSubnet"`
-	DhcpHandling           jsontypes.String                `tfsdk:"dhcp_handling" json:"dhcpHandling"`
-	DhcpRelayServerIps     jsontypes.Set[jsontypes.String] `tfsdk:"dhcp_relay_server_ips" json:"dhcpRelayServerIps"`
-	DhcpLeaseTime          jsontypes.String                `tfsdk:"dhcp_lease_time" json:"dhcpLeaseTime"`
-	DhcpBootOptionsEnabled jsontypes.Bool                  `tfsdk:"dhcp_boot_options_enabled" json:"dhcpBootOptionsEnabled"`
-	DhcpBootNextServer     jsontypes.String                `tfsdk:"dhcp_boot_next_server" json:"dhcpBootNextServer"`
-	DhcpBootFilename       jsontypes.String                `tfsdk:"dhcp_boot_filename" json:"dhcpBootFilename"`
-	FixedIpAssignments     ipNameMapping                   `tfsdk:"fixed_ip_assignments" json:"fixedIpAssignments"`
-	ReservedIpRanges       []reservedIpRange               `tfsdk:"reserved_ip_ranges" json:"reservedIpRanges"`
-	DnsNameservers         jsontypes.String                `tfsdk:"dns_nameservers" json:"dnsNameservers"`
-	DhcpOptions            []dhcpOption                    `tfsdk:"dhcp_options" json:"dhcpOptions"`
-	TemplateVlanType       jsontypes.String                `tfsdk:"template_vlan_type" json:"templateVlanType"`
-	Cidr                   jsontypes.String                `tfsdk:"cidr" json:"cidr"`
-	Mask                   jsontypes.Int64                 `tfsdk:"mask" json:"mask"`
-	IPv6                   ipv6Configuration               `tfsdk:"ipv6" json:"ipv6"`
-	MandatoryDhcp          mandatoryDhcp                   `tfsdk:"mandatory_dhcp" json:"mandatoryDhcp"`
+type NetworksApplianceVLANsResourceModel struct {
+	Id        jsontypes.String `tfsdk:"id" json:"-"`
+	NetworkId jsontypes.String `tfsdk:"network_id" json:"networkId"`
+
+	VlanId                 jsontypes.Int64                                      `tfsdk:"vlan_id" json:"id"`
+	Name                   jsontypes.String                                     `tfsdk:"name" json:"name"`
+	Subnet                 jsontypes.String                                     `tfsdk:"subnet" json:"subnet"`
+	ApplianceIp            jsontypes.String                                     `tfsdk:"appliance_ip" json:"applianceIp"`
+	GroupPolicyId          jsontypes.String                                     `tfsdk:"group_policy_id" json:"groupPolicyId"`
+	VpnNatSubnet           jsontypes.String                                     `tfsdk:"vpn_nat_subnet" json:"vpnNatSubnet"`
+	DhcpHandling           jsontypes.String                                     `tfsdk:"dhcp_handling" json:"dhcpHandling"`
+	DhcpRelayServerIps     jsontypes.Set[jsontypes.String]                      `tfsdk:"dhcp_relay_server_ips" json:"dhcpRelayServerIps"`
+	DhcpLeaseTime          jsontypes.String                                     `tfsdk:"dhcp_lease_time" json:"dhcpLeaseTime"`
+	DhcpBootOptionsEnabled jsontypes.Bool                                       `tfsdk:"dhcp_boot_options_enabled" json:"dhcpBootOptionsEnabled"`
+	DhcpBootNextServer     jsontypes.String                                     `tfsdk:"dhcp_boot_next_server" json:"dhcpBootNextServer"`
+	DhcpBootFilename       jsontypes.String                                     `tfsdk:"dhcp_boot_filename" json:"dhcpBootFilename"`
+	FixedIpAssignments     NetworksApplianceVLANsResourceModelIpNameMapping     `tfsdk:"fixed_ip_assignments" json:"fixedIpAssignments"`
+	ReservedIpRanges       []NetworksApplianceVLANsResourceModelReservedIpRange `tfsdk:"reserved_ip_ranges" json:"reservedIpRanges"`
+	DnsNameservers         jsontypes.String                                     `tfsdk:"dns_nameservers" json:"dnsNameservers"`
+	DhcpOptions            []NetworksApplianceVLANsResourceModelDhcpOption      `tfsdk:"dhcp_options" json:"dhcpOptions"`
+	TemplateVlanType       jsontypes.String                                     `tfsdk:"template_vlan_type" json:"templateVlanType"`
+	Cidr                   jsontypes.String                                     `tfsdk:"cidr" json:"cidr"`
+	Mask                   jsontypes.Int64                                      `tfsdk:"mask" json:"mask"`
+	IPv6                   ipv6Configuration                                    `tfsdk:"ipv6" json:"ipv6"`
+	MandatoryDhcp          NetworksApplianceVLANsResourceModelMandatoryDhcp     `tfsdk:"mandatory_dhcp" json:"NetworksApplianceVLANsResourceModelMandatoryDhcp"`
 }
 
-type ipNameMapping struct {
+type NetworksApplianceVLANsResourceModelIpNameMapping struct {
 	Ip   jsontypes.String `tfsdk:"ip" json:"ip"`
 	Name jsontypes.String `tfsdk:"name" json:"name"`
 }
 
-type reservedIpRange struct {
+type NetworksApplianceVLANsResourceModelReservedIpRange struct {
 	Start   jsontypes.String `tfsdk:"start" json:"start"`
 	End     jsontypes.String `tfsdk:"end" json:"end"`
 	Comment jsontypes.String `tfsdk:"comment" json:"comment"`
 }
 
-type dhcpOption struct {
+type NetworksApplianceVLANsResourceModelDhcpOption struct {
 	Code  jsontypes.String `tfsdk:"code" json:"code"`
 	Type  jsontypes.String `tfsdk:"type" json:"type"`
 	Value jsontypes.String `tfsdk:"value" json:"value"`
 }
 
 type ipv6Configuration struct {
-	Enabled           jsontypes.Bool     `tfsdk:"enabled" json:"enabled"`
-	PrefixAssignments []prefixAssignment `tfsdk:"prefix_assignments" json:"prefixAssignments"`
+	Enabled           jsontypes.Bool                                        `tfsdk:"enabled" json:"enabled"`
+	PrefixAssignments []NetworksApplianceVLANsResourceModelPrefixAssignment `tfsdk:"prefix_assignments" json:"prefixAssignments"`
 }
 
-type prefixAssignment struct {
-	Autonomous         jsontypes.Bool   `tfsdk:"autonomous" json:"autonomous"`
-	StaticPrefix       jsontypes.String `tfsdk:"static_prefix" json:"staticPrefix"`
-	StaticApplianceIp6 jsontypes.String `tfsdk:"static_appliance_ip6" json:"staticApplianceIp6"`
-	Origin             origin           `tfsdk:"origin" json:"origin"`
+type NetworksApplianceVLANsResourceModelPrefixAssignment struct {
+	Autonomous         jsontypes.Bool                            `tfsdk:"autonomous" json:"autonomous"`
+	StaticPrefix       jsontypes.String                          `tfsdk:"static_prefix" json:"staticPrefix"`
+	StaticApplianceIp6 jsontypes.String                          `tfsdk:"static_appliance_ip6" json:"staticApplianceIp6"`
+	Origin             NetworksApplianceVLANsResourceModelOrigin `tfsdk:"origin" json:"origin"`
 }
 
-type origin struct {
+type NetworksApplianceVLANsResourceModelOrigin struct {
 	Type       jsontypes.String   `tfsdk:"type" json:"type"`
 	Interfaces []jsontypes.String `tfsdk:"interfaces" json:"interfaces"`
 }
 
-type mandatoryDhcp struct {
+type NetworksApplianceVLANsResourceModelMandatoryDhcp struct {
 	Enabled jsontypes.Bool `tfsdk:"enabled" json:"enabled"`
 }
 
-func (r *NetworksApplianceVLANResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_networks_appliance_vlan"
+func (r *NetworksApplianceVLANsResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_networks_appliance_vlans"
 }
 
-func (r *NetworksApplianceVLANResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *NetworksApplianceVLANsResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 
-		MarkdownDescription: "NetworksApplianceVlans",
+		MarkdownDescription: "Manage the VLANs for an MX network",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:   true,
@@ -351,7 +352,7 @@ func (r *NetworksApplianceVLANResource) Schema(ctx context.Context, req resource
 	}
 }
 
-func (r *NetworksApplianceVLANResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *NetworksApplianceVLANsResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -371,8 +372,8 @@ func (r *NetworksApplianceVLANResource) Configure(ctx context.Context, req resou
 	r.client = client
 }
 
-func (r *NetworksApplianceVLANResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *NetworksApplianceVLANResourceModel
+func (r *NetworksApplianceVLANsResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *NetworksApplianceVLANsResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -456,8 +457,8 @@ func (r *NetworksApplianceVLANResource) Create(ctx context.Context, req resource
 	tflog.Trace(ctx, "create resource")
 }
 
-func (r *NetworksApplianceVLANResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *NetworksApplianceVLANResourceModel
+func (r *NetworksApplianceVLANsResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *NetworksApplianceVLANsResourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -502,8 +503,8 @@ func (r *NetworksApplianceVLANResource) Read(ctx context.Context, req resource.R
 	tflog.Trace(ctx, "read resource")
 }
 
-func (r *NetworksApplianceVLANResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data *NetworksApplianceVLANResourceModel
+func (r *NetworksApplianceVLANsResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var data *NetworksApplianceVLANsResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -582,8 +583,8 @@ func (r *NetworksApplianceVLANResource) Update(ctx context.Context, req resource
 	tflog.Trace(ctx, "updated resource")
 }
 
-func (r *NetworksApplianceVLANResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data *NetworksApplianceVLANResourceModel
+func (r *NetworksApplianceVLANsResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data *NetworksApplianceVLANsResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -622,7 +623,7 @@ func (r *NetworksApplianceVLANResource) Delete(ctx context.Context, req resource
 
 }
 
-func (r *NetworksApplianceVLANResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *NetworksApplianceVLANsResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 	idParts := strings.Split(req.ID, ",")
 	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {

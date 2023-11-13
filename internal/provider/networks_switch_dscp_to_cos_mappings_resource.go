@@ -32,12 +32,12 @@ type NetworksSwitchDscpToCosMappingsResource struct {
 
 // NetworksSwitchDscpToCosMappingsResourceModel describes the resource data model.
 type NetworksSwitchDscpToCosMappingsResourceModel struct {
-	Id        jsontypes.String `tfsdk:"id"`
-	NetworkId jsontypes.String `tfsdk:"network_id"`
-	Mappings  []Mapping        `tfsdk:"mappings" json:"mappings"`
+	Id        jsontypes.String                                      `tfsdk:"id"`
+	NetworkId jsontypes.String                                      `tfsdk:"network_id"`
+	Mappings  []NetworksSwitchDscpToCosMappingsResourceModelMapping `tfsdk:"mappings" json:"mappings"`
 }
 
-type Mapping struct {
+type NetworksSwitchDscpToCosMappingsResourceModelMapping struct {
 	Dscp jsontypes.Int64 `tfsdk:"dscp" json:"dscp"`
 	Cos  jsontypes.Int64 `tfsdk:"cos" json:"cos"`
 }

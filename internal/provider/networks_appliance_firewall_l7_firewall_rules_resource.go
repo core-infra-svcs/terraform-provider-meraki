@@ -50,7 +50,7 @@ func (r *NetworksApplianceFirewallL7FirewallRulesResource) Metadata(ctx context.
 
 func (r *NetworksApplianceFirewallL7FirewallRulesResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "NetworksApplianceFirewallL7FirewallRules resource for updating Network Appliance Firewall L7 Firewall Rules.",
+		MarkdownDescription: "Manage Network Appliance L7 Firewall Rules",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:   true,
