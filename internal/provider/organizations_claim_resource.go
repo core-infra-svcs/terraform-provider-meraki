@@ -45,14 +45,14 @@ type OrganizationsClaimResourceModel struct {
 
 	// The Id field is mandatory for all resources. It's used for resource identification and is required
 	// for the acceptance tests to run.
-	Id             jsontypes.String                    `tfsdk:"id"`
-	OrganizationId jsontypes.String                    `tfsdk:"organization_id"`
-	Orders         []jsontypes.String                  `tfsdk:"orders"`
-	Serials        []jsontypes.String                  `tfsdk:"serials"`
-	Licences       []OrganizationsClaimResourceLicence `tfsdk:"licences"`
+	Id             jsontypes.String                         `tfsdk:"id"`
+	OrganizationId jsontypes.String                         `tfsdk:"organization_id"`
+	Orders         []jsontypes.String                       `tfsdk:"orders"`
+	Serials        []jsontypes.String                       `tfsdk:"serials"`
+	Licences       []OrganizationsClaimResourceModelLicence `tfsdk:"licences"`
 }
 
-type OrganizationsClaimResourceLicence struct {
+type OrganizationsClaimResourceModelLicence struct {
 	Key  jsontypes.String `tfsdk:"key"`
 	Mode jsontypes.String `tfsdk:"mode"`
 }

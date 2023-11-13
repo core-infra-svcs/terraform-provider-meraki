@@ -91,18 +91,19 @@ func testAccOrganizationsClaimResourceConfigClaimSerial(serial string) string {
 	return result
 }
 
+/*
 // testAccOrganizationsClaimResourceConfigClaimOrder is a constant string that defines the configuration for creating and reading a organizations_claim resource in your tests.
 // It depends on both the organization and network resources.
 func testAccOrganizationsClaimResourceConfigClaimOrder(order string) string {
 	result := fmt.Sprintf(`
 	resource "meraki_organization" "test" {}
-	
+
 	resource "meraki_organizations_claim" "test_order" {
 		organization_id = resource.meraki_organization.test.organization_id
 		orders = ["%s"]
 		serials = []
 		licences = []
-	
+
 	}
 `, order)
 	return result
@@ -113,7 +114,7 @@ func testAccOrganizationsClaimResourceConfigClaimOrder(order string) string {
 func testAccOrganizationsClaimResourceConfigClaimLicence(licence string) string {
 	result := fmt.Sprintf(`
 	resource "meraki_organization" "test" {}
-	
+
 	resource "meraki_organizations_claim" "test_licence" {
 		organization_id = resource.meraki_organization.test.organization_id
 		orders = []
@@ -124,8 +125,9 @@ func testAccOrganizationsClaimResourceConfigClaimLicence(licence string) string 
 				mode = "addDevices"
 			}
 		]
-	
+
 	}
 `, licence)
 	return result
 }
+*/

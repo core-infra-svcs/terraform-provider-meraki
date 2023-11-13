@@ -30,32 +30,32 @@ type OrganizationsAdminsDataSource struct {
 
 // OrganizationsAdminsDataSourceModel describes the data source data model.
 type OrganizationsAdminsDataSourceModel struct {
-	Id    types.String                        `tfsdk:"id"`
-	OrgId jsontypes.String                    `tfsdk:"organization_id"`
-	List  []OrganizationAdminsDataSourceModel `tfsdk:"list"`
+	Id    types.String                             `tfsdk:"id"`
+	OrgId jsontypes.String                         `tfsdk:"organization_id"`
+	List  []OrganizationsAdminsDataSourceModelList `tfsdk:"list"`
 }
 
-// OrganizationAdminsDataSourceModel describes the data source data model.
-type OrganizationAdminsDataSourceModel struct {
-	Id                   jsontypes.String                           `tfsdk:"id" json:"id"`
-	Name                 jsontypes.String                           `tfsdk:"name"`
-	Email                jsontypes.String                           `tfsdk:"email"`
-	OrgAccess            jsontypes.String                           `tfsdk:"org_access" json:"orgAccess"`
-	AccountStatus        jsontypes.String                           `tfsdk:"account_status" json:"accountStatus"`
-	TwoFactorAuthEnabled jsontypes.Bool                             `tfsdk:"two_factor_auth_enabled" json:"twoFactorAuthEnabled"`
-	HasApiKey            jsontypes.Bool                             `tfsdk:"has_api_key" json:"hasApiKey"`
-	LastActive           jsontypes.String                           `tfsdk:"last_active" json:"lastActive"`
-	Tags                 []OrganizationAdminsDataSourceModelTag     `tfsdk:"tags"`
-	Networks             []OrganizationAdminsDataSourceModelNetwork `tfsdk:"networks"`
-	AuthenticationMethod jsontypes.String                           `tfsdk:"authentication_method" json:"authenticationMethod"`
+// OrganizationsAdminsDataSourceModelList describes the data source data model.
+type OrganizationsAdminsDataSourceModelList struct {
+	Id                   jsontypes.String                             `tfsdk:"id" json:"id"`
+	Name                 jsontypes.String                             `tfsdk:"name"`
+	Email                jsontypes.String                             `tfsdk:"email"`
+	OrgAccess            jsontypes.String                             `tfsdk:"org_access" json:"orgAccess"`
+	AccountStatus        jsontypes.String                             `tfsdk:"account_status" json:"accountStatus"`
+	TwoFactorAuthEnabled jsontypes.Bool                               `tfsdk:"two_factor_auth_enabled" json:"twoFactorAuthEnabled"`
+	HasApiKey            jsontypes.Bool                               `tfsdk:"has_api_key" json:"hasApiKey"`
+	LastActive           jsontypes.String                             `tfsdk:"last_active" json:"lastActive"`
+	Tags                 []OrganizationsAdminsDataSourceModelTags     `tfsdk:"tags"`
+	Networks             []OrganizationsAdminsDataSourceModelNetworks `tfsdk:"networks"`
+	AuthenticationMethod jsontypes.String                             `tfsdk:"authentication_method" json:"authenticationMethod"`
 }
 
-type OrganizationAdminsDataSourceModelNetwork struct {
+type OrganizationsAdminsDataSourceModelNetworks struct {
 	Id     jsontypes.String `tfsdk:"id"`
 	Access jsontypes.String `tfsdk:"access"`
 }
 
-type OrganizationAdminsDataSourceModelTag struct {
+type OrganizationsAdminsDataSourceModelTags struct {
 	Tag    jsontypes.String `tfsdk:"tag"`
 	Access jsontypes.String `tfsdk:"access"`
 }
