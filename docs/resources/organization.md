@@ -18,6 +18,7 @@ Manage the organizations that the user has privileges on
 ### Optional
 
 - `api_enabled` (Boolean) Enable API access
+- `clone_organization_id` (String) Create a new organization by cloning the addressed organization
 - `cloud_region_name` (String) Name of region
 - `licensing_model` (String) Organization licensing model. Can be 'co-term', 'per-device', or 'subscription'.
 - `management_details_name` (String) Name of management data
@@ -29,5 +30,3 @@ Manage the organizations that the user has privileges on
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-
-

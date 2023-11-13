@@ -28,23 +28,23 @@ type OrganizationsAdaptivePolicyAclsDataSource struct {
 
 // OrganizationsAdaptivePolicyAclsDataSourceModel describes the data source data model.
 type OrganizationsAdaptivePolicyAclsDataSourceModel struct {
-	Id    jsontypes.String                                `tfsdk:"id"`
-	OrgId jsontypes.String                                `tfsdk:"organization_id"`
-	List  []OrganizationAdaptivePolicyAclsDataSourceModel `tfsdk:"list"`
+	Id    jsontypes.String                                     `tfsdk:"id"`
+	OrgId jsontypes.String                                     `tfsdk:"organization_id"`
+	List  []OrganizationsAdaptivePolicyAclsDataSourceModelList `tfsdk:"list"`
 }
 
-// OrganizationAdaptivePolicyAclsDataSourceModel describes the acl data source data model.
-type OrganizationAdaptivePolicyAclsDataSourceModel struct {
-	AclId       jsontypes.String                                     `tfsdk:"acl_id" json:"AclId"`
-	Name        jsontypes.String                                     `tfsdk:"name"`
-	Description jsontypes.String                                     `tfsdk:"description"`
-	IpVersion   jsontypes.String                                     `tfsdk:"ip_version" json:"IpVersion"`
-	Rules       []OrganizationAdaptivePolicyAclsDataSourceModelRules `tfsdk:"rules"`
-	CreatedAt   jsontypes.String                                     `tfsdk:"created_at" json:"createdAt"`
-	UpdatedAt   jsontypes.String                                     `tfsdk:"updated_at" json:"updatedAt"`
+// OrganizationsAdaptivePolicyAclsDataSourceModelList describes the acl data source data model.
+type OrganizationsAdaptivePolicyAclsDataSourceModelList struct {
+	AclId       jsontypes.String                                      `tfsdk:"acl_id" json:"AclId"`
+	Name        jsontypes.String                                      `tfsdk:"name"`
+	Description jsontypes.String                                      `tfsdk:"description"`
+	IpVersion   jsontypes.String                                      `tfsdk:"ip_version" json:"IpVersion"`
+	Rules       []OrganizationsAdaptivePolicyAclsDataSourceModelRules `tfsdk:"rules"`
+	CreatedAt   jsontypes.String                                      `tfsdk:"created_at" json:"createdAt"`
+	UpdatedAt   jsontypes.String                                      `tfsdk:"updated_at" json:"updatedAt"`
 }
 
-type OrganizationAdaptivePolicyAclsDataSourceModelRules struct {
+type OrganizationsAdaptivePolicyAclsDataSourceModelRules struct {
 	Policy   jsontypes.String `tfsdk:"policy"`
 	Protocol jsontypes.String `tfsdk:"protocol"`
 	SrcPort  jsontypes.String `tfsdk:"src_port" json:"srcPort"`
@@ -176,8 +176,8 @@ func (d *OrganizationsAdaptivePolicyAclsDataSource) Read(ctx context.Context, re
 	_, httpResp, err := d.client.OrganizationsApi.GetOrganizationAdaptivePolicyAcls(context.Background(), data.OrgId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to read datasource",
-			fmt.Sprintf("%v\n", err.Error()),
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
 		)
 		return
 	}
@@ -189,11 +189,6 @@ func (d *OrganizationsAdaptivePolicyAclsDataSource) Read(ctx context.Context, re
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
 		return
-	}
-
-	// collect diagnostics
-	if httpResp != nil {
-		tools.CollectHttpDiagnostics(ctx, &resp.Diagnostics, httpResp)
 	}
 
 	// Check for errors after diagnostics collected
