@@ -296,6 +296,7 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		NewNetworksApplianceTrafficShapingUplinkBandWidthResource,
 		NewNetworksApplianceVLANsResource,
 		NewDevicesSwitchPortResource,
+		NewNetworksAppliancePortsResource,
 	}
 }
 
@@ -306,6 +307,7 @@ func (p *CiscoMerakiProvider) DataSources(ctx context.Context) []func() datasour
 		NewAdministeredIdentitiesMeDataSource,
 		NewOrganizationsAdminsDataSource,
 		NewOrganizationsSamlIdpsDataSource,
+		NewOrganizationsInventoryDevicesDataSource,
 		NewOrganizationsAdaptivePolicyAclsDataSource,
 		NewOrganizationsSamlRolesDataSource,
 		NewNetworkGroupPoliciesDataSource,
