@@ -21,19 +21,19 @@ Manage the networks that the user has privileges on in an organization
 
 ### Optional
 
+- `auto_bind` (Boolean) Optional boolean indicating whether the network's switches should automatically bind to profiles of the same model. Defaults to false if left unspecified. This option only affects switch networks and switch templates. Auto-bind is not valid unless the switch template has at least one profile and has at most one profile per switch model.
+- `config_template_id` (String) Config Template Id
 - `copy_from_network_id` (String) The ID of the network to copy configuration from. Other provided parameters will override the copied configuration, except type which must match this network's type exactly.
 - `enrollment_string` (String) A unique identifier which can be used for device enrollment or easy access through the Meraki SM Registration page or the Self Service Portal. Once enabled, a network enrollment strings can be changed but they cannot be deleted.
-- `is_bound_to_config_template` (Boolean) If the network is bound to a config template
 - `name` (String) Network name
 - `network_id` (String) Network ID
 - `notes` (String) Notes for the network
 - `organization_id` (String) Organization ID
 - `tags` (Set of String) Network tags
 - `timezone` (String) Timezone of the network
-- `url` (String) URL to the network Dashboard UI
 
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-
-
+- `is_bound_to_config_template` (Boolean) If the network is bound to a config template
+- `url` (String) URL to the network Dashboard UI
