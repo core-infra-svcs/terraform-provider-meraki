@@ -35,57 +35,74 @@ type NetworksApplianceVlansDataSourceModel struct {
 
 	// The Id field is mandatory for all data sources. It's used for data source identification and is required
 	// for the acceptance tests to run.
-	Id        jsontypes.String                   `tfsdk:"id" json:"-"`
-	NetworkId jsontypes.String                   `tfsdk:"network_id" json:"networkId"`
-	List      []NetworksApplianceVLANsDataSource `tfsdk:"list" json:"-"`
+	Id        jsontypes.String                        `tfsdk:"id" json:"-"`
+	NetworkId jsontypes.String                        `tfsdk:"network_id" json:"networkId"`
+	List      []NetworksApplianceVLANsDataSourceModel `tfsdk:"list" json:"-"`
 }
 
-type NetworksApplianceVLANsDataSource struct {
-	VlanId                 jsontypes.Int64                 `tfsdk:"vlan_id" json:"id"`
-	Name                   jsontypes.String                `tfsdk:"name" json:"name"`
-	Subnet                 jsontypes.String                `tfsdk:"subnet" json:"subnet"`
-	ApplianceIp            jsontypes.String                `tfsdk:"appliance_ip" json:"applianceIp"`
-	GroupPolicyId          jsontypes.String                `tfsdk:"group_policy_id" json:"groupPolicyId"`
-	VpnNatSubnet           jsontypes.String                `tfsdk:"vpn_nat_subnet" json:"vpnNatSubnet"`
-	DhcpHandling           jsontypes.String                `tfsdk:"dhcp_handling" json:"dhcpHandling"`
-	DhcpRelayServerIps     jsontypes.Set[jsontypes.String] `tfsdk:"dhcp_relay_server_ips" json:"dhcpRelayServerIps"`
-	DhcpLeaseTime          jsontypes.String                `tfsdk:"dhcp_lease_time" json:"dhcpLeaseTime"`
-	DhcpBootOptionsEnabled jsontypes.Bool                  `tfsdk:"dhcp_boot_options_enabled" json:"dhcpBootOptionsEnabled"`
-	DhcpBootNextServer     jsontypes.String                `tfsdk:"dhcp_boot_next_server" json:"dhcpBootNextServer"`
-	DhcpBootFilename       jsontypes.String                `tfsdk:"dhcp_boot_filename" json:"dhcpBootFilename"`
-	FixedIpAssignments     struct {
-		Ip   jsontypes.String `tfsdk:"ip" json:"ip"`
-		Name jsontypes.String `tfsdk:"name" json:"name"`
-	} `tfsdk:"fixed_ip_assignments" json:"fixedIpAssignments"`
-	ReservedIpRanges []struct {
-		Start   jsontypes.String `tfsdk:"start" json:"start"`
-		End     jsontypes.String `tfsdk:"end" json:"end"`
-		Comment jsontypes.String `tfsdk:"comment" json:"comment"`
-	} `tfsdk:"reserved_ip_ranges" json:"reservedIpRanges"`
-	DnsNameservers jsontypes.String `tfsdk:"dns_nameservers" json:"dnsNameservers"`
-	DhcpOptions    []struct {
-		Code  jsontypes.String `tfsdk:"code" json:"code"`
-		Type  jsontypes.String `tfsdk:"type" json:"type"`
-		Value jsontypes.String `tfsdk:"value" json:"value"`
-	} `tfsdk:"dhcp_options" json:"dhcpOptions"`
-	TemplateVlanType jsontypes.String `tfsdk:"template_vlan_type" json:"templateVlanType"`
-	Cidr             jsontypes.String `tfsdk:"cidr" json:"cidr"`
-	Mask             jsontypes.Int64  `tfsdk:"mask" json:"mask"`
-	IPv6             struct {
-		Enabled           jsontypes.Bool `tfsdk:"enabled" json:"enabled"`
-		PrefixAssignments []struct {
-			Autonomous         jsontypes.Bool   `tfsdk:"autonomous" json:"autonomous"`
-			StaticPrefix       jsontypes.String `tfsdk:"static_prefix" json:"staticPrefix"`
-			StaticApplianceIp6 jsontypes.String `tfsdk:"static_appliance_ip6" json:"staticApplianceIp6"`
-			Origin             struct {
-				Type       jsontypes.String   `tfsdk:"type" json:"type"`
-				Interfaces []jsontypes.String `tfsdk:"interfaces" json:"interfaces"`
-			} `tfsdk:"origin" json:"origin"`
-		} `tfsdk:"prefix_assignments" json:"prefixAssignments"`
-	} `tfsdk:"ipv6" json:"ipv6"`
-	MandatoryDhcp struct {
-		Enabled jsontypes.Bool `tfsdk:"enabled" json:"enabled"`
-	} `tfsdk:"mandatory_dhcp" json:"mandatoryDhcp"`
+type NetworksApplianceVLANsDataSourceModel struct {
+	Id        jsontypes.String `tfsdk:"id" json:"-"`
+	NetworkId jsontypes.String `tfsdk:"network_id" json:"networkId"`
+
+	VlanId                 jsontypes.Int64                                        `tfsdk:"vlan_id" json:"id"`
+	Name                   jsontypes.String                                       `tfsdk:"name" json:"name"`
+	Subnet                 jsontypes.String                                       `tfsdk:"subnet" json:"subnet"`
+	ApplianceIp            jsontypes.String                                       `tfsdk:"appliance_ip" json:"applianceIp"`
+	GroupPolicyId          jsontypes.String                                       `tfsdk:"group_policy_id" json:"groupPolicyId"`
+	VpnNatSubnet           jsontypes.String                                       `tfsdk:"vpn_nat_subnet" json:"vpnNatSubnet"`
+	DhcpHandling           jsontypes.String                                       `tfsdk:"dhcp_handling" json:"dhcpHandling"`
+	DhcpRelayServerIps     jsontypes.Set[jsontypes.String]                        `tfsdk:"dhcp_relay_server_ips" json:"dhcpRelayServerIps"`
+	DhcpLeaseTime          jsontypes.String                                       `tfsdk:"dhcp_lease_time" json:"dhcpLeaseTime"`
+	DhcpBootOptionsEnabled jsontypes.Bool                                         `tfsdk:"dhcp_boot_options_enabled" json:"dhcpBootOptionsEnabled"`
+	DhcpBootNextServer     jsontypes.String                                       `tfsdk:"dhcp_boot_next_server" json:"dhcpBootNextServer"`
+	DhcpBootFilename       jsontypes.String                                       `tfsdk:"dhcp_boot_filename" json:"dhcpBootFilename"`
+	FixedIpAssignments     NetworksApplianceVLANsDataSourceModelIpNameMapping     `tfsdk:"fixed_ip_assignments" json:"fixedIpAssignments"`
+	ReservedIpRanges       []NetworksApplianceVLANsDataSourceModelReservedIpRange `tfsdk:"reserved_ip_ranges" json:"reservedIpRanges"`
+	DnsNameservers         jsontypes.String                                       `tfsdk:"dns_nameservers" json:"dnsNameservers"`
+	DhcpOptions            []NetworksApplianceVLANsDataSourceModelDhcpOption      `tfsdk:"dhcp_options" json:"dhcpOptions"`
+	TemplateVlanType       jsontypes.String                                       `tfsdk:"template_vlan_type" json:"templateVlanType"`
+	Cidr                   jsontypes.String                                       `tfsdk:"cidr" json:"cidr"`
+	Mask                   jsontypes.Int64                                        `tfsdk:"mask" json:"mask"`
+	IPv6                   NetworksApplianceVLANsDataSourceModelIpv6Configuration `tfsdk:"ipv6" json:"ipv6"`
+	MandatoryDhcp          NetworksApplianceVLANsDataSourceModelMandatoryDhcp     `tfsdk:"mandatory_dhcp" json:"mandatoryDhcp"`
+}
+
+type NetworksApplianceVLANsDataSourceModelIpNameMapping struct {
+	Ip   jsontypes.String `tfsdk:"ip" json:"ip"`
+	Name jsontypes.String `tfsdk:"name" json:"name"`
+}
+
+type NetworksApplianceVLANsDataSourceModelReservedIpRange struct {
+	Start   jsontypes.String `tfsdk:"start" json:"start"`
+	End     jsontypes.String `tfsdk:"end" json:"end"`
+	Comment jsontypes.String `tfsdk:"comment" json:"comment"`
+}
+
+type NetworksApplianceVLANsDataSourceModelDhcpOption struct {
+	Code  jsontypes.String `tfsdk:"code" json:"code"`
+	Type  jsontypes.String `tfsdk:"type" json:"type"`
+	Value jsontypes.String `tfsdk:"value" json:"value"`
+}
+
+type NetworksApplianceVLANsDataSourceModelIpv6Configuration struct {
+	Enabled           jsontypes.Bool                                          `tfsdk:"enabled" json:"enabled"`
+	PrefixAssignments []NetworksApplianceVLANsDataSourceModelPrefixAssignment `tfsdk:"prefix_assignments" json:"prefixAssignments"`
+}
+
+type NetworksApplianceVLANsDataSourceModelPrefixAssignment struct {
+	Autonomous         jsontypes.Bool                              `tfsdk:"autonomous" json:"autonomous"`
+	StaticPrefix       jsontypes.String                            `tfsdk:"static_prefix" json:"staticPrefix"`
+	StaticApplianceIp6 jsontypes.String                            `tfsdk:"static_appliance_ip6" json:"staticApplianceIp6"`
+	Origin             NetworksApplianceVLANsDataSourceModelOrigin `tfsdk:"origin" json:"origin"`
+}
+
+type NetworksApplianceVLANsDataSourceModelOrigin struct {
+	Type       jsontypes.String   `tfsdk:"type" json:"type"`
+	Interfaces []jsontypes.String `tfsdk:"interfaces" json:"interfaces"`
+}
+
+type NetworksApplianceVLANsDataSourceModelMandatoryDhcp struct {
+	Enabled jsontypes.Bool `tfsdk:"enabled" json:"enabled"`
 }
 
 // Metadata provides a way to define information about the data source.
