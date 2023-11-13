@@ -3,12 +3,12 @@
 page_title: "meraki_networks_appliance_ports Data Source - terraform-provider-meraki"
 subcategory: ""
 description: |-
-  NetworksAppliancePorts data source for listing appliance ports
+  Get appliance ports
 ---
 
 # meraki_networks_appliance_ports (Data Source)
 
-NetworksAppliancePorts data source for listing appliance ports
+Get appliance ports
 
 
 

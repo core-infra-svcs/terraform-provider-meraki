@@ -10,7 +10,7 @@ require (
 	github.com/hashicorp/terraform-plugin-go v0.18.0
 	github.com/hashicorp/terraform-plugin-log v0.9.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.27.0
-	github.com/meraki/dashboard-api-go/client v0.0.0-20230715080202-f9b9727a5725
+	github.com/meraki/dashboard-api-go/client v0.0.0-20231002034758-dc714fc84efe
 )
 
 require (

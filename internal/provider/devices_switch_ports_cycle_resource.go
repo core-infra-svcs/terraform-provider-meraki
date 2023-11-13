@@ -41,7 +41,7 @@ func (r *DevicesSwitchPortsCycleResource) Metadata(ctx context.Context, req reso
 
 func (r *DevicesSwitchPortsCycleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "DevicesSwitchPortsCycle",
+		MarkdownDescription: "Cycle a set of switch ports",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:   true,

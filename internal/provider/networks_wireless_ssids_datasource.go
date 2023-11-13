@@ -33,47 +33,47 @@ type NetworksWirelessSsidsDataSourceModel struct {
 	Id        jsontypes.String `tfsdk:"id"`
 	NetworkId jsontypes.String `tfsdk:"network_id"`
 
-	List []NetworksWirelessSSIDData `tfsdk:"list"`
+	List []NetworksWirelessSsidsDataSourceModelList `tfsdk:"list"`
 }
 
-type RadiusServer struct {
+type NetworksWirelessSsidsDataSourceModelRadiusServer struct {
 	Host                     jsontypes.String `tfsdk:"host" json:"host"`
 	Port                     jsontypes.Int64  `tfsdk:"port" json:"port"`
 	OpenRoamingCertificateId jsontypes.Int64  `tfsdk:"open_roaming_certificate_id" json:"openRoamingCertificateId"`
 	CaCertificate            jsontypes.String `tfsdk:"ca_certificate" json:"caCertificate"`
 }
 
-type NetworksWirelessSSIDData struct {
-	Number                          jsontypes.Int64    `tfsdk:"number" json:"number"`
-	Name                            jsontypes.String   `tfsdk:"name" json:"name"`
-	Enabled                         jsontypes.Bool     `tfsdk:"enabled" json:"enabled"`
-	SplashPage                      jsontypes.String   `tfsdk:"splash_page" json:"splashPage"`
-	SSIDAdminAccessible             jsontypes.Bool     `tfsdk:"ssid_admin_accessible" json:"ssidAdminAccessible"`
-	AuthMode                        jsontypes.String   `tfsdk:"auth_mode" json:"authMode"`
-	EncryptionMode                  jsontypes.String   `tfsdk:"encryption_mode" json:"encryptionMode"`
-	WPAEncryptionMode               jsontypes.String   `tfsdk:"wpa_encryption_mode" json:"wpaEncryptionMode"`
-	RadiusServers                   []RadiusServer     `tfsdk:"radius_servers" json:"radiusServers"`
-	RadiusAccountingServers         []RadiusServer     `tfsdk:"radius_accounting_servers" json:"radiusAccountingServers"`
-	RadiusAccountingEnabled         jsontypes.Bool     `tfsdk:"radius_accounting_enabled" json:"radiusAccountingEnabled"`
-	RadiusEnabled                   jsontypes.Bool     `tfsdk:"radius_enabled" json:"radiusEnabled"`
-	RadiusAttributeForGroupPolicies jsontypes.String   `tfsdk:"radius_attribute_for_group_policies" json:"radiusAttributeForGroupPolicies"`
-	RadiusFailoverPolicy            jsontypes.String   `tfsdk:"radius_failover_policy" json:"radiusFailoverPolicy"`
-	RadiusLoadBalancingPolicy       jsontypes.String   `tfsdk:"radius_load_balancing_policy" json:"radiusLoadBalancingPolicy"`
-	IPAssignmentMode                jsontypes.String   `tfsdk:"ip_assignment_mode" json:"ipAssignmentMode"`
-	AdminSplashURL                  jsontypes.String   `tfsdk:"admin_splash_url" json:"adminSplashUrl"`
-	SplashTimeout                   jsontypes.String   `tfsdk:"splash_timeout" json:"splashTimeout"`
-	WalledGardenEnabled             jsontypes.Bool     `tfsdk:"walled_garden_enabled" json:"walledGardenEnabled"`
-	WalledGardenRanges              []jsontypes.String `tfsdk:"walled_garden_ranges" json:"walledGardenRanges"`
-	MinBitrate                      jsontypes.Int64    `tfsdk:"min_bitrate" json:"minBitrate"`
-	BandSelection                   jsontypes.String   `tfsdk:"band_selection" json:"bandSelection"`
-	PerClientBandwidthLimitUp       jsontypes.Int64    `tfsdk:"per_client_bandwidth_limit_up" json:"perClientBandwidthLimitUp"`
-	PerClientBandwidthLimitDown     jsontypes.Int64    `tfsdk:"per_client_bandwidth_limit_down" json:"perClientBandwidthLimitDown"`
-	Visible                         jsontypes.Bool     `tfsdk:"visible" json:"visible"`
-	AvailableOnAllAPs               jsontypes.Bool     `tfsdk:"available_on_all_aps" json:"availableOnAllAps"`
-	AvailabilityTags                []jsontypes.String `tfsdk:"availability_tags" json:"availabilityTags"`
-	PerSSIDBandwidthLimitUp         jsontypes.Int64    `tfsdk:"per_ssid_bandwidth_limit_up" json:"perSsidBandwidthLimitUp"`
-	PerSSIDBandwidthLimitDown       jsontypes.Int64    `tfsdk:"per_ssid_bandwidth_limit_down" json:"perSsidBandwidthLimitDown"`
-	MandatoryDHCPEnabled            jsontypes.Bool     `tfsdk:"mandatory_dhcp_enabled" json:"mandatoryDhcpEnabled"`
+type NetworksWirelessSsidsDataSourceModelList struct {
+	Number                          jsontypes.Int64                                    `tfsdk:"number" json:"number"`
+	Name                            jsontypes.String                                   `tfsdk:"name" json:"name"`
+	Enabled                         jsontypes.Bool                                     `tfsdk:"enabled" json:"enabled"`
+	SplashPage                      jsontypes.String                                   `tfsdk:"splash_page" json:"splashPage"`
+	SSIDAdminAccessible             jsontypes.Bool                                     `tfsdk:"ssid_admin_accessible" json:"ssidAdminAccessible"`
+	AuthMode                        jsontypes.String                                   `tfsdk:"auth_mode" json:"authMode"`
+	EncryptionMode                  jsontypes.String                                   `tfsdk:"encryption_mode" json:"encryptionMode"`
+	WPAEncryptionMode               jsontypes.String                                   `tfsdk:"wpa_encryption_mode" json:"wpaEncryptionMode"`
+	RadiusServers                   []NetworksWirelessSsidsDataSourceModelRadiusServer `tfsdk:"radius_servers" json:"radiusServers"`
+	RadiusAccountingServers         []NetworksWirelessSsidsDataSourceModelRadiusServer `tfsdk:"radius_accounting_servers" json:"radiusAccountingServers"`
+	RadiusAccountingEnabled         jsontypes.Bool                                     `tfsdk:"radius_accounting_enabled" json:"radiusAccountingEnabled"`
+	RadiusEnabled                   jsontypes.Bool                                     `tfsdk:"radius_enabled" json:"radiusEnabled"`
+	RadiusAttributeForGroupPolicies jsontypes.String                                   `tfsdk:"radius_attribute_for_group_policies" json:"radiusAttributeForGroupPolicies"`
+	RadiusFailoverPolicy            jsontypes.String                                   `tfsdk:"radius_failover_policy" json:"radiusFailoverPolicy"`
+	RadiusLoadBalancingPolicy       jsontypes.String                                   `tfsdk:"radius_load_balancing_policy" json:"radiusLoadBalancingPolicy"`
+	IPAssignmentMode                jsontypes.String                                   `tfsdk:"ip_assignment_mode" json:"ipAssignmentMode"`
+	AdminSplashURL                  jsontypes.String                                   `tfsdk:"admin_splash_url" json:"adminSplashUrl"`
+	SplashTimeout                   jsontypes.String                                   `tfsdk:"splash_timeout" json:"splashTimeout"`
+	WalledGardenEnabled             jsontypes.Bool                                     `tfsdk:"walled_garden_enabled" json:"walledGardenEnabled"`
+	WalledGardenRanges              []jsontypes.String                                 `tfsdk:"walled_garden_ranges" json:"walledGardenRanges"`
+	MinBitrate                      jsontypes.Int64                                    `tfsdk:"min_bitrate" json:"minBitrate"`
+	BandSelection                   jsontypes.String                                   `tfsdk:"band_selection" json:"bandSelection"`
+	PerClientBandwidthLimitUp       jsontypes.Int64                                    `tfsdk:"per_client_bandwidth_limit_up" json:"perClientBandwidthLimitUp"`
+	PerClientBandwidthLimitDown     jsontypes.Int64                                    `tfsdk:"per_client_bandwidth_limit_down" json:"perClientBandwidthLimitDown"`
+	Visible                         jsontypes.Bool                                     `tfsdk:"visible" json:"visible"`
+	AvailableOnAllAPs               jsontypes.Bool                                     `tfsdk:"available_on_all_aps" json:"availableOnAllAps"`
+	AvailabilityTags                []jsontypes.String                                 `tfsdk:"availability_tags" json:"availabilityTags"`
+	PerSSIDBandwidthLimitUp         jsontypes.Int64                                    `tfsdk:"per_ssid_bandwidth_limit_up" json:"perSsidBandwidthLimitUp"`
+	PerSSIDBandwidthLimitDown       jsontypes.Int64                                    `tfsdk:"per_ssid_bandwidth_limit_down" json:"perSsidBandwidthLimitDown"`
+	MandatoryDHCPEnabled            jsontypes.Bool                                     `tfsdk:"mandatory_dhcp_enabled" json:"mandatoryDhcpEnabled"`
 }
 
 // Metadata provides a way to define information about the data source.
@@ -368,7 +368,7 @@ func (d *NetworksWirelessSsidsDataSource) Read(ctx context.Context, req datasour
 
 	// Now iterate over the inlineResp slice
 	for _, inlineRespData := range inlineResp {
-		result := NetworksWirelessSSIDData{
+		result := NetworksWirelessSsidsDataSourceModelList{
 			Number:                          jsontypes.Int64Value(int64(inlineRespData.GetNumber())),
 			Name:                            jsontypes.StringValue(inlineRespData.GetName()),
 			Enabled:                         jsontypes.BoolValue(inlineRespData.GetEnabled()),
@@ -377,8 +377,8 @@ func (d *NetworksWirelessSsidsDataSource) Read(ctx context.Context, req datasour
 			AuthMode:                        jsontypes.StringValue(inlineRespData.GetAuthMode()),
 			EncryptionMode:                  jsontypes.StringValue(inlineRespData.GetEncryptionMode()),
 			WPAEncryptionMode:               jsontypes.StringValue(inlineRespData.GetWpaEncryptionMode()),
-			RadiusServers:                   make([]RadiusServer, 0),
-			RadiusAccountingServers:         make([]RadiusServer, 0),
+			RadiusServers:                   make([]NetworksWirelessSsidsDataSourceModelRadiusServer, 0),
+			RadiusAccountingServers:         make([]NetworksWirelessSsidsDataSourceModelRadiusServer, 0),
 			RadiusAccountingEnabled:         jsontypes.BoolValue(inlineRespData.GetRadiusAccountingEnabled()),
 			RadiusEnabled:                   jsontypes.BoolValue(inlineRespData.GetRadiusEnabled()),
 			RadiusAttributeForGroupPolicies: jsontypes.StringValue(inlineRespData.GetRadiusAttributeForGroupPolicies()),
@@ -403,7 +403,7 @@ func (d *NetworksWirelessSsidsDataSource) Read(ctx context.Context, req datasour
 
 		// Populate RadiusServers slice
 		for _, radiusServer := range inlineRespData.RadiusServers {
-			result.RadiusServers = append(result.RadiusServers, RadiusServer{
+			result.RadiusServers = append(result.RadiusServers, NetworksWirelessSsidsDataSourceModelRadiusServer{
 				Host:                     jsontypes.StringValue(radiusServer.GetHost()),
 				Port:                     jsontypes.Int64Value(int64(radiusServer.GetPort())),
 				OpenRoamingCertificateId: jsontypes.Int64Value(int64(radiusServer.GetOpenRoamingCertificateId())),
@@ -413,7 +413,7 @@ func (d *NetworksWirelessSsidsDataSource) Read(ctx context.Context, req datasour
 
 		// Populate RadiusAccountingServers slice
 		for _, radiusAccountingServer := range inlineRespData.RadiusAccountingServers {
-			result.RadiusAccountingServers = append(result.RadiusAccountingServers, RadiusServer{
+			result.RadiusAccountingServers = append(result.RadiusAccountingServers, NetworksWirelessSsidsDataSourceModelRadiusServer{
 				Host:                     jsontypes.StringValue(radiusAccountingServer.GetHost()),
 				Port:                     jsontypes.Int64Value(int64(radiusAccountingServer.GetPort())),
 				OpenRoamingCertificateId: jsontypes.Int64Value(int64(radiusAccountingServer.GetOpenRoamingCertificateId())),

@@ -36,15 +36,15 @@ type DevicesApplianceDhcpSubnetsDataSourceModel struct {
 
 	// The Id field is mandatory for all data sources. It's used for data source identification and is required
 	// for the acceptance tests to run.
-	Id     jsontypes.String `tfsdk:"id"`
-	Serial jsontypes.String `tfsdk:"serial"`
-	List   []DHCPSubnet     `tfsdk:"list"`
+	Id     jsontypes.String                                 `tfsdk:"id"`
+	Serial jsontypes.String                                 `tfsdk:"serial"`
+	List   []DevicesApplianceDhcpSubnetsDataSourceModelList `tfsdk:"list"`
 
 	// Each of the remaining fields represents an attribute of this data source. They should match the attributes
 	// defined in the tfsdk.Schema for this data source.
 }
 
-type DHCPSubnet struct {
+type DevicesApplianceDhcpSubnetsDataSourceModelList struct {
 	Subnet    jsontypes.String `tfsdk:"subnet" json:"subnet"`
 	VlanId    jsontypes.Int64  `tfsdk:"vlan_id" json:"vlanId"`
 	UsedCount jsontypes.Int64  `tfsdk:"used_count" json:"usedCount"`
@@ -64,7 +64,7 @@ func (d *DevicesApplianceDhcpSubnetsDataSource) Schema(ctx context.Context, req 
 	// The Schema object defines the structure of the data source.
 	resp.Schema = schema.Schema{
 		// It should provide a clear and concise description of the data source.
-		MarkdownDescription: "Devices Appliance Dhcp Subnets - Return the DHCP subnet information for an appliance",
+		MarkdownDescription: "Return the DHCP subnet information for an appliance",
 
 		// The Attributes map describes the fields of the data source.
 		Attributes: map[string]schema.Attribute{
@@ -81,7 +81,7 @@ func (d *DevicesApplianceDhcpSubnetsDataSource) Schema(ctx context.Context, req 
 			"list": schema.ListNestedAttribute{
 				Optional:    true,
 				Computed:    true,
-				Description: "",
+				Description: "List of DHCP subnets",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"subnet": schema.StringAttribute{
@@ -156,37 +156,44 @@ func (d *DevicesApplianceDhcpSubnetsDataSource) Read(ctx context.Context, req da
 	// Remember to handle any potential errors.
 	_, httpResp, err := d.client.SubnetsApi.GetDeviceApplianceDhcpSubnets(ctx, data.Serial.ValueString()).Execute()
 
-	// If there was an error during API call, add it to diagnostics.
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"HTTP Client Failure",
-			tools.HttpDiagnostics(httpResp),
-		)
-		return
-	}
-
 	// If it's not what you expect, add an error to diagnostics.
-	if httpResp.StatusCode != 200 {
+	if httpResp.StatusCode == 404 {
+		resp.Diagnostics.AddWarning(
+			"Device likely does not support DHCP subnets",
+			fmt.Sprintf("%v", httpResp.StatusCode),
+		)
+	} else if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
-	}
 
-	// If there were any errors up to this point, log the state data and return.
-	if resp.Diagnostics.HasError() {
-		resp.Diagnostics.AddError("State Data", fmt.Sprintf("\n%v", data))
-		return
-	}
+		// HTTP 400 counts as an error so moving this here
+		// If there was an error during API call, add it to diagnostics.
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"HTTP Client Failure",
+				tools.HttpDiagnostics(httpResp),
+			)
+			return
+		}
 
-	// Decode the HTTP response body into your data model.
-	// If there's an error, add it to diagnostics.
-	if err = json.NewDecoder(httpResp.Body).Decode(&data.List); err != nil {
-		resp.Diagnostics.AddError(
-			"JSON decoding error",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-		return
+		// If there were any errors up to this point, log the state data and return.
+		if resp.Diagnostics.HasError() {
+			resp.Diagnostics.AddError("State Data", fmt.Sprintf("\n%v", data))
+			return
+		}
+
+		// Decode the HTTP response body into your data model.
+		// If there's an error, add it to diagnostics.
+		if err = json.NewDecoder(httpResp.Body).Decode(&data.List); err != nil {
+			resp.Diagnostics.AddError(
+				"JSON decoding error",
+				fmt.Sprintf("%v\n", err.Error()),
+			)
+			return
+		}
+
 	}
 
 	// Set ID for the data source.

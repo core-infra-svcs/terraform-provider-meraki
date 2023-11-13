@@ -1,6 +1,8 @@
 package provider
 
 import (
+	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -14,19 +16,11 @@ func TestAccNetworkApplianceFirewallSettingsResource(t *testing.T) {
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 
-			// Create test Organization
-			{
-				Config: testAccNetworkApplianceFirewallSettingsResourceConfigCreateOrganization,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_acc_meraki_organizations_network_appliance_firewall_settings"),
-				),
-			},
-
 			// Create and Read Network.
 			{
-				Config: testAccNetworkApplianceFirewallSettingsResourceConfigCreateNetwork,
+				Config: testAccNetworkApplianceFirewallSettingsResourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_network"),
+					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_networks_appliance_firewall_settings"),
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
@@ -49,34 +43,27 @@ func TestAccNetworkApplianceFirewallSettingsResource(t *testing.T) {
 	})
 }
 
-const testAccNetworkApplianceFirewallSettingsResourceConfigCreateOrganization = `
-resource "meraki_organization" "test" {
-    name = "test_acc_meraki_organizations_network_appliance_firewall_settings"
-    api_enabled = true
-}
-`
-const testAccNetworkApplianceFirewallSettingsResourceConfigCreateNetwork = `
-resource "meraki_organization" "test" {}
+func testAccNetworkApplianceFirewallSettingsResourceConfigCreateNetwork(orgId string) string {
+	result := fmt.Sprintf(`
 resource "meraki_network" "test" {
-    depends_on = [resource.meraki_organization.test]
-    organization_id = resource.meraki_organization.test.organization_id
+    organization_id = %s
     product_types = ["appliance", "switch", "wireless"]
     tags = ["tag1"]
-    name = "test_acc_network"
+    name = "test_acc_networks_appliance_firewall_settings"
     timezone = "America/Los_Angeles"
     notes = "Additional description of the network"
 }
-`
+`, orgId)
+	return result
+}
 
 const testAccNetworkApplianceFirewallSettingsResourceConfigUpdateNetworkApplianceFirewallSettings = `
-resource "meraki_organization" "test" {}
 resource "meraki_network" "test" {
-    depends_on = [resource.meraki_organization.test]
     product_types = ["appliance", "switch", "wireless"]
 }
 
 resource "meraki_networks_appliance_firewall_settings" "test" {
-    depends_on = [resource.meraki_network.test, resource.meraki_organization.test]
+    depends_on = [resource.meraki_network.test]
     network_id = resource.meraki_network.test.network_id
     spoofing_protection = {
         ip_source_guard =  {

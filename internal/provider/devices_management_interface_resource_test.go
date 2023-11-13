@@ -15,7 +15,7 @@ func TestAccDevicesManagementInterfaceResource(t *testing.T) {
 		Steps: []resource.TestStep{
 
 			{
-				Config: testAccDevicesManagementinterfaceResourceConfigCreate(os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
+				Config: testAccDevicesManagementInterfaceResourceConfigCreate(os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_devices_management_interface.test", "serial", os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
 					resource.TestCheckResourceAttr("meraki_devices_management_interface.test", "wan1.wan_enabled", "enabled"),
@@ -29,17 +29,12 @@ func TestAccDevicesManagementInterfaceResource(t *testing.T) {
 	})
 }
 
-func testAccDevicesManagementinterfaceResourceConfigCreate(serial string) string {
+func testAccDevicesManagementInterfaceResourceConfigCreate(serial string) string {
 	result := fmt.Sprintf(`
 resource "meraki_devices_management_interface" "test" {
 	serial = "%s"
     wan1 = {
 		wan_enabled = "enabled"
-		vlan = 1
-		using_static_ip = false
-	}
-	wan2 = {
-		wan_enabled= "enabled"
 		vlan = 1
 		using_static_ip = false
 	}

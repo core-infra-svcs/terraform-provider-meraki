@@ -3,12 +3,12 @@
 page_title: "meraki_devices_management_interface Resource - terraform-provider-meraki"
 subcategory: ""
 description: |-
-  DevicesTestAccDevicesManagementInterfaceResource
+  Manage the management interface settings for a device
 ---
 
 # meraki_devices_management_interface (Resource)
 
-DevicesTestAccDevicesManagementInterfaceResource
+Manage the management interface settings for a device
 
 
 
