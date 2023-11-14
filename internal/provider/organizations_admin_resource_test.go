@@ -40,7 +40,7 @@ func TestAccOrganizationsAdminResource(t *testing.T) {
 			{
 				Config: testAccOrganizationsAdminResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "name", "testAdmin"),
+					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "name", "test_acc_admin"),
 					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "email", "meraki_organizations_admin_test_2023_06_05@example.com"),
 					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "org_access", "read-only"),
 					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "authentication_method", "Email"),
@@ -99,7 +99,7 @@ resource "meraki_network" "test" {
 resource "meraki_organizations_admin" "test" {
 	depends_on = ["meraki_organization.test", "meraki_network.test"]
 	organization_id = resource.meraki_organization.test.organization_id
-	name        = "testAdmin"
+	name        = "test_acc_admin"
 	email       = "meraki_organizations_admin_test_2023_06_05@example.com"
 	org_access   = "read-only"
 	authentication_method = "Email"
@@ -125,7 +125,7 @@ resource "meraki_network" "test" {
 resource "meraki_organizations_admin" "test" {
 	depends_on = ["meraki_organization.test", "meraki_network.test"]
 	organization_id = resource.meraki_organization.test.organization_id
-	name        = "testAdmin"
+	name        = "test_acc_admin"
 	email       = "meraki_organizations_admin_test_2023_06_05@example.com"
 	org_access   = "read-only"
 	authentication_method = "Email"
