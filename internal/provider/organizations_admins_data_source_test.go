@@ -23,7 +23,7 @@ func TestAccOrganizationsAdminsDataSource(t *testing.T) {
 			{
 				Config: testAccOrganizationsAdminsDataSourceConfigCreateAdmin,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "name", "testAdmin"),
+					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "name", "test_acc_admin"),
 					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "email", "meraki_organizations_admin_datasource_test1@example.com"),
 					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "org_access", "read-only"),
 					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "authentication_method", "Email"),
@@ -41,7 +41,7 @@ func TestAccOrganizationsAdminsDataSource(t *testing.T) {
 					//resource.TestCheckResourceAttr("data.meraki_organizations_admins.test", "organization_id", ""),
 					resource.TestCheckResourceAttr("data.meraki_organizations_admins.test", "list.#", "2"),
 					//resource.TestCheckResourceAttr("data.meraki_organizations_admins.test", "list.1.id", ""),
-					resource.TestCheckResourceAttr("data.meraki_organizations_admins.test", "list.1.name", "testAdmin"),
+					resource.TestCheckResourceAttr("data.meraki_organizations_admins.test", "list.1.name", "test_acc_admin"),
 					resource.TestCheckResourceAttr("data.meraki_organizations_admins.test", "list.1.email", "meraki_organizations_admin_datasource_test1@example.com"),
 					resource.TestCheckResourceAttr("data.meraki_organizations_admins.test", "list.1.org_access", "read-only"),
 					// resource.TestCheckResourceAttr("data.meraki_organizations_admins.test", "list.1.account_status", ""),
@@ -72,7 +72,7 @@ resource "meraki_organization" "test" {}
 resource "meraki_organizations_admin" "test" {
 	depends_on = ["meraki_organization.test"]
 	organization_id = resource.meraki_organization.test.organization_id
-	name        = "testAdmin"
+	name        = "test_acc_admin"
 	email       = "meraki_organizations_admin_datasource_test1@example.com"
 	org_access   = "read-only"
 	authentication_method = "Email"
