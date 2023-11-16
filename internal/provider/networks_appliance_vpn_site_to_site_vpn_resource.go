@@ -195,7 +195,6 @@ func (r *NetworksApplianceVpnSiteToSiteVpnResource) Create(ctx context.Context, 
 
 	// Write logs using the tflog package
 	tflog.Trace(ctx, "create resource")
-	return
 }
 
 func (r *NetworksApplianceVpnSiteToSiteVpnResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
