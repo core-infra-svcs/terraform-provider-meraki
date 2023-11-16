@@ -45,8 +45,8 @@ func TestAccNetworksApplianceVpnSiteToSiteVpnResource(t *testing.T) {
 					resource.TestCheckResourceAttr("meraki_networks_appliance_vpn_site_to_site_vpn.test", "mode", "hub"),
 					//resource.TestCheckResourceAttr("meraki_networks_appliance_vpn_site_to_site_vpn.test", "hubs.#", "1"),
 					//resource.TestCheckResourceAttr("meraki_networks_appliance_vpn_site_to_site_vpn.test", "hubs.0.hub_id", os.Getenv("TF_ACC_MAIN_OFFICE_SUB_TEST_NETWORK_ID")),
-					//resource.TestCheckResourceAttr("meraki_networks_appliance_vpn_site_to_site_vpn.test", "subnets.#", "1"),
-					//resource.TestCheckResourceAttr("meraki_networks_appliance_vpn_site_to_site_vpn.test", "subnets.0.local_subnet", "192.168.128.0/24"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_vpn_site_to_site_vpn.test", "subnets.#", "1"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_vpn_site_to_site_vpn.test", "subnets.0.local_subnet", "192.168.128.0/24"),
 				),
 			},
 		},
@@ -111,7 +111,6 @@ resource "meraki_networks_appliance_vpn_site_to_site_vpn" "test" {
     depends_on = [resource.meraki_network.test, resource.meraki_networks_devices_claim.test]
 	network_id = resource.meraki_network.test.network_id
     mode = "hub"
-    hubs = []
     subnets = [{
 		local_subnet = "192.168.128.0/24"
 	}]
