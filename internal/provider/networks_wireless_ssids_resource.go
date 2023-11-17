@@ -36,21 +36,21 @@ type NetworksWirelessSsidsResource struct {
 	client *openApiClient.APIClient
 }
 
-type Dot11W struct {
+type NetworksWirelessSsidsResourceModelDot11W struct {
 	Enabled  jsontypes.Bool `tfsdk:"enabled" json:"enabled"`
 	Required jsontypes.Bool `tfsdk:"required" json:"required"`
 }
 
-type Dot11R struct {
+type NetworksWirelessSsidsResourceModelDot11R struct {
 	Enabled  jsontypes.Bool `tfsdk:"enabled" json:"enabled"`
 	Adaptive jsontypes.Bool `tfsdk:"adaptive" json:"adaptive"`
 }
 
-type ClientRootCaCertificate struct {
+type NetworksWirelessSsidsResourceModelLocalRadiusCertificateAuthenticationClientRootCaCertificate struct {
 	Contents jsontypes.String `tfsdk:"contents" json:"contents"`
 }
 
-type CertificateAuthentication struct {
+type NetworksWirelessSsidsResourceModelLocalRadiusCertificateAuthentication struct {
 	Enabled                 jsontypes.Bool   `tfsdk:"enabled" json:"enabled"`
 	UseLdap                 jsontypes.Bool   `tfsdk:"use_ldap" json:"useLdap"`
 	UseOcsp                 jsontypes.Bool   `tfsdk:"use_ocsp" json:"useOcsp"`
@@ -58,48 +58,48 @@ type CertificateAuthentication struct {
 	ClientRootCaCertificate types.Object     `tfsdk:"client_root_ca_certificate" json:"clientRootCaCertificate"`
 }
 
-type PasswordAuthentication struct {
+type NetworksWirelessSsidsResourceModelLocalRadiusPasswordAuthentication struct {
 	Enabled jsontypes.Bool `tfsdk:"enabled" json:"enabled"`
 }
 
-type LocalRadius struct {
+type NetworksWirelessSsidsResourceModelLocalRadius struct {
 	CacheTimeout              jsontypes.Int64 `tfsdk:"cache_timeout" json:"cacheTimeout"`
 	PasswordAuthentication    types.Object    `tfsdk:"password_authentication" json:"passwordAuthentication"`
 	CertificateAuthentication types.Object    `tfsdk:"certificate_authentication" json:"certificateAuthentication"`
 }
 
-type Server struct {
+type NetworksWirelessSsidsResourceModelServer struct {
 	Host jsontypes.String `tfsdk:"host" json:"host"`
 	Port jsontypes.Int64  `tfsdk:"port" json:"port"`
 }
 
-type Credential struct {
+type NetworksWirelessSsidsResourceModelCredential struct {
 	DistinguishedName jsontypes.String `tfsdk:"distinguished_name" json:"distinguishedName"`
 	Password          jsontypes.String `tfsdk:"password" json:"password"`
 }
 
-type ServerCaCertificate struct {
+type NetworksWirelessSsidsResourceModelServerCaCertificate struct {
 	Contents jsontypes.String `tfsdk:"contents" json:"contents"`
 }
 
-type Ldap struct {
-	Servers               []Server         `tfsdk:"servers" json:"servers"`
-	Credentials           types.Object     `tfsdk:"credentials" json:"credentials"`
-	BaseDistinguishedName jsontypes.String `tfsdk:"base_distinguished_name" json:"baseDistinguishedName"`
-	ServerCaCertificate   types.Object     `tfsdk:"server_ca_certificate" json:"serverCaCertificate"`
+type NetworksWirelessSsidsResourceModelLdap struct {
+	Servers               []NetworksWirelessSsidsResourceModelServer `tfsdk:"servers" json:"servers"`
+	Credentials           types.Object                               `tfsdk:"credentials" json:"credentials"`
+	BaseDistinguishedName jsontypes.String                           `tfsdk:"base_distinguished_name" json:"baseDistinguishedName"`
+	ServerCaCertificate   types.Object                               `tfsdk:"server_ca_certificate" json:"serverCaCertificate"`
 }
 
-type ADCredential struct {
+type NetworksWirelessSsidsResourceModelActiveDirectoryCredential struct {
 	LogonName jsontypes.String `tfsdk:"logon_name" json:"logonName"`
 	Password  jsontypes.String `tfsdk:"password" json:"password"`
 }
 
-type ActiveDirectory struct {
-	Servers     []Server     `tfsdk:"servers" json:"servers"`
-	Credentials types.Object `tfsdk:"credentials" json:"credentials"`
+type NetworksWirelessSsidsResourceModelActiveDirectory struct {
+	Servers     []NetworksWirelessSsidsResourceModelServer `tfsdk:"servers" json:"servers"`
+	Credentials types.Object                               `tfsdk:"credentials" json:"credentials"`
 }
 
-type RadiusServer struct {
+type NetworksWirelessSsidsResourceModelRadiusServer struct {
 	Host                     jsontypes.String `tfsdk:"host" json:"host"`
 	Secret                   jsontypes.String `tfsdk:"secret" json:"secret"`
 	CaCertificate            jsontypes.String `tfsdk:"ca_certificate" json:"caCertificate"`
@@ -108,7 +108,7 @@ type RadiusServer struct {
 	RadsecEnabled            jsontypes.Bool   `tfsdk:"radsec_enabled" json:"radsecEnabled"`
 }
 
-type RadiusAccountingServer struct {
+type NetworksWirelessSsidsResourceModelRadiusAccountingServer struct {
 	Host          jsontypes.String `tfsdk:"host" json:"host"`
 	Secret        jsontypes.String `tfsdk:"secret" json:"secret"`
 	CaCertificate jsontypes.String `tfsdk:"ca_certificate" json:"caCertificate"`
@@ -116,117 +116,96 @@ type RadiusAccountingServer struct {
 	RadsecEnabled jsontypes.Bool   `tfsdk:"radsec_enabled" json:"radsecEnabled"`
 }
 
-type Concentrator struct {
+type NetworksWirelessSsidsResourceModelConcentrator struct {
 	Host jsontypes.String `tfsdk:"host" json:"host"`
 }
 
-type Gre struct {
+type NetworksWirelessSsidsResourceModelGre struct {
 	Concentrator types.Object    `tfsdk:"concentrator" json:"concentrator"`
 	Key          jsontypes.Int64 `tfsdk:"key" json:"key"`
 }
 
-type ApTagsAndVlanId struct {
+type NetworksWirelessSsidsResourceModelApTagsAndVlanId struct {
 	Tags   types.List      `tfsdk:"tags" json:"tags"`
 	VlanId jsontypes.Int64 `tfsdk:"vlan_id" json:"vlanId"`
 }
 
-type DNSRewrite struct {
+type NetworksWirelessSsidsResourceModelDNSRewrite struct {
 	Enabled              jsontypes.Bool `tdsdk:"enabled" json:"enabled"`
 	DnsCustomNameservers types.List     `tdsdk:"dns_custom_nameservers" json:"dnsCustomNameservers"`
 }
 
-type ByApTag struct {
-	Tags     types.List       `tfsdk:"tags" json:"tags"`
-	VlanName jsontypes.String `tfsdk:"vlan_name" json:"vlanName"`
-}
-
-type Tagging struct {
-	Enabled         jsontypes.Bool   `tfsdk:"enabled" json:"enabled"`
-	DefaultVlanName jsontypes.String `tfsdk:"default_vlan_name" json:"defaultVlanName"`
-	ByApTags        []ByApTag        `tfsdk:"by_ap_tags" json:"byApTags"`
-}
-
-type GuestVlan struct {
-	Enabled jsontypes.Bool   `tfsdk:"enabled" json:"enabled"`
-	Name    jsontypes.String `tfsdk:"name" json:"name"`
-}
-
-type Radius struct {
+type NetworksWirelessSsidsResourceModelRadius struct {
 	GuestVlan types.Object `tfsdk:"guest_vlan" json:"guestVlan"`
 }
 
-type NamedVlans struct {
-	Tagging types.Object `tfsdk:"tagging" json:"tagging"`
-	Radius  Radius       `tfsdk:"radius" json:"radius"`
-}
-
-type SpeedBurst struct {
+type NetworksWirelessSsidsResourceModelSpeedBurst struct {
 	Enabled jsontypes.Bool `tfsdk:"enabled" json:"enabled"`
 }
 
-type Oauth struct {
+type NetworksWirelessSsidsResourceModelOauth struct {
 	AllowedDomains types.List `json:"allowed_domains"`
 }
 
 type WirelessNetworkSSID struct {
-	Name                             jsontypes.String         `tfsdk:"name"`
-	AuthMode                         jsontypes.String         `tfsdk:"auth_mode"`
-	EnterpriseAdminAccess            jsontypes.String         `tfsdk:"enterprise_admin_access"`
-	EncryptionMode                   jsontypes.String         `tfsdk:"encryption_mode"`
-	Psk                              jsontypes.String         `tfsdk:"psk"`
-	WpaEncryptionMode                jsontypes.String         `tfsdk:"wpa_encryption_mode"`
-	SplashPage                       jsontypes.String         `tfsdk:"splash_page"`
-	RadiusCalledStationId            jsontypes.String         `tfsdk:"radius_called_station_id"`
-	RadiusAuthenticationNasId        jsontypes.String         `tfsdk:"radius_authentication_nas_id"`
-	RadiusFailoverPolicy             jsontypes.String         `tfsdk:"radius_failover_policy"`
-	RadiusLoadBalancingPolicy        jsontypes.String         `tfsdk:"radius_load_balancing_policy"`
-	RadiusAttributeForGroupPolicies  jsontypes.String         `tfsdk:"radius_attribute_for_group_policies"`
-	IpAssignmentMode                 jsontypes.String         `tfsdk:"ip_assignment_mode"`
-	ConcentratorNetworkId            jsontypes.String         `tfsdk:"concentrator_network_id"`
-	SecondaryConcentratorNetworkId   jsontypes.String         `tfsdk:"secondary_concentrator_network_id"`
-	BandSelection                    jsontypes.String         `tfsdk:"band_selection"`
-	RadiusServerTimeout              jsontypes.Int64          `tfsdk:"radius_server_timeout"`
-	RadiusServerAttemptsLimit        jsontypes.Int64          `tfsdk:"radius_server_attempts_limit"`
-	RadiusAccountingInterimInterval  jsontypes.Int64          `tfsdk:"radius_accounting_interim_interval"`
-	VlanId                           jsontypes.Int64          `tfsdk:"vlan_id"`
-	DefaultVlanId                    jsontypes.Int64          `tfsdk:"default_vlan_id"`
-	PerClientBandwidthLimitUp        jsontypes.Int64          `tfsdk:"per_client_bandwidth_limit_up"`
-	PerClientBandwidthLimitDown      jsontypes.Int64          `tfsdk:"per_client_bandwidth_limit_down"`
-	PerSsidBandwidthLimitUp          jsontypes.Int64          `tfsdk:"per_ssid_bandwidth_limit_up"`
-	PerSsidBandwidthLimitDown        jsontypes.Int64          `tfsdk:"per_ssid_bandwidth_limit_down"`
-	RadiusGuestVlanId                jsontypes.Int64          `tfsdk:"radius_guest_vlan_id"`
-	MinBitrate                       jsontypes.Float64        `tfsdk:"min_bitrate"`
-	UseVlanTagging                   jsontypes.Bool           `tfsdk:"use_vlan_tagging"`
-	DisassociateClientsOnVpnFailover jsontypes.Bool           `tfsdk:"disassociate_clients_on_vpn_failover"`
-	RadiusOverride                   jsontypes.Bool           `tfsdk:"radius_override"`
-	RadiusGuestVlanEnabled           jsontypes.Bool           `tfsdk:"radius_guest_vlan_enabled"`
-	Enabled                          jsontypes.Bool           `tfsdk:"enabled"`
-	RadiusProxyEnabled               jsontypes.Bool           `tfsdk:"radius_proxy_enabled"`
-	RadiusTestingEnabled             jsontypes.Bool           `tfsdk:"radius_testing_enabled"`
-	RadiusFallbackEnabled            jsontypes.Bool           `tfsdk:"radius_fallback_enabled"`
-	RadiusCoaEnabled                 jsontypes.Bool           `tfsdk:"radius_coa_enabled"`
-	RadiusAccountingEnabled          jsontypes.Bool           `tfsdk:"radius_accounting_enabled"`
-	LanIsolationEnabled              jsontypes.Bool           `tfsdk:"lan_isolation_enabled"`
-	Visible                          jsontypes.Bool           `tfsdk:"visible"`
-	AvailableOnAllAps                jsontypes.Bool           `tfsdk:"available_on_all_aps"`
-	MandatoryDhcpEnabled             jsontypes.Bool           `tfsdk:"mandatory_dhcp_enabled"`
-	AdultContentFilteringEnabled     jsontypes.Bool           `tfsdk:"adult_content_filtering_enabled"`
-	WalledGardenEnabled              jsontypes.Bool           `tfsdk:"walled_garden_enabled"`
-	Dot11W                           types.Object             `tfsdk:"dot11w"`
-	Dot11R                           types.Object             `tfsdk:"dot11r"`
-	LocalRadius                      types.Object             `tfsdk:"local_radius"`
-	Ldap                             types.Object             `tfsdk:"ldap"`
-	ActiveDirectory                  types.Object             `tfsdk:"active_directory"`
-	DnsRewrite                       types.Object             `tfsdk:"dns_rewrite"`
-	SpeedBurst                       types.Object             `tfsdk:"speed_burst"`
-	Gre                              types.Object             `tfsdk:"gre"`
-	Oauth                            types.Object             `tfsdk:"oauth"`
-	SplashGuestSponsorDomains        types.List               `tfsdk:"splash_guest_sponsor_domains"`
-	WalledGardenRanges               types.List               `tfsdk:"walled_garden_ranges"`
-	AvailabilityTags                 types.List               `tfsdk:"availability_tags"`
-	RadiusServers                    []RadiusServer           `tfsdk:"radius_servers"`
-	RadiusAccountingServers          []RadiusAccountingServer `tfsdk:"radius_accounting_servers"`
-	ApTagsAndVlanIds                 []ApTagsAndVlanId        `tfsdk:"ap_tags_and_vlan_ids"`
+	Name                             jsontypes.String                                           `tfsdk:"name"`
+	AuthMode                         jsontypes.String                                           `tfsdk:"auth_mode"`
+	EnterpriseAdminAccess            jsontypes.String                                           `tfsdk:"enterprise_admin_access"`
+	EncryptionMode                   jsontypes.String                                           `tfsdk:"encryption_mode"`
+	Psk                              jsontypes.String                                           `tfsdk:"psk"`
+	WpaEncryptionMode                jsontypes.String                                           `tfsdk:"wpa_encryption_mode"`
+	SplashPage                       jsontypes.String                                           `tfsdk:"splash_page"`
+	RadiusCalledStationId            jsontypes.String                                           `tfsdk:"radius_called_station_id"`
+	RadiusAuthenticationNasId        jsontypes.String                                           `tfsdk:"radius_authentication_nas_id"`
+	RadiusFailoverPolicy             jsontypes.String                                           `tfsdk:"radius_failover_policy"`
+	RadiusLoadBalancingPolicy        jsontypes.String                                           `tfsdk:"radius_load_balancing_policy"`
+	RadiusAttributeForGroupPolicies  jsontypes.String                                           `tfsdk:"radius_attribute_for_group_policies"`
+	IpAssignmentMode                 jsontypes.String                                           `tfsdk:"ip_assignment_mode"`
+	ConcentratorNetworkId            jsontypes.String                                           `tfsdk:"concentrator_network_id"`
+	SecondaryConcentratorNetworkId   jsontypes.String                                           `tfsdk:"secondary_concentrator_network_id"`
+	BandSelection                    jsontypes.String                                           `tfsdk:"band_selection"`
+	RadiusServerTimeout              jsontypes.Int64                                            `tfsdk:"radius_server_timeout"`
+	RadiusServerAttemptsLimit        jsontypes.Int64                                            `tfsdk:"radius_server_attempts_limit"`
+	RadiusAccountingInterimInterval  jsontypes.Int64                                            `tfsdk:"radius_accounting_interim_interval"`
+	VlanId                           jsontypes.Int64                                            `tfsdk:"vlan_id"`
+	DefaultVlanId                    jsontypes.Int64                                            `tfsdk:"default_vlan_id"`
+	PerClientBandwidthLimitUp        jsontypes.Int64                                            `tfsdk:"per_client_bandwidth_limit_up"`
+	PerClientBandwidthLimitDown      jsontypes.Int64                                            `tfsdk:"per_client_bandwidth_limit_down"`
+	PerSsidBandwidthLimitUp          jsontypes.Int64                                            `tfsdk:"per_ssid_bandwidth_limit_up"`
+	PerSsidBandwidthLimitDown        jsontypes.Int64                                            `tfsdk:"per_ssid_bandwidth_limit_down"`
+	RadiusGuestVlanId                jsontypes.Int64                                            `tfsdk:"radius_guest_vlan_id"`
+	MinBitrate                       jsontypes.Float64                                          `tfsdk:"min_bitrate"`
+	UseVlanTagging                   jsontypes.Bool                                             `tfsdk:"use_vlan_tagging"`
+	DisassociateClientsOnVpnFailover jsontypes.Bool                                             `tfsdk:"disassociate_clients_on_vpn_failover"`
+	RadiusOverride                   jsontypes.Bool                                             `tfsdk:"radius_override"`
+	RadiusGuestVlanEnabled           jsontypes.Bool                                             `tfsdk:"radius_guest_vlan_enabled"`
+	Enabled                          jsontypes.Bool                                             `tfsdk:"enabled"`
+	RadiusProxyEnabled               jsontypes.Bool                                             `tfsdk:"radius_proxy_enabled"`
+	RadiusTestingEnabled             jsontypes.Bool                                             `tfsdk:"radius_testing_enabled"`
+	RadiusFallbackEnabled            jsontypes.Bool                                             `tfsdk:"radius_fallback_enabled"`
+	RadiusCoaEnabled                 jsontypes.Bool                                             `tfsdk:"radius_coa_enabled"`
+	RadiusAccountingEnabled          jsontypes.Bool                                             `tfsdk:"radius_accounting_enabled"`
+	LanIsolationEnabled              jsontypes.Bool                                             `tfsdk:"lan_isolation_enabled"`
+	Visible                          jsontypes.Bool                                             `tfsdk:"visible"`
+	AvailableOnAllAps                jsontypes.Bool                                             `tfsdk:"available_on_all_aps"`
+	MandatoryDhcpEnabled             jsontypes.Bool                                             `tfsdk:"mandatory_dhcp_enabled"`
+	AdultContentFilteringEnabled     jsontypes.Bool                                             `tfsdk:"adult_content_filtering_enabled"`
+	WalledGardenEnabled              jsontypes.Bool                                             `tfsdk:"walled_garden_enabled"`
+	Dot11W                           types.Object                                               `tfsdk:"dot11w"`
+	Dot11R                           types.Object                                               `tfsdk:"dot11r"`
+	LocalRadius                      types.Object                                               `tfsdk:"local_radius"`
+	Ldap                             types.Object                                               `tfsdk:"ldap"`
+	ActiveDirectory                  types.Object                                               `tfsdk:"active_directory"`
+	DnsRewrite                       types.Object                                               `tfsdk:"dns_rewrite"`
+	SpeedBurst                       types.Object                                               `tfsdk:"speed_burst"`
+	Gre                              types.Object                                               `tfsdk:"gre"`
+	Oauth                            types.Object                                               `tfsdk:"oauth"`
+	SplashGuestSponsorDomains        types.List                                                 `tfsdk:"splash_guest_sponsor_domains"`
+	WalledGardenRanges               types.List                                                 `tfsdk:"walled_garden_ranges"`
+	AvailabilityTags                 types.List                                                 `tfsdk:"availability_tags"`
+	RadiusServers                    []NetworksWirelessSsidsResourceModelRadiusServer           `tfsdk:"radius_servers"`
+	RadiusAccountingServers          []NetworksWirelessSsidsResourceModelRadiusAccountingServer `tfsdk:"radius_accounting_servers"`
+	ApTagsAndVlanIds                 []NetworksWirelessSsidsResourceModelApTagsAndVlanId        `tfsdk:"ap_tags_and_vlan_ids"`
 }
 
 // NetworksWirelessSsidsResourceModel describes the resource data model.
@@ -850,215 +829,9 @@ func (r *NetworksWirelessSsidsResource) Create(ctx context.Context, req resource
 		return
 	}
 
-	request := openApiClient.NewUpdateNetworkWirelessSsidRequest()
-	var ssid WirelessNetworkSSID
-	data.SSID.As(ctx, &ssid, basetypes.ObjectAsOptions{})
+	request := NetworksWirelessSsidsPayload(ctx, data)
 
-	request.SetName(ssid.Name.ValueString())
-	request.SetAuthMode(ssid.AuthMode.ValueString())
-	request.SetEnterpriseAdminAccess(ssid.EnterpriseAdminAccess.ValueString())
-	request.SetEncryptionMode(ssid.EncryptionMode.ValueString())
-	request.SetPsk(ssid.Psk.ValueString())
-	request.SetWpaEncryptionMode(ssid.WpaEncryptionMode.ValueString())
-	request.SetSplashPage(ssid.SplashPage.ValueString())
-	request.SetRadiusCalledStationId(ssid.RadiusCalledStationId.ValueString())
-	request.SetRadiusAuthenticationNasId(ssid.RadiusAuthenticationNasId.ValueString())
-	request.SetRadiusFailoverPolicy(ssid.RadiusFailoverPolicy.ValueString())
-	request.SetRadiusLoadBalancingPolicy(ssid.RadiusLoadBalancingPolicy.ValueString())
-	request.SetRadiusAttributeForGroupPolicies(ssid.RadiusAttributeForGroupPolicies.ValueString())
-	request.SetIpAssignmentMode(ssid.IpAssignmentMode.ValueString())
-	request.SetConcentratorNetworkId(ssid.ConcentratorNetworkId.ValueString())
-	request.SetSecondaryConcentratorNetworkId(ssid.SecondaryConcentratorNetworkId.ValueString())
-	request.SetBandSelection(ssid.BandSelection.ValueString())
-	request.SetRadiusServerTimeout(int32(ssid.RadiusServerTimeout.ValueInt64()))
-	request.SetRadiusServerAttemptsLimit(int32(ssid.RadiusServerAttemptsLimit.ValueInt64()))
-	request.SetRadiusAccountingInterimInterval(int32(ssid.RadiusAccountingInterimInterval.ValueInt64()))
-	request.SetVlanId(int32(ssid.VlanId.ValueInt64()))
-	request.SetDefaultVlanId(int32(ssid.DefaultVlanId.ValueInt64()))
-	request.SetPerClientBandwidthLimitUp(int32(ssid.PerClientBandwidthLimitUp.ValueInt64()))
-	request.SetPerClientBandwidthLimitDown(int32(ssid.PerClientBandwidthLimitDown.ValueInt64()))
-	request.SetPerSsidBandwidthLimitUp(int32(ssid.PerSsidBandwidthLimitUp.ValueInt64()))
-	request.SetPerSsidBandwidthLimitDown(int32(ssid.PerSsidBandwidthLimitDown.ValueInt64()))
-	request.SetRadiusGuestVlanId(int32(ssid.RadiusGuestVlanId.ValueInt64()))
-	request.SetMinBitrate(float32(ssid.MinBitrate.ValueFloat64()))
-	request.SetUseVlanTagging(ssid.UseVlanTagging.ValueBool())
-	request.SetDisassociateClientsOnVpnFailover(ssid.DisassociateClientsOnVpnFailover.ValueBool())
-	request.SetRadiusOverride(ssid.RadiusOverride.ValueBool())
-	request.SetRadiusGuestVlanEnabled(ssid.RadiusGuestVlanEnabled.ValueBool())
-	request.SetEnabled(ssid.Enabled.ValueBool())
-	request.SetRadiusProxyEnabled(ssid.RadiusProxyEnabled.ValueBool())
-	request.SetRadiusTestingEnabled(ssid.RadiusTestingEnabled.ValueBool())
-	request.SetRadiusFallbackEnabled(ssid.RadiusFallbackEnabled.ValueBool())
-	request.SetRadiusCoaEnabled(ssid.RadiusCoaEnabled.ValueBool())
-	request.SetRadiusAccountingEnabled(ssid.RadiusAccountingEnabled.ValueBool())
-	request.SetLanIsolationEnabled(ssid.LanIsolationEnabled.ValueBool())
-	request.SetVisible(ssid.Visible.ValueBool())
-	request.SetAvailableOnAllAps(ssid.AvailableOnAllAps.ValueBool())
-	request.SetMandatoryDhcpEnabled(ssid.MandatoryDhcpEnabled.ValueBool())
-	request.SetAdultContentFilteringEnabled(ssid.AdultContentFilteringEnabled.ValueBool())
-	request.SetWalledGardenEnabled(ssid.WalledGardenEnabled.ValueBool())
-
-	dot11w := openApiClient.NewUpdateNetworkApplianceSsidRequestDot11w()
-	var dot11wObject Dot11W
-	ssid.Dot11W.As(ctx, &dot11wObject, basetypes.ObjectAsOptions{})
-	dot11w.SetEnabled(dot11wObject.Enabled.ValueBool())
-	dot11w.SetRequired(dot11wObject.Required.ValueBool())
-	request.SetDot11w(*dot11w)
-
-	dot11r := openApiClient.NewUpdateNetworkWirelessSsidRequestDot11r()
-	var dot11rObject Dot11R
-	ssid.Dot11R.As(ctx, &dot11rObject, basetypes.ObjectAsOptions{})
-	dot11r.SetEnabled(dot11rObject.Enabled.ValueBool())
-	dot11r.SetAdaptive(dot11rObject.Adaptive.ValueBool())
-	request.SetDot11r(*dot11r)
-
-	localRadius := openApiClient.NewUpdateNetworkWirelessSsidRequestLocalRadius()
-	var localRadiusObject LocalRadius
-	ssid.LocalRadius.As(ctx, &localRadiusObject, basetypes.ObjectAsOptions{})
-	localRadius.SetCacheTimeout(int32(localRadiusObject.CacheTimeout.ValueInt64()))
-	certificateAuthentication := openApiClient.NewUpdateNetworkWirelessSsidRequestLocalRadiusCertificateAuthentication()
-	var certificateAuthenticationObject CertificateAuthentication
-	localRadiusObject.CertificateAuthentication.As(ctx, &certificateAuthenticationObject, basetypes.ObjectAsOptions{})
-	certificateAuthentication.SetEnabled(certificateAuthenticationObject.Enabled.ValueBool())
-	certificateAuthentication.SetOcspResponderUrl(certificateAuthenticationObject.OcspResponderUrl.ValueString())
-	certificateAuthentication.SetUseLdap(certificateAuthenticationObject.UseLdap.ValueBool())
-	certificateAuthentication.SetUseOcsp(certificateAuthenticationObject.UseOcsp.ValueBool())
-	var clientRootCaCertificateObject ClientRootCaCertificate
-	certificateAuthenticationObject.ClientRootCaCertificate.As(ctx, &clientRootCaCertificateObject, basetypes.ObjectAsOptions{})
-	rootCACertificate := openApiClient.NewUpdateNetworkWirelessSsidRequestLocalRadiusCertificateAuthenticationClientRootCaCertificate()
-	rootCACertificate.SetContents(clientRootCaCertificateObject.Contents.ValueString())
-	certificateAuthentication.SetClientRootCaCertificate(*rootCACertificate)
-	localRadius.SetCertificateAuthentication(*certificateAuthentication)
-	request.SetLocalRadius(*localRadius)
-
-	ldap := openApiClient.NewUpdateNetworkWirelessSsidRequestLdap()
-	var ldapObject Ldap
-	ssid.Ldap.As(ctx, &ldapObject, basetypes.ObjectAsOptions{})
-	ldap.SetBaseDistinguishedName(ldapObject.BaseDistinguishedName.ValueString())
-	ldapCredentials := openApiClient.NewUpdateNetworkWirelessSsidRequestLdapCredentials()
-	var ldapCredentialsObject Credential
-	ldapObject.Credentials.As(ctx, &ldapCredentialsObject, basetypes.ObjectAsOptions{})
-	ldapCredentials.SetDistinguishedName(ldapCredentialsObject.DistinguishedName.ValueString())
-	ldapCredentials.SetPassword(ldapCredentialsObject.Password.ValueString())
-	ldap.SetCredentials(*ldapCredentials)
-	var ldapServers []openApiClient.UpdateNetworkWirelessSsidRequestLdapServersInner
-	for _, server := range ldapObject.Servers {
-		inner := openApiClient.NewUpdateNetworkWirelessSsidRequestLdapServersInner(server.Host.ValueString(), int32(server.Port.ValueInt64()))
-		ldapServers = append(ldapServers, *inner)
-	}
-	ldap.SetServers(ldapServers)
-	var ldapServerCaCertificateObject ServerCaCertificate
-	ldapObject.ServerCaCertificate.As(ctx, &ldapServerCaCertificateObject, basetypes.ObjectAsOptions{})
-	ldapServerCaCertificate := openApiClient.NewUpdateNetworkWirelessSsidRequestLdapServerCaCertificate()
-	ldapServerCaCertificate.SetContents(ldapServerCaCertificateObject.Contents.ValueString())
-	ldap.SetServerCaCertificate(*ldapServerCaCertificate)
-	request.SetLdap(*ldap)
-
-	ad := openApiClient.NewUpdateNetworkWirelessSsidRequestActiveDirectory()
-	var activeDirectoryObject ActiveDirectory
-	ssid.ActiveDirectory.As(ctx, &activeDirectoryObject, basetypes.ObjectAsOptions{})
-	var adServers []openApiClient.UpdateNetworkWirelessSsidRequestActiveDirectoryServersInner
-	for _, server := range activeDirectoryObject.Servers {
-		inner := openApiClient.NewUpdateNetworkWirelessSsidRequestActiveDirectoryServersInner(server.Host.ValueString())
-		inner.SetPort(int32(server.Port.ValueInt64()))
-		adServers = append(adServers, *inner)
-	}
-	ad.SetServers(adServers)
-	var adCredentialsObject ADCredential
-	activeDirectoryObject.Credentials.As(ctx, &adCredentialsObject, basetypes.ObjectAsOptions{})
-	adCredentials := openApiClient.NewUpdateNetworkWirelessSsidRequestActiveDirectoryCredentials()
-	adCredentials.SetPassword(adCredentialsObject.Password.ValueString())
-	adCredentials.SetLogonName(adCredentialsObject.LogonName.ValueString())
-	ad.SetCredentials(*adCredentials)
-	request.SetActiveDirectory(*ad)
-
-	var dnsRewriteObject DNSRewrite
-	ssid.DnsRewrite.As(ctx, &dnsRewriteObject, basetypes.ObjectAsOptions{})
-	dnsRewrite := openApiClient.NewUpdateNetworkWirelessSsidRequestDnsRewrite()
-	dnsRewrite.SetEnabled(dnsRewriteObject.Enabled.ValueBool())
-	var dnsServers []string
-	for _, server := range dnsRewriteObject.DnsCustomNameservers.Elements() {
-		dnsServers = append(dnsServers, server.String())
-	}
-	dnsRewrite.SetDnsCustomNameservers(dnsServers)
-	request.SetDnsRewrite(*dnsRewrite)
-
-	var speedBurstObject SpeedBurst
-	ssid.SpeedBurst.As(ctx, &speedBurstObject, basetypes.ObjectAsOptions{})
-	speedBurst := openApiClient.NewUpdateNetworkWirelessSsidRequestSpeedBurst()
-	speedBurst.SetEnabled(speedBurstObject.Enabled.ValueBool())
-	request.SetSpeedBurst(*speedBurst)
-
-	var greObject Gre
-	ssid.Gre.As(ctx, &greObject, basetypes.ObjectAsOptions{})
-	gre := openApiClient.NewUpdateNetworkWirelessSsidRequestGre()
-	gre.SetKey(int32(greObject.Key.ValueInt64()))
-	var greConentratorObject Concentrator
-	greObject.Concentrator.As(ctx, &greConentratorObject, basetypes.ObjectAsOptions{})
-	concentrator := openApiClient.NewUpdateNetworkWirelessSsidRequestGreConcentrator(greConentratorObject.Host.ValueString())
-	gre.SetConcentrator(*concentrator)
-	request.SetGre(*gre)
-
-	var oauthObject Oauth
-	ssid.Oauth.As(ctx, &oauthObject, basetypes.ObjectAsOptions{})
-	oauth := openApiClient.NewUpdateNetworkWirelessSsidRequestOauth()
-	oauthDomains := []string{}
-	for _, domain := range oauthObject.AllowedDomains.Elements() {
-		oauthDomains = append(oauthDomains, domain.String())
-	}
-	oauth.SetAllowedDomains(oauthDomains)
-	request.SetOauth(*oauth)
-
-	var sponsorDomains []string
-	for _, domain := range ssid.SplashGuestSponsorDomains.Elements() {
-		sponsorDomains = append(sponsorDomains, domain.String())
-	}
-	request.SetSplashGuestSponsorDomains(sponsorDomains)
-	var gardenRanges []string
-	for _, gardenRange := range ssid.WalledGardenRanges.Elements() {
-		gardenRanges = append(gardenRanges, gardenRange.String())
-	}
-	request.SetWalledGardenRanges(gardenRanges)
-	var availabilityTags []string
-	for _, availabilityTag := range ssid.AvailabilityTags.Elements() {
-		availabilityTags = append(availabilityTags, availabilityTag.String())
-	}
-	request.SetAvailabilityTags(availabilityTags)
-
-	radiusServers := []openApiClient.UpdateNetworkWirelessSsidRequestRadiusServersInner{}
-	for _, radius := range ssid.RadiusServers {
-		radiusServer := openApiClient.NewUpdateNetworkWirelessSsidRequestRadiusServersInner(radius.Host.ValueString())
-		radiusServer.SetPort(int32(radius.Port.ValueInt64()))
-		radiusServer.SetSecret(radius.Secret.ValueString())
-		radiusServers = append(radiusServers, *radiusServer)
-	}
-	request.SetRadiusServers(radiusServers)
-
-	radiusAccountingServers := []openApiClient.UpdateNetworkWirelessSsidRequestRadiusAccountingServersInner{}
-	for _, radius := range ssid.RadiusAccountingServers {
-		radiusServer := openApiClient.NewUpdateNetworkWirelessSsidRequestRadiusAccountingServersInner(radius.Host.ValueString())
-		radiusServer.SetPort(int32(radius.Port.ValueInt64()))
-		radiusServer.SetSecret(radius.Secret.ValueString())
-		radiusServer.SetCaCertificate(radius.CaCertificate.ValueString())
-		radiusServer.SetRadsecEnabled(radius.RadsecEnabled.ValueBool())
-		radiusAccountingServers = append(radiusAccountingServers, *radiusServer)
-	}
-	request.SetRadiusAccountingServers(radiusAccountingServers)
-
-	apTagsAndVlanIds := []openApiClient.UpdateNetworkWirelessSsidRequestApTagsAndVlanIdsInner{}
-	for _, vlanID := range ssid.ApTagsAndVlanIds {
-		apTagsAndVlanId := openApiClient.NewUpdateNetworkWirelessSsidRequestApTagsAndVlanIdsInner()
-		apTagsAndVlanId.SetVlanId(int32(vlanID.VlanId.ValueInt64()))
-		tags := []string{}
-		for _, tag := range vlanID.Tags.Elements() {
-			tags = append(tags, tag.String())
-		}
-		apTagsAndVlanId.SetTags(tags)
-		apTagsAndVlanIds = append(apTagsAndVlanIds, *apTagsAndVlanId)
-	}
-	request.SetApTagsAndVlanIds(apTagsAndVlanIds)
-
-	_, httpResp, err := r.client.WirelessApi.UpdateNetworkWirelessSsid(context.Background(), data.NetworkID.ValueString(), data.Number.ValueString()).UpdateNetworkWirelessSsidRequest(*request).Execute()
+	_, httpResp, err := r.client.WirelessApi.UpdateNetworkWirelessSsid(context.Background(), data.NetworkID.ValueString(), data.Number.ValueString()).UpdateNetworkWirelessSsidRequest(request).Execute()
 	// Check for API success response code
 	if httpResp.StatusCode == 404 {
 		resp.Diagnostics.AddWarning(
@@ -1183,215 +956,8 @@ func (r *NetworksWirelessSsidsResource) Update(ctx context.Context, req resource
 		return
 	}
 
-	request := openApiClient.NewUpdateNetworkWirelessSsidRequest()
-	var ssid WirelessNetworkSSID
-	data.SSID.As(ctx, &ssid, basetypes.ObjectAsOptions{})
-
-	request.SetName(ssid.Name.ValueString())
-	request.SetAuthMode(ssid.AuthMode.ValueString())
-	request.SetEnterpriseAdminAccess(ssid.EnterpriseAdminAccess.ValueString())
-	request.SetEncryptionMode(ssid.EncryptionMode.ValueString())
-	request.SetPsk(ssid.Psk.ValueString())
-	request.SetWpaEncryptionMode(ssid.WpaEncryptionMode.ValueString())
-	request.SetSplashPage(ssid.SplashPage.ValueString())
-	request.SetRadiusCalledStationId(ssid.RadiusCalledStationId.ValueString())
-	request.SetRadiusAuthenticationNasId(ssid.RadiusAuthenticationNasId.ValueString())
-	request.SetRadiusFailoverPolicy(ssid.RadiusFailoverPolicy.ValueString())
-	request.SetRadiusLoadBalancingPolicy(ssid.RadiusLoadBalancingPolicy.ValueString())
-	request.SetRadiusAttributeForGroupPolicies(ssid.RadiusAttributeForGroupPolicies.ValueString())
-	request.SetIpAssignmentMode(ssid.IpAssignmentMode.ValueString())
-	request.SetConcentratorNetworkId(ssid.ConcentratorNetworkId.ValueString())
-	request.SetSecondaryConcentratorNetworkId(ssid.SecondaryConcentratorNetworkId.ValueString())
-	request.SetBandSelection(ssid.BandSelection.ValueString())
-	request.SetRadiusServerTimeout(int32(ssid.RadiusServerTimeout.ValueInt64()))
-	request.SetRadiusServerAttemptsLimit(int32(ssid.RadiusServerAttemptsLimit.ValueInt64()))
-	request.SetRadiusAccountingInterimInterval(int32(ssid.RadiusAccountingInterimInterval.ValueInt64()))
-	request.SetVlanId(int32(ssid.VlanId.ValueInt64()))
-	request.SetDefaultVlanId(int32(ssid.DefaultVlanId.ValueInt64()))
-	request.SetPerClientBandwidthLimitUp(int32(ssid.PerClientBandwidthLimitUp.ValueInt64()))
-	request.SetPerClientBandwidthLimitDown(int32(ssid.PerClientBandwidthLimitDown.ValueInt64()))
-	request.SetPerSsidBandwidthLimitUp(int32(ssid.PerSsidBandwidthLimitUp.ValueInt64()))
-	request.SetPerSsidBandwidthLimitDown(int32(ssid.PerSsidBandwidthLimitDown.ValueInt64()))
-	request.SetRadiusGuestVlanId(int32(ssid.RadiusGuestVlanId.ValueInt64()))
-	request.SetMinBitrate(float32(ssid.MinBitrate.ValueFloat64()))
-	request.SetUseVlanTagging(ssid.UseVlanTagging.ValueBool())
-	request.SetDisassociateClientsOnVpnFailover(ssid.DisassociateClientsOnVpnFailover.ValueBool())
-	request.SetRadiusOverride(ssid.RadiusOverride.ValueBool())
-	request.SetRadiusGuestVlanEnabled(ssid.RadiusGuestVlanEnabled.ValueBool())
-	request.SetEnabled(ssid.Enabled.ValueBool())
-	request.SetRadiusProxyEnabled(ssid.RadiusProxyEnabled.ValueBool())
-	request.SetRadiusTestingEnabled(ssid.RadiusTestingEnabled.ValueBool())
-	request.SetRadiusFallbackEnabled(ssid.RadiusFallbackEnabled.ValueBool())
-	request.SetRadiusCoaEnabled(ssid.RadiusCoaEnabled.ValueBool())
-	request.SetRadiusAccountingEnabled(ssid.RadiusAccountingEnabled.ValueBool())
-	request.SetLanIsolationEnabled(ssid.LanIsolationEnabled.ValueBool())
-	request.SetVisible(ssid.Visible.ValueBool())
-	request.SetAvailableOnAllAps(ssid.AvailableOnAllAps.ValueBool())
-	request.SetMandatoryDhcpEnabled(ssid.MandatoryDhcpEnabled.ValueBool())
-	request.SetAdultContentFilteringEnabled(ssid.AdultContentFilteringEnabled.ValueBool())
-	request.SetWalledGardenEnabled(ssid.WalledGardenEnabled.ValueBool())
-
-	dot11w := openApiClient.NewUpdateNetworkApplianceSsidRequestDot11w()
-	var dot11wObject Dot11W
-	ssid.Dot11W.As(ctx, &dot11wObject, basetypes.ObjectAsOptions{})
-	dot11w.SetEnabled(dot11wObject.Enabled.ValueBool())
-	dot11w.SetRequired(dot11wObject.Required.ValueBool())
-	request.SetDot11w(*dot11w)
-
-	dot11r := openApiClient.NewUpdateNetworkWirelessSsidRequestDot11r()
-	var dot11rObject Dot11R
-	ssid.Dot11R.As(ctx, &dot11rObject, basetypes.ObjectAsOptions{})
-	dot11r.SetEnabled(dot11rObject.Enabled.ValueBool())
-	dot11r.SetAdaptive(dot11rObject.Adaptive.ValueBool())
-	request.SetDot11r(*dot11r)
-
-	localRadius := openApiClient.NewUpdateNetworkWirelessSsidRequestLocalRadius()
-	var localRadiusObject LocalRadius
-	ssid.LocalRadius.As(ctx, &localRadiusObject, basetypes.ObjectAsOptions{})
-	localRadius.SetCacheTimeout(int32(localRadiusObject.CacheTimeout.ValueInt64()))
-	certificateAuthentication := openApiClient.NewUpdateNetworkWirelessSsidRequestLocalRadiusCertificateAuthentication()
-	var certificateAuthenticationObject CertificateAuthentication
-	localRadiusObject.CertificateAuthentication.As(ctx, &certificateAuthenticationObject, basetypes.ObjectAsOptions{})
-	certificateAuthentication.SetEnabled(certificateAuthenticationObject.Enabled.ValueBool())
-	certificateAuthentication.SetOcspResponderUrl(certificateAuthenticationObject.OcspResponderUrl.ValueString())
-	certificateAuthentication.SetUseLdap(certificateAuthenticationObject.UseLdap.ValueBool())
-	certificateAuthentication.SetUseOcsp(certificateAuthenticationObject.UseOcsp.ValueBool())
-	var clientRootCaCertificateObject ClientRootCaCertificate
-	certificateAuthenticationObject.ClientRootCaCertificate.As(ctx, &clientRootCaCertificateObject, basetypes.ObjectAsOptions{})
-	rootCACertificate := openApiClient.NewUpdateNetworkWirelessSsidRequestLocalRadiusCertificateAuthenticationClientRootCaCertificate()
-	rootCACertificate.SetContents(clientRootCaCertificateObject.Contents.ValueString())
-	certificateAuthentication.SetClientRootCaCertificate(*rootCACertificate)
-	localRadius.SetCertificateAuthentication(*certificateAuthentication)
-	request.SetLocalRadius(*localRadius)
-
-	ldap := openApiClient.NewUpdateNetworkWirelessSsidRequestLdap()
-	var ldapObject Ldap
-	ssid.Ldap.As(ctx, &ldapObject, basetypes.ObjectAsOptions{})
-	ldap.SetBaseDistinguishedName(ldapObject.BaseDistinguishedName.ValueString())
-	ldapCredentials := openApiClient.NewUpdateNetworkWirelessSsidRequestLdapCredentials()
-	var ldapCredentialsObject Credential
-	ldapObject.Credentials.As(ctx, &ldapCredentialsObject, basetypes.ObjectAsOptions{})
-	ldapCredentials.SetDistinguishedName(ldapCredentialsObject.DistinguishedName.ValueString())
-	ldapCredentials.SetPassword(ldapCredentialsObject.Password.ValueString())
-	ldap.SetCredentials(*ldapCredentials)
-	var ldapServers []openApiClient.UpdateNetworkWirelessSsidRequestLdapServersInner
-	for _, server := range ldapObject.Servers {
-		inner := openApiClient.NewUpdateNetworkWirelessSsidRequestLdapServersInner(server.Host.ValueString(), int32(server.Port.ValueInt64()))
-		ldapServers = append(ldapServers, *inner)
-	}
-	ldap.SetServers(ldapServers)
-	var ldapServerCaCertificateObject ServerCaCertificate
-	ldapObject.ServerCaCertificate.As(ctx, &ldapServerCaCertificateObject, basetypes.ObjectAsOptions{})
-	ldapServerCaCertificate := openApiClient.NewUpdateNetworkWirelessSsidRequestLdapServerCaCertificate()
-	ldapServerCaCertificate.SetContents(ldapServerCaCertificateObject.Contents.ValueString())
-	ldap.SetServerCaCertificate(*ldapServerCaCertificate)
-	request.SetLdap(*ldap)
-
-	ad := openApiClient.NewUpdateNetworkWirelessSsidRequestActiveDirectory()
-	var activeDirectoryObject ActiveDirectory
-	ssid.ActiveDirectory.As(ctx, &activeDirectoryObject, basetypes.ObjectAsOptions{})
-	var adServers []openApiClient.UpdateNetworkWirelessSsidRequestActiveDirectoryServersInner
-	for _, server := range activeDirectoryObject.Servers {
-		inner := openApiClient.NewUpdateNetworkWirelessSsidRequestActiveDirectoryServersInner(server.Host.ValueString())
-		inner.SetPort(int32(server.Port.ValueInt64()))
-		adServers = append(adServers, *inner)
-	}
-	ad.SetServers(adServers)
-	var adCredentialsObject ADCredential
-	activeDirectoryObject.Credentials.As(ctx, &adCredentialsObject, basetypes.ObjectAsOptions{})
-	adCredentials := openApiClient.NewUpdateNetworkWirelessSsidRequestActiveDirectoryCredentials()
-	adCredentials.SetPassword(adCredentialsObject.Password.ValueString())
-	adCredentials.SetLogonName(adCredentialsObject.LogonName.ValueString())
-	ad.SetCredentials(*adCredentials)
-	request.SetActiveDirectory(*ad)
-
-	var dnsRewriteObject DNSRewrite
-	ssid.DnsRewrite.As(ctx, &dnsRewriteObject, basetypes.ObjectAsOptions{})
-	dnsRewrite := openApiClient.NewUpdateNetworkWirelessSsidRequestDnsRewrite()
-	dnsRewrite.SetEnabled(dnsRewriteObject.Enabled.ValueBool())
-	var dnsServers []string
-	for _, server := range dnsRewriteObject.DnsCustomNameservers.Elements() {
-		dnsServers = append(dnsServers, server.String())
-	}
-	dnsRewrite.SetDnsCustomNameservers(dnsServers)
-	request.SetDnsRewrite(*dnsRewrite)
-
-	var speedBurstObject SpeedBurst
-	ssid.SpeedBurst.As(ctx, &speedBurstObject, basetypes.ObjectAsOptions{})
-	speedBurst := openApiClient.NewUpdateNetworkWirelessSsidRequestSpeedBurst()
-	speedBurst.SetEnabled(speedBurstObject.Enabled.ValueBool())
-	request.SetSpeedBurst(*speedBurst)
-
-	var greObject Gre
-	ssid.Gre.As(ctx, &greObject, basetypes.ObjectAsOptions{})
-	gre := openApiClient.NewUpdateNetworkWirelessSsidRequestGre()
-	gre.SetKey(int32(greObject.Key.ValueInt64()))
-	var greConentratorObject Concentrator
-	greObject.Concentrator.As(ctx, &greConentratorObject, basetypes.ObjectAsOptions{})
-	concentrator := openApiClient.NewUpdateNetworkWirelessSsidRequestGreConcentrator(greConentratorObject.Host.ValueString())
-	gre.SetConcentrator(*concentrator)
-	request.SetGre(*gre)
-
-	var oauthObject Oauth
-	ssid.Oauth.As(ctx, &oauthObject, basetypes.ObjectAsOptions{})
-	oauth := openApiClient.NewUpdateNetworkWirelessSsidRequestOauth()
-	oauthDomains := []string{}
-	for _, domain := range oauthObject.AllowedDomains.Elements() {
-		oauthDomains = append(oauthDomains, domain.String())
-	}
-	oauth.SetAllowedDomains(oauthDomains)
-	request.SetOauth(*oauth)
-
-	var sponsorDomains []string
-	for _, domain := range ssid.SplashGuestSponsorDomains.Elements() {
-		sponsorDomains = append(sponsorDomains, domain.String())
-	}
-	request.SetSplashGuestSponsorDomains(sponsorDomains)
-	var gardenRanges []string
-	for _, gardenRange := range ssid.WalledGardenRanges.Elements() {
-		gardenRanges = append(gardenRanges, gardenRange.String())
-	}
-	request.SetWalledGardenRanges(gardenRanges)
-	var availabilityTags []string
-	for _, availabilityTag := range ssid.AvailabilityTags.Elements() {
-		availabilityTags = append(availabilityTags, availabilityTag.String())
-	}
-	request.SetAvailabilityTags(availabilityTags)
-
-	radiusServers := []openApiClient.UpdateNetworkWirelessSsidRequestRadiusServersInner{}
-	for _, radius := range ssid.RadiusServers {
-		radiusServer := openApiClient.NewUpdateNetworkWirelessSsidRequestRadiusServersInner(radius.Host.ValueString())
-		radiusServer.SetPort(int32(radius.Port.ValueInt64()))
-		radiusServer.SetSecret(radius.Secret.ValueString())
-		radiusServers = append(radiusServers, *radiusServer)
-	}
-	request.SetRadiusServers(radiusServers)
-
-	radiusAccountingServers := []openApiClient.UpdateNetworkWirelessSsidRequestRadiusAccountingServersInner{}
-	for _, radius := range ssid.RadiusAccountingServers {
-		radiusServer := openApiClient.NewUpdateNetworkWirelessSsidRequestRadiusAccountingServersInner(radius.Host.ValueString())
-		radiusServer.SetPort(int32(radius.Port.ValueInt64()))
-		radiusServer.SetSecret(radius.Secret.ValueString())
-		radiusServer.SetCaCertificate(radius.CaCertificate.ValueString())
-		radiusServer.SetRadsecEnabled(radius.RadsecEnabled.ValueBool())
-		radiusAccountingServers = append(radiusAccountingServers, *radiusServer)
-	}
-	request.SetRadiusAccountingServers(radiusAccountingServers)
-
-	apTagsAndVlanIds := []openApiClient.UpdateNetworkWirelessSsidRequestApTagsAndVlanIdsInner{}
-	for _, vlanID := range ssid.ApTagsAndVlanIds {
-		apTagsAndVlanId := openApiClient.NewUpdateNetworkWirelessSsidRequestApTagsAndVlanIdsInner()
-		apTagsAndVlanId.SetVlanId(int32(vlanID.VlanId.ValueInt64()))
-		tags := []string{}
-		for _, tag := range vlanID.Tags.Elements() {
-			tags = append(tags, tag.String())
-		}
-		apTagsAndVlanId.SetTags(tags)
-		apTagsAndVlanIds = append(apTagsAndVlanIds, *apTagsAndVlanId)
-	}
-	request.SetApTagsAndVlanIds(apTagsAndVlanIds)
-
-	_, httpResp, err := r.client.WirelessApi.UpdateNetworkWirelessSsid(context.Background(), data.NetworkID.ValueString(), data.Number.ValueString()).UpdateNetworkWirelessSsidRequest(*request).Execute()
+	request := NetworksWirelessSsidsPayload(ctx, data)
+	_, httpResp, err := r.client.WirelessApi.UpdateNetworkWirelessSsid(context.Background(), data.NetworkID.ValueString(), data.Number.ValueString()).UpdateNetworkWirelessSsidRequest(request).Execute()
 	// Check for API success response code
 	if httpResp.StatusCode == 404 {
 		resp.Diagnostics.AddWarning(
@@ -1450,215 +1016,9 @@ func (r *NetworksWirelessSsidsResource) Delete(ctx context.Context, req resource
 		return
 	}
 
-	request := openApiClient.NewUpdateNetworkWirelessSsidRequest()
-	var ssid WirelessNetworkSSID
-	data.SSID.As(ctx, &ssid, basetypes.ObjectAsOptions{})
+	request := NetworksWirelessSsidsPayload(ctx, data)
 
-	request.SetName(ssid.Name.ValueString())
-	request.SetAuthMode(ssid.AuthMode.ValueString())
-	request.SetEnterpriseAdminAccess(ssid.EnterpriseAdminAccess.ValueString())
-	request.SetEncryptionMode(ssid.EncryptionMode.ValueString())
-	request.SetPsk(ssid.Psk.ValueString())
-	request.SetWpaEncryptionMode(ssid.WpaEncryptionMode.ValueString())
-	request.SetSplashPage(ssid.SplashPage.ValueString())
-	request.SetRadiusCalledStationId(ssid.RadiusCalledStationId.ValueString())
-	request.SetRadiusAuthenticationNasId(ssid.RadiusAuthenticationNasId.ValueString())
-	request.SetRadiusFailoverPolicy(ssid.RadiusFailoverPolicy.ValueString())
-	request.SetRadiusLoadBalancingPolicy(ssid.RadiusLoadBalancingPolicy.ValueString())
-	request.SetRadiusAttributeForGroupPolicies(ssid.RadiusAttributeForGroupPolicies.ValueString())
-	request.SetIpAssignmentMode(ssid.IpAssignmentMode.ValueString())
-	request.SetConcentratorNetworkId(ssid.ConcentratorNetworkId.ValueString())
-	request.SetSecondaryConcentratorNetworkId(ssid.SecondaryConcentratorNetworkId.ValueString())
-	request.SetBandSelection(ssid.BandSelection.ValueString())
-	request.SetRadiusServerTimeout(int32(ssid.RadiusServerTimeout.ValueInt64()))
-	request.SetRadiusServerAttemptsLimit(int32(ssid.RadiusServerAttemptsLimit.ValueInt64()))
-	request.SetRadiusAccountingInterimInterval(int32(ssid.RadiusAccountingInterimInterval.ValueInt64()))
-	request.SetVlanId(int32(ssid.VlanId.ValueInt64()))
-	request.SetDefaultVlanId(int32(ssid.DefaultVlanId.ValueInt64()))
-	request.SetPerClientBandwidthLimitUp(int32(ssid.PerClientBandwidthLimitUp.ValueInt64()))
-	request.SetPerClientBandwidthLimitDown(int32(ssid.PerClientBandwidthLimitDown.ValueInt64()))
-	request.SetPerSsidBandwidthLimitUp(int32(ssid.PerSsidBandwidthLimitUp.ValueInt64()))
-	request.SetPerSsidBandwidthLimitDown(int32(ssid.PerSsidBandwidthLimitDown.ValueInt64()))
-	request.SetRadiusGuestVlanId(int32(ssid.RadiusGuestVlanId.ValueInt64()))
-	request.SetMinBitrate(float32(ssid.MinBitrate.ValueFloat64()))
-	request.SetUseVlanTagging(ssid.UseVlanTagging.ValueBool())
-	request.SetDisassociateClientsOnVpnFailover(ssid.DisassociateClientsOnVpnFailover.ValueBool())
-	request.SetRadiusOverride(ssid.RadiusOverride.ValueBool())
-	request.SetRadiusGuestVlanEnabled(ssid.RadiusGuestVlanEnabled.ValueBool())
-	request.SetEnabled(ssid.Enabled.ValueBool())
-	request.SetRadiusProxyEnabled(ssid.RadiusProxyEnabled.ValueBool())
-	request.SetRadiusTestingEnabled(ssid.RadiusTestingEnabled.ValueBool())
-	request.SetRadiusFallbackEnabled(ssid.RadiusFallbackEnabled.ValueBool())
-	request.SetRadiusCoaEnabled(ssid.RadiusCoaEnabled.ValueBool())
-	request.SetRadiusAccountingEnabled(ssid.RadiusAccountingEnabled.ValueBool())
-	request.SetLanIsolationEnabled(ssid.LanIsolationEnabled.ValueBool())
-	request.SetVisible(ssid.Visible.ValueBool())
-	request.SetAvailableOnAllAps(ssid.AvailableOnAllAps.ValueBool())
-	request.SetMandatoryDhcpEnabled(ssid.MandatoryDhcpEnabled.ValueBool())
-	request.SetAdultContentFilteringEnabled(ssid.AdultContentFilteringEnabled.ValueBool())
-	request.SetWalledGardenEnabled(ssid.WalledGardenEnabled.ValueBool())
-
-	dot11w := openApiClient.NewUpdateNetworkApplianceSsidRequestDot11w()
-	var dot11wObject Dot11W
-	ssid.Dot11W.As(ctx, &dot11wObject, basetypes.ObjectAsOptions{})
-	dot11w.SetEnabled(dot11wObject.Enabled.ValueBool())
-	dot11w.SetRequired(dot11wObject.Required.ValueBool())
-	request.SetDot11w(*dot11w)
-
-	dot11r := openApiClient.NewUpdateNetworkWirelessSsidRequestDot11r()
-	var dot11rObject Dot11R
-	ssid.Dot11R.As(ctx, &dot11rObject, basetypes.ObjectAsOptions{})
-	dot11r.SetEnabled(dot11rObject.Enabled.ValueBool())
-	dot11r.SetAdaptive(dot11rObject.Adaptive.ValueBool())
-	request.SetDot11r(*dot11r)
-
-	localRadius := openApiClient.NewUpdateNetworkWirelessSsidRequestLocalRadius()
-	var localRadiusObject LocalRadius
-	ssid.LocalRadius.As(ctx, &localRadiusObject, basetypes.ObjectAsOptions{})
-	localRadius.SetCacheTimeout(int32(localRadiusObject.CacheTimeout.ValueInt64()))
-	certificateAuthentication := openApiClient.NewUpdateNetworkWirelessSsidRequestLocalRadiusCertificateAuthentication()
-	var certificateAuthenticationObject CertificateAuthentication
-	localRadiusObject.CertificateAuthentication.As(ctx, &certificateAuthenticationObject, basetypes.ObjectAsOptions{})
-	certificateAuthentication.SetEnabled(certificateAuthenticationObject.Enabled.ValueBool())
-	certificateAuthentication.SetOcspResponderUrl(certificateAuthenticationObject.OcspResponderUrl.ValueString())
-	certificateAuthentication.SetUseLdap(certificateAuthenticationObject.UseLdap.ValueBool())
-	certificateAuthentication.SetUseOcsp(certificateAuthenticationObject.UseOcsp.ValueBool())
-	var clientRootCaCertificateObject ClientRootCaCertificate
-	certificateAuthenticationObject.ClientRootCaCertificate.As(ctx, &clientRootCaCertificateObject, basetypes.ObjectAsOptions{})
-	rootCACertificate := openApiClient.NewUpdateNetworkWirelessSsidRequestLocalRadiusCertificateAuthenticationClientRootCaCertificate()
-	rootCACertificate.SetContents(clientRootCaCertificateObject.Contents.ValueString())
-	certificateAuthentication.SetClientRootCaCertificate(*rootCACertificate)
-	localRadius.SetCertificateAuthentication(*certificateAuthentication)
-	request.SetLocalRadius(*localRadius)
-
-	ldap := openApiClient.NewUpdateNetworkWirelessSsidRequestLdap()
-	var ldapObject Ldap
-	ssid.Ldap.As(ctx, &ldapObject, basetypes.ObjectAsOptions{})
-	ldap.SetBaseDistinguishedName(ldapObject.BaseDistinguishedName.ValueString())
-	ldapCredentials := openApiClient.NewUpdateNetworkWirelessSsidRequestLdapCredentials()
-	var ldapCredentialsObject Credential
-	ldapObject.Credentials.As(ctx, &ldapCredentialsObject, basetypes.ObjectAsOptions{})
-	ldapCredentials.SetDistinguishedName(ldapCredentialsObject.DistinguishedName.ValueString())
-	ldapCredentials.SetPassword(ldapCredentialsObject.Password.ValueString())
-	ldap.SetCredentials(*ldapCredentials)
-	var ldapServers []openApiClient.UpdateNetworkWirelessSsidRequestLdapServersInner
-	for _, server := range ldapObject.Servers {
-		inner := openApiClient.NewUpdateNetworkWirelessSsidRequestLdapServersInner(server.Host.ValueString(), int32(server.Port.ValueInt64()))
-		ldapServers = append(ldapServers, *inner)
-	}
-	ldap.SetServers(ldapServers)
-	var ldapServerCaCertificateObject ServerCaCertificate
-	ldapObject.ServerCaCertificate.As(ctx, &ldapServerCaCertificateObject, basetypes.ObjectAsOptions{})
-	ldapServerCaCertificate := openApiClient.NewUpdateNetworkWirelessSsidRequestLdapServerCaCertificate()
-	ldapServerCaCertificate.SetContents(ldapServerCaCertificateObject.Contents.ValueString())
-	ldap.SetServerCaCertificate(*ldapServerCaCertificate)
-	request.SetLdap(*ldap)
-
-	ad := openApiClient.NewUpdateNetworkWirelessSsidRequestActiveDirectory()
-	var activeDirectoryObject ActiveDirectory
-	ssid.ActiveDirectory.As(ctx, &activeDirectoryObject, basetypes.ObjectAsOptions{})
-	var adServers []openApiClient.UpdateNetworkWirelessSsidRequestActiveDirectoryServersInner
-	for _, server := range activeDirectoryObject.Servers {
-		inner := openApiClient.NewUpdateNetworkWirelessSsidRequestActiveDirectoryServersInner(server.Host.ValueString())
-		inner.SetPort(int32(server.Port.ValueInt64()))
-		adServers = append(adServers, *inner)
-	}
-	ad.SetServers(adServers)
-	var adCredentialsObject ADCredential
-	activeDirectoryObject.Credentials.As(ctx, &adCredentialsObject, basetypes.ObjectAsOptions{})
-	adCredentials := openApiClient.NewUpdateNetworkWirelessSsidRequestActiveDirectoryCredentials()
-	adCredentials.SetPassword(adCredentialsObject.Password.ValueString())
-	adCredentials.SetLogonName(adCredentialsObject.LogonName.ValueString())
-	ad.SetCredentials(*adCredentials)
-	request.SetActiveDirectory(*ad)
-
-	var dnsRewriteObject DNSRewrite
-	ssid.DnsRewrite.As(ctx, &dnsRewriteObject, basetypes.ObjectAsOptions{})
-	dnsRewrite := openApiClient.NewUpdateNetworkWirelessSsidRequestDnsRewrite()
-	dnsRewrite.SetEnabled(dnsRewriteObject.Enabled.ValueBool())
-	var dnsServers []string
-	for _, server := range dnsRewriteObject.DnsCustomNameservers.Elements() {
-		dnsServers = append(dnsServers, server.String())
-	}
-	dnsRewrite.SetDnsCustomNameservers(dnsServers)
-	request.SetDnsRewrite(*dnsRewrite)
-
-	var speedBurstObject SpeedBurst
-	ssid.SpeedBurst.As(ctx, &speedBurstObject, basetypes.ObjectAsOptions{})
-	speedBurst := openApiClient.NewUpdateNetworkWirelessSsidRequestSpeedBurst()
-	speedBurst.SetEnabled(speedBurstObject.Enabled.ValueBool())
-	request.SetSpeedBurst(*speedBurst)
-
-	var greObject Gre
-	ssid.Gre.As(ctx, &greObject, basetypes.ObjectAsOptions{})
-	gre := openApiClient.NewUpdateNetworkWirelessSsidRequestGre()
-	gre.SetKey(int32(greObject.Key.ValueInt64()))
-	var greConentratorObject Concentrator
-	greObject.Concentrator.As(ctx, &greConentratorObject, basetypes.ObjectAsOptions{})
-	concentrator := openApiClient.NewUpdateNetworkWirelessSsidRequestGreConcentrator(greConentratorObject.Host.ValueString())
-	gre.SetConcentrator(*concentrator)
-	request.SetGre(*gre)
-
-	var oauthObject Oauth
-	ssid.Oauth.As(ctx, &oauthObject, basetypes.ObjectAsOptions{})
-	oauth := openApiClient.NewUpdateNetworkWirelessSsidRequestOauth()
-	oauthDomains := []string{}
-	for _, domain := range oauthObject.AllowedDomains.Elements() {
-		oauthDomains = append(oauthDomains, domain.String())
-	}
-	oauth.SetAllowedDomains(oauthDomains)
-	request.SetOauth(*oauth)
-
-	var sponsorDomains []string
-	for _, domain := range ssid.SplashGuestSponsorDomains.Elements() {
-		sponsorDomains = append(sponsorDomains, domain.String())
-	}
-	request.SetSplashGuestSponsorDomains(sponsorDomains)
-	var gardenRanges []string
-	for _, gardenRange := range ssid.WalledGardenRanges.Elements() {
-		gardenRanges = append(gardenRanges, gardenRange.String())
-	}
-	request.SetWalledGardenRanges(gardenRanges)
-	var availabilityTags []string
-	for _, availabilityTag := range ssid.AvailabilityTags.Elements() {
-		availabilityTags = append(availabilityTags, availabilityTag.String())
-	}
-	request.SetAvailabilityTags(availabilityTags)
-
-	radiusServers := []openApiClient.UpdateNetworkWirelessSsidRequestRadiusServersInner{}
-	for _, radius := range ssid.RadiusServers {
-		radiusServer := openApiClient.NewUpdateNetworkWirelessSsidRequestRadiusServersInner(radius.Host.ValueString())
-		radiusServer.SetPort(int32(radius.Port.ValueInt64()))
-		radiusServer.SetSecret(radius.Secret.ValueString())
-		radiusServers = append(radiusServers, *radiusServer)
-	}
-	request.SetRadiusServers(radiusServers)
-
-	radiusAccountingServers := []openApiClient.UpdateNetworkWirelessSsidRequestRadiusAccountingServersInner{}
-	for _, radius := range ssid.RadiusAccountingServers {
-		radiusServer := openApiClient.NewUpdateNetworkWirelessSsidRequestRadiusAccountingServersInner(radius.Host.ValueString())
-		radiusServer.SetPort(int32(radius.Port.ValueInt64()))
-		radiusServer.SetSecret(radius.Secret.ValueString())
-		radiusServer.SetCaCertificate(radius.CaCertificate.ValueString())
-		radiusServer.SetRadsecEnabled(radius.RadsecEnabled.ValueBool())
-		radiusAccountingServers = append(radiusAccountingServers, *radiusServer)
-	}
-	request.SetRadiusAccountingServers(radiusAccountingServers)
-
-	apTagsAndVlanIds := []openApiClient.UpdateNetworkWirelessSsidRequestApTagsAndVlanIdsInner{}
-	for _, vlanID := range ssid.ApTagsAndVlanIds {
-		apTagsAndVlanId := openApiClient.NewUpdateNetworkWirelessSsidRequestApTagsAndVlanIdsInner()
-		apTagsAndVlanId.SetVlanId(int32(vlanID.VlanId.ValueInt64()))
-		tags := []string{}
-		for _, tag := range vlanID.Tags.Elements() {
-			tags = append(tags, tag.String())
-		}
-		apTagsAndVlanId.SetTags(tags)
-		apTagsAndVlanIds = append(apTagsAndVlanIds, *apTagsAndVlanId)
-	}
-	request.SetApTagsAndVlanIds(apTagsAndVlanIds)
-
-	_, httpResp, err := r.client.WirelessApi.UpdateNetworkWirelessSsid(context.Background(), data.NetworkID.ValueString(), data.Number.ValueString()).UpdateNetworkWirelessSsidRequest(*request).Execute()
+	_, httpResp, err := r.client.WirelessApi.UpdateNetworkWirelessSsid(context.Background(), data.NetworkID.ValueString(), data.Number.ValueString()).UpdateNetworkWirelessSsidRequest(request).Execute()
 	// Check for API success response code
 	if httpResp.StatusCode == 404 {
 		resp.Diagnostics.AddWarning(
@@ -1724,4 +1084,216 @@ func (r *NetworksWirelessSsidsResource) ImportState(ctx context.Context, req res
 	if resp.Diagnostics.HasError() {
 		return
 	}
+}
+
+func NetworksWirelessSsidsPayload(ctx context.Context, data *NetworksWirelessSsidsResourceModel) openApiClient.UpdateNetworkWirelessSsidRequest {
+	request := openApiClient.NewUpdateNetworkWirelessSsidRequest()
+	var ssid WirelessNetworkSSID
+	data.SSID.As(ctx, &ssid, basetypes.ObjectAsOptions{})
+
+	request.SetName(ssid.Name.ValueString())
+	request.SetAuthMode(ssid.AuthMode.ValueString())
+	request.SetEnterpriseAdminAccess(ssid.EnterpriseAdminAccess.ValueString())
+	request.SetEncryptionMode(ssid.EncryptionMode.ValueString())
+	request.SetPsk(ssid.Psk.ValueString())
+	request.SetWpaEncryptionMode(ssid.WpaEncryptionMode.ValueString())
+	request.SetSplashPage(ssid.SplashPage.ValueString())
+	request.SetRadiusCalledStationId(ssid.RadiusCalledStationId.ValueString())
+	request.SetRadiusAuthenticationNasId(ssid.RadiusAuthenticationNasId.ValueString())
+	request.SetRadiusFailoverPolicy(ssid.RadiusFailoverPolicy.ValueString())
+	request.SetRadiusLoadBalancingPolicy(ssid.RadiusLoadBalancingPolicy.ValueString())
+	request.SetRadiusAttributeForGroupPolicies(ssid.RadiusAttributeForGroupPolicies.ValueString())
+	request.SetIpAssignmentMode(ssid.IpAssignmentMode.ValueString())
+	request.SetConcentratorNetworkId(ssid.ConcentratorNetworkId.ValueString())
+	request.SetSecondaryConcentratorNetworkId(ssid.SecondaryConcentratorNetworkId.ValueString())
+	request.SetBandSelection(ssid.BandSelection.ValueString())
+	request.SetRadiusServerTimeout(int32(ssid.RadiusServerTimeout.ValueInt64()))
+	request.SetRadiusServerAttemptsLimit(int32(ssid.RadiusServerAttemptsLimit.ValueInt64()))
+	request.SetRadiusAccountingInterimInterval(int32(ssid.RadiusAccountingInterimInterval.ValueInt64()))
+	request.SetVlanId(int32(ssid.VlanId.ValueInt64()))
+	request.SetDefaultVlanId(int32(ssid.DefaultVlanId.ValueInt64()))
+	request.SetPerClientBandwidthLimitUp(int32(ssid.PerClientBandwidthLimitUp.ValueInt64()))
+	request.SetPerClientBandwidthLimitDown(int32(ssid.PerClientBandwidthLimitDown.ValueInt64()))
+	request.SetPerSsidBandwidthLimitUp(int32(ssid.PerSsidBandwidthLimitUp.ValueInt64()))
+	request.SetPerSsidBandwidthLimitDown(int32(ssid.PerSsidBandwidthLimitDown.ValueInt64()))
+	request.SetRadiusGuestVlanId(int32(ssid.RadiusGuestVlanId.ValueInt64()))
+	request.SetMinBitrate(float32(ssid.MinBitrate.ValueFloat64()))
+	request.SetUseVlanTagging(ssid.UseVlanTagging.ValueBool())
+	request.SetDisassociateClientsOnVpnFailover(ssid.DisassociateClientsOnVpnFailover.ValueBool())
+	request.SetRadiusOverride(ssid.RadiusOverride.ValueBool())
+	request.SetRadiusGuestVlanEnabled(ssid.RadiusGuestVlanEnabled.ValueBool())
+	request.SetEnabled(ssid.Enabled.ValueBool())
+	request.SetRadiusProxyEnabled(ssid.RadiusProxyEnabled.ValueBool())
+	request.SetRadiusTestingEnabled(ssid.RadiusTestingEnabled.ValueBool())
+	request.SetRadiusFallbackEnabled(ssid.RadiusFallbackEnabled.ValueBool())
+	request.SetRadiusCoaEnabled(ssid.RadiusCoaEnabled.ValueBool())
+	request.SetRadiusAccountingEnabled(ssid.RadiusAccountingEnabled.ValueBool())
+	request.SetLanIsolationEnabled(ssid.LanIsolationEnabled.ValueBool())
+	request.SetVisible(ssid.Visible.ValueBool())
+	request.SetAvailableOnAllAps(ssid.AvailableOnAllAps.ValueBool())
+	request.SetMandatoryDhcpEnabled(ssid.MandatoryDhcpEnabled.ValueBool())
+	request.SetAdultContentFilteringEnabled(ssid.AdultContentFilteringEnabled.ValueBool())
+	request.SetWalledGardenEnabled(ssid.WalledGardenEnabled.ValueBool())
+
+	dot11w := openApiClient.NewUpdateNetworkApplianceSsidRequestDot11w()
+	var dot11wObject NetworksWirelessSsidsResourceModelDot11W
+	ssid.Dot11W.As(ctx, &dot11wObject, basetypes.ObjectAsOptions{})
+	dot11w.SetEnabled(dot11wObject.Enabled.ValueBool())
+	dot11w.SetRequired(dot11wObject.Required.ValueBool())
+	request.SetDot11w(*dot11w)
+
+	dot11r := openApiClient.NewUpdateNetworkWirelessSsidRequestDot11r()
+	var dot11rObject NetworksWirelessSsidsResourceModelDot11R
+	ssid.Dot11R.As(ctx, &dot11rObject, basetypes.ObjectAsOptions{})
+	dot11r.SetEnabled(dot11rObject.Enabled.ValueBool())
+	dot11r.SetAdaptive(dot11rObject.Adaptive.ValueBool())
+	request.SetDot11r(*dot11r)
+
+	localRadius := openApiClient.NewUpdateNetworkWirelessSsidRequestLocalRadius()
+	var localRadiusObject NetworksWirelessSsidsResourceModelLocalRadius
+	ssid.LocalRadius.As(ctx, &localRadiusObject, basetypes.ObjectAsOptions{})
+	localRadius.SetCacheTimeout(int32(localRadiusObject.CacheTimeout.ValueInt64()))
+	certificateAuthentication := openApiClient.NewUpdateNetworkWirelessSsidRequestLocalRadiusCertificateAuthentication()
+	var certificateAuthenticationObject NetworksWirelessSsidsResourceModelLocalRadiusCertificateAuthentication
+	localRadiusObject.CertificateAuthentication.As(ctx, &certificateAuthenticationObject, basetypes.ObjectAsOptions{})
+	certificateAuthentication.SetEnabled(certificateAuthenticationObject.Enabled.ValueBool())
+	certificateAuthentication.SetOcspResponderUrl(certificateAuthenticationObject.OcspResponderUrl.ValueString())
+	certificateAuthentication.SetUseLdap(certificateAuthenticationObject.UseLdap.ValueBool())
+	certificateAuthentication.SetUseOcsp(certificateAuthenticationObject.UseOcsp.ValueBool())
+	var clientRootCaCertificateObject NetworksWirelessSsidsResourceModelLocalRadiusCertificateAuthenticationClientRootCaCertificate
+	certificateAuthenticationObject.ClientRootCaCertificate.As(ctx, &clientRootCaCertificateObject, basetypes.ObjectAsOptions{})
+	rootCACertificate := openApiClient.NewUpdateNetworkWirelessSsidRequestLocalRadiusCertificateAuthenticationClientRootCaCertificate()
+	rootCACertificate.SetContents(clientRootCaCertificateObject.Contents.ValueString())
+	certificateAuthentication.SetClientRootCaCertificate(*rootCACertificate)
+	localRadius.SetCertificateAuthentication(*certificateAuthentication)
+	request.SetLocalRadius(*localRadius)
+
+	ldap := openApiClient.NewUpdateNetworkWirelessSsidRequestLdap()
+	var ldapObject NetworksWirelessSsidsResourceModelLdap
+	ssid.Ldap.As(ctx, &ldapObject, basetypes.ObjectAsOptions{})
+	ldap.SetBaseDistinguishedName(ldapObject.BaseDistinguishedName.ValueString())
+	ldapCredentials := openApiClient.NewUpdateNetworkWirelessSsidRequestLdapCredentials()
+	var ldapCredentialsObject NetworksWirelessSsidsResourceModelCredential
+	ldapObject.Credentials.As(ctx, &ldapCredentialsObject, basetypes.ObjectAsOptions{})
+	ldapCredentials.SetDistinguishedName(ldapCredentialsObject.DistinguishedName.ValueString())
+	ldapCredentials.SetPassword(ldapCredentialsObject.Password.ValueString())
+	ldap.SetCredentials(*ldapCredentials)
+	var ldapServers []openApiClient.UpdateNetworkWirelessSsidRequestLdapServersInner
+	for _, server := range ldapObject.Servers {
+		inner := openApiClient.NewUpdateNetworkWirelessSsidRequestLdapServersInner(server.Host.ValueString(), int32(server.Port.ValueInt64()))
+		ldapServers = append(ldapServers, *inner)
+	}
+	ldap.SetServers(ldapServers)
+	var ldapServerCaCertificateObject NetworksWirelessSsidsResourceModelServerCaCertificate
+	ldapObject.ServerCaCertificate.As(ctx, &ldapServerCaCertificateObject, basetypes.ObjectAsOptions{})
+	ldapServerCaCertificate := openApiClient.NewUpdateNetworkWirelessSsidRequestLdapServerCaCertificate()
+	ldapServerCaCertificate.SetContents(ldapServerCaCertificateObject.Contents.ValueString())
+	ldap.SetServerCaCertificate(*ldapServerCaCertificate)
+	request.SetLdap(*ldap)
+
+	ad := openApiClient.NewUpdateNetworkWirelessSsidRequestActiveDirectory()
+	var activeDirectoryObject NetworksWirelessSsidsResourceModelActiveDirectory
+	ssid.ActiveDirectory.As(ctx, &activeDirectoryObject, basetypes.ObjectAsOptions{})
+	var adServers []openApiClient.UpdateNetworkWirelessSsidRequestActiveDirectoryServersInner
+	for _, server := range activeDirectoryObject.Servers {
+		inner := openApiClient.NewUpdateNetworkWirelessSsidRequestActiveDirectoryServersInner(server.Host.ValueString())
+		inner.SetPort(int32(server.Port.ValueInt64()))
+		adServers = append(adServers, *inner)
+	}
+	ad.SetServers(adServers)
+	var adCredentialsObject NetworksWirelessSsidsResourceModelActiveDirectoryCredential
+	activeDirectoryObject.Credentials.As(ctx, &adCredentialsObject, basetypes.ObjectAsOptions{})
+	adCredentials := openApiClient.NewUpdateNetworkWirelessSsidRequestActiveDirectoryCredentials()
+	adCredentials.SetPassword(adCredentialsObject.Password.ValueString())
+	adCredentials.SetLogonName(adCredentialsObject.LogonName.ValueString())
+	ad.SetCredentials(*adCredentials)
+	request.SetActiveDirectory(*ad)
+
+	var dnsRewriteObject NetworksWirelessSsidsResourceModelDNSRewrite
+	ssid.DnsRewrite.As(ctx, &dnsRewriteObject, basetypes.ObjectAsOptions{})
+	dnsRewrite := openApiClient.NewUpdateNetworkWirelessSsidRequestDnsRewrite()
+	dnsRewrite.SetEnabled(dnsRewriteObject.Enabled.ValueBool())
+	var dnsServers []string
+	for _, server := range dnsRewriteObject.DnsCustomNameservers.Elements() {
+		dnsServers = append(dnsServers, server.String())
+	}
+	dnsRewrite.SetDnsCustomNameservers(dnsServers)
+	request.SetDnsRewrite(*dnsRewrite)
+
+	var speedBurstObject NetworksWirelessSsidsResourceModelSpeedBurst
+	ssid.SpeedBurst.As(ctx, &speedBurstObject, basetypes.ObjectAsOptions{})
+	speedBurst := openApiClient.NewUpdateNetworkWirelessSsidRequestSpeedBurst()
+	speedBurst.SetEnabled(speedBurstObject.Enabled.ValueBool())
+	request.SetSpeedBurst(*speedBurst)
+
+	var greObject NetworksWirelessSsidsResourceModelGre
+	ssid.Gre.As(ctx, &greObject, basetypes.ObjectAsOptions{})
+	gre := openApiClient.NewUpdateNetworkWirelessSsidRequestGre()
+	gre.SetKey(int32(greObject.Key.ValueInt64()))
+	var greConentratorObject NetworksWirelessSsidsResourceModelConcentrator
+	greObject.Concentrator.As(ctx, &greConentratorObject, basetypes.ObjectAsOptions{})
+	concentrator := openApiClient.NewUpdateNetworkWirelessSsidRequestGreConcentrator(greConentratorObject.Host.ValueString())
+	gre.SetConcentrator(*concentrator)
+	request.SetGre(*gre)
+
+	var oauthObject NetworksWirelessSsidsResourceModelOauth
+	ssid.Oauth.As(ctx, &oauthObject, basetypes.ObjectAsOptions{})
+	oauth := openApiClient.NewUpdateNetworkWirelessSsidRequestOauth()
+	oauthDomains := []string{}
+	for _, domain := range oauthObject.AllowedDomains.Elements() {
+		oauthDomains = append(oauthDomains, domain.String())
+	}
+	oauth.SetAllowedDomains(oauthDomains)
+	request.SetOauth(*oauth)
+
+	var sponsorDomains []string
+	for _, domain := range ssid.SplashGuestSponsorDomains.Elements() {
+		sponsorDomains = append(sponsorDomains, domain.String())
+	}
+	request.SetSplashGuestSponsorDomains(sponsorDomains)
+	var gardenRanges []string
+	for _, gardenRange := range ssid.WalledGardenRanges.Elements() {
+		gardenRanges = append(gardenRanges, gardenRange.String())
+	}
+	request.SetWalledGardenRanges(gardenRanges)
+	var availabilityTags []string
+	for _, availabilityTag := range ssid.AvailabilityTags.Elements() {
+		availabilityTags = append(availabilityTags, availabilityTag.String())
+	}
+	request.SetAvailabilityTags(availabilityTags)
+
+	var radiusServers []openApiClient.UpdateNetworkWirelessSsidRequestRadiusServersInner
+	for _, radius := range ssid.RadiusServers {
+		radiusServer := openApiClient.NewUpdateNetworkWirelessSsidRequestRadiusServersInner(radius.Host.ValueString())
+		radiusServer.SetPort(int32(radius.Port.ValueInt64()))
+		radiusServer.SetSecret(radius.Secret.ValueString())
+		radiusServers = append(radiusServers, *radiusServer)
+	}
+	request.SetRadiusServers(radiusServers)
+
+	var radiusAccountingServers []openApiClient.UpdateNetworkWirelessSsidRequestRadiusAccountingServersInner
+	for _, radius := range ssid.RadiusAccountingServers {
+		radiusServer := openApiClient.NewUpdateNetworkWirelessSsidRequestRadiusAccountingServersInner(radius.Host.ValueString())
+		radiusServer.SetPort(int32(radius.Port.ValueInt64()))
+		radiusServer.SetSecret(radius.Secret.ValueString())
+		radiusServer.SetCaCertificate(radius.CaCertificate.ValueString())
+		radiusServer.SetRadsecEnabled(radius.RadsecEnabled.ValueBool())
+		radiusAccountingServers = append(radiusAccountingServers, *radiusServer)
+	}
+	request.SetRadiusAccountingServers(radiusAccountingServers)
+
+	var apTagsAndVlanIds []openApiClient.UpdateNetworkWirelessSsidRequestApTagsAndVlanIdsInner
+	for _, vlanID := range ssid.ApTagsAndVlanIds {
+		apTagsAndVlanId := openApiClient.NewUpdateNetworkWirelessSsidRequestApTagsAndVlanIdsInner()
+		apTagsAndVlanId.SetVlanId(int32(vlanID.VlanId.ValueInt64()))
+		tags := []string{}
+		for _, tag := range vlanID.Tags.Elements() {
+			tags = append(tags, tag.String())
+		}
+		apTagsAndVlanId.SetTags(tags)
+		apTagsAndVlanIds = append(apTagsAndVlanIds, *apTagsAndVlanId)
+	}
+	request.SetApTagsAndVlanIds(apTagsAndVlanIds)
+
+	return *request
 }
