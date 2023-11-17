@@ -297,6 +297,7 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		NewNetworksApplianceVLANsResource,
 		NewDevicesSwitchPortResource,
 		NewNetworksAppliancePortsResource,
+		NewNetworksWirelessSsidsResource,
 	}
 }
 
