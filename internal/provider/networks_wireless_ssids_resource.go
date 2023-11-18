@@ -214,6 +214,7 @@ type NetworksWirelessSsidsResourceModel struct {
 
 	NetworkID jsontypes.String `tfsdk:"network_id"`
 	Number    jsontypes.String `tfsdk:"number"`
+	Serial    jsontypes.String `tfsdk:"serial"`
 	SSID      types.Object     `tfsdk:"ssid"`
 }
 
@@ -230,6 +231,10 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 				Computed:   true,
 				CustomType: jsontypes.StringType,
 			},
+			"serial": schema.StringAttribute{
+				Computed:   true,
+				CustomType: jsontypes.StringType,
+			},
 			"network_id": schema.StringAttribute{
 				MarkdownDescription: "Network ID",
 				Required:            true,
@@ -241,299 +246,306 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 				CustomType:          jsontypes.StringType,
 			},
 			"ssid": schema.SingleNestedAttribute{
-				Required: true,
+				MarkdownDescription: "ssid object",
+				Required:            true,
 				Attributes: map[string]schema.Attribute{
 					"name": schema.StringAttribute{
-						MarkdownDescription: "Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled', and 'not configured'.",
+						MarkdownDescription: "The name of the SSID",
 						Optional:            true,
 						CustomType:          jsontypes.StringType,
 					},
 					"auth_mode": schema.StringAttribute{
-						MarkdownDescription: "Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled', and 'not configured'.",
+						MarkdownDescription: "The association control method for the SSID ('open', 'open-enhanced', 'psk', 'open-with-radius', 'open-with-nac', '8021x-meraki', '8021x-nac', '8021x-radius', '8021x-google', '8021x-localradius', 'ipsk-with-radius', 'ipsk-without-radius' or 'ipsk-with-nac')",
 						Optional:            true,
 						CustomType:          jsontypes.StringType,
 					},
 					"enterprise_admin_access": schema.StringAttribute{
-						MarkdownDescription: "Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled', and 'not configured'.",
+						MarkdownDescription: "Whether or not an SSID is accessible by 'enterprise' administrators ('access disabled' or 'access enabled').",
 						Optional:            true,
 						CustomType:          jsontypes.StringType,
 					},
 					"encryption_mode": schema.StringAttribute{
-						MarkdownDescription: "Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled', and 'not configured'.",
+						MarkdownDescription: "The psk encryption mode for the SSID ('wep' or 'wpa'). This param is only valid if the authMode is 'psk'",
 						Optional:            true,
 						CustomType:          jsontypes.StringType,
 					},
 					"psk": schema.StringAttribute{
-						MarkdownDescription: "Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled', and 'not configured'.",
+						MarkdownDescription: "The passkey for the SSID. This param is only valid if the authMode is 'psk'",
 						Optional:            true,
 						CustomType:          jsontypes.StringType,
 					},
 					"wpa_encryption_mode": schema.StringAttribute{
-						MarkdownDescription: "Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled', and 'not configured'.",
+						MarkdownDescription: "The types of WPA encryption. ('WPA1 only', 'WPA1 and WPA2', 'WPA2 only', 'WPA3 Transition Mode', 'WPA3 only' or 'WPA3 192-bit Security').",
 						Optional:            true,
 						CustomType:          jsontypes.StringType,
 					},
 					"splash_page": schema.StringAttribute{
-						MarkdownDescription: "Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled', and 'not configured'.",
+						MarkdownDescription: "The type of splash page for the SSID ('None', 'Click-through splash page', 'Billing', 'Password-protected with Meraki RADIUS', 'Password-protected with custom RADIUS', 'Password-protected with Active Directory', 'Password-protected with LDAP', 'SMS authentication', 'Systems Manager Sentry', 'Facebook Wi-Fi', 'Google OAuth', 'Sponsored guest', 'Cisco ISE' or 'Google Apps domain'). This attribute is not supported for template children.",
 						Optional:            true,
 						CustomType:          jsontypes.StringType,
 					},
 					"radius_called_station_id": schema.StringAttribute{
-						MarkdownDescription: "Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled', and 'not configured'.",
+						MarkdownDescription: "The template of the called station identifier to be used for RADIUS (ex. $NODE_MAC$:$VAP_NUM$).",
 						Optional:            true,
 						CustomType:          jsontypes.StringType,
 					},
 					"radius_authentication_nas_id": schema.StringAttribute{
-						MarkdownDescription: "Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled', and 'not configured'.",
+						MarkdownDescription: "The template of the NAS identifier to be used for RADIUS authentication (ex. $NODE_MAC$:$VAP_NUM$).",
 						Optional:            true,
 						CustomType:          jsontypes.StringType,
 					},
 					"radius_failover_policy": schema.StringAttribute{
-						MarkdownDescription: "Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled', and 'not configured'.",
+						MarkdownDescription: "This policy determines how authentication requests should be handled in the event that all of the configured RADIUS servers are unreachable ('Deny access' or 'Allow access').",
 						Optional:            true,
 						CustomType:          jsontypes.StringType,
 					},
 					"radius_load_balancing_policy": schema.StringAttribute{
-						MarkdownDescription: "Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled', and 'not configured'.",
+						MarkdownDescription: "This policy determines which RADIUS server will be contacted first in an authentication attempt and the ordering of any necessary retry attempts ('Strict priority order' or 'Round robin').",
 						Optional:            true,
 						CustomType:          jsontypes.StringType,
 					},
 					"radius_attribute_for_group_policies": schema.StringAttribute{
-						MarkdownDescription: "Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled', and 'not configured'.",
+						MarkdownDescription: "Specify the RADIUS attribute used to look up group policies ('Filter-Id', 'Reply-Message', 'Airespace-ACL-Name' or 'Aruba-User-Role'). Access points must receive this attribute in the RADIUS Access-Accept message",
 						Optional:            true,
 						CustomType:          jsontypes.StringType,
 					},
 					"ip_assignment_mode": schema.StringAttribute{
-						MarkdownDescription: "Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled', and 'not configured'.",
+						MarkdownDescription: "The client IP assignment mode ('NAT mode', 'Bridge mode', 'Layer 3 roaming', 'Ethernet over GRE', 'Layer 3 roaming with a concentrator' or 'VPN').",
 						Optional:            true,
 						CustomType:          jsontypes.StringType,
 					},
 					"concentrator_network_id": schema.StringAttribute{
-						MarkdownDescription: "Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled', and 'not configured'.",
+						MarkdownDescription: "The concentrator to use when the ipAssignmentMode is 'Layer 3 roaming with a concentrator' or 'VPN'.",
 						Optional:            true,
 						CustomType:          jsontypes.StringType,
 					},
 					"secondary_concentrator_network_id": schema.StringAttribute{
-						MarkdownDescription: "Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled', and 'not configured'.",
+						MarkdownDescription: "The secondary concentrator to use when the ipAssignmentMode is 'VPN'. If configured, the APs will switch to using this concentrator if the primary concentrator is unreachable. This param is optional. ('disabled' represents no secondary concentrator.).",
 						Optional:            true,
 						CustomType:          jsontypes.StringType,
 					},
 					"band_selection": schema.StringAttribute{
-						MarkdownDescription: "Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled', and 'not configured'.",
+						MarkdownDescription: "The client-serving radio frequencies of this SSID in the default indoor RF profile. ('Dual band operation', '5 GHz band only' or 'Dual band operation with Band Steering')",
 						Optional:            true,
 						CustomType:          jsontypes.StringType,
 					},
 					"radius_server_timeout": schema.Int64Attribute{
-						MarkdownDescription: "The VLAN that management traffic should be tagged with. Applies whether usingStaticIp is true or false.",
+						MarkdownDescription: "The amount of time for which a RADIUS client waits for a reply from the RADIUS server (must be between 1-10 seconds).",
 						Optional:            true,
 						CustomType:          jsontypes.Int64Type,
 					},
 					"radius_server_attempts_limit": schema.Int64Attribute{
-						MarkdownDescription: "The VLAN that management traffic should be tagged with. Applies whether usingStaticIp is true or false.",
+						MarkdownDescription: "The maximum number of transmit attempts after which a RADIUS server is failed over (must be between 1-5).",
 						Optional:            true,
 						CustomType:          jsontypes.Int64Type,
 					},
 					"radius_accounting_interim_interval": schema.Int64Attribute{
-						MarkdownDescription: "The VLAN that management traffic should be tagged with. Applies whether usingStaticIp is true or false.",
+						MarkdownDescription: "The interval (in seconds) in which accounting information is updated and sent to the RADIUS accounting server.",
 						Optional:            true,
 						CustomType:          jsontypes.Int64Type,
 					},
 					"vlan_id": schema.Int64Attribute{
-						MarkdownDescription: "The VLAN that management traffic should be tagged with. Applies whether usingStaticIp is true or false.",
+						MarkdownDescription: "The VLAN ID used for VLAN tagging. This param is only valid when the ipAssignmentMode is 'Layer 3 roaming with a concentrator' or 'VPN'",
 						Optional:            true,
 						CustomType:          jsontypes.Int64Type,
 					},
 					"default_vlan_id": schema.Int64Attribute{
-						MarkdownDescription: "The VLAN that management traffic should be tagged with. Applies whether usingStaticIp is true or false.",
+						MarkdownDescription: "The default VLAN ID used for 'all other APs'. This param is only valid when the ipAssignmentMode is 'Bridge mode' or 'Layer 3 roaming'",
 						Optional:            true,
 						CustomType:          jsontypes.Int64Type,
 					},
 					"per_client_bandwidth_limit_up": schema.Int64Attribute{
-						MarkdownDescription: "The VLAN that management traffic should be tagged with. Applies whether usingStaticIp is true or false.",
+						MarkdownDescription: "The upload bandwidth limit in Kbps. (0 represents no limit.)",
 						Optional:            true,
 						CustomType:          jsontypes.Int64Type,
 					},
 					"per_client_bandwidth_limit_down": schema.Int64Attribute{
-						MarkdownDescription: "The VLAN that management traffic should be tagged with. Applies whether usingStaticIp is true or false.",
+						MarkdownDescription: "The download bandwidth limit in Kbps. (0 represents no limit.)",
 						Optional:            true,
 						CustomType:          jsontypes.Int64Type,
 					},
 					"per_ssid_bandwidth_limit_up": schema.Int64Attribute{
-						MarkdownDescription: "The VLAN that management traffic should be tagged with. Applies whether usingStaticIp is true or false.",
+						MarkdownDescription: "The total upload bandwidth limit in Kbps. (0 represents no limit.)",
 						Optional:            true,
 						CustomType:          jsontypes.Int64Type,
 					},
 					"per_ssid_bandwidth_limit_down": schema.Int64Attribute{
-						MarkdownDescription: "The VLAN that management traffic should be tagged with. Applies whether usingStaticIp is true or false.",
+						MarkdownDescription: "The total download bandwidth limit in Kbps. (0 represents no limit.)",
 						Optional:            true,
 						CustomType:          jsontypes.Int64Type,
 					},
 					"radius_guest_vlan_id": schema.Int64Attribute{
-						MarkdownDescription: "The VLAN that management traffic should be tagged with. Applies whether usingStaticIp is true or false.",
+						MarkdownDescription: "VLAN ID of the RADIUS Guest VLAN. This param is only valid if the authMode is 'open-with-radius' and addressing mode is not set to 'isolated' or 'nat' mode",
 						Optional:            true,
 						CustomType:          jsontypes.Int64Type,
 					},
 					"min_bitrate": schema.Float64Attribute{
-						MarkdownDescription: "The VLAN that management traffic should be tagged with. Applies whether usingStaticIp is true or false.",
+						MarkdownDescription: "The minimum bitrate in Mbps of this SSID in the default indoor RF profile. ('1', '2', '5.5', '6', '9', '11', '12', '18', '24', '36', '48' or '54')",
 						Optional:            true,
 						CustomType:          jsontypes.Float64Type,
 					},
 					"use_vlan_tagging": schema.BoolAttribute{
-						MarkdownDescription: "Configure the interface to have static IP settings or use DHCP.",
+						MarkdownDescription: "Whether or not traffic should be directed to use specific VLANs. This param is only valid if the ipAssignmentMode is 'Bridge mode' or 'Layer 3 roaming'",
 						Optional:            true,
 						CustomType:          jsontypes.BoolType,
 					},
 					"disassociate_clients_on_vpn_failover": schema.BoolAttribute{
-						MarkdownDescription: "Configure the interface to have static IP settings or use DHCP.",
+						MarkdownDescription: "Disassociate clients when 'VPN' concentrator failover occurs in order to trigger clients to re-associate and generate new DHCP requests. This param is only valid if ipAssignmentMode is 'VPN'.",
 						Optional:            true,
 						CustomType:          jsontypes.BoolType,
 					},
 					"radius_override": schema.BoolAttribute{
-						MarkdownDescription: "Configure the interface to have static IP settings or use DHCP.",
+						MarkdownDescription: "If true, the RADIUS response can override VLAN tag. This is not valid when ipAssignmentMode is 'NAT mode'.",
 						Optional:            true,
 						CustomType:          jsontypes.BoolType,
 					},
 					"radius_guest_vlan_enabled": schema.BoolAttribute{
-						MarkdownDescription: "Configure the interface to have static IP settings or use DHCP.",
+						MarkdownDescription: "Whether or not RADIUS Guest VLAN is enabled. This param is only valid if the authMode is 'open-with-radius' and addressing mode is not set to 'isolated' or 'nat' mode",
 						Optional:            true,
 						CustomType:          jsontypes.BoolType,
 					},
 					"enabled": schema.BoolAttribute{
-						MarkdownDescription: "Configure the interface to have static IP settings or use DHCP.",
+						MarkdownDescription: "Whether or not the SSID is enabled",
 						Optional:            true,
 						CustomType:          jsontypes.BoolType,
 					},
 					"radius_proxy_enabled": schema.BoolAttribute{
-						MarkdownDescription: "Configure the interface to have static IP settings or use DHCP.",
+						MarkdownDescription: "If true, Meraki devices will proxy RADIUS messages through the Meraki cloud to the configured RADIUS auth and accounting servers.",
 						Optional:            true,
 						CustomType:          jsontypes.BoolType,
 					},
 					"radius_testing_enabled": schema.BoolAttribute{
-						MarkdownDescription: "Configure the interface to have static IP settings or use DHCP.",
+						MarkdownDescription: "If true, Meraki devices will periodically send Access-Request messages to configured RADIUS servers using identity 'meraki_8021x_test' to ensure that the RADIUS servers are reachable.",
 						Optional:            true,
 						CustomType:          jsontypes.BoolType,
 					},
 					"radius_fallback_enabled": schema.BoolAttribute{
-						MarkdownDescription: "Configure the interface to have static IP settings or use DHCP.",
+						MarkdownDescription: "Whether or not higher priority RADIUS servers should be retried after 60 seconds.",
 						Optional:            true,
 						CustomType:          jsontypes.BoolType,
 					},
 					"radius_coa_enabled": schema.BoolAttribute{
-						MarkdownDescription: "Configure the interface to have static IP settings or use DHCP.",
+						MarkdownDescription: "If true, Meraki devices will act as a RADIUS Dynamic Authorization Server and will respond to RADIUS Change-of-Authorization and Disconnect messages sent by the RADIUS server.",
 						Optional:            true,
 						CustomType:          jsontypes.BoolType,
 					},
 					"radius_accounting_enabled": schema.BoolAttribute{
-						MarkdownDescription: "Configure the interface to have static IP settings or use DHCP.",
+						MarkdownDescription: "Whether or not RADIUS accounting is enabled. This param is only valid if the authMode is 'open-with-radius', '8021x-radius' or 'ipsk-with-radius'",
 						Optional:            true,
 						CustomType:          jsontypes.BoolType,
 					},
 					"lan_isolation_enabled": schema.BoolAttribute{
-						MarkdownDescription: "Configure the interface to have static IP settings or use DHCP.",
+						MarkdownDescription: "Boolean indicating whether Layer 2 LAN isolation should be enabled or disabled. Only configurable when ipAssignmentMode is 'Bridge mode'.",
 						Optional:            true,
 						CustomType:          jsontypes.BoolType,
 					},
 					"visible": schema.BoolAttribute{
-						MarkdownDescription: "Configure the interface to have static IP settings or use DHCP.",
+						MarkdownDescription: "Boolean indicating whether APs should advertise or hide this SSID. APs will only broadcast this SSID if set to true.",
 						Optional:            true,
 						CustomType:          jsontypes.BoolType,
 					},
 					"available_on_all_aps": schema.BoolAttribute{
-						MarkdownDescription: "Configure the interface to have static IP settings or use DHCP.",
+						MarkdownDescription: "Boolean indicating whether all APs should broadcast the SSID or if it should be restricted to APs matching any availability tags. Can only be false if the SSID has availability tags.",
 						Optional:            true,
 						CustomType:          jsontypes.BoolType,
 					},
 					"mandatory_dhcp_enabled": schema.BoolAttribute{
-						MarkdownDescription: "Configure the interface to have static IP settings or use DHCP.",
+						MarkdownDescription: "If true, Mandatory DHCP will enforce that clients connecting to this SSID must use the IP address assigned by the DHCP server. Clients who use a static IP address won't be able to associate.",
 						Optional:            true,
 						CustomType:          jsontypes.BoolType,
 					},
 					"adult_content_filtering_enabled": schema.BoolAttribute{
-						MarkdownDescription: "Configure the interface to have static IP settings or use DHCP.",
+						MarkdownDescription: "Boolean indicating whether or not adult content will be blocked.",
 						Optional:            true,
 						CustomType:          jsontypes.BoolType,
 					},
 					"walled_garden_enabled": schema.BoolAttribute{
-						MarkdownDescription: "Configure the interface to have static IP settings or use DHCP.",
+						MarkdownDescription: "Allow access to a configurable list of IP ranges, which users may access prior to sign-on.",
 						Optional:            true,
 						CustomType:          jsontypes.BoolType,
 					},
 					"dot11w": schema.SingleNestedAttribute{
-						Optional: true,
+						MarkdownDescription: "The current setting for Protected Management Frames (802.11w).",
+						Optional:            true,
 						Attributes: map[string]schema.Attribute{
 							"enabled": schema.BoolAttribute{
-								MarkdownDescription: "Configure the interface to have static IP settings or use DHCP.",
+								MarkdownDescription: "Whether 802.11w is enabled or not.",
 								Optional:            true,
 								CustomType:          jsontypes.BoolType,
 							},
 							"required": schema.BoolAttribute{
-								MarkdownDescription: "Configure the interface to have static IP settings or use DHCP.",
+								MarkdownDescription: "(Optional) Whether 802.11w is required or not.",
 								Optional:            true,
 								CustomType:          jsontypes.BoolType,
 							},
 						},
 					},
 					"dot11r": schema.SingleNestedAttribute{
-						Optional: true,
+						Optional:            true,
+						MarkdownDescription: "The current setting for 802.11r",
 						Attributes: map[string]schema.Attribute{
 							"enabled": schema.BoolAttribute{
-								MarkdownDescription: "Configure the interface to have static IP settings or use DHCP.",
+								MarkdownDescription: "Whether 802.11r is enabled or not.",
 								Optional:            true,
 								CustomType:          jsontypes.BoolType,
 							},
 							"adaptive": schema.BoolAttribute{
-								MarkdownDescription: "Configure the interface to have static IP settings or use DHCP.",
+								MarkdownDescription: "(Optional) Whether 802.11r is adaptive or not.",
 								Optional:            true,
 								CustomType:          jsontypes.BoolType,
 							},
 						},
 					},
 					"local_radius": schema.SingleNestedAttribute{
-						Optional: true,
+						Optional:            true,
+						MarkdownDescription: "The current setting for Local Authentication, a built-in RADIUS server on the access point. Only valid if authMode is '8021x-localradius'.",
 						Attributes: map[string]schema.Attribute{
 							"cache_timeout": schema.Int64Attribute{
-								MarkdownDescription: "The VLAN that management traffic should be tagged with. Applies whether usingStaticIp is true or false.",
+								MarkdownDescription: "The duration (in seconds) for which LDAP and OCSP lookups are cached.",
 								Optional:            true,
 								CustomType:          jsontypes.Int64Type,
 							},
 							"password_authentication": schema.SingleNestedAttribute{
-								Optional: true,
+								Optional:            true,
+								MarkdownDescription: "The current setting for password-based authentication.",
 								Attributes: map[string]schema.Attribute{
 									"enabled": schema.BoolAttribute{
-										MarkdownDescription: "Configure the interface to have static IP settings or use DHCP.",
+										MarkdownDescription: "Whether or not to use EAP-TTLS/PAP or PEAP-GTC password-based authentication via LDAP lookup.",
 										Optional:            true,
 										CustomType:          jsontypes.BoolType,
 									},
 								},
 							},
 							"certificate_authentication": schema.SingleNestedAttribute{
-								Optional: true,
+								Optional:            true,
+								MarkdownDescription: "The current setting for certificate verification.",
 								Attributes: map[string]schema.Attribute{
 									"enabled": schema.BoolAttribute{
-										MarkdownDescription: "Configure the interface to have static IP settings or use DHCP.",
+										MarkdownDescription: "Whether or not to use EAP-TLS certificate-based authentication to validate wireless clients.",
 										Optional:            true,
 										CustomType:          jsontypes.BoolType,
 									},
 									"use_ldap": schema.BoolAttribute{
-										MarkdownDescription: "Configure the interface to have static IP settings or use DHCP.",
+										MarkdownDescription: "Whether or not to verify the certificate with LDAP.",
 										Optional:            true,
 										CustomType:          jsontypes.BoolType,
 									},
 									"use_ocsp": schema.BoolAttribute{
-										MarkdownDescription: "Configure the interface to have static IP settings or use DHCP.",
+										MarkdownDescription: "Whether or not to verify the certificate with OCSP.",
 										Optional:            true,
 										CustomType:          jsontypes.BoolType,
 									},
 									"ocsp_responder_url": schema.StringAttribute{
-										MarkdownDescription: "Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled', and 'not configured'.",
+										MarkdownDescription: "(Optional) The URL of the OCSP responder to verify client certificate status.",
 										Optional:            true,
 										CustomType:          jsontypes.StringType,
 									},
 									"client_root_ca_certificate": schema.SingleNestedAttribute{
-										Optional: true,
+										Optional:            true,
+										MarkdownDescription: "The Client CA Certificate used to sign the client certificate.",
 										Attributes: map[string]schema.Attribute{
 											"contents": schema.StringAttribute{
-												MarkdownDescription: "Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled', and 'not configured'.",
+												MarkdownDescription: "The contents of the Client CA Certificate. Must be in PEM or DER format.",
 												Optional:            true,
 												CustomType:          jsontypes.StringType,
 											},
@@ -544,11 +556,13 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 						},
 					},
 					"ldap": schema.SingleNestedAttribute{
-						Optional: true,
+						Optional:            true,
+						MarkdownDescription: "The current setting for LDAP. Only valid if splashPage is 'Password-protected with LDAP'.",
 						Attributes: map[string]schema.Attribute{
 							"servers": schema.SetNestedAttribute{
-								Optional: true,
-								Computed: true,
+								Optional:            true,
+								Computed:            true,
+								MarkdownDescription: "The LDAP servers to be used for authentication.",
 								NestedObject: schema.NestedAttributeObject{
 									Attributes: map[string]schema.Attribute{
 										"host": schema.StringAttribute{
@@ -565,30 +579,32 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 								},
 							},
 							"credentials": schema.SingleNestedAttribute{
-								Optional: true,
+								Optional:            true,
+								MarkdownDescription: "(Optional) The credentials of the user account to be used by the AP to bind to your LDAP server. The LDAP account should have permissions on all your LDAP servers.",
 								Attributes: map[string]schema.Attribute{
 									"distinguished_name": schema.StringAttribute{
-										MarkdownDescription: "Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled', and 'not configured'.",
+										MarkdownDescription: "(Optional) The credentials of the user account to be used by the AP to bind to your Active Directory server. The Active Directory account should have permissions on all your Active Directory servers. Only valid if the splashPage is 'Password-protected with Active Directory'.",
 										Optional:            true,
 										CustomType:          jsontypes.StringType,
 									},
 									"password": schema.StringAttribute{
-										MarkdownDescription: "Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled', and 'not configured'.",
+										MarkdownDescription: "The password to the Active Directory user account..",
 										Optional:            true,
 										CustomType:          jsontypes.StringType,
 									},
 								},
 							},
 							"base_distinguished_name": schema.StringAttribute{
-								MarkdownDescription: "Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled', and 'not configured'.",
+								MarkdownDescription: "The base distinguished name of users on the LDAP server.",
 								Optional:            true,
 								CustomType:          jsontypes.StringType,
 							},
 							"server_ca_certificate": schema.SingleNestedAttribute{
-								Optional: true,
+								Optional:            true,
+								MarkdownDescription: "The CA certificate used to sign the LDAP server's key.",
 								Attributes: map[string]schema.Attribute{
 									"contents": schema.StringAttribute{
-										MarkdownDescription: "Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled', and 'not configured'.",
+										MarkdownDescription: "The contents of the CA certificate. Must be in PEM or DER format.",
 										Optional:            true,
 										CustomType:          jsontypes.StringType,
 									},
@@ -597,20 +613,22 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 						},
 					},
 					"active_directory": schema.SingleNestedAttribute{
-						Optional: true,
+						Optional:            true,
+						MarkdownDescription: "The current setting for Active Directory. Only valid if splashPage is 'Password-protected with Active Directory'",
 						Attributes: map[string]schema.Attribute{
 							"servers": schema.SetNestedAttribute{
-								Optional: true,
-								Computed: true,
+								Optional:            true,
+								Computed:            true,
+								MarkdownDescription: "The Active Directory servers to be used for authentication.",
 								NestedObject: schema.NestedAttributeObject{
 									Attributes: map[string]schema.Attribute{
 										"host": schema.StringAttribute{
-											MarkdownDescription: "Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled', and 'not configured'.",
+											MarkdownDescription: "IP address (or FQDN) of your Active Directory server.",
 											Optional:            true,
 											CustomType:          jsontypes.StringType,
 										},
 										"port": schema.Int64Attribute{
-											MarkdownDescription: "The VLAN that management traffic should be tagged with. Applies whether usingStaticIp is true or false.",
+											MarkdownDescription: "(Optional) UDP port the Active Directory server listens on. By default, uses port 3268.",
 											Optional:            true,
 											CustomType:          jsontypes.Int64Type,
 										},
@@ -618,15 +636,16 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 								},
 							},
 							"credentials": schema.SingleNestedAttribute{
-								Optional: true,
+								Optional:            true,
+								MarkdownDescription: "(Optional) The credentials of the user account to be used by the AP to bind to your Active Directory server. The Active Directory account should have permissions on all your Active Directory servers. Only valid if the splashPage is 'Password-protected with Active Directory'.",
 								Attributes: map[string]schema.Attribute{
 									"logon_name": schema.StringAttribute{
-										MarkdownDescription: "Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled', and 'not configured'.",
+										MarkdownDescription: "The logon name of the Active Directory account.",
 										Optional:            true,
 										CustomType:          jsontypes.StringType,
 									},
 									"password": schema.StringAttribute{
-										MarkdownDescription: "Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled', and 'not configured'.",
+										MarkdownDescription: "The password to the Active Directory user account.",
 										Optional:            true,
 										CustomType:          jsontypes.StringType,
 									},
@@ -635,107 +654,113 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 						},
 					},
 					"dns_rewrite": schema.SingleNestedAttribute{
-						Optional: true,
+						Optional:            true,
+						MarkdownDescription: "DNS servers rewrite settings",
 						Attributes: map[string]schema.Attribute{
 							"enabled": schema.BoolAttribute{
-								MarkdownDescription: "Configure the interface to have static IP settings or use DHCP.",
+								MarkdownDescription: "Boolean indicating whether or not DNS server rewrite is enabled. If disabled, upstream DNS will be used",
 								Optional:            true,
 								CustomType:          jsontypes.BoolType,
 							},
 							"dns_custom_nameservers": schema.ListAttribute{
-								MarkdownDescription: "Up to two DNS IPs.",
+								MarkdownDescription: "User specified DNS servers (up to two servers)",
 								Optional:            true,
 								ElementType:         jsontypes.StringType,
 							},
 						},
 					},
 					"speed_burst": schema.SingleNestedAttribute{
-						Optional: true,
+						Optional:            true,
+						MarkdownDescription: "The SpeedBurst setting for this SSID'",
 						Attributes: map[string]schema.Attribute{
 							"enabled": schema.BoolAttribute{
-								MarkdownDescription: "Configure the interface to have static IP settings or use DHCP.",
+								MarkdownDescription: "Boolean indicating whether or not to allow users to temporarily exceed the bandwidth limit for short periods while still keeping them under the bandwidth limit over time.",
 								Optional:            true,
 								CustomType:          jsontypes.BoolType,
 							},
 						},
 					},
 					"gre": schema.SingleNestedAttribute{
-						Optional: true,
+						Optional:            true,
+						MarkdownDescription: "Ethernet over GRE settings",
 						Attributes: map[string]schema.Attribute{
 							"concentrator": schema.SingleNestedAttribute{
-								Optional: true,
+								Optional:            true,
+								MarkdownDescription: "The EoGRE concentrator's settings",
 								Attributes: map[string]schema.Attribute{
 									"host": schema.StringAttribute{
-										MarkdownDescription: "Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled', and 'not configured'.",
+										MarkdownDescription: "The EoGRE concentrator's IP or FQDN. This param is required when ipAssignmentMode is 'Ethernet over GRE'.",
 										Optional:            true,
 										CustomType:          jsontypes.StringType,
 									},
 								},
 							},
 							"key": schema.Int64Attribute{
-								MarkdownDescription: "The VLAN that management traffic should be tagged with. Applies whether usingStaticIp is true or false.",
+								MarkdownDescription: "Optional numerical identifier that will add the GRE key field to the GRE header. Used to identify an individual traffic flow within a tunnel.",
 								Optional:            true,
 								CustomType:          jsontypes.Int64Type,
 							},
 						},
 					},
 					"oauth": schema.SingleNestedAttribute{
-						Optional: true,
+						Optional:            true,
+						MarkdownDescription: "The OAuth settings of this SSID. Only valid if splashPage is 'Google OAuth'.",
 						Attributes: map[string]schema.Attribute{
 							"allowed_domains": schema.ListAttribute{
-								MarkdownDescription: "Up to two DNS IPs.",
+								MarkdownDescription: "(Optional) The list of domains allowed access to the network.",
 								Optional:            true,
 								ElementType:         jsontypes.StringType,
 							},
 						},
 					},
 					"splash_guest_sponsor_domains": schema.ListAttribute{
-						MarkdownDescription: "Up to two DNS IPs.",
+						MarkdownDescription: "Array of valid sponsor email domains for sponsored guest splash type.",
 						Optional:            true,
 						ElementType:         jsontypes.StringType,
 					},
 					"walled_garden_ranges": schema.ListAttribute{
-						MarkdownDescription: "Up to two DNS IPs.",
+						MarkdownDescription: "Specify your walled garden by entering an array of addresses, ranges using CIDR notation, domain names, and domain wildcards (e.g. '192.168.1.1/24', '192.168.37.10/32', 'www.yahoo.com', '*.google.com']). Meraki's splash page is automatically included in your walled garden.",
 						Optional:            true,
 						ElementType:         jsontypes.StringType,
 					},
 					"availability_tags": schema.ListAttribute{
-						MarkdownDescription: "Up to two DNS IPs.",
+						MarkdownDescription: "Accepts a list of tags for this SSID. If availableOnAllAps is false, then the SSID will only be broadcast by APs with tags matching any of the tags in this list.",
 						Optional:            true,
 						ElementType:         jsontypes.StringType,
 					},
 					"radius_servers": schema.SetNestedAttribute{
-						Optional: true,
-						Computed: true,
+						Optional:            true,
+						Computed:            true,
+						MarkdownDescription: "The RADIUS 802.1X servers to be used for authentication. This param is only valid if the authMode is 'open-with-radius', '8021x-radius' or 'ipsk-with-radius'",
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"host": schema.StringAttribute{
-									MarkdownDescription: "Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled', and 'not configured'.",
+									MarkdownDescription: "IP address (or FQDN) of your RADIUS server",
 									Optional:            true,
 									CustomType:          jsontypes.StringType,
 								},
 								"secret": schema.StringAttribute{
-									MarkdownDescription: "Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled', and 'not configured'.",
+									MarkdownDescription: "RADIUS client shared secret",
 									Optional:            true,
 									CustomType:          jsontypes.StringType,
 								},
 								"ca_certificate": schema.StringAttribute{
-									MarkdownDescription: "Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled', and 'not configured'.",
+									MarkdownDescription: "Certificate used for authorization for the RADSEC Server",
 									Optional:            true,
 									CustomType:          jsontypes.StringType,
 								},
 								"port": schema.Int64Attribute{
-									MarkdownDescription: "The VLAN that management traffic should be tagged with. Applies whether usingStaticIp is true or false.",
+									MarkdownDescription: "UDP port the RADIUS server listens on for Access-requests",
 									Optional:            true,
 									CustomType:          jsontypes.Int64Type,
 								},
 								"open_roaming_certificate_id": schema.Int64Attribute{
-									MarkdownDescription: "The VLAN that management traffic should be tagged with. Applies whether usingStaticIp is true or false.",
+									MarkdownDescription: "The ID of the Openroaming Certificate attached to radius server.",
 									Optional:            true,
 									CustomType:          jsontypes.Int64Type,
 								},
 								"radsec_enabled": schema.BoolAttribute{
-									MarkdownDescription: "Configure the interface to have static IP settings or use DHCP.",
+									MarkdownDescription: "Use RADSEC (TLS over TCP) to connect to this RADIUS server. Requires radiusProxyEnabled.",
 									Optional:            true,
 									CustomType:          jsontypes.BoolType,
 								},
@@ -743,32 +768,33 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 						},
 					},
 					"radius_accounting_servers": schema.SetNestedAttribute{
-						Optional: true,
-						Computed: true,
+						Optional:            true,
+						Computed:            true,
+						MarkdownDescription: "The RADIUS accounting 802.1X servers to be used for authentication. This param is only valid if the authMode is 'open-with-radius', '8021x-radius' or 'ipsk-with-radius' and radiusAccountingEnabled is 'true'",
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"host": schema.StringAttribute{
-									MarkdownDescription: "Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled', and 'not configured'.",
+									MarkdownDescription: "IP address (or FQDN) to which the APs will send RADIUS accounting messages",
 									Optional:            true,
 									CustomType:          jsontypes.StringType,
 								},
 								"secret": schema.StringAttribute{
-									MarkdownDescription: "Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled', and 'not configured'.",
+									MarkdownDescription: "Shared key used to authenticate messages between the APs and RADIUS server",
 									Optional:            true,
 									CustomType:          jsontypes.StringType,
 								},
 								"ca_certificate": schema.StringAttribute{
-									MarkdownDescription: "Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled', and 'not configured'.",
+									MarkdownDescription: "Certificate used for authorization for the RADSEC Server",
 									Optional:            true,
 									CustomType:          jsontypes.StringType,
 								},
 								"port": schema.Int64Attribute{
-									MarkdownDescription: "The VLAN that management traffic should be tagged with. Applies whether usingStaticIp is true or false.",
+									MarkdownDescription: "Port on the RADIUS server that is listening for accounting messages",
 									Optional:            true,
 									CustomType:          jsontypes.Int64Type,
 								},
 								"radsec_enabled": schema.BoolAttribute{
-									MarkdownDescription: "Configure the interface to have static IP settings or use DHCP.",
+									MarkdownDescription: "Use RADSEC (TLS over TCP) to connect to this RADIUS accounting server. Requires radiusProxyEnabled.",
 									Optional:            true,
 									CustomType:          jsontypes.BoolType,
 								},
@@ -776,17 +802,18 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 						},
 					},
 					"ap_tags_and_vlan_ids": schema.SetNestedAttribute{
-						Optional: true,
-						Computed: true,
+						Optional:            true,
+						Computed:            true,
+						MarkdownDescription: "The list of tags and VLAN IDs used for VLAN tagging. This param is only valid when the ipAssignmentMode is 'Bridge mode' or 'Layer 3 roaming'",
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"vlan_id": schema.Int64Attribute{
-									MarkdownDescription: "The VLAN that management traffic should be tagged with. Applies whether usingStaticIp is true or false.",
+									MarkdownDescription: "Numerical identifier that is assigned to the VLAN",
 									Optional:            true,
 									CustomType:          jsontypes.Int64Type,
 								},
 								"tags": schema.ListAttribute{
-									MarkdownDescription: "Up to two DNS IPs.",
+									MarkdownDescription: "Array of AP tags",
 									Optional:            true,
 									ElementType:         jsontypes.StringType,
 								},
@@ -1016,13 +1043,34 @@ func (r *NetworksWirelessSsidsResource) Delete(ctx context.Context, req resource
 		return
 	}
 
-	request := NetworksWirelessSsidsPayload(ctx, data)
+	// Create HTTP request body
+	updateDevice := openApiClient.NewUpdateDeviceRequest()
 
-	_, httpResp, err := r.client.WirelessApi.UpdateNetworkWirelessSsid(context.Background(), data.NetworkID.ValueString(), data.Number.ValueString()).UpdateNetworkWirelessSsidRequest(request).Execute()
+	var name string
+	var tags []string
+	var lat float32
+	var lng float32
+	var address string
+	var notes string
+	var moveMapMarker bool
+	//var switchProfileId string
+	//var floorPlanId string
+
+	updateDevice.Name = &name
+	updateDevice.Tags = tags
+	updateDevice.Lat = &lat
+	updateDevice.Lng = &lng
+	updateDevice.Address = &address
+	updateDevice.Notes = &notes
+	updateDevice.MoveMapMarker = &moveMapMarker
+
+	// Initialize provider client and make API call
+	_, httpResp, err := r.client.DevicesApi.UpdateDevice(context.Background(), data.Serial.ValueString()).UpdateDeviceRequest(*updateDevice).Execute()
+
 	// Check for API success response code
 	if httpResp.StatusCode == 404 {
 		resp.Diagnostics.AddWarning(
-			"no ssid number or network found in API",
+			"no ssid number/serial or network not found in API",
 			tools.HttpDiagnostics(httpResp),
 		)
 
@@ -1048,20 +1096,11 @@ func (r *NetworksWirelessSsidsResource) Delete(ctx context.Context, req resource
 			return
 		}
 
-		// Decode the HTTP response body into your data model.
-		// If there's an error, add it to diagnostics.
-		if err = json.NewDecoder(httpResp.Body).Decode(&data.SSID); err != nil {
-			resp.Diagnostics.AddError(
-				"JSON decoding error",
-				fmt.Sprintf("%v\n", err.Error()),
-			)
-			return
-		}
 	}
 
 	data.Id = jsontypes.StringValue("example-id")
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data.SSID)...)
+	resp.State.RemoveResource(ctx)
 
 	// Write logs using the tflog package
 	tflog.Trace(ctx, "removed resource")
