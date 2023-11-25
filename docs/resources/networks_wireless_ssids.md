@@ -17,15 +17,15 @@ NetworksWirelessSsids
 
 ### Required
 
-- `network_id` (String) Network ID
-- `number` (String) Number
+- `network_id` (String) The unique identifier of the Meraki network to which the SSID belongs. Essential for API calls to associate the SSID correctly with its network.
+- `number` (Number) Represents the SSID's order or position within the network's list of SSIDs. It acts as a unique identifier for the SSID within the network.
 
 ### Optional
 
-- `active_directory` (Attributes) Active Directory server settings (see [below for nested schema](#nestedatt--active_directory))
+- `active_directory` (Attributes) Sets up Active Directory for authentication, with server details and credentials. (see [below for nested schema](#nestedatt--active_directory))
 - `adult_content_filtering_enabled` (Boolean) Indicates whether adult content filtering is enabled.
-- `ap_tags_and_vlan_ids` (Attributes Set) A set of AP tags and corresponding VLAN IDs. (see [below for nested schema](#nestedatt--ap_tags_and_vlan_ids))
-- `auth_mode` (String) The association control method for the SSID
+- `ap_tags_and_vlan_ids` (Attributes List) A set of AP tags and corresponding VLAN IDs. (see [below for nested schema](#nestedatt--ap_tags_and_vlan_ids))
+- `auth_mode` (String) Specifies the authentication method for the SSID, supporting various modes like '8021x' (with different backend servers), 'ipsk', and 'open', each tailored for specific security and access requirements.
 - `availability_tags` (List of String) List of availability tags for the SSID.
 - `available_on_all_aps` (Boolean) Indicates whether the SSID is available on all access points.
 - `band_selection` (String) The client-serving radio frequencies of this SSID in the default indoor RF profile
@@ -33,55 +33,55 @@ NetworksWirelessSsids
 - `default_vlan_id` (Number) The default VLAN ID used for 'all other APs'
 - `disassociate_clients_on_vpn_fail_over` (Boolean) Indicates whether clients should be disassociated during VPN failover.
 - `dns_rewrite` (Attributes) DNS rewrite configuration. (see [below for nested schema](#nestedatt--dns_rewrite))
-- `dot11r` (Attributes) The current setting for 802.11r (see [below for nested schema](#nestedatt--dot11r))
-- `dot11w` (Attributes) The current setting for Protected Management Frames (802.11w) (see [below for nested schema](#nestedatt--dot11w))
-- `enabled` (Boolean) Whether or not the SSID is enabled
-- `encryption_mode` (String) The psk encryption mode for the SSID
-- `enterprise_admin_access` (String) Whether or not an SSID is accessible by 'enterprise' administrators
+- `dot11r` (Attributes) Settings for 802.11r, used for fast roaming. Includes options to enable/disable it and set to adaptive mode. (see [below for nested schema](#nestedatt--dot11r))
+- `dot11w` (Attributes) Configuration for Protected Management Frames (802.11w) which enhances security. Includes sub-attributes for enabling/disabling and requiring PMF. (see [below for nested schema](#nestedatt--dot11w))
+- `enabled` (Boolean) Determines if the SSID is active and broadcasting. Disabling this will render the SSID invisible to wireless clients.
+- `encryption_mode` (String) Defines the type of PSK encryption (e.g., WEP, WPA) used for securing wireless network data.
+- `enterprise_admin_access` (String) Controls whether the SSID is accessible by enterprise administrators, enabling restriction or allowance of administrative access based on organizational roles.
 - `gre` (Attributes) GRE (Generic Routing Encapsulation) tunnel configuration. (see [below for nested schema](#nestedatt--gre))
 - `ip_assignment_mode` (String) The client IP assignment mode
 - `lan_isolation_enabled` (Boolean) Indicates whether LAN isolation is enabled.
-- `ldap` (Attributes) LDAP server settings (see [below for nested schema](#nestedatt--ldap))
-- `local_radius` (Attributes) Local RADIUS server settings (see [below for nested schema](#nestedatt--local_radius))
+- `ldap` (Attributes) LDAP server configuration for authentication, including server details and credentials. (see [below for nested schema](#nestedatt--ldap))
+- `local_radius` (Attributes) Local RADIUS server configuration for authentication, including settings for cache timeout, password authentication, and certificate authentication. (see [below for nested schema](#nestedatt--local_radius))
 - `mandatory_dhcp_enabled` (Boolean) Indicates whether mandatory DHCP is enabled.
 - `min_bit_rate` (Number) The minimum bitrate in Mbps of this SSID in the default indoor RF profile
-- `name` (String) The name of the SSID
+- `name` (String) The name of the SSID. This is the network name visible to clients when scanning for wireless networks.
 - `named_vlans` (Attributes) Configuration for named VLANs. (see [below for nested schema](#nestedatt--named_vlans))
-- `oauth` (Attributes) OAuth settings for the SSID (see [below for nested schema](#nestedatt--oauth))
+- `oauth` (Attributes) Configures OAuth settings for integrating third-party authentication providers, including allowed domains. (see [below for nested schema](#nestedatt--oauth))
 - `per_client_bandwidth_limit_down` (Number) The download bandwidth limit in Kbps
 - `per_client_bandwidth_limit_up` (Number) The upload bandwidth limit in Kbps
 - `per_ssid_bandwidth_limit_down` (Number) The total download bandwidth limit in Kbps
 - `per_ssid_bandwidth_limit_up` (Number) The total upload bandwidth limit in Kbps
-- `psk` (String) The passkey for the SSID
+- `psk` (String) The Pre-shared Key for the SSID, used alongside PSK encryption mode. This key is essential for client connections to the SSID.
 - `radius_accounting_enabled` (Boolean) Indicates whether RADIUS accounting is enabled.
 - `radius_accounting_interim_interval` (Number) The interval (in seconds) in which accounting information is updated and sent to the RADIUS accounting server
-- `radius_accounting_servers` (Attributes Set) The RADIUS accounting servers to be used for accounting services. (see [below for nested schema](#nestedatt--radius_accounting_servers))
+- `radius_accounting_servers` (Attributes List) The RADIUS accounting servers to be used for accounting services. (see [below for nested schema](#nestedatt--radius_accounting_servers))
 - `radius_attribute_for_group_policies` (String) Specify the RADIUS attribute used to look up group policies must be one of:
  'Airespace-ACL-Name', 'Aruba-User-Role', 'Filter-Id' or 'Reply-Message'
-- `radius_authentication_nas_id` (String) The template of the NAS identifier to be used for RADIUS authentication
-- `radius_called_station_id` (String) The template of the called station identifier to be used for RADIUS
-- `radius_coa_enabled` (Boolean) Indicates whether RADIUS Change of Authorization (CoA) is enabled.
+- `radius_authentication_nas_id` (String) Defines the NAS identifier template for RADIUS authentication purposes.
+- `radius_called_station_id` (String) Specifies the template for the called station identifier used in RADIUS interactions.
+- `radius_coa_enabled` (Boolean) Controls the usage of RADIUS Change of Authorization (CoA) for dynamic modifications to a client's session.
 - `radius_fail_over_policy` (String) This policy determines how authentication requests should be handled in the event that all of the configured RADIUS servers are unreachable
-- `radius_fallback_enabled` (Boolean) Indicates whether RADIUS fallback is enabled.
+- `radius_fallback_enabled` (Boolean) Determines if RADIUS fallback is activated, impacting how the system behaves when primary RADIUS servers are unreachable.
 - `radius_guest_vlan_enabled` (Boolean) Indicates whether the RADIUS guest VLAN is enabled.
 - `radius_guest_vlan_id` (Number) VLAN ID of the RADIUS Guest VLAN
 - `radius_load_balancing_policy` (String) This policy determines which RADIUS server will be contacted first in an authentication attempt and the ordering of any necessary retry attempts
 - `radius_override` (Boolean) Indicates whether RADIUS attributes can override other settings.
-- `radius_proxy_enabled` (Boolean) Indicates whether the RADIUS proxy is enabled.
-- `radius_server_attempts_limit` (Number) The maximum number of transmit attempts after which a RADIUS server is failed over
-- `radius_server_timeout` (Number) The amount of time for which a RADIUS client waits for a reply from the RADIUS server
-- `radius_servers` (Attributes Set) The RADIUS servers to be used for authentication. (see [below for nested schema](#nestedatt--radius_servers))
-- `radius_testing_enabled` (Boolean) Indicates whether RADIUS testing is enabled.
+- `radius_proxy_enabled` (Boolean) Indicates if a RADIUS proxy is enabled, affecting the routing of authentication requests.
+- `radius_server_attempts_limit` (Number) Maximum number of retry attempts for RADIUS server authentication before failing over.
+- `radius_server_timeout` (Number) The duration a RADIUS client will wait for a reply from the RADIUS server.
+- `radius_servers` (Attributes List) A list of RADIUS servers for authentication, including their host, port, secret, CA certificate, and RADSEC settings. (see [below for nested schema](#nestedatt--radius_servers))
+- `radius_testing_enabled` (Boolean) Enables or disables testing for RADIUS server configurations.
 - `secondary_concentrator_network_id` (String) The secondary concentrator to use when the ipAssignmentMode is 'VPN'
 - `speed_burst` (Attributes) Speed burst configuration. (see [below for nested schema](#nestedatt--speed_burst))
-- `splash_guest_sponsor_domains` (List of String) Array of valid sponsor email domains for sponsored guest splash type
-- `splash_page` (String) The type of splash page for the SSID
+- `splash_guest_sponsor_domains` (List of String) A list of email domains allowed to sponsor guest access, relevant when using a sponsored guest splash page type.
+- `splash_page` (String) Defines the splash page type used for guest access management and authentication, offering options like 'Click-through', 'Password-protected', 'Billing', etc.
 - `use_vlan_tagging` (Boolean) Indicates whether VLAN tagging is used.
 - `visible` (Boolean) Indicates whether the SSID is visible.
 - `vlan_id` (Number) The VLAN ID used for VLAN tagging
 - `walled_garden_enabled` (Boolean) Indicates whether a walled garden is enabled for the SSID.
 - `walled_garden_ranges` (List of String) List of Walled Garden ranges
-- `wpa_encryption_mode` (String) The types of WPA encryption
+- `wpa_encryption_mode` (String) Specifies the WPA encryption mode, offering options like 'WPA1 only', 'WPA2 only', 'WPA3' for varying levels of security and compatibility.
 
 ### Read-Only
 
@@ -93,7 +93,7 @@ NetworksWirelessSsids
 Optional:
 
 - `credentials` (Attributes) The credentials for Active Directory server authentication (see [below for nested schema](#nestedatt--active_directory--credentials))
-- `servers` (Attributes Set) The Active Directory servers to be used for authentication (see [below for nested schema](#nestedatt--active_directory--servers))
+- `servers` (Attributes List) The Active Directory servers to be used for authentication (see [below for nested schema](#nestedatt--active_directory--servers))
 
 <a id="nestedatt--active_directory--credentials"></a>
 ### Nested Schema for `active_directory.credentials`
@@ -175,7 +175,7 @@ Optional:
 - `base_distinguished_name` (String) The base distinguished name on the LDAP server
 - `credentials` (Attributes) The credentials for LDAP server authentication (see [below for nested schema](#nestedatt--ldap--credentials))
 - `server_ca_certificate` (Attributes) The CA certificate for the LDAP server (see [below for nested schema](#nestedatt--ldap--server_ca_certificate))
-- `servers` (Attributes Set) The LDAP servers to be used for authentication (see [below for nested schema](#nestedatt--ldap--servers))
+- `servers` (Attributes List) The LDAP servers to be used for authentication (see [below for nested schema](#nestedatt--ldap--servers))
 
 <a id="nestedatt--ldap--credentials"></a>
 ### Nested Schema for `ldap.credentials`
@@ -272,7 +272,7 @@ Optional:
 
 Optional:
 
-- `by_ap_tags` (Attributes Set) Sets of AP tags and corresponding VLAN names. (see [below for nested schema](#nestedatt--named_vlans--tagging--by_ap_tags))
+- `by_ap_tags` (Attributes List) Sets of AP tags and corresponding VLAN names. (see [below for nested schema](#nestedatt--named_vlans--tagging--by_ap_tags))
 - `default_vlan_name` (String) The default VLAN name.
 - `enabled` (Boolean) Indicates whether VLAN tagging is enabled.
 

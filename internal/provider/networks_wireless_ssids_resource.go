@@ -570,27 +570,28 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 				CustomType: jsontypes.StringType,
 			},
 			"network_id": schema.StringAttribute{
-				MarkdownDescription: "Network ID",
-				Required:            true,
-				CustomType:          jsontypes.StringType,
+				MarkdownDescription: "The unique identifier of the Meraki network to which the SSID belongs. Essential for API calls to associate the SSID correctly with its network.",
+
+				Required:   true,
+				CustomType: jsontypes.StringType,
 			},
 			"number": schema.Int64Attribute{
-				MarkdownDescription: "Number",
+				MarkdownDescription: "Represents the SSID's order or position within the network's list of SSIDs. It acts as a unique identifier for the SSID within the network.",
 				Required:            true,
 				CustomType:          jsontypes.Int64Type,
 			},
 			"name": schema.StringAttribute{
-				MarkdownDescription: "The name of the SSID",
+				MarkdownDescription: "The name of the SSID. This is the network name visible to clients when scanning for wireless networks.",
 				Optional:            true,
 				CustomType:          jsontypes.StringType,
 			},
 			"enabled": schema.BoolAttribute{
-				MarkdownDescription: "Whether or not the SSID is enabled",
+				MarkdownDescription: "Determines if the SSID is active and broadcasting. Disabling this will render the SSID invisible to wireless clients.",
 				Optional:            true,
 				CustomType:          jsontypes.BoolType,
 			},
 			"auth_mode": schema.StringAttribute{
-				MarkdownDescription: "The association control method for the SSID",
+				MarkdownDescription: "Specifies the authentication method for the SSID, supporting various modes like '8021x' (with different backend servers), 'ipsk', and 'open', each tailored for specific security and access requirements.",
 				Optional:            true,
 				CustomType:          jsontypes.StringType,
 				Validators: []validator.String{
@@ -601,12 +602,12 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 				},
 			},
 			"enterprise_admin_access": schema.StringAttribute{
-				MarkdownDescription: "Whether or not an SSID is accessible by 'enterprise' administrators",
+				MarkdownDescription: "Controls whether the SSID is accessible by enterprise administrators, enabling restriction or allowance of administrative access based on organizational roles.",
 				Optional:            true,
 				CustomType:          jsontypes.StringType,
 			},
 			"encryption_mode": schema.StringAttribute{
-				MarkdownDescription: "The psk encryption mode for the SSID",
+				MarkdownDescription: "Defines the type of PSK encryption (e.g., WEP, WPA) used for securing wireless network data.",
 				Optional:            true,
 				CustomType:          jsontypes.StringType,
 				Validators: []validator.String{
@@ -614,12 +615,12 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 				},
 			},
 			"psk": schema.StringAttribute{
-				MarkdownDescription: "The passkey for the SSID",
+				MarkdownDescription: "The Pre-shared Key for the SSID, used alongside PSK encryption mode. This key is essential for client connections to the SSID.",
 				Optional:            true,
 				CustomType:          jsontypes.StringType,
 			},
 			"wpa_encryption_mode": schema.StringAttribute{
-				MarkdownDescription: "The types of WPA encryption",
+				MarkdownDescription: "Specifies the WPA encryption mode, offering options like 'WPA1 only', 'WPA2 only', 'WPA3' for varying levels of security and compatibility.",
 				Optional:            true,
 				CustomType:          jsontypes.StringType,
 				Validators: []validator.String{
@@ -627,7 +628,7 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 				},
 			},
 			"dot11w": schema.SingleNestedAttribute{
-				MarkdownDescription: "The current setting for Protected Management Frames (802.11w)",
+				MarkdownDescription: "Configuration for Protected Management Frames (802.11w) which enhances security. Includes sub-attributes for enabling/disabling and requiring PMF.",
 				Optional:            true,
 				Attributes: map[string]schema.Attribute{
 					"enabled": schema.BoolAttribute{
@@ -644,7 +645,7 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 			},
 			"dot11r": schema.SingleNestedAttribute{
 				Optional:            true,
-				MarkdownDescription: "The current setting for 802.11r",
+				MarkdownDescription: "Settings for 802.11r, used for fast roaming. Includes options to enable/disable it and set to adaptive mode.",
 				Attributes: map[string]schema.Attribute{
 					"enabled": schema.BoolAttribute{
 						MarkdownDescription: "Whether 802.11r is enabled or not",
@@ -659,7 +660,7 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 				},
 			},
 			"splash_page": schema.StringAttribute{
-				MarkdownDescription: "The type of splash page for the SSID",
+				MarkdownDescription: "Defines the splash page type used for guest access management and authentication, offering options like 'Click-through', 'Password-protected', 'Billing', etc.",
 				Optional:            true,
 				Computed:            true,
 				CustomType:          jsontypes.StringType,
@@ -673,12 +674,12 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 				},
 			},
 			"splash_guest_sponsor_domains": schema.ListAttribute{
-				MarkdownDescription: "Array of valid sponsor email domains for sponsored guest splash type",
+				MarkdownDescription: "A list of email domains allowed to sponsor guest access, relevant when using a sponsored guest splash page type.",
 				Optional:            true,
 				ElementType:         jsontypes.StringType,
 			},
 			"oauth": schema.SingleNestedAttribute{
-				MarkdownDescription: "OAuth settings for the SSID",
+				MarkdownDescription: "Configures OAuth settings for integrating third-party authentication providers, including allowed domains.",
 				Optional:            true,
 				Attributes: map[string]schema.Attribute{
 					"allowed_domains": schema.ListAttribute{
@@ -689,7 +690,7 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 				},
 			},
 			"local_radius": schema.SingleNestedAttribute{
-				MarkdownDescription: "Local RADIUS server settings",
+				MarkdownDescription: "Local RADIUS server configuration for authentication, including settings for cache timeout, password authentication, and certificate authentication.",
 				Optional:            true,
 				Attributes: map[string]schema.Attribute{
 					"cache_timeout": schema.Int64Attribute{
@@ -748,7 +749,7 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 				},
 			},
 			"ldap": schema.SingleNestedAttribute{
-				MarkdownDescription: "LDAP server settings",
+				MarkdownDescription: "LDAP server configuration for authentication, including server details and credentials.",
 				Optional:            true,
 				Attributes: map[string]schema.Attribute{
 					"servers": schema.ListNestedAttribute{
@@ -805,7 +806,7 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 				},
 			},
 			"active_directory": schema.SingleNestedAttribute{
-				MarkdownDescription: "Active Directory server settings",
+				MarkdownDescription: "Sets up Active Directory for authentication, with server details and credentials.",
 				Optional:            true,
 				Attributes: map[string]schema.Attribute{
 					"servers": schema.ListNestedAttribute{
@@ -847,7 +848,7 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 			},
 			"radius_servers": schema.ListNestedAttribute{
 				Optional:            true,
-				MarkdownDescription: "The RADIUS servers to be used for authentication.",
+				MarkdownDescription: "A list of RADIUS servers for authentication, including their host, port, secret, CA certificate, and RADSEC settings.",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"host": schema.StringAttribute{
@@ -884,42 +885,42 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 				},
 			},
 			"radius_proxy_enabled": schema.BoolAttribute{
-				MarkdownDescription: "Indicates whether the RADIUS proxy is enabled.",
+				MarkdownDescription: "Indicates if a RADIUS proxy is enabled, affecting the routing of authentication requests.",
 				Optional:            true,
 				CustomType:          jsontypes.BoolType,
 			},
 			"radius_testing_enabled": schema.BoolAttribute{
-				MarkdownDescription: "Indicates whether RADIUS testing is enabled.",
+				MarkdownDescription: "Enables or disables testing for RADIUS server configurations.",
 				Optional:            true,
 				CustomType:          jsontypes.BoolType,
 			},
 			"radius_called_station_id": schema.StringAttribute{
-				MarkdownDescription: "The template of the called station identifier to be used for RADIUS",
+				MarkdownDescription: "Specifies the template for the called station identifier used in RADIUS interactions.",
 				Optional:            true,
 				CustomType:          jsontypes.StringType,
 			},
 			"radius_authentication_nas_id": schema.StringAttribute{
-				MarkdownDescription: "The template of the NAS identifier to be used for RADIUS authentication",
+				MarkdownDescription: "Defines the NAS identifier template for RADIUS authentication purposes.",
 				Optional:            true,
 				CustomType:          jsontypes.StringType,
 			},
 			"radius_server_timeout": schema.Int64Attribute{
-				MarkdownDescription: "The amount of time for which a RADIUS client waits for a reply from the RADIUS server",
+				MarkdownDescription: "The duration a RADIUS client will wait for a reply from the RADIUS server.",
 				Optional:            true,
 				CustomType:          jsontypes.Int64Type,
 			},
 			"radius_server_attempts_limit": schema.Int64Attribute{
-				MarkdownDescription: "The maximum number of transmit attempts after which a RADIUS server is failed over",
+				MarkdownDescription: "Maximum number of retry attempts for RADIUS server authentication before failing over.",
 				Optional:            true,
 				CustomType:          jsontypes.Int64Type,
 			},
 			"radius_fallback_enabled": schema.BoolAttribute{
-				MarkdownDescription: "Indicates whether RADIUS fallback is enabled.",
+				MarkdownDescription: "Determines if RADIUS fallback is activated, impacting how the system behaves when primary RADIUS servers are unreachable.",
 				Optional:            true,
 				CustomType:          jsontypes.BoolType,
 			},
 			"radius_coa_enabled": schema.BoolAttribute{
-				MarkdownDescription: "Indicates whether RADIUS Change of Authorization (CoA) is enabled.",
+				MarkdownDescription: "Controls the usage of RADIUS Change of Authorization (CoA) for dynamic modifications to a client's session.",
 				Optional:            true,
 				CustomType:          jsontypes.BoolType,
 			},
@@ -2121,37 +2122,3 @@ func NetworksWirelessSsidsPayload(ctx context.Context, data *NetworksWirelessSsi
 
 	return payload, nil
 }
-
-/*
-	// NamedVlans
-		namedVlansPayload := openApiClient.NewNamedVlansConfig()
-
-		// Handling Tagging Configuration
-		taggingPayload := openApiClient.NewNamedVlansTaggingConfig()
-		taggingPayload.SetEnabled(data.NamedVlans.Tagging.Enabled.ValueBool())
-		taggingPayload.SetDefaultVlanName(data.NamedVlans.Tagging.DefaultVlanName.ValueString())
-
-		byApTags := make([]openApiClient.TagAndVlanName, len(data.NamedVlans.Tagging.ByApTags))
-		for i, tagData := range data.NamedVlans.Tagging.ByApTags {
-			tagAndVlanNamePayload := openApiClient.NewTagAndVlanName()
-			tagsPayload := make([]string, len(tagData.Tags))
-			for j, tag := range tagData.Tags {
-				tagsPayload[j] = tag.Value.ValueString()
-			}
-			tagAndVlanNamePayload.SetTags(tagsPayload)
-			tagAndVlanNamePayload.SetVlanName(tagData.VlanName.ValueString())
-			byApTags[i] = *tagAndVlanNamePayload
-		}
-		taggingPayload.SetByApTags(byApTags)
-		namedVlansPayload.SetTagging(*taggingPayload)
-
-		// Handling Radius Configuration
-		radiusPayload := openApiClient.NewNamedVlansRadiusConfig()
-		guestVlanPayload := openApiClient.NewNamedVlansGuestVlanConfig()
-		guestVlanPayload.SetEnabled(data.NamedVlans.Radius.GuestVlan.Enabled.ValueBool())
-		guestVlanPayload.SetName(data.NamedVlans.Radius.GuestVlan.Name.ValueString())
-		radiusPayload.SetGuestVlan(*guestVlanPayload)
-		namedVlansPayload.SetRadius(*radiusPayload)
-
-		payload.NamedVlans(*namedVlansPayload)
-*/
