@@ -39,6 +39,7 @@ type CiscoMerakiProviderModel struct {
 	LoggingEnabled        types.Bool   `tfsdk:"logging_enabled"`
 	ApiKey                types.String `tfsdk:"api_key"`
 	BaseUrl               types.String `tfsdk:"base_url"`
+	ApiVersion            types.String `tfsdk:"api_version"`
 	CertificatePath       types.String `tfsdk:"certificate_path"`
 	Proxy                 types.String `tfsdk:"proxy"`
 	SingleRequestTimeout  types.Int64  `tfsdk:"single_request_timeout"`
@@ -75,6 +76,17 @@ func (p *CiscoMerakiProvider) Schema(ctx context.Context, req provider.SchemaReq
 					stringvalidator.RegexMatches(
 						regexp.MustCompile(`^(https:\/\/)(?:[a-zA-Z0-9]{1,62}(?:[-\.][a-zA-Z0-9]{1,62})+)(:\d+)?$`),
 						"The API version must be specified in the URL. Example: https://api.meraki.com",
+					)},
+			},
+			"api_version": schema.StringAttribute{
+				Description: "API version prefix to be appended after the base URL",
+				MarkdownDescription: "The API version to be specified in the URL:" +
+					"Example: `/api/v1 or api/v1",
+				Optional: true,
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^\/?api\/v1\/?$`),
+						"The API version to be specified in the URL. Example: https://api.meraki.com/api/v1/",
 					)},
 			},
 			"certificate_path": schema.StringAttribute{
@@ -146,12 +158,16 @@ func (p *CiscoMerakiProvider) Configure(ctx context.Context, req provider.Config
 
 	// MERAKI BASE URL
 	if !data.BaseUrl.IsNull() {
+		merakiURL, err := url.JoinPath(data.BaseUrl.ValueString(), data.ApiVersion.ValueString())
+		if err != nil {
+			resp.Diagnostics.AddError("unable to join meraki url ", err.Error())
+			return
+		}
 
-		baseUrl, err := url.Parse(data.BaseUrl.ValueString())
 		if err == nil {
 			configuration.Servers = openApiClient.ServerConfigurations{
 				{
-					URL:         baseUrl.String(),
+					URL:         merakiURL,
 					Description: "HTTP Client for Meraki Terraform Provider",
 				},
 			}
