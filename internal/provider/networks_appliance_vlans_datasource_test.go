@@ -7,7 +7,9 @@ import (
 	"testing"
 )
 
-func TestAccNetworksApplianceVlanResource(t *testing.T) {
+// TestAccNetworksApplianceVlansDataSource function is used to test the CRUD operations of the Terraform resource you are developing.
+// It runs the test cases in order to create, read, update, and delete the resource and checks the state at each step.
+func TestAccNetworksApplianceVlansDataSource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
@@ -15,9 +17,9 @@ func TestAccNetworksApplianceVlanResource(t *testing.T) {
 
 			// Create and Read a Network.
 			{
-				Config: testAccNetworksApplianceVlanResourceConfigCreate(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
+				Config: testAccNetworksApplianceVlanDataSourceConfigCreate(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_meraki_networks_appliance_vlans"),
+					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_meraki_networks_appliance_vlans_datasource"),
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
@@ -29,28 +31,37 @@ func TestAccNetworksApplianceVlanResource(t *testing.T) {
 				),
 			},
 
-			// Update testing
+			// Read testing
 			{
-				Config: testAccNetworksApplianceVlanResourceConfigUpdate,
+				Config: testAccNetworksApplianceVlanDataSourceConfigUpdate,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "name", "My VLAN"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "name", "My VLAN"),
+				),
+			},
+
+			// Read Datasource testing
+			{
+				Config: testAccNetworksApplianceVlanDataSourceConfigRead,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.#", "1"),
+					resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.1.name", "test_acc_meraki_organizations"),
+					resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans", "list.1.name", "My VLAN"),
 				),
 			},
 		},
 	})
 }
 
-// testAccNetworksApplianceVlanResourceConfigCreate is a constant string that defines the configuration for creating a network resource in your tests.
+// testAccNetworksApplianceVlanDataSourceConfigCreate is a constant string that defines the configuration for creating a network resource in your tests.
 // It depends on the organization resource.
-func testAccNetworksApplianceVlanResourceConfigCreate(orgId string) string {
+func testAccNetworksApplianceVlanDataSourceConfigCreate(orgId string) string {
 	result := fmt.Sprintf(`
 
 resource "meraki_network" "test" {
-	depends_on = [resource.meraki_organization.test]
 	organization_id = %s
 	product_types = ["appliance", "switch", "wireless"]
 	tags = ["tag1"]
-	name = "test_acc_meraki_networks_appliance_vlans"
+	name = "test_acc_meraki_networks_appliance_vlans_datasource"
 	timezone = "America/Los_Angeles"
 	notes = "Additional description of the network"
 }
@@ -58,7 +69,7 @@ resource "meraki_network" "test" {
 	return result
 }
 
-const testAccNetworksApplianceVlanResourceConfigUpdate = `
+const testAccNetworksApplianceVlanDataSourceConfigUpdate = `
 
 resource "meraki_network" "test" {
 	product_types = ["appliance", "switch", "wireless"]
@@ -96,5 +107,17 @@ resource "meraki_networks_appliance_vlans" "test" {
 		enabled = false
 	}
 
+}
+`
+
+const testAccNetworksApplianceVlanDataSourceConfigRead = `
+
+resource "meraki_network" "test" {
+	product_types = ["appliance", "switch", "wireless"]
+}
+
+data "meraki_networks_appliance_vlans" "test" {
+	depends_on = [resource.meraki_network.test]
+	network_id = resource.meraki_network.test.network_id
 }
 `

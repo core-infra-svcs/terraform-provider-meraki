@@ -33,9 +33,8 @@ type NetworksApplianceVLANsResource struct {
 }
 
 type NetworksApplianceVLANsResourceModel struct {
-	Id        jsontypes.String `tfsdk:"id" json:"-"`
-	NetworkId jsontypes.String `tfsdk:"network_id" json:"networkId"`
-
+	Id                     jsontypes.String                                     `tfsdk:"id" json:"-"`
+	NetworkId              jsontypes.String                                     `tfsdk:"network_id" json:"networkId"`
 	VlanId                 jsontypes.Int64                                      `tfsdk:"vlan_id" json:"id"`
 	Name                   jsontypes.String                                     `tfsdk:"name" json:"name"`
 	Subnet                 jsontypes.String                                     `tfsdk:"subnet" json:"subnet"`
@@ -55,7 +54,7 @@ type NetworksApplianceVLANsResourceModel struct {
 	TemplateVlanType       jsontypes.String                                     `tfsdk:"template_vlan_type" json:"templateVlanType"`
 	Cidr                   jsontypes.String                                     `tfsdk:"cidr" json:"cidr"`
 	Mask                   jsontypes.Int64                                      `tfsdk:"mask" json:"mask"`
-	IPv6                   ipv6Configuration                                    `tfsdk:"ipv6" json:"ipv6"`
+	IPv6                   NetworksApplianceVLANsResourceModelIpv6Configuration `tfsdk:"ipv6" json:"ipv6"`
 	MandatoryDhcp          NetworksApplianceVLANsResourceModelMandatoryDhcp     `tfsdk:"mandatory_dhcp" json:"NetworksApplianceVLANsResourceModelMandatoryDhcp"`
 }
 
@@ -76,7 +75,7 @@ type NetworksApplianceVLANsResourceModelDhcpOption struct {
 	Value jsontypes.String `tfsdk:"value" json:"value"`
 }
 
-type ipv6Configuration struct {
+type NetworksApplianceVLANsResourceModelIpv6Configuration struct {
 	Enabled           jsontypes.Bool                                        `tfsdk:"enabled" json:"enabled"`
 	PrefixAssignments []NetworksApplianceVLANsResourceModelPrefixAssignment `tfsdk:"prefix_assignments" json:"prefixAssignments"`
 }
