@@ -7,12 +7,17 @@ import (
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
+	"strconv"
 	"strings"
 )
 
@@ -36,27 +41,28 @@ type NetworksApplianceVLANsResourceModel struct {
 	Id        jsontypes.String `tfsdk:"id" json:"-"`
 	NetworkId jsontypes.String `tfsdk:"network_id" json:"networkId"`
 
-	VlanId                 jsontypes.Int64                                      `tfsdk:"vlan_id" json:"id"`
-	Name                   jsontypes.String                                     `tfsdk:"name" json:"name"`
-	Subnet                 jsontypes.String                                     `tfsdk:"subnet" json:"subnet"`
-	ApplianceIp            jsontypes.String                                     `tfsdk:"appliance_ip" json:"applianceIp"`
-	GroupPolicyId          jsontypes.String                                     `tfsdk:"group_policy_id" json:"groupPolicyId"`
-	VpnNatSubnet           jsontypes.String                                     `tfsdk:"vpn_nat_subnet" json:"vpnNatSubnet"`
-	DhcpHandling           jsontypes.String                                     `tfsdk:"dhcp_handling" json:"dhcpHandling"`
-	DhcpRelayServerIps     jsontypes.Set[jsontypes.String]                      `tfsdk:"dhcp_relay_server_ips" json:"dhcpRelayServerIps"`
-	DhcpLeaseTime          jsontypes.String                                     `tfsdk:"dhcp_lease_time" json:"dhcpLeaseTime"`
-	DhcpBootOptionsEnabled jsontypes.Bool                                       `tfsdk:"dhcp_boot_options_enabled" json:"dhcpBootOptionsEnabled"`
-	DhcpBootNextServer     jsontypes.String                                     `tfsdk:"dhcp_boot_next_server" json:"dhcpBootNextServer"`
-	DhcpBootFilename       jsontypes.String                                     `tfsdk:"dhcp_boot_filename" json:"dhcpBootFilename"`
-	FixedIpAssignments     NetworksApplianceVLANsResourceModelIpNameMapping     `tfsdk:"fixed_ip_assignments" json:"fixedIpAssignments"`
-	ReservedIpRanges       []NetworksApplianceVLANsResourceModelReservedIpRange `tfsdk:"reserved_ip_ranges" json:"reservedIpRanges"`
-	DnsNameservers         jsontypes.String                                     `tfsdk:"dns_nameservers" json:"dnsNameservers"`
-	DhcpOptions            []NetworksApplianceVLANsResourceModelDhcpOption      `tfsdk:"dhcp_options" json:"dhcpOptions"`
-	TemplateVlanType       jsontypes.String                                     `tfsdk:"template_vlan_type" json:"templateVlanType"`
-	Cidr                   jsontypes.String                                     `tfsdk:"cidr" json:"cidr"`
-	Mask                   jsontypes.Int64                                      `tfsdk:"mask" json:"mask"`
-	IPv6                   ipv6Configuration                                    `tfsdk:"ipv6" json:"ipv6"`
-	MandatoryDhcp          NetworksApplianceVLANsResourceModelMandatoryDhcp     `tfsdk:"mandatory_dhcp" json:"NetworksApplianceVLANsResourceModelMandatoryDhcp"`
+	VlanId                 jsontypes.Int64  `tfsdk:"vlan_id" json:"id"`
+	InterfaceId            jsontypes.String `tfsdk:"interface_id" json:"interfaceId,omitempty"`
+	Name                   jsontypes.String `tfsdk:"name" json:"name"`
+	Subnet                 jsontypes.String `tfsdk:"subnet" json:"subnet"`
+	ApplianceIp            jsontypes.String `tfsdk:"appliance_ip" json:"applianceIp"`
+	GroupPolicyId          jsontypes.String `tfsdk:"group_policy_id" json:"groupPolicyId"`
+	TemplateVlanType       jsontypes.String `tfsdk:"template_vlan_type" json:"templateVlanType"`
+	Cidr                   jsontypes.String `tfsdk:"cidr" json:"cidr"`
+	Mask                   jsontypes.Int64  `tfsdk:"mask" json:"mask"`
+	DhcpRelayServerIps     types.List       `tfsdk:"dhcp_relay_server_ips" json:"dhcpRelayServerIps"`
+	DhcpHandling           jsontypes.String `tfsdk:"dhcp_handling" json:"dhcpHandling"`
+	DhcpLeaseTime          jsontypes.String `tfsdk:"dhcp_lease_time" json:"dhcpLeaseTime"`
+	DhcpBootOptionsEnabled jsontypes.Bool   `tfsdk:"dhcp_boot_options_enabled" json:"dhcpBootOptionsEnabled"`
+	DhcpBootNextServer     jsontypes.String `tfsdk:"dhcp_boot_next_server" json:"dhcpBootNextServer"`
+	DhcpBootFilename       jsontypes.String `tfsdk:"dhcp_boot_filename" json:"dhcpBootFilename"`
+	FixedIpAssignments     types.Map        `tfsdk:"fixed_ip_assignments" json:"fixedIpAssignments"`
+	ReservedIpRanges       types.List       `tfsdk:"reserved_ip_ranges" json:"reservedIpRanges"`
+	DnsNameservers         jsontypes.String `tfsdk:"dns_nameservers" json:"dnsNameservers"`
+	DhcpOptions            types.List       `tfsdk:"dhcp_options" json:"dhcpOptions"`
+	VpnNatSubnet           jsontypes.String `tfsdk:"vpn_nat_subnet" json:"vpnNatSubnet"`
+	MandatoryDhcp          types.Object     `tfsdk:"mandatory_dhcp" json:"MandatoryDhcp"`
+	IPv6                   types.Object     `tfsdk:"ipv6" json:"ipv6"`
 }
 
 type NetworksApplianceVLANsResourceModelIpNameMapping struct {
@@ -76,21 +82,26 @@ type NetworksApplianceVLANsResourceModelDhcpOption struct {
 	Value jsontypes.String `tfsdk:"value" json:"value"`
 }
 
-type ipv6Configuration struct {
-	Enabled           jsontypes.Bool                                        `tfsdk:"enabled" json:"enabled"`
-	PrefixAssignments []NetworksApplianceVLANsResourceModelPrefixAssignment `tfsdk:"prefix_assignments" json:"prefixAssignments"`
+type NetworksApplianceVLANsResourceModelIpv6Configuration struct {
+	Enabled           jsontypes.Bool `tfsdk:"enabled" json:"enabled"`
+	PrefixAssignments types.Map      `tfsdk:"prefix_assignments" json:"prefixAssignments"`
+}
+
+type NetworksApplianceVLANsResourceModelFixedIpAssignment struct {
+	Ip   jsontypes.String `tfsdk:"ip"`
+	Name jsontypes.String `tfsdk:"name"`
 }
 
 type NetworksApplianceVLANsResourceModelPrefixAssignment struct {
-	Autonomous         jsontypes.Bool                            `tfsdk:"autonomous" json:"autonomous"`
-	StaticPrefix       jsontypes.String                          `tfsdk:"static_prefix" json:"staticPrefix"`
-	StaticApplianceIp6 jsontypes.String                          `tfsdk:"static_appliance_ip6" json:"staticApplianceIp6"`
-	Origin             NetworksApplianceVLANsResourceModelOrigin `tfsdk:"origin" json:"origin"`
+	Autonomous         jsontypes.Bool   `tfsdk:"autonomous" json:"autonomous"`
+	StaticPrefix       jsontypes.String `tfsdk:"static_prefix" json:"staticPrefix"`
+	StaticApplianceIp6 jsontypes.String `tfsdk:"static_appliance_ip6" json:"staticApplianceIp6"`
+	Origin             types.Object     `tfsdk:"origin" json:"origin"`
 }
 
 type NetworksApplianceVLANsResourceModelOrigin struct {
-	Type       jsontypes.String   `tfsdk:"type" json:"type"`
-	Interfaces []jsontypes.String `tfsdk:"interfaces" json:"interfaces"`
+	Type       jsontypes.String `tfsdk:"type" json:"type"`
+	Interfaces types.List       `tfsdk:"interfaces" json:"interfaces"`
 }
 
 type NetworksApplianceVLANsResourceModelMandatoryDhcp struct {
@@ -122,6 +133,12 @@ func (r *NetworksApplianceVLANsResource) Schema(ctx context.Context, req resourc
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(8, 31),
 				},
+			},
+			"interface_id": schema.StringAttribute{
+				MarkdownDescription: "The Interface ID",
+				Optional:            true,
+				Computed:            true,
+				CustomType:          jsontypes.StringType,
 			},
 			"name": schema.StringAttribute{
 				MarkdownDescription: "The name of the new VLAN",
@@ -157,8 +174,7 @@ func (r *NetworksApplianceVLANsResource) Schema(ctx context.Context, req resourc
 				Computed:            true,
 				CustomType:          jsontypes.StringType,
 			},
-			"dhcp_relay_server_ips": schema.SetAttribute{
-				CustomType:  jsontypes.SetType[jsontypes.String](),
+			"dhcp_relay_server_ips": schema.ListAttribute{
 				ElementType: jsontypes.StringType,
 				Description: "An array of DHCP relay server IPs to which DHCP packets would get relayed for this VLAN",
 				Optional:    true,
@@ -185,23 +201,25 @@ func (r *NetworksApplianceVLANsResource) Schema(ctx context.Context, req resourc
 				Optional:            true,
 				CustomType:          jsontypes.StringType,
 			},
-			"fixed_ip_assignments": schema.SingleNestedAttribute{
+			"fixed_ip_assignments": schema.MapNestedAttribute{
 				Description: "The DHCP fixed IP assignments on the VLAN. This should be an object that contains mappings from MAC addresses to objects that themselves each contain \"ip\" and \"name\" string fields. See the sample request/response for more details",
 				Optional:    true,
-				Attributes: map[string]schema.Attribute{
-					"ip": schema.StringAttribute{
-						MarkdownDescription: "Enable IPv6 on VLAN.",
-						Optional:            true,
-						CustomType:          jsontypes.StringType,
-					},
-					"name": schema.StringAttribute{
-						MarkdownDescription: "Enable IPv6 on VLAN.",
-						Optional:            true,
-						CustomType:          jsontypes.StringType,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"ip": schema.StringAttribute{
+							MarkdownDescription: "Enable IPv6 on VLAN.",
+							Optional:            true,
+							CustomType:          jsontypes.StringType,
+						},
+						"name": schema.StringAttribute{
+							MarkdownDescription: "Enable IPv6 on VLAN.",
+							Optional:            true,
+							CustomType:          jsontypes.StringType,
+						},
 					},
 				},
 			},
-			"reserved_ip_ranges": schema.SetNestedAttribute{
+			"reserved_ip_ranges": schema.ListNestedAttribute{
 				Optional:    true,
 				Computed:    true,
 				Description: "The DHCP reserved IP ranges on the VLAN",
@@ -234,7 +252,7 @@ func (r *NetworksApplianceVLANsResource) Schema(ctx context.Context, req resourc
 				Computed:            true,
 				CustomType:          jsontypes.StringType,
 			},
-			"dhcp_options": schema.SetNestedAttribute{
+			"dhcp_options": schema.ListNestedAttribute{
 				Optional:    true,
 				Computed:    true,
 				Description: "The list of DHCP options that will be included in DHCP responses. Each object in the list should have \"code\", \"type\", and \"value\" properties.",
@@ -289,50 +307,47 @@ func (r *NetworksApplianceVLANsResource) Schema(ctx context.Context, req resourc
 						Computed:            true,
 						CustomType:          jsontypes.BoolType,
 					},
-					"prefix_assignments": schema.SetNestedAttribute{
+					"prefix_assignments": schema.ListNestedAttribute{
 						Optional:    true,
 						Description: "Prefix assignments on the VLAN",
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"autonomous": schema.BoolAttribute{
-									MarkdownDescription: "Auto assign a /64 prefix from the origin to the VLAN",
-									Optional:            true,
-									Computed:            true,
-									CustomType:          jsontypes.BoolType,
-								},
-								"static_prefix": schema.StringAttribute{
-									MarkdownDescription: "Manual configuration of a /64 prefix on the VLAN",
-									Optional:            true,
-									Computed:            true,
-									CustomType:          jsontypes.StringType,
-								},
-								"static_appliance_ip6": schema.StringAttribute{
-									MarkdownDescription: "Manual configuration of the IPv6 Appliance IP",
-									Optional:            true,
-									Computed:            true,
-									CustomType:          jsontypes.StringType,
-								},
-								"origin": schema.SingleNestedAttribute{
-									MarkdownDescription: "The origin of the prefix",
-									Optional:            true,
-									Computed:            true,
-									Attributes: map[string]schema.Attribute{
-										"type": schema.StringAttribute{
-											MarkdownDescription: "Type of the origin",
-											Optional:            true,
-											Computed:            true,
-											CustomType:          jsontypes.StringType,
-										},
-										"interfaces": schema.SetAttribute{
-											CustomType:  jsontypes.SetType[jsontypes.String](),
-											ElementType: jsontypes.StringType,
-											Description: "Interfaces associated with the prefix",
-											Optional:    true,
-										},
+						NestedObject: schema.NestedAttributeObject{Attributes: map[string]schema.Attribute{
+							"autonomous": schema.BoolAttribute{
+								MarkdownDescription: "Auto assign a /64 prefix from the origin to the VLAN",
+								Optional:            true,
+								Computed:            true,
+								CustomType:          jsontypes.BoolType,
+							},
+							"static_prefix": schema.StringAttribute{
+								MarkdownDescription: "Manual configuration of a /64 prefix on the VLAN",
+								Optional:            true,
+								Computed:            true,
+								CustomType:          jsontypes.StringType,
+							},
+							"static_appliance_ip6": schema.StringAttribute{
+								MarkdownDescription: "Manual configuration of the IPv6 Appliance IP",
+								Optional:            true,
+								Computed:            true,
+								CustomType:          jsontypes.StringType,
+							},
+							"origin": schema.SingleNestedAttribute{
+								MarkdownDescription: "The origin of the prefix",
+								Optional:            true,
+								Computed:            true,
+								Attributes: map[string]schema.Attribute{
+									"type": schema.StringAttribute{
+										MarkdownDescription: "Type of the origin",
+										Optional:            true,
+										Computed:            true,
+										CustomType:          jsontypes.StringType,
+									},
+									"interfaces": schema.ListAttribute{
+										ElementType: jsontypes.StringType,
+										Description: "Interfaces associated with the prefix",
+										Optional:    true,
 									},
 								},
 							},
-						},
+						}},
 					},
 				},
 			},
@@ -382,40 +397,12 @@ func (r *NetworksApplianceVLANsResource) Create(ctx context.Context, req resourc
 		return
 	}
 
-	object56 := openApiClient.NewCreateNetworkApplianceVlanRequest(data.Id.ValueString(), data.Name.ValueString())
-	object56.SetCidr(data.Cidr.ValueString())
-	object56.SetId(fmt.Sprintf("%v", data.VlanId.ValueInt64()))
-	object56.SetApplianceIp(data.ApplianceIp.ValueString())
-	object56.SetGroupPolicyId(data.GroupPolicyId.ValueString())
-	object56.SetMask(int32(data.Mask.ValueInt64()))
-	object56.SetName(data.Name.ValueString())
-	object56.SetSubnet(data.Subnet.ValueString())
-	object56.SetTemplateVlanType(data.TemplateVlanType.ValueString())
-	ipv6 := openApiClient.NewUpdateNetworkApplianceSingleLanRequestIpv6()
-	ipv6.SetEnabled(data.IPv6.Enabled.ValueBool())
-	var prefixAssignments []openApiClient.UpdateNetworkApplianceSingleLanRequestIpv6PrefixAssignmentsInner
-	for _, prefixAssignment := range data.IPv6.PrefixAssignments {
-		var originInterfaces []string
-		for _, originInterface := range prefixAssignment.Origin.Interfaces {
-			originInterfaces = append(originInterfaces, originInterface.String())
-		}
-		prefixAssignments = append(prefixAssignments, openApiClient.UpdateNetworkApplianceSingleLanRequestIpv6PrefixAssignmentsInner{
-			Autonomous:         prefixAssignment.Autonomous.ValueBoolPointer(),
-			StaticPrefix:       prefixAssignment.StaticPrefix.ValueStringPointer(),
-			StaticApplianceIp6: prefixAssignment.StaticApplianceIp6.ValueStringPointer(),
-			Origin: &openApiClient.UpdateNetworkApplianceSingleLanRequestIpv6PrefixAssignmentsInnerOrigin{
-				Type:       prefixAssignment.Origin.Type.ValueString(),
-				Interfaces: originInterfaces,
-			},
-		})
+	payload := CreatePayloadRequest(ctx, resp, data)
+	if resp.Diagnostics.HasError() {
+		return
 	}
-	ipv6.SetPrefixAssignments(prefixAssignments)
-	object56.SetIpv6(*ipv6)
-	dhcp := openApiClient.NewGetNetworkApplianceVlans200ResponseInnerMandatoryDhcp()
-	dhcp.SetEnabled(data.MandatoryDhcp.Enabled.ValueBool())
-	object56.SetMandatoryDhcp(*dhcp)
 
-	_, httpResp, err := r.client.ApplianceApi.CreateNetworkApplianceVlan(ctx, data.NetworkId.ValueString()).CreateNetworkApplianceVlanRequest(*object56).Execute()
+	response, httpResp, err := r.client.ApplianceApi.CreateNetworkApplianceVlan(ctx, data.NetworkId.ValueString()).CreateNetworkApplianceVlanRequest(*payload).Execute()
 
 	// Meraki API seems to return http status code 201 as an error.
 	if err != nil && httpResp.StatusCode != 201 {
@@ -434,27 +421,221 @@ func (r *NetworksApplianceVLANsResource) Create(ctx context.Context, req resourc
 		)
 	}
 
+	CreatePayloadResponse(ctx, resp, data, response)
+
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
-		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%v", data))
 		return
 	}
-
-	// save inlineResp data into Terraform state.
-	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
-		resp.Diagnostics.AddError(
-			"Create JSON Decode issue",
-			fmt.Sprintf("%v, %v", err, httpResp.Body),
-		)
-		return
-	}
-
-	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
 	tflog.Trace(ctx, "create resource")
+}
+
+func CreatePayloadRequest(ctx context.Context, resp *resource.CreateResponse, data *NetworksApplianceVLANsResourceModel) *openApiClient.CreateNetworkApplianceVlanRequest {
+	payload := openApiClient.NewCreateNetworkApplianceVlanRequest(data.Id.ValueString(), data.Name.ValueString())
+
+	payload.SetCidr(data.Cidr.ValueString())
+	payload.SetId(fmt.Sprintf("%v", data.VlanId.ValueInt64()))
+	payload.SetApplianceIp(data.ApplianceIp.ValueString())
+	payload.SetGroupPolicyId(data.GroupPolicyId.ValueString())
+	payload.SetMask(int32(data.Mask.ValueInt64()))
+	payload.SetName(data.Name.ValueString())
+	payload.SetSubnet(data.Subnet.ValueString())
+	payload.SetTemplateVlanType(data.TemplateVlanType.ValueString())
+
+	// IPV6
+	if !data.IPv6.IsUnknown() && !data.IPv6.IsNull() {
+
+		ipv6Payload := openApiClient.NewUpdateNetworkApplianceSingleLanRequestIpv6()
+
+		var ipv6 NetworksApplianceVLANsResourceModelIpv6Configuration
+
+		diags := data.IPv6.As(ctx, &ipv6, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			resp.Diagnostics.AddError(
+				"Create Payload Failure", fmt.Sprintf("%v", diags),
+			)
+		}
+
+		// Enabled
+		ipv6Payload.SetEnabled(ipv6.Enabled.ValueBool())
+
+		// Prefix Assignments
+		var prefixAssignments []openApiClient.UpdateNetworkApplianceSingleLanRequestIpv6PrefixAssignmentsInner
+
+		// Create a variable to hold the converted map elements
+		var prefixAssignmentMap map[string]NetworksApplianceVLANsResourceModelPrefixAssignment
+
+		// Use ElementsAs to convert the elements
+		if prefixAssignmentMapDiags := ipv6.PrefixAssignments.ElementsAs(ctx, &prefixAssignmentMap, false); diags.HasError() {
+			resp.Diagnostics.AddError(
+				"Create Payload Failure", fmt.Sprintf("%v", prefixAssignmentMapDiags),
+			)
+		}
+
+		for _, prefixAssignment := range prefixAssignmentMap {
+			var originInterfaces []string
+
+			// Extract the Origin object
+			var origin NetworksApplianceVLANsResourceModelOrigin
+			if diags = prefixAssignment.Origin.As(ctx, &origin, basetypes.ObjectAsOptions{}); diags.HasError() {
+				resp.Diagnostics.AddError(
+					"Create Payload Failure", fmt.Sprintf("%v", diags),
+				)
+			}
+
+			// Assuming origin.Interfaces is a list of strings
+			if !origin.Interfaces.IsUnknown() && !origin.Interfaces.IsNull() {
+				var interfaceList []types.String
+				if diags = origin.Interfaces.ElementsAs(ctx, &interfaceList, true); diags.HasError() {
+					resp.Diagnostics.AddError(
+						"Create Payload Failure", fmt.Sprintf("%v", diags),
+					)
+				}
+
+				for _, iface := range interfaceList {
+					if !iface.IsUnknown() && !iface.IsNull() {
+						originInterfaces = append(originInterfaces, iface.ValueString())
+					}
+				}
+			}
+
+			prefixAssignments = append(prefixAssignments, openApiClient.UpdateNetworkApplianceSingleLanRequestIpv6PrefixAssignmentsInner{
+				Autonomous:         prefixAssignment.Autonomous.ValueBoolPointer(),
+				StaticPrefix:       prefixAssignment.StaticPrefix.ValueStringPointer(),
+				StaticApplianceIp6: prefixAssignment.StaticApplianceIp6.ValueStringPointer(),
+				Origin: &openApiClient.UpdateNetworkApplianceSingleLanRequestIpv6PrefixAssignmentsInnerOrigin{
+					Type:       origin.Type.ValueString(),
+					Interfaces: originInterfaces,
+				},
+			})
+		}
+
+		ipv6Payload.SetPrefixAssignments(prefixAssignments)
+
+		payload.SetIpv6(*ipv6Payload)
+	}
+
+	// DHCP
+
+	mandatoryDhcpPayload := openApiClient.NewGetNetworkApplianceVlans200ResponseInnerMandatoryDhcp()
+	var mandatoryDhcp NetworksApplianceVLANsResourceModelMandatoryDhcp
+
+	diags := data.MandatoryDhcp.As(ctx, &mandatoryDhcp, basetypes.ObjectAsOptions{})
+	if diags.HasError() {
+		resp.Diagnostics.AddError(
+			"Create Payload Failure", fmt.Sprintf("%v", diags),
+		)
+	}
+
+	mandatoryDhcpPayload.SetEnabled(mandatoryDhcp.Enabled.ValueBool())
+
+	payload.SetMandatoryDhcp(*mandatoryDhcpPayload)
+
+	return payload
+}
+
+func CreatePayloadResponse(ctx context.Context, resp *resource.CreateResponse, data *NetworksApplianceVLANsResourceModel, response *openApiClient.CreateNetworkApplianceVlan201Response) {
+	// API returns vlanId as a string instead of an Integer
+	if response.GetId() != "" {
+		vlanId, err := strconv.Atoi(response.GetId())
+		if err != nil {
+			resp.Diagnostics.AddError("VlanId Response", fmt.Sprintf("\n%v", err))
+			return
+		}
+		data.VlanId = jsontypes.Int64Value(int64(vlanId))
+	}
+
+	data.InterfaceId = jsontypes.StringValue(response.GetInterfaceId())
+	data.Name = jsontypes.StringValue(response.GetName())
+	data.Subnet = jsontypes.StringValue(response.GetSubnet())
+	data.ApplianceIp = jsontypes.StringValue(response.GetApplianceIp())
+	data.GroupPolicyId = jsontypes.StringValue(response.GetGroupPolicyId())
+	data.TemplateVlanType = jsontypes.StringValue(response.GetTemplateVlanType())
+	data.Cidr = jsontypes.StringValue(response.GetCidr())
+	data.Mask = jsontypes.Int64Value(int64(response.GetMask()))
+
+	// Mandatory DHCP
+	var mandatoryDhcp NetworksApplianceVLANsResourceModelMandatoryDhcp
+	mandatoryDhcp.Enabled = jsontypes.BoolValue(response.MandatoryDhcp.GetEnabled())
+
+	mandatoryDhcpAttributes := map[string]attr.Type{
+		"enabled": jsontypes.BoolType,
+	}
+
+	objectVal, diags := types.ObjectValueFrom(ctx, mandatoryDhcpAttributes, mandatoryDhcp)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+
+	data.MandatoryDhcp = objectVal
+
+	// IPv6
+	var ipv6Response NetworksApplianceVLANsResourceModelIpv6Configuration
+
+	// Enabled
+	ipv6Response.Enabled = jsontypes.BoolValue(response.Ipv6.GetEnabled())
+
+	// PrefixAssignments
+	for _, prefixAssignmentResponse := range response.Ipv6.PrefixAssignments {
+		var prefixAssignment NetworksApplianceVLANsResourceModelPrefixAssignment
+		prefixAssignment.StaticPrefix = jsontypes.StringValue(prefixAssignmentResponse.GetStaticPrefix())
+		prefixAssignment.Autonomous = jsontypes.BoolValue(prefixAssignmentResponse.GetAutonomous())
+		prefixAssignment.StaticApplianceIp6 = jsontypes.StringValue(prefixAssignmentResponse.GetStaticApplianceIp6())
+
+		// Origins
+		var origin NetworksApplianceVLANsResourceModelOrigin
+		origin.Type = jsontypes.StringValue(prefixAssignmentResponse.Origin.GetType())
+
+		// Create a slice to hold the converted tftypes.Values
+		interfaceValues := make([]tftypes.Value, len(prefixAssignmentResponse.Origin.Interfaces))
+
+		// Populate the slice with converted values
+		for i, interfaceResponse := range prefixAssignmentResponse.Origin.Interfaces {
+			// Convert each interface response to tftypes.Value
+			interfaceValues[i] = tftypes.NewValue(tftypes.String, interfaceResponse)
+		}
+
+		// Assuming interfaceValues is a slice of tftypes.Value
+		var listValues = interfaceValues
+
+		// Create a Value of type List containing the values in listValues
+		listType := tftypes.List{ElementType: tftypes.String}
+		tfList := tftypes.NewValue(listType, listValues)
+
+		// Convert the slice of attr.Value to a ListValue
+		listValue := basetypes.ListValue{}
+		listValue.ElementsAs(ctx, tfList, false)
+
+		origin.Interfaces = listValue
+
+		originVal, originDiags := types.ObjectValueFrom(ctx, mandatoryDhcpAttributes, mandatoryDhcp)
+		if originDiags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			return
+		}
+
+		prefixAssignment.Origin = originVal
+
+		tfMap := basetypes.MapValue{}
+
+		tfMap.ElementsAs(ctx, prefixAssignment, false)
+
+		ipv6Response.PrefixAssignments = tfMap
+	}
+
+	ipv6Attributes := map[string]attr.Type{
+		"enabled":            jsontypes.BoolType,
+		"prefix_assignments": types.ObjectType{},
+	}
+
+	data.IPv6, _ = types.ObjectValueFrom(ctx, ipv6Attributes, ipv6Response)
+
+	data.Id = jsontypes.StringValue("example-id")
 }
 
 func (r *NetworksApplianceVLANsResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -513,39 +694,12 @@ func (r *NetworksApplianceVLANsResource) Update(ctx context.Context, req resourc
 		return
 	}
 
-	updateNetworkApplianceVlan := openApiClient.NewUpdateNetworkApplianceVlanRequest()
-	updateNetworkApplianceVlan.SetCidr(data.Cidr.ValueString())
-	updateNetworkApplianceVlan.SetApplianceIp(data.ApplianceIp.ValueString())
-	updateNetworkApplianceVlan.SetGroupPolicyId(data.GroupPolicyId.ValueString())
-	updateNetworkApplianceVlan.SetMask(int32(data.Mask.ValueInt64()))
-	updateNetworkApplianceVlan.SetName(data.Name.ValueString())
-	updateNetworkApplianceVlan.SetSubnet(data.Subnet.ValueString())
-	updateNetworkApplianceVlan.SetTemplateVlanType(data.TemplateVlanType.ValueString())
-	ipv6 := openApiClient.NewUpdateNetworkApplianceSingleLanRequestIpv6()
-	ipv6.SetEnabled(data.IPv6.Enabled.ValueBool())
-	var prefixAssignments []openApiClient.UpdateNetworkApplianceSingleLanRequestIpv6PrefixAssignmentsInner
-	for _, prefixAssignment := range data.IPv6.PrefixAssignments {
-		var originInterfaces []string
-		for _, originInterface := range prefixAssignment.Origin.Interfaces {
-			originInterfaces = append(originInterfaces, originInterface.String())
-		}
-		prefixAssignments = append(prefixAssignments, openApiClient.UpdateNetworkApplianceSingleLanRequestIpv6PrefixAssignmentsInner{
-			Autonomous:         prefixAssignment.Autonomous.ValueBoolPointer(),
-			StaticPrefix:       prefixAssignment.StaticPrefix.ValueStringPointer(),
-			StaticApplianceIp6: prefixAssignment.StaticApplianceIp6.ValueStringPointer(),
-			Origin: &openApiClient.UpdateNetworkApplianceSingleLanRequestIpv6PrefixAssignmentsInnerOrigin{
-				Type:       prefixAssignment.Origin.Type.ValueString(),
-				Interfaces: originInterfaces,
-			},
-		})
+	payload := UpdatePayloadRequest(ctx, resp, data)
+	if resp.Diagnostics.HasError() {
+		return
 	}
-	ipv6.SetPrefixAssignments(prefixAssignments)
-	updateNetworkApplianceVlan.SetIpv6(*ipv6)
-	dhcp := openApiClient.NewGetNetworkApplianceVlans200ResponseInnerMandatoryDhcp()
-	dhcp.SetEnabled(data.MandatoryDhcp.Enabled.ValueBool())
-	updateNetworkApplianceVlan.SetMandatoryDhcp(*dhcp)
 
-	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceVlan(ctx, data.NetworkId.ValueString(), fmt.Sprintf("%v", data.VlanId.ValueInt64())).UpdateNetworkApplianceVlanRequest(*updateNetworkApplianceVlan).Execute()
+	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceVlan(ctx, data.NetworkId.ValueString(), fmt.Sprintf("%v", data.VlanId.ValueInt64())).UpdateNetworkApplianceVlanRequest(*payload).Execute()
 	if err != nil && httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"HTTP Client Update Failure",
@@ -568,6 +722,8 @@ func (r *NetworksApplianceVLANsResource) Update(ctx context.Context, req resourc
 		return
 	}
 
+	//TODO: PayloadResponse(ctx, resp, data, response)
+
 	// save inlineResp data into Terraform state.
 	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
 		resp.Diagnostics.AddError(
@@ -581,6 +737,349 @@ func (r *NetworksApplianceVLANsResource) Update(ctx context.Context, req resourc
 
 	// Write logs using the tflog package
 	tflog.Trace(ctx, "updated resource")
+}
+
+func UpdatePayloadRequest(ctx context.Context, resp *resource.UpdateResponse, data *NetworksApplianceVLANsResourceModel) *openApiClient.UpdateNetworkApplianceVlanRequest {
+
+	payload := openApiClient.NewUpdateNetworkApplianceVlanRequest()
+
+	payload.SetCidr(data.Cidr.ValueString())
+	payload.SetApplianceIp(data.ApplianceIp.ValueString())
+	payload.SetGroupPolicyId(data.GroupPolicyId.ValueString())
+	payload.SetMask(int32(data.Mask.ValueInt64()))
+	payload.SetName(data.Name.ValueString())
+	payload.SetSubnet(data.Subnet.ValueString())
+	payload.SetTemplateVlanType(data.TemplateVlanType.ValueString())
+
+	// IPV6
+	if !data.IPv6.IsUnknown() && !data.IPv6.IsNull() {
+
+		ipv6Payload := openApiClient.NewUpdateNetworkApplianceSingleLanRequestIpv6()
+
+		var ipv6 NetworksApplianceVLANsResourceModelIpv6Configuration
+
+		diags := data.IPv6.As(ctx, &ipv6, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			resp.Diagnostics.AddError(
+				"Create Payload Failure", fmt.Sprintf("%v", diags),
+			)
+		}
+
+		// Enabled
+		ipv6Payload.SetEnabled(ipv6.Enabled.ValueBool())
+
+		// Prefix Assignments
+		var prefixAssignments []openApiClient.UpdateNetworkApplianceSingleLanRequestIpv6PrefixAssignmentsInner
+
+		// Create a variable to hold the converted map elements
+		var prefixAssignmentMap map[string]NetworksApplianceVLANsResourceModelPrefixAssignment
+
+		// Use ElementsAs to convert the elements
+		if prefixAssignmentMapDiags := ipv6.PrefixAssignments.ElementsAs(ctx, &prefixAssignmentMap, false); diags.HasError() {
+			resp.Diagnostics.AddError(
+				"Create Payload Failure", fmt.Sprintf("%v", prefixAssignmentMapDiags),
+			)
+		}
+
+		for _, prefixAssignment := range prefixAssignmentMap {
+			var originInterfaces []string
+
+			// Extract the Origin object
+			var origin NetworksApplianceVLANsResourceModelOrigin
+			if diags = prefixAssignment.Origin.As(ctx, &origin, basetypes.ObjectAsOptions{}); diags.HasError() {
+				resp.Diagnostics.AddError(
+					"Create Payload Failure", fmt.Sprintf("%v", diags),
+				)
+			}
+
+			// Assuming origin.Interfaces is a list of strings
+			if !origin.Interfaces.IsUnknown() && !origin.Interfaces.IsNull() {
+				var interfaceList []types.String
+				if diags = origin.Interfaces.ElementsAs(ctx, &interfaceList, true); diags.HasError() {
+					resp.Diagnostics.AddError(
+						"Create Payload Failure", fmt.Sprintf("%v", diags),
+					)
+				}
+
+				for _, iface := range interfaceList {
+					if !iface.IsUnknown() && !iface.IsNull() {
+						originInterfaces = append(originInterfaces, iface.ValueString())
+					}
+				}
+			}
+
+			prefixAssignments = append(prefixAssignments, openApiClient.UpdateNetworkApplianceSingleLanRequestIpv6PrefixAssignmentsInner{
+				Autonomous:         prefixAssignment.Autonomous.ValueBoolPointer(),
+				StaticPrefix:       prefixAssignment.StaticPrefix.ValueStringPointer(),
+				StaticApplianceIp6: prefixAssignment.StaticApplianceIp6.ValueStringPointer(),
+				Origin: &openApiClient.UpdateNetworkApplianceSingleLanRequestIpv6PrefixAssignmentsInnerOrigin{
+					Type:       origin.Type.ValueString(),
+					Interfaces: originInterfaces,
+				},
+			})
+		}
+
+		ipv6Payload.SetPrefixAssignments(prefixAssignments)
+
+		payload.SetIpv6(*ipv6Payload)
+	}
+
+	// DHCP
+
+	mandatoryDhcpPayload := openApiClient.NewGetNetworkApplianceVlans200ResponseInnerMandatoryDhcp()
+	var mandatoryDhcp NetworksApplianceVLANsResourceModelMandatoryDhcp
+
+	diags := data.MandatoryDhcp.As(ctx, &mandatoryDhcp, basetypes.ObjectAsOptions{})
+	if diags.HasError() {
+		resp.Diagnostics.AddError(
+			"Create Payload Failure", fmt.Sprintf("%v", diags),
+		)
+	}
+
+	mandatoryDhcpPayload.SetEnabled(mandatoryDhcp.Enabled.ValueBool())
+
+	payload.SetMandatoryDhcp(*mandatoryDhcpPayload)
+
+	return payload
+}
+
+func UpdatePayloadResponse(ctx context.Context, resp *resource.UpdateResponse, data *NetworksApplianceVLANsResourceModel, response *openApiClient.GetNetworkApplianceVlans200ResponseInner) {
+	if response.Id != nil {
+		data.Id = jsontypes.StringValue(*response.Id)
+	}
+	if response.InterfaceId != nil {
+		data.InterfaceId = jsontypes.StringValue(*response.InterfaceId)
+	}
+	if response.Name != nil {
+		data.Name = jsontypes.StringValue(*response.Name)
+	}
+	if response.Subnet != nil {
+		data.Subnet = jsontypes.StringValue(*response.Subnet)
+	}
+	if response.ApplianceIp != nil {
+		data.ApplianceIp = jsontypes.StringValue(*response.ApplianceIp)
+	}
+	if response.GroupPolicyId != nil {
+		data.GroupPolicyId = jsontypes.StringValue(*response.GroupPolicyId)
+	}
+	if response.TemplateVlanType != nil {
+		data.TemplateVlanType = jsontypes.StringValue(*response.TemplateVlanType)
+	}
+	if response.Cidr != nil {
+		data.Cidr = jsontypes.StringValue(*response.Cidr)
+	}
+	if response.Mask != nil {
+		data.Mask = jsontypes.Int64Value(int64(*response.Mask))
+	}
+	if response.DhcpHandling != nil {
+		data.DhcpHandling = jsontypes.StringValue(*response.DhcpHandling)
+	}
+	if response.DhcpLeaseTime != nil {
+		data.DhcpLeaseTime = jsontypes.StringValue(*response.DhcpLeaseTime)
+	}
+
+	// DHCP Relay Server IPs
+	if len(response.DhcpRelayServerIps) > 0 {
+		var dhcpRelayServerIpsList types.List
+
+		var dhcpRelayServerIpsElems []attr.Value
+		for _, ip := range response.DhcpRelayServerIps {
+			dhcpRelayServerIpsElems = append(dhcpRelayServerIpsElems, jsontypes.StringValue(ip))
+		}
+
+		dhcpRelayServerIpsList, _ = basetypes.NewListValue(types.StringType, dhcpRelayServerIpsElems)
+		data.DhcpRelayServerIps = dhcpRelayServerIpsList
+
+		if response.DhcpBootOptionsEnabled != nil {
+			data.DhcpBootOptionsEnabled = jsontypes.BoolValue(*response.DhcpBootOptionsEnabled)
+		}
+		if response.DhcpBootNextServer != nil {
+			data.DhcpBootNextServer = jsontypes.StringValue(*response.DhcpBootNextServer)
+		}
+		if response.DhcpBootFilename != nil {
+			data.DhcpBootFilename = jsontypes.StringValue(*response.DhcpBootFilename)
+		}
+		if response.VpnNatSubnet != nil {
+			data.VpnNatSubnet = jsontypes.StringValue(*response.VpnNatSubnet)
+		}
+	}
+
+	// NetworksApplianceVLANsResourceModelFixedIpAssignment (map[string]interface)
+	if len(response.FixedIpAssignments) > 0 {
+
+		fixedIpAssignmentsMap := make(map[string]attr.Value)
+
+		for mac, assignment := range response.FixedIpAssignments {
+			assignmentMap, ok := assignment.(map[string]interface{})
+			if !ok {
+				resp.Diagnostics.AddError(
+					"Failed to render response for fixedIpAssignments",
+					fmt.Sprintf("mac: %s, assignment:%v", mac, assignment),
+				)
+				continue
+			}
+
+			ip, ipOk := assignmentMap["ip"].(string)
+			name, nameOk := assignmentMap["name"].(string)
+			if !ipOk || !nameOk {
+				resp.Diagnostics.AddError(
+					"Failed to render ip/name for fixedIpAssignments",
+					fmt.Sprintf("ip: %s, name:%v", ip, name),
+				)
+				continue
+			}
+
+			// Create a NetworksApplianceVLANsResourceModelFixedIpAssignment instance
+			fixedIpAssignmentData := map[string]attr.Type{}
+
+			fixedIpAssignmentAttr := NetworksApplianceVLANsResourceModelFixedIpAssignment{
+				Ip:   jsontypes.StringValue(ip),
+				Name: jsontypes.StringValue(name),
+			}
+
+			// Construct the types.Object for NetworksApplianceVLANsResourceModelFixedIpAssignment
+			fixedIpAssignmentObj, diags := types.ObjectValueFrom(ctx, fixedIpAssignmentData, fixedIpAssignmentAttr)
+			if diags.HasError() {
+				resp.Diagnostics.AddError(
+					"Failed to create object for fixedIpAssignments",
+					fmt.Sprintf("%v", diags),
+				)
+				continue
+			}
+
+			fixedIpAssignmentsMap[mac] = fixedIpAssignmentObj
+		}
+
+		// Construct the final types.Object to hold the map of FixedIpAssignments
+		fixedIpAssignmentsObject, diags := types.MapValue(types.ObjectType{}, fixedIpAssignmentsMap)
+		if diags.HasError() {
+			resp.Diagnostics.AddError(
+				"Failed to create map for fixedIpAssignments",
+				fmt.Sprintf("%v", diags),
+			)
+		}
+
+		data.FixedIpAssignments = fixedIpAssignmentsObject
+	}
+
+	// Reserved IP Ranges
+	var reservedIpRangesList []attr.Value
+
+	// Define the attribute types for NetworksApplianceVLANsResourceModelReservedIpRange
+	rangeAttrTypes := map[string]attr.Type{
+		"start":   types.StringType,
+		"end":     types.StringType,
+		"comment": types.StringType,
+	}
+
+	for _, rangeItem := range response.ReservedIpRanges {
+
+		rangeMap := make(map[string]attr.Value)
+		if rangeItem.Start != nil {
+			rangeMap["start"] = jsontypes.StringValue(*rangeItem.Start)
+		}
+		if rangeItem.End != nil {
+			rangeMap["end"] = jsontypes.StringValue(*rangeItem.End)
+		}
+		if rangeItem.Comment != nil {
+			rangeMap["comment"] = jsontypes.StringValue(*rangeItem.Comment)
+		}
+
+		// Convert rangeMap to types.Object
+		rangeObject, diags := types.ObjectValueFrom(ctx, rangeAttrTypes, rangeMap)
+		if diags.HasError() {
+			resp.Diagnostics.AddError(
+				"Failed to create object for reservedIpRanges",
+				fmt.Sprintf("%v", diags),
+			)
+			continue
+		}
+
+		reservedIpRangesList = append(reservedIpRangesList, rangeObject)
+	}
+
+	// Define the ListType for the reserved IP ranges
+	listType := types.ListType{ElemType: types.ObjectType{AttrTypes: rangeAttrTypes}}
+
+	// Convert the slice of attr.Value to a ListValue
+	listValue := basetypes.ListValue{}
+	listValue.ElementsAs(ctx, reservedIpRangesList, false)
+
+	// Construct the types.List to hold the collection of reserved IP ranges
+	reservedIpRanges, reservedIpRangesDiags := listType.ValueFromList(ctx, listValue)
+	if reservedIpRangesDiags.HasError() {
+		resp.Diagnostics.AddError(
+			"Failed to create list for reservedIpRanges",
+			fmt.Sprintf("%v", reservedIpRangesDiags),
+		)
+	}
+
+	data.ReservedIpRanges, reservedIpRangesDiags = reservedIpRanges.ToListValue(ctx)
+	if reservedIpRangesDiags.HasError() {
+		resp.Diagnostics.AddError(
+			"Failed to create list for reservedIpRanges",
+			fmt.Sprintf("%v", reservedIpRangesDiags),
+		)
+	}
+
+	// DHCP Options
+	dhcpOptionAttrTypes := map[string]attr.Type{
+		"code":  types.StringType,
+		"type":  types.StringType,
+		"value": types.StringType,
+	}
+
+	var dhcpOptionsList []attr.Value
+
+	for _, option := range response.DhcpOptions {
+		dhcpOptionMap := make(map[string]attr.Value)
+
+		if option.Code != "" {
+			dhcpOptionMap["code"] = jsontypes.StringValue(option.Code)
+		}
+		if option.Type != "" {
+			dhcpOptionMap["type"] = jsontypes.StringValue(option.Type)
+		}
+		if option.Value != "" {
+			dhcpOptionMap["value"] = jsontypes.StringValue(option.Value)
+		}
+
+		// Convert dhcpOptionMap to types.Object
+		dhcpOptionObject, diags := types.ObjectValueFrom(ctx, dhcpOptionAttrTypes, dhcpOptionMap)
+		if diags.HasError() {
+			resp.Diagnostics.AddError(
+				"Failed to create list for dhcpOptionObject",
+				fmt.Sprintf("%v", reservedIpRangesDiags),
+			)
+			continue
+		}
+
+		dhcpOptionsList = append(dhcpOptionsList, dhcpOptionObject)
+	}
+
+	// Define the ListType for the DHCP options
+	listType = types.ListType{ElemType: types.ObjectType{AttrTypes: dhcpOptionAttrTypes}}
+
+	// Convert the slice of attr.Value to a ListValue
+	listValue = basetypes.ListValue{}
+	listValue.ElementsAs(ctx, dhcpOptionsList, false)
+
+	// Construct the types.List to hold the collection of DHCP options
+	dhcpOptions, dhcpOptionsDiags := listType.ValueFromList(ctx, listValue)
+	if dhcpOptionsDiags.HasError() {
+		// Handle errors
+	}
+
+	DhcpOptionsData, DhcpOptionsDiags := dhcpOptions.ToListValue(ctx)
+	if DhcpOptionsDiags.HasError() {
+		resp.Diagnostics.AddError(
+			"Failed to create list for DhcpOptions",
+			fmt.Sprintf("%v", DhcpOptionsDiags),
+		)
+	}
+
+	data.DhcpOptions = DhcpOptionsData
+
 }
 
 func (r *NetworksApplianceVLANsResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
