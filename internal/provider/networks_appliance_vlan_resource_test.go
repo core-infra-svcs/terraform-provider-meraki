@@ -17,7 +17,7 @@ func TestAccNetworksApplianceVlansResource(t *testing.T) {
 			{
 				Config: testAccNetworksApplianceVlansResourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_meraki_networks_appliance_vlans"),
+					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_meraki_networks_appliance_vlans"),
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
@@ -33,7 +33,7 @@ func TestAccNetworksApplianceVlansResource(t *testing.T) {
 			{
 				Config: testAccNetworksApplianceVlansResourceConfigCreate,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "name", "My VLAN 2"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "name", "My VLAN"),
 				),
 			},
 
@@ -41,7 +41,7 @@ func TestAccNetworksApplianceVlansResource(t *testing.T) {
 			{
 				Config: testAccNetworksApplianceVlansResourceConfigUpdate,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "name", "My VLAN"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "name", "My VLAN 2"),
 				),
 			},
 		},
@@ -56,7 +56,7 @@ resource "meraki_network" "test" {
 organization_id = %s
 product_types = ["appliance", "switch", "wireless"]
 tags = ["tag1"]
-name = "test_meraki_networks_appliance_vlans"
+name = "test_acc_meraki_networks_appliance_vlans"
 timezone = "America/Los_Angeles"
 notes = "Additional description of the network"
 }
@@ -79,29 +79,10 @@ resource "meraki_networks_appliance_vlans_settings" "test" {
 resource "meraki_networks_appliance_vlans" "test" {
 	depends_on = [resource.meraki_networks_appliance_vlans_settings.test]
 	network_id = resource.meraki_network.test.network_id
-	vlan_id = "123"
+	vlan_id = "10"
     name = "My VLAN"
     subnet = "192.168.1.0/24"
     appliance_ip = "192.168.1.2"
-    template_vlan_type = "same"
-    cidr = "192.168.1.0/24"
-    mask = 24
-
-	reserved_ip_ranges = []
-
-	dhcp_options = []
-
-	fixed_ip_assignments = {}
-
-    ipv6 = {
-        enabled = false,
-        prefix_assignments = []
-    }
-
-	mandatory_dhcp = {
-		enabled = false
-	}
-
 }
 `
 
@@ -113,28 +94,9 @@ resource "meraki_network" "test" {
 
 resource "meraki_networks_appliance_vlans" "test" {
 	network_id = resource.meraki_network.test.network_id
-	vlan_id = "123"
+	vlan_id = "10"
     name = "My VLAN 2"
     subnet = "192.168.1.0/24"
     appliance_ip = "192.168.1.2"
-    template_vlan_type = "same"
-    cidr = "192.168.1.0/24"
-    mask = 24
-
-	reserved_ip_ranges = []
-
-	dhcp_options = []
-
-	fixed_ip_assignments = {}
-
-    ipv6 = {
-        enabled = false,
-        prefix_assignments = []
-    }
-
-	mandatory_dhcp = {
-		enabled = false
-	}
-
 }
 `
