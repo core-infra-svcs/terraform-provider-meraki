@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
@@ -116,11 +117,11 @@ func (r *NetworksApplianceFirewallL3FirewallRulesResource) Schema(ctx context.Co
 							CustomType:          jsontypes.StringType,
 						},
 						"protocol": schema.StringAttribute{
-							MarkdownDescription: "The type of protocol (must be 'tcp', 'udp', 'icmp', 'icmp6' or 'Any')",
+							MarkdownDescription: "The type of protocol (must be 'tcp', 'udp', 'icmp', 'icmp6', 'Any', or 'any')",
 							Required:            true,
 							CustomType:          jsontypes.StringType,
 							Validators: []validator.String{
-								stringvalidator.OneOf([]string{"tcp", "udp", "icmp", "icmp6", "Any"}...),
+								stringvalidator.OneOf([]string{"tcp", "udp", "icmp", "icmp6", "Any", "any"}...),
 							},
 						},
 						"syslog_enabled": schema.BoolAttribute{
