@@ -90,7 +90,7 @@ Optional:
 
 Optional:
 
-- `interfaces` (List of String) Interfaces associated with the prefix
+- `interfaces` (Set of String) Interfaces associated with the prefix
 - `type` (String) Type of the origin
 
 
