@@ -551,7 +551,6 @@ func CreateHttpReqPayload(ctx context.Context, data *NetworksApplianceVLANsResou
 
 	// IPV6
 	if !data.IPv6.IsUnknown() && !data.IPv6.IsNull() {
-		ipv6Payload := openApiClient.NewUpdateNetworkApplianceSingleLanRequestIpv6()
 
 		var ipv6 NetworksApplianceVLANsResourceModelIpv6
 		diags := data.IPv6.As(ctx, &ipv6, basetypes.ObjectAsOptions{})
@@ -1227,12 +1226,6 @@ func ReadHttpResponse(ctx context.Context, data *NetworksApplianceVLANsResourceM
 		}
 
 		data.IPv6 = ipv6Object
-	} else {
-		if data.IPv6.IsUnknown() {
-
-			// TODO: Create empty list?
-
-		}
 	}
 
 	tflog.Info(ctx, "[finish] ReadHttpResponse Call")
@@ -1347,7 +1340,7 @@ func UpdateHttpReqPayload(ctx context.Context, data *NetworksApplianceVLANsResou
 			if err != nil {
 				// Handle errors during conversion
 				resp.AddError("Error converting reservedIpRange Value", err.Error())
-				tflog.Warn(ctx, fmt.Sprintf(err.Error()))
+				tflog.Warn(ctx, err.Error())
 				continue
 			}
 
@@ -1391,7 +1384,7 @@ func UpdateHttpReqPayload(ctx context.Context, data *NetworksApplianceVLANsResou
 			if err != nil {
 				// Handle errors during conversion
 				resp.AddError("Error converting DHCP option", err.Error())
-				tflog.Warn(ctx, fmt.Sprintf(err.Error()))
+				tflog.Warn(ctx, err.Error())
 				continue
 			}
 
@@ -1441,7 +1434,6 @@ func UpdateHttpReqPayload(ctx context.Context, data *NetworksApplianceVLANsResou
 
 	// IPV6
 	if !data.IPv6.IsUnknown() && !data.IPv6.IsNull() {
-		ipv6Payload := openApiClient.NewUpdateNetworkApplianceSingleLanRequestIpv6()
 
 		var ipv6 NetworksApplianceVLANsResourceModelIpv6
 		diags := data.IPv6.As(ctx, &ipv6, basetypes.ObjectAsOptions{})
