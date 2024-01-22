@@ -1884,7 +1884,7 @@ func NetworksWirelessSsidsPayload(ctx context.Context, data *NetworksWirelessSsi
 		var radiusAccServersData []RadiusServerConfig
 		err = data.RadiusAccountingServers.ElementsAs(ctx, radiusAccServersData, false)
 		if err != nil {
-
+			tflog.Warn(ctx, fmt.Sprintf("%s", err.Errors()))
 		}
 
 		radiusAccServers := make([]openApiClient.UpdateNetworkWirelessSsidRequestRadiusAccountingServersInner, len(radiusAccServersData))
@@ -1985,12 +1985,12 @@ func NetworksWirelessSsidsPayload(ctx context.Context, data *NetworksWirelessSsi
 	var greData GreConfig
 	err = data.Gre.As(ctx, &greData, basetypes.ObjectAsOptions{})
 	if err != nil {
-		// handle error
+		tflog.Warn(ctx, fmt.Sprintf("%s", err.Errors()))
 	}
 
 	gre, diags := greData.ToAPIModel(ctx)
 	if diags.HasError() {
-		// Add diagnostics to your response
+		tflog.Warn(ctx, fmt.Sprintf("%s", diags.Errors()))
 	}
 
 	if gre != nil {
