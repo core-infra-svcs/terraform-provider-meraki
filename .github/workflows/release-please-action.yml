@@ -13,12 +13,13 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     steps:
-      - uses: google-github-actions/release-please-action@v3
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+      - name: Release Please
+        uses: google-github-actions/release-please-action@v3
         with:
           release-type: terraform-module
           package-name: ${{env.ACTION_NAME}}
-      - name: Checkout Repository
-        uses: actions/checkout@v3
       - name: Add tags to PR
         uses: actions/github-script@v6
         with:
