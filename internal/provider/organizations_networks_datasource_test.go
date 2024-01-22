@@ -24,7 +24,6 @@ func TestAccOrganizationsNetworksDataSource(t *testing.T) {
 			{
 				Config: testAccOrganizationsNetworksDataSourceConfigCreateNetwork,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_network"),
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "2"),
@@ -41,7 +40,6 @@ func TestAccOrganizationsNetworksDataSource(t *testing.T) {
 			{
 				Config: testAccOrganizationsNetworksDataSourceConfigRead,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("data.meraki_organizations_networks.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("data.meraki_organizations_networks.test", "list.#", "1"),
 					resource.TestCheckResourceAttr("data.meraki_organizations_networks.test", "list.0.name", "test_acc_network"),
 
