@@ -35,7 +35,7 @@ Required:
 
 - `dest_cidr` (String) Comma-separated list of destination IP address(es) (in IP or CIDR notation), fully-qualified domain names (FQDN) or 'Any'
 - `policy` (String) 'allow' or 'deny' traffic specified by this rule
-- `protocol` (String) The type of protocol (must be 'tcp', 'udp', 'icmp', 'icmp6' or 'Any')
+- `protocol` (String) The type of protocol (must be 'tcp', 'udp', 'icmp', 'icmp6', 'Any', or 'any')
 - `src_cidr` (String) Comma-separated list of source IP address(es) (in IP or CIDR notation), or 'any' (note: FQDN not supported for source addresses)
 
 Optional:

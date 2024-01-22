@@ -41,6 +41,16 @@ func TestAccNetworksNetFlowResource(t *testing.T) {
 					resource.TestCheckResourceAttr("meraki_networks_netflow.test", "eta_dst_port", "443"),
 				),
 			},
+
+			/*
+				// Import testing
+					{
+						ResourceName:      "meraki_networks_netflow.test",
+						ImportState:       true,
+						ImportStateVerify: true,
+					},
+
+			*/
 		},
 	})
 }

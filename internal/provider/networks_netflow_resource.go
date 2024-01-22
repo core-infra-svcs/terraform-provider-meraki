@@ -132,7 +132,7 @@ func (r *NetworksNetflowResource) Create(ctx context.Context, req resource.Creat
 
 	updateNetworkNetflow := *openApiClient.NewUpdateNetworkNetflowRequest()
 	if !data.CollectorIp.IsUnknown() {
-		updateNetworkNetflow.SetCollectorIp(data.Id.ValueString())
+		updateNetworkNetflow.SetCollectorIp(data.CollectorIp.ValueString())
 	}
 	if !data.ReportingEnabled.IsUnknown() {
 		updateNetworkNetflow.SetReportingEnabled(data.ReportingEnabled.ValueBool())
@@ -179,7 +179,6 @@ func (r *NetworksNetflowResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
-	data.Id = jsontypes.StringValue("example-id")
 	if data.CollectorIp.IsUnknown() {
 		data.CollectorIp = jsontypes.StringNull()
 	}
@@ -193,6 +192,8 @@ func (r *NetworksNetflowResource) Create(ctx context.Context, req resource.Creat
 	if data.EtaEnabled.IsUnknown() {
 		data.EtaEnabled = jsontypes.BoolNull()
 	}
+
+	data.Id = jsontypes.StringValue(data.NetworkId.ValueString())
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -243,7 +244,7 @@ func (r *NetworksNetflowResource) Read(ctx context.Context, req resource.ReadReq
 		return
 	}
 
-	data.Id = jsontypes.StringValue("example-id")
+	data.Id = jsontypes.StringValue(data.NetworkId.ValueString())
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -264,7 +265,7 @@ func (r *NetworksNetflowResource) Update(ctx context.Context, req resource.Updat
 
 	updateNetworkNetflow := *openApiClient.NewUpdateNetworkNetflowRequest()
 	if !data.CollectorIp.IsUnknown() {
-		updateNetworkNetflow.SetCollectorIp(data.Id.ValueString())
+		updateNetworkNetflow.SetCollectorIp(data.CollectorIp.ValueString())
 	}
 	if !data.ReportingEnabled.IsUnknown() {
 		updateNetworkNetflow.SetReportingEnabled(data.ReportingEnabled.ValueBool())
@@ -311,7 +312,6 @@ func (r *NetworksNetflowResource) Update(ctx context.Context, req resource.Updat
 		return
 	}
 
-	data.Id = jsontypes.StringValue("example-id")
 	if data.CollectorIp.IsUnknown() {
 		data.CollectorIp = jsontypes.StringNull()
 	}

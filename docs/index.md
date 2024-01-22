@@ -18,7 +18,8 @@ Terraform Provider Meraki is a declarative infrastructure management tool for th
 ### Optional
 
 - `api_key` (String, Sensitive) Meraki Dashboard API Key
-- `base_url` (String) The API version must be specified in the URL:Example: `https://api.meraki.com/v1For organizations hosted in the China dashboard, use: `https://api.meraki.cn/v1`
+- `base_path` (String) The API version to be specified in the URL:Example: `/api/v1
+- `base_url` (String) The API version must be specified in the URL:Example: `https://api.meraki.comFor organizations hosted in the China dashboard, use: `https://api.meraki.cn/v1`
 - `certificate_path` (String, Sensitive) Path for TLS/SSL certificate verification if behind local proxy
 - `logging_enabled` (Boolean) Display http client debug messages in console
 - `maximum_retries` (Number) Retry up to this many times when encountering 429s or other server-side errors
