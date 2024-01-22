@@ -16,7 +16,6 @@ func TestAccOrganizationsSamlRolesDataSource(t *testing.T) {
 			{
 				Config: testAccOrganizationsSamlRolesDataSourceConfigCreateOrganization,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_acc_meraki_organizations_saml_roles"),
 				),
 			},
@@ -25,7 +24,6 @@ func TestAccOrganizationsSamlRolesDataSource(t *testing.T) {
 			{
 				Config: testAccOrganizationsSamlRolesDataSourceConfigUpdateOrganizationSaml,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organization_saml.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_organization_saml.test", "enabled", "true"),
 				),
 			},
@@ -34,7 +32,6 @@ func TestAccOrganizationsSamlRolesDataSource(t *testing.T) {
 			{
 				Config: testAccOrganizationsSamlRolesDataSourceConfigCreateNetwork,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_organizations_saml_roles"),
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
@@ -51,7 +48,6 @@ func TestAccOrganizationsSamlRolesDataSource(t *testing.T) {
 			{
 				Config: testAccOrganizationsSamlRolesDataSourceConfigCreateSamlRole,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organizations_saml_role.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_organizations_saml_role.test", "role", "testrole"),
 					resource.TestCheckResourceAttr("meraki_organizations_saml_role.test", "org_access", "read-only"),
 					resource.TestCheckResourceAttr("meraki_organizations_saml_role.test", "tags.0.tag", "west"),
@@ -64,8 +60,6 @@ func TestAccOrganizationsSamlRolesDataSource(t *testing.T) {
 			{
 				Config: testAccOrganizationsSamlRolesDataSourceConfigRead,
 				Check: resource.ComposeAggregateTestCheckFunc(
-
-					resource.TestCheckResourceAttr("data.meraki_organizations_saml_roles.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("data.meraki_organizations_saml_roles.test", "list.#", "1"),
 					resource.TestCheckResourceAttr("data.meraki_organizations_saml_roles.test", "list.0.role", "testrole"),
 					resource.TestCheckResourceAttr("data.meraki_organizations_saml_roles.test", "list.0.org_access", "read-only"),
