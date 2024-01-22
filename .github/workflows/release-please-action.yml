@@ -13,23 +13,23 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
-      - name: Release Please
-        uses: google-github-actions/release-please-action@v4
+      - uses: google-github-actions/release-please-action@v3
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           release-type: terraform-module
           package-name: ${{env.ACTION_NAME}}
-      - name: Add tags to PR
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+      - name: Tag Major and Minor Versions
+        if: github.event_name == 'pull_request'
         uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const github = context.github;
-            const prNumber = context.payload.number;
-            github.git.createRef({
+            const prNumber = context.payload.pull_request.number;
+            await github.rest.git.createRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
               ref: `refs/tags/pr-${prNumber}`,
-              sha: context.payload.pull_request.head.sha
+              sha: github.event.pull_request.head.sha
             });
