@@ -1,7 +1,7 @@
 # Terraform Provider testing workflow.
 name: release please action
 
-# This GitHub action creates a release PR and git tags for our terraform provider
+# This GitHub action creates a release PR and git tags for our terraform provider.
 on:
   push:
     branches:
