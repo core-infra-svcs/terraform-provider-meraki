@@ -3,7 +3,7 @@ on:
     branches:
       - main
 name: release-please
-# release please
+# release please 2
 jobs:
   release-please:
     permissions: write-all
