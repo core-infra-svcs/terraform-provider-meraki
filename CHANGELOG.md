@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.6.0](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.5.1...v0.6.0) (2024-01-23)
+
+
+### Features
+
+* Organizations Sweeper ([#238](https://github.com/core-infra-svcs/terraform-provider-meraki/issues/238)) ([f313ca6](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/f313ca6d684dadc4b7e57ccb0b5bf3c2bf0db858))
+* release please updates ([#274](https://github.com/core-infra-svcs/terraform-provider-meraki/issues/274)) ([1b8def9](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/1b8def9a97d579887fef44f1fad4bd820e14dd51))
+
+
+### Bug Fixes
+
+* CI lint timeout ([15dae3b](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/15dae3b46d5b0b6963306b4d9c17f9e8471c855b))
+* indentation issue ([d7bd198](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/d7bd1985c050df43aae8d5771dbe2c1404bbcc1b))
+* Netflow Resource ([a1c10b4](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/a1c10b49acc9e950b016e3bd42109262029bf770))
+* networks appliance vlans resource ([#261](https://github.com/core-infra-svcs/terraform-provider-meraki/issues/261)) ([38f60c9](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/38f60c9586b49ab27aa89cdff255c74b3b36dd25))
+* release please ([8971da9](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/8971da9997c7c1f9569787deceb290f3fc56ddcd))
+* Type issue ([#242](https://github.com/core-infra-svcs/terraform-provider-meraki/issues/242)) ([ad0015f](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/ad0015f6e0f6b8660f95527da30bdb2a878cfbf3))
+
 ## [0.5.0](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.4.0...v0.5.0) (2023-11-12)
 
 
