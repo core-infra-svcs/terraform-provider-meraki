@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
@@ -220,7 +219,7 @@ func (r *NetworksApplianceFirewallL3FirewallRulesResource) Create(ctx context.Co
 		return
 	}
 
-	data.Id = jsontypes.StringValue("example-id")
+	data.Id = jsontypes.StringValue(data.NetworkId.ValueString())
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -270,7 +269,12 @@ func (r *NetworksApplianceFirewallL3FirewallRulesResource) Read(ctx context.Cont
 		return
 	}
 
-	data.Id = jsontypes.StringValue("example-id")
+	// Check if the default rule is nil
+	if data.SyslogDefaultRule.IsNull() {
+		data.SyslogDefaultRule = jsontypes.BoolValue(false)
+	}
+
+	data.Id = jsontypes.StringValue(data.NetworkId.ValueString())
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -342,7 +346,7 @@ func (r *NetworksApplianceFirewallL3FirewallRulesResource) Update(ctx context.Co
 		return
 	}
 
-	data.Id = jsontypes.StringValue("example-id")
+	data.Id = jsontypes.StringValue(data.NetworkId.ValueString())
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -396,8 +400,6 @@ func (r *NetworksApplianceFirewallL3FirewallRulesResource) Delete(ctx context.Co
 		)
 		return
 	}
-
-	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 

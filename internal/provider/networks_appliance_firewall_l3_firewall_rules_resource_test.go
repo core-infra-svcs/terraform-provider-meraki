@@ -16,16 +16,6 @@ func TestAccNetworksApplianceFirewallL3FirewallRulesResource(t *testing.T) {
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 
-			// TODO - ImportState testing - This only works when hard-coded networkId.
-			/*
-				{
-					ResourceName:      "meraki_networks_appliance_firewall_l3_firewall_rules.test",
-					ImportState:       true,
-					ImportStateVerify: false,
-					ImportStateId:     "657525545596096508",
-				},
-			*/
-
 			// Create and Read Network.
 			{
 				Config: testAccNetworksApplianceFirewallL3FirewallRulesResourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
@@ -55,6 +45,14 @@ func TestAccNetworksApplianceFirewallL3FirewallRulesResource(t *testing.T) {
 					resource.TestCheckResourceAttr("meraki_networks_appliance_firewall_l3_firewall_rules.test", "rules.0.src_cidr", "Any"),
 					resource.TestCheckResourceAttr("meraki_networks_appliance_firewall_l3_firewall_rules.test", "rules.0.syslog_enabled", "false"),
 				),
+			},
+
+			// TODO - ImportState testing - This only works when hard-coded networkId.
+
+			{
+				ResourceName:      "meraki_networks_appliance_firewall_l3_firewall_rules.test",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
