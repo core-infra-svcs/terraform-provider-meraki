@@ -274,12 +274,6 @@ func (r *NetworksDevicesClaimResource) Read(ctx context.Context, req resource.Re
 		return
 	}
 
-	// serials
-	var serials []string
-	for _, serial := range data.Serials {
-		serials = append(serials, serial.ValueString())
-	}
-
 	inlineResp, httpResp, err := r.client.NetworksApi.GetNetworkDevices(ctx, data.NetworkId.ValueString()).Execute()
 
 	// If there was an error during API call, add it to diagnostics.
@@ -303,7 +297,14 @@ func (r *NetworksDevicesClaimResource) Read(ctx context.Context, req resource.Re
 
 	for _, inlineData := range inlineResp {
 		var device NetworksDevicesClaimResourceModelDevice
-		inlineDataBytes, err := json.Marshal(inlineData)
+		inlineDataBytes, inlineDataBytesErr := json.Marshal(inlineData)
+		if inlineDataBytesErr != nil {
+			resp.Diagnostics.AddError(
+				"Serial unmarshal error",
+				fmt.Sprintf("%v", inlineDataBytesErr.Error()),
+			)
+		}
+
 		err = json.Unmarshal(inlineDataBytes, &device)
 		if err != nil {
 			resp.Diagnostics.AddError(
