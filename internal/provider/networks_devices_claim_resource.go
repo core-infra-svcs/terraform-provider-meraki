@@ -2,9 +2,11 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"strings"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
@@ -38,6 +40,36 @@ type NetworksDevicesClaimResourceModel struct {
 	Id        jsontypes.String   `tfsdk:"id"`
 	NetworkId jsontypes.String   `tfsdk:"network_id"`
 	Serials   []jsontypes.String `tfsdk:"serials"`
+}
+
+// The NetworksDevicesClaimResourceModelDevice structure describes the data model.
+// This struct is where you define all the attributes that are part of this resource's state.
+type NetworksDevicesClaimResourceModelDevice struct {
+	// The Id field is mandatory for all resources. It's used for resource identification and is required
+	// for the acceptance tests to run.
+	Id              jsontypes.String                `tfsdk:"id"`
+	Serial          jsontypes.String                `tfsdk:"serial"`
+	Name            jsontypes.String                `tfsdk:"name"`
+	Mac             jsontypes.String                `tfsdk:"mac"`
+	Model           jsontypes.String                `tfsdk:"model"`
+	Tags            jsontypes.Set[jsontypes.String] `tfsdk:"tags"`
+	LanIp           jsontypes.String                `tfsdk:"lan_ip"`
+	Firmware        jsontypes.String                `tfsdk:"firmware"`
+	Lat             jsontypes.Float64               `tfsdk:"lat"`
+	Lng             jsontypes.Float64               `tfsdk:"lng"`
+	Address         jsontypes.String                `tfsdk:"address"`
+	Notes           jsontypes.String                `tfsdk:"notes"`
+	Url             jsontypes.String                `tfsdk:"url"`
+	FloorPlanId     jsontypes.String                `tfsdk:"floor_plan_id"`
+	NetworkId       jsontypes.String                `tfsdk:"network_id"`
+	BeaconIdParams  types.Object                    `tfsdk:"beacon_id_params"`
+	SwitchProfileId jsontypes.String                `tfsdk:"switch_profile_id"`
+	MoveMapMarker   jsontypes.Bool                  `tfsdk:"move_map_marker"`
+}
+type NetworksDevicesClaimResourceModelDeviceBeaconIdParams struct {
+	Uuid  jsontypes.String `tfsdk:"uuid"`
+	Major jsontypes.Int64  `tfsdk:"major"`
+	Minor jsontypes.Int64  `tfsdk:"minor"`
 }
 
 // Metadata provides a way to define information about the resource.
@@ -248,7 +280,7 @@ func (r *NetworksDevicesClaimResource) Read(ctx context.Context, req resource.Re
 		serials = append(serials, serial.ValueString())
 	}
 
-	_, httpResp, err := r.client.NetworksApi.GetNetworkDevices(ctx, data.NetworkId.ValueString()).Execute()
+	inlineResp, httpResp, err := r.client.NetworksApi.GetNetworkDevices(ctx, data.NetworkId.ValueString()).Execute()
 
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
@@ -267,6 +299,22 @@ func (r *NetworksDevicesClaimResource) Read(ctx context.Context, req resource.Re
 		)
 	}
 
+	var respSerials []jsontypes.String
+
+	for _, inlineData := range inlineResp {
+		var device NetworksDevicesClaimResourceModelDevice
+		inlineDataBytes, err := json.Marshal(inlineData)
+		err = json.Unmarshal(inlineDataBytes, &device)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Serial unmarshal error",
+				fmt.Sprintf("%v", err.Error()),
+			)
+		}
+		respSerials = append(respSerials, jsontypes.StringValue(device.Serial.ValueString()))
+	}
+
+	data.Serials = respSerials
 	// Set ID for the resource.
 	data.Id = jsontypes.StringValue(data.NetworkId.ValueString())
 
