@@ -42,6 +42,11 @@ func TestAccNetworksDevicesClaimResource(t *testing.T) {
 					resource.TestCheckResourceAttr("meraki_networks_devices_claim.test", "id", "example-id"),
 				),
 			},
+			{
+				ResourceName:      "meraki_networks_devices_claim.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }

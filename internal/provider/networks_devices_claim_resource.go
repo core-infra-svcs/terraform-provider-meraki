@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"strings"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
@@ -16,8 +17,9 @@ import (
 )
 
 var (
-	_ resource.Resource              = &NetworksDevicesClaimResource{} // Terraform resource interface
-	_ resource.ResourceWithConfigure = &NetworksDevicesClaimResource{} // Interface for resources with configuration methods
+	_ resource.Resource                = &NetworksDevicesClaimResource{} // Terraform resource interface
+	_ resource.ResourceWithImportState = &NetworksDevicesClaimResource{}
+	_ resource.ResourceWithConfigure   = &NetworksDevicesClaimResource{} // Interface for resources with configuration methods
 )
 
 func NewNetworksDevicesClaimResource() resource.Resource {
@@ -66,7 +68,7 @@ func (r *NetworksDevicesClaimResource) Schema(ctx context.Context, req resource.
 				MarkdownDescription: "Network Id",
 				Required:            true,
 				Validators: []validator.String{
-					stringvalidator.LengthBetween(8, 31),
+					stringvalidator.LengthBetween(1, 31),
 				},
 				CustomType: jsontypes.StringType,
 			},
@@ -155,8 +157,70 @@ func (r *NetworksDevicesClaimResource) Create(ctx context.Context, req resource.
 		return
 	}
 
+	//// Extracting serial numbers from the response
+	//var respSerials []string
+	//for _, device := range inlineResp {
+	//	if serial, ok := device["serial"].(string); ok {
+	//		respSerials = append(respSerials, serial)
+	//	}
+	//}
+	//
+	//if len(serials) == 0 || (len(serials) == 1 && serials[0] == "") {
+	//	fmt.Println("No serial numbers provided")
+	//	os.Exit(0)
+	//}
+	//
+	//var missingSerials, extraSerials []string
+	//// Loop through API serials to find missing ones in provided serials
+	//for _, apiSerial := range respSerials {
+	//	found := false
+	//	for _, providedSerial := range serials {
+	//		if apiSerial == providedSerial {
+	//			found = true
+	//			break
+	//		}
+	//	}
+	//	// If serial is not found in provided serials, add it to missingSerials
+	//	if !found {
+	//		missingSerials = append(missingSerials, apiSerial)
+	//	}
+	//}
+	//
+	//// Loop through provided serials to find extra ones not present in API serials
+	//for _, providedSerial := range serials {
+	//	found := false
+	//	for _, apiSerial := range respSerials {
+	//		if providedSerial == apiSerial {
+	//			found = true
+	//			break
+	//		}
+	//	}
+	//	// If serial is not found in API serials, add it to extraSerials
+	//	if !found {
+	//		extraSerials = append(extraSerials, providedSerial)
+	//	}
+	//}
+	//
+	//// Print diagnostics based on the comparison results
+	//if len(missingSerials) > 0 {
+	//	resp.Diagnostics.AddError(
+	//		"Missing serial numbers:", fmt.Sprintf("%s", missingSerials),
+	//	)
+	//	return
+	//} else if len(extraSerials) > 0 {
+	//	resp.Diagnostics.AddError(
+	//		"Extra serial numbers:", fmt.Sprintf("%s", extraSerials),
+	//	)
+	//	return
+	//} else if !reflect.DeepEqual(serials, respSerials) {
+	//	resp.Diagnostics.AddError(
+	//		"Serial numbers are out of order", fmt.Sprintf("%s", respSerials),
+	//	)
+	//	return
+	//}
+
 	// Set ID for the new resource.
-	data.Id = jsontypes.StringValue("example-id")
+	data.Id = jsontypes.StringValue(data.NetworkId.ValueString())
 
 	// Now set the final state of the resource.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -178,8 +242,33 @@ func (r *NetworksDevicesClaimResource) Read(ctx context.Context, req resource.Re
 		return
 	}
 
+	// serials
+	var serials []string
+	for _, serial := range data.Serials {
+		serials = append(serials, serial.ValueString())
+	}
+
+	_, httpResp, err := r.client.NetworksApi.GetNetworkDevices(ctx, data.NetworkId.ValueString()).Execute()
+
+	// If there was an error during API call, add it to diagnostics.
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
+		)
+		return
+	}
+
+	// If it's not what you expect, add an error to diagnostics.
+	if httpResp.StatusCode != 200 {
+		resp.Diagnostics.AddError(
+			"Unexpected HTTP Response Status Code",
+			fmt.Sprintf("%v", httpResp.StatusCode),
+		)
+	}
+
 	// Set ID for the resource.
-	data.Id = jsontypes.StringValue("example-id")
+	data.Id = jsontypes.StringValue(data.NetworkId.ValueString())
 
 	// Now set the final state of the resource.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -214,9 +303,6 @@ func (r *NetworksDevicesClaimResource) Update(ctx context.Context, req resource.
 
 	serialsToAdd = difference(planSerials, stateSerials)
 	serialsToRemove = difference(stateSerials, planSerials)
-
-	fmt.Println("random plan serials: ", planSerials)
-	fmt.Println("random state serials: ", stateSerials)
 
 	claimNetworkDevices := *openApiClient.NewClaimNetworkDevicesRequest(serialsToAdd)
 
@@ -334,6 +420,15 @@ func (r *NetworksDevicesClaimResource) Delete(ctx context.Context, req resource.
 
 	// Log that the resource was deleted.
 	tflog.Trace(ctx, "removed resource")
+}
+
+func (r *NetworksDevicesClaimResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+
+	resource.ImportStatePassthroughID(ctx, path.Root("network_id"), req, resp)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }
 
 // difference returns the elements in `a` that aren't in `b`.
