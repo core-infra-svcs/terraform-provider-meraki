@@ -562,7 +562,7 @@ func (r *DevicesSwitchPortResource) ImportState(ctx context.Context, req resourc
 	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
 		resp.Diagnostics.AddError(
 			"Unexpected Import Identifier",
-			fmt.Sprintf("Expected import identifier with format: organization_id, network_id. Got: %q", req.ID),
+			fmt.Sprintf("Expected import identifier with format: serial, port_id. Got: %q", req.ID),
 		)
 		return
 	}
@@ -774,7 +774,7 @@ func DevicesSwitchPortResourceResponse(ctx context.Context, response *openApiCli
 		return data, diags
 	}
 	data.LinkNegotiationCapabilities = listValue
-	data.Id = jsontypes.StringValue("example-id")
+	data.Id = jsontypes.StringValue(data.Serial.ValueString() + "," + data.PortId.ValueString())
 
 	return data, nil
 }
