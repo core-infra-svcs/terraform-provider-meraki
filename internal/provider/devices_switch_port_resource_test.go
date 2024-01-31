@@ -39,8 +39,7 @@ func TestAccDevicesSwitchPortResource(t *testing.T) {
 			{
 				Config: testAccDevicesSwitchPortResourceConfigRead(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), os.Getenv("TF_ACC_MERAKI_MS_SERIAL")),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_devices_switch_port.test", "id", "example-id"),
-					resource.TestCheckResourceAttr("meraki_devices_switch_port.test", "port_id", "1"),
+					resource.TestCheckResourceAttr("meraki_devices_switch_port.test", "port_id", "2"),
 					resource.TestCheckResourceAttr("meraki_devices_switch_port.test", "enabled", "true"),
 					resource.TestCheckResourceAttr("meraki_devices_switch_port.test", "poe_enabled", "true"),
 					resource.TestCheckResourceAttr("meraki_devices_switch_port.test", "type", "access"),
@@ -57,6 +56,13 @@ func TestAccDevicesSwitchPortResource(t *testing.T) {
 					resource.TestCheckResourceAttr("meraki_devices_switch_port.test", "profile.iname", ""),
 					resource.TestCheckResourceAttr("meraki_devices_switch_port.test", "profile.id", "0"),
 				),
+			},
+
+			// ImportState test case.
+			{
+				ResourceName:      "meraki_devices_switch_port.test",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -99,7 +105,7 @@ resource "meraki_devices_switch_port" "test" {
 	serial = "%s"
 	name = "My switch port"	
 	tags = ["tag1", "tag2"]
-	port_id = 1
+	port_id = 2
 	enabled = true
 	type = "access"
 	poe_enabled = true
