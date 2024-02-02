@@ -72,10 +72,9 @@ type DevicesResourceModelBeaconIdParams struct {
 
 func DevicesResourceModelBeaconIdParamsAttrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
-		"enabled": types.BoolType,
-		"uuid":    jsontypes.StringType,
-		"major":   jsontypes.Int64Type,
-		"minor":   jsontypes.Int64Type,
+		"uuid":  jsontypes.StringType,
+		"major": jsontypes.Int64Type,
+		"minor": jsontypes.Int64Type,
 	}
 }
 
@@ -349,7 +348,21 @@ func (r *DevicesResource) Create(ctx context.Context, req resource.CreateRequest
 		return
 	}
 
-	//TODO: Need a custom unmarshaler for beacon_id_params either in the struct or here inline
+	if data.BeaconIdParams.IsUnknown() {
+
+		var BeaconIdParams DevicesResourceModelBeaconIdParams
+		BeaconIdParams.Uuid = jsontypes.StringNull()
+		BeaconIdParams.Major = jsontypes.Int64Null()
+		BeaconIdParams.Minor = jsontypes.Int64Null()
+
+		BeaconIdParamsObject, BeaconIdParamsObjectDiags := types.ObjectValueFrom(ctx, DevicesResourceModelBeaconIdParamsAttrTypes(), BeaconIdParams)
+		if BeaconIdParamsObjectDiags.HasError() {
+			resp.Diagnostics.AddError("BeaconIdParams Error", fmt.Sprintf("\n%v", BeaconIdParamsObjectDiags.Errors()))
+			return
+		}
+
+		data.BeaconIdParams = BeaconIdParamsObject
+	}
 
 	if data.Firmware.IsUnknown() {
 		data.Firmware = jsontypes.StringNull()
@@ -438,6 +451,22 @@ func (r *DevicesResource) Read(ctx context.Context, req resource.ReadRequest, re
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 		return
+	}
+
+	if data.BeaconIdParams.IsUnknown() {
+
+		var BeaconIdParams DevicesResourceModelBeaconIdParams
+		BeaconIdParams.Uuid = jsontypes.StringNull()
+		BeaconIdParams.Major = jsontypes.Int64Null()
+		BeaconIdParams.Minor = jsontypes.Int64Null()
+
+		BeaconIdParamsObject, BeaconIdParamsObjectDiags := types.ObjectValueFrom(ctx, DevicesResourceModelBeaconIdParamsAttrTypes(), BeaconIdParams)
+		if BeaconIdParamsObjectDiags.HasError() {
+			resp.Diagnostics.AddError("BeaconIdParams Error", fmt.Sprintf("\n%v", BeaconIdParamsObjectDiags.Errors()))
+			return
+		}
+
+		data.BeaconIdParams = BeaconIdParamsObject
 	}
 
 	if data.Firmware.IsUnknown() {
@@ -558,6 +587,22 @@ func (r *DevicesResource) Update(ctx context.Context, req resource.UpdateRequest
 			fmt.Sprintf("%v\n", err.Error()),
 		)
 		return
+	}
+
+	if data.BeaconIdParams.IsUnknown() {
+
+		var BeaconIdParams DevicesResourceModelBeaconIdParams
+		BeaconIdParams.Uuid = jsontypes.StringNull()
+		BeaconIdParams.Major = jsontypes.Int64Null()
+		BeaconIdParams.Minor = jsontypes.Int64Null()
+
+		BeaconIdParamsObject, BeaconIdParamsObjectDiags := types.ObjectValueFrom(ctx, DevicesResourceModelBeaconIdParamsAttrTypes(), BeaconIdParams)
+		if BeaconIdParamsObjectDiags.HasError() {
+			resp.Diagnostics.AddError("BeaconIdParams Error", fmt.Sprintf("\n%v", BeaconIdParamsObjectDiags.Errors()))
+			return
+		}
+
+		data.BeaconIdParams = BeaconIdParamsObject
 	}
 
 	if data.Firmware.IsUnknown() {

@@ -37,21 +37,26 @@ func TestAccDevicesResource(t *testing.T) {
 				),
 			},
 
-			// Update and Read Device Attributes
+			// CLaim Device to Network
 			{
-				Config: testAccDevicesResourceConfigUpdateDevice(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), os.Getenv("TF_ACC_MERAKI_MR_SERIAL")),
+				Config: testAccDevicesResourceConfigUpdateDeviceClaim(os.Getenv("TF_ACC_MERAKI_MR_SERIAL")),
 				Check: resource.ComposeAggregateTestCheckFunc(
 
 					// Claim A Device To A Network
 					resource.TestCheckResourceAttr("meraki_networks_devices_claim.test", "serials.0", os.Getenv("TF_ACC_MERAKI_MR_SERIAL")),
+				),
+			},
 
-					// Device
+			// Update and Read Device Attributes
+			{
+				Config: testAccDevicesResourceConfigUpdateDevice(os.Getenv("TF_ACC_MERAKI_MR_SERIAL")),
+				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_devices.test", "id", os.Getenv("TF_ACC_MERAKI_MR_SERIAL")),
 					resource.TestCheckResourceAttr("meraki_devices.test", "serial", os.Getenv("TF_ACC_MERAKI_MR_SERIAL")),
 					resource.TestCheckResourceAttr("meraki_devices.test", "lat", "37.418095"),
 					resource.TestCheckResourceAttr("meraki_devices.test", "lng", "-122.09853"),
 					resource.TestCheckResourceAttr("meraki_devices.test", "address", "new address"),
-					resource.TestCheckResourceAttr("meraki_devices.test", "name", "test_acc_mx_device"),
+					resource.TestCheckResourceAttr("meraki_devices.test", "name", "test_acc_test_device"),
 					resource.TestCheckResourceAttr("meraki_devices.test", "notes", "test notes"),
 					resource.TestCheckResourceAttr("meraki_devices.test", "tags.#", "1"),
 					resource.TestCheckResourceAttr("meraki_devices.test", "tags.0", "recently-added"),
@@ -74,9 +79,9 @@ func testAccDevicesResourceConfigCreateNetwork(orgId string) string {
 	result := fmt.Sprintf(`
 resource "meraki_network" "test" {
 	organization_id = "%s"
+	name = "test_acc_network_device"
 	product_types = ["appliance", "switch", "wireless"]
 	tags = ["tag1"]
-	name = "test_acc_network_device"
 	timezone = "America/Los_Angeles"
 	notes = "Additional description of the network"
 }
@@ -84,35 +89,50 @@ resource "meraki_network" "test" {
 	return result
 }
 
-// testAccDevicesResourceConfigUpdateDevice is a constant string that defines the configuration for updating a devices' resource in your tests.
-// It depends on both the organization and network resources.
-func testAccDevicesResourceConfigUpdateDevice(orgId string, serial string) string {
+func testAccDevicesResourceConfigUpdateDeviceClaim(serial string) string {
 	result := fmt.Sprintf(`
-
 resource "meraki_network" "test" {
-        organization_id = "%s"
-        product_types = ["appliance", "switch", "wireless"]
+	product_types = ["appliance", "switch", "wireless"]
+
 }
+
 resource "meraki_networks_devices_claim" "test" {
-    depends_on = [resource.meraki_network.test]
-    network_id = resource.meraki_network.test.network_id
+    depends_on = ["resource.meraki_network.test"]
+	network_id = resource.meraki_network.test.network_id
     serials = [
       "%s"
   ]
 }
 
+
+`, serial)
+	return result
+}
+
+// testAccDevicesResourceConfigUpdateDevice is a constant string that defines the configuration for updating a devices' resource in your tests.
+// It depends on both the organization and network resources.
+func testAccDevicesResourceConfigUpdateDevice(serial string) string {
+	result := fmt.Sprintf(`
+
+resource "meraki_network" "test" {
+	product_types = ["appliance", "switch", "wireless"]
+}
+
+resource "meraki_networks_devices_claim" "test" {
+	network_id = resource.meraki_network.test.network_id
+}
+
 resource "meraki_devices" "test" {
-	depends_on = [resource.meraki_networks_devices_claim.test]
+	depends_on = ["resource.meraki_network.test", "resource.meraki_networks_devices_claim.test"]
 	network_id = resource.meraki_network.test.network_id
   	serial = "%s"
     lat = 37.418095
     lng = -122.09853
     address = "new address"
-    name = "test_acc_mx_device"
+    name = "test_acc_test_device"
     notes = "test notes"
-    beacon_id_params = {}
     tags = ["recently-added"]
 }	
-`, orgId, serial, serial)
+`, serial)
 	return result
 }
