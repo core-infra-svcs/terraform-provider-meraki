@@ -30,58 +30,60 @@ func TestAccDevicesResource(t *testing.T) {
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
 					resource.TestCheckResourceAttr("meraki_network.test", "product_types.#", "1"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.0", "appliance"),
+					resource.TestCheckResourceAttr("meraki_network.test", "product_types.0", "wireless"),
 					resource.TestCheckResourceAttr("meraki_network.test", "notes", "Additional description of the network"),
 				),
 			},
 
-			// Claim A Device To A Network
+			// Claim Device to Network
 			{
-				Config: testAccDevicesResourceConfigClaimNetworkDevice(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
+				Config: testAccDevicesResourceConfigDeviceClaim(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), os.Getenv("TF_ACC_MERAKI_MR_SERIAL")),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_devices_claim.test", "id", "example-id"),
+
+					// Claim A Device To A Network
+					resource.TestCheckResourceAttr("meraki_networks_devices_claim.test", "serials.0", os.Getenv("TF_ACC_MERAKI_MR_SERIAL")),
 				),
 			},
 
 			// Update and Read Device Attributes
 			{
-				Config: testAccDevicesResourceConfigUpdateDevice(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
+				Config: testAccDevicesResourceConfigUpdateDevice(os.Getenv("TF_ACC_MERAKI_MR_SERIAL")),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_devices.test", "id", "example-id"),
-					resource.TestCheckResourceAttr("meraki_devices.test", "serial", os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
+					resource.TestCheckResourceAttr("meraki_devices.test", "id", os.Getenv("TF_ACC_MERAKI_MR_SERIAL")),
+					resource.TestCheckResourceAttr("meraki_devices.test", "serial", os.Getenv("TF_ACC_MERAKI_MR_SERIAL")),
 					resource.TestCheckResourceAttr("meraki_devices.test", "lat", "37.418095"),
 					resource.TestCheckResourceAttr("meraki_devices.test", "lng", "-122.09853"),
 					resource.TestCheckResourceAttr("meraki_devices.test", "address", "new address"),
-					resource.TestCheckResourceAttr("meraki_devices.test", "name", "test_acc_mx_device"),
+					resource.TestCheckResourceAttr("meraki_devices.test", "name", "test_acc_test_device"),
 					resource.TestCheckResourceAttr("meraki_devices.test", "notes", "test notes"),
 					resource.TestCheckResourceAttr("meraki_devices.test", "tags.#", "1"),
 					resource.TestCheckResourceAttr("meraki_devices.test", "tags.0", "recently-added"),
+					//resource.TestCheckResourceAttr("meraki_devices.test", "beacon_id_params.%", "3"),
+					//resource.TestCheckResourceAttr("meraki_devices.test", "beacon_id_params.uuid", "00000000-0000-0000-0000-000000000000"),
+					//resource.TestCheckResourceAttr("meraki_devices.test", "beacon_id_params.major", "5"),
+					//resource.TestCheckResourceAttr("meraki_devices.test", "beacon_id_params.minor", "3"),
 				),
 			},
+
+			// ImportState test case.
+			{
+				ResourceName:      "meraki_devices.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
-
-		// ImportState test case.
-		/*
-		   {
-		       ResourceName:      "meraki_devices.test",
-		       ImportState:       true,
-		       ImportStateVerify: false,
-		       ImportStateId:     "1234567890, 0987654321",
-		   },
-		*/
-
 	})
 }
 
 // testAccNetworksDevicesClaimResourceConfigCreateNetwork is a constant string that defines the configuration for creating a network resource in your tests.
-// It depends on the organization resource. Thisd will not work if the network already exists
+// It depends on the organization resource. This will not work if the network already exists
 func testAccDevicesResourceConfigCreateNetwork(orgId string) string {
 	result := fmt.Sprintf(`
 resource "meraki_network" "test" {
 	organization_id = "%s"
-	product_types = ["appliance"]
-	tags = ["tag1"]
 	name = "test_acc_network_device"
+	product_types = ["wireless"]
+	tags = ["tag1"]
 	timezone = "America/Los_Angeles"
 	notes = "Additional description of the network"
 }
@@ -89,54 +91,51 @@ resource "meraki_network" "test" {
 	return result
 }
 
-// testAccDevicesResourceConfigClaimNetworkDevice is a constant string that defines the configuration for creating and reading a networks_devices_claim resource in your tests.
-// It depends on both the organization and network resources.
-func testAccDevicesResourceConfigClaimNetworkDevice(orgId string, serial string) string {
+func testAccDevicesResourceConfigDeviceClaim(orgId string, serial string) string {
 	result := fmt.Sprintf(`
 resource "meraki_network" "test" {
-        organization_id = "%s"
-        product_types = ["appliance"]
+	organization_id = "%s"
+	product_types = ["wireless"]
 }
+
 resource "meraki_networks_devices_claim" "test" {
-    depends_on = [resource.meraki_network.test]
-    network_id = resource.meraki_network.test.network_id
+	depends_on = ["resource.meraki_network.test"]
+	network_id = resource.meraki_network.test.network_id
     serials = [
       "%s"
   ]
 }
+
+
 `, orgId, serial)
 	return result
 }
 
 // testAccDevicesResourceConfigUpdateDevice is a constant string that defines the configuration for updating a devices' resource in your tests.
 // It depends on both the organization and network resources.
-func testAccDevicesResourceConfigUpdateDevice(orgId string, serial string) string {
+func testAccDevicesResourceConfigUpdateDevice(serial string) string {
 	result := fmt.Sprintf(`
 
 resource "meraki_network" "test" {
-        organization_id = "%s"
-        product_types = ["appliance"]
+	product_types = ["wireless"]
 }
+
 resource "meraki_networks_devices_claim" "test" {
-    depends_on = [resource.meraki_network.test]
-    network_id = resource.meraki_network.test.network_id
-    serials = [
-      "%s"
-  ]
+	depends_on = ["resource.meraki_network.test"]
+	network_id = resource.meraki_network.test.network_id
 }
 
 resource "meraki_devices" "test" {
-	depends_on = [resource.meraki_network.test, resource.meraki_networks_devices_claim.test]
+	depends_on = ["resource.meraki_network.test", "resource.meraki_networks_devices_claim.test"]
 	network_id = resource.meraki_network.test.network_id
   	serial = "%s"
     lat = 37.418095
     lng = -122.09853
     address = "new address"
-    name = "test_acc_mx_device"
+    name = "test_acc_test_device"
     notes = "test notes"
-    beacon_id_params = {}
     tags = ["recently-added"]
 }	
-`, orgId, serial, serial)
+`, serial)
 	return result
 }

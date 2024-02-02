@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"strings"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
@@ -42,30 +44,46 @@ type DevicesResourceModel struct {
 
 	// The Id field is mandatory for all resources. It's used for resource identification and is required
 	// for the acceptance tests to run.
-	Id              jsontypes.String                   `tfsdk:"id"`
-	Serial          jsontypes.String                   `tfsdk:"serial"`
-	Name            jsontypes.String                   `tfsdk:"name"`
-	Mac             jsontypes.String                   `tfsdk:"mac"`
-	Model           jsontypes.String                   `tfsdk:"model"`
-	Tags            jsontypes.Set[jsontypes.String]    `tfsdk:"tags"`
-	LanIp           jsontypes.String                   `tfsdk:"lan_ip"`
-	Firmware        jsontypes.String                   `tfsdk:"firmware"`
-	Lat             jsontypes.Float64                  `tfsdk:"lat"`
-	Lng             jsontypes.Float64                  `tfsdk:"lng"`
-	Address         jsontypes.String                   `tfsdk:"address"`
-	Notes           jsontypes.String                   `tfsdk:"notes"`
-	Url             jsontypes.String                   `tfsdk:"url"`
-	FloorPlanId     jsontypes.String                   `tfsdk:"floor_plan_id"`
-	NetworkId       jsontypes.String                   `tfsdk:"network_id"`
-	BeaconIdParams  DevicesResourceModelBeaconIdParams `tfsdk:"beacon_id_params"`
-	SwitchProfileId jsontypes.String                   `tfsdk:"switch_profile_id"`
-	MoveMapMarker   jsontypes.Bool                     `tfsdk:"move_map_marker"`
+	Id              jsontypes.String                `tfsdk:"id"`
+	Serial          jsontypes.String                `tfsdk:"serial"`
+	Name            jsontypes.String                `tfsdk:"name"`
+	Mac             jsontypes.String                `tfsdk:"mac"`
+	Model           jsontypes.String                `tfsdk:"model"`
+	Tags            jsontypes.Set[jsontypes.String] `tfsdk:"tags"`
+	LanIp           jsontypes.String                `tfsdk:"lan_ip"`
+	Firmware        jsontypes.String                `tfsdk:"firmware"`
+	Lat             jsontypes.Float64               `tfsdk:"lat"`
+	Lng             jsontypes.Float64               `tfsdk:"lng"`
+	Address         jsontypes.String                `tfsdk:"address"`
+	Notes           jsontypes.String                `tfsdk:"notes"`
+	Url             jsontypes.String                `tfsdk:"url"`
+	FloorPlanId     jsontypes.String                `tfsdk:"floor_plan_id"`
+	NetworkId       jsontypes.String                `tfsdk:"network_id"`
+	BeaconIdParams  types.Object                    `tfsdk:"beacon_id_params"`
+	SwitchProfileId jsontypes.String                `tfsdk:"switch_profile_id"`
+	MoveMapMarker   jsontypes.Bool                  `tfsdk:"move_map_marker"`
 }
 
 type DevicesResourceModelBeaconIdParams struct {
 	Uuid  jsontypes.String `tfsdk:"uuid"`
 	Major jsontypes.Int64  `tfsdk:"major"`
 	Minor jsontypes.Int64  `tfsdk:"minor"`
+}
+
+func DevicesResourceModelBeaconIdParamsAttrTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"uuid":  jsontypes.StringType,
+		"major": jsontypes.Int64Type,
+		"minor": jsontypes.Int64Type,
+	}
+}
+
+func DevicesResourceModelBeaconIdParamsNullValues() map[string]attr.Value {
+	return map[string]attr.Value{
+		"uuid":  jsontypes.StringNull(),
+		"major": jsontypes.Int64Null(),
+		"minor": jsontypes.Int64Null(),
+	}
 }
 
 // Metadata provides a way to define information about the resource.
@@ -337,15 +355,11 @@ func (r *DevicesResource) Create(ctx context.Context, req resource.CreateRequest
 		)
 		return
 	}
-	if data.BeaconIdParams.Major.IsUnknown() {
-		data.BeaconIdParams.Major = jsontypes.Int64Null()
+
+	if data.BeaconIdParams.IsUnknown() {
+		data.BeaconIdParams = types.ObjectNull(DevicesResourceModelBeaconIdParamsAttrTypes())
 	}
-	if data.BeaconIdParams.Minor.IsUnknown() {
-		data.BeaconIdParams.Minor = jsontypes.Int64Null()
-	}
-	if data.BeaconIdParams.Uuid.IsUnknown() {
-		data.BeaconIdParams.Uuid = jsontypes.StringNull()
-	}
+
 	if data.Firmware.IsUnknown() {
 		data.Firmware = jsontypes.StringNull()
 	}
@@ -372,7 +386,7 @@ func (r *DevicesResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	// Set ID for the new resource.
-	data.Id = jsontypes.StringValue("example-id")
+	data.Id = jsontypes.StringValue(data.Serial.ValueString())
 
 	// Now set the final state of the resource.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -435,15 +449,10 @@ func (r *DevicesResource) Read(ctx context.Context, req resource.ReadRequest, re
 		return
 	}
 
-	if data.BeaconIdParams.Major.IsUnknown() {
-		data.BeaconIdParams.Major = jsontypes.Int64Null()
+	if data.BeaconIdParams.IsUnknown() {
+		data.BeaconIdParams = types.ObjectNull(DevicesResourceModelBeaconIdParamsAttrTypes())
 	}
-	if data.BeaconIdParams.Minor.IsUnknown() {
-		data.BeaconIdParams.Minor = jsontypes.Int64Null()
-	}
-	if data.BeaconIdParams.Uuid.IsUnknown() {
-		data.BeaconIdParams.Uuid = jsontypes.StringNull()
-	}
+
 	if data.Firmware.IsUnknown() {
 		data.Firmware = jsontypes.StringNull()
 	}
@@ -470,7 +479,7 @@ func (r *DevicesResource) Read(ctx context.Context, req resource.ReadRequest, re
 	}
 
 	// Set ID for the resource.
-	data.Id = jsontypes.StringValue("example-id")
+	data.Id = jsontypes.StringValue(data.Serial.ValueString())
 
 	// Now set the final state of the resource.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -564,15 +573,10 @@ func (r *DevicesResource) Update(ctx context.Context, req resource.UpdateRequest
 		return
 	}
 
-	if data.BeaconIdParams.Major.IsUnknown() {
-		data.BeaconIdParams.Major = jsontypes.Int64Null()
+	if data.BeaconIdParams.IsUnknown() {
+		data.BeaconIdParams = types.ObjectNull(DevicesResourceModelBeaconIdParamsAttrTypes())
 	}
-	if data.BeaconIdParams.Minor.IsUnknown() {
-		data.BeaconIdParams.Minor = jsontypes.Int64Null()
-	}
-	if data.BeaconIdParams.Uuid.IsUnknown() {
-		data.BeaconIdParams.Uuid = jsontypes.StringNull()
-	}
+
 	if data.Firmware.IsUnknown() {
 		data.Firmware = jsontypes.StringNull()
 	}
@@ -599,7 +603,7 @@ func (r *DevicesResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 
 	// Set ID for the new resource.
-	data.Id = jsontypes.StringValue("example-id")
+	data.Id = jsontypes.StringValue(data.Serial.ValueString())
 
 	// Now set the updated state of the resource.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -684,9 +688,6 @@ func (r *DevicesResource) Delete(ctx context.Context, req resource.DeleteRequest
 		)
 		return
 	}
-
-	// Set ID for the new resource.
-	data.Id = jsontypes.StringValue("example-id")
 
 	resp.State.RemoveResource(ctx)
 
