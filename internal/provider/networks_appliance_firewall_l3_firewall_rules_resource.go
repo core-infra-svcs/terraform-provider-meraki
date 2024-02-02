@@ -166,7 +166,7 @@ func (r *NetworksApplianceFirewallL3FirewallRulesResource) Create(ctx context.Co
 		return
 	}
 
-	updateNetworkApplianceFirewallL3FirewallRules := *openApiClient.NewUpdateNetworkApplianceFirewallInboundFirewallRulesRequest()
+	updateNetworkApplianceFirewallL3FirewallRules := *openApiClient.NewUpdateNetworkApplianceFirewallL3FirewallRulesRequest()
 	var rules []openApiClient.UpdateNetworkApplianceFirewallCellularFirewallRulesRequestRulesInner
 
 	if len(data.Rules) > 0 {
@@ -188,7 +188,7 @@ func (r *NetworksApplianceFirewallL3FirewallRulesResource) Create(ctx context.Co
 
 	updateNetworkApplianceFirewallL3FirewallRules.SetRules(rules)
 
-	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceFirewallL3FirewallRules(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceFirewallInboundFirewallRulesRequest(updateNetworkApplianceFirewallL3FirewallRules).Execute()
+	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceFirewallL3FirewallRules(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceFirewallL3FirewallRulesRequest(updateNetworkApplianceFirewallL3FirewallRules).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"HTTP Client Failure",
@@ -293,7 +293,7 @@ func (r *NetworksApplianceFirewallL3FirewallRulesResource) Update(ctx context.Co
 		return
 	}
 
-	updateNetworkApplianceFirewallL3FirewallRules := *openApiClient.NewUpdateNetworkApplianceFirewallInboundFirewallRulesRequest()
+	updateNetworkApplianceFirewallL3FirewallRules := *openApiClient.NewUpdateNetworkApplianceFirewallL3FirewallRulesRequest()
 	var rules []openApiClient.UpdateNetworkApplianceFirewallCellularFirewallRulesRequestRulesInner
 
 	if len(data.Rules) > 0 {
@@ -315,7 +315,7 @@ func (r *NetworksApplianceFirewallL3FirewallRulesResource) Update(ctx context.Co
 
 	updateNetworkApplianceFirewallL3FirewallRules.SetRules(rules)
 
-	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceFirewallL3FirewallRules(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceFirewallInboundFirewallRulesRequest(updateNetworkApplianceFirewallL3FirewallRules).Execute()
+	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceFirewallL3FirewallRules(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceFirewallL3FirewallRulesRequest(updateNetworkApplianceFirewallL3FirewallRules).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"HTTP Client Failure",
@@ -365,12 +365,12 @@ func (r *NetworksApplianceFirewallL3FirewallRulesResource) Delete(ctx context.Co
 		return
 	}
 
-	updateNetworkApplianceFirewallL3FirewallRules := *openApiClient.NewUpdateNetworkApplianceFirewallInboundFirewallRulesRequest()
+	updateNetworkApplianceFirewallL3FirewallRules := *openApiClient.NewUpdateNetworkApplianceFirewallL3FirewallRulesRequest()
 
 	updateNetworkApplianceFirewallL3FirewallRules.Rules = nil
 	updateNetworkApplianceFirewallL3FirewallRules.SetSyslogDefaultRule(false)
 
-	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceFirewallL3FirewallRules(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceFirewallInboundFirewallRulesRequest(updateNetworkApplianceFirewallL3FirewallRules).Execute()
+	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceFirewallL3FirewallRules(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceFirewallL3FirewallRulesRequest(updateNetworkApplianceFirewallL3FirewallRules).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"HTTP Client Failure",

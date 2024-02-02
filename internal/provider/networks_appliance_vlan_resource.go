@@ -977,29 +977,9 @@ func ReadHttpResponse(ctx context.Context, data *NetworksApplianceVLANsResourceM
 
 		for macAddress, assignmentInterface := range response.GetFixedIpAssignments() {
 
-			// Check if the value is indeed a map with expected fields
-			assignmentMap, ok := assignmentInterface.(map[string]interface{})
-			if !ok {
-				resp.AddError("failed fixedIpAssignmentMap", "assignmentMap not ok")
-				continue
-			}
-
-			// Extract IP and Name from the map, asserting their types
-			ip, ipOk := assignmentMap["ip"].(string)
-			if !ipOk {
-				resp.AddError("failed fixedIpAssignmentMap", "ip not ok")
-				continue
-			}
-
-			name, nameOk := assignmentMap["name"].(string)
-			if !nameOk {
-				resp.AddError("failed fixedIpAssignmentMap", "name not ok")
-				continue
-			}
-
 			fixedIpAssignmentObject := map[string]attr.Value{
-				"ip":   types.StringValue(ip),
-				"name": types.StringValue(name),
+				"ip":   types.StringValue(assignmentInterface.GetIp()),
+				"name": types.StringValue(assignmentInterface.GetName()),
 			}
 
 			fixedIpAssignmentValue, fixedIpAssignmentsDiags := types.ObjectValueFrom(ctx, fixedIpAssignmentAttrTypes, fixedIpAssignmentObject)

@@ -256,19 +256,21 @@ func (r *NetworksSettingsResource) Create(ctx context.Context, req resource.Crea
 		data.NamedVlansEnabled = jsontypes.BoolNull()
 	}
 
-	if len(inlineResp.ClientPrivacy.GetExpireDataBefore().String()) > 0 {
-		data.ClientPrivacyExpireDataBefore = jsontypes.StringValue(inlineResp.ClientPrivacy.GetExpireDataBefore().String())
+	/*
+		if len(inlineResp.ClientPrivacy.GetExpireDataBefore().String()) > 0 {
+				data.ClientPrivacyExpireDataBefore = jsontypes.StringValue(inlineResp.ClientPrivacy.GetExpireDataBefore().String())
 
-	} else {
-		data.ClientPrivacyExpireDataBefore = jsontypes.StringNull()
+			} else {
+				data.ClientPrivacyExpireDataBefore = jsontypes.StringNull()
 
-	}
+			}
 
-	if inlineResp.ClientPrivacy.GetExpireDataOlderThan() != 0 {
-		data.ClientPrivacyExpireDataOlderThan = jsontypes.Int64Value(int64(inlineResp.ClientPrivacy.GetExpireDataOlderThan()))
-	} else {
-		data.ClientPrivacyExpireDataOlderThan = jsontypes.Int64Null()
-	}
+		if inlineResp.ClientPrivacy.GetExpireDataOlderThan() != 0 {
+				data.ClientPrivacyExpireDataOlderThan = jsontypes.Int64Value(int64(inlineResp.ClientPrivacy.GetExpireDataOlderThan()))
+			} else {
+				data.ClientPrivacyExpireDataOlderThan = jsontypes.Int64Null()
+			}
+	*/
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -325,19 +327,22 @@ func (r *NetworksSettingsResource) Read(ctx context.Context, req resource.ReadRe
 		data.NamedVlansEnabled = jsontypes.BoolNull()
 	}
 
-	if len(inlineResp.ClientPrivacy.GetExpireDataBefore().String()) > 0 {
-		data.ClientPrivacyExpireDataBefore = jsontypes.StringValue(inlineResp.ClientPrivacy.GetExpireDataBefore().String())
+	/*
+		if len(inlineResp.ClientPrivacy.GetExpireDataBefore().String()) > 0 {
+			data.ClientPrivacyExpireDataBefore = jsontypes.StringValue(inlineResp.ClientPrivacy.GetExpireDataBefore().String())
 
-	} else {
-		data.ClientPrivacyExpireDataBefore = jsontypes.StringNull()
+		} else {
+			data.ClientPrivacyExpireDataBefore = jsontypes.StringNull()
 
-	}
+		}
 
-	if inlineResp.ClientPrivacy.GetExpireDataOlderThan() != 0 {
-		data.ClientPrivacyExpireDataOlderThan = jsontypes.Int64Value(int64(inlineResp.ClientPrivacy.GetExpireDataOlderThan()))
-	} else {
-		data.ClientPrivacyExpireDataOlderThan = jsontypes.Int64Null()
-	}
+		if inlineResp.ClientPrivacy.GetExpireDataOlderThan() != 0 {
+			data.ClientPrivacyExpireDataOlderThan = jsontypes.Int64Value(int64(inlineResp.ClientPrivacy.GetExpireDataOlderThan()))
+		} else {
+			data.ClientPrivacyExpireDataOlderThan = jsontypes.Int64Null()
+		}
+
+	*/
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -408,19 +413,21 @@ func (r *NetworksSettingsResource) Update(ctx context.Context, req resource.Upda
 		data.NamedVlansEnabled = jsontypes.BoolNull()
 	}
 
-	if len(inlineResp.ClientPrivacy.GetExpireDataBefore().String()) > 0 {
-		data.ClientPrivacyExpireDataBefore = jsontypes.StringValue(inlineResp.ClientPrivacy.GetExpireDataBefore().String())
+	/*
+		if len(inlineResp.ClientPrivacy.GetExpireDataBefore().String()) > 0 {
+				data.ClientPrivacyExpireDataBefore = jsontypes.StringValue(inlineResp.ClientPrivacy.GetExpireDataBefore().String())
 
-	} else {
-		data.ClientPrivacyExpireDataBefore = jsontypes.StringNull()
+			} else {
+				data.ClientPrivacyExpireDataBefore = jsontypes.StringNull()
 
-	}
+			}
 
-	if inlineResp.ClientPrivacy.GetExpireDataOlderThan() != 0 {
-		data.ClientPrivacyExpireDataOlderThan = jsontypes.Int64Value(int64(inlineResp.ClientPrivacy.GetExpireDataOlderThan()))
-	} else {
-		data.ClientPrivacyExpireDataOlderThan = jsontypes.Int64Null()
-	}
+			if inlineResp.ClientPrivacy.GetExpireDataOlderThan() != 0 {
+				data.ClientPrivacyExpireDataOlderThan = jsontypes.Int64Value(int64(inlineResp.ClientPrivacy.GetExpireDataOlderThan()))
+			} else {
+				data.ClientPrivacyExpireDataOlderThan = jsontypes.Int64Null()
+			}
+	*/
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -491,19 +498,21 @@ func (r *NetworksSettingsResource) Delete(ctx context.Context, req resource.Dele
 		data.NamedVlansEnabled = jsontypes.BoolNull()
 	}
 
-	if len(inlineResp.ClientPrivacy.GetExpireDataBefore().String()) > 0 {
-		data.ClientPrivacyExpireDataBefore = jsontypes.StringValue(inlineResp.ClientPrivacy.GetExpireDataBefore().String())
+	/*
+		if len(inlineResp.ClientPrivacy.GetExpireDataBefore().String()) > 0 {
+				data.ClientPrivacyExpireDataBefore = jsontypes.StringValue(inlineResp.ClientPrivacy.GetExpireDataBefore().String())
 
-	} else {
-		data.ClientPrivacyExpireDataBefore = jsontypes.StringNull()
+			} else {
+				data.ClientPrivacyExpireDataBefore = jsontypes.StringNull()
 
-	}
+			}
 
-	if inlineResp.ClientPrivacy.GetExpireDataOlderThan() != 0 {
-		data.ClientPrivacyExpireDataOlderThan = jsontypes.Int64Value(int64(inlineResp.ClientPrivacy.GetExpireDataOlderThan()))
-	} else {
-		data.ClientPrivacyExpireDataOlderThan = jsontypes.Int64Null()
-	}
+			if inlineResp.ClientPrivacy.GetExpireDataOlderThan() != 0 {
+				data.ClientPrivacyExpireDataOlderThan = jsontypes.Int64Value(int64(inlineResp.ClientPrivacy.GetExpireDataOlderThan()))
+			} else {
+				data.ClientPrivacyExpireDataOlderThan = jsontypes.Int64Null()
+			}
+	*/
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
