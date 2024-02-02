@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccNetworkSwitchQosRulesResource(t *testing.T) {
+func TestAccNetworkSwitchQosRuleResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
 			testAccPreCheck(t)
@@ -18,9 +18,9 @@ func TestAccNetworkSwitchQosRulesResource(t *testing.T) {
 
 			// Create and Read Network.
 			{
-				Config: testAccNetworkSwitchQosRulesResourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
+				Config: testAccNetworkSwitchQosRuleResourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_network_switch_qos_rules"),
+					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_network_switch_qos_rule"),
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
@@ -34,38 +34,45 @@ func TestAccNetworkSwitchQosRulesResource(t *testing.T) {
 
 			// Create and Read Networks Switch Qos Rules.
 			{
-				Config: testAccNetworkSwitchQosRulesResourceConfigCreateNetworkSwitchQosRules,
+				Config: testAccNetworkSwitchQosRuleResourceConfigCreateNetworkSwitchQosRule,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_switch_qos_rules.test", "vlan", "100"),
-					resource.TestCheckResourceAttr("meraki_networks_switch_qos_rules.test", "dst_port", "3000"),
-					resource.TestCheckResourceAttr("meraki_networks_switch_qos_rules.test", "src_port", "2000"),
-					resource.TestCheckResourceAttr("meraki_networks_switch_qos_rules.test", "dscp", "0"),
-					resource.TestCheckResourceAttr("meraki_networks_switch_qos_rules.test", "protocol", "TCP"),
+					resource.TestCheckResourceAttr("meraki_networks_switch_qos_rule.test", "vlan", "100"),
+					resource.TestCheckResourceAttr("meraki_networks_switch_qos_rule.test", "dst_port", "3000"),
+					resource.TestCheckResourceAttr("meraki_networks_switch_qos_rule.test", "src_port", "2000"),
+					resource.TestCheckResourceAttr("meraki_networks_switch_qos_rule.test", "dscp", "0"),
+					resource.TestCheckResourceAttr("meraki_networks_switch_qos_rule.test", "protocol", "TCP"),
 				),
 			},
 
 			// Update Networks Switch Qos Rules.
 			{
-				Config: testAccNetworkSwitchQosRulesResourceConfigUpdateNetworkSwitchQosRules,
+				Config: testAccNetworkSwitchQosRuleResourceConfigUpdateNetworkSwitchQosRule,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_switch_qos_rules.test", "vlan", "101"),
-					resource.TestCheckResourceAttr("meraki_networks_switch_qos_rules.test", "dst_port", "4000"),
-					resource.TestCheckResourceAttr("meraki_networks_switch_qos_rules.test", "src_port", "3000"),
-					resource.TestCheckResourceAttr("meraki_networks_switch_qos_rules.test", "dscp", "0"),
-					resource.TestCheckResourceAttr("meraki_networks_switch_qos_rules.test", "protocol", "UDP"),
+					resource.TestCheckResourceAttr("meraki_networks_switch_qos_rule.test", "vlan", "101"),
+					resource.TestCheckResourceAttr("meraki_networks_switch_qos_rule.test", "dst_port", "4000"),
+					resource.TestCheckResourceAttr("meraki_networks_switch_qos_rule.test", "src_port", "3000"),
+					resource.TestCheckResourceAttr("meraki_networks_switch_qos_rule.test", "dscp", "0"),
+					resource.TestCheckResourceAttr("meraki_networks_switch_qos_rule.test", "protocol", "UDP"),
 				),
+			},
+
+			// Import testing
+			{
+				ResourceName:      "meraki_networks_switch_qos_rule.test",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
-func testAccNetworkSwitchQosRulesResourceConfigCreateNetwork(orgId string) string {
+func testAccNetworkSwitchQosRuleResourceConfigCreateNetwork(orgId string) string {
 	result := fmt.Sprintf(`
 resource "meraki_network" "test" {
     organization_id = %s
     product_types = ["appliance", "switch", "wireless"]
     tags = ["tag1"]
-    name = "test_acc_network_switch_qos_rules"
+    name = "test_acc_network_switch_qos_rule"
     timezone = "America/Los_Angeles"
     notes = "Additional description of the network"
 }
@@ -73,11 +80,11 @@ resource "meraki_network" "test" {
 	return result
 }
 
-const testAccNetworkSwitchQosRulesResourceConfigCreateNetworkSwitchQosRules = `
+const testAccNetworkSwitchQosRuleResourceConfigCreateNetworkSwitchQosRule = `
 resource "meraki_network" "test" {
     product_types = ["appliance", "switch", "wireless"]
 }
-resource "meraki_networks_switch_qos_rules" "test" {
+resource "meraki_networks_switch_qos_rule" "test" {
     depends_on = [resource.meraki_network.test]
     network_id = resource.meraki_network.test.network_id
     vlan = 100
@@ -88,11 +95,11 @@ resource "meraki_networks_switch_qos_rules" "test" {
 }
 `
 
-const testAccNetworkSwitchQosRulesResourceConfigUpdateNetworkSwitchQosRules = `
+const testAccNetworkSwitchQosRuleResourceConfigUpdateNetworkSwitchQosRule = `
 resource "meraki_network" "test" {
     product_types = ["appliance", "switch", "wireless"]
 }
-resource "meraki_networks_switch_qos_rules" "test" {
+resource "meraki_networks_switch_qos_rule" "test" {
     depends_on = [resource.meraki_network.test]
     network_id = resource.meraki_network.test.network_id
     vlan = 101

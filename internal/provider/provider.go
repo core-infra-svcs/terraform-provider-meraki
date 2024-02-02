@@ -292,7 +292,7 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		NewNetworksApplianceVlansSettingsResource,
 		NewNetworksApplianceSettingsResource,
 		NewNetworksApplianceFirewallSettingsResource,
-		NewNetworksSwitchQosRulesResource,
+		NewNetworksSwitchQosRuleResource,
 		NewNetworksSwitchDscpToCosMappingsResource,
 		NewNetworksSwitchMtuResource,
 		NewNetworksGroupPolicyResource,
@@ -335,6 +335,7 @@ func (p *CiscoMerakiProvider) DataSources(ctx context.Context) []func() datasour
 		NewDevicesSwitchPortsStatusesDataSource,
 		NewDevicesApplianceDhcpSubnetsDataSource,
 		NewNetworksWirelessSsidsDataSource,
+		NewNetworksSwitchQosRulesDataSource,
 	}
 }
 

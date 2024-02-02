@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
@@ -557,10 +558,20 @@ func (r *DevicesSwitchPortResource) Delete(ctx context.Context, req resource.Del
 // The function expects an ImportStateRequest and responds with an ImportStateResponse which contains
 // the new state of the resource or an error.
 func (r *DevicesSwitchPortResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	idParts := strings.Split(req.ID, ",")
+	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: serial, port_id. Got: %q", req.ID),
+		)
+		return
+	}
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("serial"), idParts[0])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("port_id"), idParts[1])...)
 
-	// Pass through the ID directly from the ImportStateRequest to the ImportStateResponse
-	resource.ImportStatePassthroughID(ctx, path.Root("serial"), req, resp)
-
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }
 
 func DevicesSwitchPortResourcePayload(ctx context.Context, data *DevicesSwitchPortResourceModel) (openApiClient.UpdateDeviceSwitchPortRequest, diag.Diagnostics) {
@@ -763,7 +774,7 @@ func DevicesSwitchPortResourceResponse(ctx context.Context, response *openApiCli
 		return data, diags
 	}
 	data.LinkNegotiationCapabilities = listValue
-	data.Id = jsontypes.StringValue("example-id")
+	data.Id = jsontypes.StringValue(data.Serial.ValueString() + "," + data.PortId.ValueString())
 
 	return data, nil
 }
