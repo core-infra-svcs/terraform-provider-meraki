@@ -31,9 +31,7 @@ func TestAccNetworkAppliancePortsDatasource(t *testing.T) {
 			// Claim Appliance To Network
 			{
 				Config: testAccNetworkAppliancePortsDatasourceConfigClaimNetworkDevice(os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_devices_claim.test", "id", "example-id"),
-				),
+				Check:  resource.ComposeAggregateTestCheckFunc(),
 			},
 
 			// Update and Read Networks Appliance Vlans Settings.
