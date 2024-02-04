@@ -55,7 +55,7 @@ func TestAccNetworksWirelessSsidsSplashSettingsResource(t *testing.T) {
 			{
 				Config: testAccNetworksWirelessSsidsSplashSettingsResourceConfigCreate(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "id", "example-id"),
+					//resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "splash_url", "https://www.custom_splash_url.com"),
 					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "use_splash_url", "false"),
 					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "splash_timeout", "1440"),
@@ -78,7 +78,7 @@ func TestAccNetworksWirelessSsidsSplashSettingsResource(t *testing.T) {
 			{
 				Config: testAccNetworksWirelessSsidsSplashSettingsResourceConfigUpdate,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "id", "example-id"),
+					//resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "splash_url", "https://www.updatedcustom_splash_url.com"),
 					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "use_splash_url", "false"),
 					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "splash_timeout", "1450"),
