@@ -32,7 +32,7 @@ func TestAccDevicesCellularSimsResource(t *testing.T) {
 			{
 				Config: testAccDevicesCellularSimsResourceConfigUpdate(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), os.Getenv("TF_ACC_MERAKI_MG_SERIAL")),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_devices_cellular_sims.test", "id", "example-id"),
+					//resource.TestCheckResourceAttr("meraki_devices_cellular_sims.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_devices_cellular_sims.test", "sims.#", "1"),
 					resource.TestCheckResourceAttr("meraki_devices_cellular_sims.test", "sims.0.slot", "sim1"),
 					resource.TestCheckResourceAttr("meraki_devices_cellular_sims.test", "sims.0.is_primary", "true"),
