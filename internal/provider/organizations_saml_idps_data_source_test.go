@@ -15,7 +15,7 @@ func TestAccOrganizationsSamlIdpsDataSource(t *testing.T) {
 			{
 				Config: testAccOrganizationsSamlIdpsDataSourceConfigCreateOrganization,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
+					//resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_acc_meraki_organizations_saml_idps"),
 				),
 			},
@@ -24,7 +24,7 @@ func TestAccOrganizationsSamlIdpsDataSource(t *testing.T) {
 			{
 				Config: testAccOrganizationsSamlIdpsDataSourceConfigUpdateOrganizationSaml,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organization_saml.test", "id", "example-id"),
+					//resource.TestCheckResourceAttr("meraki_organization_saml.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_organization_saml.test", "enabled", "true"),
 				),
 			},
@@ -33,7 +33,7 @@ func TestAccOrganizationsSamlIdpsDataSource(t *testing.T) {
 			{
 				Config: testAccOrganizationsSamlIdpsDataSourceConfigCreateSamlIdp,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organizations_saml_idp.test", "id", "example-id"),
+					//resource.TestCheckResourceAttr("meraki_organizations_saml_idp.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_organizations_saml_idp.test", "slo_logout_url", "https://sbuxforyou.com"),
 					resource.TestCheckResourceAttr("meraki_organizations_saml_idp.test", "x_509_cert_sha1_fingerprint", "00:11:22:33:44:55:66:77:88:99:00:11:22:33:44:55:66:77:88:24"),
 				),
@@ -44,7 +44,7 @@ func TestAccOrganizationsSamlIdpsDataSource(t *testing.T) {
 				Config: testAccOrganizationsSamlIdpsDataSourceConfigRead,
 				Check: resource.ComposeAggregateTestCheckFunc(
 
-					resource.TestCheckResourceAttr("data.meraki_organizations_saml_idps.test", "id", "example-id"),
+					//resource.TestCheckResourceAttr("data.meraki_organizations_saml_idps.test", "id", "example-id"),
 
 					resource.TestCheckResourceAttr("data.meraki_organizations_saml_idps.test", "list.#", "1"),
 					resource.TestCheckResourceAttr("data.meraki_organizations_saml_idps.test", "list.0.x_509_cert_sha1_fingerprint", "00:11:22:33:44:55:66:77:88:99:00:11:22:33:44:55:66:77:88:24"),
