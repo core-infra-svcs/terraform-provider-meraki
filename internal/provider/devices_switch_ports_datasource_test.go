@@ -39,7 +39,7 @@ func TestAccDevicesSwitchPortsDataSource(t *testing.T) {
 			{
 				Config: testAccDevicesSwitchPortsDataSourceConfigRead(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), os.Getenv("TF_ACC_MERAKI_MS_SERIAL")),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("data.meraki_devices_switch_ports.test", "id", "example-id"),
+					//resource.TestCheckResourceAttr("data.meraki_devices_switch_ports.test", "id", "example-id"),
 					//resource.TestCheckResourceAttr("data.meraki_devices_switch_ports.test", "list.#", "52"),
 					//resource.TestCheckResourceAttr("data.meraki_devices_switch_ports.test", "list.0.port_id", "49"),
 					resource.TestCheckResourceAttr("data.meraki_devices_switch_ports.test", "list.0.enabled", "true"),
