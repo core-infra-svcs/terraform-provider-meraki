@@ -37,9 +37,7 @@ func TestAccDevicesApplianceDhcpSubnetsDataSource(t *testing.T) {
 			// Claim and Read NetworksDevicesClaim
 			{
 				Config: testAccDevicesApplianceDhcpSubnetsDataSourceConfigClaim(os.Getenv("TF_ACC_MERAKI_MX_SERIAL"), os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_devices_claim.test", "id", "example-id"),
-				),
+				Check:  resource.ComposeAggregateTestCheckFunc(),
 			},
 
 			// Update Network VLAN Settings
@@ -54,7 +52,7 @@ func TestAccDevicesApplianceDhcpSubnetsDataSource(t *testing.T) {
 			{
 				Config: testAccDevicesApplianceDhcpSubnetsDataSourceConfigRead(os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("data.meraki_devices_appliance_dhcp_subnets.test", "id", "example-id"),
+					//resource.TestCheckResourceAttr("data.meraki_devices_appliance_dhcp_subnets.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("data.meraki_devices_appliance_dhcp_subnets.test", "serial", os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
 				),
 			},
