@@ -385,6 +385,14 @@ func (r *DevicesResource) Create(ctx context.Context, req resource.CreateRequest
 		data.MoveMapMarker = jsontypes.BoolNull()
 	}
 
+	if data.Lat.IsUnknown() {
+		data.Lat = jsontypes.Float64Null()
+	}
+
+	if data.Lng.IsUnknown() {
+		data.Lng = jsontypes.Float64Null()
+	}
+
 	// Set ID for the new resource.
 	data.Id = jsontypes.StringValue(data.Serial.ValueString())
 
@@ -476,6 +484,14 @@ func (r *DevicesResource) Read(ctx context.Context, req resource.ReadRequest, re
 	}
 	if data.MoveMapMarker.IsUnknown() {
 		data.MoveMapMarker = jsontypes.BoolNull()
+	}
+
+	if data.Lat.IsUnknown() {
+		data.Lat = jsontypes.Float64Null()
+	}
+
+	if data.Lng.IsUnknown() {
+		data.Lng = jsontypes.Float64Null()
 	}
 
 	// Set ID for the resource.
@@ -600,6 +616,14 @@ func (r *DevicesResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 	if data.MoveMapMarker.IsUnknown() {
 		data.MoveMapMarker = jsontypes.BoolNull()
+	}
+
+	if data.Lat.IsUnknown() {
+		data.Lat = jsontypes.Float64Null()
+	}
+
+	if data.Lng.IsUnknown() {
+		data.Lng = jsontypes.Float64Null()
 	}
 
 	// Set ID for the new resource.
