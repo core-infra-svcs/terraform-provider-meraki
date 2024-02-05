@@ -3,6 +3,8 @@ package jsontypes
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -62,28 +64,53 @@ func Int64Null() Int64 {
 	}
 }
 
+// Float64 wraps basetypes.Float64Value to add custom JSON unmarshaling.
 type Float64 struct {
 	basetypes.Float64Value
 }
 
+// UnmarshalJSON custom unmarshaler to handle JSON numbers and nulls.
 func (f *Float64) UnmarshalJSON(bytes []byte) error {
-	f.Float64Value = types.Float64Null()
-
-	var f64 *float64
-	if err := json.Unmarshal(bytes, &f64); err != nil {
+	var tmp *float64 // Use pointer to detect JSON null
+	if err := json.Unmarshal(bytes, &tmp); err != nil {
 		return err
 	}
-
-	if f64 != nil {
-		f.Float64Value = types.Float64Value(*f64)
+	if tmp != nil {
+		f.Float64Value = types.Float64Value(*tmp)
+	} else {
+		f.Float64Value = types.Float64Null()
 	}
 	return nil
 }
 
+// Float64SemanticEquals returns true if the given Float64Value is semantically equal to the current Float64Value.
+// The underlying value *big.Float can store more precise float values then the Go built-in float64 type. This only
+// compares the precision of the value that can be represented as the Go built-in float64, which is 53 bits of precision.
+func (f Float64) Float64SemanticEquals(ctx context.Context, newValuable basetypes.Float64Valuable) (bool, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	newValue, ok := newValuable.(Float64)
+	if !ok {
+		diags.AddError(
+			"Semantic Equality Check Error",
+			"An unexpected value type was received while performing semantic equality checks. "+
+				"Please report this to the provider developers.\n\n"+
+				"Expected Value Type: "+fmt.Sprintf("%T", f)+"\n"+
+				"Got Value Type: "+fmt.Sprintf("%T", newValuable),
+		)
+
+		return false, diags
+	}
+
+	return f.ValueFloat64() == newValue.ValueFloat64(), diags
+}
+
+// Type satisfies the attr.Value interface, returns the type of Float64.
 func (f Float64) Type(_ context.Context) attr.Type {
 	return Float64Type
 }
 
+// Equal satisfies the attr.Value interface, needed for comparisons.
 func (f Float64) Equal(value attr.Value) bool {
 	var bv basetypes.Float64Valuable
 
@@ -108,6 +135,7 @@ func Float64Null() Float64 {
 	return Float64{
 		Float64Value: types.Float64Null(),
 	}
+
 }
 
 type String struct {

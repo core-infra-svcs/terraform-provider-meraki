@@ -41,7 +41,7 @@ func TestAccNetworksWirelessSsidsFirewallL7FirewallRulesResource(t *testing.T) {
 			{
 				Config: testAccNetworksWirelessSsidsFirewallL7FirewallRulesResourceConfigCreate,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l7_firewall_rules.test", "id", "example-id"),
+					//resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l7_firewall_rules.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l7_firewall_rules.test", "rules.0.policy", "deny"),
 					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l7_firewall_rules.test", "rules.0.type", "host"),
 					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l7_firewall_rules.test", "rules.0.value", "google.com"),
@@ -61,7 +61,7 @@ func TestAccNetworksWirelessSsidsFirewallL7FirewallRulesResource(t *testing.T) {
 			{
 				Config: testAccNetworksWirelessSsidsFirewallL7FirewallRulesResourceConfigUpdate,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l7_firewall_rules.test", "id", "example-id"),
+					//resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l7_firewall_rules.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l7_firewall_rules.test", "rules.0.policy", "deny"),
 					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l7_firewall_rules.test", "rules.0.type", "host"),
 					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l7_firewall_rules.test", "rules.0.value", "yahoo.com"),

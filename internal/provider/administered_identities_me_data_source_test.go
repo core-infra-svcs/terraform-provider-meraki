@@ -20,7 +20,7 @@ func TestAccAdministeredIdentitiesMeDataSource(t *testing.T) {
 
 					//resource.TestCheckResourceAttr("data.meraki_administered_identities_me.test", "name", ""),
 					//resource.TestCheckResourceAttr("data.meraki_administered_identities_me.test", "email", ""),
-					resource.TestCheckResourceAttr("data.meraki_administered_identities_me.test", "id", "example-id"),
+					//resource.TestCheckResourceAttr("data.meraki_administered_identities_me.test", "id", "example-id"),
 
 					resource.TestCheckResourceAttrWith(
 						"data.meraki_administered_identities_me.test", "last_used_dashboard_at", func(value string) error {

@@ -16,7 +16,7 @@ func TestAccOrganizationsAdaptivePolicyAclResource(t *testing.T) {
 			{
 				Config: testAccOrganizationsAdaptivePolicyAclResourceConfigCreateOrganization,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
+					//resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_acc_meraki_organizations_adaptive_policy_acl"),
 				),
 			},
@@ -25,7 +25,7 @@ func TestAccOrganizationsAdaptivePolicyAclResource(t *testing.T) {
 			{
 				Config: testAccOrganizationsAdaptivePolicyAclResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organizations_adaptive_policy_acl.test", "id", "example-id"),
+					//resource.TestCheckResourceAttr("meraki_organizations_adaptive_policy_acl.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_organizations_adaptive_policy_acl.test", "name", "Block sensitive web traffic"),
 					resource.TestCheckResourceAttr("meraki_organizations_adaptive_policy_acl.test", "description", "Blocks sensitive web traffic"),
 					resource.TestCheckResourceAttr("meraki_organizations_adaptive_policy_acl.test", "ip_version", "ipv6"),

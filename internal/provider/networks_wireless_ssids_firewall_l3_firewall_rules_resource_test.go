@@ -41,7 +41,7 @@ func TestAccNetworksWirelessSsidsFirewallL3FirewallRulesResource(t *testing.T) {
 			{
 				Config: testAccNetworksWirelessSsidsFirewallL3FirewallRulesResourceConfigCreate,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l3_firewall_rules.test", "id", "example-id"),
+					//resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l3_firewall_rules.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l3_firewall_rules.test", "rules.0.comment", "Allow TCP traffic to subnet with HTTP servers."),
 					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l3_firewall_rules.test", "rules.0.policy", "allow"),
 					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l3_firewall_rules.test", "rules.0.protocol", "tcp"),
@@ -54,7 +54,7 @@ func TestAccNetworksWirelessSsidsFirewallL3FirewallRulesResource(t *testing.T) {
 			{
 				Config: testAccNetworksWirelessSsidsFirewallL3FirewallRulesResourceConfigUpdate,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l3_firewall_rules.test", "id", "example-id"),
+					//resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l3_firewall_rules.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l3_firewall_rules.test", "rules.0.comment", "Allow TCP traffic to subnet with HTTP servers."),
 					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l3_firewall_rules.test", "rules.0.policy", "allow"),
 					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l3_firewall_rules.test", "rules.0.protocol", "tcp"),

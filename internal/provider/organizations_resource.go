@@ -176,7 +176,7 @@ func (r *OrganizationResource) Create(ctx context.Context, req resource.CreateRe
 			Value: &value,
 		}
 		details := []openApiClient.GetOrganizations200ResponseInnerManagementDetailsInner{detail}
-		organizationsManagement := openApiClient.GetOrganizations200ResponseInnerManagement{Details: details}
+		organizationsManagement := openApiClient.CreateOrganizationRequestManagement{Details: details}
 		createOrganization.SetManagement(organizationsManagement)
 
 		// Initialize provider client and make API call
@@ -332,7 +332,7 @@ func (r *OrganizationResource) Update(ctx context.Context, req resource.UpdateRe
 		Value: &value,
 	}
 	details := []openApiClient.GetOrganizations200ResponseInnerManagementDetailsInner{detail}
-	organizationsManagement := openApiClient.GetOrganizations200ResponseInnerManagement{Details: details}
+	organizationsManagement := openApiClient.CreateOrganizationRequestManagement{Details: details}
 	updateOrganization.SetManagement(organizationsManagement)
 
 	// Initialize provider client and make API call

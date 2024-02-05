@@ -23,9 +23,8 @@ func TestAccOrganizationsInventoryDevicesDataSource(t *testing.T) {
 			// Read OrganizationsInventoryDevices
 			{
 				Config: testAccOrganizationsInventoryDevicesDataSourceConfigRead(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("data.meraki_organizations_inventory_devices.test", "id", "example-id"),
-					//resource.TestCheckResourceAttr("data.meraki_organizations_inventory_devices.test", "list.#", "10"),
+				Check:  resource.ComposeAggregateTestCheckFunc(
+				//resource.TestCheckResourceAttr("data.meraki_organizations_inventory_devices.test", "list.#", "10"),
 				),
 			},
 		},

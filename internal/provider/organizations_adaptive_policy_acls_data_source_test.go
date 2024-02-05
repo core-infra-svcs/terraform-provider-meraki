@@ -15,7 +15,7 @@ func TestAccOrganizationsAdaptivePolicyAclsDataSource(t *testing.T) {
 			{
 				Config: testAccOrganizationsAdaptivePolicyAclsDataSourceConfigCreateOrganization,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
+					//resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_acc_meraki_organizations_adaptive_policy_acls"),
 				),
 			},

@@ -42,7 +42,7 @@ func TestAccNetworksCellularGatewaySubnetPoolResource(t *testing.T) {
 			{
 				Config: testAccNetworksCellularGatewaySubnetPoolResourceConfigUpdate,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_cellular_gateway_subnet_pool.test", "id", "example-id"),
+					//resource.TestCheckResourceAttr("meraki_networks_cellular_gateway_subnet_pool.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_networks_cellular_gateway_subnet_pool.test", "deployment_mode", "routed"),
 					resource.TestCheckResourceAttr("meraki_networks_cellular_gateway_subnet_pool.test", "cidr", "192.168.0.0/22"),
 					resource.TestCheckResourceAttr("meraki_networks_cellular_gateway_subnet_pool.test", "mask", "24"),

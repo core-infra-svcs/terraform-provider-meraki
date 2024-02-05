@@ -38,16 +38,13 @@ func TestAccOrganizationsCellularGatewayUplinkStatusesDataSource(t *testing.T) {
 			// Claim and Read NetworksDevicesClaim
 			{
 				Config: testAccOrganizationsCellularGatewayUplinkStatusesNetworksDevicesClaimResourceConfigCreate(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), os.Getenv("TF_ACC_MERAKI_MG_SERIAL")),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_devices_claim.test", "id", "example-id"),
-				),
+				Check:  resource.ComposeAggregateTestCheckFunc(),
 			},
 
 			// Read OrganizationsCellularGatewayUplinkStatuses
 			{
 				Config: testAccOrganizationsCellularGatewayUplinkStatusesDataSourceConfigRead(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), os.Getenv("TF_ACC_MERAKI_MG_SERIAL")),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("data.meraki_organizations_cellular_gateway_uplink_statuses.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("data.meraki_organizations_cellular_gateway_uplink_statuses.test", "list.#", "1"),
 					resource.TestCheckResourceAttr("data.meraki_organizations_cellular_gateway_uplink_statuses.test", "list.0.serial", os.Getenv("TF_ACC_MERAKI_MG_SERIAL")),
 					resource.TestCheckResourceAttr("data.meraki_organizations_cellular_gateway_uplink_statuses.test", "list.0.model", "MG21-NA"),

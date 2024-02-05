@@ -14,16 +14,6 @@ func TestAccNetworkSettingsResource(t *testing.T) {
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 
-			// TODO - ImportState testing - This only works when hard-coded networkId.
-			/*
-				{
-					ResourceName:      "meraki_networks_settings.test",
-					ImportState:       true,
-					ImportStateVerify: false,
-					ImportStateId:     "657525545596096508",
-				},
-			*/
-
 			// Create and Read Network.
 			{
 				Config: testAccNetworkSettingsResourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
@@ -46,10 +36,20 @@ func TestAccNetworkSettingsResource(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_networks_settings.test", "local_status_page_enabled", "false"),
 					resource.TestCheckResourceAttr("meraki_networks_settings.test", "remote_status_page_enabled", "false"),
-					resource.TestCheckResourceAttr("meraki_networks_settings.test", "secure_port_enabled.enabled", "false"),
 					resource.TestCheckResourceAttr("meraki_networks_settings.test", "local_status_page.authentication.enabled", "true"),
+					resource.TestCheckResourceAttr("meraki_networks_settings.test", "local_status_page.authentication.username", "admin"),
+					resource.TestCheckResourceAttr("meraki_networks_settings.test", "local_status_page.authentication.password", "testpassword"),
+					resource.TestCheckResourceAttr("meraki_networks_settings.test", "secure_port_enabled", "false"),
 				),
 			},
+
+			/*
+				{
+						ResourceName:      "meraki_networks_settings.test",
+						ImportState:       true,
+						ImportStateVerify: true,
+					},
+			*/
 		},
 	})
 }
@@ -76,17 +76,17 @@ resource "meraki_network" "test" {
 
 resource "meraki_networks_settings" "test" {
 	depends_on = [resource.meraki_network.test]
-      network_id = resource.meraki_network.test.network_id
-	  local_status_page = {
+  	network_id = resource.meraki_network.test.network_id
+	local_status_page_enabled = false
+	remote_status_page_enabled = false
+	local_status_page = { 
 		authentication = { 
 			enabled = true
 			username = "admin"
-		}
-	  }
-	  remote_status_page_enabled = false
-	  secure_port_enabled = {
-		enabled = false
-	  }
-	  local_status_page_authentication_password = "testpassword"
+			password = "testpassword"
+	}
+	}
+  	secure_port_enabled = false
+	named_vlans_enabled = true
 }
 `

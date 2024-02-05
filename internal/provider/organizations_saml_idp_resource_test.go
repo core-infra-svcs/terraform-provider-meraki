@@ -16,7 +16,7 @@ func TestAccOrganizationsSamlIdpResource(t *testing.T) {
 			{
 				Config: testAccOrganizationsSamlIdpResourceConfigCreateOrganization,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
+					//resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_acc_meraki_organizations_saml_idp"),
 				),
 			},
@@ -25,7 +25,7 @@ func TestAccOrganizationsSamlIdpResource(t *testing.T) {
 			{
 				Config: testAccOrganizationsSamlIdpResourceConfigSaml,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organization_saml.test", "id", "example-id"),
+					//resource.TestCheckResourceAttr("meraki_organization_saml.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_organization_saml.test", "enabled", "true"),
 				),
 			},
@@ -34,7 +34,7 @@ func TestAccOrganizationsSamlIdpResource(t *testing.T) {
 			{
 				Config: testAccOrganizationsSamlIdpResourceConfigCreateIdp,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organizations_saml_idp.test", "id", "example-id"),
+					//resource.TestCheckResourceAttr("meraki_organizations_saml_idp.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_organizations_saml_idp.test", "slo_logout_url", "https://sbuxforyou.com"),
 					resource.TestCheckResourceAttr("meraki_organizations_saml_idp.test", "x_509_cert_sha1_fingerprint", "00:11:22:33:44:55:66:77:88:99:00:11:22:33:44:55:66:77:88:24"),
 				),

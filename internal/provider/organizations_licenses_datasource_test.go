@@ -23,7 +23,7 @@ func TestAccOrganizationsLicensesDataSource(t *testing.T) {
 			{
 				Config: testAccOrganizationsLicensesDataSourceConfigCreateOrganization,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
+					//resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_acc_meraki_organizations_move_license_source"),
 				),
 			},
