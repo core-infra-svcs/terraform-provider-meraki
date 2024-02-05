@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.6.0...v0.6.1) (2024-02-05)
+
+
+### Bug Fixes
+
+* L3 Firewall rules import ([#278](https://github.com/core-infra-svcs/terraform-provider-meraki/issues/278)) ([5d1ec78](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/5d1ec78b0b8920bbd56723c4bc00f9ad3f61cd19))
+
 ## [0.6.0](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.5.1...v0.6.0) (2024-01-23)
 
 
