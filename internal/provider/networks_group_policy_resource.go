@@ -254,6 +254,101 @@ func (s NetworksGroupPolicyResourceModelFirewallAndTrafficShaping) FromAPIRespon
 	return diags
 }
 
+func (s NetworksGroupPolicyResourceModelFirewallAndTrafficShaping) ToAPIPayload(ctx context.Context) (*openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShaping, diag.Diagnostics) {
+	payload := openApiClient.NewCreateNetworkGroupPolicyRequestFirewallAndTrafficShaping()
+
+	var l3Rules []NetworksGroupPolicyResourceModelL3FirewallRule
+
+	err := s.L3FirewallRules.ElementsAs(ctx, &l3Rules, false)
+	if err != nil {
+		return nil, err.Errors()
+	}
+
+	for _, rule := range l3Rules {
+		var irule openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingL3FirewallRulesInner
+
+		irule.SetPolicy(rule.Policy.ValueString())
+		irule.SetDestCidr(rule.DestCidr.ValueString())
+		irule.SetDestPort(rule.DestPort.ValueString())
+		irule.SetComment(rule.Comment.ValueString())
+		irule.SetProtocol(rule.Protocol.ValueString())
+
+		payload.L3FirewallRules = append(payload.L3FirewallRules, irule)
+	}
+
+	var l7Rules []NetworksGroupPolicyResourceModelL7FirewallRule
+
+	err = s.L7FirewallRules.ElementsAs(ctx, &l7Rules, false)
+	if err != nil {
+		return nil, err.Errors()
+	}
+
+	for _, rule := range l7Rules {
+		var irule openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingL7FirewallRulesInner
+
+		irule.SetPolicy(rule.Policy.ValueString())
+		irule.SetValue(rule.Value.ValueString())
+		irule.SetType(rule.Type.ValueString())
+
+		payload.L7FirewallRules = append(payload.L7FirewallRules, irule)
+	}
+
+	var trafficRule []NetworksGroupPolicyResourceModelTrafficShapingRule
+
+	err = s.TrafficShapingRules.ElementsAs(ctx, &trafficRule, false)
+	if err != nil {
+		return nil, err.Errors()
+	}
+
+	for _, rule := range trafficRule {
+		var irule openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingTrafficShapingRulesInner
+
+		irule.SetPcpTagValue(int32(rule.PcpTagValue.ValueInt64()))
+		irule.SetDscpTagValue(int32(rule.DscpTagValue.ValueInt64()))
+
+		var definitions []NetworksGroupPolicyResourceModelDefinition
+
+		err = rule.Definitions.ElementsAs(ctx, &definitions, false)
+		if err != nil {
+			return nil, err.Errors()
+		}
+
+		for _, definition := range definitions {
+			var idefinition openApiClient.UpdateNetworkApplianceTrafficShapingRulesRequestRulesInnerDefinitionsInner
+
+			idefinition.SetType(definition.Type.ValueString())
+			idefinition.SetValue(definition.Value.ValueString())
+
+			irule.Definitions = append(irule.Definitions, idefinition)
+		}
+
+		var perClientBandwidth openApiClient.UpdateNetworkApplianceTrafficShapingRulesRequestRulesInnerPerClientBandwidthLimits
+		var perclientObject NetworksGroupPolicyResourceModelPerClientBandwidthLimits
+		diagnostics := rule.PerClientBandwidthLimits.As(ctx, &perclientObject, basetypes.ObjectAsOptions{})
+		if diagnostics.HasError() {
+			return nil, diagnostics
+		}
+		perClientBandwidth.SetSettings(perclientObject.Settings.ValueString())
+
+		var perclientBandwidthLimitsObject openApiClient.UpdateNetworkApplianceTrafficShapingRulesRequestRulesInnerPerClientBandwidthLimitsBandwidthLimits
+		var perclientBandwidthObject NetworksGroupPolicyResourceModelBandwidthLimits
+		diagnostics = perclientObject.BandwidthLimits.As(ctx, &perclientBandwidthObject, basetypes.ObjectAsOptions{})
+		if diagnostics.HasError() {
+			return nil, diagnostics
+		}
+
+		perclientBandwidthLimitsObject.SetLimitUp(int32(perclientBandwidthObject.LimitUp.ValueInt64()))
+		perclientBandwidthLimitsObject.SetLimitDown(int32(perclientBandwidthObject.LimitDown.ValueInt64()))
+
+		irule.SetPerClientBandwidthLimits(perClientBandwidth)
+
+		payload.TrafficShapingRules = append(payload.TrafficShapingRules, irule)
+	}
+
+	tflog.Info(ctx, "[finish] NetworksGroupPolicyResourceModelL3FirewallRule ToAPIPayload")
+	return payload, nil
+}
+
 type NetworksGroupPolicyResourceModelL3FirewallRule struct {
 	Comment  types.String `tfsdk:"comment" json:"comment"`
 	DestCidr types.String `tfsdk:"dest_cidr" json:"destCidr"`
@@ -467,6 +562,36 @@ func (f NetworksGroupPolicyResourceModelBonjourForwarding) FromAPIResponse(ctx c
 	return diag.Diagnostics{}
 }
 
+func (f NetworksGroupPolicyResourceModelBonjourForwarding) ToAPIPayload(ctx context.Context) (*openApiClient.CreateNetworkGroupPolicyRequestBonjourForwarding, diag.Diagnostics) {
+	payload := openApiClient.NewCreateNetworkGroupPolicyRequestBonjourForwarding()
+	payload.SetSettings(f.BonjourForwardingSettings.ValueString())
+
+	bonjourForwardingRules := []NetworksGroupPolicyResourceModelRule{}
+	diags := f.BonjourForwardingRules.ElementsAs(ctx, &bonjourForwardingRules, false)
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	rulesPayload := []openApiClient.CreateNetworkGroupPolicyRequestBonjourForwardingRulesInner{}
+	for _, rule := range bonjourForwardingRules {
+		rulePayload := openApiClient.NewCreateNetworkGroupPolicyRequestBonjourForwardingRulesInnerWithDefaults()
+		rulePayload.SetDescription(rule.Description.ValueString())
+		rulePayload.SetVlanId(rule.VlanId.ValueString())
+
+		var services []string
+		diags := rule.Services.ElementsAs(ctx, &services, false)
+		if diags.HasError() {
+			return nil, diags
+		}
+		rulePayload.SetServices(services)
+
+		rulesPayload = append(rulesPayload, *rulePayload)
+	}
+	payload.SetRules(rulesPayload)
+
+	return payload, diags
+}
+
 func (n *NetworksGroupPolicyResourceModelBandwidth) FromAPIResponse(ctx context.Context, apiResponse *Bandwidth) diag.Diagnostics {
 	n.Settings = types.StringValue(apiResponse.Settings)
 
@@ -475,6 +600,25 @@ func (n *NetworksGroupPolicyResourceModelBandwidth) FromAPIResponse(ctx context.
 	value, diags := types.ObjectValueFrom(ctx, NetworksGroupPolicyResourceModelBandwidthLimitsAttrTypes(), bandwidthLimits)
 	n.BandwidthLimits = value
 	return diags
+}
+
+func (n *NetworksGroupPolicyResourceModelBandwidth) ToAPIPayload(ctx context.Context) (*openApiClient.CreateNetworkGroupPolicyRequestBandwidth, diag.Diagnostics) {
+	payload := openApiClient.NewCreateNetworkGroupPolicyRequestBandwidth()
+
+	payload.SetSettings(n.Settings.ValueString())
+
+	bandwidthLimitsPayload := openApiClient.NewCreateNetworkGroupPolicyRequestBandwidthBandwidthLimits()
+	var bandwidthLimits NetworksGroupPolicyResourceModelBandwidthLimits
+	diagnostics := n.BandwidthLimits.As(ctx, &bandwidthLimits, basetypes.ObjectAsOptions{})
+	if diagnostics.HasError() {
+		return nil, diagnostics
+	}
+
+	bandwidthLimitsPayload.SetLimitUp(int32(bandwidthLimits.LimitUp.ValueInt64()))
+	bandwidthLimitsPayload.SetLimitDown(int32(bandwidthLimits.LimitDown.ValueInt64()))
+
+	payload.SetBandwidthLimits(*bandwidthLimitsPayload)
+	return nil, diagnostics
 }
 
 func (n *NetworksGroupPolicyResourceModelBandwidthLimits) FromAPIResponse(ctx context.Context, apiResponse *BandwidthLimits) diag.Diagnostics {
@@ -590,6 +734,97 @@ func (s NetworksGroupPolicyResourceModelScheduling) FromAPIResponse(ctx context.
 	return diags
 }
 
+func (s NetworksGroupPolicyResourceModelScheduling) ToAPIPayload(ctx context.Context) (*openApiClient.CreateNetworkGroupPolicyRequestScheduling, diag.Diagnostics) {
+	payload := openApiClient.NewCreateNetworkGroupPolicyRequestScheduling()
+	fridayPayload := openApiClient.NewCreateNetworkGroupPolicyRequestSchedulingFriday()
+	friday := NetworksGroupPolicyResourceModelSchedule{}
+	diags := s.Friday.As(ctx, &friday, basetypes.ObjectAsOptions{})
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	fridayPayload.SetFrom(friday.From.ValueString())
+	fridayPayload.SetActive(friday.Active.ValueBool())
+	fridayPayload.SetTo(friday.To.ValueString())
+
+	saturdayPayload := openApiClient.NewCreateNetworkGroupPolicyRequestSchedulingSaturday()
+	saturday := NetworksGroupPolicyResourceModelSchedule{}
+	diags = s.Saturday.As(ctx, &saturday, basetypes.ObjectAsOptions{})
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	saturdayPayload.SetFrom(saturday.From.ValueString())
+	saturdayPayload.SetActive(saturday.Active.ValueBool())
+	saturdayPayload.SetTo(saturday.To.ValueString())
+
+	sundayPayload := openApiClient.NewCreateNetworkGroupPolicyRequestSchedulingSunday()
+	sunday := NetworksGroupPolicyResourceModelSchedule{}
+	diags = s.Sunday.As(ctx, &sunday, basetypes.ObjectAsOptions{})
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	sundayPayload.SetFrom(sunday.From.ValueString())
+	sundayPayload.SetActive(sunday.Active.ValueBool())
+	sundayPayload.SetTo(sunday.To.ValueString())
+
+	mondayPayload := openApiClient.NewCreateNetworkGroupPolicyRequestSchedulingMonday()
+	monday := NetworksGroupPolicyResourceModelSchedule{}
+	diags = s.Monday.As(ctx, &monday, basetypes.ObjectAsOptions{})
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	mondayPayload.SetFrom(monday.From.ValueString())
+	mondayPayload.SetActive(monday.Active.ValueBool())
+	mondayPayload.SetTo(monday.To.ValueString())
+
+	tuesdayPayload := openApiClient.NewCreateNetworkGroupPolicyRequestSchedulingTuesday()
+	tuesday := NetworksGroupPolicyResourceModelSchedule{}
+	diags = s.Tuesday.As(ctx, &tuesday, basetypes.ObjectAsOptions{})
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	tuesdayPayload.SetFrom(tuesday.From.ValueString())
+	tuesdayPayload.SetActive(tuesday.Active.ValueBool())
+	tuesdayPayload.SetTo(tuesday.To.ValueString())
+
+	wednesdayPayload := openApiClient.NewCreateNetworkGroupPolicyRequestSchedulingWednesday()
+	wednesday := NetworksGroupPolicyResourceModelSchedule{}
+	diags = s.Wednesday.As(ctx, &wednesday, basetypes.ObjectAsOptions{})
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	wednesdayPayload.SetFrom(wednesday.From.ValueString())
+	wednesdayPayload.SetActive(wednesday.Active.ValueBool())
+	wednesdayPayload.SetTo(wednesday.To.ValueString())
+
+	thursdayPayload := openApiClient.NewCreateNetworkGroupPolicyRequestSchedulingThursday()
+	thursday := NetworksGroupPolicyResourceModelSchedule{}
+	diags = s.Thursday.As(ctx, &thursday, basetypes.ObjectAsOptions{})
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	thursdayPayload.SetFrom(thursday.From.ValueString())
+	thursdayPayload.SetActive(thursday.Active.ValueBool())
+	thursdayPayload.SetTo(thursday.To.ValueString())
+
+	payload.SetFriday(*fridayPayload)
+	payload.SetSaturday(*saturdayPayload)
+	payload.SetSunday(*sundayPayload)
+	payload.SetMonday(*mondayPayload)
+	payload.SetTuesday(*tuesdayPayload)
+	payload.SetWednesday(*wednesdayPayload)
+	payload.SetThursday(*thursdayPayload)
+	payload.SetEnabled(s.Enabled.ValueBool())
+
+	return payload, diags
+}
+
 type NetworksGroupPolicyResourceModelScheduling struct {
 	Enabled   types.Bool   `tfsdk:"enabled" json:"enabled"`
 	Friday    types.Object `tfsdk:"friday" json:"friday"`
@@ -639,6 +874,15 @@ func NetworksGroupPolicyResourceModelScheduleAttrTypes() map[string]attr.Type {
 type NetworksGroupPolicyResourceModelVlanTagging struct {
 	Settings types.String `tfsdk:"settings" json:"settings"`
 	VlanId   types.String `tfsdk:"vlan_id" json:"vlanId"`
+}
+
+func (t NetworksGroupPolicyResourceModelVlanTagging) ToAPIPayload(ctx context.Context) (*openApiClient.CreateNetworkGroupPolicyRequestVlanTagging, diag.Diagnostics) {
+	tagging := openApiClient.NewCreateNetworkGroupPolicyRequestVlanTagging()
+
+	tagging.SetVlanId(t.VlanId.ValueString())
+	tagging.SetSettings(t.Settings.ValueString())
+
+	return tagging, diag.Diagnostics{}
 }
 
 type NetworksGroupPolicyResourceModelContentFiltering struct {
@@ -696,6 +940,68 @@ func (f NetworksGroupPolicyResourceModelContentFiltering) FromAPIResponse(ctx co
 	f.AllowedUrlPatterns = allowedPatternsValue
 	f.BlockedUrlPatterns = blockedURLPatternsValue
 	return diags
+}
+
+func (f NetworksGroupPolicyResourceModelContentFiltering) ToAPIPayload(ctx context.Context) (*openApiClient.CreateNetworkGroupPolicyRequestContentFiltering, diag.Diagnostics) {
+	contentFilteringPayload := openApiClient.NewCreateNetworkGroupPolicyRequestContentFiltering()
+	blockedCategoriesPayload := openApiClient.NewCreateNetworkGroupPolicyRequestContentFilteringBlockedUrlCategories()
+	var blockedCategories NetworksGroupPolicyResourceModelBlockedUrlCategories
+	diags := f.BlockedUrlCategories.As(ctx, &blockedCategories, basetypes.ObjectAsOptions{})
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	blockedCategoriesPayload.SetSettings(blockedCategories.Settings.ValueString())
+
+	var categories []string
+	diags = blockedCategories.Categories.ElementsAs(ctx, &categories, false)
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	blockedCategoriesPayload.SetCategories(categories)
+
+	// blocked patterns
+	blockedPatternsPayload := openApiClient.NewCreateNetworkGroupPolicyRequestContentFilteringBlockedUrlPatterns()
+	var blockedPatterns NetworksGroupPolicyResourceModelBlockedUrlPatterns
+	diags = f.BlockedUrlPatterns.As(ctx, &blockedPatterns, basetypes.ObjectAsOptions{})
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	blockedPatternsPayload.SetSettings(blockedPatterns.Settings.ValueString())
+
+	var patterns []string
+	diags = blockedPatterns.Patterns.ElementsAs(ctx, &patterns, false)
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	blockedPatternsPayload.SetPatterns(patterns)
+
+	// blocked patterns
+	allowedURLPatternsPayload := openApiClient.NewCreateNetworkGroupPolicyRequestContentFilteringAllowedUrlPatterns()
+	var allowedURLPatterns NetworksGroupPolicyResourceModelBlockedUrlPatterns
+	diags = f.BlockedUrlPatterns.As(ctx, &allowedURLPatterns, basetypes.ObjectAsOptions{})
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	allowedURLPatternsPayload.SetSettings(allowedURLPatterns.Settings.ValueString())
+
+	var allowdPatterns []string
+	diags = allowedURLPatterns.Patterns.ElementsAs(ctx, &allowdPatterns, false)
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	allowedURLPatternsPayload.SetPatterns(patterns)
+
+	contentFilteringPayload.SetBlockedUrlPatterns(*blockedPatternsPayload)
+	contentFilteringPayload.SetAllowedUrlPatterns(*allowedURLPatternsPayload)
+	contentFilteringPayload.SetBlockedUrlCategories(*blockedCategoriesPayload)
+
+	return contentFilteringPayload, diags
 }
 
 type NetworksGroupPolicyResourceModelAllowedUrlPatterns struct {
@@ -1479,238 +1785,12 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 		return
 	}
 
-	updateNetworkGroupPolicy := *openApiClient.NewUpdateNetworkGroupPolicyRequest()
-	if !data.SplashAuthSettings.IsUnknown() {
-		updateNetworkGroupPolicy.SetSplashAuthSettings(data.SplashAuthSettings.ValueString())
-
+	payload, diagnostics := UpdateNetworkGroupPolicyHttpReqPayload(ctx, data)
+	if diagnostics.HasError() {
+		return
 	}
 
-	if !data.Bandwidth.Settings.IsUnknown() {
-		var bandwidth openApiClient.CreateNetworkGroupPolicyRequestBandwidth
-		bandwidth.SetSettings(data.Bandwidth.Settings.ValueString())
-		var bandwidthLimits openApiClient.CreateNetworkGroupPolicyRequestBandwidthBandwidthLimits
-		if !data.Bandwidth.BandwidthLimits.LimitUp.IsUnknown() {
-			bandwidthLimits.SetLimitUp(int32(data.Bandwidth.BandwidthLimits.LimitUp.ValueInt64()))
-		}
-		if !data.Bandwidth.BandwidthLimits.LimitDown.IsUnknown() {
-			bandwidthLimits.SetLimitDown(int32(data.Bandwidth.BandwidthLimits.LimitDown.ValueInt64()))
-		}
-		bandwidth.SetBandwidthLimits(bandwidthLimits)
-		updateNetworkGroupPolicy.SetBandwidth(bandwidth)
-	}
-
-	if len(data.BonjourForwarding.BonjourForwardingRules) > 0 {
-		var bonjourForwarding openApiClient.CreateNetworkGroupPolicyRequestBonjourForwarding
-		var bonjourForwardingRules []openApiClient.CreateNetworkGroupPolicyRequestBonjourForwardingRulesInner
-		for _, attribute := range data.BonjourForwarding.BonjourForwardingRules {
-			var bonjourForwardingRule openApiClient.CreateNetworkGroupPolicyRequestBonjourForwardingRulesInner
-			if !attribute.Description.IsUnknown() {
-				bonjourForwardingRule.SetDescription(attribute.Description.ValueString())
-			}
-			bonjourForwardingRule.SetVlanId(attribute.VlanId.ValueString())
-			bonjourForwardingRule.SetServices(attribute.Services)
-			bonjourForwardingRules = append(bonjourForwardingRules, bonjourForwardingRule)
-		}
-		bonjourForwarding.SetRules(bonjourForwardingRules)
-		if !data.BonjourForwarding.BonjourForwardingSettings.IsUnknown() {
-			bonjourForwarding.SetSettings(data.BonjourForwarding.BonjourForwardingSettings.ValueString())
-		}
-		updateNetworkGroupPolicy.SetBonjourForwarding(bonjourForwarding)
-	}
-
-	var firewallAndTrafficShaping openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShaping
-
-	if !data.FirewallAndTrafficShaping.Settings.IsUnknown() {
-		firewallAndTrafficShaping.SetSettings(data.FirewallAndTrafficShaping.Settings.ValueString())
-	}
-
-	if len(data.FirewallAndTrafficShaping.L3FirewallRules) > 0 {
-		var l3s []openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingL3FirewallRulesInner
-		for _, attribute := range data.FirewallAndTrafficShaping.L3FirewallRules {
-			var l3 openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingL3FirewallRulesInner
-			if !attribute.Comment.IsUnknown() {
-				l3.SetComment(attribute.Comment.ValueString())
-			}
-			if !attribute.DestCidr.IsUnknown() {
-				l3.SetDestCidr(attribute.DestCidr.ValueString())
-			}
-			if !attribute.DestPort.IsUnknown() {
-				l3.SetDestPort(attribute.DestPort.ValueString())
-			}
-			if !attribute.Policy.IsUnknown() {
-				l3.SetPolicy(attribute.Policy.ValueString())
-			}
-			if !attribute.Protocol.IsUnknown() {
-				l3.SetProtocol(attribute.Protocol.ValueString())
-			}
-			l3s = append(l3s, l3)
-		}
-		firewallAndTrafficShaping.SetL3FirewallRules(l3s)
-	}
-
-	if len(data.FirewallAndTrafficShaping.L7FirewallRules) > 0 {
-		var l7s []openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingL7FirewallRulesInner
-		for _, attribute := range data.FirewallAndTrafficShaping.L7FirewallRules {
-			var l7 openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingL7FirewallRulesInner
-			if !attribute.Value.IsUnknown() {
-				l7.SetValue(attribute.Value.ValueString())
-			}
-			if !attribute.Type.IsUnknown() {
-				l7.SetType(attribute.Type.ValueString())
-			}
-
-			if !attribute.Policy.IsUnknown() {
-				l7.SetPolicy(attribute.Policy.ValueString())
-			}
-
-			l7s = append(l7s, l7)
-		}
-		firewallAndTrafficShaping.SetL7FirewallRules(l7s)
-
-	}
-
-	if len(data.FirewallAndTrafficShaping.TrafficShapingRules) > 0 {
-		var tfs []openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingTrafficShapingRulesInner
-		for _, attribute := range data.FirewallAndTrafficShaping.TrafficShapingRules {
-			var tf openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingTrafficShapingRulesInner
-			if !attribute.DscpTagValue.IsUnknown() {
-				tf.SetDscpTagValue(int32(attribute.DscpTagValue.ValueInt64()))
-			}
-			if !attribute.PcpTagValue.IsUnknown() {
-				tf.SetPcpTagValue(int32(attribute.PcpTagValue.ValueInt64()))
-			}
-			var perClientBandWidthLimits openApiClient.UpdateNetworkApplianceTrafficShapingRulesRequestRulesInnerPerClientBandwidthLimits
-
-			if !attribute.PerClientBandwidthLimits.Settings.IsUnknown() {
-				var bandwidthLimits openApiClient.UpdateNetworkApplianceTrafficShapingRulesRequestRulesInnerPerClientBandwidthLimitsBandwidthLimits
-
-				if attribute.PerClientBandwidthLimits.Settings.ValueString() != "network default" {
-
-					if !attribute.PerClientBandwidthLimits.BandwidthLimits.LimitDown.Int64Value.IsUnknown() {
-						bandwidthLimits.SetLimitDown(int32(attribute.PerClientBandwidthLimits.BandwidthLimits.LimitDown.ValueInt64()))
-					}
-
-					if !attribute.PerClientBandwidthLimits.BandwidthLimits.LimitUp.Int64Value.IsUnknown() {
-						bandwidthLimits.SetLimitUp(int32(attribute.PerClientBandwidthLimits.BandwidthLimits.LimitUp.ValueInt64()))
-					}
-					perClientBandWidthLimits.SetBandwidthLimits(bandwidthLimits)
-				}
-				perClientBandWidthLimits.SetSettings(attribute.PerClientBandwidthLimits.Settings.ValueString())
-				tf.SetPerClientBandwidthLimits(perClientBandWidthLimits)
-			}
-			var defs []openApiClient.UpdateNetworkApplianceTrafficShapingRulesRequestRulesInnerDefinitionsInner
-			if len(attribute.Definitions) > 0 {
-				for _, attribute := range attribute.Definitions {
-					var def openApiClient.UpdateNetworkApplianceTrafficShapingRulesRequestRulesInnerDefinitionsInner
-					def.SetType(attribute.Type.ValueString())
-					def.SetValue(attribute.Value.ValueString())
-					defs = append(defs, def)
-				}
-				tf.SetDefinitions(defs)
-			}
-
-			tfs = append(tfs, tf)
-		}
-		firewallAndTrafficShaping.SetTrafficShapingRules(tfs)
-	}
-
-	updateNetworkGroupPolicy.SetFirewallAndTrafficShaping(firewallAndTrafficShaping)
-
-	if !data.Scheduling.Enabled.IsUnknown() {
-		var schedule openApiClient.CreateNetworkGroupPolicyRequestScheduling
-		schedule.SetEnabled(data.Scheduling.Enabled.ValueBool())
-		if !data.Scheduling.Friday.Active.IsUnknown() {
-			var friday openApiClient.CreateNetworkGroupPolicyRequestSchedulingFriday
-			friday.SetActive(data.Scheduling.Friday.Active.ValueBool())
-			friday.SetFrom(data.Scheduling.Friday.From.ValueString())
-			friday.SetTo(data.Scheduling.Friday.To.ValueString())
-			schedule.SetFriday(friday)
-		}
-		if !data.Scheduling.Monday.Active.IsUnknown() {
-			var monday openApiClient.CreateNetworkGroupPolicyRequestSchedulingMonday
-			monday.SetActive(data.Scheduling.Monday.Active.ValueBool())
-			monday.SetFrom(data.Scheduling.Monday.From.ValueString())
-			monday.SetTo(data.Scheduling.Monday.To.ValueString())
-			schedule.SetMonday(monday)
-		}
-		if !data.Scheduling.Tuesday.Active.IsUnknown() {
-			var tuesday openApiClient.CreateNetworkGroupPolicyRequestSchedulingTuesday
-			tuesday.SetActive(data.Scheduling.Tuesday.Active.ValueBool())
-			tuesday.SetFrom(data.Scheduling.Tuesday.From.ValueString())
-			tuesday.SetTo(data.Scheduling.Tuesday.To.ValueString())
-			schedule.SetTuesday(tuesday)
-		}
-		if !data.Scheduling.Wednesday.Active.IsUnknown() {
-			var wednesday openApiClient.CreateNetworkGroupPolicyRequestSchedulingWednesday
-			wednesday.SetActive(data.Scheduling.Wednesday.Active.ValueBool())
-			wednesday.SetFrom(data.Scheduling.Wednesday.From.ValueString())
-			wednesday.SetTo(data.Scheduling.Wednesday.To.ValueString())
-			schedule.SetWednesday(wednesday)
-		}
-		if !data.Scheduling.Thursday.Active.IsUnknown() {
-			var thursday openApiClient.CreateNetworkGroupPolicyRequestSchedulingThursday
-			thursday.SetActive(data.Scheduling.Thursday.Active.ValueBool())
-			thursday.SetFrom(data.Scheduling.Thursday.From.ValueString())
-			thursday.SetTo(data.Scheduling.Thursday.To.ValueString())
-			schedule.SetThursday(thursday)
-		}
-		if !data.Scheduling.Saturday.Active.IsUnknown() {
-			var saturday openApiClient.CreateNetworkGroupPolicyRequestSchedulingSaturday
-			saturday.SetActive(data.Scheduling.Saturday.Active.ValueBool())
-			saturday.SetFrom(data.Scheduling.Saturday.From.ValueString())
-			saturday.SetTo(data.Scheduling.Saturday.To.ValueString())
-			schedule.SetSaturday(saturday)
-		}
-		if !data.Scheduling.Sunday.Active.IsUnknown() {
-			var sunday openApiClient.CreateNetworkGroupPolicyRequestSchedulingSunday
-			sunday.SetActive(data.Scheduling.Sunday.Active.ValueBool())
-			sunday.SetFrom(data.Scheduling.Sunday.From.ValueString())
-			sunday.SetTo(data.Scheduling.Sunday.To.ValueString())
-			schedule.SetSunday(sunday)
-		}
-		updateNetworkGroupPolicy.SetScheduling(schedule)
-	}
-
-	if !data.VlanTagging.Settings.IsUnknown() {
-		if !data.VlanTagging.VlanId.IsUnknown() {
-			var v openApiClient.CreateNetworkGroupPolicyRequestVlanTagging
-			v.SetSettings(data.VlanTagging.Settings.ValueString())
-			v.SetVlanId(data.VlanTagging.VlanId.ValueString())
-			updateNetworkGroupPolicy.SetVlanTagging(v)
-		}
-	}
-	var contentFiltering openApiClient.CreateNetworkGroupPolicyRequestContentFiltering
-	contentFilteringStatus := false
-
-	if !data.ContentFiltering.AllowedUrlPatterns.Settings.IsUnknown() {
-		var allowedUrlPatternData openApiClient.CreateNetworkGroupPolicyRequestContentFilteringAllowedUrlPatterns
-		allowedUrlPatternData.SetSettings(data.ContentFiltering.AllowedUrlPatterns.Settings.ValueString())
-		allowedUrlPatternData.SetPatterns(data.ContentFiltering.AllowedUrlPatterns.Patterns)
-		contentFiltering.SetAllowedUrlPatterns(allowedUrlPatternData)
-		contentFilteringStatus = true
-	}
-
-	if !data.ContentFiltering.BlockedUrlCategories.Settings.IsUnknown() {
-		var blockedUrlCategoriesData openApiClient.CreateNetworkGroupPolicyRequestContentFilteringBlockedUrlCategories
-		blockedUrlCategoriesData.SetSettings(data.ContentFiltering.BlockedUrlCategories.Settings.ValueString())
-		blockedUrlCategoriesData.SetCategories(data.ContentFiltering.BlockedUrlCategories.Categories)
-		contentFiltering.SetBlockedUrlCategories(blockedUrlCategoriesData)
-		contentFilteringStatus = true
-	}
-
-	if !data.ContentFiltering.BlockedUrlPatterns.Settings.IsUnknown() {
-		var blockedUrlPatternData openApiClient.CreateNetworkGroupPolicyRequestContentFilteringBlockedUrlPatterns
-		blockedUrlPatternData.SetSettings(data.ContentFiltering.BlockedUrlPatterns.Settings.ValueString())
-		blockedUrlPatternData.SetPatterns(data.ContentFiltering.BlockedUrlPatterns.Patterns)
-		contentFiltering.SetBlockedUrlPatterns(blockedUrlPatternData)
-		contentFilteringStatus = true
-	}
-
-	if contentFilteringStatus {
-		updateNetworkGroupPolicy.SetContentFiltering(contentFiltering)
-	}
-
-	inlineResp, httpResp, err := r.client.NetworksApi.UpdateNetworkGroupPolicy(ctx, data.NetworkId.ValueString(), data.GroupPolicyId.ValueString()).UpdateNetworkGroupPolicyRequest(updateNetworkGroupPolicy).Execute()
+	inlineResp, httpResp, err := r.client.NetworksApi.UpdateNetworkGroupPolicy(ctx, data.NetworkId.ValueString(), data.GroupPolicyId.ValueString()).UpdateNetworkGroupPolicyRequest(*payload).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"HTTP Client Failure",
@@ -2280,4 +2360,135 @@ func CreateGroupPolicyHttpReqPayload(ctx context.Context, data *NetworksGroupPol
 	}
 
 	return *payload, nil
+}
+
+func UpdateNetworkGroupPolicyHttpReqPayload(ctx context.Context, data *NetworksGroupPolicyResourceModel) (*openApiClient.UpdateNetworkGroupPolicyRequest, diag.Diagnostics) {
+	resp := diag.Diagnostics{}
+
+	tflog.Info(ctx, "[start] UpdateNetworkGroupPolicyHttpReqPayload Call")
+
+	payload := openApiClient.NewUpdateNetworkGroupPolicyRequest()
+
+	// Name
+	if !data.Name.IsUnknown() && !data.Name.IsNull() {
+		payload.SetName(data.Name.ValueString())
+	}
+
+	if !data.FirewallAndTrafficShaping.IsUnknown() && !data.FirewallAndTrafficShaping.IsNull() {
+		var firewallAndTrafficData NetworksGroupPolicyResourceModelFirewallAndTrafficShaping
+
+		diags := data.FirewallAndTrafficShaping.As(ctx, &firewallAndTrafficData, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			resp.AddError(
+				"Update Payload Failure", fmt.Sprintf("%v", diags),
+			)
+		}
+
+		firewallAndTrafficPayload, firewallAndTrafficDiags := firewallAndTrafficData.ToAPIPayload(ctx)
+		if firewallAndTrafficDiags.HasError() {
+			return payload, firewallAndTrafficDiags
+		}
+
+		payload.SetFirewallAndTrafficShaping(*firewallAndTrafficPayload)
+	}
+
+	if !data.Bandwidth.IsUnknown() && !data.Bandwidth.IsNull() {
+		var bandwitdh NetworksGroupPolicyResourceModelBandwidth
+
+		diags := data.Bandwidth.As(ctx, &bandwitdh, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			resp.AddError(
+				"Update Payload Failure", fmt.Sprintf("%v", diags),
+			)
+		}
+
+		bandwidth, bandwidthDiags := bandwitdh.ToAPIPayload(ctx)
+		if bandwidthDiags.HasError() {
+			return payload, bandwidthDiags
+		}
+
+		payload.SetBandwidth(*bandwidth)
+	}
+
+	if !data.ContentFiltering.IsUnknown() && !data.ContentFiltering.IsNull() {
+		var contentFiltering NetworksGroupPolicyResourceModelContentFiltering
+
+		diags := data.ContentFiltering.As(ctx, &contentFiltering, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			resp.AddError(
+				"Update Payload Failure", fmt.Sprintf("%v", diags),
+			)
+		}
+
+		contentFilteringPayload, contentFilteringDiags := contentFiltering.ToAPIPayload(ctx)
+		if contentFilteringDiags.HasError() {
+			return payload, contentFilteringDiags
+		}
+
+		payload.SetContentFiltering(*contentFilteringPayload)
+	}
+
+	// bonjour forwarding
+	if !data.BonjourForwarding.IsUnknown() && !data.BonjourForwarding.IsNull() {
+		var bonjourForwarding NetworksGroupPolicyResourceModelBonjourForwarding
+
+		diags := data.BonjourForwarding.As(ctx, &bonjourForwarding, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			resp.AddError(
+				"Update Payload Failure", fmt.Sprintf("%v", diags),
+			)
+		}
+
+		bonjourForwardingPayload, bonjourForwardingDiags := bonjourForwarding.ToAPIPayload(ctx)
+		if bonjourForwardingDiags.HasError() {
+			return payload, bonjourForwardingDiags
+		}
+
+		payload.SetBonjourForwarding(*bonjourForwardingPayload)
+	}
+
+	// vlan tagging
+	if !data.VlanTagging.IsUnknown() && !data.VlanTagging.IsNull() {
+		var vlanTagging NetworksGroupPolicyResourceModelVlanTagging
+
+		diags := data.VlanTagging.As(ctx, &vlanTagging, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			resp.AddError(
+				"Update Payload Failure", fmt.Sprintf("%v", diags),
+			)
+		}
+
+		vlanTaggingPayload, vlanTaggingDiags := vlanTagging.ToAPIPayload(ctx)
+		if vlanTaggingDiags.HasError() {
+			return payload, vlanTaggingDiags
+		}
+
+		payload.SetVlanTagging(*vlanTaggingPayload)
+	}
+
+	// scheduling
+	if !data.Scheduling.IsUnknown() && !data.Scheduling.IsNull() {
+		var scheduling NetworksGroupPolicyResourceModelScheduling
+
+		diags := data.Scheduling.As(ctx, &scheduling, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			resp.AddError(
+				"Update Payload Failure", fmt.Sprintf("%v", diags),
+			)
+		}
+
+		schedulingPayload, schedulingDiags := scheduling.ToAPIPayload(ctx)
+		if schedulingDiags.HasError() {
+			return payload, schedulingDiags
+		}
+
+		payload.SetScheduling(*schedulingPayload)
+	}
+
+	// splash settings
+	if !data.SplashAuthSettings.IsUnknown() && !data.SplashAuthSettings.IsNull() {
+		payload.SetSplashAuthSettings(data.SplashAuthSettings.ValueString())
+	}
+
+	return payload, diag.Diagnostics{}
 }
