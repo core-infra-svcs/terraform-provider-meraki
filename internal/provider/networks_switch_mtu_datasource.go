@@ -2,15 +2,13 @@ package provider
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
@@ -19,7 +17,7 @@ import (
 // Ensure provider defined types fully satisfy framework interfaces
 var _ datasource.DataSource = &NetworksSwitchMtuDataSource{}
 
-func NetworksSwitchMtuDataSource() datasource.DataSource {
+func NewNetworksSwitchMtuDataSource() datasource.DataSource {
 	return &NetworksSwitchMtuDataSource{}
 }
 
@@ -34,12 +32,20 @@ type NetworksSwitchMtuDataSourceModel struct {
 	NetworkId      jsontypes.String                           `tfsdk:"network_id" json:"network_id"`
 	DefaultMtuSize jsontypes.Int64                            `tfsdk:"default_mtu_size" json:"defaultMtuSize"`
 	Overrides      []NetworksSwitchMtuDataSourceModelOverride `tfsdk:"overrides" json:"overrides"`
+	List           []NetworksSwitchMtuDataSourceModelRules    `tfsdk:"list"`
 }
 
 type NetworksSwitchMtuDataSourceModelOverride struct {
-	Switches       []string        `tfsdk:"switches" json:"switches"`
-	SwitchProfiles []string        `tfsdk:"switch_profiles" json:"switchProfiles"`
-	MtuSize        jsontypes.Int64 `tfsdk:"mtu_size" json:"mtuSize"`
+	Switches       []string `tfsdk:"switches" json:"switches"`
+	SwitchProfiles []string `tfsdk:"switch_profiles" json:"switchProfiles"`
+	MtuSize        int32    `tfsdk:"mtu_size" json:"mtuSize"`
+}
+
+// NetworksSwitchMtuDataSourceModelRules describes the resource data model.
+type NetworksSwitchMtuDataSourceModelRules struct {
+	Switches       []string `tfsdk:"switches" json:"switches"`
+	SwitchProfiles []string `tfsdk:"switch_profiles" json:"switchProfiles"`
+	MtuSize        int32    `tfsdk:"mtu_size" json:"mtuSize"`
 }
 
 func (r *NetworksSwitchMtuDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -60,9 +66,6 @@ func (r *NetworksSwitchMtuDataSource) Schema(ctx context.Context, req datasource
 				MarkdownDescription: "Network Id",
 				Required:            true,
 				CustomType:          jsontypes.StringType,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 31),
 				},
@@ -128,7 +131,7 @@ func (r *NetworksSwitchMtuDataSource) Read(ctx context.Context, req datasource.R
 	var data *NetworksSwitchMtuDataSourceModel
 
 	// Read Terraform prior state data into the model
-	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -154,30 +157,15 @@ func (r *NetworksSwitchMtuDataSource) Read(ctx context.Context, req datasource.R
 	var rules []NetworksSwitchMtuDataSourceModelRules
 
 	// Iterate through the inline response
-	for _, item := range inlineResp {
+	for _, override := range inlineResp.Overrides {
 		var rule NetworksSwitchMtuDataSourceModelRules
 
-		// Convert the map item to a JSON string
-		itemJSON, itemJSONErr := json.Marshal(item)
-		if itemJSONErr != nil {
-			resp.Diagnostics.AddError(
-				"Failed to Convert the map item to a JSON string",
-				fmt.Sprintf("%v", itemJSONErr),
-			)
-			return
-		}
+		// Populate 'rule' struct fields based on 'override' from inlineResp
+		rule.Switches = override.Switches
+		rule.SwitchProfiles = override.SwitchProfiles
+		rule.MtuSize = override.MtuSize
 
-		// Unmarshal JSON string into NetworksSwitchQosRulesDataSourceModelRules
-		err = json.Unmarshal(itemJSON, &rule)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Failed to Unmarshal JSON string into rule data model",
-				fmt.Sprintf("%v", err),
-			)
-			return
-		}
-
-		// Append the unmarshal rule to the list
+		// Append the 'rule' to the list of rules
 		rules = append(rules, rule)
 	}
 
