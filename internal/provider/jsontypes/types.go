@@ -3,7 +3,6 @@ package jsontypes
 import (
 	"context"
 	"fmt"
-
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -129,4 +128,35 @@ func (st setType[T]) Equal(o attr.Type) bool {
 	}
 
 	return st.SetType.Equal(base)
+}
+
+// MapType represents a map with string keys and JsonValue values.
+type mapType struct {
+	basetypes.MapType
+}
+
+// MapType constructs a new MapType with the provided element type.
+func MapType(elemType attr.Type) mapType {
+	return mapType{
+		MapType: basetypes.MapType{
+			ElemType: elemType,
+		},
+	}
+}
+
+func (m mapType) Equal(o attr.Type) bool {
+	other, ok := o.(mapType)
+	if !ok {
+		return false
+	}
+	return m.ElemType.Equal(other.ElemType)
+}
+
+func (m mapType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+	val, err := m.MapType.ValueFromTerraform(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	mapVal := val.(basetypes.MapValue)
+	return NewMapValue(m.ElemType, mapVal.Elements()), nil
 }

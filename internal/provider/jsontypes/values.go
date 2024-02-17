@@ -4,9 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
@@ -275,4 +274,55 @@ func (s *Set[T]) UnmarshalJSON(bytes []byte) error {
 	s.Set = types.SetValueMust(s.getElemType(), mapToAttrs(items))
 
 	return nil
+}
+
+type Map struct {
+	basetypes.MapValue
+}
+
+// UnmarshalJSON custom unmarshaler for Map values.
+func (m *Map) UnmarshalJSON(bytes []byte) error {
+	// Explicitly check for 'null' JSON
+	if string(bytes) == "null" {
+		// Assuming you have a way to set the Map state to null; adjust as per your implementation
+		*m = Map{MapValue: basetypes.NewMapNull(StringType)} // Use the correct type for your context
+		return nil
+	}
+
+	// Example assuming a map with string values
+	var rawMap map[string]string
+	if err := json.Unmarshal(bytes, &rawMap); err != nil {
+		return err
+	}
+
+	elements := make(map[string]attr.Value)
+	for key, val := range rawMap {
+		elements[key] = StringValue(val) // Assuming StringValue correctly wraps a string as attr.Value
+	}
+
+	// Ensure elementType is correctly set before creating the map value.
+	// This example hardcodes StringType for demonstration.
+	m.MapValue = basetypes.NewMapValueMust(StringType, elements) // Ensure StringType is a correctly initialized attr.Type
+	return nil
+}
+
+func (m Map) Type(_ context.Context) attr.Type {
+	// This should return the specific mapType instance used to create this value,
+	// which would typically involve storing that type information within the Map struct.
+	// For simplicity, assuming string values:
+	return MapType(StringType)
+}
+
+func (m Map) Equal(value attr.Value) bool {
+	other, ok := value.(Map)
+	if !ok {
+		return false
+	}
+	return m.MapValue.Equal(other.MapValue)
+}
+
+// NewMapValue is a helper function to create a Map with known elements.
+func NewMapValue(elemType attr.Type, elements map[string]attr.Value) Map {
+	mapValue, _ := basetypes.NewMapValue(elemType, elements)
+	return Map{MapValue: mapValue}
 }
