@@ -31,17 +31,34 @@ func TestAccNetworkSwitchMtuDataSource(t *testing.T) {
 				),
 			},
 
-			// Create and Read Networks Switch MTU Rules.
+			// TODO: Create Switch Profile
+
+			// TODO: Claim Network Device
+			/*
+				{
+						Config: testAccNetworkSwitchMtuDataSourceConfigClaimDevice(os.Getenv("TF_ACC_MERAKI_MS_SERIAL"), os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
+						Check: resource.ComposeAggregateTestCheckFunc(
+							resource.TestCheckResourceAttr("meraki_networks_devices_claim.test", "serials.0", os.Getenv("TF_ACC_MERAKI_MS_SERIAL")),
+						),
+					},
+			*/
+
+			// Create and Read Networks Switch MTU.
 			{
-				Config: testAccNetworkSwitchMtuDataSourceConfigCreateNetworkSwitchMtu,
+				Config: testAccNetworkSwitchMtuDataSourceConfigCreateNetworkSwitchMtu(os.Getenv("TF_ACC_MERAKI_MS_SERIAL")),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_switch_mtu.test", "default_mtu_size", "9578"),
+					resource.TestCheckResourceAttr("meraki_networks_switch_mtu.test", "default_mtu_size", "1500"),
+
+					// TODO: Create Override Settings
+					// resource.TestCheckResourceAttr("data.meraki_networks_switch_mtu.test", "overrides.0.switch_profiles.0", "meraki_switch_profile.test.id"),
+					// resource.TestCheckResourceAttr("data.meraki_networks_switch_mtu.test", "overrides.0.switches.0", os.Getenv("TF_ACC_MERAKI_MS_SERIAL")),
+					// resource.TestCheckResourceAttr("data.meraki_networks_switch_mtu.test", "overrides.0.mtu_size", "9578"),
 				),
 			},
 
-			// Read testing
+			// Update Switch MTU
 			{
-				Config: testAccNetworkSwitchMtuDataSourceRead, // Provide the Terraform configuration for reading the network switch MTU data source
+				Config: testAccNetworkSwitchMtuDataSourceRead,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("data.meraki_networks_switch_mtu.test", "default_mtu_size", "9578"),
 				),
@@ -64,19 +81,58 @@ resource "meraki_network" "test" {
 	return result
 }
 
-const testAccNetworkSwitchMtuDataSourceConfigCreateNetworkSwitchMtu = `
+// TODO: func/const for testAccNetworkSwitchMtuDataSourceConfigSwitchProfile
+
+func testAccNetworkSwitchMtuDataSourceConfigClaimDevice(serial string, orgId string) string {
+	result := fmt.Sprintf(`
 resource "meraki_network" "test" {
+	organization_id = %s
     product_types = ["appliance", "switch", "wireless"]
+}   
+
+resource "meraki_networks_devices_claim" "test" {
+    depends_on = [resource.meraki_network.test]
+    network_id = resource.meraki_network.test.network_id
+    serials = [
+      "%s"
+  ]
+}
+`, orgId, serial)
+	return result
 }
 
-resource "meraki_networks_switch_mtu" "test" {
-    depends_on     = [meraki_network.test]
-    network_id     = meraki_network.test.network_id
-    default_mtu_size = 9578
-    overrides = []
-}
+// TODO: Uncomment overrides
+func testAccNetworkSwitchMtuDataSourceConfigCreateNetworkSwitchMtu(serial string) string {
+	result := fmt.Sprintf(`
 
-`
+	resource "meraki_network" "test" {
+    product_types = ["appliance", "switch", "wireless"]
+	}
+
+	resource "meraki_networks_switch_mtu" "test" {
+    	depends_on     = [meraki_network.test]
+    	network_id     = meraki_network.test.network_id
+    	default_mtu_size = 1500
+		overrides = [
+
+		/*
+		{
+				switches = [
+					"%s"
+				],
+				switch_profiles = [
+					meraki_switch_profile.test.id
+				],
+				mtu_size = 1540
+    		}
+		*/
+
+		]
+		
+}
+`, serial)
+	return result
+}
 
 const testAccNetworkSwitchMtuDataSourceRead = `
 resource "meraki_network" "test" {
