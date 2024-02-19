@@ -32,13 +32,12 @@ type NetworksSwitchMtuDataSourceModel struct {
 	NetworkId      jsontypes.String                           `tfsdk:"network_id" json:"network_id"`
 	DefaultMtuSize jsontypes.Int64                            `tfsdk:"default_mtu_size" json:"defaultMtuSize"`
 	Overrides      []NetworksSwitchMtuDataSourceModelOverride `tfsdk:"overrides" json:"overrides"`
-	List           []NetworksSwitchMtuDataSourceModelRules    `tfsdk:"list"`
 }
 
 type NetworksSwitchMtuDataSourceModelOverride struct {
-	Switches       []string `tfsdk:"switches" json:"switches"`
-	SwitchProfiles []string `tfsdk:"switch_profiles" json:"switchProfiles"`
-	MtuSize        int32    `tfsdk:"mtu_size" json:"mtuSize"`
+	Switches       []string        `tfsdk:"switches" json:"switches"`
+	SwitchProfiles []string        `tfsdk:"switch_profiles" json:"switchProfiles"`
+	MtuSize        jsontypes.Int64 `tfsdk:"mtu_size" json:"mtuSize"`
 }
 
 // NetworksSwitchMtuDataSourceModelRules describes the resource data model.
@@ -154,6 +153,22 @@ func (r *NetworksSwitchMtuDataSource) Read(ctx context.Context, req datasource.R
 		)
 	}
 
+	// Extract default MTU size from the API response
+	defaultMtuSize := inlineResp.GetDefaultMtuSize()
+
+	tflog.Trace(ctx, fmt.Sprintf("API response: %v", inlineResp))
+
+	// Verify the presence and value of default MTU size
+	if defaultMtuSize != 0 {
+		// The defaultMtuSize is present in the response
+		// You can further process or validate its value here
+		tflog.Trace(ctx, fmt.Sprintf("Default MTU size: %d", defaultMtuSize))
+	} else {
+		// The defaultMtuSize is not present in the response
+		// Handle this case accordingly
+		tflog.Warn(ctx, "Default MTU size not found in the API response")
+	}
+
 	var rules []NetworksSwitchMtuDataSourceModelRules
 
 	// Iterate through the inline response
@@ -168,8 +183,6 @@ func (r *NetworksSwitchMtuDataSource) Read(ctx context.Context, req datasource.R
 		// Append the 'rule' to the list of rules
 		rules = append(rules, rule)
 	}
-
-	data.List = rules
 
 	data.Id = data.NetworkId
 

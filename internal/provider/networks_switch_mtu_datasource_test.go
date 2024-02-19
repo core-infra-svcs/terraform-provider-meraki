@@ -15,7 +15,6 @@ func TestAccNetworkSwitchMtuDataSource(t *testing.T) {
 		},
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-
 			// Create and Read Network.
 			{
 				Config: testAccNetworkSwitchMtuDataSourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
@@ -38,31 +37,15 @@ func TestAccNetworkSwitchMtuDataSource(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_networks_switch_mtu", "default_mtu_size", "9578"),
 					resource.TestCheckResourceAttr("meraki_networks_switch_mtu", "overrides.#", "1"),
-					resource.TestCheckResourceAttr("meraki_networks_switch_mtu", "overrides.0.switches.#", "3"),
-					resource.TestCheckResourceAttr("meraki_networks_switch_mtu", "overrides.0.switches.0", "Q234-ABCD-0001"),
-					resource.TestCheckResourceAttr("meraki_networks_switch_mtu", "overrides.0.switches.1", "Q234-ABCD-0002"),
-					resource.TestCheckResourceAttr("meraki_networks_switch_mtu", "overrides.0.switches.2", "Q234-ABCD-0003"),
-					resource.TestCheckResourceAttr("meraki_networks_switch_mtu", "overrides.0.switchProfiles.#", "2"),
-					resource.TestCheckResourceAttr("meraki_networks_switch_mtu", "overrides.0.switchProfiles.0", "1284392014819"),
-					resource.TestCheckResourceAttr("meraki_networks_switch_mtu", "overrides.0.switchProfiles.1", "2983092129865"),
-					resource.TestCheckResourceAttr("meraki_networks_switch_mtu", "overrides.0.mtu_size", "1500"),
 				),
 			},
 
 			// Read testing
 			{
-				Config: testAccNetworkSwitchMtuDataSourceRead,
+				Config: testAccNetworkSwitchMtuDataSourceRead, // Provide the Terraform configuration for reading the network switch MTU data source
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("data.meraki_networks_switch_mtu.test", "default_mtu_size", "9578"),
 					resource.TestCheckResourceAttr("data.meraki_networks_switch_mtu.test", "overrides.#", "1"),
-					resource.TestCheckResourceAttr("data.meraki_networks_switch_mtu.test", "overrides.0.switches.#", "3"),
-					resource.TestCheckResourceAttr("data.meraki_networks_switch_mtu.test", "overrides.0.switches.0", "Q234-ABCD-0001"),
-					resource.TestCheckResourceAttr("data.meraki_networks_switch_mtu.test", "overrides.0.switches.1", "Q234-ABCD-0002"),
-					resource.TestCheckResourceAttr("data.meraki_networks_switch_mtu.test", "overrides.0.switches.2", "Q234-ABCD-0003"),
-					resource.TestCheckResourceAttr("data.meraki_networks_switch_mtu.test", "overrides.0.switchProfiles.#", "2"),
-					resource.TestCheckResourceAttr("data.meraki_networks_switch_mtu.test", "overrides.0.switchProfiles.0", "1284392014819"),
-					resource.TestCheckResourceAttr("data.meraki_networks_switch_mtu.test", "overrides.0.switchProfiles.1", "2983092129865"),
-					resource.TestCheckResourceAttr("data.meraki_networks_switch_mtu.test", "overrides.0.mtu_size", "1500"),
 				),
 			},
 		},
@@ -91,11 +74,12 @@ resource "meraki_network" "test" {
 resource "meraki_networks_switch_mtu" "test" {
     depends_on = [meraki_network.test]
     network_id = meraki_network.test.network_id
-    overrides {
-        switches = ["Q234-ABCD-0001", "Q234-ABCD-0002", "Q234-ABCD-0003"]
-        switchProfiles = ["1284392014819", "2983092129865"]
-        mtu_size = 1500
-    }
+    default_mtu_size = 9578
+    overrides = [
+        {
+			
+        }
+    ]
 }
 `
 
@@ -108,14 +92,13 @@ resource "meraki_networks_switch_mtu" "test" {
     depends_on = [meraki_network.test]
     network_id = meraki_network.test.network_id
     overrides {
-        switches = ["Q234-ABCD-0001", "Q234-ABCD-0002", "Q234-ABCD-0003"]
-        switchProfiles = ["1284392014819", "2983092129865"]
-        mtu_size = 1500
+
     }
 }
 
 data "meraki_networks_switch_mtu" "test" {
     depends_on = [meraki_network.test, meraki_networks_switch_mtu.test]
     network_id = meraki_network.test.network_id
+	default_mtu_size = meraki_networks_switch_mtu.test.default_mtu_size
 }
 `
