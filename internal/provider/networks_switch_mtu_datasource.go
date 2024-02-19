@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 
@@ -38,13 +39,6 @@ type NetworksSwitchMtuDataSourceModelOverride struct {
 	Switches       []string        `tfsdk:"switches" json:"switches"`
 	SwitchProfiles []string        `tfsdk:"switch_profiles" json:"switchProfiles"`
 	MtuSize        jsontypes.Int64 `tfsdk:"mtu_size" json:"mtuSize"`
-}
-
-// NetworksSwitchMtuDataSourceModelRules describes the resource data model.
-type NetworksSwitchMtuDataSourceModelRules struct {
-	Switches       []string `tfsdk:"switches" json:"switches"`
-	SwitchProfiles []string `tfsdk:"switch_profiles" json:"switchProfiles"`
-	MtuSize        int32    `tfsdk:"mtu_size" json:"mtuSize"`
 }
 
 func (r *NetworksSwitchMtuDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -136,7 +130,7 @@ func (r *NetworksSwitchMtuDataSource) Read(ctx context.Context, req datasource.R
 		return
 	}
 
-	inlineResp, httpResp, err := r.client.MtuApi.GetNetworkSwitchMtu(ctx, data.NetworkId.ValueString()).Execute()
+	_, httpResp, err := r.client.MtuApi.GetNetworkSwitchMtu(ctx, data.NetworkId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"HTTP Client Failure",
@@ -153,35 +147,19 @@ func (r *NetworksSwitchMtuDataSource) Read(ctx context.Context, req datasource.R
 		)
 	}
 
-	// Extract default MTU size from the API response
-	defaultMtuSize := inlineResp.GetDefaultMtuSize()
-
-	tflog.Trace(ctx, fmt.Sprintf("API response: %v", inlineResp))
-
-	// Verify the presence and value of default MTU size
-	if defaultMtuSize != 0 {
-		// The defaultMtuSize is present in the response
-		// You can further process or validate its value here
-		tflog.Trace(ctx, fmt.Sprintf("Default MTU size: %d", defaultMtuSize))
+	// Check for errors after diagnostics collected
+	if resp.Diagnostics.HasError() {
+		return
 	} else {
-		// The defaultMtuSize is not present in the response
-		// Handle this case accordingly
-		tflog.Warn(ctx, "Default MTU size not found in the API response")
+		resp.Diagnostics.Append()
 	}
 
-	var rules []NetworksSwitchMtuDataSourceModelRules
-
-	// Iterate through the inline response
-	for _, override := range inlineResp.Overrides {
-		var rule NetworksSwitchMtuDataSourceModelRules
-
-		// Populate 'rule' struct fields based on 'override' from inlineResp
-		rule.Switches = override.Switches
-		rule.SwitchProfiles = override.SwitchProfiles
-		rule.MtuSize = override.MtuSize
-
-		// Append the 'rule' to the list of rules
-		rules = append(rules, rule)
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON Decode issue",
+			fmt.Sprintf("%v", httpResp.StatusCode),
+		)
+		return
 	}
 
 	data.Id = data.NetworkId

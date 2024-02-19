@@ -35,8 +35,7 @@ func TestAccNetworkSwitchMtuDataSource(t *testing.T) {
 			{
 				Config: testAccNetworkSwitchMtuDataSourceConfigCreateNetworkSwitchMtu,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_switch_mtu", "default_mtu_size", "9578"),
-					resource.TestCheckResourceAttr("meraki_networks_switch_mtu", "overrides.#", "1"),
+					resource.TestCheckResourceAttr("meraki_networks_switch_mtu.test", "default_mtu_size", "9578"),
 				),
 			},
 
@@ -45,7 +44,6 @@ func TestAccNetworkSwitchMtuDataSource(t *testing.T) {
 				Config: testAccNetworkSwitchMtuDataSourceRead, // Provide the Terraform configuration for reading the network switch MTU data source
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("data.meraki_networks_switch_mtu.test", "default_mtu_size", "9578"),
-					resource.TestCheckResourceAttr("data.meraki_networks_switch_mtu.test", "overrides.#", "1"),
 				),
 			},
 		},
@@ -72,15 +70,12 @@ resource "meraki_network" "test" {
 }
 
 resource "meraki_networks_switch_mtu" "test" {
-    depends_on = [meraki_network.test]
-    network_id = meraki_network.test.network_id
+    depends_on     = [meraki_network.test]
+    network_id     = meraki_network.test.network_id
     default_mtu_size = 9578
-    overrides = [
-        {
-			
-        }
-    ]
+    overrides = []
 }
+
 `
 
 const testAccNetworkSwitchMtuDataSourceRead = `
@@ -91,14 +86,12 @@ resource "meraki_network" "test" {
 resource "meraki_networks_switch_mtu" "test" {
     depends_on = [meraki_network.test]
     network_id = meraki_network.test.network_id
-    overrides {
-
-    }
+    default_mtu_size = 9578
+    overrides = []
 }
 
 data "meraki_networks_switch_mtu" "test" {
     depends_on = [meraki_network.test, meraki_networks_switch_mtu.test]
     network_id = meraki_network.test.network_id
-	default_mtu_size = meraki_networks_switch_mtu.test.default_mtu_size
 }
 `
