@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -106,6 +107,40 @@ type NetworksWirelessSsidsResourceModel struct {
 	RadiusEnabled                    jsontypes.Bool    `json:"radiusEnabled" tfsdk:"radius_enabled"`
 	AdminSplashUrl                   jsontypes.String  `json:"adminSplashUrl" tfsdk:"admin_splash_url"`
 	SplashTimeout                    jsontypes.String  `json:"splashTimeout" tfsdk:"splash_timeout"`
+}
+
+func (m *NetworksWirelessSsidsResourceModel) UnmarshalJSON(b []byte) error {
+	type Alias NetworksWirelessSsidsResourceModel
+
+	temp := struct {
+		*Alias
+		RawAvailabilityTags json.RawMessage `json:"availabilityTags"`
+	}{
+		Alias: (*Alias)(m),
+	}
+
+	if err := json.Unmarshal(b, &temp); err != nil {
+		return err
+	}
+
+	// Unmarshal the RawAvailabilityTags into a slice of strings
+	var tags []string
+	if err := json.Unmarshal(temp.RawAvailabilityTags, &tags); err != nil {
+		return err
+	}
+
+	var items []attr.Value
+	for _, tag := range tags {
+
+		items = append(items, jsontypes.StringValue(tag))
+	}
+
+	list, _ := basetypes.NewListValue(jsontypes.StringType, items)
+
+	// Convert the slice of strings to types.List
+	m.AvailabilityTags = list
+
+	return nil
 }
 
 type Dot11WConfig struct {
