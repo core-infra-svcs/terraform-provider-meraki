@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -49,6 +50,7 @@ type NetworksWirelessSsidsDataSourceModelList struct {
 	Enabled                         jsontypes.Bool                                     `tfsdk:"enabled" json:"enabled"`
 	SplashPage                      jsontypes.String                                   `tfsdk:"splash_page" json:"splashPage"`
 	SSIDAdminAccessible             jsontypes.Bool                                     `tfsdk:"ssid_admin_accessible" json:"ssidAdminAccessible"`
+	LocalAuth                       jsontypes.Bool                                     `json:"localAuth" tfsdk:"local_auth"`
 	AuthMode                        jsontypes.String                                   `tfsdk:"auth_mode" json:"authMode"`
 	EncryptionMode                  jsontypes.String                                   `tfsdk:"encryption_mode" json:"encryptionMode"`
 	WPAEncryptionMode               jsontypes.String                                   `tfsdk:"wpa_encryption_mode" json:"wpaEncryptionMode"`
@@ -137,6 +139,12 @@ func (d *NetworksWirelessSsidsDataSource) Schema(ctx context.Context, req dataso
 						},
 						"ssid_admin_accessible": schema.BoolAttribute{
 							MarkdownDescription: "Enable Mandatory DHCP on VLAN.",
+							Optional:            true,
+							Computed:            true,
+							CustomType:          jsontypes.BoolType,
+						},
+						"local_auth": schema.BoolAttribute{
+							MarkdownDescription: "Extended local auth flag for Enterprise NAC.",
 							Optional:            true,
 							Computed:            true,
 							CustomType:          jsontypes.BoolType,
@@ -374,6 +382,7 @@ func (d *NetworksWirelessSsidsDataSource) Read(ctx context.Context, req datasour
 			Enabled:                         jsontypes.BoolValue(inlineRespData.GetEnabled()),
 			SplashPage:                      jsontypes.StringValue(inlineRespData.GetSplashPage()),
 			SSIDAdminAccessible:             jsontypes.BoolValue(inlineRespData.GetSsidAdminAccessible()),
+			LocalAuth:                       jsontypes.BoolValue(inlineRespData.GetLocalAuth()),
 			AuthMode:                        jsontypes.StringValue(inlineRespData.GetAuthMode()),
 			EncryptionMode:                  jsontypes.StringValue(inlineRespData.GetEncryptionMode()),
 			WPAEncryptionMode:               jsontypes.StringValue(inlineRespData.GetWpaEncryptionMode()),

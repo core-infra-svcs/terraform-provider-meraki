@@ -40,6 +40,7 @@ Optional:
 - `enabled` (Boolean) Whether or not the SSID is enabled.
 - `encryption_mode` (String)
 - `ip_assignment_mode` (String) The client IP assignment mode ('NAT mode', 'Bridge mode', 'Layer 3 roaming', 'Ethernet over GRE', 'Layer 3 roaming with a concentrator' or 'VPN')
+- `local_auth` (Boolean) Extended local auth flag for Enterprise NAC.
 - `mandatory_dhcp_enabled` (Boolean)
 - `min_bitrate` (Number)
 - `name` (String) The VLAN ID of the new VLAN (must be between 1 and 4094)
