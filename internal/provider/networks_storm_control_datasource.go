@@ -37,12 +37,12 @@ type NetworksSwitchStormControlDataSourceModel struct {
 }
 
 func (r *NetworksSwitchStormControlDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_networks_switch_mtu"
+	resp.TypeName = req.ProviderTypeName + "_networks_storm_control"
 }
 
 func (r *NetworksSwitchStormControlDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Networks SwitchStorm Control DataSource resource for updating Storm Control",
+		MarkdownDescription: "Networks Switch Storm Control DataSource resource for updating Storm Control",
 		Attributes: map[string]schema.Attribute{
 
 			"id": schema.StringAttribute{
@@ -58,19 +58,19 @@ func (r *NetworksSwitchStormControlDataSource) Schema(ctx context.Context, req d
 					stringvalidator.LengthBetween(1, 31),
 				},
 			},
-			"broadcastThreshold": schema.Int64Attribute{
+			"broadcast_threshold": schema.Int64Attribute{
 				MarkdownDescription: "Broadcast Threshold",
 				Optional:            true,
 				Computed:            true,
 				CustomType:          jsontypes.Int64Type,
 			},
-			"multicastThreshold": schema.Int64Attribute{
+			"multicast_threshold": schema.Int64Attribute{
 				MarkdownDescription: "Multicast Threshold",
 				Optional:            true,
 				Computed:            true,
 				CustomType:          jsontypes.Int64Type,
 			},
-			"unknownUnicastThreshold": schema.Int64Attribute{
+			"unknown_unicast_threshold": schema.Int64Attribute{
 				Description: "Unknown Unicast Threshold",
 				Optional:    true,
 				Computed:    true,
