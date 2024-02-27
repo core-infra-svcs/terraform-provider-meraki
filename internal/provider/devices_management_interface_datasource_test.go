@@ -31,48 +31,16 @@ func TestAccDevicesManagementInterfaceDataSource(t *testing.T) {
 
 			// Claim Appliance To Network
 			{
-				Config: testAccDevicesManagementInterfaceDatasourceConfigClaimNetworkDevice(os.Getenv("TF_ACC_MERAKI_MX_SERIAL"), os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
+				Config: testAccDevicesManagementInterfaceDatasourceConfigClaimNetworkDevice,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_devices_claim.test", "serials.0", os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
-					//resource.TestCheckResourceAttr("meraki_devices_management_interface.test", "serial", os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
-					//resource.TestCheckResourceAttr("meraki_devices_management_interface.test", "wan1.wan_enabled", "enabled"),
-					//resource.TestCheckResourceAttr("meraki_devices_management_interface.test", "wan1.using_static_ip", "false"),
-					//resource.TestCheckResourceAttr("meraki_devices_management_interface.test", "wan1.vlan", "1023"),
-					//
-					resource.TestCheckResourceAttr("data.meraki_devices_management_interface.test", "serial", os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
-					//resource.TestCheckResourceAttr("data.meraki_devices_management_interface.test", "wan1.wan_enabled", "enabled"),
-					//resource.TestCheckResourceAttr("data.meraki_devices_management_interface.test", "wan1.using_static_ip", "false"),
-					//resource.TestCheckResourceAttr("data.meraki_devices_management_interface.test", "wan1.vlan", "1023"),
+					resource.TestCheckResourceAttr("meraki_devices_management_interface.test", "serial", "Q3FA-RGA5-FZJF"),
+					resource.TestCheckResourceAttr("meraki_devices_management_interface.test", "wan1.wan_enabled", "enabled"),
+					resource.TestCheckResourceAttr("meraki_devices_management_interface.test", "wan1.vlan", "2"),
+					resource.TestCheckResourceAttr("meraki_devices_management_interface.test", "wan1.using_static_ip", "false"),
+
+					resource.TestCheckResourceAttr("data.meraki_devices_management_interface.test", "serial", "Q3FA-RGA5-FZJF"),
 				),
 			},
-			//
-			//// Create and Read Networks Switch Qos Rules.
-			//{
-			//	Config: testAccDevicesManagementInterfaceDataSourceConfigCreate(os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
-			//	Check: resource.ComposeAggregateTestCheckFunc(
-			//		resource.TestCheckResourceAttr("meraki_devices_management_interface.test", "serial", os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
-			//		resource.TestCheckResourceAttr("meraki_devices_management_interface.test", "wan1.wan_enabled", "enabled"),
-			//		resource.TestCheckResourceAttr("meraki_devices_management_interface.test", "wan1.using_static_ip", "false"),
-			//		resource.TestCheckResourceAttr("meraki_devices_management_interface.test", "wan1.vlan", "1023"),
-			//		resource.TestCheckResourceAttr("meraki_devices_management_interface.test", "wan1.static_dns.#", "2"),
-			//		resource.TestCheckResourceAttr("meraki_devices_management_interface.test", "wan1.static_dns.0", "1.2.3.2"),
-			//		resource.TestCheckResourceAttr("meraki_devices_management_interface.test", "wan1.static_dns.1", "1.2.3.3"),
-			//	),
-			//},
-			//
-			//// Read testing
-			//{
-			//	Config: testAccDevicesManagementInterfaceDataSourceRead(os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
-			//	Check: resource.ComposeAggregateTestCheckFunc(
-			//		resource.TestCheckResourceAttr("data.meraki_devices_management_interface.test", "serial", os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
-			//		resource.TestCheckResourceAttr("data.meraki_devices_management_interface.test", "wan1.wan_enabled", "enabled"),
-			//		resource.TestCheckResourceAttr("data.meraki_devices_management_interface.test", "wan1.using_static_ip", "false"),
-			//		resource.TestCheckResourceAttr("data.meraki_devices_management_interface.test", "wan1.vlan", "1023"),
-			//		resource.TestCheckResourceAttr("data.meraki_devices_management_interface.test", "wan1.static_dns.#", "2"),
-			//		resource.TestCheckResourceAttr("data.meraki_devices_management_interface.test", "wan1.static_dns.0", "1.2.3.2"),
-			//		resource.TestCheckResourceAttr("data.meraki_devices_management_interface.test", "wan1.static_dns.1", "1.2.3.3"),
-			//	),
-			//},
 		},
 	})
 }
@@ -92,51 +60,31 @@ resource "meraki_network" "test" {
 	return result
 }
 
-func testAccDevicesManagementInterfaceDatasourceConfigClaimNetworkDevice(serial string, orgId string) string {
-	result := fmt.Sprintf(`
+const testAccDevicesManagementInterfaceDatasourceConfigClaimNetworkDevice = `
 resource "meraki_network" "test" {
-        organization_id = "%s"
         product_types = ["appliance"]
 }    
+
 resource "meraki_networks_devices_claim" "test" {
     depends_on = [resource.meraki_network.test]
     network_id = resource.meraki_network.test.network_id
     serials = [
-      "%s"
+      "Q3FA-RGA5-FZJF"
   ]
 }
 
-data "meraki_devices_management_interface" "test" {
-	serial = "%s"
-}
-`, orgId, serial, serial)
-	return result
+resource "meraki_devices_management_interface" "test" {
+    depends_on = [resource.meraki_network.test, resource.meraki_networks_devices_claim.test]
+	serial = "Q3FA-RGA5-FZJF"
+	wan1 = {
+		wan_enabled = "enabled"
+		vlan = 2
+		using_static_ip = false
+	}
 }
 
-//func testAccDevicesManagementInterfaceDataSourceConfigCreate(serial string) string {
-//	result := fmt.Sprintf(`
-//resource "meraki_devices_management_interface" "test" {
-// serial = "%s"
-//	wan1 = {
-//		wan_enabled = "enabled"
-//		using_static_ip = false
-//		vlan 		  	= 1023
-//		static_dns = [
-//			"1.2.3.2",
-//			"1.2.3.3"
-// 	]
-//	}
-//}
-//`, serial)
-//	return result
-//}
-//
-//func testAccDevicesManagementInterfaceDataSourceRead(serial string) string {
-//	result := fmt.Sprintf(`
-//
-//data "meraki_devices_management_interface" "test" {
-//	serial = "%s"
-//}
-//`, serial)
-//	return result
-//}
+data "meraki_devices_management_interface" "test" {
+    depends_on = [resource.meraki_network.test, resource.meraki_networks_devices_claim.test, resource.meraki_devices_management_interface.test]
+	serial = "Q3FA-RGA5-FZJF"
+}
+`
