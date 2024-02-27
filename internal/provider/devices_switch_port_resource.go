@@ -120,6 +120,7 @@ func (r *DevicesSwitchPortResource) Schema(ctx context.Context, req resource.Sch
 				MarkdownDescription: "The identifier of the switch port.",
 				CustomType:          jsontypes.StringType,
 				Optional:            true,
+				Computed:            true,
 			},
 			"name": schema.StringAttribute{
 				MarkdownDescription: "The name of the switch port.",
@@ -131,11 +132,13 @@ func (r *DevicesSwitchPortResource) Schema(ctx context.Context, req resource.Sch
 				MarkdownDescription: "The list of tags of the switch port.",
 				ElementType:         jsontypes.StringType,
 				Optional:            true,
+				Computed:            true,
 			},
 			"enabled": schema.BoolAttribute{
 				MarkdownDescription: "The status of the switch port.",
 				CustomType:          jsontypes.BoolType,
 				Optional:            true,
+				Computed:            true,
 			},
 			"poe_enabled": schema.BoolAttribute{
 				MarkdownDescription: "The PoE status of the switch port.",
