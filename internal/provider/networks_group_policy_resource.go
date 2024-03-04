@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"io"
 	"strings"
 
@@ -149,6 +150,37 @@ type NetworksGroupPolicyResourceModelBlockedUrlPatterns struct {
 	Patterns []string         `tfsdk:"patterns" json:"patterns"`
 }
 
+// Adjusted to reflect jsontypes.String usage
+type SetDefaultString struct {
+	DefaultValue string
+}
+
+// Adjust constructor accordingly
+func NewSetDefaultString(defaultValue string) planmodifier.String {
+	return SetDefaultString{
+		DefaultValue: defaultValue,
+	}
+}
+
+func (m SetDefaultString) Description(ctx context.Context) string {
+	return "Sets a default value if none is provided."
+}
+
+func (m SetDefaultString) MarkdownDescription(ctx context.Context) string {
+	return "Sets a **default value** if none is provided."
+}
+
+func (m SetDefaultString) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		// Convert the string default value to types.String before assigning
+		resp.PlanValue = types.StringValue(m.DefaultValue)
+	}
+
+	if !resp.PlanValue.Equal(req.StateValue) {
+		resp.RequiresReplace = true
+	}
+}
+
 func (r *NetworksGroupPolicyResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_networks_group_policy"
 }
@@ -210,6 +242,9 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 						Optional:            true,
 						Computed:            true,
 						CustomType:          jsontypes.StringType,
+						PlanModifiers: []planmodifier.String{
+							NewSetDefaultString("network default whore"),
+						},
 					},
 					"bandwidth_limits": schema.SingleNestedAttribute{
 						MarkdownDescription: "The bandwidth limits object, specifying upload and download speed for clients bound to the group policy. These are only enforced if 'settings' is set to 'custom'.",
