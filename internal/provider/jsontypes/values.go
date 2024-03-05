@@ -8,6 +8,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	"sort"
+	"strings"
 )
 
 type JsonValue interface {
@@ -276,53 +279,180 @@ func (s *Set[T]) UnmarshalJSON(bytes []byte) error {
 	return nil
 }
 
-type Map struct {
-	basetypes.MapValue
+// DynamicValue holds a dynamic JSON value.
+type DynamicValue struct {
+	Value interface{}
 }
 
-// UnmarshalJSON custom unmarshaler for Map values.
-func (m *Map) UnmarshalJSON(bytes []byte) error {
-	// Explicitly check for 'null' JSON
-	if string(bytes) == "null" {
-		// Assuming you have a way to set the Map state to null; adjust as per your implementation
-		*m = Map{MapValue: basetypes.NewMapNull(StringType)} // Use the correct type for your context
-		return nil
-	}
-
-	// Example assuming a map with string values
-	var rawMap map[string]string
-	if err := json.Unmarshal(bytes, &rawMap); err != nil {
-		return err
-	}
-
-	elements := make(map[string]attr.Value)
-	for key, val := range rawMap {
-		elements[key] = StringValue(val) // Assuming StringValue correctly wraps a string as attr.Value
-	}
-
-	// Ensure elementType is correctly set before creating the map value.
-	// This example hardcodes StringType for demonstration.
-	m.MapValue = basetypes.NewMapValueMust(StringType, elements) // Ensure StringType is a correctly initialized attr.Type
-	return nil
+// Type returns the Terraform type of this dynamic value, which is always dynamic pseudo type in this context.
+func (d DynamicValue) Type(ctx context.Context) attr.Type {
+	return DynamicType{}
 }
 
-func (m Map) Type(_ context.Context) attr.Type {
-	// This should return the specific mapType instance used to create this value,
-	// which would typically involve storing that type information within the Map struct.
-	// For simplicity, assuming string values:
-	return MapType(StringType)
+// ToTerraformValue converts the DynamicValue to a tftypes.Value.
+func (d DynamicValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+	// Assuming dynamic handling based on the actual type of d.Value
+	switch v := d.Value.(type) {
+	case string:
+		return tftypes.NewValue(tftypes.String, v), nil
+	// Handle other types as needed
+	default:
+		return tftypes.Value{}, fmt.Errorf("unsupported type: %T", d.Value)
+	}
 }
 
-func (m Map) Equal(value attr.Value) bool {
-	other, ok := value.(Map)
+// Equal checks if two DynamicValues are equal.
+func (d DynamicValue) Equal(o attr.Value) bool {
+	other, ok := o.(DynamicValue)
 	if !ok {
 		return false
 	}
-	return m.MapValue.Equal(other.MapValue)
+	// TODO: Simplistic equality check; add deeper comparison for complex types
+	return fmt.Sprintf("%v", d.Value) == fmt.Sprintf("%v", other.Value)
 }
 
-// NewMapValue is a helper function to create a Map with known elements.
-func NewMapValue(elemType attr.Type, elements map[string]attr.Value) Map {
-	mapValue, _ := basetypes.NewMapValue(elemType, elements)
-	return Map{MapValue: mapValue}
+// IsNull checks if the DynamicValue is null.
+func (d DynamicValue) IsNull() bool {
+	return d.Value == nil
+}
+
+// IsUnknown checks if the DynamicValue is unknown.
+func (d DynamicValue) IsUnknown() bool {
+	// Assuming we don't have a specific representation for unknown values
+	return false
+}
+
+// String returns a string representation of the DynamicValue.
+func (d DynamicValue) String() string {
+	return fmt.Sprintf("%v", d.Value)
+}
+
+// UnmarshalJSON custom unmarshalling to handle dynamic JSON structures.
+func (d *DynamicValue) UnmarshalJSON(data []byte) error {
+	var raw interface{}
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+	d.Value = raw
+	return nil
+}
+
+// MapValue represents a mapping of string keys to dynamic attr.Value values.
+type MapValue struct {
+	// elements is the mapping of known values in the Map.
+	elements map[string]attr.Value
+	// elementType is the type of the elements in the Map, which is dynamic in this context.
+	elementType attr.Type
+	// state represents whether the value is null, unknown, or known.
+	state attr.ValueState
+}
+
+// NewMapValue constructs a new instance of MapValue with known elements.
+func NewMapValue(elements map[string]attr.Value) MapValue {
+	return MapValue{
+		elements:    elements,
+		elementType: DynamicType{}, // Assume all elements are dynamic
+		state:       attr.ValueStateKnown,
+	}
+}
+
+// ElementType returns the dynamic element type for this map.
+func (m MapValue) ElementType(ctx context.Context) attr.Type {
+	return m.elementType
+}
+
+// ToTerraformValue converts the MapValue to a tftypes.Value.
+func (m MapValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+	vals := make(map[string]tftypes.Value)
+	for key, val := range m.elements {
+		tfVal, err := val.ToTerraformValue(ctx)
+		if err != nil {
+			return tftypes.Value{}, err
+		}
+		vals[key] = tfVal
+	}
+	// Always use tftypes.DynamicPseudoType for the map's element type.
+	return tftypes.NewValue(tftypes.Map{ElementType: tftypes.DynamicPseudoType}, vals), nil
+}
+
+// Equal checks if the MapValue is equal to another attr.Value.
+func (m MapValue) Equal(o attr.Value) bool {
+	other, ok := o.(MapValue)
+	if !ok {
+		return false
+	}
+
+	if m.state != other.state {
+		return false
+	}
+
+	if m.state == attr.ValueStateUnknown || m.state == attr.ValueStateNull {
+		// If either is unknown or null, we don't need to compare elements.
+		return true
+	}
+
+	// Ensure both maps have the same set of keys and each key's value is equal.
+	if len(m.elements) != len(other.elements) {
+		return false
+	}
+	for key, val := range m.elements {
+		otherVal, exists := other.elements[key]
+		if !exists || !val.Equal(otherVal) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// IsNull checks if the MapValue represents a null value.
+func (m MapValue) IsNull() bool {
+	return m.state == attr.ValueStateNull
+}
+
+// IsUnknown checks if the MapValue represents an unknown value.
+func (m MapValue) IsUnknown() bool {
+	return m.state == attr.ValueStateUnknown
+}
+
+// String returns a human-readable representation of the MapValue.
+func (m MapValue) String() string {
+	switch m.state {
+	case attr.ValueStateNull:
+		return "null"
+	case attr.ValueStateUnknown:
+		return "unknown"
+	default:
+		var sb strings.Builder
+		keys := make([]string, 0, len(m.elements))
+		for k := range m.elements {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys) // Ensure consistent ordering
+		sb.WriteString("{")
+		for i, k := range keys {
+			if i > 0 {
+				sb.WriteString(", ")
+			}
+			sb.WriteString(fmt.Sprintf("%q: %s", k, m.elements[k].String()))
+		}
+		sb.WriteString("}")
+		return sb.String()
+	}
+}
+
+// Helper Functions
+
+// NewMapNull creates a new MapValue representing a null value.
+func NewMapNull() MapValue {
+	return MapValue{
+		state: attr.ValueStateNull,
+	}
+}
+
+// NewMapUnknown creates a new MapValue representing an unknown value.
+func NewMapUnknown() MapValue {
+	return MapValue{
+		state: attr.ValueStateUnknown,
+	}
 }
