@@ -5,13 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
-	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"io"
 	"strings"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -43,12 +42,12 @@ type NetworksGroupPolicyResourceModel struct {
 	GroupPolicyId             jsontypes.String                                          `tfsdk:"group_policy_id" json:"groupPolicyId"`
 	Name                      jsontypes.String                                          `tfsdk:"name" json:"name"`
 	SplashAuthSettings        jsontypes.String                                          `tfsdk:"splash_auth_settings" json:"splashAuthSettings"`
-	Bandwidth                 types.Object                                              `tfsdk:"bandwidth" json:"bandwidth"`
-	BonjourForwarding         types.Object                                              `tfsdk:"bonjour_forwarding" json:"bonjourForwarding"`
+	Bandwidth                 NetworksGroupPolicyResourceModelBandwidth                 `tfsdk:"bandwidth" json:"bandwidth"`
+	BonjourForwarding         NetworksGroupPolicyResourceModelBonjourForwarding         `tfsdk:"bonjour_forwarding" json:"bonjourForwarding"`
 	FirewallAndTrafficShaping NetworksGroupPolicyResourceModelFirewallAndTrafficShaping `tfsdk:"firewall_and_traffic_shaping" json:"firewallAndTrafficShaping"`
-	Scheduling                types.Object                                              `tfsdk:"scheduling" json:"scheduling"`
-	VlanTagging               types.Object                                              `tfsdk:"vlan_tagging" json:"vlanTagging"`
-	ContentFiltering          types.Object                                              `tfsdk:"content_filtering" json:"contentFiltering"`
+	Scheduling                NetworksGroupPolicyResourceModelScheduling                `tfsdk:"scheduling" json:"scheduling"`
+	VlanTagging               NetworksGroupPolicyResourceModelVlanTagging               `tfsdk:"vlan_tagging" json:"vlanTagging"`
+	ContentFiltering          NetworksGroupPolicyResourceModelContentFiltering          `tfsdk:"content_filtering" json:"contentFiltering"`
 }
 
 type NetworksGroupPolicyResourceModelFirewallAndTrafficShaping struct {
@@ -81,7 +80,7 @@ type NetworksGroupPolicyResourceModelTrafficShapingRule struct {
 
 type NetworksGroupPolicyResourceModelPerClientBandwidthLimits struct {
 	BandwidthLimits NetworksGroupPolicyResourceModelBandwidthLimits `tfsdk:"bandwidth_limits" json:"bandwidthLimits,,omitempty"`
-	Settings        jsontypes.String                                `tfsdk:"settings" json:"settings"`
+	Settings        jsontypes.String                                `tfsdk:"settings" json:"settings,,omitempty"`
 }
 
 type NetworksGroupPolicyResourceModelDefinition struct {
@@ -90,8 +89,8 @@ type NetworksGroupPolicyResourceModelDefinition struct {
 }
 
 type NetworksGroupPolicyResourceModelBandwidth struct {
-	BandwidthLimits types.Object     `tfsdk:"bandwidth_limits" json:"bandwidthLimits"`
-	Settings        jsontypes.String `tfsdk:"settings" json:"settings"`
+	BandwidthLimits NetworksGroupPolicyResourceModelBandwidthLimits `tfsdk:"bandwidth_limits" json:"bandwidthLimits"`
+	Settings        jsontypes.String                                `tfsdk:"settings" json:"settings"`
 }
 
 type NetworksGroupPolicyResourceModelBandwidthLimits struct {
@@ -111,14 +110,14 @@ type NetworksGroupPolicyResourceModelRule struct {
 }
 
 type NetworksGroupPolicyResourceModelScheduling struct {
-	Enabled   jsontypes.Bool `tfsdk:"enabled" json:"enabled"`
-	Friday    types.Object   `tfsdk:"friday" json:"friday"`
-	Monday    types.Object   `tfsdk:"monday" json:"monday"`
-	Saturday  types.Object   `tfsdk:"saturday" json:"saturday"`
-	Sunday    types.Object   `tfsdk:"sunday" json:"sunday"`
-	Thursday  types.Object   `tfsdk:"thursday" json:"thursday"`
-	Tuesday   types.Object   `tfsdk:"tuesday" json:"tuesday"`
-	Wednesday types.Object   `tfsdk:"wednesday" json:"wednesday"`
+	Enabled   jsontypes.Bool                           `tfsdk:"enabled" json:"enabled"`
+	Friday    NetworksGroupPolicyResourceModelSchedule `tfsdk:"friday" json:"friday"`
+	Monday    NetworksGroupPolicyResourceModelSchedule `tfsdk:"monday" json:"monday"`
+	Saturday  NetworksGroupPolicyResourceModelSchedule `tfsdk:"saturday" json:"saturday"`
+	Sunday    NetworksGroupPolicyResourceModelSchedule `tfsdk:"sunday" json:"sunday"`
+	Thursday  NetworksGroupPolicyResourceModelSchedule `tfsdk:"thursday" json:"thursday"`
+	Tuesday   NetworksGroupPolicyResourceModelSchedule `tfsdk:"tuesday" json:"tuesday"`
+	Wednesday NetworksGroupPolicyResourceModelSchedule `tfsdk:"wednesday" json:"wednesday"`
 }
 
 type NetworksGroupPolicyResourceModelSchedule struct {
@@ -142,12 +141,10 @@ type NetworksGroupPolicyResourceModelAllowedUrlPatterns struct {
 	Settings jsontypes.String `tfsdk:"settings" json:"settings"`
 	Patterns []string         `tfsdk:"patterns" json:"patterns"`
 }
-
 type NetworksGroupPolicyResourceModelBlockedUrlCategories struct {
 	Settings   jsontypes.String `tfsdk:"settings" json:"settings"`
 	Categories []string         `tfsdk:"categories" json:"categories"`
 }
-
 type NetworksGroupPolicyResourceModelBlockedUrlPatterns struct {
 	Settings jsontypes.String `tfsdk:"settings" json:"settings"`
 	Patterns []string         `tfsdk:"patterns" json:"patterns"`
@@ -214,6 +211,7 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 						Optional:            true,
 						Computed:            true,
 						CustomType:          jsontypes.StringType,
+						Default:             stringdefault.StaticString("network default"),
 					},
 					"bandwidth_limits": schema.SingleNestedAttribute{
 						MarkdownDescription: "The bandwidth limits object, specifying upload and download speed for clients bound to the group policy. These are only enforced if 'settings' is set to 'custom'.",
@@ -246,6 +244,7 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 						Optional:            true,
 						Computed:            true,
 						CustomType:          jsontypes.StringType,
+						Default:             stringdefault.StaticString("network default"),
 					},
 					"rules": schema.SetNestedAttribute{
 						Optional: true,
@@ -472,6 +471,7 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 								Optional:            true,
 								Computed:            true,
 								CustomType:          jsontypes.StringType,
+								Default:             stringdefault.StaticString("network default"),
 							},
 							"patterns": schema.SetAttribute{
 								MarkdownDescription: "A list of URL patterns that are allowed",
@@ -490,6 +490,7 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 								Optional:            true,
 								Computed:            true,
 								CustomType:          jsontypes.StringType,
+								Default:             stringdefault.StaticString("network default"),
 							},
 							"categories": schema.SetAttribute{
 								MarkdownDescription: "A list of URL categories to block",
@@ -508,6 +509,7 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 								Optional:            true,
 								Computed:            true,
 								CustomType:          jsontypes.StringType,
+								Default:             stringdefault.StaticString("network default"),
 							},
 							"patterns": schema.SetAttribute{
 								MarkdownDescription: "A list of URL patterns that are blocked",
@@ -527,6 +529,7 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 						Optional:            true,
 						Computed:            true,
 						CustomType:          jsontypes.StringType,
+						Default:             stringdefault.StaticString("network default"),
 					},
 					"l3_firewall_rules": schema.SetNestedAttribute{
 						Optional: true,
@@ -618,6 +621,7 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 											Optional:            true,
 											Computed:            true,
 											CustomType:          jsontypes.StringType,
+											Default:             stringdefault.StaticString("network default"),
 										},
 										"bandwidth_limits": schema.SingleNestedAttribute{
 											Optional: true,
@@ -673,6 +677,7 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 						Optional:            true,
 						Computed:            true,
 						CustomType:          jsontypes.StringType,
+						Default:             stringdefault.StaticString("network default"),
 					},
 					"vlan_id": schema.StringAttribute{
 						MarkdownDescription: "The ID of the vlan you want to tag. This only applies if 'settings' is set to 'custom'.",
@@ -723,37 +728,24 @@ func (r *NetworksGroupPolicyResource) Create(ctx context.Context, req resource.C
 
 	}
 
-	// BANDWIDTH SECTION START todo
-	var bandwidthState NetworksGroupPolicyResourceModelBandwidth
-	data.Bandwidth.As(ctx, &bandwidthState, basetypes.ObjectAsOptions{})
-
-	var bandwidthLimitsState NetworksGroupPolicyResourceModelBandwidthLimits
-	bandwidthState.BandwidthLimits.As(ctx, &bandwidthLimitsState, basetypes.ObjectAsOptions{})
-
-	if !bandwidthState.Settings.IsUnknown() {
+	if !data.Bandwidth.Settings.IsUnknown() {
 		var bandwidth openApiClient.CreateNetworkGroupPolicyRequestBandwidth
-		bandwidth.SetSettings(bandwidthState.Settings.ValueString())
-		createNetworkGroupPolicy.SetBandwidth(bandwidth)
+		bandwidth.SetSettings(data.Bandwidth.Settings.ValueString())
 		var bandwidthLimits openApiClient.CreateNetworkGroupPolicyRequestBandwidthBandwidthLimits
-		if !bandwidthLimitsState.LimitUp.IsUnknown() {
-			bandwidthLimits.SetLimitUp(int32(bandwidthLimitsState.LimitUp.ValueInt64()))
+		if !data.Bandwidth.BandwidthLimits.LimitUp.IsUnknown() {
+			bandwidthLimits.SetLimitUp(int32(data.Bandwidth.BandwidthLimits.LimitUp.ValueInt64()))
 		}
-		if !bandwidthLimitsState.LimitDown.IsUnknown() {
-			bandwidthLimits.SetLimitDown(int32(bandwidthLimitsState.LimitDown.ValueInt64()))
+		if !data.Bandwidth.BandwidthLimits.LimitDown.IsUnknown() {
+			bandwidthLimits.SetLimitDown(int32(data.Bandwidth.BandwidthLimits.LimitDown.ValueInt64()))
 		}
 		bandwidth.SetBandwidthLimits(bandwidthLimits)
 		createNetworkGroupPolicy.SetBandwidth(bandwidth)
 	}
-	// BANDWIDTH SECTION END todo
 
-	// BONJOR SECTION START todo
-	var bonjourForwardingState NetworksGroupPolicyResourceModelBonjourForwarding
-	data.BonjourForwarding.As(ctx, &bonjourForwardingState, basetypes.ObjectAsOptions{})
-
-	if len(bonjourForwardingState.BonjourForwardingRules) > 0 {
+	if len(data.BonjourForwarding.BonjourForwardingRules) > 0 {
 		var bonjourForwarding openApiClient.CreateNetworkGroupPolicyRequestBonjourForwarding
 		var bonjourForwardingRules []openApiClient.CreateNetworkGroupPolicyRequestBonjourForwardingRulesInner
-		for _, attribute := range bonjourForwardingState.BonjourForwardingRules {
+		for _, attribute := range data.BonjourForwarding.BonjourForwardingRules {
 			var bonjourForwardingRule openApiClient.CreateNetworkGroupPolicyRequestBonjourForwardingRulesInner
 			if !attribute.Description.IsUnknown() {
 				bonjourForwardingRule.SetDescription(attribute.Description.ValueString())
@@ -763,13 +755,11 @@ func (r *NetworksGroupPolicyResource) Create(ctx context.Context, req resource.C
 			bonjourForwardingRules = append(bonjourForwardingRules, bonjourForwardingRule)
 		}
 		bonjourForwarding.SetRules(bonjourForwardingRules)
-		if !bonjourForwardingState.BonjourForwardingSettings.IsUnknown() {
-			bonjourForwarding.SetSettings(bonjourForwardingState.BonjourForwardingSettings.ValueString())
+		if !data.BonjourForwarding.BonjourForwardingSettings.IsUnknown() {
+			bonjourForwarding.SetSettings(data.BonjourForwarding.BonjourForwardingSettings.ValueString())
 		}
 		createNetworkGroupPolicy.SetBonjourForwarding(bonjourForwarding)
 	}
-
-	// BONJOR SECTION END todo
 
 	var firewallAndTrafficShaping openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShaping
 
@@ -869,128 +859,92 @@ func (r *NetworksGroupPolicyResource) Create(ctx context.Context, req resource.C
 
 	createNetworkGroupPolicy.SetFirewallAndTrafficShaping(firewallAndTrafficShaping)
 
-	// SCHEDULING START todo
-	var schedulingState NetworksGroupPolicyResourceModelScheduling
-	data.Scheduling.As(ctx, &schedulingState, basetypes.ObjectAsOptions{})
-
-	var fridayState NetworksGroupPolicyResourceModelSchedule
-	schedulingState.Friday.As(ctx, &fridayState, basetypes.ObjectAsOptions{})
-
-	var mondayState NetworksGroupPolicyResourceModelSchedule
-	schedulingState.Monday.As(ctx, &mondayState, basetypes.ObjectAsOptions{})
-
-	var saturdayState NetworksGroupPolicyResourceModelSchedule
-	schedulingState.Saturday.As(ctx, &saturdayState, basetypes.ObjectAsOptions{})
-
-	var sundayState NetworksGroupPolicyResourceModelSchedule
-	schedulingState.Sunday.As(ctx, &sundayState, basetypes.ObjectAsOptions{})
-
-	var thursdayState NetworksGroupPolicyResourceModelSchedule
-	schedulingState.Thursday.As(ctx, &thursdayState, basetypes.ObjectAsOptions{})
-
-	var tuesdayState NetworksGroupPolicyResourceModelSchedule
-	schedulingState.Tuesday.As(ctx, &tuesdayState, basetypes.ObjectAsOptions{})
-
-	var wednesdayState NetworksGroupPolicyResourceModelSchedule
-	schedulingState.Wednesday.As(ctx, &wednesdayState, basetypes.ObjectAsOptions{})
-
-	if !schedulingState.Enabled.IsUnknown() {
+	if !data.Scheduling.Enabled.IsUnknown() {
 		var schedule openApiClient.CreateNetworkGroupPolicyRequestScheduling
-		schedule.SetEnabled(schedulingState.Enabled.ValueBool())
-		if !fridayState.Active.IsUnknown() {
+		schedule.SetEnabled(data.Scheduling.Enabled.ValueBool())
+		if !data.Scheduling.Friday.Active.IsUnknown() {
 			var friday openApiClient.CreateNetworkGroupPolicyRequestSchedulingFriday
-			friday.SetActive(fridayState.Active.ValueBool())
-			friday.SetFrom(fridayState.From.ValueString())
-			friday.SetTo(fridayState.To.ValueString())
+			friday.SetActive(data.Scheduling.Friday.Active.ValueBool())
+			friday.SetFrom(data.Scheduling.Friday.From.ValueString())
+			friday.SetTo(data.Scheduling.Friday.To.ValueString())
 			schedule.SetFriday(friday)
 		}
-		if !mondayState.Active.IsUnknown() {
+		if !data.Scheduling.Monday.Active.IsUnknown() {
 			var monday openApiClient.CreateNetworkGroupPolicyRequestSchedulingMonday
-			monday.SetActive(mondayState.Active.ValueBool())
-			monday.SetFrom(mondayState.From.ValueString())
-			monday.SetTo(mondayState.To.ValueString())
+			monday.SetActive(data.Scheduling.Monday.Active.ValueBool())
+			monday.SetFrom(data.Scheduling.Monday.From.ValueString())
+			monday.SetTo(data.Scheduling.Monday.To.ValueString())
 			schedule.SetMonday(monday)
 		}
-		if !tuesdayState.Active.IsUnknown() {
+		if !data.Scheduling.Tuesday.Active.IsUnknown() {
 			var tuesday openApiClient.CreateNetworkGroupPolicyRequestSchedulingTuesday
-			tuesday.SetActive(tuesdayState.Active.ValueBool())
-			tuesday.SetFrom(tuesdayState.From.ValueString())
-			tuesday.SetTo(tuesdayState.To.ValueString())
+			tuesday.SetActive(data.Scheduling.Tuesday.Active.ValueBool())
+			tuesday.SetFrom(data.Scheduling.Tuesday.From.ValueString())
+			tuesday.SetTo(data.Scheduling.Tuesday.To.ValueString())
 			schedule.SetTuesday(tuesday)
 		}
-		if !wednesdayState.Active.IsUnknown() {
+		if !data.Scheduling.Wednesday.Active.IsUnknown() {
 			var wednesday openApiClient.CreateNetworkGroupPolicyRequestSchedulingWednesday
-			wednesday.SetActive(wednesdayState.Active.ValueBool())
-			wednesday.SetFrom(wednesdayState.From.ValueString())
-			wednesday.SetTo(wednesdayState.To.ValueString())
+			wednesday.SetActive(data.Scheduling.Wednesday.Active.ValueBool())
+			wednesday.SetFrom(data.Scheduling.Wednesday.From.ValueString())
+			wednesday.SetTo(data.Scheduling.Wednesday.To.ValueString())
 			schedule.SetWednesday(wednesday)
 		}
-		if !thursdayState.Active.IsUnknown() {
+		if !data.Scheduling.Thursday.Active.IsUnknown() {
 			var thursday openApiClient.CreateNetworkGroupPolicyRequestSchedulingThursday
-			thursday.SetActive(thursdayState.Active.ValueBool())
-			thursday.SetFrom(thursdayState.From.ValueString())
-			thursday.SetTo(thursdayState.To.ValueString())
+			thursday.SetActive(data.Scheduling.Thursday.Active.ValueBool())
+			thursday.SetFrom(data.Scheduling.Thursday.From.ValueString())
+			thursday.SetTo(data.Scheduling.Thursday.To.ValueString())
 			schedule.SetThursday(thursday)
 		}
-		if !saturdayState.Active.IsUnknown() {
+		if !data.Scheduling.Saturday.Active.IsUnknown() {
 			var saturday openApiClient.CreateNetworkGroupPolicyRequestSchedulingSaturday
-			saturday.SetActive(saturdayState.Active.ValueBool())
-			saturday.SetFrom(saturdayState.From.ValueString())
-			saturday.SetTo(saturdayState.To.ValueString())
+			saturday.SetActive(data.Scheduling.Saturday.Active.ValueBool())
+			saturday.SetFrom(data.Scheduling.Saturday.From.ValueString())
+			saturday.SetTo(data.Scheduling.Saturday.To.ValueString())
 			schedule.SetSaturday(saturday)
 		}
-		if !sundayState.Active.IsUnknown() {
+		if !data.Scheduling.Sunday.Active.IsUnknown() {
 			var sunday openApiClient.CreateNetworkGroupPolicyRequestSchedulingSunday
-			sunday.SetActive(sundayState.Active.ValueBool())
-			sunday.SetFrom(sundayState.From.ValueString())
-			sunday.SetTo(sundayState.To.ValueString())
+			sunday.SetActive(data.Scheduling.Sunday.Active.ValueBool())
+			sunday.SetFrom(data.Scheduling.Sunday.From.ValueString())
+			sunday.SetTo(data.Scheduling.Sunday.To.ValueString())
 			schedule.SetSunday(sunday)
 		}
 		createNetworkGroupPolicy.SetScheduling(schedule)
 	}
-	// SCHEDULING END todo
 
-	// VLAN TAGGING START todo
-	var vlanTaggingState NetworksGroupPolicyResourceModelVlanTagging
-	data.VlanTagging.As(ctx, &vlanTaggingState, basetypes.ObjectAsOptions{})
-
-	if !vlanTaggingState.Settings.IsUnknown() {
-		if !vlanTaggingState.VlanId.IsUnknown() {
+	if !data.VlanTagging.Settings.IsUnknown() {
+		if !data.VlanTagging.VlanId.IsUnknown() {
 			var v openApiClient.CreateNetworkGroupPolicyRequestVlanTagging
-			v.SetSettings(vlanTaggingState.Settings.ValueString())
-			v.SetVlanId(vlanTaggingState.VlanId.ValueString())
+			v.SetSettings(data.VlanTagging.Settings.ValueString())
+			v.SetVlanId(data.VlanTagging.VlanId.ValueString())
 			createNetworkGroupPolicy.SetVlanTagging(v)
 		}
 	}
-	// VLAN TAGGING END todo
-
-	// CONTENT FILTERING START todo
-	var contentFilteringState NetworksGroupPolicyResourceModelContentFiltering
-	data.ContentFiltering.As(ctx, &contentFilteringState, basetypes.ObjectAsOptions{})
-
 	var contentFiltering openApiClient.CreateNetworkGroupPolicyRequestContentFiltering
 	contentFilteringStatus := false
 
-	if !contentFilteringState.AllowedUrlPatterns.Settings.IsUnknown() {
+	if !data.ContentFiltering.AllowedUrlPatterns.Settings.IsUnknown() {
 		var allowedUrlPatternData openApiClient.CreateNetworkGroupPolicyRequestContentFilteringAllowedUrlPatterns
-		allowedUrlPatternData.SetSettings(contentFilteringState.AllowedUrlPatterns.Settings.ValueString())
-		allowedUrlPatternData.SetPatterns(contentFilteringState.AllowedUrlPatterns.Patterns)
+		allowedUrlPatternData.SetSettings(data.ContentFiltering.AllowedUrlPatterns.Settings.ValueString())
+		allowedUrlPatternData.SetPatterns(data.ContentFiltering.AllowedUrlPatterns.Patterns)
 		contentFiltering.SetAllowedUrlPatterns(allowedUrlPatternData)
 		contentFilteringStatus = true
 	}
 
-	if !contentFilteringState.BlockedUrlCategories.Settings.IsUnknown() {
+	if !data.ContentFiltering.BlockedUrlCategories.Settings.IsUnknown() {
 		var blockedUrlCategoriesData openApiClient.CreateNetworkGroupPolicyRequestContentFilteringBlockedUrlCategories
-		blockedUrlCategoriesData.SetSettings(contentFilteringState.BlockedUrlCategories.Settings.ValueString())
-		blockedUrlCategoriesData.SetCategories(contentFilteringState.BlockedUrlCategories.Categories)
+		blockedUrlCategoriesData.SetSettings(data.ContentFiltering.BlockedUrlCategories.Settings.ValueString())
+		blockedUrlCategoriesData.SetCategories(data.ContentFiltering.BlockedUrlCategories.Categories)
 		contentFiltering.SetBlockedUrlCategories(blockedUrlCategoriesData)
 		contentFilteringStatus = true
 	}
 
-	if !contentFilteringState.BlockedUrlPatterns.Settings.IsUnknown() {
+	if !data.ContentFiltering.BlockedUrlPatterns.Settings.IsUnknown() {
 		var blockedUrlPatternData openApiClient.CreateNetworkGroupPolicyRequestContentFilteringBlockedUrlPatterns
-		blockedUrlPatternData.SetSettings(contentFilteringState.BlockedUrlPatterns.Settings.ValueString())
-		blockedUrlPatternData.SetPatterns(contentFilteringState.BlockedUrlPatterns.Patterns)
+		blockedUrlPatternData.SetSettings(data.ContentFiltering.BlockedUrlPatterns.Settings.ValueString())
+		blockedUrlPatternData.SetPatterns(data.ContentFiltering.BlockedUrlPatterns.Patterns)
 		contentFiltering.SetBlockedUrlPatterns(blockedUrlPatternData)
 		contentFilteringStatus = true
 	}
@@ -998,7 +952,6 @@ func (r *NetworksGroupPolicyResource) Create(ctx context.Context, req resource.C
 	if contentFilteringStatus {
 		createNetworkGroupPolicy.SetContentFiltering(contentFiltering)
 	}
-	// CONTENT FILTERING END todo
 
 	inlineResp, httpResp, err := r.client.NetworksApi.CreateNetworkGroupPolicy(ctx, data.NetworkId.ValueString()).CreateNetworkGroupPolicyRequest(createNetworkGroupPolicy).Execute()
 	if err != nil {
@@ -1045,10 +998,6 @@ func (r *NetworksGroupPolicyResource) Read(ctx context.Context, req resource.Rea
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
-
-	if resp.Diagnostics.HasError() {
-		return
-	}
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -1111,58 +1060,39 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 
 	}
 
-	// BANDWIDTH SECTION START todo
-	var bandwidthState NetworksGroupPolicyResourceModelBandwidth
-
-	var bandwidthLimitsState NetworksGroupPolicyResourceModelBandwidthLimits
-
-	data.Bandwidth.As(ctx, &bandwidthState, basetypes.ObjectAsOptions{})
-
-	bandwidthState.BandwidthLimits.As(ctx, &bandwidthLimitsState, basetypes.ObjectAsOptions{})
-
-	if !bandwidthState.Settings.IsUnknown() {
+	if !data.Bandwidth.Settings.IsUnknown() {
 		var bandwidth openApiClient.CreateNetworkGroupPolicyRequestBandwidth
-		bandwidth.SetSettings(bandwidthState.Settings.ValueString())
+		bandwidth.SetSettings(data.Bandwidth.Settings.ValueString())
 		var bandwidthLimits openApiClient.CreateNetworkGroupPolicyRequestBandwidthBandwidthLimits
-		if !bandwidthLimitsState.LimitUp.IsUnknown() {
-			bandwidthLimits.SetLimitUp(int32(bandwidthLimitsState.LimitUp.ValueInt64()))
+		if !data.Bandwidth.BandwidthLimits.LimitUp.IsUnknown() {
+			bandwidthLimits.SetLimitUp(int32(data.Bandwidth.BandwidthLimits.LimitUp.ValueInt64()))
 		}
-		if !bandwidthLimitsState.LimitDown.IsUnknown() {
-			bandwidthLimits.SetLimitDown(int32(bandwidthLimitsState.LimitDown.ValueInt64()))
+		if !data.Bandwidth.BandwidthLimits.LimitDown.IsUnknown() {
+			bandwidthLimits.SetLimitDown(int32(data.Bandwidth.BandwidthLimits.LimitDown.ValueInt64()))
 		}
 		bandwidth.SetBandwidthLimits(bandwidthLimits)
 		updateNetworkGroupPolicy.SetBandwidth(bandwidth)
 	}
-	// BANDWIDTH SECTION END todo
 
-	// BONJOR SECTION START todo
-	var bonjourForwardingState NetworksGroupPolicyResourceModelBonjourForwarding
-	data.BonjourForwarding.As(ctx, &bonjourForwardingState, basetypes.ObjectAsOptions{})
+	if len(data.BonjourForwarding.BonjourForwardingRules) > 0 {
+		var bonjourForwarding openApiClient.CreateNetworkGroupPolicyRequestBonjourForwarding
+		var bonjourForwardingRules []openApiClient.CreateNetworkGroupPolicyRequestBonjourForwardingRulesInner
+		for _, attribute := range data.BonjourForwarding.BonjourForwardingRules {
+			var bonjourForwardingRule openApiClient.CreateNetworkGroupPolicyRequestBonjourForwardingRulesInner
+			if !attribute.Description.IsUnknown() {
+				bonjourForwardingRule.SetDescription(attribute.Description.ValueString())
+			}
+			bonjourForwardingRule.SetVlanId(attribute.VlanId.ValueString())
+			bonjourForwardingRule.SetServices(attribute.Services)
+			bonjourForwardingRules = append(bonjourForwardingRules, bonjourForwardingRule)
+		}
+		bonjourForwarding.SetRules(bonjourForwardingRules)
+		if !data.BonjourForwarding.BonjourForwardingSettings.IsUnknown() {
+			bonjourForwarding.SetSettings(data.BonjourForwarding.BonjourForwardingSettings.ValueString())
+		}
+		updateNetworkGroupPolicy.SetBonjourForwarding(bonjourForwarding)
+	}
 
-	//var bonjourForwardingRulesStruct []NetworksGroupPolicyResourceModelRule
-	//bonjourForwardingState.BonjourForwardingRules.As(ctx, &bonjourForwardingRulesStruct, basetypes.ObjectAsOptions{})
-
-	//if len(bonjourForwardingRulesStruct) > 0 {
-	//	var bonjourForwarding openApiClient.CreateNetworkGroupPolicyRequestBonjourForwarding
-	//	var bonjourForwardingRules []openApiClient.CreateNetworkGroupPolicyRequestBonjourForwardingRulesInner
-	//	for _, attribute := range bonjourForwardingRulesStruct {
-	//		var bonjourForwardingRule openApiClient.CreateNetworkGroupPolicyRequestBonjourForwardingRulesInner
-	//		if !attribute.Description.IsUnknown() {
-	//			bonjourForwardingRule.SetDescription(attribute.Description.ValueString())
-	//		}
-	//		bonjourForwardingRule.SetVlanId(attribute.VlanId.ValueString())
-	//		bonjourForwardingRule.SetServices(attribute.Services)
-	//		bonjourForwardingRules = append(bonjourForwardingRules, bonjourForwardingRule)
-	//	}
-	//	bonjourForwarding.SetRules(bonjourForwardingRules)
-	//	if !bonjourForwardingState.Settings.IsUnknown() {
-	//		bonjourForwarding.SetSettings(bonjourForwardingState.Settings.ValueString())
-	//	}
-	//	updateNetworkGroupPolicy.SetBonjourForwarding(bonjourForwarding)
-	//}
-	// BONJOR SECTION END todo
-
-	// Firewall And Traffic Shaping Start todo
 	var firewallAndTrafficShaping openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShaping
 
 	if !data.FirewallAndTrafficShaping.Settings.IsUnknown() {
@@ -1260,131 +1190,93 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 	}
 
 	updateNetworkGroupPolicy.SetFirewallAndTrafficShaping(firewallAndTrafficShaping)
-	// Firewall And Traffic Shaping End todo
 
-	// SCHEDULING START todo
-	var schedulingState NetworksGroupPolicyResourceModelScheduling
-	data.Scheduling.As(ctx, &schedulingState, basetypes.ObjectAsOptions{})
-
-	var fridayState NetworksGroupPolicyResourceModelSchedule
-	schedulingState.Friday.As(ctx, &fridayState, basetypes.ObjectAsOptions{})
-
-	var mondayState NetworksGroupPolicyResourceModelSchedule
-	schedulingState.Monday.As(ctx, &mondayState, basetypes.ObjectAsOptions{})
-
-	var saturdayState NetworksGroupPolicyResourceModelSchedule
-	schedulingState.Saturday.As(ctx, &saturdayState, basetypes.ObjectAsOptions{})
-
-	var sundayState NetworksGroupPolicyResourceModelSchedule
-	schedulingState.Sunday.As(ctx, &sundayState, basetypes.ObjectAsOptions{})
-
-	var thursdayState NetworksGroupPolicyResourceModelSchedule
-	schedulingState.Thursday.As(ctx, &thursdayState, basetypes.ObjectAsOptions{})
-
-	var tuesdayState NetworksGroupPolicyResourceModelSchedule
-	schedulingState.Tuesday.As(ctx, &tuesdayState, basetypes.ObjectAsOptions{})
-
-	var wednesdayState NetworksGroupPolicyResourceModelSchedule
-	schedulingState.Wednesday.As(ctx, &wednesdayState, basetypes.ObjectAsOptions{})
-
-	if !schedulingState.Enabled.IsUnknown() {
+	if !data.Scheduling.Enabled.IsUnknown() {
 		var schedule openApiClient.CreateNetworkGroupPolicyRequestScheduling
-		schedule.SetEnabled(schedulingState.Enabled.ValueBool())
-		if !fridayState.Active.IsUnknown() {
+		schedule.SetEnabled(data.Scheduling.Enabled.ValueBool())
+		if !data.Scheduling.Friday.Active.IsUnknown() {
 			var friday openApiClient.CreateNetworkGroupPolicyRequestSchedulingFriday
-			friday.SetActive(fridayState.Active.ValueBool())
-			friday.SetFrom(fridayState.From.ValueString())
-			friday.SetTo(fridayState.To.ValueString())
+			friday.SetActive(data.Scheduling.Friday.Active.ValueBool())
+			friday.SetFrom(data.Scheduling.Friday.From.ValueString())
+			friday.SetTo(data.Scheduling.Friday.To.ValueString())
 			schedule.SetFriday(friday)
 		}
-		if !mondayState.Active.IsUnknown() {
+		if !data.Scheduling.Monday.Active.IsUnknown() {
 			var monday openApiClient.CreateNetworkGroupPolicyRequestSchedulingMonday
-			monday.SetActive(mondayState.Active.ValueBool())
-			monday.SetFrom(mondayState.From.ValueString())
-			monday.SetTo(mondayState.To.ValueString())
+			monday.SetActive(data.Scheduling.Monday.Active.ValueBool())
+			monday.SetFrom(data.Scheduling.Monday.From.ValueString())
+			monday.SetTo(data.Scheduling.Monday.To.ValueString())
 			schedule.SetMonday(monday)
 		}
-		if !tuesdayState.Active.IsUnknown() {
+		if !data.Scheduling.Tuesday.Active.IsUnknown() {
 			var tuesday openApiClient.CreateNetworkGroupPolicyRequestSchedulingTuesday
-			tuesday.SetActive(tuesdayState.Active.ValueBool())
-			tuesday.SetFrom(tuesdayState.From.ValueString())
-			tuesday.SetTo(tuesdayState.To.ValueString())
+			tuesday.SetActive(data.Scheduling.Tuesday.Active.ValueBool())
+			tuesday.SetFrom(data.Scheduling.Tuesday.From.ValueString())
+			tuesday.SetTo(data.Scheduling.Tuesday.To.ValueString())
 			schedule.SetTuesday(tuesday)
 		}
-		if !wednesdayState.Active.IsUnknown() {
+		if !data.Scheduling.Wednesday.Active.IsUnknown() {
 			var wednesday openApiClient.CreateNetworkGroupPolicyRequestSchedulingWednesday
-			wednesday.SetActive(wednesdayState.Active.ValueBool())
-			wednesday.SetFrom(wednesdayState.From.ValueString())
-			wednesday.SetTo(wednesdayState.To.ValueString())
+			wednesday.SetActive(data.Scheduling.Wednesday.Active.ValueBool())
+			wednesday.SetFrom(data.Scheduling.Wednesday.From.ValueString())
+			wednesday.SetTo(data.Scheduling.Wednesday.To.ValueString())
 			schedule.SetWednesday(wednesday)
 		}
-		if !thursdayState.Active.IsUnknown() {
+		if !data.Scheduling.Thursday.Active.IsUnknown() {
 			var thursday openApiClient.CreateNetworkGroupPolicyRequestSchedulingThursday
-			thursday.SetActive(thursdayState.Active.ValueBool())
-			thursday.SetFrom(thursdayState.From.ValueString())
-			thursday.SetTo(thursdayState.To.ValueString())
+			thursday.SetActive(data.Scheduling.Thursday.Active.ValueBool())
+			thursday.SetFrom(data.Scheduling.Thursday.From.ValueString())
+			thursday.SetTo(data.Scheduling.Thursday.To.ValueString())
 			schedule.SetThursday(thursday)
 		}
-		if !saturdayState.Active.IsUnknown() {
+		if !data.Scheduling.Saturday.Active.IsUnknown() {
 			var saturday openApiClient.CreateNetworkGroupPolicyRequestSchedulingSaturday
-			saturday.SetActive(saturdayState.Active.ValueBool())
-			saturday.SetFrom(saturdayState.From.ValueString())
-			saturday.SetTo(saturdayState.To.ValueString())
+			saturday.SetActive(data.Scheduling.Saturday.Active.ValueBool())
+			saturday.SetFrom(data.Scheduling.Saturday.From.ValueString())
+			saturday.SetTo(data.Scheduling.Saturday.To.ValueString())
 			schedule.SetSaturday(saturday)
 		}
-		if !sundayState.Active.IsUnknown() {
+		if !data.Scheduling.Sunday.Active.IsUnknown() {
 			var sunday openApiClient.CreateNetworkGroupPolicyRequestSchedulingSunday
-			sunday.SetActive(sundayState.Active.ValueBool())
-			sunday.SetFrom(sundayState.From.ValueString())
-			sunday.SetTo(sundayState.To.ValueString())
+			sunday.SetActive(data.Scheduling.Sunday.Active.ValueBool())
+			sunday.SetFrom(data.Scheduling.Sunday.From.ValueString())
+			sunday.SetTo(data.Scheduling.Sunday.To.ValueString())
 			schedule.SetSunday(sunday)
 		}
 		updateNetworkGroupPolicy.SetScheduling(schedule)
 	}
-	// SCHEDULING END todo
 
-	// VLAN TAGGING START todo
-	var vlanTaggingState NetworksGroupPolicyResourceModelVlanTagging
-
-	data.VlanTagging.As(ctx, &vlanTaggingState, basetypes.ObjectAsOptions{})
-
-	if !vlanTaggingState.Settings.IsUnknown() {
-		if !vlanTaggingState.VlanId.IsUnknown() {
+	if !data.VlanTagging.Settings.IsUnknown() {
+		if !data.VlanTagging.VlanId.IsUnknown() {
 			var v openApiClient.CreateNetworkGroupPolicyRequestVlanTagging
-			v.SetSettings(vlanTaggingState.Settings.ValueString())
-			v.SetVlanId(vlanTaggingState.VlanId.ValueString())
+			v.SetSettings(data.VlanTagging.Settings.ValueString())
+			v.SetVlanId(data.VlanTagging.VlanId.ValueString())
 			updateNetworkGroupPolicy.SetVlanTagging(v)
 		}
 	}
-	// VLAN TAGGING END todo
-
-	// CONTENT FILTERING START todo
-	var contentFilteringState NetworksGroupPolicyResourceModelContentFiltering
-	data.ContentFiltering.As(ctx, &contentFilteringState, basetypes.ObjectAsOptions{})
-
 	var contentFiltering openApiClient.CreateNetworkGroupPolicyRequestContentFiltering
 	contentFilteringStatus := false
 
-	if !contentFilteringState.AllowedUrlPatterns.Settings.IsUnknown() {
+	if !data.ContentFiltering.AllowedUrlPatterns.Settings.IsUnknown() {
 		var allowedUrlPatternData openApiClient.CreateNetworkGroupPolicyRequestContentFilteringAllowedUrlPatterns
-		allowedUrlPatternData.SetSettings(contentFilteringState.AllowedUrlPatterns.Settings.ValueString())
-		allowedUrlPatternData.SetPatterns(contentFilteringState.AllowedUrlPatterns.Patterns)
+		allowedUrlPatternData.SetSettings(data.ContentFiltering.AllowedUrlPatterns.Settings.ValueString())
+		allowedUrlPatternData.SetPatterns(data.ContentFiltering.AllowedUrlPatterns.Patterns)
 		contentFiltering.SetAllowedUrlPatterns(allowedUrlPatternData)
 		contentFilteringStatus = true
 	}
 
-	if !contentFilteringState.BlockedUrlCategories.Settings.IsUnknown() {
+	if !data.ContentFiltering.BlockedUrlCategories.Settings.IsUnknown() {
 		var blockedUrlCategoriesData openApiClient.CreateNetworkGroupPolicyRequestContentFilteringBlockedUrlCategories
-		blockedUrlCategoriesData.SetSettings(contentFilteringState.BlockedUrlCategories.Settings.ValueString())
-		blockedUrlCategoriesData.SetCategories(contentFilteringState.BlockedUrlCategories.Categories)
+		blockedUrlCategoriesData.SetSettings(data.ContentFiltering.BlockedUrlCategories.Settings.ValueString())
+		blockedUrlCategoriesData.SetCategories(data.ContentFiltering.BlockedUrlCategories.Categories)
 		contentFiltering.SetBlockedUrlCategories(blockedUrlCategoriesData)
 		contentFilteringStatus = true
 	}
 
-	if !contentFilteringState.BlockedUrlPatterns.Settings.IsUnknown() {
+	if !data.ContentFiltering.BlockedUrlPatterns.Settings.IsUnknown() {
 		var blockedUrlPatternData openApiClient.CreateNetworkGroupPolicyRequestContentFilteringBlockedUrlPatterns
-		blockedUrlPatternData.SetSettings(contentFilteringState.BlockedUrlPatterns.Settings.ValueString())
-		blockedUrlPatternData.SetPatterns(contentFilteringState.BlockedUrlPatterns.Patterns)
+		blockedUrlPatternData.SetSettings(data.ContentFiltering.BlockedUrlPatterns.Settings.ValueString())
+		blockedUrlPatternData.SetPatterns(data.ContentFiltering.BlockedUrlPatterns.Patterns)
 		contentFiltering.SetBlockedUrlPatterns(blockedUrlPatternData)
 		contentFilteringStatus = true
 	}
@@ -1392,7 +1284,6 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 	if contentFilteringStatus {
 		updateNetworkGroupPolicy.SetContentFiltering(contentFiltering)
 	}
-	// CONTENT FILTERING END todo
 
 	inlineResp, httpResp, err := r.client.NetworksApi.UpdateNetworkGroupPolicy(ctx, data.NetworkId.ValueString(), data.GroupPolicyId.ValueString()).UpdateNetworkGroupPolicyRequest(updateNetworkGroupPolicy).Execute()
 	if err != nil {
@@ -1513,30 +1404,22 @@ func extractHttpResponseGroupPolicyResource(ctx context.Context, inlineResp map[
 			} else {
 				trafficShapingRule.Definitions = nil
 			}
-
 			data.FirewallAndTrafficShaping.TrafficShapingRules = nil
 			data.FirewallAndTrafficShaping.TrafficShapingRules = append(data.FirewallAndTrafficShaping.TrafficShapingRules, trafficShapingRule)
 		}
 	}
 
-	var vlanTaggingState NetworksGroupPolicyResourceModelVlanTagging
-	data.VlanTagging.As(ctx, &vlanTaggingState, basetypes.ObjectAsOptions{})
-
-	// CONTENT FILTERING START todo
-	var contentFilteringState NetworksGroupPolicyResourceModelContentFiltering
-	data.ContentFiltering.As(ctx, &contentFilteringState, basetypes.ObjectAsOptions{})
-
-	if vlanTaggingState.VlanId.IsUnknown() {
-		vlanTaggingState.VlanId = jsontypes.StringNull()
+	if data.VlanTagging.VlanId.IsUnknown() {
+		data.VlanTagging.VlanId = jsontypes.StringNull()
 	}
-	if contentFilteringState.AllowedUrlPatterns.Settings.IsUnknown() {
-		contentFilteringState.AllowedUrlPatterns.Settings = jsontypes.StringNull()
+	if data.ContentFiltering.AllowedUrlPatterns.Settings.IsUnknown() {
+		data.ContentFiltering.AllowedUrlPatterns.Settings = jsontypes.StringNull()
 	}
-	if contentFilteringState.BlockedUrlCategories.Settings.IsUnknown() {
-		contentFilteringState.BlockedUrlCategories.Settings = jsontypes.StringNull()
+	if data.ContentFiltering.BlockedUrlCategories.Settings.IsUnknown() {
+		data.ContentFiltering.BlockedUrlCategories.Settings = jsontypes.StringNull()
 	}
-	if contentFilteringState.BlockedUrlPatterns.Settings.IsUnknown() {
-		contentFilteringState.BlockedUrlPatterns.Settings = jsontypes.StringNull()
+	if data.ContentFiltering.BlockedUrlPatterns.Settings.IsUnknown() {
+		data.ContentFiltering.BlockedUrlPatterns.Settings = jsontypes.StringNull()
 	}
 
 	return data, nil
