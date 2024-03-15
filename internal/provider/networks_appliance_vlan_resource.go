@@ -1009,7 +1009,7 @@ func ReadHttpResponse(ctx context.Context, data *NetworksApplianceVLANsResourceM
 				"name": types.StringValue(assignmentInterface.GetName()),
 			}
 
-			fixedIpAssignmentValue, fixedIpAssignmentsDiags := types.ObjectValueFrom(ctx, fixedIpAssignmentAttrTypes, fixedIpAssignmentObject)
+			fixedIpAssignmentValue, fixedIpAssignmentsDiags := types.ObjectValue(fixedIpAssignmentAttrTypes, fixedIpAssignmentObject)
 			if fixedIpAssignmentsDiags.HasError() {
 				resp.Append(fixedIpAssignmentsDiags...)
 				continue
