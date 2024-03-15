@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
+	"strings"
+
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -18,8 +21,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
-	"strconv"
-	"strings"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -764,7 +765,6 @@ func CreateHttpResponse(ctx context.Context, data *NetworksApplianceVLANsResourc
 		}
 	}
 
-	// TODO: static_appliance_ip6 & static_prefix is missing... IPv6
 	if response.HasIpv6() {
 		ipv6Instance := NetworksApplianceVLANsResourceModelIpv6{}
 		diags := ipv6Instance.FromAPIResponse(ctx, response.Ipv6)
@@ -784,7 +784,24 @@ func CreateHttpResponse(ctx context.Context, data *NetworksApplianceVLANsResourc
 
 	} else {
 		if data.IPv6.IsUnknown() {
-			tflog.Warn(ctx, fmt.Sprintf("%v", data.IPv6))
+			tflog.Info(ctx, fmt.Sprintf("Empty IPv6 response: %v", data.IPv6))
+
+			ipv6Instance := NetworksApplianceVLANsResourceModelIpv6{}
+			ipv6Prefixes := []NetworksApplianceVLANsResourceModelIpv6PrefixAssignment{}
+
+			ipv6PrefixesList, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: NetworksApplianceVLANsResourceModelIpv6PrefixAssignmentAttrTypes()}, ipv6Prefixes)
+			if diags.HasError() {
+				resp.Append(diags...)
+			}
+
+			ipv6Instance.PrefixAssignments = ipv6PrefixesList
+
+			ipv6Object, diags := types.ObjectValueFrom(ctx, NetworksApplianceVLANsResourceModelIpv6AttrTypes(), ipv6Instance)
+			if diags.HasError() {
+				resp.Append(diags...)
+			}
+
+			data.IPv6 = ipv6Object
 		}
 	}
 
@@ -1206,6 +1223,27 @@ func ReadHttpResponse(ctx context.Context, data *NetworksApplianceVLANsResourceM
 		}
 
 		data.IPv6 = ipv6Object
+	} else {
+		if data.IPv6.IsUnknown() {
+			tflog.Info(ctx, fmt.Sprintf("Empty IPv6 response: %v", data.IPv6))
+
+			ipv6Instance := NetworksApplianceVLANsResourceModelIpv6{}
+			ipv6Prefixes := []NetworksApplianceVLANsResourceModelIpv6PrefixAssignment{}
+
+			ipv6PrefixesList, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: NetworksApplianceVLANsResourceModelIpv6PrefixAssignmentAttrTypes()}, ipv6Prefixes)
+			if diags.HasError() {
+				resp.Append(diags...)
+			}
+
+			ipv6Instance.PrefixAssignments = ipv6PrefixesList
+
+			ipv6Object, diags := types.ObjectValueFrom(ctx, NetworksApplianceVLANsResourceModelIpv6AttrTypes(), ipv6Instance)
+			if diags.HasError() {
+				resp.Append(diags...)
+			}
+
+			data.IPv6 = ipv6Object
+		}
 	}
 
 	tflog.Info(ctx, "[finish] ReadHttpResponse Call")
