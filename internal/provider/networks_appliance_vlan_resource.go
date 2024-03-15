@@ -77,6 +77,16 @@ type NetworksApplianceVLANsResourceModelReservedIpRange struct {
 	Comment types.String `tfsdk:"comment" json:"comment"`
 }
 
+type FixedIpAssignmentTerraform struct {
+	IP   types.String `tfsdk:"ip"`
+	Name types.String `tfsdk:"name"`
+}
+
+type FixedIpAssignment struct {
+	IP   string `json:"ip"`
+	Name string `json:"name"`
+}
+
 func (n *NetworksApplianceVLANsResourceModelReservedIpRange) FromTerraformValue(ctx context.Context, val tftypes.Value) error {
 	// Assuming val is a tftypes.Object with "start", "end", and "comment"
 	var data map[string]tftypes.Value
@@ -1322,15 +1332,30 @@ func UpdateHttpReqPayload(ctx context.Context, data *NetworksApplianceVLANsResou
 	// FixedIpAssignments
 	if !data.FixedIpAssignments.IsUnknown() && !data.FixedIpAssignments.IsNull() {
 
-		var fixedIpAssignments map[string]interface{}
-		fixedIpAssignmentsDiags := data.FixedIpAssignments.ElementsAs(ctx, &fixedIpAssignments, false)
+		var fixedIpAssignments map[string]FixedIpAssignmentTerraform
+		fixedIpAssignmentsDiags := data.FixedIpAssignments.ElementsAs(ctx, &fixedIpAssignments, true)
 		if fixedIpAssignmentsDiags.HasError() {
 			resp.AddError(
 				"Create Payload Failure, FixedIpAssignments", fmt.Sprintf("%v", fixedIpAssignmentsDiags),
 			)
 		}
 
-		payload.SetFixedIpAssignments(fixedIpAssignments)
+		fixedIpAssignmentsIf := map[string]interface{}{}
+		for key, val := range fixedIpAssignments {
+			apiAttrs := FixedIpAssignment{}
+			if !val.IP.IsUnknown() {
+				val := val.IP.ValueString()
+				apiAttrs.IP = val
+			}
+
+			if !val.Name.IsUnknown() {
+				apiAttrs.Name = val.Name.ValueString()
+			}
+
+			fixedIpAssignmentsIf[key] = apiAttrs
+		}
+
+		payload.SetFixedIpAssignments(fixedIpAssignmentsIf)
 	}
 
 	// ReservedIpRanges
@@ -1606,13 +1631,11 @@ func (r *NetworksApplianceVLANsResource) Schema(ctx context.Context, req resourc
 					Attributes: map[string]schema.Attribute{
 						"ip": schema.StringAttribute{
 							MarkdownDescription: "Enable IPv6 on VLAN.",
-							Optional:            true,
-							Computed:            true,
+							Required:            true,
 						},
 						"name": schema.StringAttribute{
 							MarkdownDescription: "Enable IPv6 on VLAN.",
 							Optional:            true,
-							Computed:            true,
 						},
 					},
 				},
