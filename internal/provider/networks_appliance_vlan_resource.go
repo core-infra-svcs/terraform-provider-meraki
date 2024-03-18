@@ -794,8 +794,6 @@ func CreateHttpResponse(ctx context.Context, data *NetworksApplianceVLANsResourc
 
 	} else {
 		if data.IPv6.IsUnknown() {
-			tflog.Info(ctx, fmt.Sprintf("Empty IPv6 response: %v", data.IPv6))
-
 			ipv6Instance := NetworksApplianceVLANsResourceModelIpv6{}
 			ipv6Prefixes := []NetworksApplianceVLANsResourceModelIpv6PrefixAssignment{}
 
@@ -1235,8 +1233,6 @@ func ReadHttpResponse(ctx context.Context, data *NetworksApplianceVLANsResourceM
 		data.IPv6 = ipv6Object
 	} else {
 		if data.IPv6.IsUnknown() {
-			tflog.Info(ctx, fmt.Sprintf("Empty IPv6 response: %v", data.IPv6))
-
 			ipv6Instance := NetworksApplianceVLANsResourceModelIpv6{}
 			ipv6Prefixes := []NetworksApplianceVLANsResourceModelIpv6PrefixAssignment{}
 
