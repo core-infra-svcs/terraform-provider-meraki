@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
+	"strings"
+
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -18,8 +21,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
-	"strconv"
-	"strings"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -74,6 +75,16 @@ type NetworksApplianceVLANsResourceModelReservedIpRange struct {
 	Start   types.String `tfsdk:"start" json:"start"`
 	End     types.String `tfsdk:"end" json:"end"`
 	Comment types.String `tfsdk:"comment" json:"comment"`
+}
+
+type FixedIpAssignmentTerraform struct {
+	IP   types.String `tfsdk:"ip"`
+	Name types.String `tfsdk:"name"`
+}
+
+type FixedIpAssignment struct {
+	IP   string `json:"ip"`
+	Name string `json:"name"`
 }
 
 func (n *NetworksApplianceVLANsResourceModelReservedIpRange) FromTerraformValue(ctx context.Context, val tftypes.Value) error {
@@ -764,7 +775,6 @@ func CreateHttpResponse(ctx context.Context, data *NetworksApplianceVLANsResourc
 		}
 	}
 
-	// TODO: static_appliance_ip6 & static_prefix is missing... IPv6
 	if response.HasIpv6() {
 		ipv6Instance := NetworksApplianceVLANsResourceModelIpv6{}
 		diags := ipv6Instance.FromAPIResponse(ctx, response.Ipv6)
@@ -784,7 +794,22 @@ func CreateHttpResponse(ctx context.Context, data *NetworksApplianceVLANsResourc
 
 	} else {
 		if data.IPv6.IsUnknown() {
-			tflog.Warn(ctx, fmt.Sprintf("%v", data.IPv6))
+			ipv6Instance := NetworksApplianceVLANsResourceModelIpv6{}
+			ipv6Prefixes := []NetworksApplianceVLANsResourceModelIpv6PrefixAssignment{}
+
+			ipv6PrefixesList, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: NetworksApplianceVLANsResourceModelIpv6PrefixAssignmentAttrTypes()}, ipv6Prefixes)
+			if diags.HasError() {
+				resp.Append(diags...)
+			}
+
+			ipv6Instance.PrefixAssignments = ipv6PrefixesList
+
+			ipv6Object, diags := types.ObjectValueFrom(ctx, NetworksApplianceVLANsResourceModelIpv6AttrTypes(), ipv6Instance)
+			if diags.HasError() {
+				resp.Append(diags...)
+			}
+
+			data.IPv6 = ipv6Object
 		}
 	}
 
@@ -982,7 +1007,7 @@ func ReadHttpResponse(ctx context.Context, data *NetworksApplianceVLANsResourceM
 				"name": types.StringValue(assignmentInterface.GetName()),
 			}
 
-			fixedIpAssignmentValue, fixedIpAssignmentsDiags := types.ObjectValueFrom(ctx, fixedIpAssignmentAttrTypes, fixedIpAssignmentObject)
+			fixedIpAssignmentValue, fixedIpAssignmentsDiags := types.ObjectValue(fixedIpAssignmentAttrTypes, fixedIpAssignmentObject)
 			if fixedIpAssignmentsDiags.HasError() {
 				resp.Append(fixedIpAssignmentsDiags...)
 				continue
@@ -1206,6 +1231,25 @@ func ReadHttpResponse(ctx context.Context, data *NetworksApplianceVLANsResourceM
 		}
 
 		data.IPv6 = ipv6Object
+	} else {
+		if data.IPv6.IsUnknown() {
+			ipv6Instance := NetworksApplianceVLANsResourceModelIpv6{}
+			ipv6Prefixes := []NetworksApplianceVLANsResourceModelIpv6PrefixAssignment{}
+
+			ipv6PrefixesList, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: NetworksApplianceVLANsResourceModelIpv6PrefixAssignmentAttrTypes()}, ipv6Prefixes)
+			if diags.HasError() {
+				resp.Append(diags...)
+			}
+
+			ipv6Instance.PrefixAssignments = ipv6PrefixesList
+
+			ipv6Object, diags := types.ObjectValueFrom(ctx, NetworksApplianceVLANsResourceModelIpv6AttrTypes(), ipv6Instance)
+			if diags.HasError() {
+				resp.Append(diags...)
+			}
+
+			data.IPv6 = ipv6Object
+		}
 	}
 
 	tflog.Info(ctx, "[finish] ReadHttpResponse Call")
@@ -1284,15 +1328,30 @@ func UpdateHttpReqPayload(ctx context.Context, data *NetworksApplianceVLANsResou
 	// FixedIpAssignments
 	if !data.FixedIpAssignments.IsUnknown() && !data.FixedIpAssignments.IsNull() {
 
-		var fixedIpAssignments map[string]interface{}
-		fixedIpAssignmentsDiags := data.FixedIpAssignments.ElementsAs(ctx, &fixedIpAssignments, false)
+		var fixedIpAssignments map[string]FixedIpAssignmentTerraform
+		fixedIpAssignmentsDiags := data.FixedIpAssignments.ElementsAs(ctx, &fixedIpAssignments, true)
 		if fixedIpAssignmentsDiags.HasError() {
 			resp.AddError(
 				"Create Payload Failure, FixedIpAssignments", fmt.Sprintf("%v", fixedIpAssignmentsDiags),
 			)
 		}
 
-		payload.SetFixedIpAssignments(fixedIpAssignments)
+		fixedIpAssignmentsIf := map[string]interface{}{}
+		for key, val := range fixedIpAssignments {
+			apiAttrs := FixedIpAssignment{}
+			if !val.IP.IsUnknown() {
+				val := val.IP.ValueString()
+				apiAttrs.IP = val
+			}
+
+			if !val.Name.IsUnknown() {
+				apiAttrs.Name = val.Name.ValueString()
+			}
+
+			fixedIpAssignmentsIf[key] = apiAttrs
+		}
+
+		payload.SetFixedIpAssignments(fixedIpAssignmentsIf)
 	}
 
 	// ReservedIpRanges
@@ -1568,13 +1627,11 @@ func (r *NetworksApplianceVLANsResource) Schema(ctx context.Context, req resourc
 					Attributes: map[string]schema.Attribute{
 						"ip": schema.StringAttribute{
 							MarkdownDescription: "Enable IPv6 on VLAN.",
-							Optional:            true,
-							Computed:            true,
+							Required:            true,
 						},
 						"name": schema.StringAttribute{
 							MarkdownDescription: "Enable IPv6 on VLAN.",
 							Optional:            true,
-							Computed:            true,
 						},
 					},
 				},
