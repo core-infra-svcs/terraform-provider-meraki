@@ -3,8 +3,6 @@ package provider
 import (
 	"context"
 	"fmt"
-	"strings"
-
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -21,6 +19,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
+	"net/http"
+	"strings"
 )
 
 var (
@@ -120,7 +120,6 @@ func (r *DevicesSwitchPortResource) Schema(ctx context.Context, req resource.Sch
 				MarkdownDescription: "The identifier of the switch port.",
 				CustomType:          jsontypes.StringType,
 				Optional:            true,
-				Computed:            true,
 			},
 			"name": schema.StringAttribute{
 				MarkdownDescription: "The name of the switch port.",
@@ -132,13 +131,11 @@ func (r *DevicesSwitchPortResource) Schema(ctx context.Context, req resource.Sch
 				MarkdownDescription: "The list of tags of the switch port.",
 				ElementType:         jsontypes.StringType,
 				Optional:            true,
-				Computed:            true,
 			},
 			"enabled": schema.BoolAttribute{
 				MarkdownDescription: "The status of the switch port.",
 				CustomType:          jsontypes.BoolType,
 				Optional:            true,
-				Computed:            true,
 			},
 			"poe_enabled": schema.BoolAttribute{
 				MarkdownDescription: "The PoE status of the switch port.",
@@ -357,8 +354,25 @@ func (r *DevicesSwitchPortResource) Create(ctx context.Context, req resource.Cre
 		return
 	}
 
-	// Initialize provider client and make API call
-	response, httpResp, err := r.client.SwitchApi.UpdateDeviceSwitchPort(context.Background(), data.Serial.ValueString(), data.PortId.ValueString()).UpdateDeviceSwitchPortRequest(payload).Execute()
+	// Wrap the API call in the retryAPICall function
+	apiResp, httpResp, err := retryAPICall(ctx, func() (interface{}, *http.Response, error) {
+		resp, httpResp, err := r.client.SwitchApi.UpdateDeviceSwitchPort(context.Background(), data.Serial.ValueString(), data.PortId.ValueString()).UpdateDeviceSwitchPortRequest(payload).Execute()
+		if err != nil {
+			return nil, httpResp, err
+		}
+		return resp, httpResp, nil
+	})
+
+	// Type assert apiResp to the expected *openApiClient.GetDeviceSwitchPorts200ResponseInner type
+	response, ok := apiResp.(*openApiClient.GetDeviceSwitchPorts200ResponseInner)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Type Assertion Failed",
+			"Failed to assert API response type to *openapi.GetDeviceSwitchPorts200ResponseInner",
+		)
+		return
+	}
+
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Create HTTP Client Failure",
@@ -402,36 +416,51 @@ func (r *DevicesSwitchPortResource) Read(ctx context.Context, req resource.ReadR
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-	// Check if there are any errors before proceeding.
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Initialize provider client and make API call
-	response, httpResp, err := r.client.SwitchApi.GetDeviceSwitchPort(context.Background(), data.Serial.ValueString(), data.PortId.ValueString()).Execute()
-	// If there was an error during API call, add it to diagnostics.
+	// Wrap the API call in the retryAPICall function
+	apiResp, httpResp, err := retryAPICall(ctx, func() (interface{}, *http.Response, error) {
+		resp, httpResp, err := r.client.SwitchApi.GetDeviceSwitchPort(ctx, data.Serial.ValueString(), data.PortId.ValueString()).Execute()
+		if err != nil {
+			return nil, httpResp, err
+		}
+		return resp, httpResp, nil
+	})
+
+	// Check for errors after retrying
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Read HTTP Client Failure",
-			tools.HttpDiagnostics(httpResp),
+			"Failed to read device switch port",
+			fmt.Sprintf("Could not read device switch port after retries: %s", err),
 		)
 		return
 	}
 
 	// If it's not what you expect, add an error to diagnostics.
-	if httpResp.StatusCode != 200 {
+	if httpResp != nil && httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
 	}
 
-	// If there were any errors up to this point, log the state data and return.
 	if resp.Diagnostics.HasError() {
-		resp.Diagnostics.AddError("State Data", fmt.Sprintf("\n%v", data))
 		return
 	}
 
+	// Type assert apiResp to the expected *openApiClient.GetDeviceSwitchPorts200ResponseInner type
+	response, ok := apiResp.(*openApiClient.GetDeviceSwitchPorts200ResponseInner)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Type Assertion Failed",
+			"Failed to assert API response type to *openapi.GetDeviceSwitchPorts200ResponseInner",
+		)
+		return
+	}
+
+	// Use typedApiResp with the correct type for further processing
 	data, diag := DevicesSwitchPortResourceResponse(ctx, response, data)
 	if diag.HasError() {
 		resp.Diagnostics.AddError("Resource Response Error", fmt.Sprintf("\n%v", diag))
@@ -464,8 +493,26 @@ func (r *DevicesSwitchPortResource) Update(ctx context.Context, req resource.Upd
 		return
 	}
 
+	// Wrap the API call in the retryAPICall function
+	apiResp, httpResp, err := retryAPICall(ctx, func() (interface{}, *http.Response, error) {
+		resp, httpResp, err := r.client.SwitchApi.UpdateDeviceSwitchPort(context.Background(), data.Serial.ValueString(), data.PortId.ValueString()).UpdateDeviceSwitchPortRequest(payload).Execute()
+		if err != nil {
+			return nil, httpResp, err
+		}
+		return resp, httpResp, nil
+	})
+
+	// Type assert apiResp to the expected *openApiClient.GetDeviceSwitchPorts200ResponseInner type
+	response, ok := apiResp.(*openApiClient.GetDeviceSwitchPorts200ResponseInner)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Type Assertion Failed",
+			"Failed to assert API response type to *openapi.GetDeviceSwitchPorts200ResponseInner",
+		)
+		return
+	}
+
 	// Initialize provider client and make API call
-	response, httpResp, err := r.client.SwitchApi.UpdateDeviceSwitchPort(context.Background(), data.Serial.ValueString(), data.PortId.ValueString()).UpdateDeviceSwitchPortRequest(payload).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Create HTTP Client Failure",
@@ -527,8 +574,15 @@ func (r *DevicesSwitchPortResource) Delete(ctx context.Context, req resource.Del
 	payload.SetAllowedVlans("1")
 	payload.SetAccessPolicyType("Open")
 
-	// Initialize provider client and make API call
-	_, httpResp, err := r.client.SwitchApi.UpdateDeviceSwitchPort(context.Background(), data.Serial.ValueString(), data.PortId.ValueString()).UpdateDeviceSwitchPortRequest(payload).Execute()
+	// Wrap the API call in the retryAPICall function
+	_, httpResp, err := retryAPICall(ctx, func() (interface{}, *http.Response, error) {
+		resp, httpResp, err := r.client.SwitchApi.UpdateDeviceSwitchPort(context.Background(), data.Serial.ValueString(), data.PortId.ValueString()).UpdateDeviceSwitchPortRequest(payload).Execute()
+		if err != nil {
+			return nil, httpResp, err
+		}
+		return resp, httpResp, nil
+	})
+
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Delete HTTP Client Failure",

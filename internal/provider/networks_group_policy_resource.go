@@ -7,6 +7,7 @@ import (
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"io"
+	"net/http"
 	"strings"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
@@ -953,7 +954,15 @@ func (r *NetworksGroupPolicyResource) Create(ctx context.Context, req resource.C
 		createNetworkGroupPolicy.SetContentFiltering(contentFiltering)
 	}
 
-	inlineResp, httpResp, err := r.client.NetworksApi.CreateNetworkGroupPolicy(ctx, data.NetworkId.ValueString()).CreateNetworkGroupPolicyRequest(createNetworkGroupPolicy).Execute()
+	// Wrap the API call in the retryAPICall function
+	inlineRespMap, httpResp, err := retryAPICall(ctx, func() (interface{}, *http.Response, error) {
+		resp, httpResp, err := r.client.NetworksApi.CreateNetworkGroupPolicy(ctx, data.NetworkId.ValueString()).CreateNetworkGroupPolicyRequest(createNetworkGroupPolicy).Execute()
+		if err != nil {
+			return nil, httpResp, err
+		}
+		return resp, httpResp, nil
+	})
+
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"HTTP Client Failure",
@@ -973,6 +982,15 @@ func (r *NetworksGroupPolicyResource) Create(ctx context.Context, req resource.C
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
+		return
+	}
+
+	inlineResp, ok := inlineRespMap.(map[string]interface{})
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Type Assertion Failure",
+			"Failed to assert API response type to map[string]interface{}",
+		)
 		return
 	}
 
@@ -1003,7 +1021,14 @@ func (r *NetworksGroupPolicyResource) Read(ctx context.Context, req resource.Rea
 		return
 	}
 
-	inlineResp, httpResp, err := r.client.NetworksApi.GetNetworkGroupPolicy(ctx, data.NetworkId.ValueString(), data.GroupPolicyId.ValueString()).Execute()
+	inlineRespMap, httpResp, err := retryAPICall(ctx, func() (interface{}, *http.Response, error) {
+		resp, httpResp, err := r.client.NetworksApi.GetNetworkGroupPolicy(ctx, data.NetworkId.ValueString(), data.GroupPolicyId.ValueString()).Execute()
+		if err != nil {
+			return nil, httpResp, err
+		}
+		return resp, httpResp, nil
+	})
+
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"HTTP Client Failure",
@@ -1024,6 +1049,15 @@ func (r *NetworksGroupPolicyResource) Read(ctx context.Context, req resource.Rea
 		return
 	} else {
 		resp.Diagnostics.Append()
+	}
+
+	inlineResp, ok := inlineRespMap.(map[string]interface{})
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Type Assertion Failure",
+			"Failed to assert API response type to map[string]interface{}",
+		)
+		return
 	}
 
 	data, err = extractHttpResponseGroupPolicyResource(ctx, inlineResp, httpResp.Body, data)
@@ -1285,7 +1319,14 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 		updateNetworkGroupPolicy.SetContentFiltering(contentFiltering)
 	}
 
-	inlineResp, httpResp, err := r.client.NetworksApi.UpdateNetworkGroupPolicy(ctx, data.NetworkId.ValueString(), data.GroupPolicyId.ValueString()).UpdateNetworkGroupPolicyRequest(updateNetworkGroupPolicy).Execute()
+	inlineRespMap, httpResp, err := retryAPICall(ctx, func() (interface{}, *http.Response, error) {
+		resp, httpResp, err := r.client.NetworksApi.UpdateNetworkGroupPolicy(ctx, data.NetworkId.ValueString(), data.GroupPolicyId.ValueString()).UpdateNetworkGroupPolicyRequest(updateNetworkGroupPolicy).Execute()
+		if err != nil {
+			return nil, httpResp, err
+		}
+		return resp, httpResp, nil
+	})
+
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"HTTP Client Failure",
@@ -1305,6 +1346,15 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
+		return
+	}
+
+	inlineResp, ok := inlineRespMap.(map[string]interface{})
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Type Assertion Failure",
+			"Failed to assert API response type to map[string]interface{}",
+		)
 		return
 	}
 
@@ -1336,7 +1386,14 @@ func (r *NetworksGroupPolicyResource) Delete(ctx context.Context, req resource.D
 		return
 	}
 
-	httpResp, err := r.client.NetworksApi.DeleteNetworkGroupPolicy(context.Background(), data.NetworkId.ValueString(), data.GroupPolicyId.ValueString()).Execute()
+	_, httpResp, err := retryAPICall(ctx, func() (interface{}, *http.Response, error) {
+		httpResp, err := r.client.NetworksApi.DeleteNetworkGroupPolicy(context.Background(), data.NetworkId.ValueString(), data.GroupPolicyId.ValueString()).Execute()
+		if err != nil {
+			return nil, httpResp, err
+		}
+		return resp, httpResp, nil
+	})
+
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"HTTP Client Failure",
