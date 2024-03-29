@@ -3,14 +3,12 @@ package provider
 import (
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccOrganizationsAdminResource(t *testing.T) {
-	orgId := os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")
 	admins := 13 // number of admins
 
 	resource.Test(t, resource.TestCase{
@@ -69,7 +67,7 @@ func TestAccOrganizationsAdminResource(t *testing.T) {
 
 			// Test the creation of multiple group policies.
 			{
-				Config: testAccOrganizationsAdminResourceConfigMultiplePolicies(orgId, admins),
+				Config: testAccOrganizationsAdminResourceConfigMultiplePolicies(admins),
 				Check: func(s *terraform.State) error {
 					var checks []resource.TestCheckFunc
 					// Dynamically generate checks for each group policy
@@ -169,8 +167,8 @@ resource "meraki_organizations_admin" "test" {
 }
 `
 
-func testAccOrganizationsAdminResourceConfigMultiplePolicies(orgId string, admins int) string {
-	config := fmt.Sprintf(`
+func testAccOrganizationsAdminResourceConfigMultiplePolicies(admins int) string {
+	config := `
  resource "meraki_organization" "test" {
  	name = "test_acc_meraki_organizations_admin_2"
  	api_enabled = true
@@ -185,7 +183,7 @@ resource "meraki_network" "test" {
 	timezone = "America/Los_Angeles"
 	notes = "Additional description of the network"
 }
-`)
+`
 
 	// Append each admin configuration
 	for i := 1; i <= admins; i++ {
