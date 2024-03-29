@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
+	"net/http"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -319,7 +320,24 @@ func (d *DevicesSwitchPortsStatusesDataSource) Read(ctx context.Context, req dat
 		return
 	}
 
-	inlineResp, httpResp, err := d.client.SwitchApi.GetDeviceSwitchPorts(ctx, data.Serial.ValueString()).Execute()
+	// Wrap the API call in the retryAPICall function
+	apiResp, httpResp, err := retryAPICall(ctx, func() (interface{}, *http.Response, error) {
+		resp, httpResp, err := d.client.SwitchApi.GetDeviceSwitchPorts(ctx, data.Serial.ValueString()).Execute()
+		if err != nil {
+			return nil, httpResp, err
+		}
+		return resp, httpResp, nil
+	})
+
+	// Type assert apiResp to the expected *openApiClient.GetDeviceSwitchPorts200ResponseInner type
+	inlineResp, ok := apiResp.([]*openApiClient.GetDeviceSwitchPorts200ResponseInner)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Type Assertion Failed",
+			"Failed to assert API response type to []*openapi.GetNetworkWirelessSsids200ResponseInner. Please ensure the API response structure matches the expected type.",
+		)
+		return
+	}
 
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {

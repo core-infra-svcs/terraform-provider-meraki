@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"net/http"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -206,7 +207,14 @@ func (d *OrganizationsAdminsDataSource) Read(ctx context.Context, req datasource
 		return
 	}
 
-	_, httpResp, err := d.client.AdminsApi.GetOrganizationAdmins(context.Background(), data.OrgId.ValueString()).Execute()
+	// Wrap the API call in the retryAPICall function
+	_, httpResp, err := retryAPICall(ctx, func() (interface{}, *http.Response, error) {
+		resp, httpResp, err := d.client.AdminsApi.GetOrganizationAdmins(context.Background(), data.OrgId.ValueString()).Execute()
+		if err != nil {
+			return nil, httpResp, err
+		}
+		return resp, httpResp, nil
+	})
 
 	if err != nil {
 		resp.Diagnostics.AddError(

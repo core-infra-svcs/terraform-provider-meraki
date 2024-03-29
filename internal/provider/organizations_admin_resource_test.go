@@ -1,12 +1,18 @@
 package provider
 
 import (
+	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccOrganizationsAdminResource(t *testing.T) {
+	orgId := os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")
+	admins := 13 // number of admins
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
@@ -59,6 +65,28 @@ func TestAccOrganizationsAdminResource(t *testing.T) {
 					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "tags.0.access", "read-only"),
 					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "networks.0.access", "read-only"),
 				),
+			},
+
+			// Test the creation of multiple group policies.
+			{
+				Config: testAccOrganizationsAdminResourceConfigMultiplePolicies(orgId, admins),
+				Check: func(s *terraform.State) error {
+					var checks []resource.TestCheckFunc
+					// Dynamically generate checks for each group policy
+					for i := 1; i <= admins; i++ {
+						resourceName := fmt.Sprintf("meraki_organizations_admin.test%d", i)
+						checks = append(checks,
+							resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("test_acc_admin_%d", i)),
+							resource.TestCheckResourceAttr(resourceName, "email", fmt.Sprintf("meraki_organizations_admin_test_%d@example.com", i)),
+							resource.TestCheckResourceAttr(resourceName, "org_access", "read-only"),
+							resource.TestCheckResourceAttr(resourceName, "authentication_method", "Email"),
+							resource.TestCheckResourceAttr(resourceName, "tags.0.tag", "west"),
+							resource.TestCheckResourceAttr(resourceName, "tags.0.access", "read-only"),
+							resource.TestCheckResourceAttr(resourceName, "networks.0.access", "read-only"),
+						)
+					}
+					return resource.ComposeAggregateTestCheckFunc(checks...)(s)
+				},
 			},
 
 			// Delete testing automatically occurs in TestCase
@@ -140,3 +168,50 @@ resource "meraki_organizations_admin" "test" {
                 }]
 }
 `
+
+func testAccOrganizationsAdminResourceConfigMultiplePolicies(orgId string, admins int) string {
+	config := fmt.Sprintf(`
+ resource "meraki_organization" "test" {
+ 	name = "test_acc_meraki_organizations_admin_2"
+ 	api_enabled = true
+ }
+
+resource "meraki_network" "test" {
+	depends_on = ["meraki_organization.test"]
+	organization_id = resource.meraki_organization.test.organization_id
+	product_types = ["appliance", "switch", "wireless"]
+	tags = ["tag1"]
+	name = "test_acc_organizations_admin"
+	timezone = "America/Los_Angeles"
+	notes = "Additional description of the network"
+}
+`)
+
+	// Append each admin configuration
+	for i := 1; i <= admins; i++ {
+		config += fmt.Sprintf(`
+
+resource "meraki_organizations_admin" "test%d" {
+	depends_on = ["meraki_network.test"]
+	organization_id = resource.meraki_organization.test.organization_id
+	name        = "test_acc_admin_%d"
+	email       = "meraki_organizations_admin_test_%d@example.com"
+	org_access   = "read-only"
+	authentication_method = "Email"
+    tags = [
+			  {
+			   tag = "west"
+			   access = "read-only"
+			  }]
+    networks    = [{
+                  id = resource.meraki_network.test.network_id
+                  access = "read-only"
+                }]
+}
+
+
+`, i, i, i)
+	}
+
+	return config
+}

@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -371,8 +372,15 @@ func (d *NetworksWirelessSsidsDataSource) Read(ctx context.Context, req datasour
 		return
 	}
 
-	// Remember to handle any potential errors.
-	inlineResp, httpResp, _ := d.client.WirelessApi.GetNetworkWirelessSsids(ctx, data.NetworkId.ValueString()).Execute()
+	inlineResp, httpResp, err := d.client.WirelessApi.GetNetworkWirelessSsids(ctx, data.NetworkId.ValueString()).Execute()
+
+	// Check for errors API call
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
+		)
+	}
 
 	// Now iterate over the inlineResp slice
 	for _, inlineRespData := range inlineResp {

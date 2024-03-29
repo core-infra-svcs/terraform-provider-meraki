@@ -175,7 +175,6 @@ func TestAccNetworksGroupPolicyResource(t *testing.T) {
 					// Dynamically generate checks for each group policy
 					for i := 1; i <= policies; i++ {
 						resourceName := fmt.Sprintf("meraki_networks_group_policy.test%d", i)
-						// Adjust according to the attributes you want to check
 						checks = append(checks,
 							resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("testpolicy%d", i)),
 							resource.TestCheckResourceAttr(resourceName, "splash_auth_settings", "network default"),

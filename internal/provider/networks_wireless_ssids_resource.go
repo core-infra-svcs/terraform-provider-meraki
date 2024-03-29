@@ -1352,7 +1352,7 @@ func (r *NetworksWirelessSsidsResource) Create(ctx context.Context, req resource
 		return resp, httpResp, nil
 	})
 
-	// Type assert apiResp to the expected *openApiClient.GetDeviceSwitchPorts200ResponseInner type
+	// Type assert apiResp to the expected *openApiClient.GetNetworkWirelessSsids200ResponseInner type
 	response, ok := apiResp.(*openApiClient.GetNetworkWirelessSsids200ResponseInner)
 	if !ok {
 		resp.Diagnostics.AddError(
@@ -1361,9 +1361,6 @@ func (r *NetworksWirelessSsidsResource) Create(ctx context.Context, req resource
 		)
 		return
 	}
-
-	// todo remove
-	//response, httpResp, err := r.client.WirelessApi.UpdateNetworkWirelessSsid(context.Background(), data.NetworkID.ValueString(), fmt.Sprint(data.Number.ValueInt64())).UpdateNetworkWirelessSsidRequest(payload).Execute()
 
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
@@ -1423,7 +1420,7 @@ func (r *NetworksWirelessSsidsResource) Read(ctx context.Context, req resource.R
 		return resp, httpResp, nil
 	})
 
-	// Type assert apiResp to the expected *openApiClient.GetDeviceSwitchPorts200ResponseInner type
+	// Type assert apiResp to the expected *openApiClient.GetNetworkWirelessSsids200ResponseInner type
 	response, ok := apiResp.(*openApiClient.GetNetworkWirelessSsids200ResponseInner)
 	if !ok {
 		resp.Diagnostics.AddError(
@@ -1432,9 +1429,6 @@ func (r *NetworksWirelessSsidsResource) Read(ctx context.Context, req resource.R
 		)
 		return
 	}
-
-	// todo remove
-	//response, httpResp, err := r.client.WirelessApi.GetNetworkWirelessSsid(context.Background(), data.NetworkID.ValueString(), fmt.Sprint(data.Number.ValueInt64())).Execute()
 
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
@@ -1499,7 +1493,7 @@ func (r *NetworksWirelessSsidsResource) Update(ctx context.Context, req resource
 		return resp, httpResp, nil
 	})
 
-	// Type assert apiResp to the expected *openApiClient.GetDeviceSwitchPorts200ResponseInner type
+	// Type assert apiResp to the expected *openApiClient.GetNetworkWirelessSsids200ResponseInner type
 	response, ok := apiResp.(*openApiClient.GetNetworkWirelessSsids200ResponseInner)
 	if !ok {
 		resp.Diagnostics.AddError(
@@ -1508,9 +1502,6 @@ func (r *NetworksWirelessSsidsResource) Update(ctx context.Context, req resource
 		)
 		return
 	}
-
-	// todo remove
-	//response, httpResp, err := r.client.WirelessApi.UpdateNetworkWirelessSsid(context.Background(), data.NetworkID.ValueString(), fmt.Sprint(data.Number.ValueInt64())).UpdateNetworkWirelessSsidRequest(payload).Execute()
 
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
@@ -1567,7 +1558,7 @@ func (r *NetworksWirelessSsidsResource) Delete(ctx context.Context, req resource
 	payload.SetAuthMode("open")
 	payload.SetVlanId(1)
 
-	// Wrap the API call in the retryAPICall function
+	//Wrap the API call in the retryAPICall function
 	_, httpResp, err := retryAPICall(ctx, func() (interface{}, *http.Response, error) {
 		resp, httpResp, err := r.client.WirelessApi.UpdateNetworkWirelessSsid(context.Background(), data.NetworkID.ValueString(), fmt.Sprint(data.Number.ValueInt64())).UpdateNetworkWirelessSsidRequest(payload).Execute()
 		if err != nil {
@@ -1575,8 +1566,6 @@ func (r *NetworksWirelessSsidsResource) Delete(ctx context.Context, req resource
 		}
 		return resp, httpResp, nil
 	})
-
-	//_, httpResp, err := r.client.WirelessApi.UpdateNetworkWirelessSsid(context.Background(), data.NetworkID.ValueString(), fmt.Sprint(data.Number.ValueInt64())).UpdateNetworkWirelessSsidRequest(payload).Execute()
 
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
@@ -2276,10 +2265,11 @@ func ReadSSIDSHttpResponse(ctx context.Context, data *NetworksWirelessSsidsResou
 
 	resp := diag.Diagnostics{}
 
-	tflog.Info(ctx, "[start] ReadHttpResponse Call")
-	tflog.Trace(ctx, "Read Response Payload ", map[string]interface{}{
-		"response": response,
-	})
+	// for debugging
+	//tflog.Info(ctx, "[start] ReadHttpResponse Call")
+	//tflog.Trace(ctx, "Read Response Payload ", map[string]interface{}{
+	//	"response": response,
+	//})
 
 	data.Id = jsontypes.StringValue("example-id")
 	data.Number = jsontypes.Int64Value(int64(response.GetNumber()))

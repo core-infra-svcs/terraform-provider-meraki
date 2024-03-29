@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
+	"net/http"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
@@ -710,7 +711,14 @@ func (d *NetworkGroupPoliciesDataSource) Read(ctx context.Context, req datasourc
 		return
 	}
 
-	inlineResp, httpResp, err := d.client.NetworksApi.GetNetworkGroupPolicies(ctx, data.NetworkId.ValueString()).Execute()
+	inlineResp, httpResp, err := retryAPICall(ctx, func() (interface{}, *http.Response, error) {
+		resp, httpResp, err := d.client.NetworksApi.GetNetworkGroupPolicies(ctx, data.NetworkId.ValueString()).Execute()
+		if err != nil {
+			return nil, httpResp, err
+		}
+		return resp, httpResp, nil
+	})
+
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"HTTP Client Failure",

@@ -363,20 +363,20 @@ func (r *DevicesSwitchPortResource) Create(ctx context.Context, req resource.Cre
 		return resp, httpResp, nil
 	})
 
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Create HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
+		)
+		return
+	}
+
 	// Type assert apiResp to the expected *openApiClient.GetDeviceSwitchPorts200ResponseInner type
 	response, ok := apiResp.(*openApiClient.GetDeviceSwitchPorts200ResponseInner)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Type Assertion Failed",
 			"Failed to assert API response type to *openapi.GetDeviceSwitchPorts200ResponseInner",
-		)
-		return
-	}
-
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Create HTTP Client Failure",
-			tools.HttpDiagnostics(httpResp),
 		)
 		return
 	}
