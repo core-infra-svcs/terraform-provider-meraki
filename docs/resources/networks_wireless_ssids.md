@@ -23,6 +23,7 @@ NetworksWirelessSsids
 ### Optional
 
 - `active_directory` (Attributes) Sets up Active Directory for authentication, with server details and credentials. (see [below for nested schema](#nestedatt--active_directory))
+- `admin_splash_url` (String) URL for the admin splash page.
 - `adult_content_filtering_enabled` (Boolean) Indicates whether adult content filtering is enabled.
 - `ap_tags_and_vlan_ids` (Attributes List) A set of AP tags and corresponding VLAN IDs. (see [below for nested schema](#nestedatt--ap_tags_and_vlan_ids))
 - `auth_mode` (String) Specifies the authentication method for the SSID, supporting various modes like '8021x' (with different backend servers), 'ipsk', and 'open', each tailored for specific security and access requirements.
@@ -42,6 +43,7 @@ NetworksWirelessSsids
 - `ip_assignment_mode` (String) The client IP assignment mode
 - `lan_isolation_enabled` (Boolean) Indicates whether LAN isolation is enabled.
 - `ldap` (Attributes) LDAP server configuration for authentication, including server details and credentials. (see [below for nested schema](#nestedatt--ldap))
+- `local_auth` (Boolean) Extended local auth flag for Enterprise NAC.
 - `local_radius` (Attributes) Local RADIUS server configuration for authentication, including settings for cache timeout, password authentication, and certificate authentication. (see [below for nested schema](#nestedatt--local_radius))
 - `mandatory_dhcp_enabled` (Boolean) Indicates whether mandatory DHCP is enabled.
 - `min_bit_rate` (Number) The minimum bitrate in Mbps of this SSID in the default indoor RF profile
@@ -61,7 +63,8 @@ NetworksWirelessSsids
 - `radius_authentication_nas_id` (String) Defines the NAS identifier template for RADIUS authentication purposes.
 - `radius_called_station_id` (String) Specifies the template for the called station identifier used in RADIUS interactions.
 - `radius_coa_enabled` (Boolean) Controls the usage of RADIUS Change of Authorization (CoA) for dynamic modifications to a client's session.
-- `radius_fail_over_policy` (String) This policy determines how authentication requests should be handled in the event that all of the configured RADIUS servers are unreachable
+- `radius_enabled` (Boolean) Whether RADIUS authentication is enabled.
+- `radius_failover_policy` (String) This policy determines how authentication requests should be handled in the event that all of the configured RADIUS servers are unreachable
 - `radius_fallback_enabled` (Boolean) Determines if RADIUS fallback is activated, impacting how the system behaves when primary RADIUS servers are unreachable.
 - `radius_guest_vlan_enabled` (Boolean) Indicates whether the RADIUS guest VLAN is enabled.
 - `radius_guest_vlan_id` (Number) VLAN ID of the RADIUS Guest VLAN
@@ -76,6 +79,8 @@ NetworksWirelessSsids
 - `speed_burst` (Attributes) Speed burst configuration. (see [below for nested schema](#nestedatt--speed_burst))
 - `splash_guest_sponsor_domains` (List of String) A list of email domains allowed to sponsor guest access, relevant when using a sponsored guest splash page type.
 - `splash_page` (String) Defines the splash page type used for guest access management and authentication, offering options like 'Click-through', 'Password-protected', 'Billing', etc.
+- `splash_timeout` (String) Splash page timeout.
+- `ssid_admin_accessible` (Boolean) SSID Administrator access status.
 - `use_vlan_tagging` (Boolean) Indicates whether VLAN tagging is used.
 - `visible` (Boolean) Indicates whether the SSID is visible.
 - `vlan_id` (Number) The VLAN ID used for VLAN tagging

@@ -4,6 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"strings"
+
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -17,8 +20,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
-	"strconv"
-	"strings"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -66,7 +67,7 @@ type NetworksWirelessSsidsResourceModel struct {
 	RadiusServerAttemptsLimit        jsontypes.Int64   `json:"radiusServerAttemptsLimit" tfsdk:"radius_server_attempts_limit"`
 	RadiusFallbackEnabled            jsontypes.Bool    `json:"radiusFallbackEnabled" tfsdk:"radius_fallback_enabled"`
 	RadiusCoaEnabled                 jsontypes.Bool    `json:"radiusCoaEnabled" tfsdk:"radius_coa_enabled"`
-	RadiusFailOverPolicy             jsontypes.String  `json:"radiusFailOverPolicy" tfsdk:"radius_fail_over_policy"`
+	RadiusFailOverPolicy             jsontypes.String  `json:"radiusFailOverPolicy" tfsdk:"radius_failover_policy"`
 	RadiusLoadBalancingPolicy        jsontypes.String  `json:"radiusLoadBalancingPolicy" tfsdk:"radius_load_balancing_policy"`
 	RadiusAccountingEnabled          jsontypes.Bool    `json:"radiusAccountingEnabled" tfsdk:"radius_accounting_enabled"`
 	RadiusAccountingServers          types.List        `json:"radiusAccountingServers" tfsdk:"radius_accounting_servers"`
@@ -101,6 +102,11 @@ type NetworksWirelessSsidsResourceModel struct {
 	DnsRewrite                       types.Object      `json:"dnsRewrite" tfsdk:"dns_rewrite"`
 	SpeedBurst                       types.Object      `json:"speedBurst" tfsdk:"speed_burst"`
 	NamedVlans                       types.Object      `json:"namedVlans" tfsdk:"named_vlans"`
+	SsidAdminAccessible              jsontypes.Bool    `json:"ssidAdminAccessible" tfsdk:"ssid_admin_accessible"`
+	LocalAuth                        jsontypes.Bool    `json:"localAuth" tfsdk:"local_auth"`
+	RadiusEnabled                    jsontypes.Bool    `json:"radiusEnabled" tfsdk:"radius_enabled"`
+	AdminSplashUrl                   jsontypes.String  `json:"adminSplashUrl" tfsdk:"admin_splash_url"`
+	SplashTimeout                    jsontypes.String  `json:"splashTimeout" tfsdk:"splash_timeout"`
 }
 
 func (m *NetworksWirelessSsidsResourceModel) UnmarshalJSON(b []byte) error {
@@ -271,6 +277,31 @@ type LdapConfig struct {
 	Credentials           Credential         `json:"credentials" tfsdk:"credentials"`
 	BaseDistinguishedName jsontypes.String   `json:"baseDistinguishedName" tfsdk:"base_distinguished_name"`
 	ServerCaCertificate   CertificateContent `json:"serverCaCertificate" tfsdk:"server_ca_certificate"`
+}
+
+type NamedVlansConfig struct {
+	Radius  RadiusConfig  `json:"radius" tfsdk:"radius"`
+	Tagging TaggingConfig `json:"tagging" tfsdk:"tagging"`
+}
+
+type RadiusConfig struct {
+	GuestVlan GuestVlanConfig `json:"guestVlan" tfsdk:"guest_vlan"`
+}
+
+type GuestVlanConfig struct {
+	Enabled jsontypes.Bool   `json:"enabled" tfsdk:"enabled"`
+	Name    jsontypes.String `json:"name" tfsdk:"name"`
+}
+
+type ByApTagsConfig struct {
+	Tags     types.List       `json:"tags" tfsdk:"tags"`
+	VlanName jsontypes.String `json:"vlanName" tfsdk:"vlan_name"`
+}
+
+type TaggingConfig struct {
+	Enabled         jsontypes.Bool   `json:"enabled" tfsdk:"enabled"`
+	DefaultVlanName jsontypes.String `json:"defaultVlanName" tfsdk:"default_vlan_name"`
+	ByApTags        types.List       `json:"byApTags" tfsdk:"by_ap_tags"`
 }
 
 func (cfg *LdapConfig) ToAPIModel(ctx context.Context) (*openApiClient.UpdateNetworkWirelessSsidRequestLdap, diag.Diagnostics) {
@@ -527,35 +558,6 @@ func (cfg *SpeedBurstConfig) ToAPIModel(ctx context.Context) (*openApiClient.Upd
 	return &speedBurstPayload, nil
 }
 
-type NamedVlansConfig struct {
-	Tagging NamedVlansTaggingConfig `json:"tagging" tfsdk:"tagging"`
-	Radius  NamedVlansRadiusConfig  `json:"radius" tfsdk:"radius"`
-}
-
-type NamedVlansTaggingConfig struct {
-	Enabled         jsontypes.Bool   `json:"enabled" tfsdk:"enabled"`
-	DefaultVlanName jsontypes.String `json:"defaultVlanName" tfsdk:"default_vlan_name"`
-	ByApTags        types.List       `json:"byApTags" tfsdk:"by_ap_tags"`
-}
-
-type TagAndVlanName struct {
-	Tags     types.List       `json:"tags" tfsdk:"tags"`
-	VlanName jsontypes.String `json:"vlanName" tfsdk:"vlan_name"`
-}
-
-type TagValue struct {
-	Value jsontypes.String `json:"value" tfsdk:"value"`
-}
-
-type NamedVlansRadiusConfig struct {
-	GuestVlan NamedVlansGuestVlanConfig `json:"guestVlan" tfsdk:"guest_vlan"`
-}
-
-type NamedVlansGuestVlanConfig struct {
-	Enabled jsontypes.Bool   `json:"enabled" tfsdk:"enabled"`
-	Name    jsontypes.String `json:"name" tfsdk:"name"`
-}
-
 func (r *NetworksWirelessSsidsResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_networks_wireless_ssids"
 }
@@ -571,9 +573,8 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 			},
 			"network_id": schema.StringAttribute{
 				MarkdownDescription: "The unique identifier of the Meraki network to which the SSID belongs. Essential for API calls to associate the SSID correctly with its network.",
-
-				Required:   true,
-				CustomType: jsontypes.StringType,
+				Required:            true,
+				CustomType:          jsontypes.StringType,
 			},
 			"number": schema.Int64Attribute{
 				MarkdownDescription: "Represents the SSID's order or position within the network's list of SSIDs. It acts as a unique identifier for the SSID within the network.",
@@ -583,16 +584,19 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 			"name": schema.StringAttribute{
 				MarkdownDescription: "The name of the SSID. This is the network name visible to clients when scanning for wireless networks.",
 				Optional:            true,
+				Computed:            true,
 				CustomType:          jsontypes.StringType,
 			},
 			"enabled": schema.BoolAttribute{
 				MarkdownDescription: "Determines if the SSID is active and broadcasting. Disabling this will render the SSID invisible to wireless clients.",
 				Optional:            true,
+				Computed:            true,
 				CustomType:          jsontypes.BoolType,
 			},
 			"auth_mode": schema.StringAttribute{
 				MarkdownDescription: "Specifies the authentication method for the SSID, supporting various modes like '8021x' (with different backend servers), 'ipsk', and 'open', each tailored for specific security and access requirements.",
 				Optional:            true,
+				Computed:            true,
 				CustomType:          jsontypes.StringType,
 				Validators: []validator.String{
 					stringvalidator.OneOf("8021x-google",
@@ -609,6 +613,7 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 			"encryption_mode": schema.StringAttribute{
 				MarkdownDescription: "Defines the type of PSK encryption (e.g., WEP, WPA) used for securing wireless network data.",
 				Optional:            true,
+				Computed:            true,
 				CustomType:          jsontypes.StringType,
 				Validators: []validator.String{
 					stringvalidator.OneOf("wep", "wpa"),
@@ -622,6 +627,7 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 			"wpa_encryption_mode": schema.StringAttribute{
 				MarkdownDescription: "Specifies the WPA encryption mode, offering options like 'WPA1 only', 'WPA2 only', 'WPA3' for varying levels of security and compatibility.",
 				Optional:            true,
+				Computed:            true,
 				CustomType:          jsontypes.StringType,
 				Validators: []validator.String{
 					stringvalidator.OneOf("WPA1 only", "WPA1 and WPA2", "WPA2 only", "WPA3 Transition Mode", "WPA3 only", "WPA3 192-bit Security"),
@@ -811,7 +817,6 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 				Attributes: map[string]schema.Attribute{
 					"servers": schema.ListNestedAttribute{
 						Optional:            true,
-						Computed:            true,
 						MarkdownDescription: "The Active Directory servers to be used for authentication",
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
@@ -848,17 +853,20 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 			},
 			"radius_servers": schema.ListNestedAttribute{
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "A list of RADIUS servers for authentication, including their host, port, secret, CA certificate, and RADSEC settings.",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"host": schema.StringAttribute{
 							MarkdownDescription: "IP address or hostname of the RADIUS server.",
 							Optional:            true,
+							Computed:            true,
 							CustomType:          jsontypes.StringType,
 						},
 						"port": schema.Int64Attribute{
 							MarkdownDescription: "Port number on which the RADIUS server is listening.",
 							Optional:            true,
+							Computed:            true,
 							CustomType:          jsontypes.Int64Type,
 						},
 						"secret": schema.StringAttribute{
@@ -869,11 +877,13 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 						"ca_certificate": schema.StringAttribute{
 							MarkdownDescription: "CA certificate for the RADIUS server.",
 							Optional:            true,
+							Computed:            true,
 							CustomType:          jsontypes.StringType,
 						},
 						"open_roaming_certificate_id": schema.Int64Attribute{
 							MarkdownDescription: "OpenRoaming certificate ID associated with the RADIUS server.",
 							Optional:            true,
+							Computed:            true,
 							CustomType:          jsontypes.Int64Type,
 						},
 						"rad_sec_enabled": schema.BoolAttribute{
@@ -924,34 +934,40 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 				Optional:            true,
 				CustomType:          jsontypes.BoolType,
 			},
-			"radius_fail_over_policy": schema.StringAttribute{
+			"radius_failover_policy": schema.StringAttribute{
 				MarkdownDescription: "This policy determines how authentication requests should be handled in the event that all of the configured RADIUS servers are unreachable",
 				Optional:            true,
+				Computed:            true,
 				CustomType:          jsontypes.StringType,
 			},
 			"radius_load_balancing_policy": schema.StringAttribute{
 				MarkdownDescription: "This policy determines which RADIUS server will be contacted first in an authentication attempt and the ordering of any necessary retry attempts",
 				Optional:            true,
+				Computed:            true,
 				CustomType:          jsontypes.StringType,
 			},
 			"radius_accounting_enabled": schema.BoolAttribute{
 				MarkdownDescription: "Indicates whether RADIUS accounting is enabled.",
 				Optional:            true,
+				Computed:            true,
 				CustomType:          jsontypes.BoolType,
 			},
 			"radius_accounting_servers": schema.ListNestedAttribute{
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "The RADIUS accounting servers to be used for accounting services.",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"host": schema.StringAttribute{
 							MarkdownDescription: "IP address or hostname of the RADIUS accounting server.",
 							Optional:            true,
+							Computed:            true,
 							CustomType:          jsontypes.StringType,
 						},
 						"port": schema.Int64Attribute{
 							MarkdownDescription: "Port number on which the RADIUS accounting server is listening.",
 							Optional:            true,
+							Computed:            true,
 							CustomType:          jsontypes.Int64Type,
 						},
 						"secret": schema.StringAttribute{
@@ -962,6 +978,7 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 						"ca_certificate": schema.StringAttribute{
 							MarkdownDescription: "CA certificate for the RADIUS accounting server.",
 							Optional:            true,
+							Computed:            true,
 							CustomType:          jsontypes.StringType,
 						},
 						"rad_sec_enabled": schema.BoolAttribute{
@@ -972,6 +989,7 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 						"open_roaming_certificate_id": schema.Int64Attribute{
 							MarkdownDescription: "The Open Roaming Certificate Id",
 							Optional:            true,
+							Computed:            true,
 							CustomType:          jsontypes.Int64Type,
 						},
 					},
@@ -985,6 +1003,7 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 			"radius_attribute_for_group_policies": schema.StringAttribute{
 				MarkdownDescription: "Specify the RADIUS attribute used to look up group policies must be one of:\n 'Airespace-ACL-Name', 'Aruba-User-Role', 'Filter-Id' or 'Reply-Message'",
 				Optional:            true,
+				Computed:            true,
 				CustomType:          jsontypes.StringType,
 				Validators: []validator.String{
 					stringvalidator.OneOf("Airespace-ACL-Name", "Aruba-User-Role", "Filter-Id", "Reply-Message"),
@@ -1047,11 +1066,13 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 			"walled_garden_enabled": schema.BoolAttribute{
 				MarkdownDescription: "Indicates whether a walled garden is enabled for the SSID.",
 				Optional:            true,
+				Computed:            true,
 				CustomType:          jsontypes.BoolType,
 			},
 			"walled_garden_ranges": schema.ListAttribute{
 				MarkdownDescription: "List of Walled Garden ranges",
 				Optional:            true,
+				Computed:            true,
 				ElementType:         jsontypes.StringType,
 			},
 			"gre": schema.SingleNestedAttribute{
@@ -1159,7 +1180,6 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 			"adult_content_filtering_enabled": schema.BoolAttribute{
 				MarkdownDescription: "Indicates whether adult content filtering is enabled.",
 				Optional:            true,
-				Computed:            true,
 				CustomType:          jsontypes.BoolType,
 			},
 			"dns_rewrite": schema.SingleNestedAttribute{
@@ -1188,6 +1208,36 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 						CustomType:          jsontypes.BoolType,
 					},
 				},
+			},
+			"ssid_admin_accessible": schema.BoolAttribute{
+				MarkdownDescription: "SSID Administrator access status.",
+				Optional:            true,
+				Computed:            true,
+				CustomType:          jsontypes.BoolType,
+			},
+			"local_auth": schema.BoolAttribute{
+				MarkdownDescription: "Extended local auth flag for Enterprise NAC.",
+				Optional:            true,
+				Computed:            true,
+				CustomType:          jsontypes.BoolType,
+			},
+			"radius_enabled": schema.BoolAttribute{
+				MarkdownDescription: "Whether RADIUS authentication is enabled.",
+				Optional:            true,
+				Computed:            true,
+				CustomType:          jsontypes.BoolType,
+			},
+			"admin_splash_url": schema.StringAttribute{
+				MarkdownDescription: "URL for the admin splash page.",
+				Optional:            true,
+				Computed:            true,
+				CustomType:          jsontypes.StringType,
+			},
+			"splash_timeout": schema.StringAttribute{
+				MarkdownDescription: "Splash page timeout.",
+				Optional:            true,
+				Computed:            true,
+				CustomType:          jsontypes.StringType,
 			},
 			"named_vlans": schema.SingleNestedAttribute{
 				Optional:            true,
@@ -1292,8 +1342,7 @@ func (r *NetworksWirelessSsidsResource) Create(ctx context.Context, req resource
 		return
 	}
 
-	number := strconv.Itoa(int(data.Number.ValueInt64()))
-	_, httpResp, err := r.client.WirelessApi.UpdateNetworkWirelessSsid(context.Background(), data.NetworkID.ValueString(), number).UpdateNetworkWirelessSsidRequest(payload).Execute()
+	response, httpResp, err := r.client.WirelessApi.UpdateNetworkWirelessSsid(context.Background(), data.NetworkID.ValueString(), fmt.Sprint(data.Number.ValueInt64())).UpdateNetworkWirelessSsidRequest(payload).Execute()
 
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
@@ -1318,17 +1367,15 @@ func (r *NetworksWirelessSsidsResource) Create(ctx context.Context, req resource
 		return
 	}
 
-	// Decode the HTTP response body into your data model.
-	// If there's an error, add it to diagnostics.
-	if err = json.NewDecoder(httpResp.Body).Decode(&data); err != nil {
-		resp.Diagnostics.AddError(
-			"JSON decoding error",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-		return
+	updatePayloadRespDiags := ReadSSIDSHttpResponse(ctx, data, response)
+	if updatePayloadRespDiags != nil {
+		resp.Diagnostics.Append(updatePayloadRespDiags...)
 	}
 
-	data.Id = jsontypes.StringValue("example-id")
+	// Check for errors after diagnostics collected
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -1345,8 +1392,8 @@ func (r *NetworksWirelessSsidsResource) Read(ctx context.Context, req resource.R
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	number := strconv.Itoa(int(data.Number.ValueInt64()))
-	_, httpResp, err := r.client.WirelessApi.GetNetworkWirelessSsid(context.Background(), data.NetworkID.ValueString(), number).Execute()
+
+	response, httpResp, err := r.client.WirelessApi.GetNetworkWirelessSsid(context.Background(), data.NetworkID.ValueString(), fmt.Sprint(data.Number.ValueInt64())).Execute()
 
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
@@ -1370,17 +1417,15 @@ func (r *NetworksWirelessSsidsResource) Read(ctx context.Context, req resource.R
 		return
 	}
 
-	// Decode the HTTP response body into your data model.
-	// If there's an error, add it to diagnostics.
-	if err = json.NewDecoder(httpResp.Body).Decode(&data); err != nil {
-		resp.Diagnostics.AddError(
-			"JSON decoding error",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-		return
+	getPayloadRespDiags := ReadSSIDSHttpResponse(ctx, data, response)
+	if getPayloadRespDiags != nil {
+		resp.Diagnostics.Append(getPayloadRespDiags...)
 	}
 
-	data.Id = jsontypes.StringValue("example-id")
+	// Check for errors after diagnostics collected
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -1403,8 +1448,8 @@ func (r *NetworksWirelessSsidsResource) Update(ctx context.Context, req resource
 		resp.Diagnostics.AddError("Resource Payload Error", fmt.Sprintf("\n%v", payloadDiag))
 		return
 	}
-	number := strconv.Itoa(int(data.Number.ValueInt64()))
-	_, httpResp, err := r.client.WirelessApi.UpdateNetworkWirelessSsid(context.Background(), data.NetworkID.ValueString(), number).UpdateNetworkWirelessSsidRequest(payload).Execute()
+
+	response, httpResp, err := r.client.WirelessApi.UpdateNetworkWirelessSsid(context.Background(), data.NetworkID.ValueString(), fmt.Sprint(data.Number.ValueInt64())).UpdateNetworkWirelessSsidRequest(payload).Execute()
 
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
@@ -1429,17 +1474,15 @@ func (r *NetworksWirelessSsidsResource) Update(ctx context.Context, req resource
 		return
 	}
 
-	// Decode the HTTP response body into your data model.
-	// If there's an error, add it to diagnostics.
-	if err = json.NewDecoder(httpResp.Body).Decode(&data); err != nil {
-		resp.Diagnostics.AddError(
-			"JSON decoding error",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-		return
+	updatePayloadRespDiags := ReadSSIDSHttpResponse(ctx, data, response)
+	if updatePayloadRespDiags != nil {
+		resp.Diagnostics.Append(updatePayloadRespDiags...)
 	}
 
-	data.Id = jsontypes.StringValue("example-id")
+	// Check for errors after diagnostics collected
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -1463,8 +1506,7 @@ func (r *NetworksWirelessSsidsResource) Delete(ctx context.Context, req resource
 	payload.SetAuthMode("open")
 	payload.SetVlanId(1)
 
-	number := strconv.Itoa(int(data.Number.ValueInt64()))
-	_, httpResp, err := r.client.WirelessApi.UpdateNetworkWirelessSsid(context.Background(), data.NetworkID.ValueString(), number).UpdateNetworkWirelessSsidRequest(payload).Execute()
+	_, httpResp, err := r.client.WirelessApi.UpdateNetworkWirelessSsid(context.Background(), data.NetworkID.ValueString(), fmt.Sprint(data.Number.ValueInt64())).UpdateNetworkWirelessSsidRequest(payload).Execute()
 
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
@@ -1507,7 +1549,11 @@ func (r *NetworksWirelessSsidsResource) ImportState(ctx context.Context, req res
 		return
 	}
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("network_id"), idParts[0])...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("number"), idParts[1])...)
+	i, err := strconv.ParseInt(idParts[1], 10, 64)
+	if err != nil {
+		panic(err)
+	}
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("number"), i)...)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -1515,6 +1561,7 @@ func (r *NetworksWirelessSsidsResource) ImportState(ctx context.Context, req res
 }
 
 func NetworksWirelessSsidsPayload(ctx context.Context, data *NetworksWirelessSsidsResourceModel) (openApiClient.UpdateNetworkWirelessSsidRequest, diag.Diagnostics) {
+
 	var err diag.Diagnostics
 
 	payload := *openApiClient.NewUpdateNetworkWirelessSsidRequest()
@@ -2056,7 +2103,6 @@ func NetworksWirelessSsidsPayload(ctx context.Context, data *NetworksWirelessSsi
 	if !data.AvailableOnAllAps.IsNull() && !data.AvailableOnAllAps.IsUnknown() {
 		payload.SetAvailableOnAllAps(data.AvailableOnAllAps.ValueBool())
 	}
-
 	// AvailabilityTags
 	if !data.AvailabilityTags.IsNull() && !data.AvailabilityTags.IsUnknown() {
 		var tags []string
@@ -2099,6 +2145,38 @@ func NetworksWirelessSsidsPayload(ctx context.Context, data *NetworksWirelessSsi
 		}
 	}
 
+	// 	NamedVlans
+	if !data.NamedVlans.IsNull() && !data.NamedVlans.IsUnknown() {
+
+		var namedVlansData NamedVlansConfig
+		namedVlansErr := data.NamedVlans.As(ctx, &namedVlansData, basetypes.ObjectAsOptions{})
+		if namedVlansErr != nil {
+			return openApiClient.UpdateNetworkWirelessSsidRequest{}, diag.Diagnostics{
+				diag.NewErrorDiagnostic("Failed to unmarshal NamedVlans config",
+					fmt.Sprintf("%v", namedVlansErr)),
+			}
+		}
+		var v openApiClient.UpdateNetworkWirelessSsidRequestNamedVlans
+		var h openApiClient.UpdateNetworkWirelessSsidRequestNamedVlansRadius
+		var g openApiClient.UpdateNetworkWirelessSsidRequestNamedVlansRadiusGuestVlan
+		g.SetEnabled(namedVlansData.Radius.GuestVlan.Enabled.ValueBool())
+		g.SetName(namedVlansData.Radius.GuestVlan.Name.ValueString())
+		h.SetGuestVlan(g)
+		v.SetRadius(h)
+		var tagging openApiClient.UpdateNetworkWirelessSsidRequestNamedVlansTagging
+		tagging.SetEnabled(namedVlansData.Tagging.Enabled.ValueBool())
+		var byApTagsInner []openApiClient.UpdateNetworkWirelessSsidRequestNamedVlansTaggingByApTagsInner
+		k := namedVlansData.Tagging.ByApTags.ElementsAs(ctx, &byApTagsInner, false)
+		if k.HasError() {
+			return openApiClient.UpdateNetworkWirelessSsidRequest{}, k
+		}
+		tagging.SetByApTags(byApTagsInner)
+		tagging.SetDefaultVlanName(namedVlansData.Tagging.DefaultVlanName.ValueString())
+		tagging.SetEnabled(namedVlansData.Tagging.Enabled.ValueBool())
+		v.SetTagging(tagging)
+		payload.SetNamedVlans(v)
+	}
+
 	// SpeedBurst
 	if !data.SpeedBurst.IsNull() && !data.SpeedBurst.IsUnknown() {
 		var speedBurstData SpeedBurstConfig
@@ -2121,4 +2199,229 @@ func NetworksWirelessSsidsPayload(ctx context.Context, data *NetworksWirelessSsi
 	}
 
 	return payload, nil
+}
+
+// ReadSSIDSHttpResponse - used by READ, UPDATE & DELETE funcs
+func ReadSSIDSHttpResponse(ctx context.Context, data *NetworksWirelessSsidsResourceModel, response *openApiClient.GetNetworkWirelessSsids200ResponseInner) diag.Diagnostics {
+
+	resp := diag.Diagnostics{}
+
+	tflog.Info(ctx, "[start] ReadHttpResponse Call")
+	tflog.Trace(ctx, "Read Response Payload ", map[string]interface{}{
+		"response": response,
+	})
+
+	data.Id = jsontypes.StringValue("example-id")
+	data.Number = jsontypes.Int64Value(int64(response.GetNumber()))
+	data.Name = jsontypes.StringValue(response.GetName())
+	data.Enabled = jsontypes.BoolValue(response.GetEnabled())
+	data.AuthMode = jsontypes.StringValue(response.GetAuthMode())
+	data.EncryptionMode = jsontypes.StringValue(response.GetEncryptionMode())
+	data.WpaEncryptionMode = jsontypes.StringValue(response.GetWpaEncryptionMode())
+	data.SplashPage = jsontypes.StringValue(response.GetSplashPage())
+	data.RadiusAccountingEnabled = jsontypes.BoolValue(response.GetRadiusAccountingEnabled())
+	data.RadiusAttributeForGroupPolicies = jsontypes.StringValue(response.GetRadiusAttributeForGroupPolicies())
+	data.RadiusFailOverPolicy = jsontypes.StringValue(response.GetRadiusFailoverPolicy())
+	data.RadiusLoadBalancingPolicy = jsontypes.StringValue(response.GetRadiusLoadBalancingPolicy())
+	if response.HasRadiusServers() {
+		raduisServerAttrTypes := map[string]attr.Type{
+			"ca_certificate":              types.StringType,
+			"open_roaming_certificate_id": types.Int64Type,
+			"host":                        types.StringType,
+			"port":                        types.Int64Type,
+			"rad_sec_enabled":             types.BoolType,
+			"secret":                      types.StringType,
+		}
+		// Define the ObjectType
+		objectType := types.ObjectType{AttrTypes: raduisServerAttrTypes}
+
+		// Create a slice to hold the ObjectValues
+		var objectValues []attr.Value
+
+		for _, raduisServer := range response.GetRadiusServers() {
+
+			// Construct the map for the current ObjectValue
+			valuesMap, valuesMapErrs := basetypes.NewObjectValue(raduisServerAttrTypes, map[string]attr.Value{
+				"ca_certificate":              basetypes.NewStringValue(raduisServer.GetCaCertificate()),
+				"open_roaming_certificate_id": basetypes.NewInt64Value(int64(raduisServer.GetOpenRoamingCertificateId())),
+				"host":                        basetypes.NewStringValue(raduisServer.GetHost()),
+				"port":                        basetypes.NewInt64Value(int64(raduisServer.GetPort())),
+				"rad_sec_enabled":             basetypes.NewBoolNull(),
+				"secret":                      basetypes.NewStringNull(),
+			})
+
+			if valuesMapErrs.HasError() {
+				for _, valuesMapErr := range valuesMapErrs.Errors() {
+					tflog.Error(ctx, valuesMapErr.Summary()+valuesMapErr.Detail())
+				}
+				resp.Append(valuesMapErrs...)
+
+				continue
+			}
+
+			// Create the ObjectValue for the current DHCP option
+			raduisServerValue, raduisServerDiags := types.ObjectValueFrom(ctx, raduisServerAttrTypes, valuesMap)
+			if raduisServerDiags.HasError() {
+				for _, raduisServersDiag := range raduisServerDiags.Errors() {
+					tflog.Error(ctx, raduisServersDiag.Summary()+raduisServersDiag.Detail())
+				}
+				resp.Append(raduisServerDiags...)
+
+				continue
+			}
+
+			// Add the ObjectValue to the slice
+			objectValues = append(objectValues, raduisServerValue)
+
+		}
+
+		// Create a ListValue from the slice of ObjectValue
+		raduisServersValue, raduisServerDiags := types.ListValueFrom(ctx, objectType, objectValues)
+		if raduisServerDiags.HasError() {
+			resp.Append(raduisServerDiags...)
+		}
+
+		data.RadiusServers = raduisServersValue
+	} else {
+		if data.RadiusServers.IsUnknown() {
+			raduisServerAttrTypes := map[string]attr.Type{
+				"ca_certificate":              types.StringType,
+				"open_roaming_certificate_id": types.Int64Type,
+				"host":                        types.StringType,
+				"port":                        types.Int64Type,
+				"rad_sec_enabled":             types.BoolType,
+				"secret":                      types.StringType,
+			}
+			// Define the ObjectType
+			objectType := types.ObjectType{AttrTypes: raduisServerAttrTypes}
+			data.RadiusServers = basetypes.NewListNull(objectType)
+		}
+	}
+	if response.HasRadiusAccountingServers() {
+		raduisAccountingServerAttrTypes := map[string]attr.Type{
+			"ca_certificate":              types.StringType,
+			"open_roaming_certificate_id": types.Int64Type,
+			"host":                        types.StringType,
+			"port":                        types.Int64Type,
+			"rad_sec_enabled":             types.BoolType,
+			"secret":                      types.StringType,
+		}
+		// Define the ObjectType
+		raduisAccountingServerobjectType := types.ObjectType{AttrTypes: raduisAccountingServerAttrTypes}
+
+		// Create a slice to hold the ObjectValues
+		var raduisAccountingServerobjectValues []attr.Value
+
+		for _, raduisAccountingServer := range response.GetRadiusAccountingServers() {
+
+			// Construct the map for the current ObjectValue
+			valuesMap, valuesMapErrs := basetypes.NewObjectValue(raduisAccountingServerAttrTypes, map[string]attr.Value{
+				"ca_certificate":              basetypes.NewStringValue(raduisAccountingServer.GetCaCertificate()),
+				"open_roaming_certificate_id": basetypes.NewInt64Value(int64(raduisAccountingServer.GetOpenRoamingCertificateId())),
+				"host":                        basetypes.NewStringValue(raduisAccountingServer.GetHost()),
+				"port":                        basetypes.NewInt64Value(int64(raduisAccountingServer.GetPort())),
+				"rad_sec_enabled":             basetypes.NewBoolNull(),
+				"secret":                      basetypes.NewStringNull(),
+			})
+
+			if valuesMapErrs.HasError() {
+				for _, valuesMapErr := range valuesMapErrs.Errors() {
+					tflog.Error(ctx, valuesMapErr.Summary()+valuesMapErr.Detail())
+				}
+				resp.Append(valuesMapErrs...)
+
+				continue
+			}
+
+			// Create the ObjectValue for the current DHCP option
+			raduisAccountingServerValue, raduisAccountingServerDiags := types.ObjectValueFrom(ctx, raduisAccountingServerAttrTypes, valuesMap)
+			if raduisAccountingServerDiags.HasError() {
+				for _, raduisAccountingServersDiag := range raduisAccountingServerDiags.Errors() {
+					tflog.Error(ctx, raduisAccountingServersDiag.Summary()+raduisAccountingServersDiag.Detail())
+				}
+				resp.Append(raduisAccountingServerDiags...)
+
+				continue
+			}
+
+			// Add the ObjectValue to the slice
+			raduisAccountingServerobjectValues = append(raduisAccountingServerobjectValues, raduisAccountingServerValue)
+
+		}
+
+		// Create a ListValue from the slice of ObjectValue
+		raduisAccountingServersValue, raduisAccountingServerDiags := types.ListValueFrom(ctx, raduisAccountingServerobjectType, raduisAccountingServerobjectValues)
+		if raduisAccountingServerDiags.HasError() {
+			resp.Append(raduisAccountingServerDiags...)
+		}
+
+		data.RadiusAccountingServers = raduisAccountingServersValue
+	} else {
+		if data.RadiusAccountingServers.IsUnknown() {
+			raduisAccountingServerAttrTypes := map[string]attr.Type{
+				"ca_certificate":              types.StringType,
+				"open_roaming_certificate_id": types.Int64Type,
+				"host":                        types.StringType,
+				"port":                        types.Int64Type,
+				"rad_sec_enabled":             types.BoolType,
+				"secret":                      types.StringType,
+			}
+			// Define the ObjectType
+			raduisAccountingServerobjectType := types.ObjectType{AttrTypes: raduisAccountingServerAttrTypes}
+
+			data.RadiusAccountingServers = basetypes.NewListNull(raduisAccountingServerobjectType)
+		}
+	}
+	data.IpAssignmentMode = jsontypes.StringValue(response.GetIpAssignmentMode())
+	data.WalledGardenEnabled = jsontypes.BoolValue(response.GetWalledGardenEnabled())
+	if response.HasWalledGardenRanges() {
+		var walledGardenRanges []attr.Value
+		for _, walledGardenRange := range response.GetWalledGardenRanges() {
+			walledGardenRanges = append(walledGardenRanges, types.StringValue(walledGardenRange))
+
+		}
+		walledGardenRangeRespData, walledGardenRangeDiags := basetypes.NewListValue(types.StringType, walledGardenRanges)
+		if walledGardenRangeDiags.HasError() {
+			resp.Append(walledGardenRangeDiags...)
+		}
+
+		data.WalledGardenRanges = walledGardenRangeRespData
+	} else {
+		if data.WalledGardenRanges.IsUnknown() {
+			data.WalledGardenRanges = basetypes.NewListNull(types.StringType)
+		}
+	}
+	data.MinBitrate = jsontypes.Float64Value(float64(response.GetMinBitrate()))
+	data.BandSelection = jsontypes.StringValue(response.GetBandSelection())
+	data.PerClientBandwidthLimitUp = jsontypes.Int64Value(int64(response.GetPerClientBandwidthLimitUp()))
+	data.PerClientBandwidthLimitDown = jsontypes.Int64Value(int64(response.GetPerClientBandwidthLimitDown()))
+	data.PerSsidBandwidthLimitUp = jsontypes.Int64Value(int64(response.GetPerSsidBandwidthLimitUp()))
+	data.PerSsidBandwidthLimitDown = jsontypes.Int64Value(int64(response.GetPerSsidBandwidthLimitDown()))
+	data.Visible = jsontypes.BoolValue(response.GetVisible())
+	data.AvailableOnAllAps = jsontypes.BoolValue(response.GetAvailableOnAllAps())
+	if response.HasAvailabilityTags() {
+		var availabilityTags []attr.Value
+		for _, availabilityTag := range response.GetAvailabilityTags() {
+			availabilityTags = append(availabilityTags, types.StringValue(availabilityTag))
+
+		}
+		availabilityTagsRespData, availabilityTagsDiags := basetypes.NewListValue(types.StringType, availabilityTags)
+		if availabilityTagsDiags.HasError() {
+			resp.Append(availabilityTagsDiags...)
+		}
+
+		data.AvailabilityTags = availabilityTagsRespData
+	} else {
+		if data.AvailabilityTags.IsUnknown() {
+			data.AvailabilityTags = basetypes.NewListNull(types.StringType)
+		}
+	}
+	data.MandatoryDhcpEnabled = jsontypes.BoolValue(response.GetMandatoryDhcpEnabled())
+	data.SsidAdminAccessible = jsontypes.BoolValue(response.GetSsidAdminAccessible())
+	data.LocalAuth = jsontypes.BoolValue(response.GetLocalAuth())
+	data.RadiusEnabled = jsontypes.BoolValue(response.GetRadiusEnabled())
+	data.AdminSplashUrl = jsontypes.StringValue(response.GetAdminSplashUrl())
+	data.SplashTimeout = jsontypes.StringValue(response.GetSplashTimeout())
+
+	return resp
 }

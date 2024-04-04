@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"io"
 	"strings"
 
@@ -210,6 +211,7 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 						Optional:            true,
 						Computed:            true,
 						CustomType:          jsontypes.StringType,
+						Default:             stringdefault.StaticString("network default"),
 					},
 					"bandwidth_limits": schema.SingleNestedAttribute{
 						MarkdownDescription: "The bandwidth limits object, specifying upload and download speed for clients bound to the group policy. These are only enforced if 'settings' is set to 'custom'.",
@@ -242,6 +244,7 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 						Optional:            true,
 						Computed:            true,
 						CustomType:          jsontypes.StringType,
+						Default:             stringdefault.StaticString("network default"),
 					},
 					"rules": schema.SetNestedAttribute{
 						Optional: true,
@@ -468,6 +471,7 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 								Optional:            true,
 								Computed:            true,
 								CustomType:          jsontypes.StringType,
+								Default:             stringdefault.StaticString("network default"),
 							},
 							"patterns": schema.SetAttribute{
 								MarkdownDescription: "A list of URL patterns that are allowed",
@@ -486,6 +490,7 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 								Optional:            true,
 								Computed:            true,
 								CustomType:          jsontypes.StringType,
+								Default:             stringdefault.StaticString("network default"),
 							},
 							"categories": schema.SetAttribute{
 								MarkdownDescription: "A list of URL categories to block",
@@ -504,6 +509,7 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 								Optional:            true,
 								Computed:            true,
 								CustomType:          jsontypes.StringType,
+								Default:             stringdefault.StaticString("network default"),
 							},
 							"patterns": schema.SetAttribute{
 								MarkdownDescription: "A list of URL patterns that are blocked",
@@ -523,6 +529,7 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 						Optional:            true,
 						Computed:            true,
 						CustomType:          jsontypes.StringType,
+						Default:             stringdefault.StaticString("network default"),
 					},
 					"l3_firewall_rules": schema.SetNestedAttribute{
 						Optional: true,
@@ -614,6 +621,7 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 											Optional:            true,
 											Computed:            true,
 											CustomType:          jsontypes.StringType,
+											Default:             stringdefault.StaticString("network default"),
 										},
 										"bandwidth_limits": schema.SingleNestedAttribute{
 											Optional: true,
@@ -669,6 +677,7 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 						Optional:            true,
 						Computed:            true,
 						CustomType:          jsontypes.StringType,
+						Default:             stringdefault.StaticString("network default"),
 					},
 					"vlan_id": schema.StringAttribute{
 						MarkdownDescription: "The ID of the vlan you want to tag. This only applies if 'settings' is set to 'custom'.",
