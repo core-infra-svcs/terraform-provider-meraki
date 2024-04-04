@@ -17,7 +17,7 @@ func TestAccNetworksApplianceVlansResource(t *testing.T) {
 			{
 				Config: testAccNetworksApplianceVlansResourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_meraki_networks_appliance_vlans"),
+					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_meraki_networks_appliance_vlan"),
 					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
 					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
@@ -33,15 +33,15 @@ func TestAccNetworksApplianceVlansResource(t *testing.T) {
 			{
 				Config: testAccNetworksApplianceVlansResourceConfigCreate,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "vlan_id", "10"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "name", "My VLAN"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "subnet", "192.168.1.0/24"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "appliance_ip", "192.168.1.2"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "dhcp_relay_server_ips.#", "2"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "dhcp_relay_server_ips.0", "192.168.1.0/24"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "dhcp_relay_server_ips.1", "192.168.128.0/24"),
-					//resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "vpn_nat_subnet", "192.168.1.0/24"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "mandatory_dhcp.enabled", "true"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "vlan_id", "10"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "name", "My VLAN"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "subnet", "192.168.1.0/24"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "appliance_ip", "192.168.1.2"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "dhcp_relay_server_ips.#", "2"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "dhcp_relay_server_ips.0", "192.168.1.0/24"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "dhcp_relay_server_ips.1", "192.168.128.0/24"),
+					//resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "vpn_nat_subnet", "192.168.1.0/24"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "mandatory_dhcp.enabled", "true"),
 				),
 			},
 
@@ -49,23 +49,23 @@ func TestAccNetworksApplianceVlansResource(t *testing.T) {
 			{
 				Config: testAccNetworksApplianceVlansResourceConfigUpdate,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "vlan_id", "10"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "name", "My Updated VLAN"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "subnet", "192.168.2.0/24"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "appliance_ip", "192.168.2.2"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "dhcp_handling", "Run a DHCP server"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "dhcp_lease_time", "12 hours"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "dhcp_boot_options_enabled", "true"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "dhcp_boot_next_server", "2.3.4.5"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "dhcp_boot_filename", "updated.file"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "reserved_ip_ranges.0.start", "192.168.2.0"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "reserved_ip_ranges.0.end", "192.168.2.1"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "reserved_ip_ranges.0.comment", "A newly reserved IP range"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "dns_nameservers", "upstream_dns"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "dhcp_options.0.code", "6"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "dhcp_options.0.type", "text"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "dhcp_options.0.value", "six"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "mandatory_dhcp.enabled", "true"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "vlan_id", "10"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "name", "My Updated VLAN"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "subnet", "192.168.2.0/24"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "appliance_ip", "192.168.2.2"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "dhcp_handling", "Run a DHCP server"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "dhcp_lease_time", "12 hours"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "dhcp_boot_options_enabled", "true"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "dhcp_boot_next_server", "2.3.4.5"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "dhcp_boot_filename", "updated.file"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "reserved_ip_ranges.0.start", "192.168.2.0"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "reserved_ip_ranges.0.end", "192.168.2.1"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "reserved_ip_ranges.0.comment", "A newly reserved IP range"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "dns_nameservers", "upstream_dns"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "dhcp_options.0.code", "6"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "dhcp_options.0.type", "text"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "dhcp_options.0.value", "six"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "mandatory_dhcp.enabled", "true"),
 				),
 			},
 
@@ -74,14 +74,14 @@ func TestAccNetworksApplianceVlansResource(t *testing.T) {
 					{
 						Config: testAccNetworksApplianceVlansResourceConfigCreateIPv6,
 						Check: resource.ComposeAggregateTestCheckFunc(
-							resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "vlan_id", "20"),
-							resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "name", "My IPv6 VLAN"),
-							resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "ipv6.enabled", "true"),
-							resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "ipv6.prefix_assignments.0.autonomous", "false"),
-							resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "ipv6.prefix_assignments.0.static_prefix", "2001:db8:3c4d:15::/64"),
-							resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "ipv6.prefix_assignments.0.static_appliance_ip6", "2001:db8:3c4d:15::1"),
-							resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "ipv6.prefix_assignments.0.origin.type", "internet"),
-							resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "ipv6.prefix_assignments.0.origin.interfaces.0", "wan1"),
+							resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "vlan_id", "20"),
+							resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "name", "My IPv6 VLAN"),
+							resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "ipv6.enabled", "true"),
+							resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "ipv6.prefix_assignments.0.autonomous", "false"),
+							resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "ipv6.prefix_assignments.0.static_prefix", "2001:db8:3c4d:15::/64"),
+							resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "ipv6.prefix_assignments.0.static_appliance_ip6", "2001:db8:3c4d:15::1"),
+							resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "ipv6.prefix_assignments.0.origin.type", "internet"),
+							resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "ipv6.prefix_assignments.0.origin.interfaces.0", "wan1"),
 						),
 					},
 
@@ -89,14 +89,14 @@ func TestAccNetworksApplianceVlansResource(t *testing.T) {
 					{
 						Config: testAccNetworksApplianceVlansResourceConfigUpdateIPv6,
 						Check: resource.ComposeAggregateTestCheckFunc(
-							resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "vlan_id", "20"),
-							resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "name", "My Updated IPv6 VLAN"),
-							resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "ipv6.enabled", "true"),
-							resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "ipv6.prefix_assignments.0.autonomous", "true"),
-							resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "ipv6.prefix_assignments.0.static_prefix", "2001:db8:3c4d:16::/64"),
-							resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "ipv6.prefix_assignments.0.static_appliance_ip6", "2001:db8:3c4d:16::1"),
-							resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "ipv6.prefix_assignments.0.origin.type", "internet"),
-							resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "ipv6.prefix_assignments.0.origin.interfaces.0", "wan1"),
+							resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "vlan_id", "20"),
+							resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "name", "My Updated IPv6 VLAN"),
+							resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "ipv6.enabled", "true"),
+							resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "ipv6.prefix_assignments.0.autonomous", "true"),
+							resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "ipv6.prefix_assignments.0.static_prefix", "2001:db8:3c4d:16::/64"),
+							resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "ipv6.prefix_assignments.0.static_appliance_ip6", "2001:db8:3c4d:16::1"),
+							resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "ipv6.prefix_assignments.0.origin.type", "internet"),
+							resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "ipv6.prefix_assignments.0.origin.interfaces.0", "wan1"),
 						),
 					},
 
@@ -105,7 +105,7 @@ func TestAccNetworksApplianceVlansResource(t *testing.T) {
 
 			// Import testing
 			{
-				ResourceName:      "meraki_networks_appliance_vlans.test",
+				ResourceName:      "meraki_networks_appliance_vlan.test",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -121,7 +121,7 @@ resource "meraki_network" "test" {
 organization_id = %s
 product_types = ["appliance", "switch", "wireless"]
 tags = ["tag1"]
-name = "test_acc_meraki_networks_appliance_vlans"
+name = "test_acc_meraki_networks_appliance_vlan"
 timezone = "America/Los_Angeles"
 notes = "Additional description of the network"
 }
@@ -140,7 +140,7 @@ resource "meraki_networks_appliance_vlans_settings" "test" {
     vlans_enabled = true
 }
 
-resource "meraki_networks_appliance_vlans" "test" {
+resource "meraki_networks_appliance_vlan" "test" {
     depends_on = [resource.meraki_networks_appliance_vlans_settings.test]
     network_id = resource.meraki_network.test.network_id
     vlan_id = "10"
@@ -171,7 +171,7 @@ resource "meraki_networks_appliance_vlans_settings" "test" {
     vlans_enabled = true
 }
 
-resource "meraki_networks_appliance_vlans" "test" {
+resource "meraki_networks_appliance_vlan" "test" {
     depends_on = [resource.meraki_networks_appliance_vlans_settings.test]
     network_id = resource.meraki_network.test.network_id
     vlan_id = "20"
@@ -200,7 +200,7 @@ resource "meraki_network" "test" {
     product_types = ["appliance", "switch", "wireless"]
 }
 
-resource "meraki_networks_appliance_vlans" "test" {
+resource "meraki_networks_appliance_vlan" "test" {
     depends_on = [resource.meraki_network.test]
     network_id = resource.meraki_network.test.network_id
     vlan_id = "10"
@@ -239,7 +239,7 @@ resource "meraki_network" "test" {
     product_types = ["appliance", "switch", "wireless"]
 }
 
-resource "meraki_networks_appliance_vlans" "test" {
+resource "meraki_networks_appliance_vlan" "test" {
     depends_on = [resource.meraki_network.test]
     network_id = resource.meraki_network.test.network_id
     vlan_id = "20"
