@@ -8,13 +8,86 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
-	"sort"
-	"strings"
+	"reflect"
 )
 
+// JsonValue interface extends attr.Value with JSON handling capabilities.
 type JsonValue interface {
 	attr.Value
+}
+
+// BaseJsonValue provides a base struct for JSON values, implementing attr.Value.
+type BaseJsonValue struct {
+	attr.Value // Generic container for the JSON value
+}
+
+// NewBaseJsonValue creates a new BaseJsonValue instance encapsulating a generic JSON value.
+func NewBaseJsonValue(value attr.Value) *BaseJsonValue {
+	return &BaseJsonValue{value}
+}
+
+// Type returns the Terraform type of this BaseJsonValue.
+func (b BaseJsonValue) Type(ctx context.Context) attr.Type {
+	// This could be more sophisticated depending on the actual JSON structure,
+	// potentially returning different Terraform types (e.g., types.ObjectType for JSON objects).
+	return types.StringType
+}
+
+// Equal compares this BaseJsonValue with another attr.Value.
+func (b BaseJsonValue) Equal(other attr.Value) bool {
+	otherBaseJsonValue, ok := other.(JsonValue)
+	if !ok {
+		return false // Not the same type
+	}
+
+	// Comparing JSON values correctly requires considering the structure and contents.
+	// This simplistic approach may not handle all cases accurately.
+	thisJSON, err1 := json.Marshal(b.Value)
+	otherJSON, err2 := json.Marshal(otherBaseJsonValue.String())
+	if err1 != nil || err2 != nil {
+		// Could not marshal one of the values for comparison.
+		return false
+	}
+
+	return string(thisJSON) == string(otherJSON)
+}
+
+// IsNull checks if the BaseJsonValue represents a null value.
+func (b BaseJsonValue) IsNull() bool {
+	// Adjust according to how you represent null values within your JSON structure.
+	return b.Value == nil
+}
+
+// IsUnknown checks if the BaseJsonValue represents an unknown value.
+// Terraform uses "unknown" to represent values that are not yet computed during the plan phase.
+func (b BaseJsonValue) IsUnknown() bool {
+	// This implementation assumes we don't have a specific representation for "unknown".
+	// You might need a more complex state representation to handle unknowns accurately.
+	return false
+}
+
+// String returns a string representation of the BaseJsonValue.
+func (b BaseJsonValue) String() string {
+	// This method should return a string representation suitable for logging or debugging.
+	// The JSON marshaling here is for demonstration; consider performance and error handling for production use.
+	jsonBytes, err := json.Marshal(b.Value)
+	if err != nil {
+		// Fallback in case of marshaling error.
+		return fmt.Sprintf("error marshaling JSON: %v", err)
+	}
+	return string(jsonBytes)
+}
+
+// MarshalJSON allows BaseJsonValue to be used with standard JSON marshaling.
+func (b *BaseJsonValue) MarshalJSON() ([]byte, error) {
+	return json.Marshal(b.Value)
+}
+
+// UnmarshalJSON allows JSON data to be unmarshaled directly into a BaseJsonValue.
+func (b *BaseJsonValue) UnmarshalJSON(data []byte) error {
+	// Directly unmarshaling into the value interface{} allows flexibility,
+	// but be cautious of the potential for runtime type issues.
+	return json.Unmarshal(data, &b.Value)
 }
 
 type Int64 struct {
@@ -275,184 +348,167 @@ func (s *Set[T]) UnmarshalJSON(bytes []byte) error {
 	}
 
 	s.Set = types.SetValueMust(s.getElemType(), mapToAttrs(items))
-
 	return nil
 }
 
-// DynamicValue holds a dynamic JSON value.
-type DynamicValue struct {
-	Value interface{}
+type Map[T JsonValue] struct {
+	types.Map
 }
 
-// Type returns the Terraform type of this dynamic value, which is always dynamic pseudo type in this context.
-func (d DynamicValue) Type(ctx context.Context) attr.Type {
-	return DynamicType{}
+func (m Map[T]) Type(_ context.Context) attr.Type {
+	return MapType[T]()
 }
 
-// ToTerraformValue converts the DynamicValue to a tftypes.Value.
-func (d DynamicValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
-	// Assuming dynamic handling based on the actual type of d.Value
-	switch v := d.Value.(type) {
-	case string:
-		return tftypes.NewValue(tftypes.String, v), nil
-	// Handle other types as needed
-	default:
-		return tftypes.Value{}, fmt.Errorf("unsupported type: %T", d.Value)
+func (m Map[T]) getElemType() attr.Type {
+	var i T
+	return i.Type(context.Background())
+}
+
+// This function converts a map of string keys to JsonValue (T) into a map of string keys to attr.Value.
+func mapToStringAttrValue[T attr.Value](vals map[string]T) map[string]attr.Value {
+	attrs := make(map[string]attr.Value, len(vals))
+	for key, value := range vals {
+		attrs[key] = value
 	}
+	return attrs
 }
 
-// Equal checks if two DynamicValues are equal.
-func (d DynamicValue) Equal(o attr.Value) bool {
-	other, ok := o.(DynamicValue)
-	if !ok {
-		return false
+// MapValue attempts to convert the Map[T] struct to a map[string]attr.Value suitable for Terraform.
+func (m Map[T]) MapValue(ctx context.Context) (map[string]attr.Value, error) {
+	var goMap map[string]T
+	internalValue, _ := m.Map.ToMapValue(ctx) // This should be a tftypes.Value
+	if internalValue.IsUnknown() {
+		return nil, fmt.Errorf("value is unknown")
 	}
-	// TODO: Simplistic equality check; add deeper comparison for complex types
-	return fmt.Sprintf("%v", d.Value) == fmt.Sprintf("%v", other.Value)
+	if internalValue.IsNull() {
+		return nil, fmt.Errorf("value is null")
+	}
+
+	err := internalValue.ElementsAs(ctx, &goMap, false)
+	if err != nil {
+		return nil, fmt.Errorf("error converting tftypes.Value to go map: %w", err)
+	}
+
+	result := make(map[string]attr.Value, len(goMap))
+
+	m.Map = types.MapValueMust(m.getElemType(), result)
+
+	return result, nil
 }
 
-// IsNull checks if the DynamicValue is null.
-func (d DynamicValue) IsNull() bool {
-	return d.Value == nil
-}
-
-// IsUnknown checks if the DynamicValue is unknown.
-func (d DynamicValue) IsUnknown() bool {
-	// Assuming we don't have a specific representation for unknown values
-	return false
-}
-
-// String returns a string representation of the DynamicValue.
-func (d DynamicValue) String() string {
-	return fmt.Sprintf("%v", d.Value)
-}
-
-// UnmarshalJSON custom unmarshalling to handle dynamic JSON structures.
-func (d *DynamicValue) UnmarshalJSON(data []byte) error {
-	var raw interface{}
-	if err := json.Unmarshal(data, &raw); err != nil {
+// UnmarshalJSON defines how the Map[T] should be unmarshalled from JSON.
+func (m *Map[T]) UnmarshalJSON(data []byte) error {
+	var tempMap map[string]T
+	if err := json.Unmarshal(data, &tempMap); err != nil {
 		return err
 	}
-	d.Value = raw
+
+	convertedMap := mapToStringAttrValue(tempMap)
+	m.Map = types.MapValueMust(m.getElemType(), convertedMap)
 	return nil
 }
 
-// MapValue represents a mapping of string keys to dynamic attr.Value values.
-type MapValue struct {
-	// elements is the mapping of known values in the Map.
-	elements map[string]attr.Value
-	// elementType is the type of the elements in the Map, which is dynamic in this context.
-	elementType attr.Type
-	// state represents whether the value is null, unknown, or known.
-	state attr.ValueState
+// Object is a generic wrapper around types.Object to handle JSON object values.
+type Object[T JsonValue] struct {
+	types.Object
 }
 
-// NewMapValue constructs a new instance of MapValue with known elements.
-func NewMapValue(elements map[string]attr.Value) MapValue {
-	return MapValue{
-		elements:    elements,
-		elementType: DynamicType{}, // Assume all elements are dynamic
-		state:       attr.ValueStateKnown,
+func (o Object[T]) Type(_ context.Context) attr.Type {
+	ot, err := ObjectType[T]()
+	if err != nil {
+		// Panic if unable to obtain the ObjectType.
+		// Ensure your application can handle this or that it's an acceptable outcome.
+		panic(fmt.Sprintf("Critical error obtaining ObjectType: %v", err))
 	}
+	return ot
 }
 
-// ElementType returns the dynamic element type for this map.
-func (m MapValue) ElementType(ctx context.Context) attr.Type {
-	return m.elementType
+func (o Object[T]) getElemType() attr.Type {
+	var i T
+	return i.Type(context.Background())
 }
 
-// ToTerraformValue converts the MapValue to a tftypes.Value.
-func (m MapValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
-	vals := make(map[string]tftypes.Value)
-	for key, val := range m.elements {
-		tfVal, err := val.ToTerraformValue(ctx)
-		if err != nil {
-			return tftypes.Value{}, err
-		}
-		vals[key] = tfVal
-	}
-	// Always use tftypes.DynamicPseudoType for the map's element type.
-	return tftypes.NewValue(tftypes.Map{ElementType: tftypes.DynamicPseudoType}, vals), nil
-}
+// getAttrTypes generates a map of string to attr.Type, representing
+// the attribute types of the JSON object.
+func (o Object[T]) getAttrTypes() map[string]attr.Type {
+	result := make(map[string]attr.Type)
 
-// Equal checks if the MapValue is equal to another attr.Value.
-func (m MapValue) Equal(o attr.Value) bool {
-	other, ok := o.(MapValue)
-	if !ok {
-		return false
-	}
+	// Obtain the type of T
+	tType := reflect.TypeOf((*T)(nil)).Elem()
 
-	if m.state != other.state {
-		return false
-	}
+	// Iterate through the struct fields
+	for i := 0; i < tType.NumField(); i++ {
+		field := tType.Field(i)
+		// Based on the field type, decide which Terraform attr.Type to use
 
-	if m.state == attr.ValueStateUnknown || m.state == attr.ValueStateNull {
-		// If either is unknown or null, we don't need to compare elements.
-		return true
-	}
-
-	// Ensure both maps have the same set of keys and each key's value is equal.
-	if len(m.elements) != len(other.elements) {
-		return false
-	}
-	for key, val := range m.elements {
-		otherVal, exists := other.elements[key]
-		if !exists || !val.Equal(otherVal) {
-			return false
-		}
-	}
-
-	return true
-}
-
-// IsNull checks if the MapValue represents a null value.
-func (m MapValue) IsNull() bool {
-	return m.state == attr.ValueStateNull
-}
-
-// IsUnknown checks if the MapValue represents an unknown value.
-func (m MapValue) IsUnknown() bool {
-	return m.state == attr.ValueStateUnknown
-}
-
-// String returns a human-readable representation of the MapValue.
-func (m MapValue) String() string {
-	switch m.state {
-	case attr.ValueStateNull:
-		return "null"
-	case attr.ValueStateUnknown:
-		return "unknown"
-	default:
-		var sb strings.Builder
-		keys := make([]string, 0, len(m.elements))
-		for k := range m.elements {
-			keys = append(keys, k)
-		}
-		sort.Strings(keys) // Ensure consistent ordering
-		sb.WriteString("{")
-		for i, k := range keys {
-			if i > 0 {
-				sb.WriteString(", ")
+		switch field.Type.Kind() {
+		case reflect.String:
+			result[field.Name] = types.StringType
+		case reflect.Bool:
+			result[field.Name] = types.BoolType
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			result[field.Name] = types.Int64Type
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+			// Terraform does not have an unsigned integer type; map to Int64 and handle range restrictions separately if necessary
+			result[field.Name] = types.Int64Type
+		case reflect.Float32, reflect.Float64:
+			result[field.Name] = types.Float64Type
+		case reflect.Slice:
+			elemType := field.Type.Elem()
+			// Example for slices of strings; adjust for other element types or add more cases as needed
+			if elemType.Kind() == reflect.String {
+				result[field.Name] = types.ListType{ElemType: types.StringType}
 			}
-			sb.WriteString(fmt.Sprintf("%q: %s", k, m.elements[k].String()))
+			// Add additional cases for slices of other types
+		case reflect.Map:
+			keyType := field.Type.Key()
+			elemType := field.Type.Elem()
+			// Example for maps with string keys and string values; adjust for other types as needed
+			if keyType.Kind() == reflect.String && elemType.Kind() == reflect.String {
+				result[field.Name] = types.MapType{ElemType: types.StringType}
+			}
+			// Add additional cases for maps with other key/value types
+		case reflect.Struct:
+			// For embedded structs or complex types, you may need to define a custom attr.Type or handle them as ObjectType with further inspection
+			// This is a placeholder for how you might begin to handle nested structs
+			// result[field.Name] = YourCustomObjectTypeHandlingMethod(field.Type)
+		default:
+			// Default or error for unsupported types
+			// Log or handle unsupported field types as needed
 		}
-		sb.WriteString("}")
-		return sb.String()
 	}
+
+	return result
 }
 
-// Helper Functions
+/*
+func (s Set[T]) getElemType() attr.Type {
+	var i T
+	return i.Type(context.Background())
+}
+*/
 
-// NewMapNull creates a new MapValue representing a null value.
-func NewMapNull() MapValue {
-	return MapValue{
-		state: attr.ValueStateNull,
+// ObjectValue creates a new Object instance from a map of attributes.
+func ObjectValue[T JsonValue](attrs map[string]T) Object[T] {
+	attrValues := make(map[string]attr.Value, len(attrs))
+	for key, value := range attrs {
+		attrValues[key] = value
 	}
+	obj := Object[T]{}
+	obj.Object = types.ObjectValueMust(obj.getAttrTypes(), attrValues)
+	return obj
 }
 
-// NewMapUnknown creates a new MapValue representing an unknown value.
-func NewMapUnknown() MapValue {
-	return MapValue{
-		state: attr.ValueStateUnknown,
+func (o *Object[T]) UnmarshalJSON(bytes []byte) error {
+	var attrs map[string]T
+	if err := json.Unmarshal(bytes, &attrs); err != nil {
+		return err
 	}
+
+	convertedAttrs := make(map[string]attr.Value, len(attrs))
+	for key, value := range attrs {
+		convertedAttrs[key] = value
+	}
+	o.Object = types.ObjectValueMust(o.getAttrTypes(), convertedAttrs)
+	return nil
 }
