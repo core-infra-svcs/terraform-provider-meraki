@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
+	"net/http"
 	"strings"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
@@ -264,7 +265,14 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 		createOrganizationAdmin.SetAuthenticationMethod(data.AuthenticationMethod.ValueString())
 	}
 
-	_, httpResp, err := r.client.AdminsApi.CreateOrganizationAdmin(context.Background(), data.OrgId.ValueString()).CreateOrganizationAdminRequest(createOrganizationAdmin).Execute()
+	// Wrap the API call in the retryAPICall function
+	_, httpResp, err := retryAPICall(ctx, func() (interface{}, *http.Response, error) {
+		resp, httpResp, err := r.client.AdminsApi.CreateOrganizationAdmin(context.Background(), data.OrgId.ValueString()).CreateOrganizationAdminRequest(createOrganizationAdmin).Execute()
+		if err != nil {
+			return nil, httpResp, err
+		}
+		return resp, httpResp, nil
+	})
 
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -314,7 +322,16 @@ func (r *OrganizationsAdminResource) Read(ctx context.Context, req resource.Read
 		return
 	}
 
-	_, httpResp, err := r.client.AdminsApi.GetOrganizationAdmins(context.Background(), data.OrgId.ValueString()).Execute()
+	// Wrap the API call in the retryAPICall function
+	_, httpResp, err := retryAPICall(ctx, func() (interface{}, *http.Response, error) {
+		resp, httpResp, err := r.client.AdminsApi.GetOrganizationAdmins(context.Background(), data.OrgId.ValueString()).Execute()
+		if err != nil {
+			return nil, httpResp, err
+		}
+		return resp, httpResp, nil
+	})
+
+	//_, httpResp, err := r.client.AdminsApi.GetOrganizationAdmins(context.Background(), data.OrgId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"HTTP Client Failure",
@@ -398,7 +415,16 @@ func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.Up
 		updateOrganizationAdmin.SetNetworks(networks)
 	}
 
-	_, httpResp, err := r.client.AdminsApi.UpdateOrganizationAdmin(context.Background(), data.OrgId.ValueString(), data.AdminId.ValueString()).UpdateOrganizationAdminRequest(updateOrganizationAdmin).Execute()
+	// Wrap the API call in the retryAPICall function
+	_, httpResp, err := retryAPICall(ctx, func() (interface{}, *http.Response, error) {
+		resp, httpResp, err := r.client.AdminsApi.UpdateOrganizationAdmin(context.Background(), data.OrgId.ValueString(), data.AdminId.ValueString()).UpdateOrganizationAdminRequest(updateOrganizationAdmin).Execute()
+		if err != nil {
+			return nil, httpResp, err
+		}
+		return resp, httpResp, nil
+	})
+
+	//_, httpResp, err := r.client.AdminsApi.UpdateOrganizationAdmin(context.Background(), data.OrgId.ValueString(), data.AdminId.ValueString()).UpdateOrganizationAdminRequest(updateOrganizationAdmin).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"HTTP Client Failure",
@@ -447,7 +473,16 @@ func (r *OrganizationsAdminResource) Delete(ctx context.Context, req resource.De
 		return
 	}
 
-	httpResp, err := r.client.AdminsApi.DeleteOrganizationAdmin(context.Background(), data.OrgId.ValueString(), data.AdminId.ValueString()).Execute()
+	// Wrap the API call in the retryAPICall function
+	_, httpResp, err := retryAPICall(ctx, func() (interface{}, *http.Response, error) {
+		httpResp, err := r.client.AdminsApi.DeleteOrganizationAdmin(context.Background(), data.OrgId.ValueString(), data.AdminId.ValueString()).Execute()
+		if err != nil {
+			return nil, httpResp, err
+		}
+		return resp, httpResp, nil
+	})
+
+	//httpResp, err := r.client.AdminsApi.DeleteOrganizationAdmin(context.Background(), data.OrgId.ValueString(), data.AdminId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"HTTP Client Failure",

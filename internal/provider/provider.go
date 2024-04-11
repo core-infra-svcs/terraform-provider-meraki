@@ -34,6 +34,40 @@ type CiscoMerakiProvider struct {
 	version string
 }
 
+// APICallFunc type represents a function that performs an API call and returns an HTTP response and error.
+type APICallFunc func() (interface{}, *http.Response, error)
+
+// retryAPICall executes the provided API call function with retry logic for 429 errors.
+func retryAPICall(ctx context.Context, call APICallFunc) (interface{}, *http.Response, error) {
+	var maxRetries = 5
+	var retryDelay = 2 * time.Second
+
+	for attempt := 0; attempt <= maxRetries; attempt++ {
+		apiResp, httpResp, err := call() // Execute the provided API call
+
+		if err == nil && httpResp != nil && httpResp.StatusCode < 500 {
+			return apiResp, httpResp, nil // Success or client error, no retry
+		}
+
+		if httpResp != nil && httpResp.StatusCode == http.StatusTooManyRequests {
+			// Optional: parse Retry-After header to set dynamic delay
+			time.Sleep(retryDelay) // Wait before retrying
+			continue
+		}
+
+		if attempt < maxRetries {
+			time.Sleep(retryDelay) // Wait before retrying
+			continue
+		}
+
+		// Return the last error after exceeding retries
+		return nil, httpResp, err
+	}
+
+	// This should be unreachable due to the loop, but included for completeness
+	return nil, nil, fmt.Errorf("retryAPICall exceeded maximum retries")
+}
+
 // CiscoMerakiProviderModel describes the provider data model.
 type CiscoMerakiProviderModel struct {
 	LoggingEnabled        types.Bool   `tfsdk:"logging_enabled"`
