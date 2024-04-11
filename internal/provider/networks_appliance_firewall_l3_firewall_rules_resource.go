@@ -78,7 +78,7 @@ func (r *NetworksApplianceFirewallL3FirewallRulesResource) Schema(ctx context.Co
 				Optional:            true,
 				CustomType:          jsontypes.BoolType,
 			},
-			"rules": schema.SetNestedAttribute{
+			"rules": schema.ListNestedAttribute{
 				Required: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{

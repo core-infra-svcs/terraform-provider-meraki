@@ -532,7 +532,7 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 						CustomType:          jsontypes.StringType,
 						Default:             stringdefault.StaticString("network default"),
 					},
-					"l3_firewall_rules": schema.SetNestedAttribute{
+					"l3_firewall_rules": schema.ListNestedAttribute{
 						Optional: true,
 						Computed: true,
 						NestedObject: schema.NestedAttributeObject{

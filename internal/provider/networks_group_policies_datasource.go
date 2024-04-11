@@ -340,7 +340,7 @@ func (d *NetworkGroupPoliciesDataSource) Schema(ctx context.Context, req datasou
 									Computed:            true,
 									CustomType:          jsontypes.StringType,
 								},
-								"l3_firewall_rules": schema.SetNestedAttribute{
+								"l3_firewall_rules": schema.ListNestedAttribute{
 									Optional: true,
 									Computed: true,
 									NestedObject: schema.NestedAttributeObject{

@@ -127,7 +127,7 @@ Optional:
 
 Optional:
 
-- `l3_firewall_rules` (Attributes Set) (see [below for nested schema](#nestedatt--list--firewall_and_traffic_shaping--l3_firewall_rules))
+- `l3_firewall_rules` (Attributes List) (see [below for nested schema](#nestedatt--list--firewall_and_traffic_shaping--l3_firewall_rules))
 - `l7_firewall_rules` (Attributes Set) (see [below for nested schema](#nestedatt--list--firewall_and_traffic_shaping--l7_firewall_rules))
 - `settings` (String) How firewall and traffic shaping rules are enforced. Can be 'network default', 'ignore' or 'custom'.
 - `traffic_shaping_rules` (Attributes Set) (see [below for nested schema](#nestedatt--list--firewall_and_traffic_shaping--traffic_shaping_rules))

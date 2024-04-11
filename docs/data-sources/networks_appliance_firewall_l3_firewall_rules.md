@@ -21,7 +21,7 @@ Get l3 firewall rules
 
 ### Optional
 
-- `rules` (Attributes Set) (see [below for nested schema](#nestedatt--rules))
+- `rules` (Attributes List) (see [below for nested schema](#nestedatt--rules))
 - `syslog_default_rule` (Boolean) Log the special default rule (boolean value - enable only if you've configured a syslog server) (optional)
 
 ### Read-Only
