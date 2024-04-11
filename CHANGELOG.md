@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.3](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.6.2...v0.6.3) (2024-04-11)
+
+
+### Bug Fixes
+
+* duplicate set element error while importing ([#321](https://github.com/core-infra-svcs/terraform-provider-meraki/issues/321)) ([166ded3](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/166ded37613a8b0a0d04acb3246d71b0797a4b65))
+
 ## [0.6.1](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.6.0...v0.6.1) (2024-02-05)
 
 
