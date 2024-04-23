@@ -58,6 +58,7 @@ func TestAccNetworksApplianceVlansResource(t *testing.T) {
 					resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "dhcp_boot_options_enabled", "true"),
 					resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "dhcp_boot_next_server", "2.3.4.5"),
 					resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "dhcp_boot_filename", "updated.file"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "list.0.fixed_ip_assignments.%", "0"),
 					resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "reserved_ip_ranges.0.start", "192.168.2.0"),
 					resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "reserved_ip_ranges.0.end", "192.168.2.1"),
 					resource.TestCheckResourceAttr("meraki_networks_appliance_vlans.test", "reserved_ip_ranges.0.comment", "A newly reserved IP range"),
@@ -212,6 +213,12 @@ resource "meraki_networks_appliance_vlans" "test" {
     dhcp_boot_options_enabled = true
     dhcp_boot_next_server = "2.3.4.5"
     dhcp_boot_filename = "updated.file"
+	fixed_ip_assignments = {
+		"22:33:44:55:66:77": {
+			"ip": "192.168.2.10",
+			"name": "Some client name"
+	  	}
+	}
     reserved_ip_ranges = [
         {
             start = "192.168.2.0"
