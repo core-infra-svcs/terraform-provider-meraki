@@ -365,6 +365,7 @@ func (p *CiscoMerakiProvider) DataSources(ctx context.Context) []func() datasour
 		NewOrganizationsSamlRolesDataSource,
 		NewNetworkGroupPoliciesDataSource,
 		NewNetworksAppliancePortsDataSource,
+		NewNetworksApplianceVLANsDatasource,
 		NewOrganizationsCellularGatewayUplinkStatusesDataSource,
 		NewOrganizationsLicensesDataSource,
 		NewDevicesSwitchPortsStatusesDataSource,
