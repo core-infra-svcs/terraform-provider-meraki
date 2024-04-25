@@ -99,13 +99,13 @@ type NetworksGroupPolicyResourceModelDefinition struct {
 }
 
 type NetworksGroupPolicyResourceModelBandwidth struct {
-	BandwidthLimits NetworksGroupPolicyResourceModelBandwidthLimits `tfsdk:"bandwidth_limits" json:"bandwidthLimits"`
-	Settings        jsontypes.String                                `tfsdk:"settings" json:"settings"`
+	BandwidthLimits types.Object `tfsdk:"bandwidth_limits" json:"bandwidthLimits"`
+	Settings        types.String `tfsdk:"settings" json:"settings"`
 }
 
 type NetworksGroupPolicyResourceModelBandwidthLimits struct {
-	LimitUp   jsontypes.Int64 `tfsdk:"limit_up" json:"limitUp"`
-	LimitDown jsontypes.Int64 `tfsdk:"limit_down" json:"limitDown"`
+	LimitUp   types.Int64 `tfsdk:"limit_up" json:"limitUp"`
+	LimitDown types.Int64 `tfsdk:"limit_down" json:"limitDown"`
 }
 
 type NetworksGroupPolicyResourceModelBonjourForwarding struct {
@@ -165,15 +165,15 @@ type NetworksGroupPolicyResourceModelContentFiltering struct {
 
 type NetworksGroupPolicyResourceModelAllowedUrlPatterns struct {
 	Settings types.String `tfsdk:"settings" json:"settings"`
-	Patterns types.List   `tfsdk:"patterns" json:"patterns"`
+	Patterns types.Set    `tfsdk:"patterns" json:"patterns"`
 }
 type NetworksGroupPolicyResourceModelBlockedUrlCategories struct {
 	Settings   types.String `tfsdk:"settings" json:"settings"`
-	Categories types.List   `tfsdk:"categories" json:"categories"`
+	Categories types.Set    `tfsdk:"categories" json:"categories"`
 }
 type NetworksGroupPolicyResourceModelBlockedUrlPatterns struct {
 	Settings types.String `tfsdk:"settings" json:"settings"`
-	Patterns types.List   `tfsdk:"patterns" json:"patterns"`
+	Patterns types.Set    `tfsdk:"patterns" json:"patterns"`
 }
 
 type OutputNetworksGroupPolicyResourceModelContentFiltering struct {
@@ -662,6 +662,7 @@ func getFirewallAndTrafficShaping(ctx context.Context, inlineResp map[string]int
 	json.Unmarshal(jsonData, &trafficShapingRule)
 
 	var l3FirewallRules []basetypes.ObjectValue
+
 	for _, rule := range firewallAndTrafficShapingOutput.L3FirewallRules {
 
 		ruleDataMap, _ := basetypes.NewObjectValue(L3FirewallRulesAttrTypes(), map[string]attr.Value{
@@ -827,7 +828,7 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 						MarkdownDescription: "How bandwidth limits are enforced. Can be 'network default', 'ignore' or 'custom'.",
 						Optional:            true,
 						Computed:            true,
-						CustomType:          jsontypes.StringType,
+						CustomType:          types.StringType,
 						Default:             stringdefault.StaticString("network default"),
 					},
 					"bandwidth_limits": schema.SingleNestedAttribute{
@@ -839,13 +840,13 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 								MarkdownDescription: "The maximum download limit (integer, in Kbps).",
 								Optional:            true,
 								Computed:            true,
-								CustomType:          jsontypes.Int64Type,
+								CustomType:          types.Int64Type,
 							},
 							"limit_up": schema.Int64Attribute{
 								MarkdownDescription: "The maximum upload limit (integer, in Kbps).",
 								Optional:            true,
 								Computed:            true,
-								CustomType:          jsontypes.Int64Type,
+								CustomType:          types.Int64Type,
 							},
 						},
 					},
@@ -860,7 +861,7 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 						MarkdownDescription: "How Bonjour rules are applied. Can be 'network default', 'ignore' or 'custom'.",
 						Optional:            true,
 						Computed:            true,
-						CustomType:          jsontypes.StringType,
+						CustomType:          types.StringType,
 						Default:             stringdefault.StaticString("network default"),
 					},
 					"rules": schema.ListNestedAttribute{
@@ -872,16 +873,16 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 									MarkdownDescription: "A description for your Bonjour forwarding rule. Optional.",
 									Optional:            true,
 									Computed:            true,
-									CustomType:          jsontypes.StringType,
+									CustomType:          types.StringType,
 								},
 								"vlan_id": schema.StringAttribute{
 									MarkdownDescription: "The ID of the service VLAN. Required.",
 									Optional:            true,
 									Computed:            true,
-									CustomType:          jsontypes.StringType,
+									CustomType:          types.StringType,
 								},
 								"services": schema.SetAttribute{
-									CustomType: jsontypes.SetType[jsontypes.String](),
+									CustomType: types.SetType{ElemType: types.StringType},
 									Required:   true,
 									Validators: []validator.Set{
 										setvalidator.ValueStringsAre(
@@ -903,7 +904,7 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 						MarkdownDescription: "Whether scheduling is enabled (true) or disabled (false). Defaults to false. If true, the schedule objects for each day of the week (monday - sunday) are parsed.",
 						Optional:            true,
 						Computed:            true,
-						CustomType:          jsontypes.BoolType,
+						CustomType:          types.BoolType,
 					},
 					"friday": schema.SingleNestedAttribute{
 						Optional: true,
@@ -913,19 +914,19 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 								MarkdownDescription: "The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.",
 								Optional:            true,
 								Computed:            true,
-								CustomType:          jsontypes.StringType,
+								CustomType:          types.StringType,
 							},
 							"to": schema.StringAttribute{
 								MarkdownDescription: "The time, from '00:00' to '24:00'. Must be greater than the time specified in 'from'. Defaults to '24:00'. Only 30 minute increments are allowed.",
 								Optional:            true,
 								Computed:            true,
-								CustomType:          jsontypes.StringType,
+								CustomType:          types.StringType,
 							},
 							"active": schema.BoolAttribute{
 								MarkdownDescription: "Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.",
 								Optional:            true,
 								Computed:            true,
-								CustomType:          jsontypes.BoolType,
+								CustomType:          types.BoolType,
 							},
 						},
 					},
@@ -937,19 +938,19 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 								MarkdownDescription: "The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.",
 								Optional:            true,
 								Computed:            true,
-								CustomType:          jsontypes.StringType,
+								CustomType:          types.StringType,
 							},
 							"to": schema.StringAttribute{
 								MarkdownDescription: "The time, from '00:00' to '24:00'. Must be greater than the time specified in 'from'. Defaults to '24:00'. Only 30 minute increments are allowed.",
 								Optional:            true,
 								Computed:            true,
-								CustomType:          jsontypes.StringType,
+								CustomType:          types.StringType,
 							},
 							"active": schema.BoolAttribute{
 								MarkdownDescription: "Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.",
 								Optional:            true,
 								Computed:            true,
-								CustomType:          jsontypes.BoolType,
+								CustomType:          types.BoolType,
 							},
 						},
 					},
@@ -961,19 +962,19 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 								MarkdownDescription: "The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.",
 								Optional:            true,
 								Computed:            true,
-								CustomType:          jsontypes.StringType,
+								CustomType:          types.StringType,
 							},
 							"to": schema.StringAttribute{
 								MarkdownDescription: "The time, from '00:00' to '24:00'. Must be greater than the time specified in 'from'. Defaults to '24:00'. Only 30 minute increments are allowed.",
 								Optional:            true,
 								Computed:            true,
-								CustomType:          jsontypes.StringType,
+								CustomType:          types.StringType,
 							},
 							"active": schema.BoolAttribute{
 								MarkdownDescription: "Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.",
 								Optional:            true,
 								Computed:            true,
-								CustomType:          jsontypes.BoolType,
+								CustomType:          types.BoolType,
 							},
 						},
 					},
@@ -985,19 +986,19 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 								MarkdownDescription: "The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.",
 								Optional:            true,
 								Computed:            true,
-								CustomType:          jsontypes.StringType,
+								CustomType:          types.StringType,
 							},
 							"to": schema.StringAttribute{
 								MarkdownDescription: "The time, from '00:00' to '24:00'. Must be greater than the time specified in 'from'. Defaults to '24:00'. Only 30 minute increments are allowed.",
 								Optional:            true,
 								Computed:            true,
-								CustomType:          jsontypes.StringType,
+								CustomType:          types.StringType,
 							},
 							"active": schema.BoolAttribute{
 								MarkdownDescription: "Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.",
 								Optional:            true,
 								Computed:            true,
-								CustomType:          jsontypes.BoolType,
+								CustomType:          types.BoolType,
 							},
 						},
 					},
@@ -1009,19 +1010,19 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 								MarkdownDescription: "The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.",
 								Optional:            true,
 								Computed:            true,
-								CustomType:          jsontypes.StringType,
+								CustomType:          types.StringType,
 							},
 							"to": schema.StringAttribute{
 								MarkdownDescription: "The time, from '00:00' to '24:00'. Must be greater than the time specified in 'from'. Defaults to '24:00'. Only 30 minute increments are allowed.",
 								Optional:            true,
 								Computed:            true,
-								CustomType:          jsontypes.StringType,
+								CustomType:          types.StringType,
 							},
 							"active": schema.BoolAttribute{
 								MarkdownDescription: "Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.",
 								Optional:            true,
 								Computed:            true,
-								CustomType:          jsontypes.BoolType,
+								CustomType:          types.BoolType,
 							},
 						},
 					},
@@ -1033,19 +1034,19 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 								MarkdownDescription: "The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.",
 								Optional:            true,
 								Computed:            true,
-								CustomType:          jsontypes.StringType,
+								CustomType:          types.StringType,
 							},
 							"to": schema.StringAttribute{
 								MarkdownDescription: "The time, from '00:00' to '24:00'. Must be greater than the time specified in 'from'. Defaults to '24:00'. Only 30 minute increments are allowed.",
 								Optional:            true,
 								Computed:            true,
-								CustomType:          jsontypes.StringType,
+								CustomType:          types.StringType,
 							},
 							"active": schema.BoolAttribute{
 								MarkdownDescription: "Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.",
 								Optional:            true,
 								Computed:            true,
-								CustomType:          jsontypes.BoolType,
+								CustomType:          types.BoolType,
 							},
 						},
 					},
@@ -1057,19 +1058,19 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 								MarkdownDescription: "The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.",
 								Optional:            true,
 								Computed:            true,
-								CustomType:          jsontypes.StringType,
+								CustomType:          types.StringType,
 							},
 							"to": schema.StringAttribute{
 								MarkdownDescription: "The time, from '00:00' to '24:00'. Must be greater than the time specified in 'from'. Defaults to '24:00'. Only 30 minute increments are allowed.",
 								Optional:            true,
 								Computed:            true,
-								CustomType:          jsontypes.StringType,
+								CustomType:          types.StringType,
 							},
 							"active": schema.BoolAttribute{
 								MarkdownDescription: "Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.",
 								Optional:            true,
 								Computed:            true,
-								CustomType:          jsontypes.BoolType,
+								CustomType:          types.BoolType,
 							},
 						},
 					},
@@ -1087,12 +1088,12 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 								MarkdownDescription: "How URL patterns are applied. Can be 'network default', 'append' or 'override'.",
 								Optional:            true,
 								Computed:            true,
-								CustomType:          jsontypes.StringType,
+								CustomType:          types.StringType,
 								Default:             stringdefault.StaticString("network default"),
 							},
 							"patterns": schema.SetAttribute{
 								MarkdownDescription: "A list of URL patterns that are allowed",
-								CustomType:          jsontypes.SetType[jsontypes.String](),
+								CustomType:          types.SetType{ElemType: types.StringType},
 								Optional:            true,
 							},
 						},
@@ -1106,12 +1107,12 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 								MarkdownDescription: "How URL categories are applied. Can be 'network default', 'append' or 'override'.",
 								Optional:            true,
 								Computed:            true,
-								CustomType:          jsontypes.StringType,
+								CustomType:          types.StringType,
 								Default:             stringdefault.StaticString("network default"),
 							},
 							"categories": schema.SetAttribute{
 								MarkdownDescription: "A list of URL categories to block",
-								CustomType:          jsontypes.SetType[jsontypes.String](),
+								CustomType:          types.SetType{ElemType: types.StringType},
 								Optional:            true,
 							},
 						},
@@ -1125,12 +1126,12 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 								MarkdownDescription: "How URL patterns are applied. Can be 'network default', 'append' or 'override'.",
 								Optional:            true,
 								Computed:            true,
-								CustomType:          jsontypes.StringType,
+								CustomType:          types.StringType,
 								Default:             stringdefault.StaticString("network default"),
 							},
 							"patterns": schema.SetAttribute{
 								MarkdownDescription: "A list of URL patterns that are blocked",
-								CustomType:          jsontypes.SetType[jsontypes.String](),
+								CustomType:          types.SetType{ElemType: types.StringType},
 								Optional:            true,
 							},
 						},
@@ -1145,14 +1146,14 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 						MarkdownDescription: "How VLAN tagging is applied. Can be 'network default', 'ignore' or 'custom'.",
 						Optional:            true,
 						Computed:            true,
-						CustomType:          jsontypes.StringType,
+						CustomType:          types.StringType,
 						Default:             stringdefault.StaticString("network default"),
 					},
 					"vlan_id": schema.StringAttribute{
 						MarkdownDescription: "The ID of the vlan you want to tag. This only applies if 'settings' is set to 'custom'.",
 						Optional:            true,
 						Computed:            true,
-						CustomType:          jsontypes.StringType,
+						CustomType:          types.StringType,
 					},
 				},
 			},
@@ -1164,7 +1165,7 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 						MarkdownDescription: "How firewall and traffic shaping rules are enforced. Can be 'network default', 'ignore' or 'custom'.",
 						Optional:            true,
 						Computed:            true,
-						CustomType:          jsontypes.StringType,
+						CustomType:          types.StringType,
 						Default:             stringdefault.StaticString("network default"),
 					},
 					"l3_firewall_rules": schema.ListNestedAttribute{
@@ -1176,31 +1177,31 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 									MarkdownDescription: "Description of the rule (optional)",
 									Optional:            true,
 									Computed:            true,
-									CustomType:          jsontypes.StringType,
+									CustomType:          types.StringType,
 								},
 								"dest_cidr": schema.StringAttribute{
 									MarkdownDescription: "Destination IP address (in IP or CIDR notation), a fully-qualified domain name (FQDN, if your network supports it) or 'any'.",
 									Optional:            true,
 									Computed:            true,
-									CustomType:          jsontypes.StringType,
+									CustomType:          types.StringType,
 								},
 								"dest_port": schema.StringAttribute{
 									MarkdownDescription: "Destination port (integer in the range 1-65535), a port range (e.g. 8080-9090), or 'any'",
 									Optional:            true,
 									Computed:            true,
-									CustomType:          jsontypes.StringType,
+									CustomType:          types.StringType,
 								},
 								"policy": schema.StringAttribute{
 									MarkdownDescription: "'allow' or 'deny' traffic specified by this rule",
 									Optional:            true,
 									Computed:            true,
-									CustomType:          jsontypes.StringType,
+									CustomType:          types.StringType,
 								},
 								"protocol": schema.StringAttribute{
 									MarkdownDescription: "The type of protocol (must be 'tcp', 'udp', 'icmp', 'icmp6' or 'any')",
 									Optional:            true,
 									Computed:            true,
-									CustomType:          jsontypes.StringType,
+									CustomType:          types.StringType,
 								},
 							},
 						},
@@ -1214,19 +1215,19 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 									MarkdownDescription: "The 'value' of what you want to block. If 'type' is 'host', 'port' or 'ipRange', 'value' must be a string matching either a hostname (e.g. somewhere.com), a port (e.g. 8080), or an IP range (e.g. 192.1.0.0/16). If 'type' is 'application' or 'applicationCategory', then 'value' must be an object with an ID for the application.",
 									Optional:            true,
 									Computed:            true,
-									CustomType:          jsontypes.StringType,
+									CustomType:          types.StringType,
 								},
 								"policy": schema.StringAttribute{
 									MarkdownDescription: "The policy applied to matching traffic. Must be 'deny'.",
 									Optional:            true,
 									Computed:            true,
-									CustomType:          jsontypes.StringType,
+									CustomType:          types.StringType,
 								},
 								"type": schema.StringAttribute{
 									MarkdownDescription: "Type of the L7 Rule. Must be 'application', 'applicationCategory', 'host', 'port' or 'ipRange'",
 									Optional:            true,
 									Computed:            true,
-									CustomType:          jsontypes.StringType,
+									CustomType:          types.StringType,
 								},
 							},
 						},
@@ -1240,13 +1241,13 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 									MarkdownDescription: "The DSCP tag applied by your rule. null means Do not change DSCP tag. For a list of possible tag values, use the trafficShaping/dscpTaggingOptions endpoint",
 									Optional:            true,
 									Computed:            true,
-									CustomType:          jsontypes.Int64Type,
+									CustomType:          types.Int64Type,
 								},
 								"pcp_tag_value": schema.Int64Attribute{
 									MarkdownDescription: "The PCP tag applied by your rule. Can be 0 (lowest priority) through 7 (highest priority). null means Do not set PCP tag.",
 									Optional:            true,
 									Computed:            true,
-									CustomType:          jsontypes.Int64Type,
+									CustomType:          types.Int64Type,
 								},
 								"per_client_bandwidth_limits": schema.SingleNestedAttribute{
 									Optional: true,
@@ -1256,7 +1257,7 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 											MarkdownDescription: "How bandwidth limits are applied by your rule. Can be one of 'network default', 'ignore' or 'custom'.",
 											Optional:            true,
 											Computed:            true,
-											CustomType:          jsontypes.StringType,
+											CustomType:          types.StringType,
 											Default:             stringdefault.StaticString("network default"),
 										},
 										"bandwidth_limits": schema.SingleNestedAttribute{
@@ -1267,13 +1268,13 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 													MarkdownDescription: "The maximum download limit (integer, in Kbps).",
 													Optional:            true,
 													Computed:            true,
-													CustomType:          jsontypes.Int64Type,
+													CustomType:          types.Int64Type,
 												},
 												"limit_up": schema.Int64Attribute{
 													MarkdownDescription: "The maximum upload limit (integer, in Kbps).",
 													Optional:            true,
 													Computed:            true,
-													CustomType:          jsontypes.Int64Type,
+													CustomType:          types.Int64Type,
 												},
 											},
 										},
@@ -1288,13 +1289,13 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 												MarkdownDescription: "The type of definition. Can be one of 'application', 'applicationCategory', 'host', 'port', 'ipRange' or 'localNet'.",
 												Optional:            true,
 												Computed:            true,
-												CustomType:          jsontypes.StringType,
+												CustomType:          types.StringType,
 											},
 											"value": schema.StringAttribute{
 												MarkdownDescription: "If type is host, port, ipRange or localNet then value must be a string matching either a hostname (e.g. somesite.com) a port (e.g. 8080) or an IP range (192.1.0.0, 192.1.0.0/16, or 10.1.0.0/16:80). localNet also supports CIDR notation excluding custom ports If type is 'application' or 'applicationCategory', then value must be an object with the structure { id: meraki:layer7/... }, where id is the application category or application ID (for a list of IDs for your network, use the trafficShaping/applicationCategories endpoint)",
 												Optional:            true,
 												Computed:            true,
-												CustomType:          jsontypes.StringType,
+												CustomType:          types.StringType,
 											},
 										},
 									},
@@ -1339,14 +1340,13 @@ func (r *NetworksGroupPolicyResource) Create(ctx context.Context, req resource.C
 	}
 
 	createNetworkGroupPolicy := *openApiClient.NewCreateNetworkGroupPolicyRequest(data.Name.ValueString())
-	if !data.SplashAuthSettings.IsUnknown() {
+	if !data.SplashAuthSettings.IsUnknown() && !data.SplashAuthSettings.IsNull() {
 		createNetworkGroupPolicy.SetSplashAuthSettings(data.SplashAuthSettings.ValueString())
-
 	}
 
 	if !data.VlanTagging.IsUnknown() && !data.VlanTagging.IsNull() {
 		var vlanTagging NetworksGroupPolicyResourceModelVlanTagging
-		vlanTaggingErr := data.Bandwidth.As(ctx, &vlanTagging, basetypes.ObjectAsOptions{})
+		vlanTaggingErr := data.VlanTagging.As(ctx, &vlanTagging, basetypes.ObjectAsOptions{})
 		if vlanTaggingErr != nil {
 			resp.Diagnostics.AddError(
 				"Failed to unmarshal vlanTagging",
@@ -1354,13 +1354,13 @@ func (r *NetworksGroupPolicyResource) Create(ctx context.Context, req resource.C
 			)
 			return
 		}
-		if !vlanTagging.Settings.IsUnknown() {
-			if !vlanTagging.VlanId.IsUnknown() {
-				var v openApiClient.CreateNetworkGroupPolicyRequestVlanTagging
-				v.SetSettings(vlanTagging.Settings.ValueString())
+		if !vlanTagging.Settings.IsUnknown() && !vlanTagging.Settings.IsNull() {
+			var v openApiClient.CreateNetworkGroupPolicyRequestVlanTagging
+			v.SetSettings(vlanTagging.Settings.ValueString())
+			if !vlanTagging.VlanId.IsUnknown() && !vlanTagging.VlanId.IsNull() {
 				v.SetVlanId(vlanTagging.VlanId.ValueString())
-				createNetworkGroupPolicy.SetVlanTagging(v)
 			}
+			createNetworkGroupPolicy.SetVlanTagging(v)
 		}
 	}
 
@@ -1374,15 +1374,24 @@ func (r *NetworksGroupPolicyResource) Create(ctx context.Context, req resource.C
 			)
 			return
 		}
-		if !bandwidth.Settings.IsUnknown() {
+		if !bandwidth.Settings.IsUnknown() && !bandwidth.Settings.IsNull() {
 			var bandwidthAPI openApiClient.CreateNetworkGroupPolicyRequestBandwidth
 			bandwidthAPI.SetSettings(bandwidth.Settings.ValueString())
 			var bandwidthLimitsAPI openApiClient.CreateNetworkGroupPolicyRequestBandwidthBandwidthLimits
-			if !bandwidth.BandwidthLimits.LimitUp.IsUnknown() {
-				bandwidthLimitsAPI.SetLimitUp(int32(bandwidth.BandwidthLimits.LimitUp.ValueInt64()))
+			var bandwidthLimits NetworksGroupPolicyResourceModelBandwidthLimits
+			bandwidthLimitsDataErr := bandwidth.BandwidthLimits.As(ctx, &bandwidthLimits, basetypes.ObjectAsOptions{})
+			if bandwidthLimitsDataErr != nil {
+				resp.Diagnostics.AddError(
+					"Failed to unmarshal BandwidthLimits",
+					fmt.Sprintf("%v", bandwidthLimitsDataErr),
+				)
+				return
 			}
-			if !bandwidth.BandwidthLimits.LimitDown.IsUnknown() {
-				bandwidthLimitsAPI.SetLimitDown(int32(bandwidth.BandwidthLimits.LimitDown.ValueInt64()))
+			if !bandwidthLimits.LimitUp.IsUnknown() && !bandwidthLimits.LimitUp.IsNull() {
+				bandwidthLimitsAPI.SetLimitUp(int32(bandwidthLimits.LimitUp.ValueInt64()))
+			}
+			if !bandwidthLimits.LimitDown.IsUnknown() && !bandwidthLimits.LimitDown.IsNull() {
+				bandwidthLimitsAPI.SetLimitDown(int32(bandwidthLimits.LimitDown.ValueInt64()))
 			}
 			bandwidthAPI.SetBandwidthLimits(bandwidthLimitsAPI)
 			createNetworkGroupPolicy.SetBandwidth(bandwidthAPI)
@@ -1393,7 +1402,7 @@ func (r *NetworksGroupPolicyResource) Create(ctx context.Context, req resource.C
 
 		var bonjourForwarding openApiClient.CreateNetworkGroupPolicyRequestBonjourForwarding
 		var bonjourForwardingData NetworksGroupPolicyResourceModelBonjourForwarding
-		bonjourForwardingDataErr := data.Bandwidth.As(ctx, &bonjourForwardingData, basetypes.ObjectAsOptions{})
+		bonjourForwardingDataErr := data.BonjourForwarding.As(ctx, &bonjourForwardingData, basetypes.ObjectAsOptions{})
 		if bonjourForwardingDataErr != nil {
 			resp.Diagnostics.AddError(
 				"Failed to unmarshal Bonjour Forwarding",
@@ -1401,39 +1410,45 @@ func (r *NetworksGroupPolicyResource) Create(ctx context.Context, req resource.C
 			)
 			return
 		}
-		var bonjourForwardingRules []openApiClient.CreateNetworkGroupPolicyRequestBonjourForwardingRulesInner
-		var bonjourForwardingRulesData []NetworksGroupPolicyResourceModelRule
-		err := bonjourForwardingData.BonjourForwardingRules.ElementsAs(ctx, &bonjourForwardingRulesData, false)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Failed to unmarshal FirewallAndTrafficShaping",
-				fmt.Sprintf("%v", err),
-			)
-			return
-
+		if !bonjourForwardingData.BonjourForwardingSettings.IsUnknown() && !bonjourForwardingData.BonjourForwardingSettings.IsNull() {
+			bonjourForwarding.SetSettings(bonjourForwardingData.BonjourForwardingSettings.ValueString())
 		}
-		for _, attribute := range bonjourForwardingRulesData {
-			var bonjourForwardingRule openApiClient.CreateNetworkGroupPolicyRequestBonjourForwardingRulesInner
-			if !attribute.Description.IsUnknown() {
-				bonjourForwardingRule.SetDescription(attribute.Description.ValueString())
-			}
-			bonjourForwardingRule.SetVlanId(attribute.VlanId.ValueString())
-			var services []string
-			serviceserr := attribute.Services.ElementsAs(ctx, &services, false)
-			if serviceserr != nil {
+		if !bonjourForwardingData.BonjourForwardingRules.IsUnknown() && !bonjourForwardingData.BonjourForwardingRules.IsNull() {
+			var bonjourForwardingRules []openApiClient.CreateNetworkGroupPolicyRequestBonjourForwardingRulesInner
+			var bonjourForwardingRulesData []NetworksGroupPolicyResourceModelRule
+			err := bonjourForwardingData.BonjourForwardingRules.ElementsAs(ctx, &bonjourForwardingRulesData, false)
+			if err != nil {
 				resp.Diagnostics.AddError(
-					"Failed to unmarshal bonjourForwardingRule services",
-					fmt.Sprintf("%v", serviceserr),
+					"Failed to unmarshal Bonjour Forwarding Rules",
+					fmt.Sprintf("%v", err),
 				)
 				return
 
 			}
-			bonjourForwardingRule.SetServices(services)
-			bonjourForwardingRules = append(bonjourForwardingRules, bonjourForwardingRule)
-		}
-		bonjourForwarding.SetRules(bonjourForwardingRules)
-		if !bonjourForwardingData.BonjourForwardingSettings.IsUnknown() {
-			bonjourForwarding.SetSettings(bonjourForwardingData.BonjourForwardingSettings.ValueString())
+			for _, attribute := range bonjourForwardingRulesData {
+				var bonjourForwardingRule openApiClient.CreateNetworkGroupPolicyRequestBonjourForwardingRulesInner
+				if !attribute.Description.IsUnknown() && !attribute.Description.IsNull() {
+					bonjourForwardingRule.SetDescription(attribute.Description.ValueString())
+				}
+				if !attribute.VlanId.IsUnknown() && !attribute.VlanId.IsNull() {
+					bonjourForwardingRule.SetVlanId(attribute.VlanId.ValueString())
+				}
+				if !attribute.Services.IsUnknown() && !attribute.Services.IsNull() {
+					var services []string
+					serviceserr := attribute.Services.ElementsAs(ctx, &services, false)
+					if serviceserr != nil {
+						resp.Diagnostics.AddError(
+							"Failed to unmarshal bonjourForwardingRule services",
+							fmt.Sprintf("%v", serviceserr),
+						)
+						return
+
+					}
+					bonjourForwardingRule.SetServices(services)
+				}
+				bonjourForwardingRules = append(bonjourForwardingRules, bonjourForwardingRule)
+			}
+			bonjourForwarding.SetRules(bonjourForwardingRules)
 		}
 		createNetworkGroupPolicy.SetBonjourForwarding(bonjourForwarding)
 
@@ -1451,149 +1466,167 @@ func (r *NetworksGroupPolicyResource) Create(ctx context.Context, req resource.C
 			)
 			return
 		}
-		if !firewallAndTrafficShapingData.Settings.IsUnknown() {
+		if !firewallAndTrafficShapingData.Settings.IsUnknown() && !firewallAndTrafficShapingData.Settings.IsNull() {
 			firewallAndTrafficShaping.SetSettings(firewallAndTrafficShapingData.Settings.ValueString())
 		}
-		var l3FirewallRules []NetworksGroupPolicyResourceModelL3FirewallRule
-		err := firewallAndTrafficShapingData.L3FirewallRules.ElementsAs(ctx, &l3FirewallRules, false)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Failed to unmarshal FirewallAndTrafficShaping",
-				fmt.Sprintf("%v", err),
-			)
-			return
+		if !firewallAndTrafficShapingData.L3FirewallRules.IsUnknown() && !firewallAndTrafficShapingData.L3FirewallRules.IsNull() {
+			var l3FirewallRules []NetworksGroupPolicyResourceModelL3FirewallRule
+			err := firewallAndTrafficShapingData.L3FirewallRules.ElementsAs(ctx, &l3FirewallRules, false)
+			if err != nil {
+				resp.Diagnostics.AddError(
+					"Failed to unmarshal FirewallAndTrafficShaping l3FirewallRules",
+					fmt.Sprintf("%v", err),
+				)
+				return
 
-		}
-		if len(l3FirewallRules) > 0 {
-			var l3s []openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingL3FirewallRulesInner
-			for _, attribute := range l3FirewallRules {
-				var l3 openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingL3FirewallRulesInner
-				if !attribute.Comment.IsUnknown() {
-					l3.SetComment(attribute.Comment.ValueString())
-				}
-				if !attribute.DestCidr.IsUnknown() {
-					l3.SetDestCidr(attribute.DestCidr.ValueString())
-				}
-				if !attribute.DestPort.IsUnknown() {
-					l3.SetDestPort(attribute.DestPort.ValueString())
-				}
-				if !attribute.Policy.IsUnknown() {
-					l3.SetPolicy(attribute.Policy.ValueString())
-				}
-				if !attribute.Protocol.IsUnknown() {
-					l3.SetProtocol(attribute.Protocol.ValueString())
-				}
-				l3s = append(l3s, l3)
 			}
-			firewallAndTrafficShaping.SetL3FirewallRules(l3s)
-		}
-		var l7FirewallRules []NetworksGroupPolicyResourceModelL7FirewallRule
-		err = firewallAndTrafficShapingData.L7FirewallRules.ElementsAs(ctx, &l7FirewallRules, false)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Failed to unmarshal L7FirewallRules",
-				fmt.Sprintf("%v", err),
-			)
-			return
-
-		}
-		if len(l7FirewallRules) > 0 {
-			var l7s []openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingL7FirewallRulesInner
-			for _, attribute := range l7FirewallRules {
-				var l7 openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingL7FirewallRulesInner
-				if !attribute.Value.IsUnknown() {
-					l7.SetValue(attribute.Value.ValueString())
+			if len(l3FirewallRules) > 0 {
+				var l3s []openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingL3FirewallRulesInner
+				for _, attribute := range l3FirewallRules {
+					var l3 openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingL3FirewallRulesInner
+					if !attribute.Comment.IsUnknown() {
+						l3.SetComment(attribute.Comment.ValueString())
+					}
+					if !attribute.DestCidr.IsUnknown() {
+						l3.SetDestCidr(attribute.DestCidr.ValueString())
+					}
+					if !attribute.DestPort.IsUnknown() {
+						l3.SetDestPort(attribute.DestPort.ValueString())
+					}
+					if !attribute.Policy.IsUnknown() {
+						l3.SetPolicy(attribute.Policy.ValueString())
+					}
+					if !attribute.Protocol.IsUnknown() {
+						l3.SetProtocol(attribute.Protocol.ValueString())
+					}
+					l3s = append(l3s, l3)
 				}
-				if !attribute.Type.IsUnknown() {
-					l7.SetType(attribute.Type.ValueString())
-				}
-
-				if !attribute.Policy.IsUnknown() {
-					l7.SetPolicy(attribute.Policy.ValueString())
-				}
-
-				l7s = append(l7s, l7)
+				firewallAndTrafficShaping.SetL3FirewallRules(l3s)
 			}
-			firewallAndTrafficShaping.SetL7FirewallRules(l7s)
 
 		}
-		var trafficShapingRule []NetworksGroupPolicyResourceModelTrafficShapingRule
-		err = firewallAndTrafficShapingData.TrafficShapingRules.ElementsAs(ctx, &trafficShapingRule, false)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Failed to unmarshal TrafficShapingRules",
-				fmt.Sprintf("%v", err),
-			)
-			return
+
+		if !firewallAndTrafficShapingData.L7FirewallRules.IsUnknown() && !firewallAndTrafficShapingData.L7FirewallRules.IsNull() {
+
+			var l7FirewallRules []NetworksGroupPolicyResourceModelL7FirewallRule
+			err := firewallAndTrafficShapingData.L7FirewallRules.ElementsAs(ctx, &l7FirewallRules, false)
+			if err != nil {
+				resp.Diagnostics.AddError(
+					"Failed to unmarshal L7FirewallRules",
+					fmt.Sprintf("%v", err),
+				)
+				return
+
+			}
+			if len(l7FirewallRules) > 0 {
+				var l7s []openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingL7FirewallRulesInner
+				for _, attribute := range l7FirewallRules {
+					var l7 openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingL7FirewallRulesInner
+					if !attribute.Value.IsUnknown() {
+						l7.SetValue(attribute.Value.ValueString())
+					}
+					if !attribute.Type.IsUnknown() {
+						l7.SetType(attribute.Type.ValueString())
+					}
+
+					if !attribute.Policy.IsUnknown() {
+						l7.SetPolicy(attribute.Policy.ValueString())
+					}
+
+					l7s = append(l7s, l7)
+				}
+				firewallAndTrafficShaping.SetL7FirewallRules(l7s)
+
+			}
 
 		}
-		if len(trafficShapingRule) > 0 {
-			var tfs []openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingTrafficShapingRulesInner
-			for _, attribute := range trafficShapingRule {
-				var tf openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingTrafficShapingRulesInner
-				if !attribute.DscpTagValue.IsUnknown() {
-					tf.SetDscpTagValue(int32(attribute.DscpTagValue.ValueInt64()))
-				}
-				if !attribute.PcpTagValue.IsUnknown() {
-					tf.SetPcpTagValue(int32(attribute.PcpTagValue.ValueInt64()))
-				}
-				var perClientBandWidthLimits openApiClient.UpdateNetworkApplianceTrafficShapingRulesRequestRulesInnerPerClientBandwidthLimits
-				var perClientBandWidthData NetworksGroupPolicyResourceModelPerClientBandwidth
-				perClientBandWidthDataErr := attribute.PerClientBandwidthLimits.As(ctx, &perClientBandWidthData, basetypes.ObjectAsOptions{})
-				if perClientBandWidthDataErr != nil {
-					resp.Diagnostics.AddError(
-						"Failed to unmarshal perClientBandWidth",
-						fmt.Sprintf("%v", perClientBandWidthDataErr),
-					)
-					return
 
-				}
+		if !firewallAndTrafficShapingData.TrafficShapingRules.IsUnknown() && !firewallAndTrafficShapingData.TrafficShapingRules.IsNull() {
 
-				if !perClientBandWidthData.Settings.IsUnknown() {
-					var bandwidthLimits openApiClient.UpdateNetworkApplianceTrafficShapingRulesRequestRulesInnerPerClientBandwidthLimitsBandwidthLimits
+			var trafficShapingRule []NetworksGroupPolicyResourceModelTrafficShapingRule
+			err := firewallAndTrafficShapingData.TrafficShapingRules.ElementsAs(ctx, &trafficShapingRule, false)
+			if err != nil {
+				resp.Diagnostics.AddError(
+					"Failed to unmarshal TrafficShapingRules",
+					fmt.Sprintf("%v", err),
+				)
+				return
 
-					if perClientBandWidthData.Settings.ValueString() != "network default" {
-						var perClientBandWidthLimitsData NetworksGroupPolicyResourceModelPerClientBandwidthLimits
-						perClientBandWidthLimitsDataErr := attribute.PerClientBandwidthLimits.As(ctx, &perClientBandWidthLimitsData, basetypes.ObjectAsOptions{})
-						if perClientBandWidthLimitsDataErr != nil {
+			}
+
+			if len(trafficShapingRule) > 0 {
+				var tfs []openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingTrafficShapingRulesInner
+				for _, attribute := range trafficShapingRule {
+					var tf openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingTrafficShapingRulesInner
+					if !attribute.DscpTagValue.IsUnknown() {
+						tf.SetDscpTagValue(int32(attribute.DscpTagValue.ValueInt64()))
+					}
+					if !attribute.PcpTagValue.IsUnknown() {
+						tf.SetPcpTagValue(int32(attribute.PcpTagValue.ValueInt64()))
+					}
+					if !attribute.PerClientBandwidthLimits.IsUnknown() && !attribute.PerClientBandwidthLimits.IsNull() {
+						var perClientBandWidthLimits openApiClient.UpdateNetworkApplianceTrafficShapingRulesRequestRulesInnerPerClientBandwidthLimits
+						var perClientBandWidthData NetworksGroupPolicyResourceModelPerClientBandwidth
+						perClientBandWidthDataErr := attribute.PerClientBandwidthLimits.As(ctx, &perClientBandWidthData, basetypes.ObjectAsOptions{})
+						if perClientBandWidthDataErr != nil {
 							resp.Diagnostics.AddError(
-								"Failed to unmarshal perClientBandWidthLimits",
-								fmt.Sprintf("%v", perClientBandWidthLimitsDataErr),
+								"Failed to unmarshal perClientBandWidth",
+								fmt.Sprintf("%v", perClientBandWidthDataErr),
 							)
 							return
 
 						}
-						bandwidthLimits.SetLimitDown(int32(perClientBandWidthLimitsData.LimitDown.ValueInt64()))
-						bandwidthLimits.SetLimitUp(int32(perClientBandWidthLimitsData.LimitUp.ValueInt64()))
 
-						perClientBandWidthLimits.SetBandwidthLimits(bandwidthLimits)
-					}
-					perClientBandWidthLimits.SetSettings(perClientBandWidthData.Settings.ValueString())
-					tf.SetPerClientBandwidthLimits(perClientBandWidthLimits)
-				}
-				var defs []openApiClient.UpdateNetworkApplianceTrafficShapingRulesRequestRulesInnerDefinitionsInner
-				var definitions []NetworksGroupPolicyResourceModelDefinition
-				err = attribute.Definitions.ElementsAs(ctx, &definitions, false)
-				if err != nil {
-					resp.Diagnostics.AddError(
-						"Failed to unmarshal Definitions",
-						fmt.Sprintf("%v", err),
-					)
-					return
+						if !perClientBandWidthData.Settings.IsUnknown() && !perClientBandWidthData.Settings.IsNull() {
+							var bandwidthLimits openApiClient.UpdateNetworkApplianceTrafficShapingRulesRequestRulesInnerPerClientBandwidthLimitsBandwidthLimits
+							perClientBandWidthLimits.SetSettings(perClientBandWidthData.Settings.ValueString())
+							if perClientBandWidthData.Settings.ValueString() != "network default" {
+								var perClientBandWidthLimitsData NetworksGroupPolicyResourceModelPerClientBandwidthLimits
+								if !attribute.PerClientBandwidthLimits.IsUnknown() && !attribute.PerClientBandwidthLimits.IsNull() {
+									perClientBandWidthLimitsDataErr := attribute.PerClientBandwidthLimits.As(ctx, &perClientBandWidthLimitsData, basetypes.ObjectAsOptions{})
+									if perClientBandWidthLimitsDataErr != nil {
+										resp.Diagnostics.AddError(
+											"Failed to unmarshal perClientBandWidthLimits",
+											fmt.Sprintf("%v", perClientBandWidthLimitsDataErr),
+										)
+										return
 
-				}
-				if len(definitions) > 0 {
-					for _, attribute := range definitions {
-						var def openApiClient.UpdateNetworkApplianceTrafficShapingRulesRequestRulesInnerDefinitionsInner
-						def.SetType(attribute.Type.ValueString())
-						def.SetValue(attribute.Value.ValueString())
-						defs = append(defs, def)
+									}
+									bandwidthLimits.SetLimitDown(int32(perClientBandWidthLimitsData.LimitDown.ValueInt64()))
+									bandwidthLimits.SetLimitUp(int32(perClientBandWidthLimitsData.LimitUp.ValueInt64()))
+
+									perClientBandWidthLimits.SetBandwidthLimits(bandwidthLimits)
+								}
+							}
+							tf.SetPerClientBandwidthLimits(perClientBandWidthLimits)
+						}
 					}
-					tf.SetDefinitions(defs)
+					if !attribute.Definitions.IsUnknown() && !attribute.Definitions.IsNull() {
+						var defs []openApiClient.UpdateNetworkApplianceTrafficShapingRulesRequestRulesInnerDefinitionsInner
+						var definitions []NetworksGroupPolicyResourceModelDefinition
+						err = attribute.Definitions.ElementsAs(ctx, &definitions, false)
+						if err != nil {
+							resp.Diagnostics.AddError(
+								"Failed to unmarshal Definitions",
+								fmt.Sprintf("%v", err),
+							)
+							return
+
+						}
+						if len(definitions) > 0 {
+							for _, attribute := range definitions {
+								var def openApiClient.UpdateNetworkApplianceTrafficShapingRulesRequestRulesInnerDefinitionsInner
+								def.SetType(attribute.Type.ValueString())
+								def.SetValue(attribute.Value.ValueString())
+								defs = append(defs, def)
+							}
+							tf.SetDefinitions(defs)
+						}
+					}
+					tfs = append(tfs, tf)
 				}
-				tfs = append(tfs, tf)
+				firewallAndTrafficShaping.SetTrafficShapingRules(tfs)
 			}
-			firewallAndTrafficShaping.SetTrafficShapingRules(tfs)
 		}
 
 		createNetworkGroupPolicy.SetFirewallAndTrafficShaping(firewallAndTrafficShaping)
@@ -1745,88 +1778,105 @@ func (r *NetworksGroupPolicyResource) Create(ctx context.Context, req resource.C
 		}
 		contentFilteringStatus := false
 
-		var contentFilteringPatternsData NetworksGroupPolicyResourceModelAllowedUrlPatterns
-		contentDataPatternsErr := contentFilteringData.AllowedUrlPatterns.As(ctx, &contentFilteringPatternsData, basetypes.ObjectAsOptions{})
-		if contentDataPatternsErr != nil {
-			resp.Diagnostics.AddError(
-				"Failed to unmarshal ContentFilteringPatterns",
-				fmt.Sprintf("%v", contentDataPatternsErr),
-			)
-			return
-		}
+		if !contentFilteringData.AllowedUrlPatterns.IsUnknown() && !contentFilteringData.AllowedUrlPatterns.IsNull() {
 
-		if !contentFilteringPatternsData.Settings.IsUnknown() {
-			var allowedUrlPatternData openApiClient.CreateNetworkGroupPolicyRequestContentFilteringAllowedUrlPatterns
-			allowedUrlPatternData.SetSettings(contentFilteringPatternsData.Settings.ValueString())
-			var patternsData []string
-			patternsDataerr := contentFilteringPatternsData.Patterns.ElementsAs(ctx, &patternsData, false)
-			if patternsDataerr != nil {
+			var contentFilteringPatternsData NetworksGroupPolicyResourceModelAllowedUrlPatterns
+			contentDataPatternsErr := contentFilteringData.AllowedUrlPatterns.As(ctx, &contentFilteringPatternsData, basetypes.ObjectAsOptions{})
+			if contentDataPatternsErr != nil {
 				resp.Diagnostics.AddError(
-					"Failed to unmarshal AllowedURLPatterns",
-					fmt.Sprintf("%v", patternsDataerr),
+					"Failed to unmarshal ContentFilteringPatterns",
+					fmt.Sprintf("%v", contentDataPatternsErr),
 				)
 				return
-
 			}
-			allowedUrlPatternData.SetPatterns(patternsData)
-			contentFiltering.SetAllowedUrlPatterns(allowedUrlPatternData)
-			contentFilteringStatus = true
+
+			if !contentFilteringPatternsData.Settings.IsUnknown() && !contentFilteringPatternsData.Settings.IsNull() {
+				var allowedUrlPatternData openApiClient.CreateNetworkGroupPolicyRequestContentFilteringAllowedUrlPatterns
+				allowedUrlPatternData.SetSettings(contentFilteringPatternsData.Settings.ValueString())
+				if !contentFilteringPatternsData.Patterns.IsUnknown() && !contentFilteringPatternsData.Patterns.IsNull() {
+					var patternsData []string
+					patternsDataerr := contentFilteringPatternsData.Patterns.ElementsAs(ctx, &patternsData, false)
+					if patternsDataerr != nil {
+						resp.Diagnostics.AddError(
+							"Failed to unmarshal AllowedURLPatterns",
+							fmt.Sprintf("%v", patternsDataerr),
+						)
+						return
+
+					}
+					allowedUrlPatternData.SetPatterns(patternsData)
+				}
+				contentFiltering.SetAllowedUrlPatterns(allowedUrlPatternData)
+				contentFilteringStatus = true
+			}
+
 		}
 
-		var contentFilteringBlockedUrlCategoriesData NetworksGroupPolicyResourceModelBlockedUrlCategories
-		contentFilteringBlockedUrlCategoriesDataErr := contentFilteringData.BlockedUrlCategories.As(ctx, &contentFilteringBlockedUrlCategoriesData, basetypes.ObjectAsOptions{})
-		if contentFilteringBlockedUrlCategoriesDataErr != nil {
-			resp.Diagnostics.AddError(
-				"Failed to unmarshal ContentBlockedUrlCategories",
-				fmt.Sprintf("%v", contentFilteringBlockedUrlCategoriesDataErr),
-			)
-			return
-		}
+		if !contentFilteringData.BlockedUrlCategories.IsUnknown() && !contentFilteringData.BlockedUrlCategories.IsNull() {
 
-		if !contentFilteringBlockedUrlCategoriesData.Settings.IsUnknown() {
-			var blockedUrlCategoriesData openApiClient.CreateNetworkGroupPolicyRequestContentFilteringBlockedUrlCategories
-			blockedUrlCategoriesData.SetSettings(contentFilteringBlockedUrlCategoriesData.Settings.ValueString())
-			var blockedUrlCategories []string
-			blockedUrlCategoriesDataerr := contentFilteringBlockedUrlCategoriesData.Categories.ElementsAs(ctx, &blockedUrlCategories, false)
-			if blockedUrlCategoriesDataerr != nil {
+			var contentFilteringBlockedUrlCategoriesData NetworksGroupPolicyResourceModelBlockedUrlCategories
+			contentFilteringBlockedUrlCategoriesDataErr := contentFilteringData.BlockedUrlCategories.As(ctx, &contentFilteringBlockedUrlCategoriesData, basetypes.ObjectAsOptions{})
+			if contentFilteringBlockedUrlCategoriesDataErr != nil {
 				resp.Diagnostics.AddError(
-					"Failed to unmarshal blockedUrlCategories",
-					fmt.Sprintf("%v", blockedUrlCategoriesDataerr),
+					"Failed to unmarshal ContentBlockedUrlCategories",
+					fmt.Sprintf("%v", contentFilteringBlockedUrlCategoriesDataErr),
 				)
 				return
-
 			}
-			blockedUrlCategoriesData.SetCategories(blockedUrlCategories)
-			contentFiltering.SetBlockedUrlCategories(blockedUrlCategoriesData)
-			contentFilteringStatus = true
+
+			if !contentFilteringBlockedUrlCategoriesData.Settings.IsUnknown() && !contentFilteringBlockedUrlCategoriesData.Settings.IsNull() {
+				var blockedUrlCategoriesData openApiClient.CreateNetworkGroupPolicyRequestContentFilteringBlockedUrlCategories
+				blockedUrlCategoriesData.SetSettings(contentFilteringBlockedUrlCategoriesData.Settings.ValueString())
+				if !contentFilteringBlockedUrlCategoriesData.Categories.IsUnknown() && !contentFilteringBlockedUrlCategoriesData.Categories.IsNull() {
+					var blockedUrlCategories []string
+					blockedUrlCategoriesDataerr := contentFilteringBlockedUrlCategoriesData.Categories.ElementsAs(ctx, &blockedUrlCategories, false)
+					if blockedUrlCategoriesDataerr != nil {
+						resp.Diagnostics.AddError(
+							"Failed to unmarshal blockedUrlCategories",
+							fmt.Sprintf("%v", blockedUrlCategoriesDataerr),
+						)
+						return
+
+					}
+					blockedUrlCategoriesData.SetCategories(blockedUrlCategories)
+				}
+				contentFiltering.SetBlockedUrlCategories(blockedUrlCategoriesData)
+				contentFilteringStatus = true
+			}
+
 		}
 
-		var contentFilteringBlockedUrlPatternsData NetworksGroupPolicyResourceModelBlockedUrlPatterns
-		contentFilteringBlockedUrlPatternsDataErr := contentFilteringData.BlockedUrlPatterns.As(ctx, &contentFilteringBlockedUrlPatternsData, basetypes.ObjectAsOptions{})
-		if contentFilteringBlockedUrlPatternsDataErr != nil {
-			resp.Diagnostics.AddError(
-				"Failed to unmarshal ContentBlockedUrlPatterns",
-				fmt.Sprintf("%v", contentFilteringBlockedUrlPatternsDataErr),
-			)
-			return
-		}
-
-		if !contentFilteringBlockedUrlPatternsData.Settings.IsUnknown() {
-			var blockedUrlPatternsData openApiClient.CreateNetworkGroupPolicyRequestContentFilteringBlockedUrlPatterns
-			blockedUrlPatternsData.SetSettings(contentFilteringBlockedUrlPatternsData.Settings.ValueString())
-			var blockedUrlPatterns []string
-			blockedUrlPatternsDataerr := contentFilteringBlockedUrlPatternsData.Patterns.ElementsAs(ctx, &blockedUrlPatterns, false)
-			if blockedUrlPatternsDataerr != nil {
+		if !contentFilteringData.BlockedUrlPatterns.IsUnknown() && !contentFilteringData.BlockedUrlPatterns.IsNull() {
+			var contentFilteringBlockedUrlPatternsData NetworksGroupPolicyResourceModelBlockedUrlPatterns
+			contentFilteringBlockedUrlPatternsDataErr := contentFilteringData.BlockedUrlPatterns.As(ctx, &contentFilteringBlockedUrlPatternsData, basetypes.ObjectAsOptions{})
+			if contentFilteringBlockedUrlPatternsDataErr != nil {
 				resp.Diagnostics.AddError(
-					"Failed to unmarshal blockedUrlPatterns",
-					fmt.Sprintf("%v", blockedUrlPatternsDataerr),
+					"Failed to unmarshal ContentBlockedUrlPatterns",
+					fmt.Sprintf("%v", contentFilteringBlockedUrlPatternsDataErr),
 				)
 				return
-
 			}
-			blockedUrlPatternsData.SetPatterns(blockedUrlPatterns)
-			contentFiltering.SetBlockedUrlPatterns(blockedUrlPatternsData)
-			contentFilteringStatus = true
+
+			if !contentFilteringBlockedUrlPatternsData.Settings.IsUnknown() && !contentFilteringBlockedUrlPatternsData.Settings.IsNull() {
+				var blockedUrlPatternsData openApiClient.CreateNetworkGroupPolicyRequestContentFilteringBlockedUrlPatterns
+				blockedUrlPatternsData.SetSettings(contentFilteringBlockedUrlPatternsData.Settings.ValueString())
+				if !contentFilteringBlockedUrlPatternsData.Patterns.IsUnknown() && !contentFilteringBlockedUrlPatternsData.Patterns.IsNull() {
+					var blockedUrlPatterns []string
+					blockedUrlPatternsDataerr := contentFilteringBlockedUrlPatternsData.Patterns.ElementsAs(ctx, &blockedUrlPatterns, false)
+					if blockedUrlPatternsDataerr != nil {
+						resp.Diagnostics.AddError(
+							"Failed to unmarshal blockedUrlPatterns",
+							fmt.Sprintf("%v", blockedUrlPatternsDataerr),
+						)
+						return
+
+					}
+					blockedUrlPatternsData.SetPatterns(blockedUrlPatterns)
+				}
+				contentFiltering.SetBlockedUrlPatterns(blockedUrlPatternsData)
+				contentFilteringStatus = true
+			}
+
 		}
 
 		if contentFilteringStatus {
@@ -2034,14 +2084,13 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 
 	updateNetworkGroupPolicy := *openApiClient.NewUpdateNetworkGroupPolicyRequest()
 
-	if !data.SplashAuthSettings.IsUnknown() {
+	if !data.SplashAuthSettings.IsUnknown() && !data.SplashAuthSettings.IsNull() {
 		updateNetworkGroupPolicy.SetSplashAuthSettings(data.SplashAuthSettings.ValueString())
-
 	}
 
 	if !data.VlanTagging.IsUnknown() && !data.VlanTagging.IsNull() {
 		var vlanTagging NetworksGroupPolicyResourceModelVlanTagging
-		vlanTaggingErr := data.Bandwidth.As(ctx, &vlanTagging, basetypes.ObjectAsOptions{})
+		vlanTaggingErr := data.VlanTagging.As(ctx, &vlanTagging, basetypes.ObjectAsOptions{})
 		if vlanTaggingErr != nil {
 			resp.Diagnostics.AddError(
 				"Failed to unmarshal vlanTagging",
@@ -2049,13 +2098,13 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 			)
 			return
 		}
-		if !vlanTagging.Settings.IsUnknown() {
-			if !vlanTagging.VlanId.IsUnknown() {
-				var v openApiClient.CreateNetworkGroupPolicyRequestVlanTagging
-				v.SetSettings(vlanTagging.Settings.ValueString())
+		if !vlanTagging.Settings.IsUnknown() && !vlanTagging.Settings.IsNull() {
+			var v openApiClient.CreateNetworkGroupPolicyRequestVlanTagging
+			v.SetSettings(vlanTagging.Settings.ValueString())
+			if !vlanTagging.VlanId.IsUnknown() && !vlanTagging.VlanId.IsNull() {
 				v.SetVlanId(vlanTagging.VlanId.ValueString())
-				updateNetworkGroupPolicy.SetVlanTagging(v)
 			}
+			updateNetworkGroupPolicy.SetVlanTagging(v)
 		}
 	}
 
@@ -2069,15 +2118,24 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 			)
 			return
 		}
-		if !bandwidth.Settings.IsUnknown() {
+		if !bandwidth.Settings.IsUnknown() && !bandwidth.Settings.IsNull() {
 			var bandwidthAPI openApiClient.CreateNetworkGroupPolicyRequestBandwidth
 			bandwidthAPI.SetSettings(bandwidth.Settings.ValueString())
 			var bandwidthLimitsAPI openApiClient.CreateNetworkGroupPolicyRequestBandwidthBandwidthLimits
-			if !bandwidth.BandwidthLimits.LimitUp.IsUnknown() {
-				bandwidthLimitsAPI.SetLimitUp(int32(bandwidth.BandwidthLimits.LimitUp.ValueInt64()))
+			var bandwidthLimits NetworksGroupPolicyResourceModelBandwidthLimits
+			bandwidthLimitsDataErr := bandwidth.BandwidthLimits.As(ctx, &bandwidthLimits, basetypes.ObjectAsOptions{})
+			if bandwidthLimitsDataErr != nil {
+				resp.Diagnostics.AddError(
+					"Failed to unmarshal BandwidthLimits",
+					fmt.Sprintf("%v", bandwidthLimitsDataErr),
+				)
+				return
 			}
-			if !bandwidth.BandwidthLimits.LimitDown.IsUnknown() {
-				bandwidthLimitsAPI.SetLimitDown(int32(bandwidth.BandwidthLimits.LimitDown.ValueInt64()))
+			if !bandwidthLimits.LimitUp.IsUnknown() && !bandwidthLimits.LimitUp.IsNull() {
+				bandwidthLimitsAPI.SetLimitUp(int32(bandwidthLimits.LimitUp.ValueInt64()))
+			}
+			if !bandwidthLimits.LimitDown.IsUnknown() && !bandwidthLimits.LimitDown.IsNull() {
+				bandwidthLimitsAPI.SetLimitDown(int32(bandwidthLimits.LimitDown.ValueInt64()))
 			}
 			bandwidthAPI.SetBandwidthLimits(bandwidthLimitsAPI)
 			updateNetworkGroupPolicy.SetBandwidth(bandwidthAPI)
@@ -2088,7 +2146,7 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 
 		var bonjourForwarding openApiClient.CreateNetworkGroupPolicyRequestBonjourForwarding
 		var bonjourForwardingData NetworksGroupPolicyResourceModelBonjourForwarding
-		bonjourForwardingDataErr := data.Bandwidth.As(ctx, &bonjourForwardingData, basetypes.ObjectAsOptions{})
+		bonjourForwardingDataErr := data.BonjourForwarding.As(ctx, &bonjourForwardingData, basetypes.ObjectAsOptions{})
 		if bonjourForwardingDataErr != nil {
 			resp.Diagnostics.AddError(
 				"Failed to unmarshal Bonjour Forwarding",
@@ -2096,39 +2154,45 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 			)
 			return
 		}
-		var bonjourForwardingRules []openApiClient.CreateNetworkGroupPolicyRequestBonjourForwardingRulesInner
-		var bonjourForwardingRulesData []NetworksGroupPolicyResourceModelRule
-		err := bonjourForwardingData.BonjourForwardingRules.ElementsAs(ctx, &bonjourForwardingRulesData, false)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Failed to unmarshal FirewallAndTrafficShaping",
-				fmt.Sprintf("%v", err),
-			)
-			return
-
+		if !bonjourForwardingData.BonjourForwardingSettings.IsUnknown() && !bonjourForwardingData.BonjourForwardingSettings.IsNull() {
+			bonjourForwarding.SetSettings(bonjourForwardingData.BonjourForwardingSettings.ValueString())
 		}
-		for _, attribute := range bonjourForwardingRulesData {
-			var bonjourForwardingRule openApiClient.CreateNetworkGroupPolicyRequestBonjourForwardingRulesInner
-			if !attribute.Description.IsUnknown() {
-				bonjourForwardingRule.SetDescription(attribute.Description.ValueString())
-			}
-			bonjourForwardingRule.SetVlanId(attribute.VlanId.ValueString())
-			var services []string
-			serviceserr := attribute.Services.ElementsAs(ctx, &services, false)
-			if serviceserr != nil {
+		if !bonjourForwardingData.BonjourForwardingRules.IsUnknown() && !bonjourForwardingData.BonjourForwardingRules.IsNull() {
+			var bonjourForwardingRules []openApiClient.CreateNetworkGroupPolicyRequestBonjourForwardingRulesInner
+			var bonjourForwardingRulesData []NetworksGroupPolicyResourceModelRule
+			err := bonjourForwardingData.BonjourForwardingRules.ElementsAs(ctx, &bonjourForwardingRulesData, false)
+			if err != nil {
 				resp.Diagnostics.AddError(
-					"Failed to unmarshal bonjourForwardingRule services",
-					fmt.Sprintf("%v", serviceserr),
+					"Failed to unmarshal Bonjour Forwarding Rules",
+					fmt.Sprintf("%v", err),
 				)
 				return
 
 			}
-			bonjourForwardingRule.SetServices(services)
-			bonjourForwardingRules = append(bonjourForwardingRules, bonjourForwardingRule)
-		}
-		bonjourForwarding.SetRules(bonjourForwardingRules)
-		if !bonjourForwardingData.BonjourForwardingSettings.IsUnknown() {
-			bonjourForwarding.SetSettings(bonjourForwardingData.BonjourForwardingSettings.ValueString())
+			for _, attribute := range bonjourForwardingRulesData {
+				var bonjourForwardingRule openApiClient.CreateNetworkGroupPolicyRequestBonjourForwardingRulesInner
+				if !attribute.Description.IsUnknown() && !attribute.Description.IsNull() {
+					bonjourForwardingRule.SetDescription(attribute.Description.ValueString())
+				}
+				if !attribute.VlanId.IsUnknown() && !attribute.VlanId.IsNull() {
+					bonjourForwardingRule.SetVlanId(attribute.VlanId.ValueString())
+				}
+				if !attribute.Services.IsUnknown() && !attribute.Services.IsNull() {
+					var services []string
+					serviceserr := attribute.Services.ElementsAs(ctx, &services, false)
+					if serviceserr != nil {
+						resp.Diagnostics.AddError(
+							"Failed to unmarshal bonjourForwardingRule services",
+							fmt.Sprintf("%v", serviceserr),
+						)
+						return
+
+					}
+					bonjourForwardingRule.SetServices(services)
+				}
+				bonjourForwardingRules = append(bonjourForwardingRules, bonjourForwardingRule)
+			}
+			bonjourForwarding.SetRules(bonjourForwardingRules)
 		}
 		updateNetworkGroupPolicy.SetBonjourForwarding(bonjourForwarding)
 
@@ -2146,149 +2210,167 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 			)
 			return
 		}
-		if !firewallAndTrafficShapingData.Settings.IsUnknown() {
+		if !firewallAndTrafficShapingData.Settings.IsUnknown() && !firewallAndTrafficShapingData.Settings.IsNull() {
 			firewallAndTrafficShaping.SetSettings(firewallAndTrafficShapingData.Settings.ValueString())
 		}
-		var l3FirewallRules []NetworksGroupPolicyResourceModelL3FirewallRule
-		err := firewallAndTrafficShapingData.L3FirewallRules.ElementsAs(ctx, &l3FirewallRules, false)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Failed to unmarshal FirewallAndTrafficShaping",
-				fmt.Sprintf("%v", err),
-			)
-			return
+		if !firewallAndTrafficShapingData.L3FirewallRules.IsUnknown() && !firewallAndTrafficShapingData.L3FirewallRules.IsNull() {
+			var l3FirewallRules []NetworksGroupPolicyResourceModelL3FirewallRule
+			err := firewallAndTrafficShapingData.L3FirewallRules.ElementsAs(ctx, &l3FirewallRules, false)
+			if err != nil {
+				resp.Diagnostics.AddError(
+					"Failed to unmarshal FirewallAndTrafficShaping l3FirewallRules",
+					fmt.Sprintf("%v", err),
+				)
+				return
 
-		}
-		if len(l3FirewallRules) > 0 {
-			var l3s []openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingL3FirewallRulesInner
-			for _, attribute := range l3FirewallRules {
-				var l3 openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingL3FirewallRulesInner
-				if !attribute.Comment.IsUnknown() {
-					l3.SetComment(attribute.Comment.ValueString())
-				}
-				if !attribute.DestCidr.IsUnknown() {
-					l3.SetDestCidr(attribute.DestCidr.ValueString())
-				}
-				if !attribute.DestPort.IsUnknown() {
-					l3.SetDestPort(attribute.DestPort.ValueString())
-				}
-				if !attribute.Policy.IsUnknown() {
-					l3.SetPolicy(attribute.Policy.ValueString())
-				}
-				if !attribute.Protocol.IsUnknown() {
-					l3.SetProtocol(attribute.Protocol.ValueString())
-				}
-				l3s = append(l3s, l3)
 			}
-			firewallAndTrafficShaping.SetL3FirewallRules(l3s)
-		}
-		var l7FirewallRules []NetworksGroupPolicyResourceModelL7FirewallRule
-		err = firewallAndTrafficShapingData.L7FirewallRules.ElementsAs(ctx, &l7FirewallRules, false)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Failed to unmarshal L7FirewallRules",
-				fmt.Sprintf("%v", err),
-			)
-			return
-
-		}
-		if len(l7FirewallRules) > 0 {
-			var l7s []openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingL7FirewallRulesInner
-			for _, attribute := range l7FirewallRules {
-				var l7 openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingL7FirewallRulesInner
-				if !attribute.Value.IsUnknown() {
-					l7.SetValue(attribute.Value.ValueString())
+			if len(l3FirewallRules) > 0 {
+				var l3s []openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingL3FirewallRulesInner
+				for _, attribute := range l3FirewallRules {
+					var l3 openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingL3FirewallRulesInner
+					if !attribute.Comment.IsUnknown() {
+						l3.SetComment(attribute.Comment.ValueString())
+					}
+					if !attribute.DestCidr.IsUnknown() {
+						l3.SetDestCidr(attribute.DestCidr.ValueString())
+					}
+					if !attribute.DestPort.IsUnknown() {
+						l3.SetDestPort(attribute.DestPort.ValueString())
+					}
+					if !attribute.Policy.IsUnknown() {
+						l3.SetPolicy(attribute.Policy.ValueString())
+					}
+					if !attribute.Protocol.IsUnknown() {
+						l3.SetProtocol(attribute.Protocol.ValueString())
+					}
+					l3s = append(l3s, l3)
 				}
-				if !attribute.Type.IsUnknown() {
-					l7.SetType(attribute.Type.ValueString())
-				}
-
-				if !attribute.Policy.IsUnknown() {
-					l7.SetPolicy(attribute.Policy.ValueString())
-				}
-
-				l7s = append(l7s, l7)
+				firewallAndTrafficShaping.SetL3FirewallRules(l3s)
 			}
-			firewallAndTrafficShaping.SetL7FirewallRules(l7s)
 
 		}
-		var trafficShapingRule []NetworksGroupPolicyResourceModelTrafficShapingRule
-		err = firewallAndTrafficShapingData.TrafficShapingRules.ElementsAs(ctx, &trafficShapingRule, false)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Failed to unmarshal TrafficShapingRules",
-				fmt.Sprintf("%v", err),
-			)
-			return
+
+		if !firewallAndTrafficShapingData.L7FirewallRules.IsUnknown() && !firewallAndTrafficShapingData.L7FirewallRules.IsNull() {
+
+			var l7FirewallRules []NetworksGroupPolicyResourceModelL7FirewallRule
+			err := firewallAndTrafficShapingData.L7FirewallRules.ElementsAs(ctx, &l7FirewallRules, false)
+			if err != nil {
+				resp.Diagnostics.AddError(
+					"Failed to unmarshal L7FirewallRules",
+					fmt.Sprintf("%v", err),
+				)
+				return
+
+			}
+			if len(l7FirewallRules) > 0 {
+				var l7s []openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingL7FirewallRulesInner
+				for _, attribute := range l7FirewallRules {
+					var l7 openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingL7FirewallRulesInner
+					if !attribute.Value.IsUnknown() {
+						l7.SetValue(attribute.Value.ValueString())
+					}
+					if !attribute.Type.IsUnknown() {
+						l7.SetType(attribute.Type.ValueString())
+					}
+
+					if !attribute.Policy.IsUnknown() {
+						l7.SetPolicy(attribute.Policy.ValueString())
+					}
+
+					l7s = append(l7s, l7)
+				}
+				firewallAndTrafficShaping.SetL7FirewallRules(l7s)
+
+			}
 
 		}
-		if len(trafficShapingRule) > 0 {
-			var tfs []openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingTrafficShapingRulesInner
-			for _, attribute := range trafficShapingRule {
-				var tf openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingTrafficShapingRulesInner
-				if !attribute.DscpTagValue.IsUnknown() {
-					tf.SetDscpTagValue(int32(attribute.DscpTagValue.ValueInt64()))
-				}
-				if !attribute.PcpTagValue.IsUnknown() {
-					tf.SetPcpTagValue(int32(attribute.PcpTagValue.ValueInt64()))
-				}
-				var perClientBandWidthLimits openApiClient.UpdateNetworkApplianceTrafficShapingRulesRequestRulesInnerPerClientBandwidthLimits
-				var perClientBandWidthData NetworksGroupPolicyResourceModelPerClientBandwidth
-				perClientBandWidthDataErr := attribute.PerClientBandwidthLimits.As(ctx, &perClientBandWidthData, basetypes.ObjectAsOptions{})
-				if perClientBandWidthDataErr != nil {
-					resp.Diagnostics.AddError(
-						"Failed to unmarshal perClientBandWidth",
-						fmt.Sprintf("%v", perClientBandWidthDataErr),
-					)
-					return
 
-				}
+		if !firewallAndTrafficShapingData.TrafficShapingRules.IsUnknown() && !firewallAndTrafficShapingData.TrafficShapingRules.IsNull() {
 
-				if !perClientBandWidthData.Settings.IsUnknown() {
-					var bandwidthLimits openApiClient.UpdateNetworkApplianceTrafficShapingRulesRequestRulesInnerPerClientBandwidthLimitsBandwidthLimits
+			var trafficShapingRule []NetworksGroupPolicyResourceModelTrafficShapingRule
+			err := firewallAndTrafficShapingData.TrafficShapingRules.ElementsAs(ctx, &trafficShapingRule, false)
+			if err != nil {
+				resp.Diagnostics.AddError(
+					"Failed to unmarshal TrafficShapingRules",
+					fmt.Sprintf("%v", err),
+				)
+				return
 
-					if perClientBandWidthData.Settings.ValueString() != "network default" {
-						var perClientBandWidthLimitsData NetworksGroupPolicyResourceModelPerClientBandwidthLimits
-						perClientBandWidthLimitsDataErr := attribute.PerClientBandwidthLimits.As(ctx, &perClientBandWidthLimitsData, basetypes.ObjectAsOptions{})
-						if perClientBandWidthLimitsDataErr != nil {
+			}
+
+			if len(trafficShapingRule) > 0 {
+				var tfs []openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingTrafficShapingRulesInner
+				for _, attribute := range trafficShapingRule {
+					var tf openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingTrafficShapingRulesInner
+					if !attribute.DscpTagValue.IsUnknown() {
+						tf.SetDscpTagValue(int32(attribute.DscpTagValue.ValueInt64()))
+					}
+					if !attribute.PcpTagValue.IsUnknown() {
+						tf.SetPcpTagValue(int32(attribute.PcpTagValue.ValueInt64()))
+					}
+					if !attribute.PerClientBandwidthLimits.IsUnknown() && !attribute.PerClientBandwidthLimits.IsNull() {
+						var perClientBandWidthLimits openApiClient.UpdateNetworkApplianceTrafficShapingRulesRequestRulesInnerPerClientBandwidthLimits
+						var perClientBandWidthData NetworksGroupPolicyResourceModelPerClientBandwidth
+						perClientBandWidthDataErr := attribute.PerClientBandwidthLimits.As(ctx, &perClientBandWidthData, basetypes.ObjectAsOptions{})
+						if perClientBandWidthDataErr != nil {
 							resp.Diagnostics.AddError(
-								"Failed to unmarshal perClientBandWidthLimits",
-								fmt.Sprintf("%v", perClientBandWidthLimitsDataErr),
+								"Failed to unmarshal perClientBandWidth",
+								fmt.Sprintf("%v", perClientBandWidthDataErr),
 							)
 							return
 
 						}
-						bandwidthLimits.SetLimitDown(int32(perClientBandWidthLimitsData.LimitDown.ValueInt64()))
-						bandwidthLimits.SetLimitUp(int32(perClientBandWidthLimitsData.LimitUp.ValueInt64()))
 
-						perClientBandWidthLimits.SetBandwidthLimits(bandwidthLimits)
-					}
-					perClientBandWidthLimits.SetSettings(perClientBandWidthData.Settings.ValueString())
-					tf.SetPerClientBandwidthLimits(perClientBandWidthLimits)
-				}
-				var defs []openApiClient.UpdateNetworkApplianceTrafficShapingRulesRequestRulesInnerDefinitionsInner
-				var definitions []NetworksGroupPolicyResourceModelDefinition
-				err = attribute.Definitions.ElementsAs(ctx, &definitions, false)
-				if err != nil {
-					resp.Diagnostics.AddError(
-						"Failed to unmarshal Definitions",
-						fmt.Sprintf("%v", err),
-					)
-					return
+						if !perClientBandWidthData.Settings.IsUnknown() && !perClientBandWidthData.Settings.IsNull() {
+							var bandwidthLimits openApiClient.UpdateNetworkApplianceTrafficShapingRulesRequestRulesInnerPerClientBandwidthLimitsBandwidthLimits
+							perClientBandWidthLimits.SetSettings(perClientBandWidthData.Settings.ValueString())
+							if perClientBandWidthData.Settings.ValueString() != "network default" {
+								var perClientBandWidthLimitsData NetworksGroupPolicyResourceModelPerClientBandwidthLimits
+								if !attribute.PerClientBandwidthLimits.IsUnknown() && !attribute.PerClientBandwidthLimits.IsNull() {
+									perClientBandWidthLimitsDataErr := attribute.PerClientBandwidthLimits.As(ctx, &perClientBandWidthLimitsData, basetypes.ObjectAsOptions{})
+									if perClientBandWidthLimitsDataErr != nil {
+										resp.Diagnostics.AddError(
+											"Failed to unmarshal perClientBandWidthLimits",
+											fmt.Sprintf("%v", perClientBandWidthLimitsDataErr),
+										)
+										return
 
-				}
-				if len(definitions) > 0 {
-					for _, attribute := range definitions {
-						var def openApiClient.UpdateNetworkApplianceTrafficShapingRulesRequestRulesInnerDefinitionsInner
-						def.SetType(attribute.Type.ValueString())
-						def.SetValue(attribute.Value.ValueString())
-						defs = append(defs, def)
+									}
+									bandwidthLimits.SetLimitDown(int32(perClientBandWidthLimitsData.LimitDown.ValueInt64()))
+									bandwidthLimits.SetLimitUp(int32(perClientBandWidthLimitsData.LimitUp.ValueInt64()))
+
+									perClientBandWidthLimits.SetBandwidthLimits(bandwidthLimits)
+								}
+							}
+							tf.SetPerClientBandwidthLimits(perClientBandWidthLimits)
+						}
 					}
-					tf.SetDefinitions(defs)
+					if !attribute.Definitions.IsUnknown() && !attribute.Definitions.IsNull() {
+						var defs []openApiClient.UpdateNetworkApplianceTrafficShapingRulesRequestRulesInnerDefinitionsInner
+						var definitions []NetworksGroupPolicyResourceModelDefinition
+						err = attribute.Definitions.ElementsAs(ctx, &definitions, false)
+						if err != nil {
+							resp.Diagnostics.AddError(
+								"Failed to unmarshal Definitions",
+								fmt.Sprintf("%v", err),
+							)
+							return
+
+						}
+						if len(definitions) > 0 {
+							for _, attribute := range definitions {
+								var def openApiClient.UpdateNetworkApplianceTrafficShapingRulesRequestRulesInnerDefinitionsInner
+								def.SetType(attribute.Type.ValueString())
+								def.SetValue(attribute.Value.ValueString())
+								defs = append(defs, def)
+							}
+							tf.SetDefinitions(defs)
+						}
+					}
+					tfs = append(tfs, tf)
 				}
-				tfs = append(tfs, tf)
+				firewallAndTrafficShaping.SetTrafficShapingRules(tfs)
 			}
-			firewallAndTrafficShaping.SetTrafficShapingRules(tfs)
 		}
 
 		updateNetworkGroupPolicy.SetFirewallAndTrafficShaping(firewallAndTrafficShaping)
@@ -2440,88 +2522,105 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 		}
 		contentFilteringStatus := false
 
-		var contentFilteringPatternsData NetworksGroupPolicyResourceModelAllowedUrlPatterns
-		contentDataPatternsErr := contentFilteringData.AllowedUrlPatterns.As(ctx, &contentFilteringPatternsData, basetypes.ObjectAsOptions{})
-		if contentDataPatternsErr != nil {
-			resp.Diagnostics.AddError(
-				"Failed to unmarshal ContentFilteringPatterns",
-				fmt.Sprintf("%v", contentDataPatternsErr),
-			)
-			return
-		}
+		if !contentFilteringData.AllowedUrlPatterns.IsUnknown() && !contentFilteringData.AllowedUrlPatterns.IsNull() {
 
-		if !contentFilteringPatternsData.Settings.IsUnknown() {
-			var allowedUrlPatternData openApiClient.CreateNetworkGroupPolicyRequestContentFilteringAllowedUrlPatterns
-			allowedUrlPatternData.SetSettings(contentFilteringPatternsData.Settings.ValueString())
-			var patternsData []string
-			patternsDataerr := contentFilteringPatternsData.Patterns.ElementsAs(ctx, &patternsData, false)
-			if patternsDataerr != nil {
+			var contentFilteringPatternsData NetworksGroupPolicyResourceModelAllowedUrlPatterns
+			contentDataPatternsErr := contentFilteringData.AllowedUrlPatterns.As(ctx, &contentFilteringPatternsData, basetypes.ObjectAsOptions{})
+			if contentDataPatternsErr != nil {
 				resp.Diagnostics.AddError(
-					"Failed to unmarshal AllowedURLPatterns",
-					fmt.Sprintf("%v", patternsDataerr),
+					"Failed to unmarshal ContentFilteringPatterns",
+					fmt.Sprintf("%v", contentDataPatternsErr),
 				)
 				return
-
 			}
-			allowedUrlPatternData.SetPatterns(patternsData)
-			contentFiltering.SetAllowedUrlPatterns(allowedUrlPatternData)
-			contentFilteringStatus = true
+
+			if !contentFilteringPatternsData.Settings.IsUnknown() && !contentFilteringPatternsData.Settings.IsNull() {
+				var allowedUrlPatternData openApiClient.CreateNetworkGroupPolicyRequestContentFilteringAllowedUrlPatterns
+				allowedUrlPatternData.SetSettings(contentFilteringPatternsData.Settings.ValueString())
+				if !contentFilteringPatternsData.Patterns.IsUnknown() && !contentFilteringPatternsData.Patterns.IsNull() {
+					var patternsData []string
+					patternsDataerr := contentFilteringPatternsData.Patterns.ElementsAs(ctx, &patternsData, false)
+					if patternsDataerr != nil {
+						resp.Diagnostics.AddError(
+							"Failed to unmarshal AllowedURLPatterns",
+							fmt.Sprintf("%v", patternsDataerr),
+						)
+						return
+
+					}
+					allowedUrlPatternData.SetPatterns(patternsData)
+				}
+				contentFiltering.SetAllowedUrlPatterns(allowedUrlPatternData)
+				contentFilteringStatus = true
+			}
+
 		}
 
-		var contentFilteringBlockedUrlCategoriesData NetworksGroupPolicyResourceModelBlockedUrlCategories
-		contentFilteringBlockedUrlCategoriesDataErr := contentFilteringData.BlockedUrlCategories.As(ctx, &contentFilteringBlockedUrlCategoriesData, basetypes.ObjectAsOptions{})
-		if contentFilteringBlockedUrlCategoriesDataErr != nil {
-			resp.Diagnostics.AddError(
-				"Failed to unmarshal ContentBlockedUrlCategories",
-				fmt.Sprintf("%v", contentFilteringBlockedUrlCategoriesDataErr),
-			)
-			return
-		}
+		if !contentFilteringData.BlockedUrlCategories.IsUnknown() && !contentFilteringData.BlockedUrlCategories.IsNull() {
 
-		if !contentFilteringBlockedUrlCategoriesData.Settings.IsUnknown() {
-			var blockedUrlCategoriesData openApiClient.CreateNetworkGroupPolicyRequestContentFilteringBlockedUrlCategories
-			blockedUrlCategoriesData.SetSettings(contentFilteringBlockedUrlCategoriesData.Settings.ValueString())
-			var blockedUrlCategories []string
-			blockedUrlCategoriesDataerr := contentFilteringBlockedUrlCategoriesData.Categories.ElementsAs(ctx, &blockedUrlCategories, false)
-			if blockedUrlCategoriesDataerr != nil {
+			var contentFilteringBlockedUrlCategoriesData NetworksGroupPolicyResourceModelBlockedUrlCategories
+			contentFilteringBlockedUrlCategoriesDataErr := contentFilteringData.BlockedUrlCategories.As(ctx, &contentFilteringBlockedUrlCategoriesData, basetypes.ObjectAsOptions{})
+			if contentFilteringBlockedUrlCategoriesDataErr != nil {
 				resp.Diagnostics.AddError(
-					"Failed to unmarshal blockedUrlCategories",
-					fmt.Sprintf("%v", blockedUrlCategoriesDataerr),
+					"Failed to unmarshal ContentBlockedUrlCategories",
+					fmt.Sprintf("%v", contentFilteringBlockedUrlCategoriesDataErr),
 				)
 				return
-
 			}
-			blockedUrlCategoriesData.SetCategories(blockedUrlCategories)
-			contentFiltering.SetBlockedUrlCategories(blockedUrlCategoriesData)
-			contentFilteringStatus = true
+
+			if !contentFilteringBlockedUrlCategoriesData.Settings.IsUnknown() && !contentFilteringBlockedUrlCategoriesData.Settings.IsNull() {
+				var blockedUrlCategoriesData openApiClient.CreateNetworkGroupPolicyRequestContentFilteringBlockedUrlCategories
+				blockedUrlCategoriesData.SetSettings(contentFilteringBlockedUrlCategoriesData.Settings.ValueString())
+				if !contentFilteringBlockedUrlCategoriesData.Categories.IsUnknown() && !contentFilteringBlockedUrlCategoriesData.Categories.IsNull() {
+					var blockedUrlCategories []string
+					blockedUrlCategoriesDataerr := contentFilteringBlockedUrlCategoriesData.Categories.ElementsAs(ctx, &blockedUrlCategories, false)
+					if blockedUrlCategoriesDataerr != nil {
+						resp.Diagnostics.AddError(
+							"Failed to unmarshal blockedUrlCategories",
+							fmt.Sprintf("%v", blockedUrlCategoriesDataerr),
+						)
+						return
+
+					}
+					blockedUrlCategoriesData.SetCategories(blockedUrlCategories)
+				}
+				contentFiltering.SetBlockedUrlCategories(blockedUrlCategoriesData)
+				contentFilteringStatus = true
+			}
+
 		}
 
-		var contentFilteringBlockedUrlPatternsData NetworksGroupPolicyResourceModelBlockedUrlPatterns
-		contentFilteringBlockedUrlPatternsDataErr := contentFilteringData.BlockedUrlPatterns.As(ctx, &contentFilteringBlockedUrlPatternsData, basetypes.ObjectAsOptions{})
-		if contentFilteringBlockedUrlPatternsDataErr != nil {
-			resp.Diagnostics.AddError(
-				"Failed to unmarshal ContentBlockedUrlPatterns",
-				fmt.Sprintf("%v", contentFilteringBlockedUrlPatternsDataErr),
-			)
-			return
-		}
-
-		if !contentFilteringBlockedUrlPatternsData.Settings.IsUnknown() {
-			var blockedUrlPatternsData openApiClient.CreateNetworkGroupPolicyRequestContentFilteringBlockedUrlPatterns
-			blockedUrlPatternsData.SetSettings(contentFilteringBlockedUrlPatternsData.Settings.ValueString())
-			var blockedUrlPatterns []string
-			blockedUrlPatternsDataerr := contentFilteringBlockedUrlPatternsData.Patterns.ElementsAs(ctx, &blockedUrlPatterns, false)
-			if blockedUrlPatternsDataerr != nil {
+		if !contentFilteringData.BlockedUrlPatterns.IsUnknown() && !contentFilteringData.BlockedUrlPatterns.IsNull() {
+			var contentFilteringBlockedUrlPatternsData NetworksGroupPolicyResourceModelBlockedUrlPatterns
+			contentFilteringBlockedUrlPatternsDataErr := contentFilteringData.BlockedUrlPatterns.As(ctx, &contentFilteringBlockedUrlPatternsData, basetypes.ObjectAsOptions{})
+			if contentFilteringBlockedUrlPatternsDataErr != nil {
 				resp.Diagnostics.AddError(
-					"Failed to unmarshal blockedUrlPatterns",
-					fmt.Sprintf("%v", blockedUrlPatternsDataerr),
+					"Failed to unmarshal ContentBlockedUrlPatterns",
+					fmt.Sprintf("%v", contentFilteringBlockedUrlPatternsDataErr),
 				)
 				return
-
 			}
-			blockedUrlPatternsData.SetPatterns(blockedUrlPatterns)
-			contentFiltering.SetBlockedUrlPatterns(blockedUrlPatternsData)
-			contentFilteringStatus = true
+
+			if !contentFilteringBlockedUrlPatternsData.Settings.IsUnknown() && !contentFilteringBlockedUrlPatternsData.Settings.IsNull() {
+				var blockedUrlPatternsData openApiClient.CreateNetworkGroupPolicyRequestContentFilteringBlockedUrlPatterns
+				blockedUrlPatternsData.SetSettings(contentFilteringBlockedUrlPatternsData.Settings.ValueString())
+				if !contentFilteringBlockedUrlPatternsData.Patterns.IsUnknown() && !contentFilteringBlockedUrlPatternsData.Patterns.IsNull() {
+					var blockedUrlPatterns []string
+					blockedUrlPatternsDataerr := contentFilteringBlockedUrlPatternsData.Patterns.ElementsAs(ctx, &blockedUrlPatterns, false)
+					if blockedUrlPatternsDataerr != nil {
+						resp.Diagnostics.AddError(
+							"Failed to unmarshal blockedUrlPatterns",
+							fmt.Sprintf("%v", blockedUrlPatternsDataerr),
+						)
+						return
+
+					}
+					blockedUrlPatternsData.SetPatterns(blockedUrlPatterns)
+				}
+				contentFiltering.SetBlockedUrlPatterns(blockedUrlPatternsData)
+				contentFilteringStatus = true
+			}
+
 		}
 
 		if contentFilteringStatus {
