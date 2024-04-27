@@ -58,19 +58,16 @@ Optional:
 
 Optional:
 
-- `rules` (Attributes Set) (see [below for nested schema](#nestedatt--bonjour_forwarding--rules))
+- `rules` (Attributes List) (see [below for nested schema](#nestedatt--bonjour_forwarding--rules))
 - `settings` (String) How Bonjour rules are applied. Can be 'network default', 'ignore' or 'custom'.
 
 <a id="nestedatt--bonjour_forwarding--rules"></a>
 ### Nested Schema for `bonjour_forwarding.rules`
 
-Required:
-
-- `services` (Set of String)
-
 Optional:
 
 - `description` (String) A description for your Bonjour forwarding rule. Optional.
+- `services` (Set of String)
 - `vlan_id` (String) The ID of the service VLAN. Required.
 
 
@@ -118,9 +115,9 @@ Optional:
 Optional:
 
 - `l3_firewall_rules` (Attributes List) (see [below for nested schema](#nestedatt--firewall_and_traffic_shaping--l3_firewall_rules))
-- `l7_firewall_rules` (Attributes Set) (see [below for nested schema](#nestedatt--firewall_and_traffic_shaping--l7_firewall_rules))
+- `l7_firewall_rules` (Attributes List) (see [below for nested schema](#nestedatt--firewall_and_traffic_shaping--l7_firewall_rules))
 - `settings` (String) How firewall and traffic shaping rules are enforced. Can be 'network default', 'ignore' or 'custom'.
-- `traffic_shaping_rules` (Attributes Set) (see [below for nested schema](#nestedatt--firewall_and_traffic_shaping--traffic_shaping_rules))
+- `traffic_shaping_rules` (Attributes List) (see [below for nested schema](#nestedatt--firewall_and_traffic_shaping--traffic_shaping_rules))
 
 <a id="nestedatt--firewall_and_traffic_shaping--l3_firewall_rules"></a>
 ### Nested Schema for `firewall_and_traffic_shaping.l3_firewall_rules`
@@ -149,7 +146,7 @@ Optional:
 
 Optional:
 
-- `definitions` (Attributes Set) (see [below for nested schema](#nestedatt--firewall_and_traffic_shaping--traffic_shaping_rules--definitions))
+- `definitions` (Attributes List) (see [below for nested schema](#nestedatt--firewall_and_traffic_shaping--traffic_shaping_rules--definitions))
 - `dscp_tag_value` (Number) The DSCP tag applied by your rule. null means Do not change DSCP tag. For a list of possible tag values, use the trafficShaping/dscpTaggingOptions endpoint
 - `pcp_tag_value` (Number) The PCP tag applied by your rule. Can be 0 (lowest priority) through 7 (highest priority). null means Do not set PCP tag.
 - `per_client_bandwidth_limits` (Attributes) (see [below for nested schema](#nestedatt--firewall_and_traffic_shaping--traffic_shaping_rules--per_client_bandwidth_limits))
