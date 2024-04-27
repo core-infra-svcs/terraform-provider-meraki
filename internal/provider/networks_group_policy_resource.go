@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 
-	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -42,17 +41,17 @@ type NetworksGroupPolicyResource struct {
 
 // NetworksGroupPolicyResourceModel describes the resource data model.
 type NetworksGroupPolicyResourceModel struct {
-	Id                        jsontypes.String `tfsdk:"id"`
-	NetworkId                 jsontypes.String `tfsdk:"network_id"`
-	GroupPolicyId             jsontypes.String `tfsdk:"group_policy_id" json:"groupPolicyId"`
-	Name                      jsontypes.String `tfsdk:"name" json:"name"`
-	SplashAuthSettings        jsontypes.String `tfsdk:"splash_auth_settings" json:"splashAuthSettings"`
-	Bandwidth                 types.Object     `tfsdk:"bandwidth" json:"bandwidth"`
-	BonjourForwarding         types.Object     `tfsdk:"bonjour_forwarding" json:"bonjourForwarding"`
-	Scheduling                types.Object     `tfsdk:"scheduling" json:"scheduling"`
-	ContentFiltering          types.Object     `tfsdk:"content_filtering" json:"contentFiltering"`
-	FirewallAndTrafficShaping types.Object     `tfsdk:"firewall_and_traffic_shaping" json:"firewallAndTrafficShaping"`
-	VlanTagging               types.Object     `tfsdk:"vlan_tagging" json:"vlanTagging"`
+	Id                        types.String `tfsdk:"id"`
+	NetworkId                 types.String `tfsdk:"network_id"`
+	GroupPolicyId             types.String `tfsdk:"group_policy_id" json:"groupPolicyId"`
+	Name                      types.String `tfsdk:"name" json:"name"`
+	SplashAuthSettings        types.String `tfsdk:"splash_auth_settings" json:"splashAuthSettings"`
+	Bandwidth                 types.Object `tfsdk:"bandwidth" json:"bandwidth"`
+	BonjourForwarding         types.Object `tfsdk:"bonjour_forwarding" json:"bonjourForwarding"`
+	Scheduling                types.Object `tfsdk:"scheduling" json:"scheduling"`
+	ContentFiltering          types.Object `tfsdk:"content_filtering" json:"contentFiltering"`
+	FirewallAndTrafficShaping types.Object `tfsdk:"firewall_and_traffic_shaping" json:"firewallAndTrafficShaping"`
+	VlanTagging               types.Object `tfsdk:"vlan_tagging" json:"vlanTagging"`
 }
 
 type NetworksGroupPolicyResourceModelFirewallAndTrafficShaping struct {
@@ -736,7 +735,7 @@ func getFirewallAndTrafficShaping(ctx context.Context, inlineResp map[string]int
 			return basetypes.ObjectValue{}, diags
 		}
 
-		ruleDataMap, _ := basetypes.NewObjectValue(L7FirewallRulesAttrTypes(), map[string]attr.Value{
+		ruleDataMap, _ := basetypes.NewObjectValue(TrafficShapingRulesAttrTypes(), map[string]attr.Value{
 			"dscp_tag_value":              basetypes.NewInt64Value(rule.DscpTagValue),
 			"pcp_tag_value":               basetypes.NewInt64Value(rule.PcpTagValue),
 			"per_client_bandwidth_limits": objectVal,
@@ -780,12 +779,12 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 			"id": schema.StringAttribute{
 				MarkdownDescription: "Example identifier",
 				Computed:            true,
-				CustomType:          jsontypes.StringType,
+				CustomType:          types.StringType,
 			},
 			"network_id": schema.StringAttribute{
 				MarkdownDescription: "Network Id",
 				Required:            true,
-				CustomType:          jsontypes.StringType,
+				CustomType:          types.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -797,7 +796,7 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 				MarkdownDescription: "Group Policy ID",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes.StringType,
+				CustomType:          types.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -808,13 +807,13 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 			"name": schema.StringAttribute{
 				MarkdownDescription: "Name of Group Policy",
 				Required:            true,
-				CustomType:          jsontypes.StringType,
+				CustomType:          types.StringType,
 			},
 			"splash_auth_settings": schema.StringAttribute{
 				MarkdownDescription: "Whether clients bound to your policy will bypass splash authorization or behave according to the network's rules. Can be one of 'network default' or 'bypass'. Only available if your network has a wireless configuration",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes.StringType,
+				CustomType:          types.StringType,
 				Validators: []validator.String{
 					stringvalidator.OneOf([]string{"network default", "bypass"}...),
 				},
@@ -883,7 +882,8 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 								},
 								"services": schema.SetAttribute{
 									CustomType: types.SetType{ElemType: types.StringType},
-									Required:   true,
+									Optional:   true,
+									Computed:   true,
 									Validators: []validator.Set{
 										setvalidator.ValueStringsAre(
 											stringvalidator.OneOf([]string{"All Services", "AirPlay", "AFP", "BitTorrent", "FTP", "iChat", "iTunes", "Printers", "Samba", "Scanners", "SSH"}...),
@@ -1583,7 +1583,7 @@ func (r *NetworksGroupPolicyResource) Create(ctx context.Context, req resource.C
 							if perClientBandWidthData.Settings.ValueString() != "network default" {
 								var perClientBandWidthLimitsData NetworksGroupPolicyResourceModelPerClientBandwidthLimits
 								if !attribute.PerClientBandwidthLimits.IsUnknown() && !attribute.PerClientBandwidthLimits.IsNull() {
-									perClientBandWidthLimitsDataErr := attribute.PerClientBandwidthLimits.As(ctx, &perClientBandWidthLimitsData, basetypes.ObjectAsOptions{})
+									perClientBandWidthLimitsDataErr := perClientBandWidthData.BandwidthLimits.As(ctx, &perClientBandWidthLimitsData, basetypes.ObjectAsOptions{})
 									if perClientBandWidthLimitsDataErr != nil {
 										resp.Diagnostics.AddError(
 											"Failed to unmarshal perClientBandWidthLimits",
@@ -1599,6 +1599,7 @@ func (r *NetworksGroupPolicyResource) Create(ctx context.Context, req resource.C
 								}
 							}
 							tf.SetPerClientBandwidthLimits(perClientBandWidthLimits)
+
 						}
 					}
 					if !attribute.Definitions.IsUnknown() && !attribute.Definitions.IsNull() {
@@ -1626,6 +1627,7 @@ func (r *NetworksGroupPolicyResource) Create(ctx context.Context, req resource.C
 					tfs = append(tfs, tf)
 				}
 				firewallAndTrafficShaping.SetTrafficShapingRules(tfs)
+
 			}
 		}
 
@@ -1924,15 +1926,6 @@ func (r *NetworksGroupPolicyResource) Create(ctx context.Context, req resource.C
 		return
 	}
 
-	// Save data into Terraform state
-	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
-		resp.Diagnostics.AddError(
-			"JSON decoding error",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-		return
-	}
-
 	bandwidthVal, diags := getBandwidth(ctx, inlineResp)
 	if diags.HasError() {
 		return
@@ -1941,6 +1934,7 @@ func (r *NetworksGroupPolicyResource) Create(ctx context.Context, req resource.C
 	if diags.HasError() {
 		return
 	}
+
 	schedulingVal, diags := getScheduling(ctx, inlineResp)
 	if diags.HasError() {
 		return
@@ -1965,7 +1959,10 @@ func (r *NetworksGroupPolicyResource) Create(ctx context.Context, req resource.C
 	data.ContentFiltering = contentFilteringVal
 	data.BonjourForwarding = bonjourForwardingVal
 	data.VlanTagging = vlantaggingVal
-	data.Id = jsontypes.StringValue("example-id")
+	data.SplashAuthSettings = basetypes.NewStringValue(inlineResp["splashAuthSettings"].(string))
+	data.GroupPolicyId = basetypes.NewStringValue(inlineResp["groupPolicyId"].(string))
+	data.Name = basetypes.NewStringValue(inlineResp["name"].(string))
+	data.Id = types.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -2022,15 +2019,6 @@ func (r *NetworksGroupPolicyResource) Read(ctx context.Context, req resource.Rea
 		return
 	}
 
-	// Save data into Terraform state
-	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
-		resp.Diagnostics.AddError(
-			"JSON decoding error",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-		return
-	}
-
 	bandwidthVal, diags := getBandwidth(ctx, inlineResp)
 	if diags.HasError() {
 		return
@@ -2063,7 +2051,10 @@ func (r *NetworksGroupPolicyResource) Read(ctx context.Context, req resource.Rea
 	data.ContentFiltering = contentFilteringVal
 	data.BonjourForwarding = bonjourForwardingVal
 	data.VlanTagging = vlantaggingVal
-	data.Id = jsontypes.StringValue("example-id")
+	data.SplashAuthSettings = basetypes.NewStringValue(inlineResp["splashAuthSettings"].(string))
+	data.GroupPolicyId = basetypes.NewStringValue(inlineResp["groupPolicyId"].(string))
+	data.Name = basetypes.NewStringValue(inlineResp["name"].(string))
+	data.Id = types.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -2088,7 +2079,7 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 		updateNetworkGroupPolicy.SetSplashAuthSettings(data.SplashAuthSettings.ValueString())
 	}
 
-	if !data.VlanTagging.IsUnknown() && !data.VlanTagging.IsNull() {
+	if !data.VlanTagging.IsUnknown() {
 		var vlanTagging NetworksGroupPolicyResourceModelVlanTagging
 		vlanTaggingErr := data.VlanTagging.As(ctx, &vlanTagging, basetypes.ObjectAsOptions{})
 		if vlanTaggingErr != nil {
@@ -2098,10 +2089,10 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 			)
 			return
 		}
-		if !vlanTagging.Settings.IsUnknown() && !vlanTagging.Settings.IsNull() {
+		if !vlanTagging.Settings.IsUnknown() {
 			var v openApiClient.CreateNetworkGroupPolicyRequestVlanTagging
 			v.SetSettings(vlanTagging.Settings.ValueString())
-			if !vlanTagging.VlanId.IsUnknown() && !vlanTagging.VlanId.IsNull() {
+			if !vlanTagging.VlanId.IsUnknown() {
 				v.SetVlanId(vlanTagging.VlanId.ValueString())
 			}
 			updateNetworkGroupPolicy.SetVlanTagging(v)
@@ -2142,7 +2133,7 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 		}
 	}
 
-	if !data.BonjourForwarding.IsUnknown() && !data.BonjourForwarding.IsNull() {
+	if !data.BonjourForwarding.IsUnknown() {
 
 		var bonjourForwarding openApiClient.CreateNetworkGroupPolicyRequestBonjourForwarding
 		var bonjourForwardingData NetworksGroupPolicyResourceModelBonjourForwarding
@@ -2154,10 +2145,10 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 			)
 			return
 		}
-		if !bonjourForwardingData.BonjourForwardingSettings.IsUnknown() && !bonjourForwardingData.BonjourForwardingSettings.IsNull() {
+		if !bonjourForwardingData.BonjourForwardingSettings.IsUnknown() {
 			bonjourForwarding.SetSettings(bonjourForwardingData.BonjourForwardingSettings.ValueString())
 		}
-		if !bonjourForwardingData.BonjourForwardingRules.IsUnknown() && !bonjourForwardingData.BonjourForwardingRules.IsNull() {
+		if !bonjourForwardingData.BonjourForwardingRules.IsUnknown() {
 			var bonjourForwardingRules []openApiClient.CreateNetworkGroupPolicyRequestBonjourForwardingRulesInner
 			var bonjourForwardingRulesData []NetworksGroupPolicyResourceModelRule
 			err := bonjourForwardingData.BonjourForwardingRules.ElementsAs(ctx, &bonjourForwardingRulesData, false)
@@ -2171,13 +2162,13 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 			}
 			for _, attribute := range bonjourForwardingRulesData {
 				var bonjourForwardingRule openApiClient.CreateNetworkGroupPolicyRequestBonjourForwardingRulesInner
-				if !attribute.Description.IsUnknown() && !attribute.Description.IsNull() {
+				if !attribute.Description.IsUnknown() {
 					bonjourForwardingRule.SetDescription(attribute.Description.ValueString())
 				}
-				if !attribute.VlanId.IsUnknown() && !attribute.VlanId.IsNull() {
+				if !attribute.VlanId.IsUnknown() {
 					bonjourForwardingRule.SetVlanId(attribute.VlanId.ValueString())
 				}
-				if !attribute.Services.IsUnknown() && !attribute.Services.IsNull() {
+				if !attribute.Services.IsUnknown() {
 					var services []string
 					serviceserr := attribute.Services.ElementsAs(ctx, &services, false)
 					if serviceserr != nil {
@@ -2194,6 +2185,7 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 			}
 			bonjourForwarding.SetRules(bonjourForwardingRules)
 		}
+
 		updateNetworkGroupPolicy.SetBonjourForwarding(bonjourForwarding)
 
 	}
@@ -2210,10 +2202,11 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 			)
 			return
 		}
-		if !firewallAndTrafficShapingData.Settings.IsUnknown() && !firewallAndTrafficShapingData.Settings.IsNull() {
+		if !firewallAndTrafficShapingData.Settings.IsUnknown() {
 			firewallAndTrafficShaping.SetSettings(firewallAndTrafficShapingData.Settings.ValueString())
 		}
-		if !firewallAndTrafficShapingData.L3FirewallRules.IsUnknown() && !firewallAndTrafficShapingData.L3FirewallRules.IsNull() {
+		if !firewallAndTrafficShapingData.L3FirewallRules.IsUnknown() {
+			var l3s []openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingL3FirewallRulesInner
 			var l3FirewallRules []NetworksGroupPolicyResourceModelL3FirewallRule
 			err := firewallAndTrafficShapingData.L3FirewallRules.ElementsAs(ctx, &l3FirewallRules, false)
 			if err != nil {
@@ -2225,7 +2218,6 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 
 			}
 			if len(l3FirewallRules) > 0 {
-				var l3s []openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingL3FirewallRulesInner
 				for _, attribute := range l3FirewallRules {
 					var l3 openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingL3FirewallRulesInner
 					if !attribute.Comment.IsUnknown() {
@@ -2250,9 +2242,10 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 
 		}
 
-		if !firewallAndTrafficShapingData.L7FirewallRules.IsUnknown() && !firewallAndTrafficShapingData.L7FirewallRules.IsNull() {
+		if !firewallAndTrafficShapingData.L7FirewallRules.IsUnknown() {
 
 			var l7FirewallRules []NetworksGroupPolicyResourceModelL7FirewallRule
+			var l7s []openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingL7FirewallRulesInner
 			err := firewallAndTrafficShapingData.L7FirewallRules.ElementsAs(ctx, &l7FirewallRules, false)
 			if err != nil {
 				resp.Diagnostics.AddError(
@@ -2263,7 +2256,6 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 
 			}
 			if len(l7FirewallRules) > 0 {
-				var l7s []openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingL7FirewallRulesInner
 				for _, attribute := range l7FirewallRules {
 					var l7 openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingL7FirewallRulesInner
 					if !attribute.Value.IsUnknown() {
@@ -2297,9 +2289,8 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 				return
 
 			}
-
+			var tfs []openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingTrafficShapingRulesInner
 			if len(trafficShapingRule) > 0 {
-				var tfs []openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingTrafficShapingRulesInner
 				for _, attribute := range trafficShapingRule {
 					var tf openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingTrafficShapingRulesInner
 					if !attribute.DscpTagValue.IsUnknown() {
@@ -2327,7 +2318,7 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 							if perClientBandWidthData.Settings.ValueString() != "network default" {
 								var perClientBandWidthLimitsData NetworksGroupPolicyResourceModelPerClientBandwidthLimits
 								if !attribute.PerClientBandwidthLimits.IsUnknown() && !attribute.PerClientBandwidthLimits.IsNull() {
-									perClientBandWidthLimitsDataErr := attribute.PerClientBandwidthLimits.As(ctx, &perClientBandWidthLimitsData, basetypes.ObjectAsOptions{})
+									perClientBandWidthLimitsDataErr := perClientBandWidthData.BandwidthLimits.As(ctx, &perClientBandWidthLimitsData, basetypes.ObjectAsOptions{})
 									if perClientBandWidthLimitsDataErr != nil {
 										resp.Diagnostics.AddError(
 											"Failed to unmarshal perClientBandWidthLimits",
@@ -2342,10 +2333,11 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 									perClientBandWidthLimits.SetBandwidthLimits(bandwidthLimits)
 								}
 							}
-							tf.SetPerClientBandwidthLimits(perClientBandWidthLimits)
+
 						}
+						tf.SetPerClientBandwidthLimits(perClientBandWidthLimits)
 					}
-					if !attribute.Definitions.IsUnknown() && !attribute.Definitions.IsNull() {
+					if !attribute.Definitions.IsUnknown() {
 						var defs []openApiClient.UpdateNetworkApplianceTrafficShapingRulesRequestRulesInnerDefinitionsInner
 						var definitions []NetworksGroupPolicyResourceModelDefinition
 						err = attribute.Definitions.ElementsAs(ctx, &definitions, false)
@@ -2369,8 +2361,9 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 					}
 					tfs = append(tfs, tf)
 				}
-				firewallAndTrafficShaping.SetTrafficShapingRules(tfs)
+
 			}
+			firewallAndTrafficShaping.SetTrafficShapingRules(tfs)
 		}
 
 		updateNetworkGroupPolicy.SetFirewallAndTrafficShaping(firewallAndTrafficShaping)
@@ -2667,15 +2660,6 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 		return
 	}
 
-	// Save data into Terraform state
-	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
-		resp.Diagnostics.AddError(
-			"JSON decoding error",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-		return
-	}
-
 	bandwidthVal, diags := getBandwidth(ctx, inlineResp)
 	if diags.HasError() {
 		return
@@ -2692,6 +2676,7 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 	if diags.HasError() {
 		return
 	}
+
 	bonjourForwardingVal, diags := getBonjourForwarding(ctx, inlineResp)
 	if diags.HasError() {
 		return
@@ -2708,7 +2693,10 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 	data.ContentFiltering = contentFilteringVal
 	data.BonjourForwarding = bonjourForwardingVal
 	data.VlanTagging = vlantaggingVal
-	data.Id = jsontypes.StringValue("example-id")
+	data.SplashAuthSettings = basetypes.NewStringValue(inlineResp["splashAuthSettings"].(string))
+	data.GroupPolicyId = basetypes.NewStringValue(inlineResp["groupPolicyId"].(string))
+	data.Name = basetypes.NewStringValue(inlineResp["name"].(string))
+	data.Id = types.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
