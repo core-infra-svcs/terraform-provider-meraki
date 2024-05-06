@@ -30,11 +30,6 @@ description: |-
 <a id="nestedatt--list"></a>
 ### Nested Schema for `list`
 
-Required:
-
-- `network_id` (String) The VLAN ID of the new VLAN (must be between 1 and 4094)
-- `vlan_id` (Number)
-
 Optional:
 
 - `appliance_ip` (String) The local IP of the appliance on the VLAN
@@ -55,9 +50,11 @@ Optional:
 - `mandatory_dhcp` (Attributes) Mandatory DHCP will enforce that clients connecting to this VLAN must use the IP address assigned by the DHCP server. Clients who use a static IP address won't be able to associate. Only available on firmware versions 17.0 and above (see [below for nested schema](#nestedatt--list--mandatory_dhcp))
 - `mask` (Number) Mask used for the subnet of all bound to the template networks. Applicable only for template network.
 - `name` (String) The name of the new VLAN
+- `network_id` (String) The VLAN ID of the new VLAN (must be between 1 and 4094)
 - `reserved_ip_ranges` (Attributes List) The DHCP reserved IP ranges on the VLAN (see [below for nested schema](#nestedatt--list--reserved_ip_ranges))
 - `subnet` (String) The subnet of the VLAN
 - `template_vlan_type` (String) Type of subnetting of the VLAN. Applicable only for template network.
+- `vlan_id` (Number)
 - `vpn_nat_subnet` (String) The translated VPN subnet if VPN and VPN subnet translation are enabled on the VLAN
 
 <a id="nestedatt--list--dhcp_options"></a>
