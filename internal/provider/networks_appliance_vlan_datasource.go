@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
@@ -16,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
+	"io"
 	"strconv"
 	"strings"
 )
@@ -488,28 +490,7 @@ func NetworksApplianceVLANsDatasourceReadHttpResponse(ctx context.Context, data 
 
 	resp := diag.Diagnostics{}
 
-	data.VlanId = types.Int64Null()
-	data.Id = types.StringNull()
-	if response.HasId() {
-		// API returns string, openAPI spec defines int
-		idStr := response.GetId()
-
-		// Check if the string is not empty
-		if idStr != "" {
-
-			// Convert string to int
-			vlanId, err := strconv.Atoi(idStr)
-			if err != nil {
-				// Handle the error if conversion fails
-				resp.AddError("VlanId Conversion Error", fmt.Sprintf("Error converting VlanId '%s': %v", idStr, err))
-			}
-
-			data.VlanId = types.Int64Value(int64(vlanId))
-
-			// Set to Ids needed for importing resource
-			data.Id = types.StringValue(fmt.Sprintf("%s,%v", data.NetworkId.ValueString(), vlanId))
-		}
-	}
+	// Id field only returns "", this is a bug in the HTTP client
 
 	// InterfaceId
 	if response.HasInterfaceId() {
@@ -624,7 +605,7 @@ func NetworksApplianceVLANsDatasourceReadHttpResponse(ctx context.Context, data 
 		data.DhcpBootOptionsEnabled = types.BoolValue(response.GetDhcpBootOptionsEnabled())
 	} else {
 		if data.DhcpBootOptionsEnabled.IsUnknown() {
-			data.DhcpBootOptionsEnabled = types.BoolNull()
+			data.DhcpBootOptionsEnabled = types.BoolValue(false)
 		}
 	}
 
@@ -940,11 +921,13 @@ func (r *NetworksApplianceVLANsDatasource) Schema(ctx context.Context, req datas
 						Optional: true,
 					},
 					"vlan_id": schema.Int64Attribute{
-						Required: true,
+						Computed: true,
+						Optional: true,
 					},
 					"network_id": schema.StringAttribute{
 						MarkdownDescription: "The VLAN ID of the new VLAN (must be between 1 and 4094)",
-						Required:            true,
+						Computed:            true,
+						Optional:            true,
 						Validators: []validator.String{
 							stringvalidator.LengthBetween(8, 31),
 						},
@@ -1228,10 +1211,47 @@ func (r *NetworksApplianceVLANsDatasource) Read(ctx context.Context, req datasou
 		resp.Diagnostics.Append()
 	}
 
+	// Assuming httpResp is your *http.Response object
+	body, err := io.ReadAll(httpResp.Body)
+	if err != nil {
+		// Handle error: unable to read the response body
+		resp.Diagnostics.AddError("Read Error", fmt.Sprintf("Unable to read HTTP response body: %v", err))
+		return
+	}
+
+	// Define a struct to specifically capture the ID from the JSON data
+	type HttpRespID struct {
+		ID   int64  `json:"id"`
+		Name string `json:"name"`
+	}
+
+	var jsonResponse []HttpRespID
+	err = json.Unmarshal(body, &jsonResponse)
+	if err != nil {
+		// Handle error: JSON parsing error
+		resp.Diagnostics.AddError("JSON Parsing Error", fmt.Sprintf("Error parsing JSON data for ID field: %v", err))
+	}
+
 	for _, inRespData := range inlineResp {
 
 		vlanData := NetworksApplianceVLANDataSourceModel{}
 		vlanData.NetworkId = types.StringValue(data.NetworkId.ValueString())
+
+		// Workaround for Id bug in client.GetNetworkApplianceVlans200ResponseInner
+		for _, jsonInRespData := range jsonResponse {
+			if jsonInRespData.Name == inRespData.GetName() {
+
+				/*
+					// Convert string to int64
+							vlanId, err := strconv.ParseInt(idStr, 10, 64)
+							if err != nil {
+								resp.AddError("VlanId Conversion Error", fmt.Sprintf("Error converting VlanId '%s' to int64: %v", idStr, err))
+
+				*/
+				vlanData.VlanId = types.Int64Value(jsonInRespData.ID)
+				data.Id = types.StringValue(fmt.Sprintf("%s,%v", data.NetworkId.ValueString(), strconv.FormatInt(jsonInRespData.ID, 10)))
+			}
+		}
 
 		payloadRespDiags := NetworksApplianceVLANsDatasourceReadHttpResponse(ctx, &vlanData, &inRespData)
 		if payloadRespDiags != nil {
@@ -1242,7 +1262,7 @@ func (r *NetworksApplianceVLANsDatasource) Read(ctx context.Context, req datasou
 
 	}
 
-	data.Id = types.StringValue("example-id")
+	data.Id = types.StringValue(data.NetworkId.ValueString())
 
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {

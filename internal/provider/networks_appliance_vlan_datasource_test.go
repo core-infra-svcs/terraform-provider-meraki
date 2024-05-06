@@ -2,6 +2,7 @@ package provider
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"os"
 	"testing"
 
@@ -47,7 +48,7 @@ func TestAccNetworksApplianceVlansDataSource(t *testing.T) {
 			{
 				Config: testAccNetworksApplianceVlansDataSourceConfigReadList,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					//resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.0.vlan_id", "1"),
+					resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.0.vlan_id", "1"),
 					resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.0.name", "Default"),
 					resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.0.appliance_ip", "192.168.128.1"),
 					resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.0.subnet", "192.168.128.0/24"),
@@ -58,7 +59,13 @@ func TestAccNetworksApplianceVlansDataSource(t *testing.T) {
 					resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.0.dhcp_lease_time", "1 day"),
 					resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.0.dhcp_boot_options_enabled", "false"),
 
-					//resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.1.vlan_id", "10"),
+					testCheckConcatenatedValues(
+						"data.meraki_networks_appliance_vlans.test", "network_id",
+						"data.meraki_networks_appliance_vlans.test", "list.0.vlan_id",
+						",",
+					),
+
+					resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.1.vlan_id", "10"),
 					resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.1.name", "My VLAN"),
 					resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.1.subnet", "192.168.2.0/24"),
 					resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.1.appliance_ip", "192.168.2.2"),
@@ -75,6 +82,12 @@ func TestAccNetworksApplianceVlansDataSource(t *testing.T) {
 					resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.1.dhcp_options.0.type", "text"),
 					resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.1.dhcp_options.0.value", "six"),
 					resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.1.mandatory_dhcp.enabled", "true"),
+
+					testCheckConcatenatedValues(
+						"data.meraki_networks_appliance_vlans.test", "network_id",
+						"data.meraki_networks_appliance_vlans.test", "list.1.vlan_id",
+						",",
+					),
 				),
 			},
 		},
@@ -189,3 +202,34 @@ data "meraki_networks_appliance_vlans" "test" {
     network_id = resource.meraki_network.test.network_id
 }
 `
+
+func testCheckConcatenatedValues(resource1, attr1, resource2, attr2, separator string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		r1, ok := s.RootModule().Resources[resource1]
+		if !ok {
+			return fmt.Errorf("Not found: %s", resource1)
+		}
+
+		r2, ok := s.RootModule().Resources[resource2]
+		if !ok {
+			return fmt.Errorf("Not found: %s", resource2)
+		}
+
+		value1, ok := r1.Primary.Attributes[attr1]
+		if !ok {
+			return fmt.Errorf("Attribute not found: %s", attr1)
+		}
+
+		value2, ok := r2.Primary.Attributes[attr2]
+		if !ok {
+			return fmt.Errorf("Attribute not found: %s", attr2)
+		}
+
+		expectedValue := value1 + separator + value2
+		// Use expectedValue as needed or compare with another expected output
+		// For demonstration: Just log it (or assert equality if there is a specific value to compare)
+		fmt.Printf("Concatenated Value: %s\n", expectedValue)
+
+		return nil
+	}
+}
