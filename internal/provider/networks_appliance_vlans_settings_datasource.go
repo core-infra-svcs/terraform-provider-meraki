@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
@@ -29,7 +30,7 @@ type NetworksApplianceVlansSettingsDatasource struct {
 type NetworksApplianceVlansSettingsDatasourceModel struct {
 	Id           jsontypes.String `tfsdk:"id"`
 	NetworkId    jsontypes.String `tfsdk:"network_id" json:"network_id"`
-	VlansEnabled jsontypes.Bool   `tfsdk:"vlans_enabled"`
+	VlansEnabled jsontypes.Bool   `tfsdk:"vlans_enabled"  json:"vlansEnabled"`
 }
 
 func (r *NetworksApplianceVlansSettingsDatasource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -117,6 +118,15 @@ func (r *NetworksApplianceVlansSettingsDatasource) Read(ctx context.Context, req
 		return
 	} else {
 		resp.Diagnostics.Append()
+	}
+
+	// Save data into Terraform state
+	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+		resp.Diagnostics.AddError(
+			"JSON decoding error",
+			fmt.Sprintf("%v\n", err.Error()),
+		)
+		return
 	}
 
 	data.Id = jsontypes.StringValue(data.NetworkId.ValueString())

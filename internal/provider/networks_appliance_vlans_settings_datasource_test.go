@@ -30,9 +30,17 @@ func TestAccNetworkApplianceVlanSettingsDataSource(t *testing.T) {
 				),
 			},
 
+			// Create and Read Networks Appliance Vlans Settings.
+			{
+				Config: testAccNetworkApplianceVlanSettingsDataSourceConfigUpdateNetworkApplianceVlanSettingsFalse,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("meraki_networks_appliance_vlans_settings.test", "vlans_enabled", "false"),
+				),
+			},
+
 			// Update and Read Networks Appliance Vlans Settings.
 			{
-				Config: testAccNetworkApplianceVlanSettingsDataSourceConfigUpdateNetworkApplianceVlanSettings,
+				Config: testAccNetworkApplianceVlanSettingsDataSourceConfigUpdateNetworkApplianceVlanSettingsTrue,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_networks_appliance_vlans_settings.test", "vlans_enabled", "true"),
 				),
@@ -63,7 +71,17 @@ func testAccNetworkApplianceVlanSettingsDataSourceConfigCreateNetwork(orgId stri
 	return result
 }
 
-const testAccNetworkApplianceVlanSettingsDataSourceConfigUpdateNetworkApplianceVlanSettings = `
+const testAccNetworkApplianceVlanSettingsDataSourceConfigUpdateNetworkApplianceVlanSettingsFalse = `
+resource "meraki_network" "test" {
+	product_types = ["appliance", "switch", "wireless"]
+}
+resource "meraki_networks_appliance_vlans_settings" "test" {
+	  depends_on = [resource.meraki_network.test]
+      network_id = resource.meraki_network.test.network_id
+	  vlans_enabled = false
+}
+`
+const testAccNetworkApplianceVlanSettingsDataSourceConfigUpdateNetworkApplianceVlanSettingsTrue = `
 resource "meraki_network" "test" {
 	product_types = ["appliance", "switch", "wireless"]
 }
