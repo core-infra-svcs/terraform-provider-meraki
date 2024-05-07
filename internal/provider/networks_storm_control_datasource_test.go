@@ -32,7 +32,7 @@ func TestAccNetworkStormControlDataSource(t *testing.T) {
 
 			// Create and Read Networks Switch Qos Rules.
 			{
-				Config: testAccNetworkStormControlDataSourceConfigCreateNetworkStormControl,
+				Config: testAccNetworkStormControlDataSourceConfigCreateNetworkStormControl(os.Getenv("TF_ACC_MERAKI_MS_SERIAL")),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_networks_storm_control.test", "broadcast_threshold", "90"),
 					resource.TestCheckResourceAttr("meraki_networks_storm_control.test", "multicast_threshold", "90"),
@@ -40,11 +40,14 @@ func TestAccNetworkStormControlDataSource(t *testing.T) {
 				),
 			},
 
-			// Import testing
+			// Read Datasource
 			{
-				ResourceName:      "meraki_networks_storm_control.test",
-				ImportState:       true,
-				ImportStateVerify: true,
+				Config: testAccNetworkStormControlDataSourceConfigReadNetworkStormControl,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("data.meraki_networks_storm_control.test", "broadcast_threshold", "90"),
+					resource.TestCheckResourceAttr("data.meraki_networks_storm_control.test", "multicast_threshold", "90"),
+					resource.TestCheckResourceAttr("data.meraki_networks_storm_control.test", "unknown_unicast_threshold", "90"),
+				),
 			},
 		},
 	})
@@ -65,7 +68,8 @@ resource "meraki_network" "test" {
 	return result
 }
 
-const testAccNetworkStormControlDataSourceConfigCreateNetworkStormControl = `
+func testAccNetworkStormControlDataSourceConfigCreateNetworkStormControl(serial string) string {
+	result := fmt.Sprintf(`
 resource "meraki_network" "test" {
     product_types = ["switch"]
 }
@@ -74,7 +78,7 @@ resource "meraki_networks_devices_claim" "test" {
     depends_on = [resource.meraki_network.test]
     network_id = resource.meraki_network.test.network_id
     serials = [
-      "Q3EB-HBY7-JKFR"
+      "%s"
   ]
 }
 
@@ -88,13 +92,26 @@ resource "meraki_networks_storm_control" "test" {
 
 resource "meraki_devices_switch_port" "test" {
 	depends_on = [resource.meraki_network.test, resource.meraki_networks_storm_control.test, resource.meraki_networks_devices_claim.test]
-	serial = "Q3EB-HBY7-JKFR"
+	serial = "%s"
 	storm_control_enabled = true
 	port_id = 1
 }
 
 data "meraki_networks_storm_control" "test" {
 	depends_on = [resource.meraki_network.test, resource.meraki_networks_storm_control.test, resource.meraki_networks_devices_claim.test, resource.meraki_devices_switch_port.test]
+	network_id = resource.meraki_network.test.network_id
+}
+
+`, serial, serial)
+	return result
+}
+
+const testAccNetworkStormControlDataSourceConfigReadNetworkStormControl = `
+resource "meraki_network" "test" {
+    product_types = ["switch"]
+}
+
+data "meraki_networks_storm_control" "test" {
 	network_id = resource.meraki_network.test.network_id
 }
 
