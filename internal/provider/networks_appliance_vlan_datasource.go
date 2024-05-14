@@ -762,7 +762,6 @@ func NetworksApplianceVLANsDatasourceReadHttpResponse(ctx context.Context, data 
 
 	// DhcpOptions
 	if response.HasDhcpOptions() {
-
 		// Define the structure of each object in the list
 		dhcpOptionsAttrTypes := map[string]attr.Type{
 			"code":  types.StringType,
@@ -777,30 +776,16 @@ func NetworksApplianceVLANsDatasourceReadHttpResponse(ctx context.Context, data 
 		var objectValues []attr.Value
 
 		for _, dhcpOption := range response.GetDhcpOptions() {
-			// Construct the map for the current ObjectValue
-			valuesMap, valuesMapErrs := basetypes.NewObjectValue(dhcpOptionsAttrTypes, map[string]attr.Value{
-				"code":  basetypes.NewStringValue(dhcpOption.GetCode()),
-				"type":  basetypes.NewStringValue(dhcpOption.GetType()),
-				"value": basetypes.NewStringValue(dhcpOption.GetValue()),
-			})
-
-			if valuesMapErrs.HasError() {
-				for _, valuesMapErr := range valuesMapErrs.Errors() {
-					tflog.Error(ctx, valuesMapErr.Summary()+valuesMapErr.Detail())
-				}
-				resp.Append(valuesMapErrs...)
-
-				continue
+			valuesMap := map[string]attr.Value{
+				"code":  types.StringValue(dhcpOption.GetCode()),
+				"type":  types.StringValue(dhcpOption.GetType()),
+				"value": types.StringValue(dhcpOption.GetValue()),
 			}
 
 			// Create the ObjectValue for the current DHCP option
-			dhcpOptionValue, dhcpOptionsDiags := types.ObjectValueFrom(ctx, dhcpOptionsAttrTypes, valuesMap)
+			dhcpOptionValue, dhcpOptionsDiags := types.ObjectValue(dhcpOptionsAttrTypes, valuesMap)
 			if dhcpOptionsDiags.HasError() {
-				for _, dhcpOptionsDiag := range dhcpOptionsDiags.Errors() {
-					tflog.Error(ctx, dhcpOptionsDiag.Summary()+dhcpOptionsDiag.Detail())
-				}
 				resp.Append(dhcpOptionsDiags...)
-
 				continue
 			}
 
@@ -808,8 +793,8 @@ func NetworksApplianceVLANsDatasourceReadHttpResponse(ctx context.Context, data 
 			objectValues = append(objectValues, dhcpOptionValue)
 		}
 
-		// Create a ListValue from the slice of ObjectValue
-		dhcpOptionsListValue, dhcpOptionsListDiags := types.ListValueFrom(ctx, objectType, objectValues)
+		// Create a ListValue from the slice of ObjectValues
+		dhcpOptionsListValue, dhcpOptionsListDiags := types.ListValue(objectType, objectValues)
 		if dhcpOptionsListDiags.HasError() {
 			resp.Append(dhcpOptionsListDiags...)
 		}
@@ -817,11 +802,14 @@ func NetworksApplianceVLANsDatasourceReadHttpResponse(ctx context.Context, data 
 		data.DhcpOptions = dhcpOptionsListValue
 	} else {
 		if data.DhcpOptions.IsUnknown() {
-			data.DhcpOptions = types.ListNull(types.ObjectType{AttrTypes: map[string]attr.Type{
-				"code":  types.StringType,
-				"type":  types.StringType,
-				"value": types.StringType,
-			}})
+
+			data.DhcpOptions = types.ListNull(types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"code":  types.StringType,
+					"type":  types.StringType,
+					"value": types.StringType,
+				},
+			})
 		}
 	}
 
