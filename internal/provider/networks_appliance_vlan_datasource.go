@@ -496,72 +496,56 @@ func NetworksApplianceVLANsDatasourceReadHttpResponse(ctx context.Context, data 
 	if response.HasInterfaceId() {
 		data.InterfaceId = types.StringValue(response.GetInterfaceId())
 	} else {
-		if data.InterfaceId.IsUnknown() {
-			data.InterfaceId = types.StringNull()
-		}
+		data.InterfaceId = types.StringNull()
 	}
 
 	// Name
 	if response.HasName() {
 		data.Name = types.StringValue(response.GetName())
 	} else {
-		if data.Name.IsUnknown() {
-			data.Name = types.StringNull()
-		}
+		data.Name = types.StringNull()
 	}
 
 	// Subnet
 	if response.HasSubnet() {
 		data.Subnet = types.StringValue(response.GetSubnet())
 	} else {
-		if data.Subnet.IsUnknown() {
-			data.Subnet = types.StringNull()
-		}
+		data.Subnet = types.StringNull()
 	}
 
 	// ApplianceIp
 	if response.HasApplianceIp() {
 		data.ApplianceIp = types.StringValue(response.GetApplianceIp())
 	} else {
-		if data.ApplianceIp.IsUnknown() {
-			data.ApplianceIp = types.StringNull()
-		}
+		data.ApplianceIp = types.StringNull()
 	}
 
 	// GroupPolicyId
 	if response.HasGroupPolicyId() {
 		data.GroupPolicyId = types.StringValue(response.GetGroupPolicyId())
 	} else {
-		if data.GroupPolicyId.IsUnknown() {
-			data.GroupPolicyId = types.StringNull()
-		}
+		data.GroupPolicyId = types.StringNull()
 	}
 
 	// TemplateVlanType
 	if response.HasTemplateVlanType() {
 		data.TemplateVlanType = types.StringValue(response.GetTemplateVlanType())
 	} else {
-		if data.TemplateVlanType.IsUnknown() {
-			data.TemplateVlanType = types.StringNull()
-		}
+		data.TemplateVlanType = types.StringNull()
 	}
 
 	// Cidr
 	if response.HasCidr() {
 		data.Cidr = types.StringValue(response.GetCidr())
 	} else {
-		if data.Cidr.IsUnknown() {
-			data.Cidr = types.StringNull()
-		}
+		data.Cidr = types.StringNull()
 	}
 
 	// Mask
 	if response.HasMask() {
 		data.Mask = types.Int64Value(int64(response.GetMask()))
 	} else {
-		if data.Mask.IsUnknown() {
-			data.Mask = types.Int64Null()
-		}
+		data.Mask = types.Int64Null()
 	}
 
 	// DhcpRelayServerIps
@@ -585,9 +569,7 @@ func NetworksApplianceVLANsDatasourceReadHttpResponse(ctx context.Context, data 
 		data.DhcpHandling = types.StringValue(response.GetDhcpHandling())
 
 	} else {
-		if data.DhcpHandling.IsUnknown() {
-			data.DhcpHandling = types.StringNull()
-		}
+		data.DhcpHandling = types.StringNull()
 	}
 
 	// DhcpLeaseTime
@@ -595,27 +577,21 @@ func NetworksApplianceVLANsDatasourceReadHttpResponse(ctx context.Context, data 
 		data.DhcpLeaseTime = types.StringValue(response.GetDhcpLeaseTime())
 
 	} else {
-		if data.DhcpLeaseTime.IsUnknown() {
-			data.DhcpLeaseTime = types.StringNull()
-		}
+		data.DhcpLeaseTime = types.StringNull()
 	}
 
 	// DhcpBootOptionsEnabled
 	if response.HasDhcpBootOptionsEnabled() {
 		data.DhcpBootOptionsEnabled = types.BoolValue(response.GetDhcpBootOptionsEnabled())
 	} else {
-		if data.DhcpBootOptionsEnabled.IsUnknown() {
-			data.DhcpBootOptionsEnabled = types.BoolValue(false)
-		}
+		data.DhcpBootOptionsEnabled = types.BoolValue(false)
 	}
 
 	// DhcpBootNextServer
 	if response.HasDhcpBootNextServer() {
 		data.DhcpBootNextServer = types.StringValue(response.GetDhcpBootNextServer())
 	} else {
-		if data.DhcpBootNextServer.IsUnknown() {
-			data.DhcpBootNextServer = types.StringNull()
-		}
+		data.DhcpBootNextServer = types.StringNull()
 	}
 
 	// DhcpBootFilename
@@ -623,9 +599,7 @@ func NetworksApplianceVLANsDatasourceReadHttpResponse(ctx context.Context, data 
 		data.DhcpBootFilename = types.StringValue(response.GetDhcpBootFilename())
 
 	} else {
-		if data.DhcpBootFilename.IsUnknown() {
-			data.DhcpBootFilename = types.StringNull()
-		}
+		data.DhcpBootFilename = types.StringNull()
 	}
 
 	// FixedIpAssignments
@@ -661,16 +635,14 @@ func NetworksApplianceVLANsDatasourceReadHttpResponse(ctx context.Context, data 
 		data.FixedIpAssignments = fixedIpAssignmentsValue
 
 	} else {
-		if data.FixedIpAssignments.IsUnknown() {
-			fixedIpAssignmentsAttrTypes := map[string]attr.Type{
-				"ip":   types.StringType,
-				"name": types.StringType,
-			}
-
-			data.FixedIpAssignments = types.MapNull(
-				types.ObjectType{AttrTypes: fixedIpAssignmentsAttrTypes},
-			)
+		fixedIpAssignmentsAttrTypes := map[string]attr.Type{
+			"ip":   types.StringType,
+			"name": types.StringType,
 		}
+
+		data.FixedIpAssignments = types.MapNull(
+			types.ObjectType{AttrTypes: fixedIpAssignmentsAttrTypes},
+		)
 	}
 
 	if response.HasReservedIpRanges() {
@@ -730,24 +702,20 @@ func NetworksApplianceVLANsDatasourceReadHttpResponse(ctx context.Context, data 
 		data.ReservedIpRanges = reservedIpRangesValue
 
 	} else {
-		if data.ReservedIpRanges.IsUnknown() {
-			data.ReservedIpRanges = types.ListNull(types.ObjectType{
-				AttrTypes: map[string]attr.Type{
-					"comment": types.StringType,
-					"end":     types.StringType,
-					"start":   types.StringType,
-				},
-			})
-		}
+		data.ReservedIpRanges = types.ListNull(types.ObjectType{
+			AttrTypes: map[string]attr.Type{
+				"comment": types.StringType,
+				"end":     types.StringType,
+				"start":   types.StringType,
+			},
+		})
 	}
 
 	// DnsNameservers
 	if response.HasDnsNameservers() {
 		data.DnsNameservers = types.StringValue(response.GetDnsNameservers())
 	} else {
-		if data.DnsNameservers.IsUnknown() {
-			data.DnsNameservers = types.StringNull()
-		}
+		data.DnsNameservers = types.StringNull()
 	}
 
 	// VpnNatSubnet
@@ -755,9 +723,7 @@ func NetworksApplianceVLANsDatasourceReadHttpResponse(ctx context.Context, data 
 		data.VpnNatSubnet = types.StringValue(response.GetVpnNatSubnet())
 
 	} else {
-		if data.VpnNatSubnet.IsUnknown() {
-			data.VpnNatSubnet = types.StringNull()
-		}
+		data.VpnNatSubnet = types.StringNull()
 	}
 
 	// DhcpOptions
@@ -801,16 +767,13 @@ func NetworksApplianceVLANsDatasourceReadHttpResponse(ctx context.Context, data 
 
 		data.DhcpOptions = dhcpOptionsListValue
 	} else {
-		if data.DhcpOptions.IsUnknown() {
-
-			data.DhcpOptions = types.ListNull(types.ObjectType{
-				AttrTypes: map[string]attr.Type{
-					"code":  types.StringType,
-					"type":  types.StringType,
-					"value": types.StringType,
-				},
-			})
-		}
+		data.DhcpOptions = types.ListNull(types.ObjectType{
+			AttrTypes: map[string]attr.Type{
+				"code":  types.StringType,
+				"type":  types.StringType,
+				"value": types.StringType,
+			},
+		})
 	}
 
 	// Mandatory DHCP
@@ -833,11 +796,9 @@ func NetworksApplianceVLANsDatasourceReadHttpResponse(ctx context.Context, data 
 
 		data.MandatoryDhcp = objectVal
 	} else {
-		if data.MandatoryDhcp.IsUnknown() {
-			data.MandatoryDhcp = types.ObjectNull(map[string]attr.Type{
-				"enabled": types.BoolType,
-			})
-		}
+		data.MandatoryDhcp = types.ObjectNull(map[string]attr.Type{
+			"enabled": types.BoolType,
+		})
 	}
 
 	// IPv6
@@ -857,24 +818,22 @@ func NetworksApplianceVLANsDatasourceReadHttpResponse(ctx context.Context, data 
 
 		data.IPv6 = ipv6Object
 	} else {
-		if data.IPv6.IsUnknown() {
-			ipv6Instance := NetworksApplianceVLANsDataSourceModelIpv6{}
-			ipv6Prefixes := []NetworksApplianceVLANsDataSourceModelIpv6PrefixAssignment{}
+		ipv6Instance := NetworksApplianceVLANsDataSourceModelIpv6{}
+		ipv6Prefixes := []NetworksApplianceVLANsDataSourceModelIpv6PrefixAssignment{}
 
-			ipv6PrefixesList, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: NetworksApplianceVLANsDataSourceModelIpv6PrefixAssignmentAttrTypes()}, ipv6Prefixes)
-			if diags.HasError() {
-				resp.Append(diags...)
-			}
-
-			ipv6Instance.PrefixAssignments = ipv6PrefixesList
-
-			ipv6Object, diags := types.ObjectValueFrom(ctx, NetworksApplianceVLANsDataSourceModelIpv6AttrTypes(), ipv6Instance)
-			if diags.HasError() {
-				resp.Append(diags...)
-			}
-
-			data.IPv6 = ipv6Object
+		ipv6PrefixesList, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: NetworksApplianceVLANsDataSourceModelIpv6PrefixAssignmentAttrTypes()}, ipv6Prefixes)
+		if diags.HasError() {
+			resp.Append(diags...)
 		}
+
+		ipv6Instance.PrefixAssignments = ipv6PrefixesList
+
+		ipv6Object, diags := types.ObjectValueFrom(ctx, NetworksApplianceVLANsDataSourceModelIpv6AttrTypes(), ipv6Instance)
+		if diags.HasError() {
+			resp.Append(diags...)
+		}
+
+		data.IPv6 = ipv6Object
 	}
 
 	return resp
