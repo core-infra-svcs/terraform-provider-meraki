@@ -61,9 +61,12 @@ Optional:
 <a id="nestedatt--fixed_ip_assignments"></a>
 ### Nested Schema for `fixed_ip_assignments`
 
-Optional:
+Required:
 
 - `ip` (String) Enable IPv6 on VLAN.
+
+Optional:
+
 - `name` (String) Enable IPv6 on VLAN.
 
 
