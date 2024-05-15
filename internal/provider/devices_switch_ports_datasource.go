@@ -330,11 +330,11 @@ func (d *DevicesSwitchPortsStatusesDataSource) Read(ctx context.Context, req dat
 	})
 
 	// Type assert apiResp to the expected *openApiClient.GetDeviceSwitchPorts200ResponseInner type
-	inlineResp, ok := apiResp.([]*openApiClient.GetDeviceSwitchPorts200ResponseInner)
+	inlineResp, ok := apiResp.([]openApiClient.GetDeviceSwitchPorts200ResponseInner)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Type Assertion Failed",
-			"Failed to assert API response type to []*openapi.GetNetworkWirelessSsids200ResponseInner. Please ensure the API response structure matches the expected type.",
+			"Failed to assert API response type to []openApiClient.GetDeviceSwitchPorts200ResponseInner. Please ensure the API response structure matches the expected type.",
 		)
 		return
 	}
@@ -364,7 +364,6 @@ func (d *DevicesSwitchPortsStatusesDataSource) Read(ctx context.Context, req dat
 	}
 
 	for _, switchData := range inlineResp {
-
 		var devicesSwitchPortData DevicesSwitchPortsStatusesDataSourceModelList
 		devicesSwitchPortData.Name = jsontypes.StringValue(switchData.GetName())
 		devicesSwitchPortData.PortId = jsontypes.StringValue(switchData.GetPortId())
@@ -401,7 +400,6 @@ func (d *DevicesSwitchPortsStatusesDataSource) Read(ctx context.Context, req dat
 			devicesSwitchPortData.MacWhitelist = append(devicesSwitchPortData.MacWhitelist, jsontypes.StringValue(attribute))
 		}
 		data.List = append(data.List, devicesSwitchPortData)
-
 	}
 
 	// Set ID for the data source.
