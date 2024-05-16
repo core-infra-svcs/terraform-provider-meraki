@@ -3,14 +3,13 @@ package provider
 import (
 	"context"
 	"fmt"
-	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
-	"net/http"
-
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
+	"net/http"
 )
 
 var _ datasource.DataSource = &DevicesSwitchPortsStatusesDataSource{}
@@ -329,21 +328,21 @@ func (d *DevicesSwitchPortsStatusesDataSource) Read(ctx context.Context, req dat
 		return resp, httpResp, nil
 	})
 
+	// If there was an error during API call, add it to diagnostics.
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"HTTP Client Failure",
+			tools.HttpDiagnostics(httpResp),
+		)
+		return
+	}
+
 	// Type assert apiResp to the expected *openApiClient.GetDeviceSwitchPorts200ResponseInner type
 	inlineResp, ok := apiResp.([]openApiClient.GetDeviceSwitchPorts200ResponseInner)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Type Assertion Failed",
 			"Failed to assert API response type to []openApiClient.GetDeviceSwitchPorts200ResponseInner. Please ensure the API response structure matches the expected type.",
-		)
-		return
-	}
-
-	// If there was an error during API call, add it to diagnostics.
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"HTTP Client Failure",
-			tools.HttpDiagnostics(httpResp),
 		)
 		return
 	}
