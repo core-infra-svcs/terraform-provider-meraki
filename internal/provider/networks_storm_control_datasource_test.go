@@ -1,10 +1,11 @@
 package provider
 
+/*
 import (
 	"fmt"
 )
 
-/*
+
 func TestAccNetworkStormControlDataSource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
@@ -63,7 +64,7 @@ func TestAccNetworkStormControlDataSource(t *testing.T) {
 		},
 	})
 }
-*/
+
 
 func testAccNetworkStormControlDataSourceConfigCreateNetwork(orgId string) string {
 	result := fmt.Sprintf(`
@@ -153,3 +154,4 @@ data "meraki_networks_storm_control" "test" {
 }
 
 `
+*/
