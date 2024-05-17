@@ -25,21 +25,21 @@ import (
 
 // Ensure provider defined types fully satisfy framework interfaces
 var (
-	_ resource.Resource                = &NetworksApplianceVLANsResource{}
-	_ resource.ResourceWithConfigure   = &NetworksApplianceVLANsResource{}
-	_ resource.ResourceWithImportState = &NetworksApplianceVLANsResource{}
+	_ resource.Resource                = &NetworksApplianceVLANResource{}
+	_ resource.ResourceWithConfigure   = &NetworksApplianceVLANResource{}
+	_ resource.ResourceWithImportState = &NetworksApplianceVLANResource{}
 )
 
-func NewNetworksApplianceVLANsResource() resource.Resource {
-	return &NetworksApplianceVLANsResource{}
+func NewNetworksApplianceVLANResource() resource.Resource {
+	return &NetworksApplianceVLANResource{}
 }
 
-// NetworksApplianceVLANsResource defines the resource implementation.
-type NetworksApplianceVLANsResource struct {
+// NetworksApplianceVLANResource defines the resource implementation.
+type NetworksApplianceVLANResource struct {
 	client *openApiClient.APIClient
 }
 
-type NetworksApplianceVLANsResourceModel struct {
+type NetworksApplianceVLANResourceModel struct {
 	Id                     types.String `tfsdk:"id" json:"-"`
 	NetworkId              types.String `tfsdk:"network_id" json:"networkId"`
 	VlanId                 types.Int64  `tfsdk:"vlan_id" json:"id"`
@@ -66,12 +66,12 @@ type NetworksApplianceVLANsResourceModel struct {
 	IPv6                   types.Object `tfsdk:"ipv6" json:"ipv6"`
 }
 
-type NetworksApplianceVLANsResourceModelIpNameMapping struct {
+type NetworksApplianceVLANResourceModelIpNameMapping struct {
 	Ip   types.String `tfsdk:"ip" json:"ip"`
 	Name types.String `tfsdk:"name" json:"name"`
 }
 
-type NetworksApplianceVLANsResourceModelReservedIpRange struct {
+type NetworksApplianceVLANResourceModelReservedIpRange struct {
 	Start   types.String `tfsdk:"start" json:"start"`
 	End     types.String `tfsdk:"end" json:"end"`
 	Comment types.String `tfsdk:"comment" json:"comment"`
@@ -87,7 +87,7 @@ type FixedIpAssignment struct {
 	Name string `json:"name"`
 }
 
-func (n *NetworksApplianceVLANsResourceModelReservedIpRange) FromTerraformValue(ctx context.Context, val tftypes.Value) error {
+func (n *NetworksApplianceVLANResourceModelReservedIpRange) FromTerraformValue(ctx context.Context, val tftypes.Value) error {
 	// Assuming val is a tftypes.Object with "start", "end", and "comment"
 	var data map[string]tftypes.Value
 	if !val.IsKnown() || val.IsNull() {
@@ -118,13 +118,13 @@ func (n *NetworksApplianceVLANsResourceModelReservedIpRange) FromTerraformValue(
 	return nil
 }
 
-type NetworksApplianceVLANsResourceModelDhcpOption struct {
+type NetworksApplianceVLANResourceModelDhcpOption struct {
 	Code  types.String `tfsdk:"code" json:"code"`
 	Type  types.String `tfsdk:"type" json:"type"`
 	Value types.String `tfsdk:"value" json:"value"`
 }
 
-func (n *NetworksApplianceVLANsResourceModelDhcpOption) FromTerraformValue(ctx context.Context, val tftypes.Value) error {
+func (n *NetworksApplianceVLANResourceModelDhcpOption) FromTerraformValue(ctx context.Context, val tftypes.Value) error {
 	// Assuming val is a tftypes.Object with "code", "type", and "value"
 	var data map[string]tftypes.Value
 	if !val.IsKnown() || val.IsNull() {
@@ -155,34 +155,34 @@ func (n *NetworksApplianceVLANsResourceModelDhcpOption) FromTerraformValue(ctx c
 	return nil
 }
 
-type NetworksApplianceVLANsResourceModelFixedIpAssignment struct {
+type NetworksApplianceVLANResourceModelFixedIpAssignment struct {
 	Ip   types.String `tfsdk:"ip"`
 	Name types.String `tfsdk:"name"`
 }
 
-// NetworksApplianceVLANsResourceModelIpv6 represents the IPv6 configuration for a VLAN resource model.
-type NetworksApplianceVLANsResourceModelIpv6 struct {
+// NetworksApplianceVLANResourceModelIpv6 represents the IPv6 configuration for a VLAN resource model.
+type NetworksApplianceVLANResourceModelIpv6 struct {
 	Enabled           types.Bool `tfsdk:"enabled" json:"enabled"`
 	PrefixAssignments types.List `tfsdk:"prefix_assignments" json:"prefixAssignments"`
 }
 
-func NetworksApplianceVLANsResourceModelIpv6AttrTypes() map[string]attr.Type {
+func NetworksApplianceVLANResourceModelIpv6AttrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"enabled":            types.BoolType,
-		"prefix_assignments": types.ListType{ElemType: types.ObjectType{AttrTypes: NetworksApplianceVLANsResourceModelIpv6PrefixAssignmentAttrTypes()}},
+		"prefix_assignments": types.ListType{ElemType: types.ObjectType{AttrTypes: NetworksApplianceVLANResourceModelIpv6PrefixAssignmentAttrTypes()}},
 	}
 }
 
 // ToAPIPayload converts the Terraform resource data model into the API payload.
-func (m *NetworksApplianceVLANsResourceModelIpv6) ToAPIPayload(ctx context.Context) (*openApiClient.UpdateNetworkApplianceSingleLanRequestIpv6, diag.Diagnostics) {
-	tflog.Info(ctx, "[start] NetworksApplianceVLANsResourceModelIpv6 ToAPIPayload")
+func (m *NetworksApplianceVLANResourceModelIpv6) ToAPIPayload(ctx context.Context) (*openApiClient.UpdateNetworkApplianceSingleLanRequestIpv6, diag.Diagnostics) {
+	tflog.Info(ctx, "[start] NetworksApplianceVLANResourceModelIpv6 ToAPIPayload")
 
 	payload := &openApiClient.UpdateNetworkApplianceSingleLanRequestIpv6{}
 
 	// Convert 'Enabled' field
 	payload.Enabled = m.Enabled.ValueBoolPointer()
 
-	var prefixAssignments []NetworksApplianceVLANsResourceModelIpv6PrefixAssignment
+	var prefixAssignments []NetworksApplianceVLANResourceModelIpv6PrefixAssignment
 
 	// Convert 'PrefixAssignments' field
 	err := m.PrefixAssignments.ElementsAs(ctx, &prefixAssignments, false)
@@ -198,7 +198,7 @@ func (m *NetworksApplianceVLANsResourceModelIpv6) ToAPIPayload(ctx context.Conte
 		prefixAssignmentPayload.SetStaticApplianceIp6(prefixAssignment.StaticApplianceIp6.ValueString())
 		prefixAssignmentPayload.SetAutonomous(prefixAssignment.Autonomous.ValueBool())
 
-		var origin NetworksApplianceVLANsResourceModelIpv6PrefixAssignmentOrigin
+		var origin NetworksApplianceVLANResourceModelIpv6PrefixAssignmentOrigin
 		prefixAssignment.Origin.As(ctx, &origin, basetypes.ObjectAsOptions{})
 
 		originPayload, err := origin.ToAPIPayload(ctx)
@@ -211,14 +211,14 @@ func (m *NetworksApplianceVLANsResourceModelIpv6) ToAPIPayload(ctx context.Conte
 		payload.PrefixAssignments = append(payload.PrefixAssignments, prefixAssignmentPayload)
 	}
 
-	tflog.Info(ctx, "[finish] NetworksApplianceVLANsResourceModelIpv6 ToAPIPayload")
+	tflog.Info(ctx, "[finish] NetworksApplianceVLANResourceModelIpv6 ToAPIPayload")
 	return payload, nil
 }
 
-// FromAPIResponse transforms an API response into the NetworksApplianceVLANsResourceModelIpv6 Terraform structure.
-func (m *NetworksApplianceVLANsResourceModelIpv6) FromAPIResponse(ctx context.Context, apiResponse *openApiClient.GetNetworkApplianceVlans200ResponseInnerIpv6) diag.Diagnostics {
-	tflog.Info(ctx, "[start] NetworksApplianceVLANsResourceModelIpv6 FromAPIResponse")
-	tflog.Trace(ctx, "NetworksApplianceVLANsResourceModelIpv6 FromAPIResponse", map[string]interface{}{
+// FromAPIResponse transforms an API response into the NetworksApplianceVLANResourceModelIpv6 Terraform structure.
+func (m *NetworksApplianceVLANResourceModelIpv6) FromAPIResponse(ctx context.Context, apiResponse *openApiClient.GetNetworkApplianceVlans200ResponseInnerIpv6) diag.Diagnostics {
+	tflog.Info(ctx, "[start] NetworksApplianceVLANResourceModelIpv6 FromAPIResponse")
+	tflog.Trace(ctx, "NetworksApplianceVLANResourceModelIpv6 FromAPIResponse", map[string]interface{}{
 		"apiResponse": apiResponse,
 	})
 	if apiResponse == nil {
@@ -227,9 +227,9 @@ func (m *NetworksApplianceVLANsResourceModelIpv6) FromAPIResponse(ctx context.Co
 
 	m.Enabled = types.BoolValue(apiResponse.GetEnabled())
 
-	var prefixAssignments []NetworksApplianceVLANsResourceModelIpv6PrefixAssignment
+	var prefixAssignments []NetworksApplianceVLANResourceModelIpv6PrefixAssignment
 	for _, apiPA := range apiResponse.PrefixAssignments {
-		var pa NetworksApplianceVLANsResourceModelIpv6PrefixAssignment
+		var pa NetworksApplianceVLANResourceModelIpv6PrefixAssignment
 
 		diags := pa.FromAPIResponse(ctx, &apiPA)
 		if diags.HasError() {
@@ -240,39 +240,39 @@ func (m *NetworksApplianceVLANsResourceModelIpv6) FromAPIResponse(ctx context.Co
 		prefixAssignments = append(prefixAssignments, pa)
 	}
 
-	p, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: NetworksApplianceVLANsResourceModelIpv6PrefixAssignmentAttrTypes()}, prefixAssignments)
+	p, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: NetworksApplianceVLANResourceModelIpv6PrefixAssignmentAttrTypes()}, prefixAssignments)
 
 	m.PrefixAssignments = p
-	tflog.Info(ctx, "[finish] NetworksApplianceVLANsResourceModelIpv6 FromAPIResponse")
+	tflog.Info(ctx, "[finish] NetworksApplianceVLANResourceModelIpv6 FromAPIResponse")
 	return nil
 }
 
-// NetworksApplianceVLANsResourceModelIpv6PrefixAssignmentAttrTypes returns the attribute types for a prefix assignment.
-func NetworksApplianceVLANsResourceModelIpv6PrefixAssignmentAttrTypes() map[string]attr.Type {
+// NetworksApplianceVLANResourceModelIpv6PrefixAssignmentAttrTypes returns the attribute types for a prefix assignment.
+func NetworksApplianceVLANResourceModelIpv6PrefixAssignmentAttrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"autonomous":           types.BoolType,
 		"static_prefix":        types.StringType,
 		"static_appliance_ip6": types.StringType,
-		"origin":               types.ObjectType{AttrTypes: NetworksApplianceVLANsResourceModelIpv6PrefixAssignmentOriginAttrTypes()},
+		"origin":               types.ObjectType{AttrTypes: NetworksApplianceVLANResourceModelIpv6PrefixAssignmentOriginAttrTypes()},
 	}
 }
 
-// NetworksApplianceVLANsResourceModelIpv6PrefixAssignment represents a prefix assignment for an IPv6 configuration in the VLAN resource model.
-type NetworksApplianceVLANsResourceModelIpv6PrefixAssignment struct {
+// NetworksApplianceVLANResourceModelIpv6PrefixAssignment represents a prefix assignment for an IPv6 configuration in the VLAN resource model.
+type NetworksApplianceVLANResourceModelIpv6PrefixAssignment struct {
 	Autonomous         types.Bool   `tfsdk:"autonomous" json:"autonomous"`
 	StaticPrefix       types.String `tfsdk:"static_prefix" json:"staticPrefix"`
 	StaticApplianceIp6 types.String `tfsdk:"static_appliance_ip6" json:"staticApplianceIp6"`
 	Origin             types.Object `tfsdk:"origin" json:"origin"`
 }
 
-func (pa *NetworksApplianceVLANsResourceModelIpv6PrefixAssignment) ToAPIModel(ctx context.Context) (*openApiClient.UpdateNetworkApplianceSingleLanRequestIpv6PrefixAssignmentsInner, diag.Diagnostics) {
+func (pa *NetworksApplianceVLANResourceModelIpv6PrefixAssignment) ToAPIModel(ctx context.Context) (*openApiClient.UpdateNetworkApplianceSingleLanRequestIpv6PrefixAssignmentsInner, diag.Diagnostics) {
 	apiPA := &openApiClient.UpdateNetworkApplianceSingleLanRequestIpv6PrefixAssignmentsInner{
 		Autonomous:         pa.Autonomous.ValueBoolPointer(),
 		StaticPrefix:       pa.StaticPrefix.ValueStringPointer(),
 		StaticApplianceIp6: pa.StaticApplianceIp6.ValueStringPointer(),
 	}
 
-	var originObject NetworksApplianceVLANsResourceModelIpv6PrefixAssignmentOrigin
+	var originObject NetworksApplianceVLANResourceModelIpv6PrefixAssignmentOrigin
 	originObjectDiags := pa.Origin.As(ctx, originObject, basetypes.ObjectAsOptions{})
 	if originObjectDiags.HasError() {
 		return nil, originObjectDiags
@@ -291,8 +291,8 @@ func (pa *NetworksApplianceVLANsResourceModelIpv6PrefixAssignment) ToAPIModel(ct
 }
 
 // ToAPIPayload converts the Terraform prefix assignment into the API prefix assignment payload.
-func (pa *NetworksApplianceVLANsResourceModelIpv6PrefixAssignment) ToAPIPayload(ctx context.Context) (*openApiClient.UpdateNetworkApplianceSingleLanRequestIpv6PrefixAssignmentsInner, diag.Diagnostics) {
-	tflog.Info(ctx, "[start] NetworksApplianceVLANsResourceModelIpv6PrefixAssignment ToAPIPayload")
+func (pa *NetworksApplianceVLANResourceModelIpv6PrefixAssignment) ToAPIPayload(ctx context.Context) (*openApiClient.UpdateNetworkApplianceSingleLanRequestIpv6PrefixAssignmentsInner, diag.Diagnostics) {
+	tflog.Info(ctx, "[start] NetworksApplianceVLANResourceModelIpv6PrefixAssignment ToAPIPayload")
 
 	paPayload := &openApiClient.UpdateNetworkApplianceSingleLanRequestIpv6PrefixAssignmentsInner{}
 
@@ -306,7 +306,7 @@ func (pa *NetworksApplianceVLANsResourceModelIpv6PrefixAssignment) ToAPIPayload(
 	paPayload.StaticApplianceIp6 = pa.StaticApplianceIp6.ValueStringPointer()
 
 	// Origin
-	var origin NetworksApplianceVLANsResourceModelIpv6PrefixAssignmentOrigin
+	var origin NetworksApplianceVLANResourceModelIpv6PrefixAssignmentOrigin
 	diags := pa.Origin.As(ctx, &origin, basetypes.ObjectAsOptions{})
 	if diags.HasError() {
 		return nil, diags
@@ -319,12 +319,12 @@ func (pa *NetworksApplianceVLANsResourceModelIpv6PrefixAssignment) ToAPIPayload(
 
 	paPayload.Origin = originPayload
 
-	tflog.Info(ctx, "[finish] NetworksApplianceVLANsResourceModelIpv6PrefixAssignment ToAPIPayload")
+	tflog.Info(ctx, "[finish] NetworksApplianceVLANResourceModelIpv6PrefixAssignment ToAPIPayload")
 	return paPayload, nil
 }
 
-// ToTerraformObject converts the NetworksApplianceVLANsResourceModelIpv6PrefixAssignment instance to a map suitable for ObjectValueFrom.
-func (pa *NetworksApplianceVLANsResourceModelIpv6PrefixAssignment) ToTerraformObject(ctx context.Context) (map[string]attr.Value, diag.Diagnostics) {
+// ToTerraformObject converts the NetworksApplianceVLANResourceModelIpv6PrefixAssignment instance to a map suitable for ObjectValueFrom.
+func (pa *NetworksApplianceVLANResourceModelIpv6PrefixAssignment) ToTerraformObject(ctx context.Context) (map[string]attr.Value, diag.Diagnostics) {
 	return map[string]attr.Value{
 		"autonomous":           pa.Autonomous,
 		"static_prefix":        pa.StaticPrefix,
@@ -333,11 +333,11 @@ func (pa *NetworksApplianceVLANsResourceModelIpv6PrefixAssignment) ToTerraformOb
 	}, nil
 }
 
-// FromAPIResponse fills the NetworksApplianceVLANsResourceModelIpv6PrefixAssignment with data from the API response.
+// FromAPIResponse fills the NetworksApplianceVLANResourceModelIpv6PrefixAssignment with data from the API response.
 // This method transforms the OpenAPI response into the format expected by the Terraform provider.
-func (pa *NetworksApplianceVLANsResourceModelIpv6PrefixAssignment) FromAPIResponse(ctx context.Context, apiPA *openApiClient.GetNetworkApplianceVlans200ResponseInnerIpv6PrefixAssignmentsInner) diag.Diagnostics {
-	tflog.Info(ctx, "[start] NetworksApplianceVLANsResourceModelIpv6PrefixAssignment FromAPIResponse")
-	tflog.Trace(ctx, "NetworksApplianceVLANsResourceModelIpv6 FromAPIResponse", map[string]interface{}{
+func (pa *NetworksApplianceVLANResourceModelIpv6PrefixAssignment) FromAPIResponse(ctx context.Context, apiPA *openApiClient.GetNetworkApplianceVlans200ResponseInnerIpv6PrefixAssignmentsInner) diag.Diagnostics {
+	tflog.Info(ctx, "[start] NetworksApplianceVLANResourceModelIpv6PrefixAssignment FromAPIResponse")
+	tflog.Trace(ctx, "NetworksApplianceVLANResourceModelIpv6 FromAPIResponse", map[string]interface{}{
 		"apiPA": apiPA,
 	})
 	if apiPA == nil {
@@ -379,15 +379,15 @@ func (pa *NetworksApplianceVLANsResourceModelIpv6PrefixAssignment) FromAPIRespon
 		}
 	}
 
-	var origin NetworksApplianceVLANsResourceModelIpv6PrefixAssignmentOrigin
+	var origin NetworksApplianceVLANResourceModelIpv6PrefixAssignmentOrigin
 	originDiags := origin.FromAPIResponse(ctx, apiPA.Origin)
 	if originDiags.HasError() {
 		return originDiags
 	}
 
 	// Use the predefined functions for attribute types and map
-	originAttrTypes := NetworksApplianceVLANsResourceModelIpv6PrefixAssignmentOriginAttrTypes()
-	originAttrMap := NetworksApplianceVLANsResourceModelIpv6PrefixAssignmentOriginAttrMap(&origin)
+	originAttrTypes := NetworksApplianceVLANResourceModelIpv6PrefixAssignmentOriginAttrTypes()
+	originAttrMap := NetworksApplianceVLANResourceModelIpv6PrefixAssignmentOriginAttrMap(&origin)
 
 	originTf, diags := types.ObjectValue(originAttrTypes, originAttrMap)
 	if diags.HasError() {
@@ -397,28 +397,28 @@ func (pa *NetworksApplianceVLANsResourceModelIpv6PrefixAssignment) FromAPIRespon
 
 	pa.Origin = originTf
 
-	tflog.Info(ctx, "[finish] NetworksApplianceVLANsResourceModelIpv6PrefixAssignment FromAPIResponse")
+	tflog.Info(ctx, "[finish] NetworksApplianceVLANResourceModelIpv6PrefixAssignment FromAPIResponse")
 	return nil
 }
 
-// NetworksApplianceVLANsResourceModelIpv6PrefixAssignmentOrigin represents the origin data structure for a VLAN resource model.
-type NetworksApplianceVLANsResourceModelIpv6PrefixAssignmentOrigin struct {
+// NetworksApplianceVLANResourceModelIpv6PrefixAssignmentOrigin represents the origin data structure for a VLAN resource model.
+type NetworksApplianceVLANResourceModelIpv6PrefixAssignmentOrigin struct {
 	Type       types.String `tfsdk:"type" json:"type"`
 	Interfaces types.Set    `tfsdk:"interfaces" json:"interfaces"`
 }
 
-// NetworksApplianceVLANsResourceModelIpv6PrefixAssignmentOriginAttrTypes returns the attribute types for the origin.
+// NetworksApplianceVLANResourceModelIpv6PrefixAssignmentOriginAttrTypes returns the attribute types for the origin.
 // This function is useful to define the schema of the origin in a consistent manner.
-func NetworksApplianceVLANsResourceModelIpv6PrefixAssignmentOriginAttrTypes() map[string]attr.Type {
+func NetworksApplianceVLANResourceModelIpv6PrefixAssignmentOriginAttrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"type":       types.StringType,
 		"interfaces": types.SetType{ElemType: types.StringType},
 	}
 }
 
-// NetworksApplianceVLANsResourceModelIpv6PrefixAssignmentOriginAttrMap returns the attribute map for a given origin.
-// It converts a NetworksApplianceVLANsResourceModelIpv6PrefixAssignmentOrigin instance to a map suitable for ObjectValueFrom.
-func NetworksApplianceVLANsResourceModelIpv6PrefixAssignmentOriginAttrMap(origin *NetworksApplianceVLANsResourceModelIpv6PrefixAssignmentOrigin) map[string]attr.Value {
+// NetworksApplianceVLANResourceModelIpv6PrefixAssignmentOriginAttrMap returns the attribute map for a given origin.
+// It converts a NetworksApplianceVLANResourceModelIpv6PrefixAssignmentOrigin instance to a map suitable for ObjectValueFrom.
+func NetworksApplianceVLANResourceModelIpv6PrefixAssignmentOriginAttrMap(origin *NetworksApplianceVLANResourceModelIpv6PrefixAssignmentOrigin) map[string]attr.Value {
 	return map[string]attr.Value{
 		"type":       origin.Type,
 		"interfaces": origin.Interfaces,
@@ -426,8 +426,8 @@ func NetworksApplianceVLANsResourceModelIpv6PrefixAssignmentOriginAttrMap(origin
 }
 
 // ToAPIPayload converts the Terraform origin into the API origin payload.
-func (o *NetworksApplianceVLANsResourceModelIpv6PrefixAssignmentOrigin) ToAPIPayload(ctx context.Context) (*openApiClient.UpdateNetworkApplianceSingleLanRequestIpv6PrefixAssignmentsInnerOrigin, diag.Diagnostics) {
-	tflog.Info(ctx, "[start] NetworksApplianceVLANsResourceModelIpv6PrefixAssignmentOrigin ToAPIPayload")
+func (o *NetworksApplianceVLANResourceModelIpv6PrefixAssignmentOrigin) ToAPIPayload(ctx context.Context) (*openApiClient.UpdateNetworkApplianceSingleLanRequestIpv6PrefixAssignmentsInnerOrigin, diag.Diagnostics) {
+	tflog.Info(ctx, "[start] NetworksApplianceVLANResourceModelIpv6PrefixAssignmentOrigin ToAPIPayload")
 
 	originPayload := &openApiClient.UpdateNetworkApplianceSingleLanRequestIpv6PrefixAssignmentsInnerOrigin{}
 
@@ -446,15 +446,15 @@ func (o *NetworksApplianceVLANsResourceModelIpv6PrefixAssignmentOrigin) ToAPIPay
 
 	originPayload.SetInterfaces(interfaces)
 
-	tflog.Info(ctx, "[finish] NetworksApplianceVLANsResourceModelIpv6PrefixAssignmentOrigin ToAPIPayload")
+	tflog.Info(ctx, "[finish] NetworksApplianceVLANResourceModelIpv6PrefixAssignmentOrigin ToAPIPayload")
 	return originPayload, nil
 }
 
-// FromAPIResponse fills the NetworksApplianceVLANsResourceModelIpv6PrefixAssignmentOrigin with data from the API response.
+// FromAPIResponse fills the NetworksApplianceVLANResourceModelIpv6PrefixAssignmentOrigin with data from the API response.
 // This method transforms the OpenAPI response into the format expected by the Terraform provider.
-func (o *NetworksApplianceVLANsResourceModelIpv6PrefixAssignmentOrigin) FromAPIResponse(ctx context.Context, apiOrigin *openApiClient.CreateNetworkAppliancePrefixesDelegatedStaticRequestOrigin) diag.Diagnostics {
-	tflog.Info(ctx, "[start] NetworksApplianceVLANsResourceModelIpv6PrefixAssignmentOrigin FromAPIResponse")
-	tflog.Trace(ctx, "NetworksApplianceVLANsResourceModelIpv6PrefixAssignmentOrigin FromAPIResponse", map[string]interface{}{
+func (o *NetworksApplianceVLANResourceModelIpv6PrefixAssignmentOrigin) FromAPIResponse(ctx context.Context, apiOrigin *openApiClient.CreateNetworkAppliancePrefixesDelegatedStaticRequestOrigin) diag.Diagnostics {
+	tflog.Info(ctx, "[start] NetworksApplianceVLANResourceModelIpv6PrefixAssignmentOrigin FromAPIResponse")
+	tflog.Trace(ctx, "NetworksApplianceVLANResourceModelIpv6PrefixAssignmentOrigin FromAPIResponse", map[string]interface{}{
 		"apiOrigin": apiOrigin,
 	})
 
@@ -498,15 +498,15 @@ func (o *NetworksApplianceVLANsResourceModelIpv6PrefixAssignmentOrigin) FromAPIR
 		return diags
 	}
 
-	tflog.Info(ctx, "[finish] NetworksApplianceVLANsResourceModelIpv6PrefixAssignmentOrigin FromAPIResponse")
+	tflog.Info(ctx, "[finish] NetworksApplianceVLANResourceModelIpv6PrefixAssignmentOrigin FromAPIResponse")
 	return nil
 }
 
-type NetworksApplianceVLANsResourceModelMandatoryDhcp struct {
+type NetworksApplianceVLANResourceModelMandatoryDhcp struct {
 	Enabled types.Bool `tfsdk:"enabled" json:"enabled"`
 }
 
-func CreateHttpReqPayload(ctx context.Context, data *NetworksApplianceVLANsResourceModel) (openApiClient.CreateNetworkApplianceVlanRequest, diag.Diagnostics) {
+func CreateHttpReqPayload(ctx context.Context, data *NetworksApplianceVLANResourceModel) (openApiClient.CreateNetworkApplianceVlanRequest, diag.Diagnostics) {
 	resp := diag.Diagnostics{}
 
 	// Log the received request
@@ -563,7 +563,7 @@ func CreateHttpReqPayload(ctx context.Context, data *NetworksApplianceVLANsResou
 	// IPV6
 	if !data.IPv6.IsUnknown() && !data.IPv6.IsNull() {
 
-		var ipv6 NetworksApplianceVLANsResourceModelIpv6
+		var ipv6 NetworksApplianceVLANResourceModelIpv6
 		diags := data.IPv6.As(ctx, &ipv6, basetypes.ObjectAsOptions{})
 		if diags.HasError() {
 			return *payload, diags
@@ -582,7 +582,7 @@ func CreateHttpReqPayload(ctx context.Context, data *NetworksApplianceVLANsResou
 		for _, prefixAssignmentData := range ipv6.PrefixAssignments.Elements() {
 
 			// Convert the prefixAssignmentData (which is of type attr.Value) to your struct
-			var pa NetworksApplianceVLANsResourceModelIpv6PrefixAssignment
+			var pa NetworksApplianceVLANResourceModelIpv6PrefixAssignment
 
 			prefixAssignmentDataDiags := tfsdk.ValueAs(ctx, prefixAssignmentData, &pa)
 			if prefixAssignmentDataDiags.HasError() {
@@ -596,7 +596,7 @@ func CreateHttpReqPayload(ctx context.Context, data *NetworksApplianceVLANsResou
 			prefixAssignment.SetStaticApplianceIp6(pa.StaticApplianceIp6.ValueString())
 
 			// Assuming 'Origin' is another struct that you need to convert similarly
-			var originData NetworksApplianceVLANsResourceModelIpv6PrefixAssignmentOrigin
+			var originData NetworksApplianceVLANResourceModelIpv6PrefixAssignmentOrigin
 			originDiags := pa.Origin.As(ctx, &originData, basetypes.ObjectAsOptions{})
 			if originDiags.HasError() {
 				return *payload, originDiags
@@ -621,7 +621,7 @@ func CreateHttpReqPayload(ctx context.Context, data *NetworksApplianceVLANsResou
 	// MandatoryDhcp
 	if !data.MandatoryDhcp.IsUnknown() && !data.MandatoryDhcp.IsNull() {
 		mandatoryDhcpPayload := openApiClient.NewGetNetworkApplianceVlans200ResponseInnerMandatoryDhcp()
-		var mandatoryDhcp NetworksApplianceVLANsResourceModelMandatoryDhcp
+		var mandatoryDhcp NetworksApplianceVLANResourceModelMandatoryDhcp
 
 		diags := data.MandatoryDhcp.As(ctx, &mandatoryDhcp, basetypes.ObjectAsOptions{})
 		if diags.HasError() {
@@ -643,7 +643,7 @@ func CreateHttpReqPayload(ctx context.Context, data *NetworksApplianceVLANsResou
 	return *payload, nil
 }
 
-func CreateHttpResponse(ctx context.Context, data *NetworksApplianceVLANsResourceModel, response *openApiClient.CreateNetworkApplianceVlan201Response) diag.Diagnostics {
+func CreateHttpResponse(ctx context.Context, data *NetworksApplianceVLANResourceModel, response *openApiClient.CreateNetworkApplianceVlan201Response) diag.Diagnostics {
 
 	resp := diag.Diagnostics{}
 
@@ -750,7 +750,7 @@ func CreateHttpResponse(ctx context.Context, data *NetworksApplianceVLANsResourc
 
 	// Mandatory DHCP
 	if response.HasMandatoryDhcp() {
-		mandatoryDhcp := NetworksApplianceVLANsResourceModelMandatoryDhcp{}
+		mandatoryDhcp := NetworksApplianceVLANResourceModelMandatoryDhcp{}
 
 		// Enabled
 		if response.MandatoryDhcp.HasEnabled() {
@@ -776,13 +776,13 @@ func CreateHttpResponse(ctx context.Context, data *NetworksApplianceVLANsResourc
 	}
 
 	if response.HasIpv6() {
-		ipv6Instance := NetworksApplianceVLANsResourceModelIpv6{}
+		ipv6Instance := NetworksApplianceVLANResourceModelIpv6{}
 		diags := ipv6Instance.FromAPIResponse(ctx, response.Ipv6)
 		if diags.HasError() {
 			resp.Append(diags...)
 		}
 
-		ipv6Object, diags := types.ObjectValueFrom(ctx, NetworksApplianceVLANsResourceModelIpv6AttrTypes(), ipv6Instance)
+		ipv6Object, diags := types.ObjectValueFrom(ctx, NetworksApplianceVLANResourceModelIpv6AttrTypes(), ipv6Instance)
 		if diags.HasError() {
 			resp.Append(diags...)
 		}
@@ -794,17 +794,17 @@ func CreateHttpResponse(ctx context.Context, data *NetworksApplianceVLANsResourc
 
 	} else {
 		if data.IPv6.IsUnknown() {
-			ipv6Instance := NetworksApplianceVLANsResourceModelIpv6{}
-			ipv6Prefixes := []NetworksApplianceVLANsResourceModelIpv6PrefixAssignment{}
+			ipv6Instance := NetworksApplianceVLANResourceModelIpv6{}
+			ipv6Prefixes := []NetworksApplianceVLANResourceModelIpv6PrefixAssignment{}
 
-			ipv6PrefixesList, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: NetworksApplianceVLANsResourceModelIpv6PrefixAssignmentAttrTypes()}, ipv6Prefixes)
+			ipv6PrefixesList, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: NetworksApplianceVLANResourceModelIpv6PrefixAssignmentAttrTypes()}, ipv6Prefixes)
 			if diags.HasError() {
 				resp.Append(diags...)
 			}
 
 			ipv6Instance.PrefixAssignments = ipv6PrefixesList
 
-			ipv6Object, diags := types.ObjectValueFrom(ctx, NetworksApplianceVLANsResourceModelIpv6AttrTypes(), ipv6Instance)
+			ipv6Object, diags := types.ObjectValueFrom(ctx, NetworksApplianceVLANResourceModelIpv6AttrTypes(), ipv6Instance)
 			if diags.HasError() {
 				resp.Append(diags...)
 			}
@@ -819,7 +819,7 @@ func CreateHttpResponse(ctx context.Context, data *NetworksApplianceVLANsResourc
 }
 
 // ReadHttpResponse - used by READ, UPDATE & DELETE funcs
-func ReadHttpResponse(ctx context.Context, data *NetworksApplianceVLANsResourceModel, response *openApiClient.GetNetworkApplianceVlans200ResponseInner) diag.Diagnostics {
+func ReadHttpResponse(ctx context.Context, data *NetworksApplianceVLANResourceModel, response *openApiClient.GetNetworkApplianceVlans200ResponseInner) diag.Diagnostics {
 
 	resp := diag.Diagnostics{}
 
@@ -1190,7 +1190,7 @@ func ReadHttpResponse(ctx context.Context, data *NetworksApplianceVLANsResourceM
 
 	// Mandatory DHCP
 	if response.HasMandatoryDhcp() {
-		mandatoryDhcp := NetworksApplianceVLANsResourceModelMandatoryDhcp{}
+		mandatoryDhcp := NetworksApplianceVLANResourceModelMandatoryDhcp{}
 
 		// Enabled
 		if response.MandatoryDhcp.HasEnabled() {
@@ -1218,13 +1218,13 @@ func ReadHttpResponse(ctx context.Context, data *NetworksApplianceVLANsResourceM
 	// IPv6
 	// Assuming response is a structure containing your data
 	if response.HasIpv6() {
-		ipv6Instance := NetworksApplianceVLANsResourceModelIpv6{}
+		ipv6Instance := NetworksApplianceVLANResourceModelIpv6{}
 		diags := ipv6Instance.FromAPIResponse(ctx, response.Ipv6)
 		if diags.HasError() {
 			resp.Append(diags...)
 		}
 
-		ipv6Object, diags := types.ObjectValueFrom(ctx, NetworksApplianceVLANsResourceModelIpv6AttrTypes(), ipv6Instance)
+		ipv6Object, diags := types.ObjectValueFrom(ctx, NetworksApplianceVLANResourceModelIpv6AttrTypes(), ipv6Instance)
 
 		if diags.HasError() {
 			resp.Append(diags...)
@@ -1233,17 +1233,17 @@ func ReadHttpResponse(ctx context.Context, data *NetworksApplianceVLANsResourceM
 		data.IPv6 = ipv6Object
 	} else {
 		if data.IPv6.IsUnknown() {
-			ipv6Instance := NetworksApplianceVLANsResourceModelIpv6{}
-			ipv6Prefixes := []NetworksApplianceVLANsResourceModelIpv6PrefixAssignment{}
+			ipv6Instance := NetworksApplianceVLANResourceModelIpv6{}
+			ipv6Prefixes := []NetworksApplianceVLANResourceModelIpv6PrefixAssignment{}
 
-			ipv6PrefixesList, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: NetworksApplianceVLANsResourceModelIpv6PrefixAssignmentAttrTypes()}, ipv6Prefixes)
+			ipv6PrefixesList, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: NetworksApplianceVLANResourceModelIpv6PrefixAssignmentAttrTypes()}, ipv6Prefixes)
 			if diags.HasError() {
 				resp.Append(diags...)
 			}
 
 			ipv6Instance.PrefixAssignments = ipv6PrefixesList
 
-			ipv6Object, diags := types.ObjectValueFrom(ctx, NetworksApplianceVLANsResourceModelIpv6AttrTypes(), ipv6Instance)
+			ipv6Object, diags := types.ObjectValueFrom(ctx, NetworksApplianceVLANResourceModelIpv6AttrTypes(), ipv6Instance)
 			if diags.HasError() {
 				resp.Append(diags...)
 			}
@@ -1257,7 +1257,7 @@ func ReadHttpResponse(ctx context.Context, data *NetworksApplianceVLANsResourceM
 	return resp
 }
 
-func UpdateHttpReqPayload(ctx context.Context, data *NetworksApplianceVLANsResourceModel) (*openApiClient.UpdateNetworkApplianceVlanRequest, diag.Diagnostics) {
+func UpdateHttpReqPayload(ctx context.Context, data *NetworksApplianceVLANResourceModel) (*openApiClient.UpdateNetworkApplianceVlanRequest, diag.Diagnostics) {
 	resp := diag.Diagnostics{}
 
 	tflog.Info(ctx, "[start] UpdateHttpReqPayload Call")
@@ -1362,7 +1362,7 @@ func UpdateHttpReqPayload(ctx context.Context, data *NetworksApplianceVLANsResou
 		for _, reservedIpRange := range data.ReservedIpRanges.Elements() {
 
 			var reservedIpRangePayload openApiClient.UpdateNetworkApplianceStaticRouteRequestReservedIpRangesInner
-			var reservedIpRangeData NetworksApplianceVLANsResourceModelReservedIpRange
+			var reservedIpRangeData NetworksApplianceVLANResourceModelReservedIpRange
 
 			// Convert dhcpOption (types.Object) to dhcpOptionData (struct)
 			reservedIpRangeValue, reservedIpRangeDiags := reservedIpRange.ToTerraformValue(ctx)
@@ -1406,7 +1406,7 @@ func UpdateHttpReqPayload(ctx context.Context, data *NetworksApplianceVLANsResou
 
 		for _, dhcpOption := range data.DhcpOptions.Elements() {
 			var dhcpOptionPayload openApiClient.GetNetworkApplianceVlans200ResponseInnerDhcpOptionsInner
-			var dhcpOptionData NetworksApplianceVLANsResourceModelDhcpOption
+			var dhcpOptionData NetworksApplianceVLANResourceModelDhcpOption
 
 			// Convert dhcpOption (types.Object) to dhcpOptionData (struct)
 			dhcpOptionValue, dhcpOptionDiags := dhcpOption.ToTerraformValue(ctx)
@@ -1457,7 +1457,7 @@ func UpdateHttpReqPayload(ctx context.Context, data *NetworksApplianceVLANsResou
 	// MandatoryDhcp
 	if !data.MandatoryDhcp.IsUnknown() && !data.MandatoryDhcp.IsNull() {
 		mandatoryDhcpPayload := openApiClient.NewGetNetworkApplianceVlans200ResponseInnerMandatoryDhcp()
-		var mandatoryDhcp NetworksApplianceVLANsResourceModelMandatoryDhcp
+		var mandatoryDhcp NetworksApplianceVLANResourceModelMandatoryDhcp
 
 		diags := data.MandatoryDhcp.As(ctx, &mandatoryDhcp, basetypes.ObjectAsOptions{})
 		if diags.HasError() {
@@ -1474,7 +1474,7 @@ func UpdateHttpReqPayload(ctx context.Context, data *NetworksApplianceVLANsResou
 	// IPV6
 	if !data.IPv6.IsUnknown() && !data.IPv6.IsNull() {
 
-		var ipv6 NetworksApplianceVLANsResourceModelIpv6
+		var ipv6 NetworksApplianceVLANResourceModelIpv6
 		diags := data.IPv6.As(ctx, &ipv6, basetypes.ObjectAsOptions{})
 		if diags.HasError() {
 			return nil, diags
@@ -1492,7 +1492,7 @@ func UpdateHttpReqPayload(ctx context.Context, data *NetworksApplianceVLANsResou
 		var prefixAssignments []openApiClient.UpdateNetworkApplianceSingleLanRequestIpv6PrefixAssignmentsInner
 		for _, prefixAssignmentData := range ipv6.PrefixAssignments.Elements() {
 			// Convert the prefixAssignmentData (which is of type attr.Value) to your struct
-			var pa NetworksApplianceVLANsResourceModelIpv6PrefixAssignment
+			var pa NetworksApplianceVLANResourceModelIpv6PrefixAssignment
 
 			prefixAssignmentDataDiags := tfsdk.ValueAs(ctx, prefixAssignmentData, &pa)
 			if prefixAssignmentDataDiags.HasError() {
@@ -1506,7 +1506,7 @@ func UpdateHttpReqPayload(ctx context.Context, data *NetworksApplianceVLANsResou
 			prefixAssignment.SetStaticApplianceIp6(pa.StaticApplianceIp6.ValueString())
 
 			// Assuming 'Origin' is another struct that you need to convert similarly
-			var originData NetworksApplianceVLANsResourceModelIpv6PrefixAssignmentOrigin
+			var originData NetworksApplianceVLANResourceModelIpv6PrefixAssignmentOrigin
 			originDiags := pa.Origin.As(ctx, &originData, basetypes.ObjectAsOptions{})
 			if originDiags.HasError() {
 				return nil, originDiags
@@ -1536,11 +1536,11 @@ func UpdateHttpReqPayload(ctx context.Context, data *NetworksApplianceVLANsResou
 	return payload, nil
 }
 
-func (r *NetworksApplianceVLANsResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_networks_appliance_vlans"
+func (r *NetworksApplianceVLANResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_networks_appliance_vlan"
 }
 
-func (r *NetworksApplianceVLANsResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *NetworksApplianceVLANResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 
 		MarkdownDescription: "Manage the VLANs for an MX network",
@@ -1782,7 +1782,7 @@ func (r *NetworksApplianceVLANsResource) Schema(ctx context.Context, req resourc
 	}
 }
 
-func (r *NetworksApplianceVLANsResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *NetworksApplianceVLANResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -1802,8 +1802,8 @@ func (r *NetworksApplianceVLANsResource) Configure(ctx context.Context, req reso
 	r.client = client
 }
 
-func (r *NetworksApplianceVLANsResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *NetworksApplianceVLANsResourceModel
+func (r *NetworksApplianceVLANResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *NetworksApplianceVLANResourceModel
 
 	// Log the received request
 	tflog.Info(ctx, "[start] CREATE Function Call")
@@ -1911,8 +1911,8 @@ func (r *NetworksApplianceVLANsResource) Create(ctx context.Context, req resourc
 	})
 }
 
-func (r *NetworksApplianceVLANsResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *NetworksApplianceVLANsResourceModel
+func (r *NetworksApplianceVLANResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *NetworksApplianceVLANResourceModel
 
 	// Log the received request
 	tflog.Info(ctx, "[start] READ Function Call")
@@ -1971,8 +1971,8 @@ func (r *NetworksApplianceVLANsResource) Read(ctx context.Context, req resource.
 	})
 }
 
-func (r *NetworksApplianceVLANsResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data *NetworksApplianceVLANsResourceModel
+func (r *NetworksApplianceVLANResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var data *NetworksApplianceVLANResourceModel
 
 	// Log the received request
 	tflog.Info(ctx, "[start] UPDATE Function Call")
@@ -2041,8 +2041,8 @@ func (r *NetworksApplianceVLANsResource) Update(ctx context.Context, req resourc
 	})
 }
 
-func (r *NetworksApplianceVLANsResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data *NetworksApplianceVLANsResourceModel
+func (r *NetworksApplianceVLANResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data *NetworksApplianceVLANResourceModel
 
 	// Log the received request
 	tflog.Info(ctx, "[start] DELETE Function Call")
@@ -2093,7 +2093,7 @@ func (r *NetworksApplianceVLANsResource) Delete(ctx context.Context, req resourc
 
 }
 
-func (r *NetworksApplianceVLANsResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *NetworksApplianceVLANResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 	idParts := strings.Split(req.ID, ",")
 	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
