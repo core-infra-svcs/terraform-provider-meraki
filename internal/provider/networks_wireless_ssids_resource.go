@@ -1352,16 +1352,6 @@ func (r *NetworksWirelessSsidsResource) Create(ctx context.Context, req resource
 		return resp, httpResp, nil
 	})
 
-	// Type assert apiResp to the expected *openApiClient.GetNetworkWirelessSsids200ResponseInner type
-	response, ok := apiResp.(*openApiClient.GetNetworkWirelessSsids200ResponseInner)
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Type Assertion Failed",
-			"Failed to assert API response type to *openapi.GetDeviceSwitchPorts200ResponseInner",
-		)
-		return
-	}
-
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -1382,6 +1372,16 @@ func (r *NetworksWirelessSsidsResource) Create(ctx context.Context, req resource
 	// If there were any errors up to this point, log the state data and return.
 	if resp.Diagnostics.HasError() {
 		resp.Diagnostics.AddError("State Data", fmt.Sprintf("\n%v", data))
+		return
+	}
+
+	// Type assert apiResp to the expected *openApiClient.GetNetworkWirelessSsids200ResponseInner type
+	response, ok := apiResp.(*openApiClient.GetNetworkWirelessSsids200ResponseInner)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Type Assertion Failed",
+			"Failed to assert API response type to *openapi.GetDeviceSwitchPorts200ResponseInner",
+		)
 		return
 	}
 
@@ -1420,16 +1420,6 @@ func (r *NetworksWirelessSsidsResource) Read(ctx context.Context, req resource.R
 		return resp, httpResp, nil
 	})
 
-	// Type assert apiResp to the expected *openApiClient.GetNetworkWirelessSsids200ResponseInner type
-	response, ok := apiResp.(*openApiClient.GetNetworkWirelessSsids200ResponseInner)
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Type Assertion Failed",
-			"Failed to assert API response type to *openapi.GetDeviceSwitchPorts200ResponseInner",
-		)
-		return
-	}
-
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -1449,6 +1439,16 @@ func (r *NetworksWirelessSsidsResource) Read(ctx context.Context, req resource.R
 	// If there were any errors up to this point, log the state data and return.
 	if resp.Diagnostics.HasError() {
 		resp.Diagnostics.AddError("State Data", fmt.Sprintf("\n%v", data))
+		return
+	}
+
+	// Type assert apiResp to the expected *openApiClient.GetNetworkWirelessSsids200ResponseInner type
+	response, ok := apiResp.(*openApiClient.GetNetworkWirelessSsids200ResponseInner)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Type Assertion Failed",
+			"Failed to assert API response type to *openapi.GetDeviceSwitchPorts200ResponseInner",
+		)
 		return
 	}
 
@@ -1479,6 +1479,7 @@ func (r *NetworksWirelessSsidsResource) Update(ctx context.Context, req resource
 	}
 
 	payload, payloadDiag := NetworksWirelessSsidsPayload(ctx, data)
+
 	if payloadDiag.HasError() {
 		resp.Diagnostics.AddError("Resource Payload Error", fmt.Sprintf("\n%v", payloadDiag))
 		return
@@ -1492,16 +1493,6 @@ func (r *NetworksWirelessSsidsResource) Update(ctx context.Context, req resource
 		}
 		return resp, httpResp, nil
 	})
-
-	// Type assert apiResp to the expected *openApiClient.GetNetworkWirelessSsids200ResponseInner type
-	response, ok := apiResp.(*openApiClient.GetNetworkWirelessSsids200ResponseInner)
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Type Assertion Failed",
-			"Failed to assert API response type to *openapi.GetDeviceSwitchPorts200ResponseInner",
-		)
-		return
-	}
 
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
@@ -1523,6 +1514,16 @@ func (r *NetworksWirelessSsidsResource) Update(ctx context.Context, req resource
 	// If there were any errors up to this point, log the state data and return.
 	if resp.Diagnostics.HasError() {
 		resp.Diagnostics.AddError("State Data", fmt.Sprintf("\n%v", data))
+		return
+	}
+
+	// Type assert apiResp to the expected *openApiClient.GetNetworkWirelessSsids200ResponseInner type
+	response, ok := apiResp.(*openApiClient.GetNetworkWirelessSsids200ResponseInner)
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Type Assertion Failed",
+			"Failed to assert API response type to *openapi.GetDeviceSwitchPorts200ResponseInner",
+		)
 		return
 	}
 
@@ -2163,14 +2164,19 @@ func NetworksWirelessSsidsPayload(ctx context.Context, data *NetworksWirelessSsi
 		payload.SetAvailableOnAllAps(data.AvailableOnAllAps.ValueBool())
 	}
 	// AvailabilityTags
-	if !data.AvailabilityTags.IsNull() && !data.AvailabilityTags.IsUnknown() {
+	if !data.AvailabilityTags.IsUnknown() {
 		var tags []string
+		if !data.AvailabilityTags.IsNull() {
+			for _, tag := range data.AvailabilityTags.Elements() {
+				t := fmt.Sprint(strings.Trim(tag.String(), "\""))
+				tags = append(tags, t)
+			}
 
-		for _, tag := range data.AvailabilityTags.Elements() {
-			tags = append(tags, tag.String())
+			payload.SetAvailabilityTags(tags)
+		} else {
+			payload.SetAvailabilityTags(tags)
 		}
 
-		payload.SetAvailabilityTags(tags)
 	}
 
 	// MandatoryDhcpEnabled
