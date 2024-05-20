@@ -1385,9 +1385,9 @@ func (r *NetworksWirelessSsidsResource) Create(ctx context.Context, req resource
 		return
 	}
 
-	updatePayloadRespDiags := ReadSSIDSHttpResponse(ctx, data, response)
-	if updatePayloadRespDiags != nil {
-		resp.Diagnostics.Append(updatePayloadRespDiags...)
+	createPayloadRespDiags := ReadSSIDSHttpResponse(ctx, data, response)
+	if createPayloadRespDiags != nil {
+		resp.Diagnostics.Append(createPayloadRespDiags...)
 	}
 
 	// Check for errors after diagnostics collected
