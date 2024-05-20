@@ -2163,14 +2163,19 @@ func NetworksWirelessSsidsPayload(ctx context.Context, data *NetworksWirelessSsi
 		payload.SetAvailableOnAllAps(data.AvailableOnAllAps.ValueBool())
 	}
 	// AvailabilityTags
-	if !data.AvailabilityTags.IsNull() && !data.AvailabilityTags.IsUnknown() {
+	if !data.AvailabilityTags.IsUnknown() {
 		var tags []string
+		if !data.AvailabilityTags.IsNull() {
+			for _, tag := range data.AvailabilityTags.Elements() {
+				t := fmt.Sprint(strings.Trim(tag.String(), "\""))
+				tags = append(tags, t)
+			}
 
-		for _, tag := range data.AvailabilityTags.Elements() {
-			tags = append(tags, tag.String())
+			payload.SetAvailabilityTags(tags)
+		} else {
+			payload.SetAvailabilityTags(tags)
 		}
 
-		payload.SetAvailabilityTags(tags)
 	}
 
 	// MandatoryDhcpEnabled
