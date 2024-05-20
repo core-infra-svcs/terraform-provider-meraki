@@ -1385,9 +1385,9 @@ func (r *NetworksWirelessSsidsResource) Create(ctx context.Context, req resource
 		return
 	}
 
-	createPayloadRespDiags := ReadSSIDSHttpResponse(ctx, data, response)
-	if createPayloadRespDiags != nil {
-		resp.Diagnostics.Append(createPayloadRespDiags...)
+	createSSidPayloadRespDiags := ReadSSIDSHttpResponse(ctx, data, response)
+	if createSSidPayloadRespDiags != nil {
+		resp.Diagnostics.Append(createSSidPayloadRespDiags...)
 	}
 
 	// Check for errors after diagnostics collected
@@ -1452,9 +1452,9 @@ func (r *NetworksWirelessSsidsResource) Read(ctx context.Context, req resource.R
 		return
 	}
 
-	getPayloadRespDiags := ReadSSIDSHttpResponse(ctx, data, response)
-	if getPayloadRespDiags != nil {
-		resp.Diagnostics.Append(getPayloadRespDiags...)
+	getSSidPayloadRespDiags := ReadSSIDSHttpResponse(ctx, data, response)
+	if getSSidPayloadRespDiags != nil {
+		resp.Diagnostics.Append(getSSidPayloadRespDiags...)
 	}
 
 	// Check for errors after diagnostics collected
@@ -1527,9 +1527,9 @@ func (r *NetworksWirelessSsidsResource) Update(ctx context.Context, req resource
 		return
 	}
 
-	updatePayloadRespDiags := ReadSSIDSHttpResponse(ctx, data, response)
-	if updatePayloadRespDiags != nil {
-		resp.Diagnostics.Append(updatePayloadRespDiags...)
+	updateSSidPayloadRespDiags := ReadSSIDSHttpResponse(ctx, data, response)
+	if updateSSidPayloadRespDiags != nil {
+		resp.Diagnostics.Append(updateSSidPayloadRespDiags...)
 	}
 
 	// Check for errors after diagnostics collected
