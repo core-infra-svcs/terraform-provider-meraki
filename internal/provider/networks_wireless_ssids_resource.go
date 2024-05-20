@@ -1369,12 +1369,6 @@ func (r *NetworksWirelessSsidsResource) Create(ctx context.Context, req resource
 		)
 	}
 
-	// If there were any errors up to this point, log the state data and return.
-	if resp.Diagnostics.HasError() {
-		resp.Diagnostics.AddError("State Data", fmt.Sprintf("\n%v", data))
-		return
-	}
-
 	// Type assert apiResp to the expected *openApiClient.GetNetworkWirelessSsids200ResponseInner type
 	response, ok := apiResp.(*openApiClient.GetNetworkWirelessSsids200ResponseInner)
 	if !ok {
@@ -1385,10 +1379,15 @@ func (r *NetworksWirelessSsidsResource) Create(ctx context.Context, req resource
 		return
 	}
 
-	createSSidPayloadRespDiags := ReadSSIDSHttpResponse(ctx, data, response)
-	if createSSidPayloadRespDiags.HasError() {
-		resp.Diagnostics.Append(createSSidPayloadRespDiags...)
+	// If there were any errors up to this point, log the state data and return.
+	if resp.Diagnostics.HasError() {
+		resp.Diagnostics.AddError("State Data", fmt.Sprintf("\n%v", data))
 		return
+	}
+
+	updatePayloadRespDiags := ReadSSIDSHttpResponse(ctx, data, response)
+	if updatePayloadRespDiags != nil {
+		resp.Diagnostics.Append(updatePayloadRespDiags...)
 	}
 
 	// Check for errors after diagnostics collected
@@ -1437,12 +1436,6 @@ func (r *NetworksWirelessSsidsResource) Read(ctx context.Context, req resource.R
 		)
 	}
 
-	// If there were any errors up to this point, log the state data and return.
-	if resp.Diagnostics.HasError() {
-		resp.Diagnostics.AddError("State Data", fmt.Sprintf("\n%v", data))
-		return
-	}
-
 	// Type assert apiResp to the expected *openApiClient.GetNetworkWirelessSsids200ResponseInner type
 	response, ok := apiResp.(*openApiClient.GetNetworkWirelessSsids200ResponseInner)
 	if !ok {
@@ -1453,9 +1446,15 @@ func (r *NetworksWirelessSsidsResource) Read(ctx context.Context, req resource.R
 		return
 	}
 
-	getSSidPayloadRespDiags := ReadSSIDSHttpResponse(ctx, data, response)
-	if getSSidPayloadRespDiags != nil {
-		resp.Diagnostics.Append(getSSidPayloadRespDiags...)
+	// If there were any errors up to this point, log the state data and return.
+	if resp.Diagnostics.HasError() {
+		resp.Diagnostics.AddError("State Data", fmt.Sprintf("\n%v", data))
+		return
+	}
+
+	getPayloadRespDiags := ReadSSIDSHttpResponse(ctx, data, response)
+	if getPayloadRespDiags != nil {
+		resp.Diagnostics.Append(getPayloadRespDiags...)
 	}
 
 	// Check for errors after diagnostics collected
@@ -1480,7 +1479,6 @@ func (r *NetworksWirelessSsidsResource) Update(ctx context.Context, req resource
 	}
 
 	payload, payloadDiag := NetworksWirelessSsidsPayload(ctx, data)
-
 	if payloadDiag.HasError() {
 		resp.Diagnostics.AddError("Resource Payload Error", fmt.Sprintf("\n%v", payloadDiag))
 		return
@@ -1512,12 +1510,6 @@ func (r *NetworksWirelessSsidsResource) Update(ctx context.Context, req resource
 		)
 	}
 
-	// If there were any errors up to this point, log the state data and return.
-	if resp.Diagnostics.HasError() {
-		resp.Diagnostics.AddError("State Data", fmt.Sprintf("\n%v", data))
-		return
-	}
-
 	// Type assert apiResp to the expected *openApiClient.GetNetworkWirelessSsids200ResponseInner type
 	response, ok := apiResp.(*openApiClient.GetNetworkWirelessSsids200ResponseInner)
 	if !ok {
@@ -1528,9 +1520,15 @@ func (r *NetworksWirelessSsidsResource) Update(ctx context.Context, req resource
 		return
 	}
 
-	updateSSidPayloadRespDiags := ReadSSIDSHttpResponse(ctx, data, response)
-	if updateSSidPayloadRespDiags != nil {
-		resp.Diagnostics.Append(updateSSidPayloadRespDiags...)
+	// If there were any errors up to this point, log the state data and return.
+	if resp.Diagnostics.HasError() {
+		resp.Diagnostics.AddError("State Data", fmt.Sprintf("\n%v", data))
+		return
+	}
+
+	updatePayloadRespDiags := ReadSSIDSHttpResponse(ctx, data, response)
+	if updatePayloadRespDiags != nil {
+		resp.Diagnostics.Append(updatePayloadRespDiags...)
 	}
 
 	// Check for errors after diagnostics collected
@@ -2165,19 +2163,14 @@ func NetworksWirelessSsidsPayload(ctx context.Context, data *NetworksWirelessSsi
 		payload.SetAvailableOnAllAps(data.AvailableOnAllAps.ValueBool())
 	}
 	// AvailabilityTags
-	if !data.AvailabilityTags.IsUnknown() {
+	if !data.AvailabilityTags.IsNull() && !data.AvailabilityTags.IsUnknown() {
 		var tags []string
-		if !data.AvailabilityTags.IsNull() {
-			for _, tag := range data.AvailabilityTags.Elements() {
-				t := fmt.Sprint(strings.Trim(tag.String(), "\""))
-				tags = append(tags, t)
-			}
 
-			payload.SetAvailabilityTags(tags)
-		} else {
-			payload.SetAvailabilityTags(tags)
+		for _, tag := range data.AvailabilityTags.Elements() {
+			tags = append(tags, tag.String())
 		}
 
+		payload.SetAvailabilityTags(tags)
 	}
 
 	// MandatoryDhcpEnabled
