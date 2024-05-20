@@ -3,11 +3,14 @@ package provider
 import (
 	"context"
 	"fmt"
+
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -146,7 +149,7 @@ func (r *NetworksApplianceVpnSiteToSiteVpnDatasource) Read(ctx context.Context, 
 		return
 	}
 
-	_, httpResp, err := r.client.ApplianceApi.GetNetworkApplianceVpnSiteToSiteVpn(ctx, data.NetworkId.ValueString()).Execute()
+	response, httpResp, err := r.client.ApplianceApi.GetNetworkApplianceVpnSiteToSiteVpn(ctx, data.NetworkId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Read HTTP Client Failure",
@@ -168,6 +171,59 @@ func (r *NetworksApplianceVpnSiteToSiteVpnDatasource) Read(ctx context.Context, 
 		return
 	} else {
 		resp.Diagnostics.Append()
+	}
+
+	var diags diag.Diagnostics
+
+	data.Mode = jsontypes.StringValue(response.GetMode())
+
+	// Hubs
+	var hubs []NetworksApplianceVpnSiteToSiteVpnResourceModelHubs
+	for _, element := range response.GetHubs() {
+		var hub NetworksApplianceVpnSiteToSiteVpnResourceModelHubs
+		hub.UseDefaultRoute = jsontypes.BoolValue(element.GetUseDefaultRoute())
+		hub.HubId = jsontypes.StringValue(element.GetHubId())
+		hubs = append(hubs, hub)
+
+	}
+
+	hubAttributes := map[string]attr.Type{
+		"use_default_route": types.BoolType,
+		"hub_id":            types.StringType,
+	}
+
+	hubSchema := types.ObjectType{
+		AttrTypes: hubAttributes,
+	}
+
+	data.Hubs, diags = types.ListValueFrom(ctx, hubSchema, hubs)
+	if diags.HasError() {
+		return
+	}
+
+	// Subnets
+	var subnets []NetworksApplianceVpnSiteToSiteVpnResourceModelSubnets
+	for _, element := range response.GetSubnets() {
+		var subnet NetworksApplianceVpnSiteToSiteVpnResourceModelSubnets
+		subnet.UseVpn = jsontypes.BoolValue(element.GetUseVpn())
+		subnet.LocalSubnet = jsontypes.StringValue(element.GetLocalSubnet())
+
+		subnets = append(subnets, subnet)
+
+	}
+
+	subnetAttributes := map[string]attr.Type{
+		"use_vpn":      types.BoolType,
+		"local_subnet": types.StringType,
+	}
+
+	subnetSchema := types.ObjectType{
+		AttrTypes: subnetAttributes,
+	}
+
+	data.Subnets, diags = types.ListValueFrom(ctx, subnetSchema, subnets)
+	if diags.HasError() {
+		return
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
