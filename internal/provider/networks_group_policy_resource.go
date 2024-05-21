@@ -2,931 +2,205 @@ package provider
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"net/http"
-	"strings"
-
-	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/meraki/dashboard-api-go/client"
+	"io"
+	"strconv"
+	"strings"
+	"time"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
-	openApiClient "github.com/meraki/dashboard-api-go/client"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// Ensure provider defined types fully satisfy framework interfaces
-var _ resource.Resource = &NetworksGroupPolicyResource{}
-var _ resource.ResourceWithImportState = &NetworksGroupPolicyResource{}
+const (
+	retryMax     = 5
+	retryWaitMin = 1 * time.Second
+	retryWaitMax = 30 * time.Second
+)
+
+// NetworksGroupPolicyResource defines the resource implementation.
+type NetworksGroupPolicyResource struct {
+	client *client.APIClient
+}
 
 func NewNetworksGroupPolicyResource() resource.Resource {
 	return &NetworksGroupPolicyResource{}
 }
 
-// NetworksGroupPolicyResource defines the resource implementation.
-type NetworksGroupPolicyResource struct {
-	client *openApiClient.APIClient
+// Ensure provider defined types fully satisfy framework interfaces
+var _ resource.Resource = &NetworksGroupPolicyResource{}
+var _ resource.ResourceWithImportState = &NetworksGroupPolicyResource{}
+
+// GroupPolicyModel represents a group policy.
+type GroupPolicyModel struct {
+	ID                        types.String                    `tfsdk:"id"`
+	Name                      types.String                    `tfsdk:"name"`
+	GroupPolicyId             types.String                    `tfsdk:"group_policy_id"`
+	NetworkId                 types.String                    `tfsdk:"network_id"`
+	Scheduling                *SchedulingModel                `tfsdk:"scheduling"`
+	Bandwidth                 *BandwidthModel                 `tfsdk:"bandwidth"`
+	FirewallAndTrafficShaping *FirewallAndTrafficShapingModel `tfsdk:"firewall_and_traffic_shaping"`
+	ContentFiltering          *ContentFilteringModel          `tfsdk:"content_filtering"`
+	SplashAuthSettings        types.String                    `tfsdk:"splash_auth_settings"`
+	VlanTagging               *VlanTaggingModel               `tfsdk:"vlan_tagging"`
+	BonjourForwarding         *BonjourForwardingModel         `tfsdk:"bonjour_forwarding"`
 }
 
-// NetworksGroupPolicyResourceModel describes the resource data model.
-type NetworksGroupPolicyResourceModel struct {
-	Id                        types.String `tfsdk:"id"`
-	NetworkId                 types.String `tfsdk:"network_id"`
-	GroupPolicyId             types.String `tfsdk:"group_policy_id" json:"groupPolicyId"`
-	Name                      types.String `tfsdk:"name" json:"name"`
-	SplashAuthSettings        types.String `tfsdk:"splash_auth_settings" json:"splashAuthSettings"`
-	Bandwidth                 types.Object `tfsdk:"bandwidth" json:"bandwidth"`
-	BonjourForwarding         types.Object `tfsdk:"bonjour_forwarding" json:"bonjourForwarding"`
-	Scheduling                types.Object `tfsdk:"scheduling" json:"scheduling"`
-	ContentFiltering          types.Object `tfsdk:"content_filtering" json:"contentFiltering"`
-	FirewallAndTrafficShaping types.Object `tfsdk:"firewall_and_traffic_shaping" json:"firewallAndTrafficShaping"`
-	VlanTagging               types.Object `tfsdk:"vlan_tagging" json:"vlanTagging"`
+// SchedulingModel represents the scheduling settings.
+type SchedulingModel struct {
+	Enabled   types.Bool        `tfsdk:"enabled"`
+	Monday    *ScheduleDayModel `tfsdk:"monday"`
+	Tuesday   *ScheduleDayModel `tfsdk:"tuesday"`
+	Wednesday *ScheduleDayModel `tfsdk:"wednesday"`
+	Thursday  *ScheduleDayModel `tfsdk:"thursday"`
+	Friday    *ScheduleDayModel `tfsdk:"friday"`
+	Saturday  *ScheduleDayModel `tfsdk:"saturday"`
+	Sunday    *ScheduleDayModel `tfsdk:"sunday"`
 }
 
-type NetworksGroupPolicyResourceModelFirewallAndTrafficShaping struct {
-	Settings            types.String `tfsdk:"settings" json:"settings"`
-	L3FirewallRules     types.List   `tfsdk:"l3_firewall_rules" json:"l3FirewallRules"`
-	L7FirewallRules     types.List   `tfsdk:"l7_firewall_rules" json:"l7FirewallRules"`
-	TrafficShapingRules types.List   `tfsdk:"traffic_shaping_rules" json:"trafficShapingRules"`
+// ScheduleDayModel represents a single day's schedule.
+type ScheduleDayModel struct {
+	Active types.Bool   `tfsdk:"active"`
+	From   types.String `tfsdk:"from"`
+	To     types.String `tfsdk:"to"`
 }
 
-type NetworksGroupPolicyResourceModelL3FirewallRule struct {
-	Comment  types.String `tfsdk:"comment" json:"comment"`
-	DestCidr types.String `tfsdk:"dest_cidr" json:"destCidr"`
-	DestPort types.String `tfsdk:"dest_port" json:"destPort"`
-	Policy   types.String `tfsdk:"policy" json:"policy"`
-	Protocol types.String `tfsdk:"protocol" json:"protocol"`
+// BandwidthModel represents the bandwidth settings.
+type BandwidthModel struct {
+	Settings        types.String          `tfsdk:"settings"`
+	BandwidthLimits *BandwidthLimitsModel `tfsdk:"bandwidth_limits"`
 }
 
-type NetworksGroupPolicyResourceModelL7FirewallRule struct {
-	Value  types.String `tfsdk:"value" json:"value"`
-	Type   types.String `tfsdk:"type" json:"type"`
-	Policy types.String `tfsdk:"policy" json:"policy"`
+// BandwidthLimitsModel represents the bandwidth limits.
+type BandwidthLimitsModel struct {
+	LimitUp   types.Int64 `tfsdk:"limit_up"`
+	LimitDown types.Int64 `tfsdk:"limit_down"`
 }
 
-type NetworksGroupPolicyResourceModelTrafficShapingRule struct {
-	DscpTagValue             types.Int64  `tfsdk:"dscp_tag_value" json:"dscpTagValue"`
-	PcpTagValue              types.Int64  `tfsdk:"pcp_tag_value" json:"pcpTagValue"`
-	PerClientBandwidthLimits types.Object `tfsdk:"per_client_bandwidth_limits" json:"perClientBandwidthLimits,,omitempty"`
-	Definitions              types.List   `tfsdk:"definitions" json:"definitions"`
+// FirewallAndTrafficShapingModel represents the firewall and traffic shaping settings.
+type FirewallAndTrafficShapingModel struct {
+	Settings            types.String              `tfsdk:"settings"`
+	L3FirewallRules     []L3FirewallRuleModel     `tfsdk:"l3_firewall_rules"`
+	L7FirewallRules     []L7FirewallRuleModel     `tfsdk:"l7_firewall_rules"`
+	TrafficShapingRules []TrafficShapingRuleModel `tfsdk:"traffic_shaping_rules"`
 }
 
-type NetworksGroupPolicyResourceModelPerClientBandwidth struct {
-	BandwidthLimits types.Object `tfsdk:"bandwidth_limits" json:"bandwidthLimits,,omitempty"`
-	Settings        types.String `tfsdk:"settings" json:"settings,,omitempty"`
+// L3FirewallRuleModel represents a layer 3 firewall rule.
+type L3FirewallRuleModel struct {
+	Comment  types.String `tfsdk:"comment"`
+	Policy   types.String `tfsdk:"policy"`
+	Protocol types.String `tfsdk:"protocol"`
+	DestPort types.String `tfsdk:"dest_port"`
+	DestCidr types.String `tfsdk:"dest_cidr"`
 }
 
-type NetworksGroupPolicyResourceModelPerClientBandwidthLimits struct {
-	LimitUp   types.Int64 `tfsdk:"limit_up" json:"limitUp"`
-	LimitDown types.Int64 `tfsdk:"limit_down" json:"limitDown"`
+// L7FirewallRuleModel represents a layer 7 firewall rule.
+type L7FirewallRuleModel struct {
+	Policy types.String `tfsdk:"policy"`
+	Type   types.String `tfsdk:"type"`
+	Value  types.String `tfsdk:"value"`
 }
 
-type NetworksGroupPolicyResourceModelDefinition struct {
-	Value types.String `tfsdk:"value" json:"value"`
-	Type  types.String `tfsdk:"type" json:"type"`
+// TrafficShapingRuleModel represents a traffic shaping rule.
+type TrafficShapingRuleModel struct {
+	DscpTagValue             types.Int64                     `tfsdk:"dscp_tag_value"`
+	PcpTagValue              types.Int64                     `tfsdk:"pcp_tag_value"`
+	PerClientBandwidthLimits *PerClientBandwidthLimitsModel  `tfsdk:"per_client_bandwidth_limits"`
+	Definitions              []TrafficShapingDefinitionModel `tfsdk:"definitions"`
 }
 
-type NetworksGroupPolicyResourceModelBandwidth struct {
-	BandwidthLimits types.Object `tfsdk:"bandwidth_limits" json:"bandwidthLimits"`
-	Settings        types.String `tfsdk:"settings" json:"settings"`
+// PerClientBandwidthLimitsModel represents the per-client bandwidth limits.
+type PerClientBandwidthLimitsModel struct {
+	Settings        types.String          `tfsdk:"settings"`
+	BandwidthLimits *BandwidthLimitsModel `tfsdk:"bandwidth_limits"`
 }
 
-type NetworksGroupPolicyResourceModelBandwidthLimits struct {
-	LimitUp   types.Int64 `tfsdk:"limit_up" json:"limitUp"`
-	LimitDown types.Int64 `tfsdk:"limit_down" json:"limitDown"`
+// TrafficShapingDefinitionModel represents a traffic shaping definition.
+type TrafficShapingDefinitionModel struct {
+	Type  types.String `tfsdk:"type"`
+	Value types.String `tfsdk:"value"`
 }
 
-type NetworksGroupPolicyResourceModelBonjourForwarding struct {
-	BonjourForwardingSettings types.String `tfsdk:"settings" json:"settings"`
-	BonjourForwardingRules    types.List   `tfsdk:"rules" json:"rules"`
+// ContentFilteringModel represents the content filtering settings.
+type ContentFilteringModel struct {
+	AllowedUrlPatterns   UrlPatterns   `tfsdk:"allowed_url_patterns"`
+	BlockedUrlPatterns   UrlPatterns   `tfsdk:"blocked_url_patterns"`
+	BlockedUrlCategories UrlCategories `tfsdk:"blocked_url_categories"`
 }
 
-type NetworksGroupPolicyResourceModelRule struct {
-	Description types.String `tfsdk:"description" json:"description"`
-	VlanId      types.String `tfsdk:"vlan_id" json:"vlanId"`
-	Services    types.Set    `tfsdk:"services" json:"services"`
+type UrlPatterns struct {
+	Patterns types.List   `tfsdk:"patterns"`
+	Settings types.String `tfsdk:"settings"`
 }
 
-type OutputNetworksGroupPolicyResourceModelBonjourForwarding struct {
-	BonjourForwardingSettings string                                       `json:"settings"`
-	BonjourForwardingRules    []OutputNetworksGroupPolicyResourceModelRule `json:"rules"`
+type UrlCategories struct {
+	Categories types.List   `tfsdk:"categories"`
+	Settings   types.String `tfsdk:"settings"`
 }
 
-type OutputNetworksGroupPolicyResourceModelRule struct {
-	Description string   `json:"description"`
-	VlanId      string   `json:"vlanId"`
-	Services    []string `json:"services"`
+// VlanTaggingModel represents the VLAN tagging settings.
+type VlanTaggingModel struct {
+	Settings types.String `tfsdk:"settings"`
+	VlanID   types.String `tfsdk:"vlan_id"`
 }
 
-type NetworksGroupPolicyResourceModelScheduling struct {
-	Enabled   types.Bool   `tfsdk:"enabled" json:"enabled"`
-	Friday    types.Object `tfsdk:"friday" json:"friday"`
-	Monday    types.Object `tfsdk:"monday" json:"monday"`
-	Saturday  types.Object `tfsdk:"saturday" json:"saturday"`
-	Sunday    types.Object `tfsdk:"sunday" json:"sunday"`
-	Thursday  types.Object `tfsdk:"thursday" json:"thursday"`
-	Tuesday   types.Object `tfsdk:"tuesday" json:"tuesday"`
-	Wednesday types.Object `tfsdk:"wednesday" json:"wednesday"`
+// BonjourForwardingModel represents the Bonjour forwarding settings.
+type BonjourForwardingModel struct {
+	Settings types.String                 `tfsdk:"settings"`
+	Rules    []BonjourForwardingRuleModel `tfsdk:"rules"`
 }
 
-type NetworksGroupPolicyResourceModelSchedule struct {
-	From   types.String `tfsdk:"from" json:"from"`
-	To     types.String `tfsdk:"to" json:"to"`
-	Active types.Bool   `tfsdk:"active" json:"active"`
+// BonjourForwardingRuleModel represents a Bonjour forwarding rule.
+type BonjourForwardingRuleModel struct {
+	Description types.String   `tfsdk:"description"`
+	VlanID      types.String   `tfsdk:"vlan_id"`
+	Services    []types.String `tfsdk:"services"`
 }
 
-type NetworksGroupPolicyResourceModelVlanTagging struct {
-	Settings types.String `tfsdk:"settings" json:"settings"`
-	VlanId   types.String `tfsdk:"vlan_id" json:"vlanId"`
-}
-
-type OutputNetworksGroupPolicyResourceModelVlanTagging struct {
-	Settings string `json:"settings"`
-	VlanId   string `json:"vlanId"`
-}
-
-type NetworksGroupPolicyResourceModelContentFiltering struct {
-	AllowedUrlPatterns   types.Object `tfsdk:"allowed_url_patterns" json:"allowedUrlPatterns"`
-	BlockedUrlCategories types.Object `tfsdk:"blocked_url_categories" json:"blockedUrlCategories"`
-	BlockedUrlPatterns   types.Object `tfsdk:"blocked_url_patterns" json:"blockedUrlPatterns"`
-}
-
-type NetworksGroupPolicyResourceModelAllowedUrlPatterns struct {
-	Settings types.String `tfsdk:"settings" json:"settings"`
-	Patterns types.Set    `tfsdk:"patterns" json:"patterns"`
-}
-type NetworksGroupPolicyResourceModelBlockedUrlCategories struct {
-	Settings   types.String `tfsdk:"settings" json:"settings"`
-	Categories types.Set    `tfsdk:"categories" json:"categories"`
-}
-type NetworksGroupPolicyResourceModelBlockedUrlPatterns struct {
-	Settings types.String `tfsdk:"settings" json:"settings"`
-	Patterns types.Set    `tfsdk:"patterns" json:"patterns"`
-}
-
-type OutputNetworksGroupPolicyResourceModelContentFiltering struct {
-	AllowedUrlPatterns   OutputNetworksGroupPolicyResourceModelAllowedUrlPatterns   `json:"allowedUrlPatterns"`
-	BlockedUrlCategories OutputNetworksGroupPolicyResourceModelBlockedUrlCategories `json:"blockedUrlCategories"`
-	BlockedUrlPatterns   OutputNetworksGroupPolicyResourceModelBlockedUrlPatterns   `json:"blockedUrlPatterns"`
-}
-
-type OutputNetworksGroupPolicyResourceModelAllowedUrlPatterns struct {
-	Settings string   `json:"settings"`
-	Patterns []string `json:"patterns"`
-}
-type OutputNetworksGroupPolicyResourceModelBlockedUrlCategories struct {
-	Settings   string   `json:"settings"`
-	Categories []string `json:"categories"`
-}
-type OutputNetworksGroupPolicyResourceModelBlockedUrlPatterns struct {
-	Settings string   `json:"settings"`
-	Patterns []string `json:"patterns"`
-}
-
-type OutputNetworksGroupPolicyResourceModelScheduling struct {
-	Enabled   bool                                           `json:"enabled"`
-	Friday    OutputNetworksGroupPolicyResourceModelSchedule `json:"friday"`
-	Monday    OutputNetworksGroupPolicyResourceModelSchedule `json:"monday"`
-	Saturday  OutputNetworksGroupPolicyResourceModelSchedule `json:"saturday"`
-	Sunday    OutputNetworksGroupPolicyResourceModelSchedule `json:"sunday"`
-	Thursday  OutputNetworksGroupPolicyResourceModelSchedule `json:"thursday"`
-	Tuesday   OutputNetworksGroupPolicyResourceModelSchedule `json:"tuesday"`
-	Wednesday OutputNetworksGroupPolicyResourceModelSchedule `json:"wednesday"`
-}
-
-type OutputNetworksGroupPolicyResourceModelSchedule struct {
-	From   string `json:"from"`
-	To     string `json:"to"`
-	Active bool   `json:"active"`
-}
-
-type OutputNetworksGroupPolicyResourceModelPerClientBandwidthLimits struct {
-	LimitUp   int64 `json:"limitUp"`
-	LimitDown int64 `json:"limitDown"`
-}
-
-type OutputNetworksGroupPolicyResourceModelFirewallAndTrafficShaping struct {
-	Settings            string                                                     `json:"settings"`
-	L3FirewallRules     []OutputNetworksGroupPolicyResourceModelL3FirewallRule     `json:"l3FirewallRules"`
-	L7FirewallRules     []OutputNetworksGroupPolicyResourceModelL7FirewallRule     `json:"l7FirewallRules"`
-	TrafficShapingRules []OutputNetworksGroupPolicyResourceModelTrafficShapingRule `json:"trafficShapingRules"`
-}
-
-type OutputNetworksGroupPolicyResourceModelL3FirewallRule struct {
-	Comment  string `json:"comment"`
-	DestCidr string `json:"destCidr"`
-	DestPort string `json:"destPort"`
-	Policy   string `json:"policy"`
-	Protocol string `json:"protocol"`
-}
-
-type OutputNetworksGroupPolicyResourceModelL7FirewallRule struct {
-	Value  string `json:"value"`
-	Type   string `json:"type"`
-	Policy string `json:"policy"`
-}
-
-type OutputNetworksGroupPolicyResourceModelTrafficShapingRule struct {
-	DscpTagValue             int64                                              `json:"dscpTagValue"`
-	PcpTagValue              int64                                              `json:"pcpTagValue"`
-	PerClientBandwidthLimits OutputNetworksGroupPolicyResourceModelBandwidth    `json:"perClientBandwidthLimits,,omitempty"`
-	Definitions              []OutputNetworksGroupPolicyResourceModelDefinition `json:"definitions"`
-}
-
-type OutputNetworksGroupPolicyResourceModelDefinition struct {
-	Value string `json:"value"`
-	Type  string `json:"type"`
-}
-
-type OutputNetworksGroupPolicyResourceModelBandwidth struct {
-	BandwidthLimits OutputNetworksGroupPolicyResourceModelPerClientBandwidthLimits `json:"bandwidthLimits"`
-	Settings        string                                                         `json:"settings"`
-}
-
-func (r *NetworksGroupPolicyResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_networks_group_policy"
-}
-
-func BandwidthLimitsAttrTypes() map[string]attr.Type {
-	return map[string]attr.Type{
-		"limit_up":   types.Int64Type,
-		"limit_down": types.Int64Type,
-	}
-}
-
-func PerClientBandwidthAttrTypes() map[string]attr.Type {
-	return map[string]attr.Type{
-		"bandwidth_limits": types.ObjectType{
-			AttrTypes: BandwidthLimitsAttrTypes(),
-		},
-		"settings": types.StringType,
-	}
-}
-func DefinitionAttrTypes() map[string]attr.Type {
-	return map[string]attr.Type{
-		"type":  types.StringType,
-		"value": types.StringType,
-	}
-}
-
-func VlanTagging() map[string]attr.Type {
-	return map[string]attr.Type{
-		"settings": types.StringType,
-		"vlan_id":  types.StringType,
-	}
-}
-
-func L3FirewallRulesAttrTypes() map[string]attr.Type {
-	return map[string]attr.Type{
-		"comment":   types.StringType,
-		"dest_cidr": types.StringType,
-		"dest_port": types.StringType,
-		"policy":    types.StringType,
-		"protocol":  types.StringType,
-	}
-}
-
-func L7FirewallRulesAttrTypes() map[string]attr.Type {
-	return map[string]attr.Type{
-		"value":  types.StringType,
-		"policy": types.StringType,
-		"type":   types.StringType,
-	}
-}
-
-func FirewallAndTrafficShapingAttrTypes() map[string]attr.Type {
-	return map[string]attr.Type{
-		"settings":              types.StringType,
-		"l3_firewall_rules":     types.ListType{ElemType: types.ObjectType{AttrTypes: L3FirewallRulesAttrTypes()}},
-		"l7_firewall_rules":     types.ListType{ElemType: types.ObjectType{AttrTypes: L7FirewallRulesAttrTypes()}},
-		"traffic_shaping_rules": types.ListType{ElemType: types.ObjectType{AttrTypes: TrafficShapingRulesAttrTypes()}},
-	}
-}
-
-func SchedulingAttrTypes() map[string]attr.Type {
-	return map[string]attr.Type{
-		"enabled": types.BoolType,
-		"friday": types.ObjectType{
-			AttrTypes: SchedulingDataAttrTypes(),
-		},
-		"monday": types.ObjectType{
-			AttrTypes: SchedulingDataAttrTypes(),
-		},
-		"tuesday": types.ObjectType{
-			AttrTypes: SchedulingDataAttrTypes(),
-		},
-		"wednesday": types.ObjectType{
-			AttrTypes: SchedulingDataAttrTypes(),
-		},
-		"thursday": types.ObjectType{
-			AttrTypes: SchedulingDataAttrTypes(),
-		},
-		"saturday": types.ObjectType{
-			AttrTypes: SchedulingDataAttrTypes(),
-		},
-		"sunday": types.ObjectType{
-			AttrTypes: SchedulingDataAttrTypes(),
-		},
-	}
-
-}
-
-func SchedulingDataAttrTypes() map[string]attr.Type {
-	return map[string]attr.Type{
-		"from":   types.StringType,
-		"to":     types.StringType,
-		"active": types.BoolType,
-	}
-
-}
-
-func TrafficShapingRulesAttrTypes() map[string]attr.Type {
-	return map[string]attr.Type{
-		"dscp_tag_value": types.Int64Type,
-		"pcp_tag_value":  types.Int64Type,
-		"per_client_bandwidth_limits": types.ObjectType{
-			AttrTypes: PerClientBandwidthAttrTypes(),
-		},
-		"definitions": types.ListType{ElemType: types.ObjectType{AttrTypes: DefinitionAttrTypes()}},
-	}
-}
-
-func PatternsDataAttrTypes() map[string]attr.Type {
-	return map[string]attr.Type{
-		"settings": types.StringType,
-		"patterns": types.SetType{ElemType: types.StringType},
-	}
-
-}
-
-func CategoriesDataAttrTypes() map[string]attr.Type {
-	return map[string]attr.Type{
-		"settings":   types.StringType,
-		"categories": types.SetType{ElemType: types.StringType},
-	}
-
-}
-
-func ContentFilteringDataAttrTypes() map[string]attr.Type {
-	return map[string]attr.Type{
-		"allowed_url_patterns": types.ObjectType{
-			AttrTypes: PatternsDataAttrTypes(),
-		},
-		"blocked_url_categories": types.ObjectType{
-			AttrTypes: CategoriesDataAttrTypes(),
-		},
-		"blocked_url_patterns": types.ObjectType{
-			AttrTypes: PatternsDataAttrTypes(),
-		},
-	}
-
-}
-
-func BonjourForwardingDataAttrTypes() map[string]attr.Type {
-	return map[string]attr.Type{
-		"settings": types.StringType,
-		"rules":    types.ListType{ElemType: types.ObjectType{AttrTypes: BonjourForwardingRuleDataAttrTypes()}},
-	}
-}
-
-func BonjourForwardingRuleDataAttrTypes() map[string]attr.Type {
-	return map[string]attr.Type{
-		"description": types.StringType,
-		"vlan_id":     types.StringType,
-		"services":    types.SetType{ElemType: types.StringType},
-	}
-}
-
-func getBandwidth(ctx context.Context, inlineResp map[string]interface{}) (basetypes.ObjectValue, diag.Diagnostics) {
-
-	bandwidthAttrTypes := map[string]attr.Type{
-		"bandwidth_limits": types.ObjectType{
-			AttrTypes: BandwidthLimitsAttrTypes(),
-		},
-		"settings": types.StringType,
-	}
-
-	var bandwidthData OutputNetworksGroupPolicyResourceModelBandwidth
-	jsonData, _ := json.Marshal(inlineResp["bandwidth"].(map[string]interface{}))
-	json.Unmarshal(jsonData, &bandwidthData)
-
-	bandwidthLimitsMap, diags := basetypes.NewObjectValue(BandwidthLimitsAttrTypes(), map[string]attr.Value{
-		"limit_up":   basetypes.NewInt64Value(bandwidthData.BandwidthLimits.LimitUp),
-		"limit_down": basetypes.NewInt64Value(bandwidthData.BandwidthLimits.LimitDown),
-	})
-	if diags.HasError() {
-		return basetypes.ObjectValue{}, diags
-	}
-
-	bandwidthMap, _ := basetypes.NewObjectValue(bandwidthAttrTypes, map[string]attr.Value{
-		"bandwidth_limits": bandwidthLimitsMap,
-		"settings":         basetypes.NewStringValue(bandwidthData.Settings),
-	})
-	objectVal, diags := types.ObjectValueFrom(ctx, bandwidthAttrTypes, bandwidthMap)
-	if diags.HasError() {
-		return basetypes.ObjectValue{}, diags
-	}
-
-	return objectVal, nil
-
-}
-
-func getVlantagging(ctx context.Context, inlineResp map[string]interface{}) (basetypes.ObjectValue, diag.Diagnostics) {
-
-	var vlantaggingOutput OutputNetworksGroupPolicyResourceModelVlanTagging
-	jsonData, _ := json.Marshal(inlineResp["vlanTagging"].(map[string]interface{}))
-	json.Unmarshal(jsonData, &vlantaggingOutput)
-
-	vlantaggingMap, _ := basetypes.NewObjectValue(VlanTagging(), map[string]attr.Value{
-		"settings": basetypes.NewStringValue(vlantaggingOutput.Settings),
-		"vlan_id":  basetypes.NewStringValue(vlantaggingOutput.VlanId),
-	})
-	vlantaggingVal, diags := types.ObjectValueFrom(ctx, VlanTagging(), vlantaggingMap)
-	if diags.HasError() {
-		return basetypes.ObjectValue{}, diags
-	}
-	return vlantaggingVal, nil
-}
-
-func getBonjourForwarding(ctx context.Context, inlineResp map[string]interface{}) (basetypes.ObjectValue, diag.Diagnostics) {
-	var bonjourForwardingData OutputNetworksGroupPolicyResourceModelBonjourForwarding
-	jsonData, _ := json.Marshal(inlineResp["bonjourForwarding"].(map[string]interface{}))
-	json.Unmarshal(jsonData, &bonjourForwardingData)
-
-	var bonjourForwardingDataRules []basetypes.ObjectValue
-	for _, rule := range bonjourForwardingData.BonjourForwardingRules {
-
-		servicesList, diags := types.SetValueFrom(ctx, types.StringType, rule.Services)
-		if diags.HasError() {
-			return basetypes.ObjectValue{}, diags
-		}
-
-		ruleDataMap, _ := basetypes.NewObjectValue(BonjourForwardingRuleDataAttrTypes(), map[string]attr.Value{
-			"description": basetypes.NewStringValue(rule.Description),
-			"vlan_id":     basetypes.NewStringValue(rule.VlanId),
-			"services":    servicesList,
-		})
-
-		objectVal, diags := types.ObjectValueFrom(ctx, BonjourForwardingRuleDataAttrTypes(), ruleDataMap)
-		if diags.HasError() {
-			return basetypes.ObjectValue{}, diags
-		}
-		bonjourForwardingDataRules = append(bonjourForwardingDataRules, objectVal)
-	}
-
-	bonjourForwardingDataRulesList, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: BonjourForwardingRuleDataAttrTypes()}, bonjourForwardingDataRules)
-
-	bonjourForwardingDataMap, diags := basetypes.NewObjectValue(BonjourForwardingDataAttrTypes(), map[string]attr.Value{
-		"settings": basetypes.NewStringValue(bonjourForwardingData.BonjourForwardingSettings),
-		"rules":    bonjourForwardingDataRulesList,
-	})
-	if diags.HasError() {
-		return basetypes.ObjectValue{}, diags
-	}
-
-	bonjourForwardingVal, diags := types.ObjectValueFrom(ctx, BonjourForwardingDataAttrTypes(), bonjourForwardingDataMap)
-	if diags.HasError() {
-		return basetypes.ObjectValue{}, diags
-	}
-	return bonjourForwardingVal, nil
-}
-
-func getScheduling(ctx context.Context, inlineResp map[string]interface{}) (basetypes.ObjectValue, diag.Diagnostics) {
-
-	var schedulingData OutputNetworksGroupPolicyResourceModelScheduling
-	jsonData, _ := json.Marshal(inlineResp["scheduling"].(map[string]interface{}))
-	json.Unmarshal(jsonData, &schedulingData)
-
-	fridayMap, diags := basetypes.NewObjectValue(SchedulingDataAttrTypes(), map[string]attr.Value{
-		"active": basetypes.NewBoolValue(schedulingData.Friday.Active),
-		"to":     basetypes.NewStringValue(schedulingData.Friday.To),
-		"from":   basetypes.NewStringValue(schedulingData.Friday.From),
-	})
-	if diags.HasError() {
-		return basetypes.ObjectValue{}, diags
-	}
-
-	mondayMap, diags := basetypes.NewObjectValue(SchedulingDataAttrTypes(), map[string]attr.Value{
-		"active": basetypes.NewBoolValue(schedulingData.Monday.Active),
-		"to":     basetypes.NewStringValue(schedulingData.Monday.To),
-		"from":   basetypes.NewStringValue(schedulingData.Monday.From),
-	})
-	if diags.HasError() {
-		return basetypes.ObjectValue{}, diags
-	}
-
-	tuesdayMap, diags := basetypes.NewObjectValue(SchedulingDataAttrTypes(), map[string]attr.Value{
-		"active": basetypes.NewBoolValue(schedulingData.Tuesday.Active),
-		"to":     basetypes.NewStringValue(schedulingData.Tuesday.To),
-		"from":   basetypes.NewStringValue(schedulingData.Tuesday.From),
-	})
-	if diags.HasError() {
-		return basetypes.ObjectValue{}, diags
-	}
-
-	wednesdayMap, diags := basetypes.NewObjectValue(SchedulingDataAttrTypes(), map[string]attr.Value{
-		"active": basetypes.NewBoolValue(schedulingData.Wednesday.Active),
-		"to":     basetypes.NewStringValue(schedulingData.Wednesday.To),
-		"from":   basetypes.NewStringValue(schedulingData.Wednesday.From),
-	})
-	if diags.HasError() {
-		return basetypes.ObjectValue{}, diags
-	}
-
-	thursdayMap, diags := basetypes.NewObjectValue(SchedulingDataAttrTypes(), map[string]attr.Value{
-		"active": basetypes.NewBoolValue(schedulingData.Thursday.Active),
-		"to":     basetypes.NewStringValue(schedulingData.Thursday.To),
-		"from":   basetypes.NewStringValue(schedulingData.Thursday.From),
-	})
-	if diags.HasError() {
-		return basetypes.ObjectValue{}, diags
-	}
-
-	saturdayMap, diags := basetypes.NewObjectValue(SchedulingDataAttrTypes(), map[string]attr.Value{
-		"active": basetypes.NewBoolValue(schedulingData.Saturday.Active),
-		"to":     basetypes.NewStringValue(schedulingData.Saturday.To),
-		"from":   basetypes.NewStringValue(schedulingData.Saturday.From),
-	})
-	if diags.HasError() {
-		return basetypes.ObjectValue{}, diags
-	}
-
-	sundayMap, diags := basetypes.NewObjectValue(SchedulingDataAttrTypes(), map[string]attr.Value{
-		"active": basetypes.NewBoolValue(schedulingData.Sunday.Active),
-		"to":     basetypes.NewStringValue(schedulingData.Sunday.To),
-		"from":   basetypes.NewStringValue(schedulingData.Sunday.From),
-	})
-	if diags.HasError() {
-		return basetypes.ObjectValue{}, diags
-	}
-
-	schedulingMap, diags := basetypes.NewObjectValue(SchedulingAttrTypes(), map[string]attr.Value{
-		"enabled":   basetypes.NewBoolValue(schedulingData.Enabled),
-		"friday":    fridayMap,
-		"monday":    mondayMap,
-		"tuesday":   tuesdayMap,
-		"wednesday": wednesdayMap,
-		"thursday":  thursdayMap,
-		"saturday":  saturdayMap,
-		"sunday":    sundayMap,
-	})
-	if diags.HasError() {
-		return basetypes.ObjectValue{}, diags
-	}
-
-	schedulingVal, diags := types.ObjectValueFrom(ctx, SchedulingAttrTypes(), schedulingMap)
-	if diags.HasError() {
-		return basetypes.ObjectValue{}, diags
-	}
-
-	return schedulingVal, nil
-}
-
-func getContentFiltering(ctx context.Context, inlineResp map[string]interface{}) (basetypes.ObjectValue, diag.Diagnostics) {
-
-	var contentFilteringData OutputNetworksGroupPolicyResourceModelContentFiltering
-	jsonData, _ := json.Marshal(inlineResp["contentFiltering"].(map[string]interface{}))
-	json.Unmarshal(jsonData, &contentFilteringData)
-
-	allowedpatternsList, diags := types.SetValueFrom(ctx, types.StringType, contentFilteringData.AllowedUrlPatterns.Patterns)
-	if diags.HasError() {
-		return basetypes.ObjectValue{}, diags
-	}
-	allowedpatternsDataMap, diags := basetypes.NewObjectValue(PatternsDataAttrTypes(), map[string]attr.Value{
-		"settings": basetypes.NewStringValue(contentFilteringData.AllowedUrlPatterns.Settings),
-		"patterns": allowedpatternsList,
-	})
-	if diags.HasError() {
-		return basetypes.ObjectValue{}, diags
-	}
-
-	blockedcategoriesList, diags := types.SetValueFrom(ctx, types.StringType, contentFilteringData.BlockedUrlCategories.Categories)
-	if diags.HasError() {
-		return basetypes.ObjectValue{}, diags
-	}
-	blockedcategoriesDataMap, diags := basetypes.NewObjectValue(CategoriesDataAttrTypes(), map[string]attr.Value{
-		"settings":   basetypes.NewStringValue(contentFilteringData.BlockedUrlCategories.Settings),
-		"categories": blockedcategoriesList,
-	})
-	if diags.HasError() {
-		return basetypes.ObjectValue{}, diags
-	}
-
-	blockedurlpatternsList, diags := types.SetValueFrom(ctx, types.StringType, contentFilteringData.BlockedUrlPatterns.Patterns)
-	if diags.HasError() {
-		return basetypes.ObjectValue{}, diags
-	}
-	blockedurlpatternsDataMap, diags := basetypes.NewObjectValue(PatternsDataAttrTypes(), map[string]attr.Value{
-		"settings": basetypes.NewStringValue(contentFilteringData.BlockedUrlPatterns.Settings),
-		"patterns": blockedurlpatternsList,
-	})
-	if diags.HasError() {
-		return basetypes.ObjectValue{}, diags
-	}
-
-	contentFilteringMap, diags := basetypes.NewObjectValue(ContentFilteringDataAttrTypes(), map[string]attr.Value{
-		"allowed_url_patterns":   allowedpatternsDataMap,
-		"blocked_url_categories": blockedcategoriesDataMap,
-		"blocked_url_patterns":   blockedurlpatternsDataMap,
-	})
-	if diags.HasError() {
-		return basetypes.ObjectValue{}, diags
-	}
-	contentFilteringVal, diags := types.ObjectValueFrom(ctx, ContentFilteringDataAttrTypes(), contentFilteringMap)
-	if diags.HasError() {
-		return basetypes.ObjectValue{}, diags
-	}
-	return contentFilteringVal, nil
-}
-
-func getFirewallAndTrafficShaping(ctx context.Context, inlineResp map[string]interface{}) (basetypes.ObjectValue, diag.Diagnostics) {
-
-	var firewallAndTrafficShapingOutput OutputNetworksGroupPolicyResourceModelFirewallAndTrafficShaping
-	jsonData, _ := json.Marshal(inlineResp["firewallAndTrafficShaping"].(map[string]interface{}))
-	json.Unmarshal(jsonData, &firewallAndTrafficShapingOutput)
-
-	var trafficShapingRule []OutputNetworksGroupPolicyResourceModelTrafficShapingRule
-	jsonData, _ = json.Marshal(inlineResp["firewallAndTrafficShaping"].(map[string]interface{})["trafficShapingRules"])
-	json.Unmarshal(jsonData, &trafficShapingRule)
-
-	var l3FirewallRules []basetypes.ObjectValue
-
-	for _, rule := range firewallAndTrafficShapingOutput.L3FirewallRules {
-
-		ruleDataMap, _ := basetypes.NewObjectValue(L3FirewallRulesAttrTypes(), map[string]attr.Value{
-			"comment":   basetypes.NewStringValue(rule.Comment),
-			"dest_cidr": basetypes.NewStringValue(rule.DestCidr),
-			"dest_port": basetypes.NewStringValue(rule.DestPort),
-			"policy":    basetypes.NewStringValue(rule.Policy),
-			"protocol":  basetypes.NewStringValue(rule.Protocol),
-		})
-
-		objectVal, diags := types.ObjectValueFrom(ctx, L3FirewallRulesAttrTypes(), ruleDataMap)
-		if diags.HasError() {
-			return basetypes.ObjectValue{}, diags
-		}
-		l3FirewallRules = append(l3FirewallRules, objectVal)
-	}
-
-	l3FirewallRulesList, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: L3FirewallRulesAttrTypes()}, l3FirewallRules)
-
-	var l7FirewallRules []basetypes.ObjectValue
-	for _, rule := range firewallAndTrafficShapingOutput.L7FirewallRules {
-
-		ruleDataMap, _ := basetypes.NewObjectValue(L7FirewallRulesAttrTypes(), map[string]attr.Value{
-			"value":  basetypes.NewStringValue(rule.Value),
-			"policy": basetypes.NewStringValue(rule.Policy),
-			"type":   basetypes.NewStringValue(rule.Type),
-		})
-		objectVal, diags := types.ObjectValueFrom(ctx, L7FirewallRulesAttrTypes(), ruleDataMap)
-		if diags.HasError() {
-			return basetypes.ObjectValue{}, diags
-		}
-		l7FirewallRules = append(l7FirewallRules, objectVal)
-	}
-
-	l7FirewallRulesList, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: L7FirewallRulesAttrTypes()}, l7FirewallRules)
-
-	var trafficShapingRules []basetypes.ObjectValue
-
-	for _, rule := range trafficShapingRule {
-
-		var definitions []basetypes.ObjectValue
-		for _, definition := range rule.Definitions {
-			definitionMap, diags := basetypes.NewObjectValue(DefinitionAttrTypes(), map[string]attr.Value{
-				"type":  basetypes.NewStringValue(definition.Type),
-				"value": basetypes.NewStringValue(definition.Value),
-			})
-			if diags.HasError() {
-				return basetypes.ObjectValue{}, diags
-			}
-			definitionMapObjectVal, diags := types.ObjectValueFrom(ctx, DefinitionAttrTypes(), definitionMap)
-			if diags.HasError() {
-				return basetypes.ObjectValue{}, diags
-			}
-			definitions = append(definitions, definitionMapObjectVal)
-		}
-		definitionsList, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: DefinitionAttrTypes()}, definitions)
-
-		bandwidthLimitsMap, diags := basetypes.NewObjectValue(BandwidthLimitsAttrTypes(), map[string]attr.Value{
-			"limit_up":   basetypes.NewInt64Value(rule.PerClientBandwidthLimits.BandwidthLimits.LimitUp),
-			"limit_down": basetypes.NewInt64Value(rule.PerClientBandwidthLimits.BandwidthLimits.LimitDown),
-		})
-		if diags.HasError() {
-			return basetypes.ObjectValue{}, diags
-		}
-		bandwidthMap, _ := basetypes.NewObjectValue(PerClientBandwidthAttrTypes(), map[string]attr.Value{
-			"bandwidth_limits": bandwidthLimitsMap,
-			"settings":         basetypes.NewStringValue(rule.PerClientBandwidthLimits.Settings),
-		})
-		objectVal, diags := types.ObjectValueFrom(ctx, PerClientBandwidthAttrTypes(), bandwidthMap)
-		if diags.HasError() {
-			return basetypes.ObjectValue{}, diags
-		}
-
-		ruleDataMap, _ := basetypes.NewObjectValue(TrafficShapingRulesAttrTypes(), map[string]attr.Value{
-			"dscp_tag_value":              basetypes.NewInt64Value(rule.DscpTagValue),
-			"pcp_tag_value":               basetypes.NewInt64Value(rule.PcpTagValue),
-			"per_client_bandwidth_limits": objectVal,
-			"definitions":                 definitionsList,
-		})
-		trafficShapingRulesObjectVal, diags := types.ObjectValueFrom(ctx, TrafficShapingRulesAttrTypes(), ruleDataMap)
-		if diags.HasError() {
-			return basetypes.ObjectValue{}, diags
-		}
-
-		trafficShapingRules = append(trafficShapingRules, trafficShapingRulesObjectVal)
-
-	}
-
-	trafficShapingRulesList, _ := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: TrafficShapingRulesAttrTypes()}, trafficShapingRules)
-
-	firewallAndTrafficShapingMap, diags := basetypes.NewObjectValue(FirewallAndTrafficShapingAttrTypes(), map[string]attr.Value{
-		"settings":              basetypes.NewStringValue(firewallAndTrafficShapingOutput.Settings),
-		"l3_firewall_rules":     l3FirewallRulesList,
-		"l7_firewall_rules":     l7FirewallRulesList,
-		"traffic_shaping_rules": trafficShapingRulesList,
-	})
-	if diags.HasError() {
-		return basetypes.ObjectValue{}, diags
-	}
-
-	firewallAndTrafficShapingObjectVal, diags := types.ObjectValueFrom(ctx, FirewallAndTrafficShapingAttrTypes(), firewallAndTrafficShapingMap)
-	if diags.HasError() {
-		return basetypes.ObjectValue{}, diags
-	}
-
-	return firewallAndTrafficShapingObjectVal, nil
-
-}
-
+// Schema defines the schema for the resource.
 func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "NetworksGroupPolicy resource for creating updating and deleting networks group policy resource.",
 		Attributes: map[string]schema.Attribute{
-
 			"id": schema.StringAttribute{
-				MarkdownDescription: "Example identifier",
-				Computed:            true,
-				CustomType:          types.StringType,
-			},
-			"network_id": schema.StringAttribute{
-				MarkdownDescription: "Network Id",
-				Required:            true,
-				CustomType:          types.StringType,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 31),
-				},
+				Computed:    true,
+				Description: "The resource import id",
 			},
 			"group_policy_id": schema.StringAttribute{
-				MarkdownDescription: "Group Policy ID",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          types.StringType,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 31),
-				},
+				Computed:    true,
+				Description: "The unique identifier for the group policy.",
+			},
+			"network_id": schema.StringAttribute{
+				Required:    true,
+				Description: "The network ID where the group policy is applied.",
 			},
 			"name": schema.StringAttribute{
-				MarkdownDescription: "Name of Group Policy",
-				Required:            true,
-				CustomType:          types.StringType,
-			},
-			"splash_auth_settings": schema.StringAttribute{
-				MarkdownDescription: "Whether clients bound to your policy will bypass splash authorization or behave according to the network's rules. Can be one of 'network default' or 'bypass'. Only available if your network has a wireless configuration",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          types.StringType,
-				Validators: []validator.String{
-					stringvalidator.OneOf([]string{"network default", "bypass"}...),
-				},
-			},
-			"bandwidth": schema.SingleNestedAttribute{
-				MarkdownDescription: "The bandwidth settings for clients bound to your group policy",
-				Optional:            true,
-				Computed:            true,
-				Attributes: map[string]schema.Attribute{
-					"settings": schema.StringAttribute{
-						MarkdownDescription: "How bandwidth limits are enforced. Can be 'network default', 'ignore' or 'custom'.",
-						Optional:            true,
-						Computed:            true,
-						CustomType:          types.StringType,
-						Default:             stringdefault.StaticString("network default"),
-					},
-					"bandwidth_limits": schema.SingleNestedAttribute{
-						MarkdownDescription: "The bandwidth limits object, specifying upload and download speed for clients bound to the group policy. These are only enforced if 'settings' is set to 'custom'.",
-						Optional:            true,
-						Computed:            true,
-						Attributes: map[string]schema.Attribute{
-							"limit_down": schema.Int64Attribute{
-								MarkdownDescription: "The maximum download limit (integer, in Kbps).",
-								Optional:            true,
-								Computed:            true,
-								CustomType:          types.Int64Type,
-							},
-							"limit_up": schema.Int64Attribute{
-								MarkdownDescription: "The maximum upload limit (integer, in Kbps).",
-								Optional:            true,
-								Computed:            true,
-								CustomType:          types.Int64Type,
-							},
-						},
-					},
-				},
-			},
-			"bonjour_forwarding": schema.SingleNestedAttribute{
-				MarkdownDescription: "The Bonjour settings for your group policy. Only valid if your network has a wireless configuration.",
-				Optional:            true,
-				Computed:            true,
-				Attributes: map[string]schema.Attribute{
-					"settings": schema.StringAttribute{
-						MarkdownDescription: "How Bonjour rules are applied. Can be 'network default', 'ignore' or 'custom'.",
-						Optional:            true,
-						Computed:            true,
-						CustomType:          types.StringType,
-						Default:             stringdefault.StaticString("network default"),
-					},
-					"rules": schema.ListNestedAttribute{
-						Optional: true,
-						Computed: true,
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"description": schema.StringAttribute{
-									MarkdownDescription: "A description for your Bonjour forwarding rule. Optional.",
-									Optional:            true,
-									Computed:            true,
-									CustomType:          types.StringType,
-								},
-								"vlan_id": schema.StringAttribute{
-									MarkdownDescription: "The ID of the service VLAN. Required.",
-									Optional:            true,
-									Computed:            true,
-									CustomType:          types.StringType,
-								},
-								"services": schema.SetAttribute{
-									CustomType: types.SetType{ElemType: types.StringType},
-									Optional:   true,
-									Computed:   true,
-									Validators: []validator.Set{
-										setvalidator.ValueStringsAre(
-											stringvalidator.OneOf([]string{"All Services", "AirPlay", "AFP", "BitTorrent", "FTP", "iChat", "iTunes", "Printers", "Samba", "Scanners", "SSH"}...),
-											stringvalidator.LengthAtLeast(3),
-										),
-									},
-								},
-							},
-						},
-					},
-				},
+				Required:    true,
+				Description: "The name of the group policy.",
 			},
 			"scheduling": schema.SingleNestedAttribute{
-				Optional: true,
-				Computed: true,
+				Optional:    true,
+				Computed:    true,
+				Description: "The scheduling settings of the group policy.",
 				Attributes: map[string]schema.Attribute{
 					"enabled": schema.BoolAttribute{
-						MarkdownDescription: "Whether scheduling is enabled (true) or disabled (false). Defaults to false. If true, the schedule objects for each day of the week (monday - sunday) are parsed.",
-						Optional:            true,
-						Computed:            true,
-						CustomType:          types.BoolType,
+						Required: true,
 					},
-					"friday": schema.SingleNestedAttribute{
+					"sunday": schema.SingleNestedAttribute{
 						Optional: true,
 						Computed: true,
 						Attributes: map[string]schema.Attribute{
+							"active": schema.BoolAttribute{
+								Required: true,
+							},
 							"from": schema.StringAttribute{
-								MarkdownDescription: "The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.",
-								Optional:            true,
-								Computed:            true,
-								CustomType:          types.StringType,
+								Required: true,
 							},
 							"to": schema.StringAttribute{
-								MarkdownDescription: "The time, from '00:00' to '24:00'. Must be greater than the time specified in 'from'. Defaults to '24:00'. Only 30 minute increments are allowed.",
-								Optional:            true,
-								Computed:            true,
-								CustomType:          types.StringType,
-							},
-							"active": schema.BoolAttribute{
-								MarkdownDescription: "Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.",
-								Optional:            true,
-								Computed:            true,
-								CustomType:          types.BoolType,
+								Required: true,
 							},
 						},
 					},
@@ -934,95 +208,14 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 						Optional: true,
 						Computed: true,
 						Attributes: map[string]schema.Attribute{
+							"active": schema.BoolAttribute{
+								Required: true,
+							},
 							"from": schema.StringAttribute{
-								MarkdownDescription: "The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.",
-								Optional:            true,
-								Computed:            true,
-								CustomType:          types.StringType,
+								Required: true,
 							},
 							"to": schema.StringAttribute{
-								MarkdownDescription: "The time, from '00:00' to '24:00'. Must be greater than the time specified in 'from'. Defaults to '24:00'. Only 30 minute increments are allowed.",
-								Optional:            true,
-								Computed:            true,
-								CustomType:          types.StringType,
-							},
-							"active": schema.BoolAttribute{
-								MarkdownDescription: "Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.",
-								Optional:            true,
-								Computed:            true,
-								CustomType:          types.BoolType,
-							},
-						},
-					},
-					"saturday": schema.SingleNestedAttribute{
-						Optional: true,
-						Computed: true,
-						Attributes: map[string]schema.Attribute{
-							"from": schema.StringAttribute{
-								MarkdownDescription: "The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.",
-								Optional:            true,
-								Computed:            true,
-								CustomType:          types.StringType,
-							},
-							"to": schema.StringAttribute{
-								MarkdownDescription: "The time, from '00:00' to '24:00'. Must be greater than the time specified in 'from'. Defaults to '24:00'. Only 30 minute increments are allowed.",
-								Optional:            true,
-								Computed:            true,
-								CustomType:          types.StringType,
-							},
-							"active": schema.BoolAttribute{
-								MarkdownDescription: "Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.",
-								Optional:            true,
-								Computed:            true,
-								CustomType:          types.BoolType,
-							},
-						},
-					},
-					"sunday": schema.SingleNestedAttribute{
-						Optional: true,
-						Computed: true,
-						Attributes: map[string]schema.Attribute{
-							"from": schema.StringAttribute{
-								MarkdownDescription: "The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.",
-								Optional:            true,
-								Computed:            true,
-								CustomType:          types.StringType,
-							},
-							"to": schema.StringAttribute{
-								MarkdownDescription: "The time, from '00:00' to '24:00'. Must be greater than the time specified in 'from'. Defaults to '24:00'. Only 30 minute increments are allowed.",
-								Optional:            true,
-								Computed:            true,
-								CustomType:          types.StringType,
-							},
-							"active": schema.BoolAttribute{
-								MarkdownDescription: "Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.",
-								Optional:            true,
-								Computed:            true,
-								CustomType:          types.BoolType,
-							},
-						},
-					},
-					"thursday": schema.SingleNestedAttribute{
-						Optional: true,
-						Computed: true,
-						Attributes: map[string]schema.Attribute{
-							"from": schema.StringAttribute{
-								MarkdownDescription: "The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.",
-								Optional:            true,
-								Computed:            true,
-								CustomType:          types.StringType,
-							},
-							"to": schema.StringAttribute{
-								MarkdownDescription: "The time, from '00:00' to '24:00'. Must be greater than the time specified in 'from'. Defaults to '24:00'. Only 30 minute increments are allowed.",
-								Optional:            true,
-								Computed:            true,
-								CustomType:          types.StringType,
-							},
-							"active": schema.BoolAttribute{
-								MarkdownDescription: "Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.",
-								Optional:            true,
-								Computed:            true,
-								CustomType:          types.BoolType,
+								Required: true,
 							},
 						},
 					},
@@ -1030,23 +223,14 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 						Optional: true,
 						Computed: true,
 						Attributes: map[string]schema.Attribute{
+							"active": schema.BoolAttribute{
+								Required: true,
+							},
 							"from": schema.StringAttribute{
-								MarkdownDescription: "The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.",
-								Optional:            true,
-								Computed:            true,
-								CustomType:          types.StringType,
+								Required: true,
 							},
 							"to": schema.StringAttribute{
-								MarkdownDescription: "The time, from '00:00' to '24:00'. Must be greater than the time specified in 'from'. Defaults to '24:00'. Only 30 minute increments are allowed.",
-								Optional:            true,
-								Computed:            true,
-								CustomType:          types.StringType,
-							},
-							"active": schema.BoolAttribute{
-								MarkdownDescription: "Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.",
-								Optional:            true,
-								Computed:            true,
-								CustomType:          types.BoolType,
+								Required: true,
 							},
 						},
 					},
@@ -1054,119 +238,98 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 						Optional: true,
 						Computed: true,
 						Attributes: map[string]schema.Attribute{
+							"active": schema.BoolAttribute{
+								Required: true,
+							},
 							"from": schema.StringAttribute{
-								MarkdownDescription: "The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.",
-								Optional:            true,
-								Computed:            true,
-								CustomType:          types.StringType,
+								Required: true,
 							},
 							"to": schema.StringAttribute{
-								MarkdownDescription: "The time, from '00:00' to '24:00'. Must be greater than the time specified in 'from'. Defaults to '24:00'. Only 30 minute increments are allowed.",
-								Optional:            true,
-								Computed:            true,
-								CustomType:          types.StringType,
+								Required: true,
 							},
+						},
+					},
+					"thursday": schema.SingleNestedAttribute{
+						Optional: true,
+						Computed: true,
+						Attributes: map[string]schema.Attribute{
 							"active": schema.BoolAttribute{
-								MarkdownDescription: "Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.",
-								Optional:            true,
-								Computed:            true,
-								CustomType:          types.BoolType,
+								Required: true,
+							},
+							"from": schema.StringAttribute{
+								Required: true,
+							},
+							"to": schema.StringAttribute{
+								Required: true,
+							},
+						},
+					},
+					"friday": schema.SingleNestedAttribute{
+						Optional: true,
+						Computed: true,
+						Attributes: map[string]schema.Attribute{
+							"active": schema.BoolAttribute{
+								Required: true,
+							},
+							"from": schema.StringAttribute{
+								Required: true,
+							},
+							"to": schema.StringAttribute{
+								Required: true,
+							},
+						},
+					},
+					"saturday": schema.SingleNestedAttribute{
+						Optional: true,
+						Computed: true,
+						Attributes: map[string]schema.Attribute{
+							"active": schema.BoolAttribute{
+								Required: true,
+							},
+							"from": schema.StringAttribute{
+								Required: true,
+							},
+							"to": schema.StringAttribute{
+								Required: true,
 							},
 						},
 					},
 				},
 			},
-			"content_filtering": schema.SingleNestedAttribute{
-				MarkdownDescription: "The content filtering settings for your group policy",
-				Optional:            true,
-				Attributes: map[string]schema.Attribute{
-					"allowed_url_patterns": schema.SingleNestedAttribute{
-						MarkdownDescription: "Settings for allowed URL patterns",
-						Optional:            true,
-						Attributes: map[string]schema.Attribute{
-							"settings": schema.StringAttribute{
-								MarkdownDescription: "How URL patterns are applied. Can be 'network default', 'append' or 'override'.",
-								Optional:            true,
-								Computed:            true,
-								CustomType:          types.StringType,
-								Default:             stringdefault.StaticString("network default"),
-							},
-							"patterns": schema.SetAttribute{
-								MarkdownDescription: "A list of URL patterns that are allowed",
-								CustomType:          types.SetType{ElemType: types.StringType},
-								Optional:            true,
-							},
-						},
-					},
-					"blocked_url_categories": schema.SingleNestedAttribute{
-						MarkdownDescription: "Settings for blocked URL categories",
-						Optional:            true,
-						Computed:            true,
-						Attributes: map[string]schema.Attribute{
-							"settings": schema.StringAttribute{
-								MarkdownDescription: "How URL categories are applied. Can be 'network default', 'append' or 'override'.",
-								Optional:            true,
-								Computed:            true,
-								CustomType:          types.StringType,
-								Default:             stringdefault.StaticString("network default"),
-							},
-							"categories": schema.SetAttribute{
-								MarkdownDescription: "A list of URL categories to block",
-								CustomType:          types.SetType{ElemType: types.StringType},
-								Optional:            true,
-							},
-						},
-					},
-					"blocked_url_patterns": schema.SingleNestedAttribute{
-						MarkdownDescription: "Settings for blocked URL patterns",
-						Optional:            true,
-						Computed:            true,
-						Attributes: map[string]schema.Attribute{
-							"settings": schema.StringAttribute{
-								MarkdownDescription: "How URL patterns are applied. Can be 'network default', 'append' or 'override'.",
-								Optional:            true,
-								Computed:            true,
-								CustomType:          types.StringType,
-								Default:             stringdefault.StaticString("network default"),
-							},
-							"patterns": schema.SetAttribute{
-								MarkdownDescription: "A list of URL patterns that are blocked",
-								CustomType:          types.SetType{ElemType: types.StringType},
-								Optional:            true,
-							},
-						},
-					},
-				},
-			},
-			"vlan_tagging": schema.SingleNestedAttribute{
-				Optional: true,
-				Computed: true,
+			"bandwidth": schema.SingleNestedAttribute{
+				Optional:    true,
+				Computed:    true,
+				Description: "The bandwidth settings of the group policy.",
 				Attributes: map[string]schema.Attribute{
 					"settings": schema.StringAttribute{
-						MarkdownDescription: "How VLAN tagging is applied. Can be 'network default', 'ignore' or 'custom'.",
-						Optional:            true,
-						Computed:            true,
-						CustomType:          types.StringType,
-						Default:             stringdefault.StaticString("network default"),
+						Required: true,
 					},
-					"vlan_id": schema.StringAttribute{
-						MarkdownDescription: "The ID of the vlan you want to tag. This only applies if 'settings' is set to 'custom'.",
-						Optional:            true,
-						Computed:            true,
-						CustomType:          types.StringType,
+					"bandwidth_limits": schema.SingleNestedAttribute{
+						Optional: true,
+						Computed: true,
+						Attributes: map[string]schema.Attribute{
+							"limit_up": schema.Int64Attribute{
+								Optional:    true,
+								Computed:    true,
+								Description: "The upload bandwidth limit. Can be null.",
+							},
+							"limit_down": schema.Int64Attribute{
+								Optional:    true,
+								Computed:    true,
+								Description: "The download bandwidth limit. Can be null.",
+							},
+						},
 					},
 				},
 			},
 			"firewall_and_traffic_shaping": schema.SingleNestedAttribute{
-				Optional: true,
-				Computed: true,
+				Optional:    true,
+				Computed:    true,
+				Description: "The firewall and traffic shaping settings of the group policy.",
 				Attributes: map[string]schema.Attribute{
 					"settings": schema.StringAttribute{
-						MarkdownDescription: "How firewall and traffic shaping rules are enforced. Can be 'network default', 'ignore' or 'custom'.",
-						Optional:            true,
-						Computed:            true,
-						CustomType:          types.StringType,
-						Default:             stringdefault.StaticString("network default"),
+						Optional: true,
+						Computed: true,
 					},
 					"l3_firewall_rules": schema.ListNestedAttribute{
 						Optional: true,
@@ -1174,34 +337,24 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"comment": schema.StringAttribute{
-									MarkdownDescription: "Description of the rule (optional)",
-									Optional:            true,
-									Computed:            true,
-									CustomType:          types.StringType,
-								},
-								"dest_cidr": schema.StringAttribute{
-									MarkdownDescription: "Destination IP address (in IP or CIDR notation), a fully-qualified domain name (FQDN, if your network supports it) or 'any'.",
-									Optional:            true,
-									Computed:            true,
-									CustomType:          types.StringType,
-								},
-								"dest_port": schema.StringAttribute{
-									MarkdownDescription: "Destination port (integer in the range 1-65535), a port range (e.g. 8080-9090), or 'any'",
-									Optional:            true,
-									Computed:            true,
-									CustomType:          types.StringType,
+									Optional: true,
+									Computed: true,
 								},
 								"policy": schema.StringAttribute{
-									MarkdownDescription: "'allow' or 'deny' traffic specified by this rule",
-									Optional:            true,
-									Computed:            true,
-									CustomType:          types.StringType,
+									Optional: true,
+									Computed: true,
 								},
 								"protocol": schema.StringAttribute{
-									MarkdownDescription: "The type of protocol (must be 'tcp', 'udp', 'icmp', 'icmp6' or 'any')",
-									Optional:            true,
-									Computed:            true,
-									CustomType:          types.StringType,
+									Optional: true,
+									Computed: true,
+								},
+								"dest_port": schema.StringAttribute{
+									Optional: true,
+									Computed: true,
+								},
+								"dest_cidr": schema.StringAttribute{
+									Optional: true,
+									Computed: true,
 								},
 							},
 						},
@@ -1211,23 +364,17 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 						Computed: true,
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
-								"value": schema.StringAttribute{
-									MarkdownDescription: "The 'value' of what you want to block. If 'type' is 'host', 'port' or 'ipRange', 'value' must be a string matching either a hostname (e.g. somewhere.com), a port (e.g. 8080), or an IP range (e.g. 192.1.0.0/16). If 'type' is 'application' or 'applicationCategory', then 'value' must be an object with an ID for the application.",
-									Optional:            true,
-									Computed:            true,
-									CustomType:          types.StringType,
-								},
 								"policy": schema.StringAttribute{
-									MarkdownDescription: "The policy applied to matching traffic. Must be 'deny'.",
-									Optional:            true,
-									Computed:            true,
-									CustomType:          types.StringType,
+									Optional: true,
+									Computed: true,
 								},
 								"type": schema.StringAttribute{
-									MarkdownDescription: "Type of the L7 Rule. Must be 'application', 'applicationCategory', 'host', 'port' or 'ipRange'",
-									Optional:            true,
-									Computed:            true,
-									CustomType:          types.StringType,
+									Optional: true,
+									Computed: true,
+								},
+								"value": schema.StringAttribute{
+									Optional: true,
+									Computed: true,
 								},
 							},
 						},
@@ -1238,43 +385,31 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"dscp_tag_value": schema.Int64Attribute{
-									MarkdownDescription: "The DSCP tag applied by your rule. null means Do not change DSCP tag. For a list of possible tag values, use the trafficShaping/dscpTaggingOptions endpoint",
-									Optional:            true,
-									Computed:            true,
-									CustomType:          types.Int64Type,
+									Optional: true,
+									Computed: true,
 								},
 								"pcp_tag_value": schema.Int64Attribute{
-									MarkdownDescription: "The PCP tag applied by your rule. Can be 0 (lowest priority) through 7 (highest priority). null means Do not set PCP tag.",
-									Optional:            true,
-									Computed:            true,
-									CustomType:          types.Int64Type,
+									Optional: true,
+									Computed: true,
 								},
 								"per_client_bandwidth_limits": schema.SingleNestedAttribute{
 									Optional: true,
 									Computed: true,
 									Attributes: map[string]schema.Attribute{
 										"settings": schema.StringAttribute{
-											MarkdownDescription: "How bandwidth limits are applied by your rule. Can be one of 'network default', 'ignore' or 'custom'.",
-											Optional:            true,
-											Computed:            true,
-											CustomType:          types.StringType,
-											Default:             stringdefault.StaticString("network default"),
+											Required: true,
 										},
 										"bandwidth_limits": schema.SingleNestedAttribute{
 											Optional: true,
 											Computed: true,
 											Attributes: map[string]schema.Attribute{
-												"limit_down": schema.Int64Attribute{
-													MarkdownDescription: "The maximum download limit (integer, in Kbps).",
-													Optional:            true,
-													Computed:            true,
-													CustomType:          types.Int64Type,
-												},
 												"limit_up": schema.Int64Attribute{
-													MarkdownDescription: "The maximum upload limit (integer, in Kbps).",
-													Optional:            true,
-													Computed:            true,
-													CustomType:          types.Int64Type,
+													Optional: true,
+													Computed: true,
+												},
+												"limit_down": schema.Int64Attribute{
+													Optional: true,
+													Computed: true,
 												},
 											},
 										},
@@ -1286,19 +421,116 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 									NestedObject: schema.NestedAttributeObject{
 										Attributes: map[string]schema.Attribute{
 											"type": schema.StringAttribute{
-												MarkdownDescription: "The type of definition. Can be one of 'application', 'applicationCategory', 'host', 'port', 'ipRange' or 'localNet'.",
-												Optional:            true,
-												Computed:            true,
-												CustomType:          types.StringType,
+												Required: true,
 											},
 											"value": schema.StringAttribute{
-												MarkdownDescription: "If type is host, port, ipRange or localNet then value must be a string matching either a hostname (e.g. somesite.com) a port (e.g. 8080) or an IP range (192.1.0.0, 192.1.0.0/16, or 10.1.0.0/16:80). localNet also supports CIDR notation excluding custom ports If type is 'application' or 'applicationCategory', then value must be an object with the structure { id: meraki:layer7/... }, where id is the application category or application ID (for a list of IDs for your network, use the trafficShaping/applicationCategories endpoint)",
-												Optional:            true,
-												Computed:            true,
-												CustomType:          types.StringType,
+												Required: true,
 											},
 										},
 									},
+								},
+							},
+						},
+					},
+				},
+			},
+			"content_filtering": schema.SingleNestedAttribute{
+				Optional:    true,
+				Computed:    true,
+				Description: "The content filtering settings of the group policy.",
+				Attributes: map[string]schema.Attribute{
+					"allowed_url_patterns": schema.SingleNestedAttribute{
+						Optional: true,
+						Computed: true,
+						Attributes: map[string]schema.Attribute{
+							"patterns": schema.ListAttribute{
+								ElementType: types.StringType,
+								Optional:    true,
+								Computed:    true,
+							},
+							"settings": schema.StringAttribute{
+								Optional: true,
+								Computed: true,
+							},
+						},
+					},
+					"blocked_url_patterns": schema.SingleNestedAttribute{
+						Optional: true,
+						Computed: true,
+						Attributes: map[string]schema.Attribute{
+							"patterns": schema.ListAttribute{
+								ElementType: types.StringType,
+								Optional:    true,
+								Computed:    true,
+							},
+							"settings": schema.StringAttribute{
+								Optional: true,
+								Computed: true,
+							},
+						},
+					},
+					"blocked_url_categories": schema.SingleNestedAttribute{
+						Optional: true,
+						Computed: true,
+						Attributes: map[string]schema.Attribute{
+							"categories": schema.ListAttribute{
+								ElementType: types.StringType,
+								Optional:    true,
+								Computed:    true,
+							},
+							"settings": schema.StringAttribute{
+								Optional: true,
+								Computed: true,
+							},
+						},
+					},
+				},
+			},
+			"splash_auth_settings": schema.StringAttribute{
+				Optional:    true,
+				Computed:    true,
+				Description: "The splash authentication settings of the group policy.",
+			},
+			"vlan_tagging": schema.SingleNestedAttribute{
+				Optional:    true,
+				Computed:    true,
+				Description: "The VLAN tagging settings of the group policy.",
+				Attributes: map[string]schema.Attribute{
+					"settings": schema.StringAttribute{
+						Optional: true,
+						Computed: true,
+					},
+					"vlan_id": schema.StringAttribute{
+						Optional: true,
+						Computed: true,
+					},
+				},
+			},
+			"bonjour_forwarding": schema.SingleNestedAttribute{
+				Optional:    true,
+				Computed:    true,
+				Description: "The bonjour forwarding settings of the group policy.",
+				Attributes: map[string]schema.Attribute{
+					"settings": schema.StringAttribute{
+						Required: true,
+					},
+					"rules": schema.ListNestedAttribute{
+						Optional: true,
+						Computed: true,
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: map[string]schema.Attribute{
+								"description": schema.StringAttribute{
+									Optional: true,
+									Computed: true,
+								},
+								"vlan_id": schema.StringAttribute{
+									Optional: true,
+									Computed: true,
+								},
+								"services": schema.ListAttribute{
+									ElementType: types.StringType,
+									Optional:    true,
+									Computed:    true,
 								},
 							},
 						},
@@ -1309,1441 +541,917 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 	}
 }
 
+func (r *NetworksGroupPolicyResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_networks_group_policy"
+}
+
+// Configure configures the resource with the API client.
 func (r *NetworksGroupPolicyResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
 	}
 
-	client, ok := req.ProviderData.(*openApiClient.APIClient)
+	r.client = req.ProviderData.(*client.APIClient)
 
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *http.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
-		)
+	/*
+		// Create a retryable client
+			retryableClient := retryablehttp.NewClient()
+			retryableClient.RetryMax = retryMax
+			retryableClient.RetryWaitMin = retryWaitMin
+			retryableClient.RetryWaitMax = retryWaitMax
 
-		return
-	}
+			// Create a new API client with the retryable HTTP client
+			r.client.GetConfig().HTTPClient = retryableClient.StandardClient()
+	*/
 
-	r.client = client
 }
 
-func (r *NetworksGroupPolicyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *NetworksGroupPolicyResourceModel
-
-	// Read Terraform plan data into the model
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	createNetworkGroupPolicy := *openApiClient.NewCreateNetworkGroupPolicyRequest(data.Name.ValueString())
-	if !data.SplashAuthSettings.IsUnknown() && !data.SplashAuthSettings.IsNull() {
-		createNetworkGroupPolicy.SetSplashAuthSettings(data.SplashAuthSettings.ValueString())
-	}
-
-	if !data.VlanTagging.IsUnknown() && !data.VlanTagging.IsNull() {
-		var vlanTagging NetworksGroupPolicyResourceModelVlanTagging
-		vlanTaggingErr := data.VlanTagging.As(ctx, &vlanTagging, basetypes.ObjectAsOptions{})
-		if vlanTaggingErr != nil {
-			resp.Diagnostics.AddError(
-				"Failed to unmarshal vlanTagging",
-				fmt.Sprintf("%v", vlanTaggingErr),
-			)
-			return
-		}
-		if !vlanTagging.Settings.IsUnknown() && !vlanTagging.Settings.IsNull() {
-			var v openApiClient.CreateNetworkGroupPolicyRequestVlanTagging
-			v.SetSettings(vlanTagging.Settings.ValueString())
-			if !vlanTagging.VlanId.IsUnknown() && !vlanTagging.VlanId.IsNull() {
-				v.SetVlanId(vlanTagging.VlanId.ValueString())
-			}
-			createNetworkGroupPolicy.SetVlanTagging(v)
-		}
-	}
-
-	if !data.Bandwidth.IsUnknown() && !data.Bandwidth.IsNull() {
-		var bandwidth NetworksGroupPolicyResourceModelBandwidth
-		bandwidthDataErr := data.Bandwidth.As(ctx, &bandwidth, basetypes.ObjectAsOptions{})
-		if bandwidthDataErr != nil {
-			resp.Diagnostics.AddError(
-				"Failed to unmarshal Bandwidth",
-				fmt.Sprintf("%v", bandwidthDataErr),
-			)
-			return
-		}
-		if !bandwidth.Settings.IsUnknown() && !bandwidth.Settings.IsNull() {
-			var bandwidthAPI openApiClient.CreateNetworkGroupPolicyRequestBandwidth
-			bandwidthAPI.SetSettings(bandwidth.Settings.ValueString())
-			var bandwidthLimitsAPI openApiClient.CreateNetworkGroupPolicyRequestBandwidthBandwidthLimits
-			var bandwidthLimits NetworksGroupPolicyResourceModelBandwidthLimits
-			bandwidthLimitsDataErr := bandwidth.BandwidthLimits.As(ctx, &bandwidthLimits, basetypes.ObjectAsOptions{})
-			if bandwidthLimitsDataErr != nil {
-				resp.Diagnostics.AddError(
-					"Failed to unmarshal BandwidthLimits",
-					fmt.Sprintf("%v", bandwidthLimitsDataErr),
-				)
-				return
-			}
-			if !bandwidthLimits.LimitUp.IsUnknown() && !bandwidthLimits.LimitUp.IsNull() {
-				bandwidthLimitsAPI.SetLimitUp(int32(bandwidthLimits.LimitUp.ValueInt64()))
-			}
-			if !bandwidthLimits.LimitDown.IsUnknown() && !bandwidthLimits.LimitDown.IsNull() {
-				bandwidthLimitsAPI.SetLimitDown(int32(bandwidthLimits.LimitDown.ValueInt64()))
-			}
-			bandwidthAPI.SetBandwidthLimits(bandwidthLimitsAPI)
-			createNetworkGroupPolicy.SetBandwidth(bandwidthAPI)
-		}
-	}
-
-	if !data.BonjourForwarding.IsUnknown() && !data.BonjourForwarding.IsNull() {
-
-		var bonjourForwarding openApiClient.CreateNetworkGroupPolicyRequestBonjourForwarding
-		var bonjourForwardingData NetworksGroupPolicyResourceModelBonjourForwarding
-		bonjourForwardingDataErr := data.BonjourForwarding.As(ctx, &bonjourForwardingData, basetypes.ObjectAsOptions{})
-		if bonjourForwardingDataErr != nil {
-			resp.Diagnostics.AddError(
-				"Failed to unmarshal Bonjour Forwarding",
-				fmt.Sprintf("%v", bonjourForwardingDataErr),
-			)
-			return
-		}
-		if !bonjourForwardingData.BonjourForwardingSettings.IsUnknown() && !bonjourForwardingData.BonjourForwardingSettings.IsNull() {
-			bonjourForwarding.SetSettings(bonjourForwardingData.BonjourForwardingSettings.ValueString())
-		}
-		if !bonjourForwardingData.BonjourForwardingRules.IsUnknown() && !bonjourForwardingData.BonjourForwardingRules.IsNull() {
-			var bonjourForwardingRules []openApiClient.CreateNetworkGroupPolicyRequestBonjourForwardingRulesInner
-			var bonjourForwardingRulesData []NetworksGroupPolicyResourceModelRule
-			err := bonjourForwardingData.BonjourForwardingRules.ElementsAs(ctx, &bonjourForwardingRulesData, false)
-			if err != nil {
-				resp.Diagnostics.AddError(
-					"Failed to unmarshal Bonjour Forwarding Rules",
-					fmt.Sprintf("%v", err),
-				)
-				return
-
-			}
-			for _, attribute := range bonjourForwardingRulesData {
-				var bonjourForwardingRule openApiClient.CreateNetworkGroupPolicyRequestBonjourForwardingRulesInner
-				if !attribute.Description.IsUnknown() && !attribute.Description.IsNull() {
-					bonjourForwardingRule.SetDescription(attribute.Description.ValueString())
-				}
-				if !attribute.VlanId.IsUnknown() && !attribute.VlanId.IsNull() {
-					bonjourForwardingRule.SetVlanId(attribute.VlanId.ValueString())
-				}
-				if !attribute.Services.IsUnknown() && !attribute.Services.IsNull() {
-					var services []string
-					serviceserr := attribute.Services.ElementsAs(ctx, &services, false)
-					if serviceserr != nil {
-						resp.Diagnostics.AddError(
-							"Failed to unmarshal bonjourForwardingRule services",
-							fmt.Sprintf("%v", serviceserr),
-						)
-						return
-
-					}
-					bonjourForwardingRule.SetServices(services)
-				}
-				bonjourForwardingRules = append(bonjourForwardingRules, bonjourForwardingRule)
-			}
-			bonjourForwarding.SetRules(bonjourForwardingRules)
-		}
-		createNetworkGroupPolicy.SetBonjourForwarding(bonjourForwarding)
-
-	}
-
-	if !data.FirewallAndTrafficShaping.IsUnknown() && !data.FirewallAndTrafficShaping.IsNull() {
-
-		var firewallAndTrafficShaping openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShaping
-		var firewallAndTrafficShapingData NetworksGroupPolicyResourceModelFirewallAndTrafficShaping
-		firewallAndTrafficShapingErr := data.FirewallAndTrafficShaping.As(ctx, &firewallAndTrafficShapingData, basetypes.ObjectAsOptions{})
-		if firewallAndTrafficShapingErr != nil {
-			resp.Diagnostics.AddError(
-				"Failed to unmarshal FirewallAndTrafficShaping",
-				fmt.Sprintf("%v", firewallAndTrafficShapingErr),
-			)
-			return
-		}
-		if !firewallAndTrafficShapingData.Settings.IsUnknown() && !firewallAndTrafficShapingData.Settings.IsNull() {
-			firewallAndTrafficShaping.SetSettings(firewallAndTrafficShapingData.Settings.ValueString())
-		}
-		if !firewallAndTrafficShapingData.L3FirewallRules.IsUnknown() && !firewallAndTrafficShapingData.L3FirewallRules.IsNull() {
-			var l3FirewallRules []NetworksGroupPolicyResourceModelL3FirewallRule
-			err := firewallAndTrafficShapingData.L3FirewallRules.ElementsAs(ctx, &l3FirewallRules, false)
-			if err != nil {
-				resp.Diagnostics.AddError(
-					"Failed to unmarshal FirewallAndTrafficShaping l3FirewallRules",
-					fmt.Sprintf("%v", err),
-				)
-				return
-
-			}
-			if len(l3FirewallRules) > 0 {
-				var l3s []openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingL3FirewallRulesInner
-				for _, attribute := range l3FirewallRules {
-					var l3 openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingL3FirewallRulesInner
-					if !attribute.Comment.IsUnknown() {
-						l3.SetComment(attribute.Comment.ValueString())
-					}
-					if !attribute.DestCidr.IsUnknown() {
-						l3.SetDestCidr(attribute.DestCidr.ValueString())
-					}
-					if !attribute.DestPort.IsUnknown() {
-						l3.SetDestPort(attribute.DestPort.ValueString())
-					}
-					if !attribute.Policy.IsUnknown() {
-						l3.SetPolicy(attribute.Policy.ValueString())
-					}
-					if !attribute.Protocol.IsUnknown() {
-						l3.SetProtocol(attribute.Protocol.ValueString())
-					}
-					l3s = append(l3s, l3)
-				}
-				firewallAndTrafficShaping.SetL3FirewallRules(l3s)
-			}
-
-		}
-
-		if !firewallAndTrafficShapingData.L7FirewallRules.IsUnknown() && !firewallAndTrafficShapingData.L7FirewallRules.IsNull() {
-
-			var l7FirewallRules []NetworksGroupPolicyResourceModelL7FirewallRule
-			err := firewallAndTrafficShapingData.L7FirewallRules.ElementsAs(ctx, &l7FirewallRules, false)
-			if err != nil {
-				resp.Diagnostics.AddError(
-					"Failed to unmarshal L7FirewallRules",
-					fmt.Sprintf("%v", err),
-				)
-				return
-
-			}
-			if len(l7FirewallRules) > 0 {
-				var l7s []openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingL7FirewallRulesInner
-				for _, attribute := range l7FirewallRules {
-					var l7 openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingL7FirewallRulesInner
-					if !attribute.Value.IsUnknown() {
-						l7.SetValue(attribute.Value.ValueString())
-					}
-					if !attribute.Type.IsUnknown() {
-						l7.SetType(attribute.Type.ValueString())
-					}
-
-					if !attribute.Policy.IsUnknown() {
-						l7.SetPolicy(attribute.Policy.ValueString())
-					}
-
-					l7s = append(l7s, l7)
-				}
-				firewallAndTrafficShaping.SetL7FirewallRules(l7s)
-
-			}
-
-		}
-
-		if !firewallAndTrafficShapingData.TrafficShapingRules.IsUnknown() && !firewallAndTrafficShapingData.TrafficShapingRules.IsNull() {
-
-			var trafficShapingRule []NetworksGroupPolicyResourceModelTrafficShapingRule
-			err := firewallAndTrafficShapingData.TrafficShapingRules.ElementsAs(ctx, &trafficShapingRule, false)
-			if err != nil {
-				resp.Diagnostics.AddError(
-					"Failed to unmarshal TrafficShapingRules",
-					fmt.Sprintf("%v", err),
-				)
-				return
-
-			}
-
-			if len(trafficShapingRule) > 0 {
-				var tfs []openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingTrafficShapingRulesInner
-				for _, attribute := range trafficShapingRule {
-					var tf openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingTrafficShapingRulesInner
-					if !attribute.DscpTagValue.IsUnknown() {
-						tf.SetDscpTagValue(int32(attribute.DscpTagValue.ValueInt64()))
-					}
-					if !attribute.PcpTagValue.IsUnknown() {
-						tf.SetPcpTagValue(int32(attribute.PcpTagValue.ValueInt64()))
-					}
-					if !attribute.PerClientBandwidthLimits.IsUnknown() && !attribute.PerClientBandwidthLimits.IsNull() {
-						var perClientBandWidthLimits openApiClient.UpdateNetworkApplianceTrafficShapingRulesRequestRulesInnerPerClientBandwidthLimits
-						var perClientBandWidthData NetworksGroupPolicyResourceModelPerClientBandwidth
-						perClientBandWidthDataErr := attribute.PerClientBandwidthLimits.As(ctx, &perClientBandWidthData, basetypes.ObjectAsOptions{})
-						if perClientBandWidthDataErr != nil {
-							resp.Diagnostics.AddError(
-								"Failed to unmarshal perClientBandWidth",
-								fmt.Sprintf("%v", perClientBandWidthDataErr),
-							)
-							return
-
-						}
-
-						if !perClientBandWidthData.Settings.IsUnknown() && !perClientBandWidthData.Settings.IsNull() {
-							var bandwidthLimits openApiClient.UpdateNetworkApplianceTrafficShapingRulesRequestRulesInnerPerClientBandwidthLimitsBandwidthLimits
-							perClientBandWidthLimits.SetSettings(perClientBandWidthData.Settings.ValueString())
-							if perClientBandWidthData.Settings.ValueString() != "network default" {
-								var perClientBandWidthLimitsData NetworksGroupPolicyResourceModelPerClientBandwidthLimits
-								if !attribute.PerClientBandwidthLimits.IsUnknown() && !attribute.PerClientBandwidthLimits.IsNull() {
-									perClientBandWidthLimitsDataErr := perClientBandWidthData.BandwidthLimits.As(ctx, &perClientBandWidthLimitsData, basetypes.ObjectAsOptions{})
-									if perClientBandWidthLimitsDataErr != nil {
-										resp.Diagnostics.AddError(
-											"Failed to unmarshal perClientBandWidthLimits",
-											fmt.Sprintf("%v", perClientBandWidthLimitsDataErr),
-										)
-										return
-
-									}
-									bandwidthLimits.SetLimitDown(int32(perClientBandWidthLimitsData.LimitDown.ValueInt64()))
-									bandwidthLimits.SetLimitUp(int32(perClientBandWidthLimitsData.LimitUp.ValueInt64()))
-
-									perClientBandWidthLimits.SetBandwidthLimits(bandwidthLimits)
-								}
-							}
-							tf.SetPerClientBandwidthLimits(perClientBandWidthLimits)
-
-						}
-					}
-					if !attribute.Definitions.IsUnknown() && !attribute.Definitions.IsNull() {
-						var defs []openApiClient.UpdateNetworkApplianceTrafficShapingRulesRequestRulesInnerDefinitionsInner
-						var definitions []NetworksGroupPolicyResourceModelDefinition
-						err = attribute.Definitions.ElementsAs(ctx, &definitions, false)
-						if err != nil {
-							resp.Diagnostics.AddError(
-								"Failed to unmarshal Definitions",
-								fmt.Sprintf("%v", err),
-							)
-							return
-
-						}
-						if len(definitions) > 0 {
-							for _, attribute := range definitions {
-								var def openApiClient.UpdateNetworkApplianceTrafficShapingRulesRequestRulesInnerDefinitionsInner
-								def.SetType(attribute.Type.ValueString())
-								def.SetValue(attribute.Value.ValueString())
-								defs = append(defs, def)
-							}
-							tf.SetDefinitions(defs)
-						}
-					}
-					tfs = append(tfs, tf)
-				}
-				firewallAndTrafficShaping.SetTrafficShapingRules(tfs)
-
-			}
-		}
-
-		createNetworkGroupPolicy.SetFirewallAndTrafficShaping(firewallAndTrafficShaping)
-	}
-
-	if !data.Scheduling.IsUnknown() && !data.Scheduling.IsNull() {
-		var schedulingData NetworksGroupPolicyResourceModelScheduling
-		schedulingDataErr := data.Scheduling.As(ctx, &schedulingData, basetypes.ObjectAsOptions{})
-		if schedulingDataErr != nil {
-			resp.Diagnostics.AddError(
-				"Failed to unmarshal Scheduling",
-				fmt.Sprintf("%v", schedulingDataErr),
-			)
-			return
-		}
-
-		if !schedulingData.Enabled.IsUnknown() {
-			var schedule openApiClient.CreateNetworkGroupPolicyRequestScheduling
-			schedule.SetEnabled(schedulingData.Enabled.ValueBool())
-			var schedulingFridayDayData NetworksGroupPolicyResourceModelSchedule
-			schedulingFridayDayDataErr := schedulingData.Friday.As(ctx, &schedulingFridayDayData, basetypes.ObjectAsOptions{})
-			if schedulingFridayDayDataErr != nil {
-
-				resp.Diagnostics.AddError(
-					"Failed to unmarshal Friday Scheduling",
-					fmt.Sprintf("%v", schedulingFridayDayDataErr),
-				)
-				return
-			}
-			if !schedulingFridayDayData.Active.IsUnknown() {
-				var friday openApiClient.CreateNetworkGroupPolicyRequestSchedulingFriday
-				friday.SetActive(schedulingFridayDayData.Active.ValueBool())
-				friday.SetFrom(schedulingFridayDayData.From.ValueString())
-				friday.SetTo(schedulingFridayDayData.To.ValueString())
-				schedule.SetFriday(friday)
-			}
-			var schedulingMondayDayData NetworksGroupPolicyResourceModelSchedule
-			schedulingMondayDayDataErr := schedulingData.Monday.As(ctx, &schedulingMondayDayData, basetypes.ObjectAsOptions{})
-			if schedulingMondayDayDataErr != nil {
-
-				resp.Diagnostics.AddError(
-					"Failed to unmarshal Monday Scheduling",
-					fmt.Sprintf("%v", schedulingMondayDayDataErr),
-				)
-				return
-			}
-			if !schedulingMondayDayData.Active.IsUnknown() {
-				var monday openApiClient.CreateNetworkGroupPolicyRequestSchedulingMonday
-				monday.SetActive(schedulingMondayDayData.Active.ValueBool())
-				monday.SetFrom(schedulingMondayDayData.From.ValueString())
-				monday.SetTo(schedulingMondayDayData.To.ValueString())
-				schedule.SetMonday(monday)
-			}
-			var schedulingTuesdayDayData NetworksGroupPolicyResourceModelSchedule
-			schedulingTuesdayDayDataErr := schedulingData.Tuesday.As(ctx, &schedulingTuesdayDayData, basetypes.ObjectAsOptions{})
-			if schedulingTuesdayDayDataErr != nil {
-				resp.Diagnostics.AddError(
-					"Failed to unmarshal Tuesday Scheduling",
-					fmt.Sprintf("%v", schedulingTuesdayDayDataErr),
-				)
-				return
-			}
-			if !schedulingTuesdayDayData.Active.IsUnknown() {
-				var tuesday openApiClient.CreateNetworkGroupPolicyRequestSchedulingTuesday
-				tuesday.SetActive(schedulingTuesdayDayData.Active.ValueBool())
-				tuesday.SetFrom(schedulingTuesdayDayData.From.ValueString())
-				tuesday.SetTo(schedulingTuesdayDayData.To.ValueString())
-				schedule.SetTuesday(tuesday)
-			}
-			var schedulingWednesdayDayData NetworksGroupPolicyResourceModelSchedule
-			schedulingWednesdayDayDataErr := schedulingData.Wednesday.As(ctx, &schedulingWednesdayDayData, basetypes.ObjectAsOptions{})
-			if schedulingWednesdayDayDataErr != nil {
-				resp.Diagnostics.AddError(
-					"Failed to unmarshal Wednesday Scheduling",
-					fmt.Sprintf("%v", schedulingWednesdayDayDataErr),
-				)
-				return
-			}
-			if !schedulingWednesdayDayData.Active.IsUnknown() {
-				var wednesday openApiClient.CreateNetworkGroupPolicyRequestSchedulingWednesday
-				wednesday.SetActive(schedulingWednesdayDayData.Active.ValueBool())
-				wednesday.SetFrom(schedulingWednesdayDayData.From.ValueString())
-				wednesday.SetTo(schedulingWednesdayDayData.To.ValueString())
-				schedule.SetWednesday(wednesday)
-			}
-			var schedulingThursdayDayData NetworksGroupPolicyResourceModelSchedule
-			schedulingThursdayDayDataErr := schedulingData.Thursday.As(ctx, &schedulingThursdayDayData, basetypes.ObjectAsOptions{})
-			if schedulingThursdayDayDataErr != nil {
-				resp.Diagnostics.AddError(
-					"Failed to unmarshal Thursday Scheduling",
-					fmt.Sprintf("%v", schedulingThursdayDayDataErr),
-				)
-				return
-			}
-			if !schedulingThursdayDayData.Active.IsUnknown() {
-				var thursday openApiClient.CreateNetworkGroupPolicyRequestSchedulingThursday
-				thursday.SetActive(schedulingThursdayDayData.Active.ValueBool())
-				thursday.SetFrom(schedulingThursdayDayData.From.ValueString())
-				thursday.SetTo(schedulingThursdayDayData.To.ValueString())
-				schedule.SetThursday(thursday)
-			}
-			var schedulingSaturdayDayData NetworksGroupPolicyResourceModelSchedule
-			schedulingSaturdayDayDataErr := schedulingData.Saturday.As(ctx, &schedulingSaturdayDayData, basetypes.ObjectAsOptions{})
-			if schedulingSaturdayDayDataErr != nil {
-				resp.Diagnostics.AddError(
-					"Failed to unmarshal Saturday Scheduling",
-					fmt.Sprintf("%v", schedulingSaturdayDayDataErr),
-				)
-				return
-			}
-			if !schedulingSaturdayDayData.Active.IsUnknown() {
-				var saturday openApiClient.CreateNetworkGroupPolicyRequestSchedulingSaturday
-				saturday.SetActive(schedulingSaturdayDayData.Active.ValueBool())
-				saturday.SetFrom(schedulingSaturdayDayData.From.ValueString())
-				saturday.SetTo(schedulingSaturdayDayData.To.ValueString())
-				schedule.SetSaturday(saturday)
-			}
-			var schedulingSundayDayData NetworksGroupPolicyResourceModelSchedule
-			schedulingSundayDayDataErr := schedulingData.Sunday.As(ctx, &schedulingSundayDayData, basetypes.ObjectAsOptions{})
-			if schedulingSundayDayDataErr != nil {
-				resp.Diagnostics.AddError(
-					"Failed to unmarshal Sunday Scheduling",
-					fmt.Sprintf("%v", schedulingSundayDayDataErr),
-				)
-				return
-			}
-			if !schedulingSundayDayData.Active.IsUnknown() {
-				var sunday openApiClient.CreateNetworkGroupPolicyRequestSchedulingSunday
-				sunday.SetActive(schedulingSundayDayData.Active.ValueBool())
-				sunday.SetFrom(schedulingSundayDayData.From.ValueString())
-				sunday.SetTo(schedulingSundayDayData.To.ValueString())
-				schedule.SetSunday(sunday)
-			}
-			createNetworkGroupPolicy.SetScheduling(schedule)
-		}
-
-	}
-
-	if !data.ContentFiltering.IsUnknown() && !data.ContentFiltering.IsNull() {
-		var contentFiltering openApiClient.CreateNetworkGroupPolicyRequestContentFiltering
-		var contentFilteringData NetworksGroupPolicyResourceModelContentFiltering
-		contentDataErr := data.ContentFiltering.As(ctx, &contentFilteringData, basetypes.ObjectAsOptions{})
-		if contentDataErr != nil {
-			resp.Diagnostics.AddError(
-				"Failed to unmarshal ContentFiltering",
-				fmt.Sprintf("%v", contentDataErr),
-			)
-			return
-		}
-		contentFilteringStatus := false
-
-		if !contentFilteringData.AllowedUrlPatterns.IsUnknown() && !contentFilteringData.AllowedUrlPatterns.IsNull() {
-
-			var contentFilteringPatternsData NetworksGroupPolicyResourceModelAllowedUrlPatterns
-			contentDataPatternsErr := contentFilteringData.AllowedUrlPatterns.As(ctx, &contentFilteringPatternsData, basetypes.ObjectAsOptions{})
-			if contentDataPatternsErr != nil {
-				resp.Diagnostics.AddError(
-					"Failed to unmarshal ContentFilteringPatterns",
-					fmt.Sprintf("%v", contentDataPatternsErr),
-				)
-				return
-			}
-
-			if !contentFilteringPatternsData.Settings.IsUnknown() && !contentFilteringPatternsData.Settings.IsNull() {
-				var allowedUrlPatternData openApiClient.CreateNetworkGroupPolicyRequestContentFilteringAllowedUrlPatterns
-				allowedUrlPatternData.SetSettings(contentFilteringPatternsData.Settings.ValueString())
-				if !contentFilteringPatternsData.Patterns.IsUnknown() && !contentFilteringPatternsData.Patterns.IsNull() {
-					var patternsData []string
-					patternsDataerr := contentFilteringPatternsData.Patterns.ElementsAs(ctx, &patternsData, false)
-					if patternsDataerr != nil {
-						resp.Diagnostics.AddError(
-							"Failed to unmarshal AllowedURLPatterns",
-							fmt.Sprintf("%v", patternsDataerr),
-						)
-						return
-
-					}
-					allowedUrlPatternData.SetPatterns(patternsData)
-				}
-				contentFiltering.SetAllowedUrlPatterns(allowedUrlPatternData)
-				contentFilteringStatus = true
-			}
-
-		}
-
-		if !contentFilteringData.BlockedUrlCategories.IsUnknown() && !contentFilteringData.BlockedUrlCategories.IsNull() {
-
-			var contentFilteringBlockedUrlCategoriesData NetworksGroupPolicyResourceModelBlockedUrlCategories
-			contentFilteringBlockedUrlCategoriesDataErr := contentFilteringData.BlockedUrlCategories.As(ctx, &contentFilteringBlockedUrlCategoriesData, basetypes.ObjectAsOptions{})
-			if contentFilteringBlockedUrlCategoriesDataErr != nil {
-				resp.Diagnostics.AddError(
-					"Failed to unmarshal ContentBlockedUrlCategories",
-					fmt.Sprintf("%v", contentFilteringBlockedUrlCategoriesDataErr),
-				)
-				return
-			}
-
-			if !contentFilteringBlockedUrlCategoriesData.Settings.IsUnknown() && !contentFilteringBlockedUrlCategoriesData.Settings.IsNull() {
-				var blockedUrlCategoriesData openApiClient.CreateNetworkGroupPolicyRequestContentFilteringBlockedUrlCategories
-				blockedUrlCategoriesData.SetSettings(contentFilteringBlockedUrlCategoriesData.Settings.ValueString())
-				if !contentFilteringBlockedUrlCategoriesData.Categories.IsUnknown() && !contentFilteringBlockedUrlCategoriesData.Categories.IsNull() {
-					var blockedUrlCategories []string
-					blockedUrlCategoriesDataerr := contentFilteringBlockedUrlCategoriesData.Categories.ElementsAs(ctx, &blockedUrlCategories, false)
-					if blockedUrlCategoriesDataerr != nil {
-						resp.Diagnostics.AddError(
-							"Failed to unmarshal blockedUrlCategories",
-							fmt.Sprintf("%v", blockedUrlCategoriesDataerr),
-						)
-						return
-
-					}
-					blockedUrlCategoriesData.SetCategories(blockedUrlCategories)
-				}
-				contentFiltering.SetBlockedUrlCategories(blockedUrlCategoriesData)
-				contentFilteringStatus = true
-			}
-
-		}
-
-		if !contentFilteringData.BlockedUrlPatterns.IsUnknown() && !contentFilteringData.BlockedUrlPatterns.IsNull() {
-			var contentFilteringBlockedUrlPatternsData NetworksGroupPolicyResourceModelBlockedUrlPatterns
-			contentFilteringBlockedUrlPatternsDataErr := contentFilteringData.BlockedUrlPatterns.As(ctx, &contentFilteringBlockedUrlPatternsData, basetypes.ObjectAsOptions{})
-			if contentFilteringBlockedUrlPatternsDataErr != nil {
-				resp.Diagnostics.AddError(
-					"Failed to unmarshal ContentBlockedUrlPatterns",
-					fmt.Sprintf("%v", contentFilteringBlockedUrlPatternsDataErr),
-				)
-				return
-			}
-
-			if !contentFilteringBlockedUrlPatternsData.Settings.IsUnknown() && !contentFilteringBlockedUrlPatternsData.Settings.IsNull() {
-				var blockedUrlPatternsData openApiClient.CreateNetworkGroupPolicyRequestContentFilteringBlockedUrlPatterns
-				blockedUrlPatternsData.SetSettings(contentFilteringBlockedUrlPatternsData.Settings.ValueString())
-				if !contentFilteringBlockedUrlPatternsData.Patterns.IsUnknown() && !contentFilteringBlockedUrlPatternsData.Patterns.IsNull() {
-					var blockedUrlPatterns []string
-					blockedUrlPatternsDataerr := contentFilteringBlockedUrlPatternsData.Patterns.ElementsAs(ctx, &blockedUrlPatterns, false)
-					if blockedUrlPatternsDataerr != nil {
-						resp.Diagnostics.AddError(
-							"Failed to unmarshal blockedUrlPatterns",
-							fmt.Sprintf("%v", blockedUrlPatternsDataerr),
-						)
-						return
-
-					}
-					blockedUrlPatternsData.SetPatterns(blockedUrlPatterns)
-				}
-				contentFiltering.SetBlockedUrlPatterns(blockedUrlPatternsData)
-				contentFilteringStatus = true
-			}
-
-		}
-
-		if contentFilteringStatus {
-			createNetworkGroupPolicy.SetContentFiltering(contentFiltering)
-		}
-	}
-
-	// Wrap the API call in the retryAPICall function
-	inlineRespMap, httpResp, err := retryAPICall(ctx, func() (interface{}, *http.Response, error) {
-		resp, httpResp, err := r.client.NetworksApi.CreateNetworkGroupPolicy(ctx, data.NetworkId.ValueString()).CreateNetworkGroupPolicyRequest(createNetworkGroupPolicy).Execute()
-		if err != nil {
-			return nil, httpResp, err
-		}
-		return resp, httpResp, nil
-	})
-
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"HTTP Client Failure",
-			tools.HttpDiagnostics(httpResp),
-		)
-		return
-	}
-
-	// Check for API success response code
-	if httpResp.StatusCode != 201 {
-		resp.Diagnostics.AddError(
-			"Unexpected HTTP Response Status Code",
-			fmt.Sprintf("%v", httpResp.StatusCode),
-		)
-	}
-
-	// Check for errors after diagnostics collected
-	if resp.Diagnostics.HasError() {
-		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
-		return
-	}
-
-	inlineResp, ok := inlineRespMap.(map[string]interface{})
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Type Assertion Failure",
-			"Failed to assert API response type to map[string]interface{}",
-		)
-		return
-	}
-
-	bandwidthVal, diags := getBandwidth(ctx, inlineResp)
-	if diags.HasError() {
-		return
-	}
-	firewallAndTrafficShapingObjectVal, diags := getFirewallAndTrafficShaping(ctx, inlineResp)
-	if diags.HasError() {
-		return
-	}
-
-	schedulingVal, diags := getScheduling(ctx, inlineResp)
-	if diags.HasError() {
-		return
-	}
-	contentFilteringVal, diags := getContentFiltering(ctx, inlineResp)
-	if diags.HasError() {
-		return
-	}
-	bonjourForwardingVal, diags := getBonjourForwarding(ctx, inlineResp)
-	if diags.HasError() {
-		return
-	}
-
-	vlantaggingVal, diags := getVlantagging(ctx, inlineResp)
-	if diags.HasError() {
-		return
-	}
-
-	data.Bandwidth = bandwidthVal
-	data.FirewallAndTrafficShaping = firewallAndTrafficShapingObjectVal
-	data.Scheduling = schedulingVal
-	data.ContentFiltering = contentFilteringVal
-	data.BonjourForwarding = bonjourForwardingVal
-	data.VlanTagging = vlantaggingVal
-	data.SplashAuthSettings = basetypes.NewStringValue(inlineResp["splashAuthSettings"].(string))
-	data.GroupPolicyId = basetypes.NewStringValue(inlineResp["groupPolicyId"].(string))
-	data.Name = basetypes.NewStringValue(inlineResp["name"].(string))
-	data.Id = types.StringValue("example-id")
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
-	// Write logs using the tflog package
-	tflog.Trace(ctx, "create resource")
-}
-
-func (r *NetworksGroupPolicyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *NetworksGroupPolicyResourceModel
-
-	// Read Terraform prior state data into the model
-	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
-
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	inlineRespMap, httpResp, err := retryAPICall(ctx, func() (interface{}, *http.Response, error) {
-		resp, httpResp, err := r.client.NetworksApi.GetNetworkGroupPolicy(ctx, data.NetworkId.ValueString(), data.GroupPolicyId.ValueString()).Execute()
-		if err != nil {
-			return nil, httpResp, err
-		}
-		return resp, httpResp, nil
-	})
-
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"HTTP Client Failure",
-			tools.HttpDiagnostics(httpResp),
-		)
-	}
-
-	// Check for API success response code
-	if httpResp.StatusCode != 200 {
-		resp.Diagnostics.AddError(
-			"Unexpected HTTP Response Status Code",
-			fmt.Sprintf("%v", httpResp.StatusCode),
-		)
-	}
-
-	// Check for errors after diagnostics collected
-	if resp.Diagnostics.HasError() {
-		return
+func updateGroupPolicyState(data *GroupPolicyModel, groupPolicy map[string]interface{}) {
+	if id, ok := groupPolicy["groupPolicyId"].(string); ok {
+		data.GroupPolicyId = types.StringValue(id)
 	} else {
-		resp.Diagnostics.Append()
+		data.GroupPolicyId = types.StringNull()
 	}
 
-	inlineResp, ok := inlineRespMap.(map[string]interface{})
-	if !ok {
+	data.NetworkId = types.StringValue(data.NetworkId.ValueString())
+
+	data.ID = types.StringValue(data.NetworkId.ValueString() + "," + data.GroupPolicyId.ValueString())
+
+	if name, ok := groupPolicy["name"].(string); ok {
+		data.Name = types.StringValue(name)
+	} else {
+		data.Name = types.StringNull()
+	}
+
+	if scheduling, ok := groupPolicy["scheduling"].(map[string]interface{}); ok {
+		if data.Scheduling == nil {
+			data.Scheduling = &SchedulingModel{}
+		}
+		if enabled, ok := scheduling["enabled"].(bool); ok {
+			data.Scheduling.Enabled = types.BoolValue(enabled)
+		} else {
+			data.Scheduling.Enabled = types.BoolNull()
+		}
+
+		updateScheduleDayModel(&data.Scheduling.Monday, scheduling, "monday")
+		updateScheduleDayModel(&data.Scheduling.Tuesday, scheduling, "tuesday")
+		updateScheduleDayModel(&data.Scheduling.Wednesday, scheduling, "wednesday")
+		updateScheduleDayModel(&data.Scheduling.Thursday, scheduling, "thursday")
+		updateScheduleDayModel(&data.Scheduling.Friday, scheduling, "friday")
+		updateScheduleDayModel(&data.Scheduling.Saturday, scheduling, "saturday")
+		updateScheduleDayModel(&data.Scheduling.Sunday, scheduling, "sunday")
+	}
+
+	if bandwidth, ok := groupPolicy["bandwidth"].(map[string]interface{}); ok {
+		if data.Bandwidth == nil {
+			data.Bandwidth = &BandwidthModel{}
+		}
+		if settings, ok := bandwidth["settings"].(string); ok {
+			data.Bandwidth.Settings = types.StringValue(settings)
+		} else {
+			data.Bandwidth.Settings = types.StringNull()
+		}
+		if bandwidthLimits, ok := bandwidth["bandwidthLimits"].(map[string]interface{}); ok {
+			if data.Bandwidth.BandwidthLimits == nil {
+				data.Bandwidth.BandwidthLimits = &BandwidthLimitsModel{}
+			}
+			if limitUp, ok := bandwidthLimits["limitUp"].(int64); ok {
+				data.Bandwidth.BandwidthLimits.LimitUp = types.Int64Value(limitUp)
+			} else {
+				data.Bandwidth.BandwidthLimits.LimitUp = types.Int64Null()
+			}
+			if limitDown, ok := bandwidthLimits["limitDown"].(int64); ok {
+				data.Bandwidth.BandwidthLimits.LimitDown = types.Int64Value(limitDown)
+			} else {
+				data.Bandwidth.BandwidthLimits.LimitDown = types.Int64Null()
+			}
+		}
+	}
+
+	if firewallAndTrafficShaping, ok := groupPolicy["firewallAndTrafficShaping"].(map[string]interface{}); ok {
+		if data.FirewallAndTrafficShaping == nil {
+			data.FirewallAndTrafficShaping = &FirewallAndTrafficShapingModel{}
+		}
+		if settings, ok := firewallAndTrafficShaping["settings"].(string); ok {
+			data.FirewallAndTrafficShaping.Settings = types.StringValue(settings)
+		} else {
+			data.FirewallAndTrafficShaping.Settings = types.StringNull()
+		}
+
+		updateL3FirewallRules(&data.FirewallAndTrafficShaping.L3FirewallRules, firewallAndTrafficShaping)
+		updateL7FirewallRules(&data.FirewallAndTrafficShaping.L7FirewallRules, firewallAndTrafficShaping)
+		updateTrafficShapingRules(&data.FirewallAndTrafficShaping.TrafficShapingRules, firewallAndTrafficShaping)
+	} else {
+		data.FirewallAndTrafficShaping = nil
+	}
+
+	if splashAuthSettings, ok := groupPolicy["splashAuthSettings"].(string); ok {
+		data.SplashAuthSettings = types.StringValue(splashAuthSettings)
+	} else {
+		data.SplashAuthSettings = types.StringNull()
+	}
+
+	if contentFiltering, ok := groupPolicy["contentFiltering"].(map[string]interface{}); ok {
+		if data.ContentFiltering == nil {
+			data.ContentFiltering = &ContentFilteringModel{}
+		}
+		updateContentFilteringModel(data, contentFiltering)
+	}
+
+	if vlanTagging, ok := groupPolicy["vlanTagging"].(map[string]interface{}); ok {
+		if data.VlanTagging == nil {
+			data.VlanTagging = &VlanTaggingModel{}
+		}
+		if settings, ok := vlanTagging["settings"].(string); ok {
+			data.VlanTagging.Settings = types.StringValue(settings)
+		} else {
+			data.VlanTagging.Settings = types.StringNull()
+		}
+		if vlanId, ok := vlanTagging["vlanId"].(string); ok {
+			data.VlanTagging.VlanID = types.StringValue(vlanId)
+		} else {
+			data.VlanTagging.VlanID = types.StringNull()
+		}
+	}
+
+	if bonjourForwarding, ok := groupPolicy["bonjourForwarding"].(map[string]interface{}); ok {
+		if data.BonjourForwarding == nil {
+			data.BonjourForwarding = &BonjourForwardingModel{}
+		}
+		if settings, ok := bonjourForwarding["settings"].(string); ok {
+			data.BonjourForwarding.Settings = types.StringValue(settings)
+		} else {
+			data.BonjourForwarding.Settings = types.StringNull()
+		}
+		updateBonjourForwardingRules(&data.BonjourForwarding.Rules, bonjourForwarding)
+	}
+}
+
+func updateScheduleDayModel(dayModel **ScheduleDayModel, scheduling map[string]interface{}, day string) {
+	if dayData, ok := scheduling[day].(map[string]interface{}); ok {
+		if *dayModel == nil {
+			*dayModel = &ScheduleDayModel{}
+		}
+		if active, ok := dayData["active"].(bool); ok {
+			(*dayModel).Active = types.BoolValue(active)
+		} else {
+			(*dayModel).Active = types.BoolNull()
+		}
+		if from, ok := dayData["from"].(string); ok {
+			(*dayModel).From = types.StringValue(from)
+		} else {
+			(*dayModel).From = types.StringNull()
+		}
+		if to, ok := dayData["to"].(string); ok {
+			(*dayModel).To = types.StringValue(to)
+		} else {
+			(*dayModel).To = types.StringNull()
+		}
+	}
+}
+
+func updateL3FirewallRules(l3FirewallRules *[]L3FirewallRuleModel, firewallAndTrafficShaping map[string]interface{}) {
+	if rules, ok := firewallAndTrafficShaping["l3FirewallRules"].([]interface{}); ok {
+		var newL3FirewallRules []L3FirewallRuleModel
+		for _, rule := range rules {
+			if r, ok := rule.(map[string]interface{}); ok {
+				newL3FirewallRules = append(newL3FirewallRules, L3FirewallRuleModel{
+					Comment:  types.StringValue(r["comment"].(string)),
+					Policy:   types.StringValue(r["policy"].(string)),
+					Protocol: types.StringValue(r["protocol"].(string)),
+					DestPort: types.StringValue(r["destPort"].(string)),
+					DestCidr: types.StringValue(r["destCidr"].(string)),
+				})
+			}
+		}
+		*l3FirewallRules = newL3FirewallRules
+	}
+}
+
+func updateL7FirewallRules(l7FirewallRules *[]L7FirewallRuleModel, firewallAndTrafficShaping map[string]interface{}) {
+	if rules, ok := firewallAndTrafficShaping["l7FirewallRules"].([]interface{}); ok {
+		var newL7FirewallRules []L7FirewallRuleModel
+		for _, rule := range rules {
+			if r, ok := rule.(map[string]interface{}); ok {
+				newL7FirewallRules = append(newL7FirewallRules, L7FirewallRuleModel{
+					Policy: types.StringValue(r["policy"].(string)),
+					Type:   types.StringValue(r["type"].(string)),
+					Value:  types.StringValue(r["value"].(string)),
+				})
+			}
+		}
+		*l7FirewallRules = newL7FirewallRules
+	}
+}
+
+func updateTrafficShapingRules(trafficShapingRules *[]TrafficShapingRuleModel, firewallAndTrafficShaping map[string]interface{}) {
+	// Initialize trafficShapingRules slice
+	*trafficShapingRules = []TrafficShapingRuleModel{}
+
+	if rules, ok := firewallAndTrafficShaping["trafficShapingRules"].([]interface{}); ok {
+		for _, rule := range rules {
+			if r, ok := rule.(map[string]interface{}); ok {
+				tsr := TrafficShapingRuleModel{}
+				if dscpTagValue, ok := r["dscpTagValue"].(float64); ok {
+					tsr.DscpTagValue = types.Int64Value(int64(dscpTagValue))
+				} else {
+					tsr.DscpTagValue = types.Int64Value(0) // Default to 0 if not set
+				}
+				if pcpTagValue, ok := r["pcpTagValue"].(float64); ok {
+					tsr.PcpTagValue = types.Int64Value(int64(pcpTagValue))
+				} else {
+					tsr.PcpTagValue = types.Int64Value(0) // Default to 0 if not set
+				}
+				if definitions, ok := r["definitions"].([]interface{}); ok {
+					var defs []TrafficShapingDefinitionModel
+					for _, definition := range definitions {
+						if d, ok := definition.(map[string]interface{}); ok {
+							defs = append(defs, TrafficShapingDefinitionModel{
+								Type:  types.StringValue(d["type"].(string)),
+								Value: types.StringValue(d["value"].(string)),
+							})
+						}
+					}
+					tsr.Definitions = defs
+				} else {
+					tsr.Definitions = nil
+				}
+
+				if perClientBandwidthLimits, ok := r["perClientBandwidthLimits"].(map[string]interface{}); ok {
+					pcbl := PerClientBandwidthLimitsModel{}
+					if settings, ok := perClientBandwidthLimits["settings"].(string); ok {
+						pcbl.Settings = types.StringValue(settings)
+					} else {
+						pcbl.Settings = types.StringNull()
+					}
+					if bandwidthLimits, ok := perClientBandwidthLimits["bandwidthLimits"].(map[string]interface{}); ok {
+						bl := BandwidthLimitsModel{}
+						if limitUp, ok := bandwidthLimits["limitUp"].(float64); ok {
+							bl.LimitUp = types.Int64Value(int64(limitUp))
+						} else {
+							bl.LimitUp = types.Int64Value(0) // Default to 0 if not set
+						}
+						if limitDown, ok := bandwidthLimits["limitDown"].(float64); ok {
+							bl.LimitDown = types.Int64Value(int64(limitDown))
+						} else {
+							bl.LimitDown = types.Int64Value(0) // Default to 0 if not set
+						}
+						pcbl.BandwidthLimits = &bl
+					}
+					tsr.PerClientBandwidthLimits = &pcbl
+				} else {
+					tsr.PerClientBandwidthLimits = nil
+				}
+				*trafficShapingRules = append(*trafficShapingRules, tsr)
+			}
+		}
+	}
+}
+
+func updateContentFilteringModel(data *GroupPolicyModel, contentFiltering map[string]interface{}) {
+	if allowedUrlPatterns, ok := contentFiltering["allowedUrlPatterns"].(map[string]interface{}); ok {
+		if settings, ok := allowedUrlPatterns["settings"].(string); ok {
+			data.ContentFiltering.AllowedUrlPatterns.Settings = types.StringValue(settings)
+		} else {
+			data.ContentFiltering.AllowedUrlPatterns.Settings = types.StringNull()
+		}
+
+		// Allowed URL Patterns
+		if patterns, ok := allowedUrlPatterns["patterns"].([]interface{}); ok {
+			var patternList []attr.Value
+			for _, pattern := range patterns {
+				if p, ok := pattern.(string); ok {
+					patternList = append(patternList, types.StringValue(p))
+				}
+			}
+			data.ContentFiltering.AllowedUrlPatterns.Patterns = types.ListValueMust(types.StringType, patternList)
+		}
+	}
+
+	if blockedUrlPatterns, ok := contentFiltering["blockedUrlPatterns"].(map[string]interface{}); ok {
+		if settings, ok := blockedUrlPatterns["settings"].(string); ok {
+			data.ContentFiltering.BlockedUrlPatterns.Settings = types.StringValue(settings)
+		} else {
+			data.ContentFiltering.BlockedUrlPatterns.Settings = types.StringNull()
+		}
+
+		// Blocked URL Patterns
+		if patterns, ok := blockedUrlPatterns["patterns"].([]interface{}); ok {
+			var patternList []attr.Value
+			for _, pattern := range patterns {
+				if p, ok := pattern.(string); ok {
+					patternList = append(patternList, types.StringValue(p))
+				}
+			}
+			data.ContentFiltering.BlockedUrlPatterns.Patterns = types.ListValueMust(types.StringType, patternList)
+		}
+	}
+
+	if blockedUrlCategories, ok := contentFiltering["blockedUrlCategories"].(map[string]interface{}); ok {
+		if settings, ok := blockedUrlCategories["settings"].(string); ok {
+			data.ContentFiltering.BlockedUrlCategories.Settings = types.StringValue(settings)
+		} else {
+			data.ContentFiltering.BlockedUrlCategories.Settings = types.StringNull()
+		}
+
+		// Blocked URL Categories
+		if categories, ok := blockedUrlCategories["categories"].([]interface{}); ok {
+			var categoryList []attr.Value
+			for _, category := range categories {
+				if c, ok := category.(string); ok {
+					categoryList = append(categoryList, types.StringValue(c))
+				}
+			}
+			data.ContentFiltering.BlockedUrlCategories.Categories = types.ListValueMust(types.StringType, categoryList)
+		}
+	}
+}
+
+func updateBonjourForwardingRules(rules *[]BonjourForwardingRuleModel, bonjourForwarding map[string]interface{}) {
+	if ruleList, ok := bonjourForwarding["rules"].([]interface{}); ok {
+		for _, rule := range ruleList {
+			if r, ok := rule.(map[string]interface{}); ok {
+				bfRule := BonjourForwardingRuleModel{}
+				if description, ok := r["description"].(string); ok {
+					bfRule.Description = types.StringValue(description)
+				} else {
+					bfRule.Description = types.StringNull()
+				}
+				if vlanId, ok := r["vlanId"].(string); ok {
+					bfRule.VlanID = types.StringValue(vlanId)
+				} else {
+					bfRule.VlanID = types.StringNull()
+				}
+				if services, ok := r["services"].([]interface{}); ok {
+					for _, service := range services {
+						if s, ok := service.(string); ok {
+							bfRule.Services = append(bfRule.Services, types.StringValue(s))
+						}
+					}
+				}
+				*rules = append(*rules, bfRule)
+			}
+		}
+	}
+}
+
+// Create handles the creation of the group policy.
+func (r *NetworksGroupPolicyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data GroupPolicyModel
+	diags := req.Plan.Get(ctx, &data)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	groupPolicy := client.CreateNetworkGroupPolicyRequest{
+		Name:               data.Name.ValueString(),
+		SplashAuthSettings: data.SplashAuthSettings.ValueStringPointer(),
+	}
+
+	if data.Scheduling != nil {
+		groupPolicy.Scheduling = &client.CreateNetworkGroupPolicyRequestScheduling{
+			Enabled: data.Scheduling.Enabled.ValueBoolPointer(),
+			Monday: &client.CreateNetworkGroupPolicyRequestSchedulingMonday{
+				Active: data.Scheduling.Monday.Active.ValueBoolPointer(),
+				From:   data.Scheduling.Monday.From.ValueStringPointer(),
+				To:     data.Scheduling.Monday.To.ValueStringPointer(),
+			},
+			Tuesday: &client.CreateNetworkGroupPolicyRequestSchedulingTuesday{
+				Active: data.Scheduling.Tuesday.Active.ValueBoolPointer(),
+				From:   data.Scheduling.Tuesday.From.ValueStringPointer(),
+				To:     data.Scheduling.Tuesday.To.ValueStringPointer(),
+			},
+			Wednesday: &client.CreateNetworkGroupPolicyRequestSchedulingWednesday{
+				Active: data.Scheduling.Wednesday.Active.ValueBoolPointer(),
+				From:   data.Scheduling.Wednesday.From.ValueStringPointer(),
+				To:     data.Scheduling.Wednesday.To.ValueStringPointer(),
+			},
+			Thursday: &client.CreateNetworkGroupPolicyRequestSchedulingThursday{
+				Active: data.Scheduling.Thursday.Active.ValueBoolPointer(),
+				From:   data.Scheduling.Thursday.From.ValueStringPointer(),
+				To:     data.Scheduling.Thursday.To.ValueStringPointer(),
+			},
+			Friday: &client.CreateNetworkGroupPolicyRequestSchedulingFriday{
+				Active: data.Scheduling.Friday.Active.ValueBoolPointer(),
+				From:   data.Scheduling.Friday.From.ValueStringPointer(),
+				To:     data.Scheduling.Friday.To.ValueStringPointer(),
+			},
+			Saturday: &client.CreateNetworkGroupPolicyRequestSchedulingSaturday{
+				Active: data.Scheduling.Saturday.Active.ValueBoolPointer(),
+				From:   data.Scheduling.Saturday.From.ValueStringPointer(),
+				To:     data.Scheduling.Saturday.To.ValueStringPointer(),
+			},
+			Sunday: &client.CreateNetworkGroupPolicyRequestSchedulingSunday{
+				Active: data.Scheduling.Saturday.Active.ValueBoolPointer(),
+				From:   data.Scheduling.Saturday.From.ValueStringPointer(),
+				To:     data.Scheduling.Saturday.To.ValueStringPointer(),
+			},
+		}
+	}
+
+	if data.Bandwidth != nil {
+		limitUp := int32(data.Bandwidth.BandwidthLimits.LimitUp.ValueInt64())
+		limitDown := int32(data.Bandwidth.BandwidthLimits.LimitDown.ValueInt64())
+		groupPolicy.Bandwidth = &client.CreateNetworkGroupPolicyRequestBandwidth{
+			Settings: data.Bandwidth.Settings.ValueStringPointer(),
+			BandwidthLimits: &client.CreateNetworkGroupPolicyRequestBandwidthBandwidthLimits{
+				LimitUp:   &limitUp,
+				LimitDown: &limitDown,
+			},
+		}
+	}
+
+	if data.FirewallAndTrafficShaping != nil {
+		settings := data.FirewallAndTrafficShaping.Settings.ValueString()
+		groupPolicy.FirewallAndTrafficShaping = &client.CreateNetworkGroupPolicyRequestFirewallAndTrafficShaping{
+			Settings: &settings,
+		}
+
+		for _, rule := range data.FirewallAndTrafficShaping.L3FirewallRules {
+			groupPolicy.FirewallAndTrafficShaping.L3FirewallRules = append(
+				groupPolicy.FirewallAndTrafficShaping.L3FirewallRules,
+				client.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingL3FirewallRulesInner{
+					Comment:  rule.Comment.ValueStringPointer(),
+					Policy:   rule.Policy.ValueString(),
+					Protocol: rule.Protocol.ValueString(),
+					DestPort: rule.DestPort.ValueStringPointer(),
+					DestCidr: rule.DestCidr.ValueString(),
+				},
+			)
+		}
+
+		for _, rule := range data.FirewallAndTrafficShaping.L7FirewallRules {
+			groupPolicy.FirewallAndTrafficShaping.L7FirewallRules = append(
+				groupPolicy.FirewallAndTrafficShaping.L7FirewallRules,
+				client.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingL7FirewallRulesInner{
+					Policy: rule.Policy.ValueStringPointer(),
+					Type:   rule.Type.ValueStringPointer(),
+					Value:  rule.Value.ValueStringPointer(),
+				},
+			)
+		}
+
+		for _, rule := range data.FirewallAndTrafficShaping.TrafficShapingRules {
+
+			limitUp := int32(rule.PerClientBandwidthLimits.BandwidthLimits.LimitUp.ValueInt64())
+			limitDown := int32(rule.PerClientBandwidthLimits.BandwidthLimits.LimitDown.ValueInt64())
+
+			bl := client.UpdateNetworkApplianceTrafficShapingRulesRequestRulesInnerPerClientBandwidthLimitsBandwidthLimits{
+				LimitUp:   &limitUp,
+				LimitDown: &limitDown,
+			}
+
+			pcbl := client.UpdateNetworkApplianceTrafficShapingRulesRequestRulesInnerPerClientBandwidthLimits{
+				Settings:        rule.PerClientBandwidthLimits.Settings.ValueStringPointer(),
+				BandwidthLimits: &bl,
+			}
+
+			dscpTagValue := int32(rule.DscpTagValue.ValueInt64())
+			pcpTagValue := int32(rule.PcpTagValue.ValueInt64())
+
+			tsr := client.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingTrafficShapingRulesInner{
+				DscpTagValue:             &dscpTagValue,
+				PcpTagValue:              &pcpTagValue,
+				PerClientBandwidthLimits: &pcbl,
+			}
+
+			for _, def := range rule.Definitions {
+				tsr.Definitions = append(tsr.Definitions, client.UpdateNetworkApplianceTrafficShapingRulesRequestRulesInnerDefinitionsInner{
+					Type:  def.Type.ValueString(),
+					Value: def.Value.ValueString(),
+				})
+			}
+
+			groupPolicy.FirewallAndTrafficShaping.TrafficShapingRules = append(groupPolicy.FirewallAndTrafficShaping.TrafficShapingRules, tsr)
+		}
+	}
+
+	if data.ContentFiltering != nil {
+		groupPolicy.ContentFiltering = &client.CreateNetworkGroupPolicyRequestContentFiltering{}
+
+		// Initialize and set AllowedUrlPatterns
+		if data.ContentFiltering.AllowedUrlPatterns.Settings.ValueString() != "" {
+			groupPolicy.ContentFiltering.AllowedUrlPatterns = &client.CreateNetworkGroupPolicyRequestContentFilteringAllowedUrlPatterns{
+				Settings: data.ContentFiltering.AllowedUrlPatterns.Settings.ValueStringPointer(),
+			}
+
+			// Ranging over Allowed URL Patterns
+			for _, ap := range data.ContentFiltering.AllowedUrlPatterns.Patterns.Elements() {
+				groupPolicy.ContentFiltering.AllowedUrlPatterns.Patterns = append(groupPolicy.ContentFiltering.AllowedUrlPatterns.Patterns, ap.String())
+			}
+		}
+
+		// Initialize and set BlockedUrlPatterns
+		if data.ContentFiltering.BlockedUrlPatterns.Settings.ValueString() != "" {
+			groupPolicy.ContentFiltering.BlockedUrlPatterns = &client.CreateNetworkGroupPolicyRequestContentFilteringBlockedUrlPatterns{
+				Settings: data.ContentFiltering.BlockedUrlPatterns.Settings.ValueStringPointer(),
+			}
+
+			// Ranging over Blocked URL Patterns
+			for _, bp := range data.ContentFiltering.BlockedUrlPatterns.Patterns.Elements() {
+				groupPolicy.ContentFiltering.BlockedUrlPatterns.Patterns = append(groupPolicy.ContentFiltering.BlockedUrlPatterns.Patterns, bp.String())
+			}
+		}
+
+		// Initialize and set BlockedUrlCategories
+		if data.ContentFiltering.BlockedUrlCategories.Settings.ValueString() != "" {
+			groupPolicy.ContentFiltering.BlockedUrlCategories = &client.CreateNetworkGroupPolicyRequestContentFilteringBlockedUrlCategories{
+				Settings: data.ContentFiltering.BlockedUrlCategories.Settings.ValueStringPointer(),
+			}
+			// Ranging over Blocked URL Categories
+			for _, bc := range data.ContentFiltering.BlockedUrlCategories.Categories.Elements() {
+				groupPolicy.ContentFiltering.BlockedUrlCategories.Categories = append(groupPolicy.ContentFiltering.BlockedUrlCategories.Categories, bc.String())
+			}
+		}
+	}
+
+	if data.VlanTagging != nil {
+		var vlanID *string
+		if !data.VlanTagging.VlanID.IsNull() && data.VlanTagging.VlanID.ValueString() != "" {
+			vlanIDString := data.VlanTagging.VlanID.ValueString()
+			_, err := strconv.Atoi(vlanIDString)
+			if err == nil {
+				vlanID = &vlanIDString
+			} else {
+				resp.Diagnostics.AddError(
+					"Error converting VLAN ID",
+					fmt.Sprintf("Could not convert VLAN ID '%s' to an integer: %s", vlanIDString, err.Error()),
+				)
+				return
+			}
+		}
+		groupPolicy.VlanTagging = &client.CreateNetworkGroupPolicyRequestVlanTagging{
+			Settings: data.VlanTagging.Settings.ValueStringPointer(),
+			VlanId:   vlanID,
+		}
+	}
+
+	if data.BonjourForwarding != nil {
+		groupPolicy.BonjourForwarding = &client.CreateNetworkGroupPolicyRequestBonjourForwarding{
+			Settings: data.BonjourForwarding.Settings.ValueStringPointer(),
+		}
+
+		for _, rule := range data.BonjourForwarding.Rules {
+
+			var services []string
+			for _, service := range rule.Services {
+				services = append(services, service.ValueString())
+			}
+
+			groupPolicy.BonjourForwarding.Rules = append(
+				groupPolicy.BonjourForwarding.Rules,
+				client.CreateNetworkGroupPolicyRequestBonjourForwardingRulesInner{
+					Description: rule.Description.ValueStringPointer(),
+					VlanId:      rule.VlanID.ValueString(),
+					Services:    services,
+				},
+			)
+		}
+	}
+
+	createdPolicy, httpResp, err := r.client.NetworksApi.CreateNetworkGroupPolicy(ctx, data.NetworkId.ValueString()).CreateNetworkGroupPolicyRequest(groupPolicy).Execute()
+	if err != nil {
+
+		// Extract additional information from the HTTP response
+		var responseBody string
+		if httpResp != nil && httpResp.Body != nil {
+			bodyBytes, readErr := io.ReadAll(httpResp.Body)
+			if readErr == nil {
+				responseBody = string(bodyBytes)
+			}
+		}
+
 		resp.Diagnostics.AddError(
-			"Type Assertion Failure",
-			"Failed to assert API response type to map[string]interface{}",
+			"Error creating group policy",
+			fmt.Sprintf("Could not create group policy, unexpected error: %s\nHTTP Response: %v\nResponse Body: %s", err.Error(), httpResp, responseBody),
 		)
 		return
 	}
 
-	bandwidthVal, diags := getBandwidth(ctx, inlineResp)
-	if diags.HasError() {
-		return
-	}
-	firewallAndTrafficShapingObjectVal, diags := getFirewallAndTrafficShaping(ctx, inlineResp)
-	if diags.HasError() {
-		return
-	}
-	schedulingVal, diags := getScheduling(ctx, inlineResp)
-	if diags.HasError() {
-		return
-	}
-	contentFilteringVal, diags := getContentFiltering(ctx, inlineResp)
-	if diags.HasError() {
-		return
-	}
-	bonjourForwardingVal, diags := getBonjourForwarding(ctx, inlineResp)
-	if diags.HasError() {
-		return
-	}
+	// Update the state with the new data
+	updateGroupPolicyState(&data, createdPolicy)
 
-	vlantaggingVal, diags := getVlantagging(ctx, inlineResp)
-	if diags.HasError() {
+	diags = resp.State.Set(ctx, &data)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
-
-	data.Bandwidth = bandwidthVal
-	data.FirewallAndTrafficShaping = firewallAndTrafficShapingObjectVal
-	data.Scheduling = schedulingVal
-	data.ContentFiltering = contentFilteringVal
-	data.BonjourForwarding = bonjourForwardingVal
-	data.VlanTagging = vlantaggingVal
-	data.SplashAuthSettings = basetypes.NewStringValue(inlineResp["splashAuthSettings"].(string))
-	data.GroupPolicyId = basetypes.NewStringValue(inlineResp["groupPolicyId"].(string))
-	data.Name = basetypes.NewStringValue(inlineResp["name"].(string))
-	data.Id = types.StringValue("example-id")
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
-	// Write logs using the tflog package
-	tflog.Trace(ctx, "read resource")
 }
 
+// Read handles reading the group policy.
+func (r *NetworksGroupPolicyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data GroupPolicyModel
+	diags := req.State.Get(ctx, &data)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	readPolicy, httpResp, err := r.client.NetworksApi.GetNetworkGroupPolicy(ctx, data.NetworkId.ValueString(), data.GroupPolicyId.ValueString()).Execute()
+	if err != nil {
+
+		// Extract additional information from the HTTP response
+		var responseBody string
+		if httpResp != nil && httpResp.Body != nil {
+			bodyBytes, readErr := io.ReadAll(httpResp.Body)
+			if readErr == nil {
+				responseBody = string(bodyBytes)
+			}
+		}
+
+		resp.Diagnostics.AddError(
+			"Error reading group policy",
+			fmt.Sprintf("Could not read group policy, unexpected error: %s\nHTTP Response: %v\nResponse Body: %s", err.Error(), httpResp, responseBody),
+		)
+		return
+	}
+
+	// Update the state with the new data
+	updateGroupPolicyState(&data, readPolicy)
+
+	diags = resp.State.Set(ctx, &data)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+}
+
+// Update handles updating the group policy.
 func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-
-	var data *NetworksGroupPolicyResourceModel
-
-	// Read Terraform plan data into the model
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-
+	var data GroupPolicyModel
+	diags := req.Plan.Get(ctx, &data)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	updateNetworkGroupPolicy := *openApiClient.NewUpdateNetworkGroupPolicyRequest()
-
-	if !data.SplashAuthSettings.IsUnknown() && !data.SplashAuthSettings.IsNull() {
-		updateNetworkGroupPolicy.SetSplashAuthSettings(data.SplashAuthSettings.ValueString())
+	groupPolicy := client.UpdateNetworkGroupPolicyRequest{
+		Name:               data.Name.ValueStringPointer(),
+		SplashAuthSettings: data.SplashAuthSettings.ValueStringPointer(),
 	}
 
-	if !data.VlanTagging.IsUnknown() {
-		var vlanTagging NetworksGroupPolicyResourceModelVlanTagging
-		vlanTaggingErr := data.VlanTagging.As(ctx, &vlanTagging, basetypes.ObjectAsOptions{})
-		if vlanTaggingErr != nil {
-			resp.Diagnostics.AddError(
-				"Failed to unmarshal vlanTagging",
-				fmt.Sprintf("%v", vlanTaggingErr),
+	if data.Scheduling != nil {
+		groupPolicy.Scheduling = &client.CreateNetworkGroupPolicyRequestScheduling{
+			Enabled: data.Scheduling.Enabled.ValueBoolPointer(),
+			Monday: &client.CreateNetworkGroupPolicyRequestSchedulingMonday{
+				Active: data.Scheduling.Monday.Active.ValueBoolPointer(),
+				From:   data.Scheduling.Monday.From.ValueStringPointer(),
+				To:     data.Scheduling.Monday.To.ValueStringPointer(),
+			},
+			Tuesday: &client.CreateNetworkGroupPolicyRequestSchedulingTuesday{
+				Active: data.Scheduling.Tuesday.Active.ValueBoolPointer(),
+				From:   data.Scheduling.Tuesday.From.ValueStringPointer(),
+				To:     data.Scheduling.Tuesday.To.ValueStringPointer(),
+			},
+			Wednesday: &client.CreateNetworkGroupPolicyRequestSchedulingWednesday{
+				Active: data.Scheduling.Wednesday.Active.ValueBoolPointer(),
+				From:   data.Scheduling.Wednesday.From.ValueStringPointer(),
+				To:     data.Scheduling.Wednesday.To.ValueStringPointer(),
+			},
+			Thursday: &client.CreateNetworkGroupPolicyRequestSchedulingThursday{
+				Active: data.Scheduling.Thursday.Active.ValueBoolPointer(),
+				From:   data.Scheduling.Thursday.From.ValueStringPointer(),
+				To:     data.Scheduling.Thursday.To.ValueStringPointer(),
+			},
+			Friday: &client.CreateNetworkGroupPolicyRequestSchedulingFriday{
+				Active: data.Scheduling.Friday.Active.ValueBoolPointer(),
+				From:   data.Scheduling.Friday.From.ValueStringPointer(),
+				To:     data.Scheduling.Friday.To.ValueStringPointer(),
+			},
+			Saturday: &client.CreateNetworkGroupPolicyRequestSchedulingSaturday{
+				Active: data.Scheduling.Saturday.Active.ValueBoolPointer(),
+				From:   data.Scheduling.Saturday.From.ValueStringPointer(),
+				To:     data.Scheduling.Saturday.To.ValueStringPointer(),
+			},
+			Sunday: &client.CreateNetworkGroupPolicyRequestSchedulingSunday{
+				Active: data.Scheduling.Saturday.Active.ValueBoolPointer(),
+				From:   data.Scheduling.Saturday.From.ValueStringPointer(),
+				To:     data.Scheduling.Saturday.To.ValueStringPointer(),
+			},
+		}
+	}
+
+	if data.Bandwidth != nil {
+		limitUp := int32(data.Bandwidth.BandwidthLimits.LimitUp.ValueInt64())
+		limitDown := int32(data.Bandwidth.BandwidthLimits.LimitDown.ValueInt64())
+		groupPolicy.Bandwidth = &client.CreateNetworkGroupPolicyRequestBandwidth{
+			Settings: data.Bandwidth.Settings.ValueStringPointer(),
+			BandwidthLimits: &client.CreateNetworkGroupPolicyRequestBandwidthBandwidthLimits{
+				LimitUp:   &limitUp,
+				LimitDown: &limitDown,
+			},
+		}
+	}
+
+	if data.FirewallAndTrafficShaping != nil {
+		settings := data.FirewallAndTrafficShaping.Settings.ValueString()
+		groupPolicy.FirewallAndTrafficShaping = &client.CreateNetworkGroupPolicyRequestFirewallAndTrafficShaping{
+			Settings: &settings,
+		}
+
+		for _, rule := range data.FirewallAndTrafficShaping.L3FirewallRules {
+			groupPolicy.FirewallAndTrafficShaping.L3FirewallRules = append(
+				groupPolicy.FirewallAndTrafficShaping.L3FirewallRules,
+				client.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingL3FirewallRulesInner{
+					Comment:  rule.Comment.ValueStringPointer(),
+					Policy:   rule.Policy.ValueString(),
+					Protocol: rule.Protocol.ValueString(),
+					DestPort: rule.DestPort.ValueStringPointer(),
+					DestCidr: rule.DestCidr.ValueString(),
+				},
 			)
-			return
 		}
-		if !vlanTagging.Settings.IsUnknown() {
-			var v openApiClient.CreateNetworkGroupPolicyRequestVlanTagging
-			v.SetSettings(vlanTagging.Settings.ValueString())
-			if !vlanTagging.VlanId.IsUnknown() {
-				v.SetVlanId(vlanTagging.VlanId.ValueString())
-			}
-			updateNetworkGroupPolicy.SetVlanTagging(v)
-		}
-	}
 
-	if !data.Bandwidth.IsUnknown() && !data.Bandwidth.IsNull() {
-		var bandwidth NetworksGroupPolicyResourceModelBandwidth
-		bandwidthDataErr := data.Bandwidth.As(ctx, &bandwidth, basetypes.ObjectAsOptions{})
-		if bandwidthDataErr != nil {
-			resp.Diagnostics.AddError(
-				"Failed to unmarshal Bandwidth",
-				fmt.Sprintf("%v", bandwidthDataErr),
+		for _, rule := range data.FirewallAndTrafficShaping.L7FirewallRules {
+			groupPolicy.FirewallAndTrafficShaping.L7FirewallRules = append(
+				groupPolicy.FirewallAndTrafficShaping.L7FirewallRules,
+				client.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingL7FirewallRulesInner{
+					Policy: rule.Policy.ValueStringPointer(),
+					Type:   rule.Type.ValueStringPointer(),
+					Value:  rule.Value.ValueStringPointer(),
+				},
 			)
-			return
 		}
-		if !bandwidth.Settings.IsUnknown() && !bandwidth.Settings.IsNull() {
-			var bandwidthAPI openApiClient.CreateNetworkGroupPolicyRequestBandwidth
-			bandwidthAPI.SetSettings(bandwidth.Settings.ValueString())
-			var bandwidthLimitsAPI openApiClient.CreateNetworkGroupPolicyRequestBandwidthBandwidthLimits
-			var bandwidthLimits NetworksGroupPolicyResourceModelBandwidthLimits
-			bandwidthLimitsDataErr := bandwidth.BandwidthLimits.As(ctx, &bandwidthLimits, basetypes.ObjectAsOptions{})
-			if bandwidthLimitsDataErr != nil {
-				resp.Diagnostics.AddError(
-					"Failed to unmarshal BandwidthLimits",
-					fmt.Sprintf("%v", bandwidthLimitsDataErr),
-				)
-				return
+
+		for _, rule := range data.FirewallAndTrafficShaping.TrafficShapingRules {
+
+			limitUp := int32(rule.PerClientBandwidthLimits.BandwidthLimits.LimitUp.ValueInt64())
+			limitDown := int32(rule.PerClientBandwidthLimits.BandwidthLimits.LimitDown.ValueInt64())
+
+			bl := client.UpdateNetworkApplianceTrafficShapingRulesRequestRulesInnerPerClientBandwidthLimitsBandwidthLimits{
+				LimitUp:   &limitUp,
+				LimitDown: &limitDown,
 			}
-			if !bandwidthLimits.LimitUp.IsUnknown() && !bandwidthLimits.LimitUp.IsNull() {
-				bandwidthLimitsAPI.SetLimitUp(int32(bandwidthLimits.LimitUp.ValueInt64()))
+
+			pcbl := client.UpdateNetworkApplianceTrafficShapingRulesRequestRulesInnerPerClientBandwidthLimits{
+				Settings:        rule.PerClientBandwidthLimits.Settings.ValueStringPointer(),
+				BandwidthLimits: &bl,
 			}
-			if !bandwidthLimits.LimitDown.IsUnknown() && !bandwidthLimits.LimitDown.IsNull() {
-				bandwidthLimitsAPI.SetLimitDown(int32(bandwidthLimits.LimitDown.ValueInt64()))
+
+			dscpTagValue := int32(rule.DscpTagValue.ValueInt64())
+			pcpTagValue := int32(rule.PcpTagValue.ValueInt64())
+
+			tsr := client.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingTrafficShapingRulesInner{
+				DscpTagValue:             &dscpTagValue,
+				PcpTagValue:              &pcpTagValue,
+				PerClientBandwidthLimits: &pcbl,
 			}
-			bandwidthAPI.SetBandwidthLimits(bandwidthLimitsAPI)
-			updateNetworkGroupPolicy.SetBandwidth(bandwidthAPI)
+
+			for _, def := range rule.Definitions {
+				tsr.Definitions = append(tsr.Definitions, client.UpdateNetworkApplianceTrafficShapingRulesRequestRulesInnerDefinitionsInner{
+					Type:  def.Type.ValueString(),
+					Value: def.Value.ValueString(),
+				})
+			}
+
+			groupPolicy.FirewallAndTrafficShaping.TrafficShapingRules = append(groupPolicy.FirewallAndTrafficShaping.TrafficShapingRules, tsr)
 		}
 	}
 
-	if !data.BonjourForwarding.IsUnknown() {
+	if data.ContentFiltering != nil {
+		groupPolicy.ContentFiltering = &client.CreateNetworkGroupPolicyRequestContentFiltering{}
 
-		var bonjourForwarding openApiClient.CreateNetworkGroupPolicyRequestBonjourForwarding
-		var bonjourForwardingData NetworksGroupPolicyResourceModelBonjourForwarding
-		bonjourForwardingDataErr := data.BonjourForwarding.As(ctx, &bonjourForwardingData, basetypes.ObjectAsOptions{})
-		if bonjourForwardingDataErr != nil {
-			resp.Diagnostics.AddError(
-				"Failed to unmarshal Bonjour Forwarding",
-				fmt.Sprintf("%v", bonjourForwardingDataErr),
+		// Initialize and set AllowedUrlPatterns
+		if data.ContentFiltering.AllowedUrlPatterns.Settings.ValueString() != "" {
+			groupPolicy.ContentFiltering.AllowedUrlPatterns = &client.CreateNetworkGroupPolicyRequestContentFilteringAllowedUrlPatterns{
+				Settings: data.ContentFiltering.AllowedUrlPatterns.Settings.ValueStringPointer(),
+			}
+
+			// Ranging over Allowed URL Patterns
+			for _, ap := range data.ContentFiltering.AllowedUrlPatterns.Patterns.Elements() {
+				groupPolicy.ContentFiltering.AllowedUrlPatterns.Patterns = append(groupPolicy.ContentFiltering.AllowedUrlPatterns.Patterns, ap.String())
+			}
+		}
+
+		// Initialize and set BlockedUrlPatterns
+		if data.ContentFiltering.BlockedUrlPatterns.Settings.ValueString() != "" {
+			groupPolicy.ContentFiltering.BlockedUrlPatterns = &client.CreateNetworkGroupPolicyRequestContentFilteringBlockedUrlPatterns{
+				Settings: data.ContentFiltering.BlockedUrlPatterns.Settings.ValueStringPointer(),
+			}
+
+			// Ranging over Blocked URL Patterns
+			for _, bp := range data.ContentFiltering.BlockedUrlPatterns.Patterns.Elements() {
+				groupPolicy.ContentFiltering.BlockedUrlPatterns.Patterns = append(groupPolicy.ContentFiltering.BlockedUrlPatterns.Patterns, bp.String())
+			}
+		}
+
+		// Initialize and set BlockedUrlCategories
+		if data.ContentFiltering.BlockedUrlCategories.Settings.ValueString() != "" {
+			groupPolicy.ContentFiltering.BlockedUrlCategories = &client.CreateNetworkGroupPolicyRequestContentFilteringBlockedUrlCategories{
+				Settings: data.ContentFiltering.BlockedUrlCategories.Settings.ValueStringPointer(),
+			}
+
+			// Ranging over Blocked URL Categories
+			for _, bc := range data.ContentFiltering.BlockedUrlCategories.Categories.Elements() {
+				groupPolicy.ContentFiltering.BlockedUrlCategories.Categories = append(groupPolicy.ContentFiltering.BlockedUrlCategories.Categories, bc.String())
+			}
+		}
+	}
+
+	if data.VlanTagging != nil {
+		var vlanID *string
+		if !data.VlanTagging.VlanID.IsNull() && data.VlanTagging.VlanID.ValueString() != "" {
+			vlanIDString := data.VlanTagging.VlanID.ValueString()
+			_, err := strconv.Atoi(vlanIDString)
+			if err == nil {
+				vlanID = &vlanIDString
+			} else {
+				resp.Diagnostics.AddError(
+					"Error converting VLAN ID",
+					fmt.Sprintf("Could not convert VLAN ID '%s' to an integer: %s", vlanIDString, err.Error()),
+				)
+				return
+			}
+		}
+		groupPolicy.VlanTagging = &client.CreateNetworkGroupPolicyRequestVlanTagging{
+			Settings: data.VlanTagging.Settings.ValueStringPointer(),
+			VlanId:   vlanID,
+		}
+	}
+
+	if data.BonjourForwarding != nil {
+		groupPolicy.BonjourForwarding = &client.CreateNetworkGroupPolicyRequestBonjourForwarding{
+			Settings: data.BonjourForwarding.Settings.ValueStringPointer(),
+		}
+
+		for _, rule := range data.BonjourForwarding.Rules {
+
+			var services []string
+			for _, service := range rule.Services {
+				services = append(services, service.ValueString())
+			}
+
+			groupPolicy.BonjourForwarding.Rules = append(
+				groupPolicy.BonjourForwarding.Rules,
+				client.CreateNetworkGroupPolicyRequestBonjourForwardingRulesInner{
+					Description: rule.Description.ValueStringPointer(),
+					VlanId:      rule.VlanID.ValueString(),
+					Services:    services,
+				},
 			)
-			return
-		}
-		if !bonjourForwardingData.BonjourForwardingSettings.IsUnknown() {
-			bonjourForwarding.SetSettings(bonjourForwardingData.BonjourForwardingSettings.ValueString())
-		}
-		if !bonjourForwardingData.BonjourForwardingRules.IsUnknown() {
-			var bonjourForwardingRules []openApiClient.CreateNetworkGroupPolicyRequestBonjourForwardingRulesInner
-			var bonjourForwardingRulesData []NetworksGroupPolicyResourceModelRule
-			err := bonjourForwardingData.BonjourForwardingRules.ElementsAs(ctx, &bonjourForwardingRulesData, false)
-			if err != nil {
-				resp.Diagnostics.AddError(
-					"Failed to unmarshal Bonjour Forwarding Rules",
-					fmt.Sprintf("%v", err),
-				)
-				return
-
-			}
-			for _, attribute := range bonjourForwardingRulesData {
-				var bonjourForwardingRule openApiClient.CreateNetworkGroupPolicyRequestBonjourForwardingRulesInner
-				if !attribute.Description.IsUnknown() {
-					bonjourForwardingRule.SetDescription(attribute.Description.ValueString())
-				}
-				if !attribute.VlanId.IsUnknown() {
-					bonjourForwardingRule.SetVlanId(attribute.VlanId.ValueString())
-				}
-				if !attribute.Services.IsUnknown() {
-					var services []string
-					serviceserr := attribute.Services.ElementsAs(ctx, &services, false)
-					if serviceserr != nil {
-						resp.Diagnostics.AddError(
-							"Failed to unmarshal bonjourForwardingRule services",
-							fmt.Sprintf("%v", serviceserr),
-						)
-						return
-
-					}
-					bonjourForwardingRule.SetServices(services)
-				}
-				bonjourForwardingRules = append(bonjourForwardingRules, bonjourForwardingRule)
-			}
-			bonjourForwarding.SetRules(bonjourForwardingRules)
-		}
-
-		updateNetworkGroupPolicy.SetBonjourForwarding(bonjourForwarding)
-
-	}
-
-	if !data.FirewallAndTrafficShaping.IsUnknown() && !data.FirewallAndTrafficShaping.IsNull() {
-
-		var firewallAndTrafficShaping openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShaping
-		var firewallAndTrafficShapingData NetworksGroupPolicyResourceModelFirewallAndTrafficShaping
-		firewallAndTrafficShapingErr := data.FirewallAndTrafficShaping.As(ctx, &firewallAndTrafficShapingData, basetypes.ObjectAsOptions{})
-		if firewallAndTrafficShapingErr != nil {
-			resp.Diagnostics.AddError(
-				"Failed to unmarshal FirewallAndTrafficShaping",
-				fmt.Sprintf("%v", firewallAndTrafficShapingErr),
-			)
-			return
-		}
-		if !firewallAndTrafficShapingData.Settings.IsUnknown() {
-			firewallAndTrafficShaping.SetSettings(firewallAndTrafficShapingData.Settings.ValueString())
-		}
-		if !firewallAndTrafficShapingData.L3FirewallRules.IsUnknown() {
-			var l3s []openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingL3FirewallRulesInner
-			var l3FirewallRules []NetworksGroupPolicyResourceModelL3FirewallRule
-			err := firewallAndTrafficShapingData.L3FirewallRules.ElementsAs(ctx, &l3FirewallRules, false)
-			if err != nil {
-				resp.Diagnostics.AddError(
-					"Failed to unmarshal FirewallAndTrafficShaping l3FirewallRules",
-					fmt.Sprintf("%v", err),
-				)
-				return
-
-			}
-			if len(l3FirewallRules) > 0 {
-				for _, attribute := range l3FirewallRules {
-					var l3 openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingL3FirewallRulesInner
-					if !attribute.Comment.IsUnknown() {
-						l3.SetComment(attribute.Comment.ValueString())
-					}
-					if !attribute.DestCidr.IsUnknown() {
-						l3.SetDestCidr(attribute.DestCidr.ValueString())
-					}
-					if !attribute.DestPort.IsUnknown() {
-						l3.SetDestPort(attribute.DestPort.ValueString())
-					}
-					if !attribute.Policy.IsUnknown() {
-						l3.SetPolicy(attribute.Policy.ValueString())
-					}
-					if !attribute.Protocol.IsUnknown() {
-						l3.SetProtocol(attribute.Protocol.ValueString())
-					}
-					l3s = append(l3s, l3)
-				}
-				firewallAndTrafficShaping.SetL3FirewallRules(l3s)
-			}
-
-		}
-
-		if !firewallAndTrafficShapingData.L7FirewallRules.IsUnknown() {
-
-			var l7FirewallRules []NetworksGroupPolicyResourceModelL7FirewallRule
-			var l7s []openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingL7FirewallRulesInner
-			err := firewallAndTrafficShapingData.L7FirewallRules.ElementsAs(ctx, &l7FirewallRules, false)
-			if err != nil {
-				resp.Diagnostics.AddError(
-					"Failed to unmarshal L7FirewallRules",
-					fmt.Sprintf("%v", err),
-				)
-				return
-
-			}
-			if len(l7FirewallRules) > 0 {
-				for _, attribute := range l7FirewallRules {
-					var l7 openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingL7FirewallRulesInner
-					if !attribute.Value.IsUnknown() {
-						l7.SetValue(attribute.Value.ValueString())
-					}
-					if !attribute.Type.IsUnknown() {
-						l7.SetType(attribute.Type.ValueString())
-					}
-
-					if !attribute.Policy.IsUnknown() {
-						l7.SetPolicy(attribute.Policy.ValueString())
-					}
-
-					l7s = append(l7s, l7)
-				}
-				firewallAndTrafficShaping.SetL7FirewallRules(l7s)
-
-			}
-
-		}
-
-		if !firewallAndTrafficShapingData.TrafficShapingRules.IsUnknown() && !firewallAndTrafficShapingData.TrafficShapingRules.IsNull() {
-
-			var trafficShapingRule []NetworksGroupPolicyResourceModelTrafficShapingRule
-			err := firewallAndTrafficShapingData.TrafficShapingRules.ElementsAs(ctx, &trafficShapingRule, false)
-			if err != nil {
-				resp.Diagnostics.AddError(
-					"Failed to unmarshal TrafficShapingRules",
-					fmt.Sprintf("%v", err),
-				)
-				return
-
-			}
-			var tfs []openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingTrafficShapingRulesInner
-			if len(trafficShapingRule) > 0 {
-				for _, attribute := range trafficShapingRule {
-					var tf openApiClient.CreateNetworkGroupPolicyRequestFirewallAndTrafficShapingTrafficShapingRulesInner
-					if !attribute.DscpTagValue.IsUnknown() {
-						tf.SetDscpTagValue(int32(attribute.DscpTagValue.ValueInt64()))
-					}
-					if !attribute.PcpTagValue.IsUnknown() {
-						tf.SetPcpTagValue(int32(attribute.PcpTagValue.ValueInt64()))
-					}
-					if !attribute.PerClientBandwidthLimits.IsUnknown() && !attribute.PerClientBandwidthLimits.IsNull() {
-						var perClientBandWidthLimits openApiClient.UpdateNetworkApplianceTrafficShapingRulesRequestRulesInnerPerClientBandwidthLimits
-						var perClientBandWidthData NetworksGroupPolicyResourceModelPerClientBandwidth
-						perClientBandWidthDataErr := attribute.PerClientBandwidthLimits.As(ctx, &perClientBandWidthData, basetypes.ObjectAsOptions{})
-						if perClientBandWidthDataErr != nil {
-							resp.Diagnostics.AddError(
-								"Failed to unmarshal perClientBandWidth",
-								fmt.Sprintf("%v", perClientBandWidthDataErr),
-							)
-							return
-
-						}
-
-						if !perClientBandWidthData.Settings.IsUnknown() && !perClientBandWidthData.Settings.IsNull() {
-							var bandwidthLimits openApiClient.UpdateNetworkApplianceTrafficShapingRulesRequestRulesInnerPerClientBandwidthLimitsBandwidthLimits
-							perClientBandWidthLimits.SetSettings(perClientBandWidthData.Settings.ValueString())
-							if perClientBandWidthData.Settings.ValueString() != "network default" {
-								var perClientBandWidthLimitsData NetworksGroupPolicyResourceModelPerClientBandwidthLimits
-								if !attribute.PerClientBandwidthLimits.IsUnknown() && !attribute.PerClientBandwidthLimits.IsNull() {
-									perClientBandWidthLimitsDataErr := perClientBandWidthData.BandwidthLimits.As(ctx, &perClientBandWidthLimitsData, basetypes.ObjectAsOptions{})
-									if perClientBandWidthLimitsDataErr != nil {
-										resp.Diagnostics.AddError(
-											"Failed to unmarshal perClientBandWidthLimits",
-											fmt.Sprintf("%v", perClientBandWidthLimitsDataErr),
-										)
-										return
-
-									}
-									bandwidthLimits.SetLimitDown(int32(perClientBandWidthLimitsData.LimitDown.ValueInt64()))
-									bandwidthLimits.SetLimitUp(int32(perClientBandWidthLimitsData.LimitUp.ValueInt64()))
-
-									perClientBandWidthLimits.SetBandwidthLimits(bandwidthLimits)
-								}
-							}
-
-						}
-						tf.SetPerClientBandwidthLimits(perClientBandWidthLimits)
-					}
-					if !attribute.Definitions.IsUnknown() {
-						var defs []openApiClient.UpdateNetworkApplianceTrafficShapingRulesRequestRulesInnerDefinitionsInner
-						var definitions []NetworksGroupPolicyResourceModelDefinition
-						err = attribute.Definitions.ElementsAs(ctx, &definitions, false)
-						if err != nil {
-							resp.Diagnostics.AddError(
-								"Failed to unmarshal Definitions",
-								fmt.Sprintf("%v", err),
-							)
-							return
-
-						}
-						if len(definitions) > 0 {
-							for _, attribute := range definitions {
-								var def openApiClient.UpdateNetworkApplianceTrafficShapingRulesRequestRulesInnerDefinitionsInner
-								def.SetType(attribute.Type.ValueString())
-								def.SetValue(attribute.Value.ValueString())
-								defs = append(defs, def)
-							}
-							tf.SetDefinitions(defs)
-						}
-					}
-					tfs = append(tfs, tf)
-				}
-
-			}
-			firewallAndTrafficShaping.SetTrafficShapingRules(tfs)
-		}
-
-		updateNetworkGroupPolicy.SetFirewallAndTrafficShaping(firewallAndTrafficShaping)
-	}
-
-	if !data.Scheduling.IsUnknown() && !data.Scheduling.IsNull() {
-		var schedulingData NetworksGroupPolicyResourceModelScheduling
-		schedulingDataErr := data.Scheduling.As(ctx, &schedulingData, basetypes.ObjectAsOptions{})
-		if schedulingDataErr != nil {
-			resp.Diagnostics.AddError(
-				"Failed to unmarshal Scheduling",
-				fmt.Sprintf("%v", schedulingDataErr),
-			)
-			return
-		}
-
-		if !schedulingData.Enabled.IsUnknown() {
-			var schedule openApiClient.CreateNetworkGroupPolicyRequestScheduling
-			schedule.SetEnabled(schedulingData.Enabled.ValueBool())
-			var schedulingFridayDayData NetworksGroupPolicyResourceModelSchedule
-			schedulingFridayDayDataErr := schedulingData.Friday.As(ctx, &schedulingFridayDayData, basetypes.ObjectAsOptions{})
-			if schedulingFridayDayDataErr != nil {
-
-				resp.Diagnostics.AddError(
-					"Failed to unmarshal Friday Scheduling",
-					fmt.Sprintf("%v", schedulingFridayDayDataErr),
-				)
-				return
-			}
-			if !schedulingFridayDayData.Active.IsUnknown() {
-				var friday openApiClient.CreateNetworkGroupPolicyRequestSchedulingFriday
-				friday.SetActive(schedulingFridayDayData.Active.ValueBool())
-				friday.SetFrom(schedulingFridayDayData.From.ValueString())
-				friday.SetTo(schedulingFridayDayData.To.ValueString())
-				schedule.SetFriday(friday)
-			}
-			var schedulingMondayDayData NetworksGroupPolicyResourceModelSchedule
-			schedulingMondayDayDataErr := schedulingData.Monday.As(ctx, &schedulingMondayDayData, basetypes.ObjectAsOptions{})
-			if schedulingMondayDayDataErr != nil {
-
-				resp.Diagnostics.AddError(
-					"Failed to unmarshal Monday Scheduling",
-					fmt.Sprintf("%v", schedulingMondayDayDataErr),
-				)
-				return
-			}
-			if !schedulingMondayDayData.Active.IsUnknown() {
-				var monday openApiClient.CreateNetworkGroupPolicyRequestSchedulingMonday
-				monday.SetActive(schedulingMondayDayData.Active.ValueBool())
-				monday.SetFrom(schedulingMondayDayData.From.ValueString())
-				monday.SetTo(schedulingMondayDayData.To.ValueString())
-				schedule.SetMonday(monday)
-			}
-			var schedulingTuesdayDayData NetworksGroupPolicyResourceModelSchedule
-			schedulingTuesdayDayDataErr := schedulingData.Tuesday.As(ctx, &schedulingTuesdayDayData, basetypes.ObjectAsOptions{})
-			if schedulingTuesdayDayDataErr != nil {
-				resp.Diagnostics.AddError(
-					"Failed to unmarshal Tuesday Scheduling",
-					fmt.Sprintf("%v", schedulingTuesdayDayDataErr),
-				)
-				return
-			}
-			if !schedulingTuesdayDayData.Active.IsUnknown() {
-				var tuesday openApiClient.CreateNetworkGroupPolicyRequestSchedulingTuesday
-				tuesday.SetActive(schedulingTuesdayDayData.Active.ValueBool())
-				tuesday.SetFrom(schedulingTuesdayDayData.From.ValueString())
-				tuesday.SetTo(schedulingTuesdayDayData.To.ValueString())
-				schedule.SetTuesday(tuesday)
-			}
-			var schedulingWednesdayDayData NetworksGroupPolicyResourceModelSchedule
-			schedulingWednesdayDayDataErr := schedulingData.Wednesday.As(ctx, &schedulingWednesdayDayData, basetypes.ObjectAsOptions{})
-			if schedulingWednesdayDayDataErr != nil {
-				resp.Diagnostics.AddError(
-					"Failed to unmarshal Wednesday Scheduling",
-					fmt.Sprintf("%v", schedulingWednesdayDayDataErr),
-				)
-				return
-			}
-			if !schedulingWednesdayDayData.Active.IsUnknown() {
-				var wednesday openApiClient.CreateNetworkGroupPolicyRequestSchedulingWednesday
-				wednesday.SetActive(schedulingWednesdayDayData.Active.ValueBool())
-				wednesday.SetFrom(schedulingWednesdayDayData.From.ValueString())
-				wednesday.SetTo(schedulingWednesdayDayData.To.ValueString())
-				schedule.SetWednesday(wednesday)
-			}
-			var schedulingThursdayDayData NetworksGroupPolicyResourceModelSchedule
-			schedulingThursdayDayDataErr := schedulingData.Thursday.As(ctx, &schedulingThursdayDayData, basetypes.ObjectAsOptions{})
-			if schedulingThursdayDayDataErr != nil {
-				resp.Diagnostics.AddError(
-					"Failed to unmarshal Thursday Scheduling",
-					fmt.Sprintf("%v", schedulingThursdayDayDataErr),
-				)
-				return
-			}
-			if !schedulingThursdayDayData.Active.IsUnknown() {
-				var thursday openApiClient.CreateNetworkGroupPolicyRequestSchedulingThursday
-				thursday.SetActive(schedulingThursdayDayData.Active.ValueBool())
-				thursday.SetFrom(schedulingThursdayDayData.From.ValueString())
-				thursday.SetTo(schedulingThursdayDayData.To.ValueString())
-				schedule.SetThursday(thursday)
-			}
-			var schedulingSaturdayDayData NetworksGroupPolicyResourceModelSchedule
-			schedulingSaturdayDayDataErr := schedulingData.Saturday.As(ctx, &schedulingSaturdayDayData, basetypes.ObjectAsOptions{})
-			if schedulingSaturdayDayDataErr != nil {
-				resp.Diagnostics.AddError(
-					"Failed to unmarshal Saturday Scheduling",
-					fmt.Sprintf("%v", schedulingSaturdayDayDataErr),
-				)
-				return
-			}
-			if !schedulingSaturdayDayData.Active.IsUnknown() {
-				var saturday openApiClient.CreateNetworkGroupPolicyRequestSchedulingSaturday
-				saturday.SetActive(schedulingSaturdayDayData.Active.ValueBool())
-				saturday.SetFrom(schedulingSaturdayDayData.From.ValueString())
-				saturday.SetTo(schedulingSaturdayDayData.To.ValueString())
-				schedule.SetSaturday(saturday)
-			}
-			var schedulingSundayDayData NetworksGroupPolicyResourceModelSchedule
-			schedulingSundayDayDataErr := schedulingData.Sunday.As(ctx, &schedulingSundayDayData, basetypes.ObjectAsOptions{})
-			if schedulingSundayDayDataErr != nil {
-				resp.Diagnostics.AddError(
-					"Failed to unmarshal Sunday Scheduling",
-					fmt.Sprintf("%v", schedulingSundayDayDataErr),
-				)
-				return
-			}
-			if !schedulingSundayDayData.Active.IsUnknown() {
-				var sunday openApiClient.CreateNetworkGroupPolicyRequestSchedulingSunday
-				sunday.SetActive(schedulingSundayDayData.Active.ValueBool())
-				sunday.SetFrom(schedulingSundayDayData.From.ValueString())
-				sunday.SetTo(schedulingSundayDayData.To.ValueString())
-				schedule.SetSunday(sunday)
-			}
-			updateNetworkGroupPolicy.SetScheduling(schedule)
-		}
-
-	}
-
-	if !data.ContentFiltering.IsUnknown() && !data.ContentFiltering.IsNull() {
-		var contentFiltering openApiClient.CreateNetworkGroupPolicyRequestContentFiltering
-		var contentFilteringData NetworksGroupPolicyResourceModelContentFiltering
-		contentDataErr := data.ContentFiltering.As(ctx, &contentFilteringData, basetypes.ObjectAsOptions{})
-		if contentDataErr != nil {
-			resp.Diagnostics.AddError(
-				"Failed to unmarshal ContentFiltering",
-				fmt.Sprintf("%v", contentDataErr),
-			)
-			return
-		}
-		contentFilteringStatus := false
-
-		if !contentFilteringData.AllowedUrlPatterns.IsUnknown() && !contentFilteringData.AllowedUrlPatterns.IsNull() {
-
-			var contentFilteringPatternsData NetworksGroupPolicyResourceModelAllowedUrlPatterns
-			contentDataPatternsErr := contentFilteringData.AllowedUrlPatterns.As(ctx, &contentFilteringPatternsData, basetypes.ObjectAsOptions{})
-			if contentDataPatternsErr != nil {
-				resp.Diagnostics.AddError(
-					"Failed to unmarshal ContentFilteringPatterns",
-					fmt.Sprintf("%v", contentDataPatternsErr),
-				)
-				return
-			}
-
-			if !contentFilteringPatternsData.Settings.IsUnknown() && !contentFilteringPatternsData.Settings.IsNull() {
-				var allowedUrlPatternData openApiClient.CreateNetworkGroupPolicyRequestContentFilteringAllowedUrlPatterns
-				allowedUrlPatternData.SetSettings(contentFilteringPatternsData.Settings.ValueString())
-				if !contentFilteringPatternsData.Patterns.IsUnknown() && !contentFilteringPatternsData.Patterns.IsNull() {
-					var patternsData []string
-					patternsDataerr := contentFilteringPatternsData.Patterns.ElementsAs(ctx, &patternsData, false)
-					if patternsDataerr != nil {
-						resp.Diagnostics.AddError(
-							"Failed to unmarshal AllowedURLPatterns",
-							fmt.Sprintf("%v", patternsDataerr),
-						)
-						return
-
-					}
-					allowedUrlPatternData.SetPatterns(patternsData)
-				}
-				contentFiltering.SetAllowedUrlPatterns(allowedUrlPatternData)
-				contentFilteringStatus = true
-			}
-
-		}
-
-		if !contentFilteringData.BlockedUrlCategories.IsUnknown() && !contentFilteringData.BlockedUrlCategories.IsNull() {
-
-			var contentFilteringBlockedUrlCategoriesData NetworksGroupPolicyResourceModelBlockedUrlCategories
-			contentFilteringBlockedUrlCategoriesDataErr := contentFilteringData.BlockedUrlCategories.As(ctx, &contentFilteringBlockedUrlCategoriesData, basetypes.ObjectAsOptions{})
-			if contentFilteringBlockedUrlCategoriesDataErr != nil {
-				resp.Diagnostics.AddError(
-					"Failed to unmarshal ContentBlockedUrlCategories",
-					fmt.Sprintf("%v", contentFilteringBlockedUrlCategoriesDataErr),
-				)
-				return
-			}
-
-			if !contentFilteringBlockedUrlCategoriesData.Settings.IsUnknown() && !contentFilteringBlockedUrlCategoriesData.Settings.IsNull() {
-				var blockedUrlCategoriesData openApiClient.CreateNetworkGroupPolicyRequestContentFilteringBlockedUrlCategories
-				blockedUrlCategoriesData.SetSettings(contentFilteringBlockedUrlCategoriesData.Settings.ValueString())
-				if !contentFilteringBlockedUrlCategoriesData.Categories.IsUnknown() && !contentFilteringBlockedUrlCategoriesData.Categories.IsNull() {
-					var blockedUrlCategories []string
-					blockedUrlCategoriesDataerr := contentFilteringBlockedUrlCategoriesData.Categories.ElementsAs(ctx, &blockedUrlCategories, false)
-					if blockedUrlCategoriesDataerr != nil {
-						resp.Diagnostics.AddError(
-							"Failed to unmarshal blockedUrlCategories",
-							fmt.Sprintf("%v", blockedUrlCategoriesDataerr),
-						)
-						return
-
-					}
-					blockedUrlCategoriesData.SetCategories(blockedUrlCategories)
-				}
-				contentFiltering.SetBlockedUrlCategories(blockedUrlCategoriesData)
-				contentFilteringStatus = true
-			}
-
-		}
-
-		if !contentFilteringData.BlockedUrlPatterns.IsUnknown() && !contentFilteringData.BlockedUrlPatterns.IsNull() {
-			var contentFilteringBlockedUrlPatternsData NetworksGroupPolicyResourceModelBlockedUrlPatterns
-			contentFilteringBlockedUrlPatternsDataErr := contentFilteringData.BlockedUrlPatterns.As(ctx, &contentFilteringBlockedUrlPatternsData, basetypes.ObjectAsOptions{})
-			if contentFilteringBlockedUrlPatternsDataErr != nil {
-				resp.Diagnostics.AddError(
-					"Failed to unmarshal ContentBlockedUrlPatterns",
-					fmt.Sprintf("%v", contentFilteringBlockedUrlPatternsDataErr),
-				)
-				return
-			}
-
-			if !contentFilteringBlockedUrlPatternsData.Settings.IsUnknown() && !contentFilteringBlockedUrlPatternsData.Settings.IsNull() {
-				var blockedUrlPatternsData openApiClient.CreateNetworkGroupPolicyRequestContentFilteringBlockedUrlPatterns
-				blockedUrlPatternsData.SetSettings(contentFilteringBlockedUrlPatternsData.Settings.ValueString())
-				if !contentFilteringBlockedUrlPatternsData.Patterns.IsUnknown() && !contentFilteringBlockedUrlPatternsData.Patterns.IsNull() {
-					var blockedUrlPatterns []string
-					blockedUrlPatternsDataerr := contentFilteringBlockedUrlPatternsData.Patterns.ElementsAs(ctx, &blockedUrlPatterns, false)
-					if blockedUrlPatternsDataerr != nil {
-						resp.Diagnostics.AddError(
-							"Failed to unmarshal blockedUrlPatterns",
-							fmt.Sprintf("%v", blockedUrlPatternsDataerr),
-						)
-						return
-
-					}
-					blockedUrlPatternsData.SetPatterns(blockedUrlPatterns)
-				}
-				contentFiltering.SetBlockedUrlPatterns(blockedUrlPatternsData)
-				contentFilteringStatus = true
-			}
-
-		}
-
-		if contentFilteringStatus {
-			updateNetworkGroupPolicy.SetContentFiltering(contentFiltering)
 		}
 	}
 
-	inlineRespMap, httpResp, err := retryAPICall(ctx, func() (interface{}, *http.Response, error) {
-		resp, httpResp, err := r.client.NetworksApi.UpdateNetworkGroupPolicy(ctx, data.NetworkId.ValueString(), data.GroupPolicyId.ValueString()).UpdateNetworkGroupPolicyRequest(updateNetworkGroupPolicy).Execute()
-		if err != nil {
-			return nil, httpResp, err
-		}
-		return resp, httpResp, nil
-	})
-
+	updatePolicy, httpResp, err := r.client.NetworksApi.UpdateNetworkGroupPolicy(ctx, data.NetworkId.ValueString(), data.GroupPolicyId.ValueString()).UpdateNetworkGroupPolicyRequest(groupPolicy).Execute()
 	if err != nil {
+
+		// Extract additional information from the HTTP response
+		var responseBody string
+		if httpResp != nil && httpResp.Body != nil {
+			bodyBytes, readErr := io.ReadAll(httpResp.Body)
+			if readErr == nil {
+				responseBody = string(bodyBytes)
+			}
+		}
+
 		resp.Diagnostics.AddError(
-			"HTTP Client Failure",
-			tools.HttpDiagnostics(httpResp),
+			"Error updating group policy",
+			fmt.Sprintf("Could not update group policy, unexpected error: %s\nHTTP Response: %v\nResponse Body: %s", err.Error(), httpResp, responseBody),
 		)
 		return
 	}
 
-	// Check for API success response code
-	if httpResp.StatusCode != 200 {
-		resp.Diagnostics.AddError(
-			"Unexpected HTTP Response Status Code",
-			fmt.Sprintf("%v", httpResp.StatusCode),
-		)
-	}
+	// Update the state with the new data
+	updateGroupPolicyState(&data, updatePolicy)
 
-	// Check for errors after diagnostics collected
+	diags = resp.State.Set(ctx, &data)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
 		return
 	}
-
-	inlineResp, ok := inlineRespMap.(map[string]interface{})
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Type Assertion Failure",
-			"Failed to assert API response type to map[string]interface{}",
-		)
-		return
-	}
-
-	bandwidthVal, diags := getBandwidth(ctx, inlineResp)
-	if diags.HasError() {
-		return
-	}
-	firewallAndTrafficShapingObjectVal, diags := getFirewallAndTrafficShaping(ctx, inlineResp)
-	if diags.HasError() {
-		return
-	}
-	schedulingVal, diags := getScheduling(ctx, inlineResp)
-	if diags.HasError() {
-		return
-	}
-	contentFilteringVal, diags := getContentFiltering(ctx, inlineResp)
-	if diags.HasError() {
-		return
-	}
-
-	bonjourForwardingVal, diags := getBonjourForwarding(ctx, inlineResp)
-	if diags.HasError() {
-		return
-	}
-
-	vlantaggingVal, diags := getVlantagging(ctx, inlineResp)
-	if diags.HasError() {
-		return
-	}
-
-	data.Bandwidth = bandwidthVal
-	data.FirewallAndTrafficShaping = firewallAndTrafficShapingObjectVal
-	data.Scheduling = schedulingVal
-	data.ContentFiltering = contentFilteringVal
-	data.BonjourForwarding = bonjourForwardingVal
-	data.VlanTagging = vlantaggingVal
-	data.SplashAuthSettings = basetypes.NewStringValue(inlineResp["splashAuthSettings"].(string))
-	data.GroupPolicyId = basetypes.NewStringValue(inlineResp["groupPolicyId"].(string))
-	data.Name = basetypes.NewStringValue(inlineResp["name"].(string))
-	data.Id = types.StringValue("example-id")
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
-	// Write logs using the tflog package
-	tflog.Trace(ctx, "update resource")
 }
 
+// Delete handles deleting the group policy.
 func (r *NetworksGroupPolicyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-
-	var data *NetworksGroupPolicyResourceModel
-
-	// Read Terraform plan data into the model
-	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
-
+	var data GroupPolicyModel
+	diags := req.State.Get(ctx, &data)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	_, httpResp, err := retryAPICall(ctx, func() (interface{}, *http.Response, error) {
-		httpResp, err := r.client.NetworksApi.DeleteNetworkGroupPolicy(context.Background(), data.NetworkId.ValueString(), data.GroupPolicyId.ValueString()).Execute()
-		if err != nil {
-			return nil, httpResp, err
-		}
-		return resp, httpResp, nil
-	})
-
+	httpResp, err := r.client.NetworksApi.DeleteNetworkGroupPolicy(ctx, data.NetworkId.ValueString(), data.GroupPolicyId.ValueString()).Execute()
 	if err != nil {
+
+		// Extract additional information from the HTTP response
+		var responseBody string
+		if httpResp != nil && httpResp.Body != nil {
+			bodyBytes, readErr := io.ReadAll(httpResp.Body)
+			if readErr == nil {
+				responseBody = string(bodyBytes)
+			}
+		}
+
 		resp.Diagnostics.AddError(
-			"HTTP Client Failure",
-			tools.HttpDiagnostics(httpResp),
+			"Error deleting group policy",
+			fmt.Sprintf("Could not delete group policy, unexpected error: %s\nHTTP Response: %v\nResponse Body: %s", err.Error(), httpResp, responseBody),
 		)
 		return
-	}
-
-	// Check for API success response code
-	if httpResp.StatusCode != 204 {
-		resp.Diagnostics.AddError(
-			"Unexpected HTTP Response Status Code",
-			fmt.Sprintf("%v", httpResp.StatusCode),
-		)
 	}
 
 	resp.State.RemoveResource(ctx)
-
-	// Write logs using the tflog package
-	tflog.Trace(ctx, "removed resource")
-
 }
 
 func (r *NetworksGroupPolicyResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
