@@ -4,22 +4,14 @@ import (
 	"context"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/meraki/dashboard-api-go/client"
-	"io"
-	"strconv"
-	"strings"
-	"time"
-
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-)
-
-const (
-	retryMax     = 5
-	retryWaitMin = 1 * time.Second
-	retryWaitMax = 30 * time.Second
+	"github.com/meraki/dashboard-api-go/client"
+	"io"
+	"strconv"
+	"strings"
 )
 
 // NetworksGroupPolicyResource defines the resource implementation.
@@ -171,6 +163,7 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 			},
 			"group_policy_id": schema.StringAttribute{
 				Computed:    true,
+				Optional:    true,
 				Description: "The unique identifier for the group policy.",
 			},
 			"network_id": schema.StringAttribute{

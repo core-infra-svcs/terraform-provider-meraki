@@ -2,15 +2,14 @@ package provider
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"os"
 	"testing"
-
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccNetworksGroupPolicyResource(t *testing.T) {
 	orgId := os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")
-	//policies := 15 // Number of policies to create
+	policies := 15 // Number of policies to create
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
@@ -137,9 +136,9 @@ func TestAccNetworksGroupPolicyResource(t *testing.T) {
 				),
 			},
 
-			// Test the creation of multiple group policies
 			/*
-				{
+				// Test the creation of multiple group policies
+					{
 						Config: testAccNetworksGroupPolicyResourceConfigMultiplePolicies(orgId, policies),
 						Check: func(s *terraform.State) error {
 							var checks []resource.TestCheckFunc
@@ -147,7 +146,7 @@ func TestAccNetworksGroupPolicyResource(t *testing.T) {
 							for i := 1; i <= policies; i++ {
 								resourceName := fmt.Sprintf("meraki_networks_group_policy.test%d", i)
 								checks = append(checks,
-									resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("testpolicy%d", i)),
+									resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("test_acc_policy_%d", i)),
 									resource.TestCheckResourceAttr(resourceName, "splash_auth_settings", "network default"),
 									resource.TestCheckResourceAttr(resourceName, "bandwidth.settings", "network default"),
 									resource.TestCheckNoResourceAttr(resourceName, "bandwidth.bandwidth_limits.limit_up"),
@@ -166,8 +165,6 @@ func TestAccNetworksGroupPolicyResource(t *testing.T) {
 									resource.TestCheckResourceAttr(resourceName, "firewall_and_traffic_shaping.traffic_shaping_rules.0.per_client_bandwidth_limits.settings", "custom"),
 									resource.TestCheckResourceAttr(resourceName, "firewall_and_traffic_shaping.traffic_shaping_rules.0.per_client_bandwidth_limits.bandwidth_limits.limit_down", "100000"),
 									resource.TestCheckResourceAttr(resourceName, "firewall_and_traffic_shaping.traffic_shaping_rules.0.per_client_bandwidth_limits.bandwidth_limits.limit_up", "100000"),
-									//resource.TestCheckResourceAttr(resourceName, "firewall_and_traffic_shaping.traffic_shaping_rules.0.definitions.type", "host"),
-									//resource.TestCheckResourceAttr(resourceName, "firewall_and_traffic_shaping.traffic_shaping_rules.0.definitions.value", "google.com"),
 									resource.TestCheckResourceAttr(resourceName, "scheduling.enabled", "true"),
 									resource.TestCheckResourceAttr(resourceName, "scheduling.friday.active", "true"),
 									resource.TestCheckResourceAttr(resourceName, "scheduling.friday.from", "00:00"),
@@ -199,6 +196,25 @@ func TestAccNetworksGroupPolicyResource(t *testing.T) {
 			*/
 		},
 	})
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps:                    createPolicyTestSteps(orgId, policies),
+	})
+}
+
+func createPolicyTestSteps(orgId string, policies int) []resource.TestStep {
+	var steps []resource.TestStep
+	for i := 1; i <= policies; i++ {
+		steps = append(steps, resource.TestStep{
+			Config: testAccNetworksGroupPolicyResourceConfigMultiplePolicies(orgId, i),
+			Check: resource.ComposeTestCheckFunc(
+				resource.TestCheckResourceAttr(fmt.Sprintf("meraki_networks_group_policy.test%d", i), "name", fmt.Sprintf("test_acc_policy_%d", i)),
+			),
+		})
+	}
+	return steps
 }
 
 func testAccNetworksGroupPolicyResourceConfigCreateNetwork(orgId string) string {
@@ -435,7 +451,7 @@ resource "meraki_network" "test" {
 
 	// Append each policy configuration
 	for i := 1; i <= policies; i++ {
-		policyName := fmt.Sprintf("testpolicy%d", i)
+		policyName := fmt.Sprintf("test_acc_policy_%d", i)
 		config += fmt.Sprintf(`
 resource "meraki_networks_group_policy" "test%d" {
     depends_on = [meraki_network.test]
@@ -505,7 +521,7 @@ resource "meraki_networks_group_policy" "test%d" {
             type = "host"
             value = "google.com"
         }]
-       traffic_shaping_rules = [{
+        traffic_shaping_rules = [{
             dscp_tag_value = 0
             pcp_tag_value = 0
             per_client_bandwidth_limits = {
@@ -523,7 +539,7 @@ resource "meraki_networks_group_policy" "test%d" {
     }
     vlan_tagging = {
         settings = "network default"
-		vlan_id = null
+        vlan_id = null
     }
     content_filtering = {
         allowed_url_patterns = {}
@@ -535,4 +551,113 @@ resource "meraki_networks_group_policy" "test%d" {
 	}
 
 	return config
+}
+
+func testAccNetworksGroupPolicyResourceConfigSinglePolicy(orgId string, index int) string {
+	policyName := fmt.Sprintf("test_acc_policy_%d", index)
+	return fmt.Sprintf(`
+resource "meraki_network" "test" {
+    organization_id = "%s"
+    product_types = ["appliance", "switch", "wireless"]
+    tags = ["tag1"]
+    name = "test_acc_networks_group_policy_%d"
+    timezone = "America/Los_Angeles"
+    notes = "Additional description of the network"
+}
+
+resource "meraki_networks_group_policy" "test%d" {
+    depends_on = [meraki_network.test]
+    network_id = meraki_network.test.id
+    name = "%s"
+    splash_auth_settings = "network default"
+    scheduling = {
+        enabled = true
+        friday = {
+            active = true
+            from = "00:00"
+            to = "24:00"
+        }
+        saturday = {
+            active = true
+            from = "00:00"
+            to = "24:00"
+        }
+        sunday = {
+            active = true
+            from = "00:00"
+            to = "24:00"
+        }
+        monday = {
+            active = true
+            from = "00:00"
+            to = "24:00"
+        }
+        tuesday = {
+            active = true
+            from = "00:00"
+            to = "24:00"
+        }
+        wednesday = {
+            active = true
+            from = "00:00"
+            to = "24:00"
+        }
+        thursday = {
+            active = true
+            from = "00:00"
+            to = "24:00"
+        }
+    }
+    bandwidth = {
+        settings = "network default"
+        bandwidth_limits = {
+            limit_up = null
+            limit_down = null
+        }
+    }
+    bonjour_forwarding = {
+        settings = "network default"
+        rules = []
+    }
+    firewall_and_traffic_shaping = {
+        settings = "network default"
+        l3_firewall_rules = [{
+            comment = "Allow TCP traffic to subnet with HTTP servers."
+            policy = "allow"
+            protocol = "tcp"
+            dest_port = "443"
+            dest_cidr = "192.168.1.0/24"
+        }]
+        l7_firewall_rules = [{
+            policy = "deny"
+            type = "host"
+            value = "google.com"
+        }]
+        traffic_shaping_rules = [{
+            dscp_tag_value = 0
+            pcp_tag_value = 0
+            per_client_bandwidth_limits = {
+                settings = "custom"
+                bandwidth_limits = {
+                    limit_up = 100000
+                    limit_down = 100000
+                }
+            }
+            definitions = [{
+                type = "host"
+                value = "google.com"
+            }]
+        }]
+    }
+    vlan_tagging = {
+        settings = "network default"
+        vlan_id = null
+    }
+    content_filtering = {
+        allowed_url_patterns = {}
+        blocked_url_categories = {}
+        blocked_url_patterns = {}
+    }
+}
+`, orgId, index, index, policyName)
 }
