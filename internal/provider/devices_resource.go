@@ -4,10 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
+
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"strings"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -393,6 +394,18 @@ func (r *DevicesResource) Create(ctx context.Context, req resource.CreateRequest
 		data.Lng = jsontypes.Float64Null()
 	}
 
+	if data.Notes.IsUnknown() {
+		data.Notes = jsontypes.StringNull()
+	}
+
+	if data.Name.IsUnknown() {
+		data.Name = jsontypes.StringNull()
+	}
+
+	if data.Address.IsUnknown() {
+		data.Address = jsontypes.StringNull()
+	}
+
 	// Set ID for the new resource.
 	data.Id = jsontypes.StringValue(data.Serial.ValueString())
 
@@ -492,6 +505,18 @@ func (r *DevicesResource) Read(ctx context.Context, req resource.ReadRequest, re
 
 	if data.Lng.IsUnknown() {
 		data.Lng = jsontypes.Float64Null()
+	}
+
+	if data.Notes.IsUnknown() {
+		data.Notes = jsontypes.StringNull()
+	}
+
+	if data.Name.IsUnknown() {
+		data.Name = jsontypes.StringNull()
+	}
+
+	if data.Address.IsUnknown() {
+		data.Address = jsontypes.StringNull()
 	}
 
 	// Set ID for the resource.
@@ -624,6 +649,18 @@ func (r *DevicesResource) Update(ctx context.Context, req resource.UpdateRequest
 
 	if data.Lng.IsUnknown() {
 		data.Lng = jsontypes.Float64Null()
+	}
+
+	if data.Notes.IsUnknown() {
+		data.Notes = jsontypes.StringNull()
+	}
+
+	if data.Name.IsUnknown() {
+		data.Name = jsontypes.StringNull()
+	}
+
+	if data.Address.IsUnknown() {
+		data.Address = jsontypes.StringNull()
 	}
 
 	// Set ID for the new resource.
