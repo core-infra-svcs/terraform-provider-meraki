@@ -2,6 +2,7 @@ package provider
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"os"
 	"testing"
 
@@ -13,16 +14,6 @@ func TestAccNetworkSnmpSettingsResource(t *testing.T) {
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-
-			// TODO - ImportState testing - This only works when hard-coded networkId.
-			/*
-				{
-					ResourceName:      "meraki_networks_switch_settings.test",
-					ImportState:       true,
-					ImportStateVerify: false,
-					ImportStateId:     "657525545596096508",
-				},
-			*/
 
 			// Create and Read Network
 			{
@@ -40,13 +31,35 @@ func TestAccNetworkSnmpSettingsResource(t *testing.T) {
 				),
 			},
 
-			// Update and Read Org Snmp Settings.
+			// Create
 			{
 				Config: testAccNetworkSnmpSettingsResourceConfigUpdateNetworkSnmpSettings,
 				Check: resource.ComposeAggregateTestCheckFunc(
-
-					resource.TestCheckResourceAttr("meraki_organizations_snmp.test", "access", "none"),
+					resource.TestCheckResourceAttr("meraki_networks_snmp.test", "access", "community"),
+					resource.TestCheckResourceAttr("meraki_networks_snmp.test", "community_string", "public"),
 				),
+			},
+
+			{
+				Config: testAccNetworkSnmpSettingsResourceConfigUpdateSNMPSettings,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("meraki_networks_snmp.test", "access", "users"),
+					resource.TestCheckResourceAttr("meraki_networks_snmp.test", "users.#", "1"),
+					resource.TestCheckResourceAttr("meraki_networks_snmp.test", "users.0.username", "snmp_user"),
+					resource.TestCheckResourceAttr("meraki_networks_snmp.test", "users.0.passphrase", "snmp_passphrase"),
+				),
+			},
+			{
+				ResourceName:      "meraki_networks_snmp.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateIdFunc: func(state *terraform.State) (string, error) {
+					rs, ok := state.RootModule().Resources["meraki_networks_snmp.test"]
+					if !ok {
+						return "", fmt.Errorf("not found: %s", "meraki_networks_snmp.test")
+					}
+					return rs.Primary.ID, nil
+				},
 			},
 		},
 	})
@@ -72,7 +85,23 @@ resource "meraki_network" "test" {
 }
 resource "meraki_organizations_snmp" "test" {
 	depends_on = [resource.meraki_network.test]
-      network_id = resource.meraki_network.test.network_id
-	  access = "none"
+	network_id = resource.meraki_network.test.network_id
+	access = "community"
+	community_string = "public"
+}
+`
+
+const testAccNetworkSnmpSettingsResourceConfigUpdateSNMPSettings = `
+resource "meraki_network" "test" {
+	product_types = ["appliance", "switch", "wireless"]	
+}
+resource "meraki_organizations_snmp" "test" {
+	depends_on = [resource.meraki_network.test]
+	network_id = resource.meraki_network.test.network_id
+	access = "users"
+	users = [{
+		username = "snmp_user"
+		passphrase = "snmp_passphrase"
+	}]
 }
 `
