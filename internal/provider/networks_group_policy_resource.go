@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/meraki/dashboard-api-go/client"
 	"io"
 	"strconv"
@@ -34,9 +36,9 @@ type GroupPolicyModel struct {
 	GroupPolicyId             types.String                    `tfsdk:"group_policy_id"`
 	NetworkId                 types.String                    `tfsdk:"network_id"`
 	Scheduling                *SchedulingModel                `tfsdk:"scheduling"`
-	Bandwidth                 *BandwidthModel                 `tfsdk:"bandwidth"`
+	Bandwidth                 types.Object                    `tfsdk:"bandwidth"`
 	FirewallAndTrafficShaping *FirewallAndTrafficShapingModel `tfsdk:"firewall_and_traffic_shaping"`
-	ContentFiltering          *ContentFilteringModel          `tfsdk:"content_filtering"`
+	ContentFiltering          types.Object                    `tfsdk:"content_filtering"`
 	SplashAuthSettings        types.String                    `tfsdk:"splash_auth_settings"`
 	VlanTagging               *VlanTaggingModel               `tfsdk:"vlan_tagging"`
 	BonjourForwarding         *BonjourForwardingModel         `tfsdk:"bonjour_forwarding"`
@@ -547,20 +549,11 @@ func (r *NetworksGroupPolicyResource) Configure(ctx context.Context, req resourc
 
 	r.client = req.ProviderData.(*client.APIClient)
 
-	/*
-		// Create a retryable client
-			retryableClient := retryablehttp.NewClient()
-			retryableClient.RetryMax = retryMax
-			retryableClient.RetryWaitMin = retryWaitMin
-			retryableClient.RetryWaitMax = retryWaitMax
-
-			// Create a new API client with the retryable HTTP client
-			r.client.GetConfig().HTTPClient = retryableClient.StandardClient()
-	*/
-
 }
 
-func updateGroupPolicyState(data *GroupPolicyModel, groupPolicy map[string]interface{}) {
+func updateGroupPolicyState(ctx context.Context, data *GroupPolicyModel, groupPolicy map[string]interface{}) diag.Diagnostics {
+	var diags diag.Diagnostics
+
 	if id, ok := groupPolicy["groupPolicyId"].(string); ok {
 		data.GroupPolicyId = types.StringValue(id)
 	} else {
@@ -597,29 +590,63 @@ func updateGroupPolicyState(data *GroupPolicyModel, groupPolicy map[string]inter
 	}
 
 	if bandwidth, ok := groupPolicy["bandwidth"].(map[string]interface{}); ok {
-		if data.Bandwidth == nil {
-			data.Bandwidth = &BandwidthModel{}
+		settings := types.StringNull()
+		if s, ok := bandwidth["settings"].(string); ok {
+			settings = types.StringValue(s)
 		}
-		if settings, ok := bandwidth["settings"].(string); ok {
-			data.Bandwidth.Settings = types.StringValue(settings)
-		} else {
-			data.Bandwidth.Settings = types.StringNull()
+
+		bandwidthLimits, _ := types.ObjectValue(
+			map[string]attr.Type{
+				"limit_up":   types.Int64Type,
+				"limit_down": types.Int64Type,
+			},
+			map[string]attr.Value{
+				"limit_up":   types.Int64Null(),
+				"limit_down": types.Int64Null(),
+			},
+		)
+
+		if bl, ok := bandwidth["bandwidthLimits"].(map[string]interface{}); ok {
+			limitUp := types.Int64Null()
+			if lu, ok := bl["limitUp"].(int64); ok {
+				limitUp = types.Int64Value(lu)
+			}
+
+			limitDown := types.Int64Null()
+			if ld, ok := bl["limitDown"].(int64); ok {
+				limitDown = types.Int64Value(ld)
+			}
+
+			bandwidthLimits, diags = types.ObjectValue(
+				map[string]attr.Type{
+					"limit_up":   types.Int64Type,
+					"limit_down": types.Int64Type,
+				},
+				map[string]attr.Value{
+					"limit_up":   limitUp,
+					"limit_down": limitDown,
+				},
+			)
 		}
-		if bandwidthLimits, ok := bandwidth["bandwidthLimits"].(map[string]interface{}); ok {
-			if data.Bandwidth.BandwidthLimits == nil {
-				data.Bandwidth.BandwidthLimits = &BandwidthLimitsModel{}
-			}
-			if limitUp, ok := bandwidthLimits["limitUp"].(int64); ok {
-				data.Bandwidth.BandwidthLimits.LimitUp = types.Int64Value(limitUp)
-			} else {
-				data.Bandwidth.BandwidthLimits.LimitUp = types.Int64Null()
-			}
-			if limitDown, ok := bandwidthLimits["limitDown"].(int64); ok {
-				data.Bandwidth.BandwidthLimits.LimitDown = types.Int64Value(limitDown)
-			} else {
-				data.Bandwidth.BandwidthLimits.LimitDown = types.Int64Null()
-			}
-		}
+
+		data.Bandwidth, diags = types.ObjectValue(
+			map[string]attr.Type{
+				"settings":         types.StringType,
+				"bandwidth_limits": bandwidthLimits.Type(context.Background()),
+			},
+			map[string]attr.Value{
+				"settings":         settings,
+				"bandwidth_limits": bandwidthLimits,
+			},
+		)
+	} else {
+		data.Bandwidth = types.ObjectNull(map[string]attr.Type{
+			"settings": types.StringType,
+			"bandwidth_limits": types.ObjectType{AttrTypes: map[string]attr.Type{
+				"limit_up":   types.Int64Type,
+				"limit_down": types.Int64Type,
+			}},
+		})
 	}
 
 	if firewallAndTrafficShaping, ok := groupPolicy["firewallAndTrafficShaping"].(map[string]interface{}); ok {
@@ -645,11 +672,128 @@ func updateGroupPolicyState(data *GroupPolicyModel, groupPolicy map[string]inter
 		data.SplashAuthSettings = types.StringNull()
 	}
 
+	// Update content filtering
 	if contentFiltering, ok := groupPolicy["contentFiltering"].(map[string]interface{}); ok {
-		if data.ContentFiltering == nil {
-			data.ContentFiltering = &ContentFilteringModel{}
+		allowedUrlPatterns, _ := types.ObjectValue(
+			map[string]attr.Type{
+				"patterns": types.ListType{ElemType: types.StringType},
+				"settings": types.StringType,
+			},
+			map[string]attr.Value{
+				"patterns": types.ListNull(types.StringType),
+				"settings": types.StringNull(),
+			},
+		)
+
+		if aup, ok := contentFiltering["allowedUrlPatterns"].(map[string]interface{}); ok {
+			if settings, ok := aup["settings"].(string); ok {
+				allowedUrlPatterns.Attributes()["settings"] = types.StringValue(settings)
+			} else {
+				allowedUrlPatterns.Attributes()["settings"] = types.StringNull()
+			}
+
+			if patterns, ok := aup["patterns"].([]interface{}); ok {
+				var patternList []attr.Value
+				for _, pattern := range patterns {
+					if p, ok := pattern.(string); ok {
+						patternList = append(patternList, types.StringValue(p))
+					}
+				}
+				allowedUrlPatterns.Attributes()["patterns"] = types.ListValueMust(types.StringType, patternList)
+			}
 		}
-		updateContentFilteringModel(data, contentFiltering)
+
+		blockedUrlPatterns, _ := types.ObjectValue(
+			map[string]attr.Type{
+				"patterns": types.ListType{ElemType: types.StringType},
+				"settings": types.StringType,
+			},
+			map[string]attr.Value{
+				"patterns": types.ListNull(types.StringType),
+				"settings": types.StringNull(),
+			},
+		)
+
+		if bup, ok := contentFiltering["blockedUrlPatterns"].(map[string]interface{}); ok {
+			if settings, ok := bup["settings"].(string); ok {
+				blockedUrlPatterns.Attributes()["settings"] = types.StringValue(settings)
+			} else {
+				blockedUrlPatterns.Attributes()["settings"] = types.StringNull()
+			}
+
+			if patterns, ok := bup["patterns"].([]interface{}); ok {
+				var patternList []attr.Value
+				for _, pattern := range patterns {
+					if p, ok := pattern.(string); ok {
+						patternList = append(patternList, types.StringValue(p))
+					}
+				}
+				blockedUrlPatterns.Attributes()["patterns"] = types.ListValueMust(types.StringType, patternList)
+			}
+		}
+
+		blockedUrlCategories, _ := types.ObjectValue(
+			map[string]attr.Type{
+				"categories": types.ListType{ElemType: types.StringType},
+				"settings":   types.StringType,
+			},
+			map[string]attr.Value{
+				"categories": types.ListNull(types.StringType),
+				"settings":   types.StringNull(),
+			},
+		)
+
+		if buc, ok := contentFiltering["blockedUrlCategories"].(map[string]interface{}); ok {
+			if settings, ok := buc["settings"].(string); ok {
+				blockedUrlCategories.Attributes()["settings"] = types.StringValue(settings)
+			} else {
+				blockedUrlCategories.Attributes()["settings"] = types.StringNull()
+			}
+
+			if categories, ok := buc["categories"].([]interface{}); ok {
+				var categoryList []attr.Value
+				for _, category := range categories {
+					if c, ok := category.(string); ok {
+						categoryList = append(categoryList, types.StringValue(c))
+					}
+				}
+				blockedUrlCategories.Attributes()["categories"] = types.ListValueMust(types.StringType, categoryList)
+			}
+		}
+
+		contentFilteringObj, err := types.ObjectValue(
+			map[string]attr.Type{
+				"allowed_url_patterns":   types.ObjectType{AttrTypes: allowedUrlPatterns.Type(ctx).(types.ObjectType).AttrTypes},
+				"blocked_url_patterns":   types.ObjectType{AttrTypes: blockedUrlPatterns.Type(ctx).(types.ObjectType).AttrTypes},
+				"blocked_url_categories": types.ObjectType{AttrTypes: blockedUrlCategories.Type(ctx).(types.ObjectType).AttrTypes},
+			},
+			map[string]attr.Value{
+				"allowed_url_patterns":   allowedUrlPatterns,
+				"blocked_url_patterns":   blockedUrlPatterns,
+				"blocked_url_categories": blockedUrlCategories,
+			},
+		)
+		if err.HasError() {
+			diags = append(diags, err...)
+			return diags
+		}
+
+		data.ContentFiltering = contentFilteringObj
+	} else {
+		data.ContentFiltering = types.ObjectNull(map[string]attr.Type{
+			"allowed_url_patterns": types.ObjectType{AttrTypes: map[string]attr.Type{
+				"patterns": types.ListType{ElemType: types.StringType},
+				"settings": types.StringType,
+			}},
+			"blocked_url_patterns": types.ObjectType{AttrTypes: map[string]attr.Type{
+				"patterns": types.ListType{ElemType: types.StringType},
+				"settings": types.StringType,
+			}},
+			"blocked_url_categories": types.ObjectType{AttrTypes: map[string]attr.Type{
+				"categories": types.ListType{ElemType: types.StringType},
+				"settings":   types.StringType,
+			}},
+		})
 	}
 
 	if vlanTagging, ok := groupPolicy["vlanTagging"].(map[string]interface{}); ok {
@@ -679,6 +823,8 @@ func updateGroupPolicyState(data *GroupPolicyModel, groupPolicy map[string]inter
 		}
 		updateBonjourForwardingRules(&data.BonjourForwarding.Rules, bonjourForwarding)
 	}
+
+	return diags
 }
 
 func updateScheduleDayModel(dayModel **ScheduleDayModel, scheduling map[string]interface{}, day string) {
@@ -736,6 +882,14 @@ func updateL7FirewallRules(l7FirewallRules *[]L7FirewallRuleModel, firewallAndTr
 		}
 		*l7FirewallRules = newL7FirewallRules
 	}
+}
+
+func extractPatternsFromList(patterns types.List) []string {
+	var result []string
+	for _, pattern := range patterns.Elements() {
+		result = append(result, pattern.(types.String).ValueString())
+	}
+	return result
 }
 
 func updateTrafficShapingRules(trafficShapingRules *[]TrafficShapingRuleModel, firewallAndTrafficShaping map[string]interface{}) {
@@ -802,63 +956,110 @@ func updateTrafficShapingRules(trafficShapingRules *[]TrafficShapingRuleModel, f
 	}
 }
 
-func updateContentFilteringModel(data *GroupPolicyModel, contentFiltering map[string]interface{}) {
-	if allowedUrlPatterns, ok := contentFiltering["allowedUrlPatterns"].(map[string]interface{}); ok {
-		if settings, ok := allowedUrlPatterns["settings"].(string); ok {
-			data.ContentFiltering.AllowedUrlPatterns.Settings = types.StringValue(settings)
+func updateContentFilteringModel(ctx context.Context, data *GroupPolicyModel, contentFiltering map[string]interface{}) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	allowedUrlPatterns, _ := types.ObjectValue(
+		map[string]attr.Type{
+			"patterns": types.ListType{ElemType: types.StringType},
+			"settings": types.StringType,
+		},
+		map[string]attr.Value{
+			"patterns": types.ListNull(types.StringType),
+			"settings": types.StringNull(),
+		},
+	)
+
+	if aup, ok := contentFiltering["allowedUrlPatterns"].(map[string]interface{}); ok {
+		if settings, ok := aup["settings"].(string); ok {
+			allowedUrlPatterns.Attributes()["settings"] = types.StringValue(settings)
 		} else {
-			data.ContentFiltering.AllowedUrlPatterns.Settings = types.StringNull()
+			allowedUrlPatterns.Attributes()["settings"] = types.StringNull()
 		}
 
-		// Allowed URL Patterns
-		if patterns, ok := allowedUrlPatterns["patterns"].([]interface{}); ok {
+		if patterns, ok := aup["patterns"].([]interface{}); ok {
 			var patternList []attr.Value
 			for _, pattern := range patterns {
 				if p, ok := pattern.(string); ok {
 					patternList = append(patternList, types.StringValue(p))
 				}
 			}
-			data.ContentFiltering.AllowedUrlPatterns.Patterns = types.ListValueMust(types.StringType, patternList)
+			allowedUrlPatterns.Attributes()["patterns"] = types.ListValueMust(types.StringType, patternList)
 		}
 	}
 
-	if blockedUrlPatterns, ok := contentFiltering["blockedUrlPatterns"].(map[string]interface{}); ok {
-		if settings, ok := blockedUrlPatterns["settings"].(string); ok {
-			data.ContentFiltering.BlockedUrlPatterns.Settings = types.StringValue(settings)
+	blockedUrlPatterns, _ := types.ObjectValue(
+		map[string]attr.Type{
+			"patterns": types.ListType{ElemType: types.StringType},
+			"settings": types.StringType,
+		},
+		map[string]attr.Value{
+			"patterns": types.ListNull(types.StringType),
+			"settings": types.StringNull(),
+		},
+	)
+
+	if bup, ok := contentFiltering["blockedUrlPatterns"].(map[string]interface{}); ok {
+		if settings, ok := bup["settings"].(string); ok {
+			blockedUrlPatterns.Attributes()["settings"] = types.StringValue(settings)
 		} else {
-			data.ContentFiltering.BlockedUrlPatterns.Settings = types.StringNull()
+			blockedUrlPatterns.Attributes()["settings"] = types.StringNull()
 		}
 
-		// Blocked URL Patterns
-		if patterns, ok := blockedUrlPatterns["patterns"].([]interface{}); ok {
+		if patterns, ok := bup["patterns"].([]interface{}); ok {
 			var patternList []attr.Value
 			for _, pattern := range patterns {
 				if p, ok := pattern.(string); ok {
 					patternList = append(patternList, types.StringValue(p))
 				}
 			}
-			data.ContentFiltering.BlockedUrlPatterns.Patterns = types.ListValueMust(types.StringType, patternList)
+			blockedUrlPatterns.Attributes()["patterns"] = types.ListValueMust(types.StringType, patternList)
 		}
 	}
 
-	if blockedUrlCategories, ok := contentFiltering["blockedUrlCategories"].(map[string]interface{}); ok {
-		if settings, ok := blockedUrlCategories["settings"].(string); ok {
-			data.ContentFiltering.BlockedUrlCategories.Settings = types.StringValue(settings)
+	blockedUrlCategories, _ := types.ObjectValue(
+		map[string]attr.Type{
+			"categories": types.ListType{ElemType: types.StringType},
+			"settings":   types.StringType,
+		},
+		map[string]attr.Value{
+			"categories": types.ListNull(types.StringType),
+			"settings":   types.StringNull(),
+		},
+	)
+
+	if buc, ok := contentFiltering["blockedUrlCategories"].(map[string]interface{}); ok {
+		if settings, ok := buc["settings"].(string); ok {
+			blockedUrlCategories.Attributes()["settings"] = types.StringValue(settings)
 		} else {
-			data.ContentFiltering.BlockedUrlCategories.Settings = types.StringNull()
+			blockedUrlCategories.Attributes()["settings"] = types.StringNull()
 		}
 
-		// Blocked URL Categories
-		if categories, ok := blockedUrlCategories["categories"].([]interface{}); ok {
+		if categories, ok := buc["categories"].([]interface{}); ok {
 			var categoryList []attr.Value
 			for _, category := range categories {
 				if c, ok := category.(string); ok {
 					categoryList = append(categoryList, types.StringValue(c))
 				}
 			}
-			data.ContentFiltering.BlockedUrlCategories.Categories = types.ListValueMust(types.StringType, categoryList)
+			blockedUrlCategories.Attributes()["categories"] = types.ListValueMust(types.StringType, categoryList)
 		}
 	}
+
+	data.ContentFiltering, diags = types.ObjectValue(
+		map[string]attr.Type{
+			"allowed_url_patterns":   types.ObjectType{AttrTypes: allowedUrlPatterns.Type(ctx).(types.ObjectType).AttrTypes},
+			"blocked_url_patterns":   types.ObjectType{AttrTypes: blockedUrlPatterns.Type(ctx).(types.ObjectType).AttrTypes},
+			"blocked_url_categories": types.ObjectType{AttrTypes: blockedUrlCategories.Type(ctx).(types.ObjectType).AttrTypes},
+		},
+		map[string]attr.Value{
+			"allowed_url_patterns":   allowedUrlPatterns,
+			"blocked_url_patterns":   blockedUrlPatterns,
+			"blocked_url_categories": blockedUrlCategories,
+		},
+	)
+
+	return diags
 }
 
 func updateBonjourForwardingRules(rules *[]BonjourForwardingRuleModel, bonjourForwarding map[string]interface{}) {
@@ -887,6 +1088,17 @@ func updateBonjourForwardingRules(rules *[]BonjourForwardingRuleModel, bonjourFo
 			}
 		}
 	}
+}
+
+func validateSettings(settings *string) *string {
+	validSettings := []string{"network default", "append", "override"}
+	for _, valid := range validSettings {
+		if settings != nil && *settings == valid {
+			return settings
+		}
+	}
+	defaultSetting := "network default"
+	return &defaultSetting
 }
 
 // Create handles the creation of the group policy.
@@ -944,14 +1156,23 @@ func (r *NetworksGroupPolicyResource) Create(ctx context.Context, req resource.C
 		}
 	}
 
-	if data.Bandwidth != nil {
-		limitUp := int32(data.Bandwidth.BandwidthLimits.LimitUp.ValueInt64())
-		limitDown := int32(data.Bandwidth.BandwidthLimits.LimitDown.ValueInt64())
+	if !data.Bandwidth.IsNull() && !data.Bandwidth.IsUnknown() {
+		bandwidthAttrs := data.Bandwidth.Attributes()
+		settings := bandwidthAttrs["settings"].(types.String)
+
+		bandwidthLimitsObj := bandwidthAttrs["bandwidth_limits"].(basetypes.ObjectValue)
+		bandwidthLimitsAttrs := bandwidthLimitsObj.Attributes()
+		limitUp := bandwidthLimitsAttrs["limit_up"].(types.Int64)
+		limitDown := bandwidthLimitsAttrs["limit_down"].(types.Int64)
+
+		limitUpInt := int32(limitUp.ValueInt64())
+		limitDownInt := int32(limitDown.ValueInt64())
+
 		groupPolicy.Bandwidth = &client.CreateNetworkGroupPolicyRequestBandwidth{
-			Settings: data.Bandwidth.Settings.ValueStringPointer(),
+			Settings: settings.ValueStringPointer(),
 			BandwidthLimits: &client.CreateNetworkGroupPolicyRequestBandwidthBandwidthLimits{
-				LimitUp:   &limitUp,
-				LimitDown: &limitDown,
+				LimitUp:   &limitUpInt,
+				LimitDown: &limitDownInt,
 			},
 		}
 	}
@@ -1021,42 +1242,53 @@ func (r *NetworksGroupPolicyResource) Create(ctx context.Context, req resource.C
 		}
 	}
 
-	if data.ContentFiltering != nil {
-		groupPolicy.ContentFiltering = &client.CreateNetworkGroupPolicyRequestContentFiltering{}
+	if !data.ContentFiltering.IsNull() && !data.ContentFiltering.IsUnknown() {
+		contentFilteringAttrs := data.ContentFiltering.Attributes()
 
-		// Initialize and set AllowedUrlPatterns
-		if data.ContentFiltering.AllowedUrlPatterns.Settings.ValueString() != "" {
-			groupPolicy.ContentFiltering.AllowedUrlPatterns = &client.CreateNetworkGroupPolicyRequestContentFilteringAllowedUrlPatterns{
-				Settings: data.ContentFiltering.AllowedUrlPatterns.Settings.ValueStringPointer(),
-			}
+		allowedUrlPatternsObj := contentFilteringAttrs["allowed_url_patterns"].(basetypes.ObjectValue)
+		allowedUrlPatternsAttrs := allowedUrlPatternsObj.Attributes()
+		allowedPatterns := allowedUrlPatternsAttrs["patterns"].(types.List)
+		allowedSettings := allowedUrlPatternsAttrs["settings"].(types.String)
 
-			// Ranging over Allowed URL Patterns
-			for _, ap := range data.ContentFiltering.AllowedUrlPatterns.Patterns.Elements() {
-				groupPolicy.ContentFiltering.AllowedUrlPatterns.Patterns = append(groupPolicy.ContentFiltering.AllowedUrlPatterns.Patterns, ap.String())
-			}
+		blockedUrlPatternsObj := contentFilteringAttrs["blocked_url_patterns"].(basetypes.ObjectValue)
+		blockedUrlPatternsAttrs := blockedUrlPatternsObj.Attributes()
+		blockedPatterns := blockedUrlPatternsAttrs["patterns"].(types.List)
+		blockedSettings := blockedUrlPatternsAttrs["settings"].(types.String)
+
+		blockedUrlCategoriesObj := contentFilteringAttrs["blocked_url_categories"].(basetypes.ObjectValue)
+		blockedUrlCategoriesAttrs := blockedUrlCategoriesObj.Attributes()
+		blockedCategories := blockedUrlCategoriesAttrs["categories"].(types.List)
+		blockedCategoriesSettings := blockedUrlCategoriesAttrs["settings"].(types.String)
+
+		groupPolicy.ContentFiltering = &client.CreateNetworkGroupPolicyRequestContentFiltering{
+			AllowedUrlPatterns: &client.CreateNetworkGroupPolicyRequestContentFilteringAllowedUrlPatterns{
+				Settings: validateSettings(allowedSettings.ValueStringPointer()),
+				Patterns: extractPatternsFromList(allowedPatterns),
+			},
+			BlockedUrlPatterns: &client.CreateNetworkGroupPolicyRequestContentFilteringBlockedUrlPatterns{
+				Settings: validateSettings(blockedSettings.ValueStringPointer()),
+				Patterns: extractPatternsFromList(blockedPatterns),
+			},
+			BlockedUrlCategories: &client.CreateNetworkGroupPolicyRequestContentFilteringBlockedUrlCategories{
+				Settings:   validateSettings(blockedCategoriesSettings.ValueStringPointer()),
+				Categories: extractPatternsFromList(blockedCategories),
+			},
 		}
-
-		// Initialize and set BlockedUrlPatterns
-		if data.ContentFiltering.BlockedUrlPatterns.Settings.ValueString() != "" {
-			groupPolicy.ContentFiltering.BlockedUrlPatterns = &client.CreateNetworkGroupPolicyRequestContentFilteringBlockedUrlPatterns{
-				Settings: data.ContentFiltering.BlockedUrlPatterns.Settings.ValueStringPointer(),
-			}
-
-			// Ranging over Blocked URL Patterns
-			for _, bp := range data.ContentFiltering.BlockedUrlPatterns.Patterns.Elements() {
-				groupPolicy.ContentFiltering.BlockedUrlPatterns.Patterns = append(groupPolicy.ContentFiltering.BlockedUrlPatterns.Patterns, bp.String())
-			}
-		}
-
-		// Initialize and set BlockedUrlCategories
-		if data.ContentFiltering.BlockedUrlCategories.Settings.ValueString() != "" {
-			groupPolicy.ContentFiltering.BlockedUrlCategories = &client.CreateNetworkGroupPolicyRequestContentFilteringBlockedUrlCategories{
-				Settings: data.ContentFiltering.BlockedUrlCategories.Settings.ValueStringPointer(),
-			}
-			// Ranging over Blocked URL Categories
-			for _, bc := range data.ContentFiltering.BlockedUrlCategories.Categories.Elements() {
-				groupPolicy.ContentFiltering.BlockedUrlCategories.Categories = append(groupPolicy.ContentFiltering.BlockedUrlCategories.Categories, bc.String())
-			}
+	} else {
+		networkDefault := "network default"
+		groupPolicy.ContentFiltering = &client.CreateNetworkGroupPolicyRequestContentFiltering{
+			AllowedUrlPatterns: &client.CreateNetworkGroupPolicyRequestContentFilteringAllowedUrlPatterns{
+				Settings: &networkDefault,
+				Patterns: nil,
+			},
+			BlockedUrlPatterns: &client.CreateNetworkGroupPolicyRequestContentFilteringBlockedUrlPatterns{
+				Settings: &networkDefault,
+				Patterns: nil,
+			},
+			BlockedUrlCategories: &client.CreateNetworkGroupPolicyRequestContentFilteringBlockedUrlCategories{
+				Settings:   &networkDefault,
+				Categories: nil,
+			},
 		}
 	}
 
@@ -1124,7 +1356,7 @@ func (r *NetworksGroupPolicyResource) Create(ctx context.Context, req resource.C
 	}
 
 	// Update the state with the new data
-	updateGroupPolicyState(&data, createdPolicy)
+	updateGroupPolicyState(ctx, &data, createdPolicy)
 
 	diags = resp.State.Set(ctx, &data)
 	resp.Diagnostics.Append(diags...)
@@ -1162,7 +1394,7 @@ func (r *NetworksGroupPolicyResource) Read(ctx context.Context, req resource.Rea
 	}
 
 	// Update the state with the new data
-	updateGroupPolicyState(&data, readPolicy)
+	updateGroupPolicyState(ctx, &data, readPolicy)
 
 	diags = resp.State.Set(ctx, &data)
 	resp.Diagnostics.Append(diags...)
@@ -1226,14 +1458,23 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 		}
 	}
 
-	if data.Bandwidth != nil {
-		limitUp := int32(data.Bandwidth.BandwidthLimits.LimitUp.ValueInt64())
-		limitDown := int32(data.Bandwidth.BandwidthLimits.LimitDown.ValueInt64())
+	if !data.Bandwidth.IsNull() && !data.Bandwidth.IsUnknown() {
+		bandwidthAttrs := data.Bandwidth.Attributes()
+		settings := bandwidthAttrs["settings"].(types.String)
+
+		bandwidthLimitsObj := bandwidthAttrs["bandwidth_limits"].(basetypes.ObjectValue)
+		bandwidthLimitsAttrs := bandwidthLimitsObj.Attributes()
+		limitUp := bandwidthLimitsAttrs["limit_up"].(types.Int64)
+		limitDown := bandwidthLimitsAttrs["limit_down"].(types.Int64)
+
+		limitUpInt := int32(limitUp.ValueInt64())
+		limitDownInt := int32(limitDown.ValueInt64())
+
 		groupPolicy.Bandwidth = &client.CreateNetworkGroupPolicyRequestBandwidth{
-			Settings: data.Bandwidth.Settings.ValueStringPointer(),
+			Settings: settings.ValueStringPointer(),
 			BandwidthLimits: &client.CreateNetworkGroupPolicyRequestBandwidthBandwidthLimits{
-				LimitUp:   &limitUp,
-				LimitDown: &limitDown,
+				LimitUp:   &limitUpInt,
+				LimitDown: &limitDownInt,
 			},
 		}
 	}
@@ -1303,43 +1544,53 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 		}
 	}
 
-	if data.ContentFiltering != nil {
-		groupPolicy.ContentFiltering = &client.CreateNetworkGroupPolicyRequestContentFiltering{}
+	if !data.ContentFiltering.IsNull() && !data.ContentFiltering.IsUnknown() {
+		contentFilteringAttrs := data.ContentFiltering.Attributes()
 
-		// Initialize and set AllowedUrlPatterns
-		if data.ContentFiltering.AllowedUrlPatterns.Settings.ValueString() != "" {
-			groupPolicy.ContentFiltering.AllowedUrlPatterns = &client.CreateNetworkGroupPolicyRequestContentFilteringAllowedUrlPatterns{
-				Settings: data.ContentFiltering.AllowedUrlPatterns.Settings.ValueStringPointer(),
-			}
+		allowedUrlPatternsObj := contentFilteringAttrs["allowed_url_patterns"].(basetypes.ObjectValue)
+		allowedUrlPatternsAttrs := allowedUrlPatternsObj.Attributes()
+		allowedPatterns := allowedUrlPatternsAttrs["patterns"].(types.List)
+		allowedSettings := allowedUrlPatternsAttrs["settings"].(types.String)
 
-			// Ranging over Allowed URL Patterns
-			for _, ap := range data.ContentFiltering.AllowedUrlPatterns.Patterns.Elements() {
-				groupPolicy.ContentFiltering.AllowedUrlPatterns.Patterns = append(groupPolicy.ContentFiltering.AllowedUrlPatterns.Patterns, ap.String())
-			}
+		blockedUrlPatternsObj := contentFilteringAttrs["blocked_url_patterns"].(basetypes.ObjectValue)
+		blockedUrlPatternsAttrs := blockedUrlPatternsObj.Attributes()
+		blockedPatterns := blockedUrlPatternsAttrs["patterns"].(types.List)
+		blockedSettings := blockedUrlPatternsAttrs["settings"].(types.String)
+
+		blockedUrlCategoriesObj := contentFilteringAttrs["blocked_url_categories"].(basetypes.ObjectValue)
+		blockedUrlCategoriesAttrs := blockedUrlCategoriesObj.Attributes()
+		blockedCategories := blockedUrlCategoriesAttrs["categories"].(types.List)
+		blockedCategoriesSettings := blockedUrlCategoriesAttrs["settings"].(types.String)
+
+		groupPolicy.ContentFiltering = &client.CreateNetworkGroupPolicyRequestContentFiltering{
+			AllowedUrlPatterns: &client.CreateNetworkGroupPolicyRequestContentFilteringAllowedUrlPatterns{
+				Settings: validateSettings(allowedSettings.ValueStringPointer()),
+				Patterns: extractPatternsFromList(allowedPatterns),
+			},
+			BlockedUrlPatterns: &client.CreateNetworkGroupPolicyRequestContentFilteringBlockedUrlPatterns{
+				Settings: validateSettings(blockedSettings.ValueStringPointer()),
+				Patterns: extractPatternsFromList(blockedPatterns),
+			},
+			BlockedUrlCategories: &client.CreateNetworkGroupPolicyRequestContentFilteringBlockedUrlCategories{
+				Settings:   validateSettings(blockedCategoriesSettings.ValueStringPointer()),
+				Categories: extractPatternsFromList(blockedCategories),
+			},
 		}
-
-		// Initialize and set BlockedUrlPatterns
-		if data.ContentFiltering.BlockedUrlPatterns.Settings.ValueString() != "" {
-			groupPolicy.ContentFiltering.BlockedUrlPatterns = &client.CreateNetworkGroupPolicyRequestContentFilteringBlockedUrlPatterns{
-				Settings: data.ContentFiltering.BlockedUrlPatterns.Settings.ValueStringPointer(),
-			}
-
-			// Ranging over Blocked URL Patterns
-			for _, bp := range data.ContentFiltering.BlockedUrlPatterns.Patterns.Elements() {
-				groupPolicy.ContentFiltering.BlockedUrlPatterns.Patterns = append(groupPolicy.ContentFiltering.BlockedUrlPatterns.Patterns, bp.String())
-			}
-		}
-
-		// Initialize and set BlockedUrlCategories
-		if data.ContentFiltering.BlockedUrlCategories.Settings.ValueString() != "" {
-			groupPolicy.ContentFiltering.BlockedUrlCategories = &client.CreateNetworkGroupPolicyRequestContentFilteringBlockedUrlCategories{
-				Settings: data.ContentFiltering.BlockedUrlCategories.Settings.ValueStringPointer(),
-			}
-
-			// Ranging over Blocked URL Categories
-			for _, bc := range data.ContentFiltering.BlockedUrlCategories.Categories.Elements() {
-				groupPolicy.ContentFiltering.BlockedUrlCategories.Categories = append(groupPolicy.ContentFiltering.BlockedUrlCategories.Categories, bc.String())
-			}
+	} else {
+		networkDefault := "network default"
+		groupPolicy.ContentFiltering = &client.CreateNetworkGroupPolicyRequestContentFiltering{
+			AllowedUrlPatterns: &client.CreateNetworkGroupPolicyRequestContentFilteringAllowedUrlPatterns{
+				Settings: &networkDefault,
+				Patterns: nil,
+			},
+			BlockedUrlPatterns: &client.CreateNetworkGroupPolicyRequestContentFilteringBlockedUrlPatterns{
+				Settings: &networkDefault,
+				Patterns: nil,
+			},
+			BlockedUrlCategories: &client.CreateNetworkGroupPolicyRequestContentFilteringBlockedUrlCategories{
+				Settings:   &networkDefault,
+				Categories: nil,
+			},
 		}
 	}
 
@@ -1407,7 +1658,7 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 	}
 
 	// Update the state with the new data
-	updateGroupPolicyState(&data, updatePolicy)
+	updateGroupPolicyState(ctx, &data, updatePolicy)
 
 	diags = resp.State.Set(ctx, &data)
 	resp.Diagnostics.Append(diags...)
