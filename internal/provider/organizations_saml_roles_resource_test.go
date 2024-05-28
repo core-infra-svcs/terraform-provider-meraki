@@ -116,6 +116,7 @@ resource "meraki_organizations_saml_role" "test" {
 	organization_id = resource.meraki_organization.test.organization_id
 	role = "testrole"
 	org_access = "read-only"
+	tags = []
 	networks    = [{
                   id = resource.meraki_network.test.network_id
                   access = "read-only"

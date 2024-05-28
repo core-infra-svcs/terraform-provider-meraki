@@ -105,6 +105,7 @@ func (r *OrganizationsSamlRolesResource) Schema(ctx context.Context, req resourc
 			"tags": schema.SetNestedAttribute{
 				Description: "The list of tags that the SAML administrator has privleges on.",
 				Optional:    true,
+				Computed:    true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"tag": schema.StringAttribute{
