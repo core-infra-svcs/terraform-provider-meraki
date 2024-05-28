@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"regexp"
+	"strconv"
 	"time"
 
 	"github.com/hashicorp/go-retryablehttp"
@@ -28,9 +29,6 @@ var _ provider.Provider = &CiscoMerakiProvider{}
 
 // CiscoMerakiProvider defines the provider implementation.
 type CiscoMerakiProvider struct {
-	// version is set to the provider version on release, "dev" when the
-	// provider is built and ran locally, and "test" when running acceptance
-	// testing.
 	version string
 }
 
@@ -50,13 +48,26 @@ func retryAPICall(ctx context.Context, call APICallFunc) (interface{}, *http.Res
 		}
 
 		if httpResp != nil && httpResp.StatusCode == http.StatusTooManyRequests {
-			// Optional: parse Retry-After header to set dynamic delay
-			time.Sleep(retryDelay) // Wait before retrying
+			// Parse Retry-After header to set dynamic delay
+			retryAfter := httpResp.Header.Get("Retry-After")
+			if retryAfter != "" {
+				if delay, err := strconv.Atoi(retryAfter); err == nil {
+					time.Sleep(time.Duration(delay) * time.Second)
+				} else if t, err := http.ParseTime(retryAfter); err == nil {
+					time.Sleep(time.Until(t))
+				} else {
+					time.Sleep(retryDelay) // Fallback to default delay
+				}
+			} else {
+				time.Sleep(retryDelay) // Fallback to default delay
+			}
+			retryDelay *= 2 // Exponential backoff
 			continue
 		}
 
 		if attempt < maxRetries {
 			time.Sleep(retryDelay) // Wait before retrying
+			retryDelay *= 2        // Exponential backoff
 			continue
 		}
 
@@ -180,12 +191,9 @@ func (p *CiscoMerakiProvider) Configure(ctx context.Context, req provider.Config
 
 	// Debug
 	if p.version == "dev" {
-
 		// always enable debug for provider development
 		configuration.Debug = true
-
 	} else if data.LoggingEnabled.ValueBool() {
-
 		// check if user enabled debug in the provider
 		configuration.Debug = data.LoggingEnabled.ValueBool()
 	}
@@ -249,7 +257,6 @@ func (p *CiscoMerakiProvider) Configure(ctx context.Context, req provider.Config
 
 	// add certificate to retryClient if certificate path isn't empty
 	if configuration.CertificatePath != "" {
-
 		// Load the certificate file
 		certFile := configuration.CertificatePath
 		cert, err := os.ReadFile(certFile)
@@ -264,7 +271,6 @@ func (p *CiscoMerakiProvider) Configure(ctx context.Context, req provider.Config
 
 		// Create a custom Cert pool with the certificate and add TLS configuration to transport
 		transport.TLSClientConfig.RootCAs = certPool
-
 	}
 
 	if configuration.RequestsProxy != "" {
@@ -278,7 +284,6 @@ func (p *CiscoMerakiProvider) Configure(ctx context.Context, req provider.Config
 	retryClient.HTTPClient.Timeout = time.Duration(configuration.SingleRequestTimeout) * time.Second
 
 	retryClient.RetryMax = configuration.MaximumRetries
-
 	retryClient.RetryWaitMax = time.Duration(configuration.Nginx429RetryWaitTime) * time.Second
 
 	configuration.UserAgent = configuration.UserAgent + "terraform" + p.version
@@ -302,7 +307,6 @@ func (p *CiscoMerakiProvider) Configure(ctx context.Context, req provider.Config
 
 	resp.DataSourceData = client
 	resp.ResourceData = client
-
 }
 
 func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.Resource {
