@@ -105,9 +105,14 @@ func (r *NetworksDevicesClaimResource) Create(ctx context.Context, req resource.
 
 	httpResp, err := r.client.NetworksApi.ClaimNetworkDevices(ctx, data.NetworkId.ValueString()).ClaimNetworkDevicesRequest(claimNetworkDevices).Execute()
 	retries := 0
+	remaining := maxRetries - retries
 	for retries < maxRetries && httpResp != nil && httpResp.StatusCode == http.StatusBadRequest {
-		fmt.Println(fmt.Sprintf("Claim Retrying Max: %v, Delay: %v, Attempt:%v", maxRetries, retryDelay, retries))
-		fmt.Println(fmt.Sprintf("Serials: %s", data.Serials))
+		tflog.Warn(ctx, "Retrying Create API call", map[string]interface{}{
+			"maxRetries":        maxRetries,
+			"retryDelay":        retryDelay,
+			"remainingAttempts": remaining,
+			"httpStatusCode":    httpResp.StatusCode,
+		})
 		time.Sleep(time.Duration(retryDelay) * time.Second)
 		httpResp, err = r.client.NetworksApi.ClaimNetworkDevices(ctx, data.NetworkId.ValueString()).ClaimNetworkDevicesRequest(claimNetworkDevices).Execute()
 		retries++

@@ -14,17 +14,12 @@ import (
 	"github.com/meraki/dashboard-api-go/client"
 )
 
-type networksSnmpResource struct {
+type NetworksSnmpResource struct {
 	client *client.APIClient
 }
 
 func NewNetworksSnmpResource() resource.Resource {
-	return &networksSnmpResource{}
-}
-
-// NetworksSnmpResource defines the resource implementation.
-type NetworksSnmpResource struct {
-	client *client.APIClient
+	return &NetworksSnmpResource{}
 }
 
 // NetworksSnmpResourceModel describes the resource data model.
@@ -41,11 +36,11 @@ type NetworksSnmpResourceModelUsers struct {
 	Passphrase jsontypes.String `tfsdk:"passphrase"`
 }
 
-func (r *networksSnmpResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *NetworksSnmpResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_networks_snmp"
 }
 
-func (r *networksSnmpResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *NetworksSnmpResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "network snmp settings.",
 		Attributes: map[string]schema.Attribute{
@@ -104,7 +99,7 @@ func (r *networksSnmpResource) Schema(_ context.Context, _ resource.SchemaReques
 	}
 }
 
-func (r *networksSnmpResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *NetworksSnmpResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -112,7 +107,7 @@ func (r *networksSnmpResource) Configure(_ context.Context, req resource.Configu
 	r.client = req.ProviderData.(*client.APIClient)
 }
 
-func (r *networksSnmpResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *NetworksSnmpResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan NetworksSnmpResourceModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
@@ -161,7 +156,7 @@ func (r *networksSnmpResource) Create(ctx context.Context, req resource.CreateRe
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
-func (r *networksSnmpResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *NetworksSnmpResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state NetworksSnmpResourceModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -200,7 +195,7 @@ func (r *networksSnmpResource) Read(ctx context.Context, req resource.ReadReques
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
-func (r *networksSnmpResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *NetworksSnmpResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan NetworksSnmpResourceModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
@@ -249,7 +244,7 @@ func (r *networksSnmpResource) Update(ctx context.Context, req resource.UpdateRe
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
-func (r *networksSnmpResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *NetworksSnmpResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var state NetworksSnmpResourceModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -270,7 +265,7 @@ func (r *networksSnmpResource) Delete(ctx context.Context, req resource.DeleteRe
 	resp.State.RemoveResource(ctx)
 }
 
-func (r *networksSnmpResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *NetworksSnmpResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("network_id"), req.ID)...)
