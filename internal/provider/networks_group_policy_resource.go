@@ -3,13 +3,16 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/meraki/dashboard-api-go/client"
 	"io"
 	"net/http"
@@ -29,6 +32,7 @@ func NewNetworksGroupPolicyResource() resource.Resource {
 
 // Ensure provider defined types fully satisfy framework interfaces
 var _ resource.Resource = &NetworksGroupPolicyResource{}
+var _ resource.ResourceWithConfigure = &NetworksGroupPolicyResource{}
 var _ resource.ResourceWithImportState = &NetworksGroupPolicyResource{}
 
 // GroupPolicyResourceModel represents a group policy.
@@ -46,47 +50,47 @@ type GroupPolicyResourceModel struct {
 	BonjourForwarding         types.Object `tfsdk:"bonjour_forwarding" json:"bonjourForwarding"`
 }
 
-// SchedulingModel represents the scheduling settings.
-type SchedulingModel struct {
-	Enabled   types.Bool        `tfsdk:"enabled" json:"enabled"`
-	Monday    *ScheduleDayModel `tfsdk:"monday" json:"monday"`
-	Tuesday   *ScheduleDayModel `tfsdk:"tuesday" json:"tuesday"`
-	Wednesday *ScheduleDayModel `tfsdk:"wednesday" json:"wednesday"`
-	Thursday  *ScheduleDayModel `tfsdk:"thursday" json:"thursday"`
-	Friday    *ScheduleDayModel `tfsdk:"friday" json:"friday"`
-	Saturday  *ScheduleDayModel `tfsdk:"saturday" json:"saturday"`
-	Sunday    *ScheduleDayModel `tfsdk:"sunday" json:"sunday"`
+// GroupPolicyResourceModelScheduling represents the scheduling settings.
+type GroupPolicyResourceModelScheduling struct {
+	Enabled   types.Bool                           `tfsdk:"enabled" json:"enabled"`
+	Monday    *GroupPolicyResourceModelScheduleDay `tfsdk:"monday" json:"monday"`
+	Tuesday   *GroupPolicyResourceModelScheduleDay `tfsdk:"tuesday" json:"tuesday"`
+	Wednesday *GroupPolicyResourceModelScheduleDay `tfsdk:"wednesday" json:"wednesday"`
+	Thursday  *GroupPolicyResourceModelScheduleDay `tfsdk:"thursday" json:"thursday"`
+	Friday    *GroupPolicyResourceModelScheduleDay `tfsdk:"friday" json:"friday"`
+	Saturday  *GroupPolicyResourceModelScheduleDay `tfsdk:"saturday" json:"saturday"`
+	Sunday    *GroupPolicyResourceModelScheduleDay `tfsdk:"sunday" json:"sunday"`
 }
 
-// ScheduleDayModel represents a single day's schedule.
-type ScheduleDayModel struct {
+// GroupPolicyResourceModelScheduleDay represents a single day's schedule.
+type GroupPolicyResourceModelScheduleDay struct {
 	Active types.Bool   `tfsdk:"active" json:"active"`
 	From   types.String `tfsdk:"from" json:"from"`
 	To     types.String `tfsdk:"to" json:"to"`
 }
 
-// BandwidthModel represents the bandwidth settings.
-type BandwidthModel struct {
-	Settings        types.String          `tfsdk:"settings" json:"settings"`
-	BandwidthLimits *BandwidthLimitsModel `tfsdk:"bandwidth_limits" json:"bandwidthLimits"`
+// GroupPolicyResourceModelBandwidth represents the bandwidth settings.
+type GroupPolicyResourceModelBandwidth struct {
+	Settings        types.String                             `tfsdk:"settings" json:"settings"`
+	BandwidthLimits *GroupPolicyResourceModelBandwidthLimits `tfsdk:"bandwidth_limits" json:"bandwidthLimits"`
 }
 
-// BandwidthLimitsModel represents the bandwidth limits.
-type BandwidthLimitsModel struct {
+// GroupPolicyResourceModelBandwidthLimits represents the bandwidth limits.
+type GroupPolicyResourceModelBandwidthLimits struct {
 	LimitUp   types.Int64 `tfsdk:"limit_up" json:"limitUp"`
 	LimitDown types.Int64 `tfsdk:"limit_down" json:"limitDown"`
 }
 
-// FirewallAndTrafficShapingModel represents the firewall and traffic shaping settings.
-type FirewallAndTrafficShapingModel struct {
-	Settings            types.String              `tfsdk:"settings" json:"settings"`
-	L3FirewallRules     []L3FirewallRuleModel     `tfsdk:"l3_firewall_rules" json:"l3FirewallRules"`
-	L7FirewallRules     []L7FirewallRuleModel     `tfsdk:"l7_firewall_rules" json:"l7FirewallRules"`
-	TrafficShapingRules []TrafficShapingRuleModel `tfsdk:"traffic_shaping_rules" json:"trafficShapingRules"`
+// GroupPolicyResourceModelFirewallAndTrafficShaping represents the firewall and traffic shaping settings.
+type GroupPolicyResourceModelFirewallAndTrafficShaping struct {
+	Settings            types.String                                 `tfsdk:"settings" json:"settings"`
+	L3FirewallRules     []GroupPolicyResourceModelL3FirewallRule     `tfsdk:"l3_firewall_rules" json:"l3FirewallRules"`
+	L7FirewallRules     []GroupPolicyResourceModelL7FirewallRule     `tfsdk:"l7_firewall_rules" json:"l7FirewallRules"`
+	TrafficShapingRules []GroupPolicyResourceModelTrafficShapingRule `tfsdk:"traffic_shaping_rules" json:"trafficShapingRules"`
 }
 
-// L3FirewallRuleModel represents a layer 3 firewall rule.
-type L3FirewallRuleModel struct {
+// GroupPolicyResourceModelL3FirewallRule represents a layer 3 firewall rule.
+type GroupPolicyResourceModelL3FirewallRule struct {
 	Comment  types.String `tfsdk:"comment" json:"comment"`
 	Policy   types.String `tfsdk:"policy" json:"policy"`
 	Protocol types.String `tfsdk:"protocol" json:"protocol"`
@@ -94,64 +98,64 @@ type L3FirewallRuleModel struct {
 	DestCidr types.String `tfsdk:"dest_cidr" json:"destCidr"`
 }
 
-// L7FirewallRuleModel represents a layer 7 firewall rule.
-type L7FirewallRuleModel struct {
+// GroupPolicyResourceModelL7FirewallRule represents a layer 7 firewall rule.
+type GroupPolicyResourceModelL7FirewallRule struct {
 	Policy types.String `tfsdk:"policy" json:"policy"`
 	Type   types.String `tfsdk:"type" json:"type"`
 	Value  types.String `tfsdk:"value" json:"value"`
 }
 
-// TrafficShapingRuleModel represents a traffic shaping rule.2
-type TrafficShapingRuleModel struct {
-	DscpTagValue             types.Int64                     `tfsdk:"dscp_tag_value" json:"dscpTagValue"`
-	PcpTagValue              types.Int64                     `tfsdk:"pcp_tag_value" json:"pcpTagValue"`
-	PerClientBandwidthLimits *PerClientBandwidthLimitsModel  `tfsdk:"per_client_bandwidth_limits" json:"perClientBandwidthLimits"`
-	Definitions              []TrafficShapingDefinitionModel `tfsdk:"definitions" json:"definitions"`
+// GroupPolicyResourceModelTrafficShapingRule represents a traffic shaping rule.2
+type GroupPolicyResourceModelTrafficShapingRule struct {
+	DscpTagValue             types.Int64                                        `tfsdk:"dscp_tag_value" json:"dscpTagValue"`
+	PcpTagValue              types.Int64                                        `tfsdk:"pcp_tag_value" json:"pcpTagValue"`
+	PerClientBandwidthLimits *GroupPolicyResourceModelPerClientBandwidthLimits  `tfsdk:"per_client_bandwidth_limits" json:"perClientBandwidthLimits"`
+	Definitions              []GroupPolicyResourceModelTrafficShapingDefinition `tfsdk:"definitions" json:"definitions"`
 }
 
-// PerClientBandwidthLimitsModel represents the per-client bandwidth limits.
-type PerClientBandwidthLimitsModel struct {
-	Settings        types.String          `tfsdk:"settings" json:"settings"`
-	BandwidthLimits *BandwidthLimitsModel `tfsdk:"bandwidth_limits" json:"bandwidthLimits"`
+// GroupPolicyResourceModelPerClientBandwidthLimits represents the per-client bandwidth limits.
+type GroupPolicyResourceModelPerClientBandwidthLimits struct {
+	Settings        types.String                             `tfsdk:"settings" json:"settings"`
+	BandwidthLimits *GroupPolicyResourceModelBandwidthLimits `tfsdk:"bandwidth_limits" json:"bandwidthLimits"`
 }
 
-// TrafficShapingDefinitionModel represents a traffic shaping definition.
-type TrafficShapingDefinitionModel struct {
+// GroupPolicyResourceModelTrafficShapingDefinition represents a traffic shaping definition.
+type GroupPolicyResourceModelTrafficShapingDefinition struct {
 	Type  types.String `tfsdk:"type" json:"type"`
 	Value types.String `tfsdk:"value" json:"value"`
 }
 
-// ContentFilteringModel represents the content filtering settings.
-type ContentFilteringModel struct {
-	AllowedUrlPatterns   UrlPatterns   `tfsdk:"allowed_url_patterns" json:"allowedUrlPatterns"`
-	BlockedUrlPatterns   UrlPatterns   `tfsdk:"blocked_url_patterns" json:"blockedUrlPatterns"`
-	BlockedUrlCategories UrlCategories `tfsdk:"blocked_url_categories" json:"blockedUrlCategories"`
+// GroupPolicyResourceModelContentFiltering represents the content filtering settings.
+type GroupPolicyResourceModelContentFiltering struct {
+	AllowedUrlPatterns   GroupPolicyResourceModelUrlPatterns   `tfsdk:"allowed_url_patterns" json:"allowedUrlPatterns"`
+	BlockedUrlPatterns   GroupPolicyResourceModelUrlPatterns   `tfsdk:"blocked_url_patterns" json:"blockedUrlPatterns"`
+	BlockedUrlCategories GroupPolicyResourceModelUrlCategories `tfsdk:"blocked_url_categories" json:"blockedUrlCategories"`
 }
 
-type UrlPatterns struct {
+type GroupPolicyResourceModelUrlPatterns struct {
 	Patterns types.List   `tfsdk:"patterns" json:"patterns"`
 	Settings types.String `tfsdk:"settings" json:"settings"`
 }
 
-type UrlCategories struct {
+type GroupPolicyResourceModelUrlCategories struct {
 	Categories types.List   `tfsdk:"categories" json:"categories"`
 	Settings   types.String `tfsdk:"settings" json:"settings"`
 }
 
-// VlanTaggingModel represents the VLAN tagging settings.
-type VlanTaggingModel struct {
+// GroupPolicyResourceModelVlanTagging represents the VLAN tagging settings.
+type GroupPolicyResourceModelVlanTagging struct {
 	Settings types.String `tfsdk:"settings" json:"settings"`
 	VlanID   types.String `tfsdk:"vlan_id" json:"vlanId"`
 }
 
-// BonjourForwardingModel represents the Bonjour forwarding settings.
-type BonjourForwardingModel struct {
-	Settings types.String                 `tfsdk:"settings" json:"settings"`
-	Rules    []BonjourForwardingRuleModel `tfsdk:"rules" json:"rules"`
+// GroupPolicyResourceModelBonjourForwarding represents the Bonjour forwarding settings.
+type GroupPolicyResourceModelBonjourForwarding struct {
+	Settings types.String                                    `tfsdk:"settings" json:"settings"`
+	Rules    []GroupPolicyResourceModelBonjourForwardingRule `tfsdk:"rules" json:"rules"`
 }
 
-// BonjourForwardingRuleModel represents a Bonjour forwarding rule.
-type BonjourForwardingRuleModel struct {
+// GroupPolicyResourceModelBonjourForwardingRule represents a Bonjour forwarding rule.
+type GroupPolicyResourceModelBonjourForwardingRule struct {
 	Description types.String   `tfsdk:"description" json:"description"`
 	VlanID      types.String   `tfsdk:"vlan_id" json:"vlanId"`
 	Services    []types.String `tfsdk:"services" json:"services"`
@@ -172,6 +176,9 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 			"network_id": schema.StringAttribute{
 				Required:    true,
 				Description: "The network ID where the group policy is applied.",
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(1, 31),
+				},
 			},
 			"name": schema.StringAttribute{
 				Required:    true,
@@ -587,7 +594,7 @@ func updateGroupPolicyResourceState(ctx context.Context, data *GroupPolicyResour
 	if scheduling, schedulingOk := groupPolicy["scheduling"].(map[string]interface{}); schedulingOk {
 		if scheduling != nil {
 
-			schedulingObj, schedulingDiags := updateSchedulingState(ctx, scheduling)
+			schedulingObj, schedulingDiags := updateGroupPolicyResourceStateScheduling(ctx, scheduling)
 			if schedulingDiags.HasError() {
 				diags.Append(schedulingDiags...)
 			}
@@ -609,7 +616,7 @@ func updateGroupPolicyResourceState(ctx context.Context, data *GroupPolicyResour
 
 	// Update Bandwidth
 	if bandwidth, ok := groupPolicy["bandwidth"].(map[string]interface{}); ok {
-		var bandwidthModel BandwidthModel
+		var bandwidthModel GroupPolicyResourceModelBandwidth
 
 		if settings, ok := bandwidth["settings"].(string); ok {
 			bandwidthModel.Settings = types.StringValue(settings)
@@ -630,10 +637,10 @@ func updateGroupPolicyResourceState(ctx context.Context, data *GroupPolicyResour
 				bandwidthModel.BandwidthLimits.LimitDown = types.Int64Null()
 			}
 		} else {
-			bandwidthModel.BandwidthLimits = &BandwidthLimitsModel{}
+			bandwidthModel.BandwidthLimits = &GroupPolicyResourceModelBandwidthLimits{}
 		}
 
-		// Convert BandwidthModel to types.Object
+		// Convert GroupPolicyResourceModelBandwidth to types.Object
 		bandwidthObject, err := types.ObjectValueFrom(ctx, map[string]attr.Type{
 			"settings": types.StringType,
 			"bandwidth_limits": types.ObjectType{AttrTypes: map[string]attr.Type{
@@ -665,7 +672,7 @@ func updateGroupPolicyResourceState(ctx context.Context, data *GroupPolicyResour
 
 	// Update VlanTagging
 	if vlanTagging, ok := groupPolicy["vlanTagging"].(map[string]interface{}); ok {
-		vlanTaggingObj, vlanTaggingDiags := updateVlanTaggingState(ctx, vlanTagging)
+		vlanTaggingObj, vlanTaggingDiags := updateGroupPolicyResourceStateVlanTagging(ctx, vlanTagging)
 		if vlanTaggingDiags.HasError() {
 			diags.Append(vlanTaggingDiags...)
 		}
@@ -752,7 +759,7 @@ func updateGroupPolicyResourceState(ctx context.Context, data *GroupPolicyResour
 	// Update FirewallAndTrafficShaping
 	if firewallAndTrafficShaping, ok := groupPolicy["firewallAndTrafficShaping"].(map[string]interface{}); ok {
 
-		firewallAndTrafficShapingObject, firewallAndTrafficShapingObjectDiags := updateFirewallAndTrafficShapingRules(ctx, firewallAndTrafficShaping)
+		firewallAndTrafficShapingObject, firewallAndTrafficShapingObjectDiags := updateGroupPolicyResourceStateFirewallAndTrafficShapingRules(ctx, firewallAndTrafficShaping)
 		if firewallAndTrafficShapingObjectDiags.HasError() {
 			diags.Append(firewallAndTrafficShapingObjectDiags...)
 		}
@@ -789,7 +796,7 @@ func updateGroupPolicyResourceState(ctx context.Context, data *GroupPolicyResour
 
 	// Update ContentFiltering
 	if contentFiltering, ok := groupPolicy["contentFiltering"].(map[string]interface{}); ok {
-		contentFilteringObj, cfDiags := updateContentFilteringState(ctx, contentFiltering)
+		contentFilteringObj, cfDiags := updateGroupPolicyResourceStateContentFiltering(ctx, contentFiltering)
 		if !cfDiags.HasError() {
 			diags.Append(cfDiags...)
 		}
@@ -814,10 +821,10 @@ func updateGroupPolicyResourceState(ctx context.Context, data *GroupPolicyResour
 	return diags
 }
 
-func updateSchedulingState(ctx context.Context, scheduling map[string]interface{}) (types.Object, diag.Diagnostics) {
+func updateGroupPolicyResourceStateScheduling(ctx context.Context, scheduling map[string]interface{}) (types.Object, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	newSchedulingObject := SchedulingModel{}
+	newSchedulingObject := GroupPolicyResourceModelScheduling{}
 
 	//enabled
 	enabled := types.BoolNull()
@@ -827,9 +834,9 @@ func updateSchedulingState(ctx context.Context, scheduling map[string]interface{
 	newSchedulingObject.Enabled = enabled
 
 	// Days of the week
-	updateScheduleDayModel := func(dayAttrName string) (ScheduleDayModel, diag.Diagnostics) {
+	updateScheduleDayModel := func(dayAttrName string) (GroupPolicyResourceModelScheduleDay, diag.Diagnostics) {
 		var ScheduleDayDiags diag.Diagnostics
-		var scheduleDay ScheduleDayModel
+		var scheduleDay GroupPolicyResourceModelScheduleDay
 
 		if day, dayOk := scheduling[dayAttrName].(map[string]interface{}); dayOk {
 
@@ -914,8 +921,7 @@ func updateSchedulingState(ctx context.Context, scheduling map[string]interface{
 	return nsod, diags
 
 }
-
-func updateFirewallAndTrafficShapingRules(ctx context.Context, firewallAndTrafficShapingRules map[string]interface{}) (types.Object, diag.Diagnostics) {
+func updateGroupPolicyResourceStateFirewallAndTrafficShapingRules(ctx context.Context, firewallAndTrafficShapingRules map[string]interface{}) (types.Object, diag.Diagnostics) {
 	diags := diag.Diagnostics{}
 
 	firewallAndTrafficShapingObjectNull := types.ObjectNull(map[string]attr.Type{
@@ -935,13 +941,13 @@ func updateFirewallAndTrafficShapingRules(ctx context.Context, firewallAndTraffi
 		}
 
 		// l3FirewallRules
-		var l3FirewallRules []L3FirewallRuleModel
+		var l3FirewallRules []GroupPolicyResourceModelL3FirewallRule
 		if l3frs, l3frsOk := firewallAndTrafficShapingRules["l3FirewallRules"].([]interface{}); l3frsOk {
 
 			for _, l3fwr := range l3frs {
 
 				if i, iOk := l3fwr.(map[string]interface{}); iOk {
-					rule := L3FirewallRuleModel{
+					rule := GroupPolicyResourceModelL3FirewallRule{
 						Comment:  types.StringNull(),
 						Policy:   types.StringNull(),
 						Protocol: types.StringNull(),
@@ -972,7 +978,7 @@ func updateFirewallAndTrafficShapingRules(ctx context.Context, firewallAndTraffi
 		}
 
 		// l7FirewallRules
-		var l7FirewallRules []L7FirewallRuleModel
+		var l7FirewallRules []GroupPolicyResourceModelL7FirewallRule
 		if l7fwrs, l7fwrsOk := firewallAndTrafficShapingRules["l7FirewallRules"].([]interface{}); l7fwrsOk {
 
 			for _, l7fwr := range l7fwrs {
@@ -997,7 +1003,7 @@ func updateFirewallAndTrafficShapingRules(ctx context.Context, firewallAndTraffi
 						val = types.StringValue(v)
 					}
 
-					rule := L7FirewallRuleModel{
+					rule := GroupPolicyResourceModelL7FirewallRule{
 						Policy: policy,
 						Type:   typ,
 						Value:  val,
@@ -1011,14 +1017,14 @@ func updateFirewallAndTrafficShapingRules(ctx context.Context, firewallAndTraffi
 		}
 
 		// trafficShapingRules
-		var trafficShapingRules []TrafficShapingRuleModel
+		var trafficShapingRules []GroupPolicyResourceModelTrafficShapingRule
 		if tsrs, tsrsOk := firewallAndTrafficShapingRules["trafficShapingRules"].([]interface{}); tsrsOk {
 
 			for _, tsr := range tsrs {
 
 				if sr, iOk := tsr.(map[string]interface{}); iOk {
 
-					var trafficShapingRule TrafficShapingRuleModel
+					var trafficShapingRule GroupPolicyResourceModelTrafficShapingRule
 
 					// dscpTagValue
 					if dscpTagValue, dscpTagValueOk := sr["dscpTagValue"].(float64); dscpTagValueOk {
@@ -1032,8 +1038,8 @@ func updateFirewallAndTrafficShapingRules(ctx context.Context, firewallAndTraffi
 
 					// perClientBandwidthLimits
 					if pcbl, pcblOk := sr["perClientBandwidthLimits"].(map[string]interface{}); pcblOk {
-						perClientBandwidthLimits := PerClientBandwidthLimitsModel{
-							BandwidthLimits: &BandwidthLimitsModel{}, // Initialize BandwidthLimits
+						perClientBandwidthLimits := GroupPolicyResourceModelPerClientBandwidthLimits{
+							BandwidthLimits: &GroupPolicyResourceModelBandwidthLimits{}, // Initialize BandwidthLimits
 						}
 
 						// settings
@@ -1056,13 +1062,13 @@ func updateFirewallAndTrafficShapingRules(ctx context.Context, firewallAndTraffi
 
 					// definitions
 					if defs, defsOk := sr["definitions"].([]interface{}); defsOk {
-						var definitions []TrafficShapingDefinitionModel
+						var definitions []GroupPolicyResourceModelTrafficShapingDefinition
 
 						for _, def := range defs {
 
 							if ef, efOk := def.(map[string]interface{}); efOk {
 
-								definition := TrafficShapingDefinitionModel{}
+								definition := GroupPolicyResourceModelTrafficShapingDefinition{}
 
 								if typ, typeOk := ef["type"].(string); typeOk {
 									definition.Type = types.StringValue(typ)
@@ -1089,7 +1095,7 @@ func updateFirewallAndTrafficShapingRules(ctx context.Context, firewallAndTraffi
 		}
 
 		// firewallAndTrafficShaping Data
-		firewallAndTrafficShapingData := FirewallAndTrafficShapingModel{
+		firewallAndTrafficShapingData := GroupPolicyResourceModelFirewallAndTrafficShaping{
 			Settings:            settings,
 			L3FirewallRules:     l3FirewallRules,
 			L7FirewallRules:     l7FirewallRules,
@@ -1112,8 +1118,43 @@ func updateFirewallAndTrafficShapingRules(ctx context.Context, firewallAndTraffi
 
 	return firewallAndTrafficShapingObjectNull, diags
 }
+func updateGroupPolicyResourceStateVlanTagging(ctx context.Context, vlanTagging map[string]interface{}) (types.Object, diag.Diagnostics) {
+	var diags diag.Diagnostics
 
-func updateContentFilteringState(ctx context.Context, contentFiltering map[string]interface{}) (types.Object, diag.Diagnostics) {
+	vlanTaggingObjectNull := types.ObjectNull(map[string]attr.Type{
+		"settings": types.StringType,
+		"vlan_id":  types.StringType,
+	})
+
+	if vlanTagging != nil {
+
+		settings := types.StringValue("network default")
+		vlanID := types.StringNull()
+
+		if set, setOk := vlanTagging["settings"].(string); setOk {
+			settings = types.StringValue(set)
+		}
+
+		if vlan, vlanOk := vlanTagging["vlanId"].(string); vlanOk {
+			vlanID = types.StringValue(vlan)
+		}
+
+		vlanTaggingObjectData := GroupPolicyResourceModelVlanTagging{VlanID: vlanID, Settings: settings}
+		vlanTaggingObject, err := types.ObjectValueFrom(ctx, map[string]attr.Type{
+			"settings": types.StringType,
+			"vlan_id":  types.StringType,
+		}, vlanTaggingObjectData)
+		if err.HasError() {
+			diags.Append(err...)
+			return vlanTaggingObjectNull, diags
+		}
+
+		return vlanTaggingObject, nil
+	}
+
+	return vlanTaggingObjectNull, diags
+}
+func updateGroupPolicyResourceStateContentFiltering(ctx context.Context, contentFiltering map[string]interface{}) (types.Object, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	contentFilteringObjectNull := types.ObjectNull(map[string]attr.Type{
@@ -1132,7 +1173,7 @@ func updateContentFilteringState(ctx context.Context, contentFiltering map[strin
 	})
 
 	// AllowedUrlPatterns
-	allowedUrlPatterns := UrlPatterns{}
+	allowedUrlPatterns := GroupPolicyResourceModelUrlPatterns{}
 	if aup, aupOk := contentFiltering["allowedUrlPatterns"].(map[string]interface{}); aupOk {
 
 		// Settings
@@ -1162,7 +1203,7 @@ func updateContentFilteringState(ctx context.Context, contentFiltering map[strin
 	}
 
 	// BlockedUrlPatterns
-	blockedUrlPatterns := UrlPatterns{}
+	blockedUrlPatterns := GroupPolicyResourceModelUrlPatterns{}
 	if bup, bupOk := contentFiltering["blockedUrlPatterns"].(map[string]interface{}); bupOk {
 
 		// Settings
@@ -1192,7 +1233,7 @@ func updateContentFilteringState(ctx context.Context, contentFiltering map[strin
 	}
 
 	// BlockedUrlCategories
-	blockedUrlCategories := UrlCategories{}
+	blockedUrlCategories := GroupPolicyResourceModelUrlCategories{}
 	if buc, bucOk := contentFiltering["blockedUrlCategories"].(map[string]interface{}); bucOk {
 
 		// Settings
@@ -1222,7 +1263,7 @@ func updateContentFilteringState(ctx context.Context, contentFiltering map[strin
 	}
 
 	// Content Filtering Object
-	contentFilteringObj := ContentFilteringModel{
+	contentFilteringObj := GroupPolicyResourceModelContentFiltering{
 		AllowedUrlPatterns:   allowedUrlPatterns,
 		BlockedUrlPatterns:   blockedUrlPatterns,
 		BlockedUrlCategories: blockedUrlCategories,
@@ -1252,50 +1293,14 @@ func updateContentFilteringState(ctx context.Context, contentFiltering map[strin
 	return newContentFilteringObject, diags
 
 }
-func updateVlanTaggingState(ctx context.Context, vlanTagging map[string]interface{}) (types.Object, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	vlanTaggingObjectNull := types.ObjectNull(map[string]attr.Type{
-		"settings": types.StringType,
-		"vlan_id":  types.StringType,
-	})
-
-	if vlanTagging != nil {
-
-		settings := types.StringValue("network default")
-		vlanID := types.StringNull()
-
-		if set, setOk := vlanTagging["settings"].(string); setOk {
-			settings = types.StringValue(set)
-		}
-
-		if vlan, vlanOk := vlanTagging["vlanId"].(string); vlanOk {
-			vlanID = types.StringValue(vlan)
-		}
-
-		vlanTaggingObjectData := VlanTaggingModel{VlanID: vlanID, Settings: settings}
-		vlanTaggingObject, err := types.ObjectValueFrom(ctx, map[string]attr.Type{
-			"settings": types.StringType,
-			"vlan_id":  types.StringType,
-		}, vlanTaggingObjectData)
-		if err.HasError() {
-			diags.Append(err...)
-			return vlanTaggingObjectNull, diags
-		}
-
-		return vlanTaggingObject, nil
-	}
-
-	return vlanTaggingObjectNull, diags
-}
-func updateContentFilteringStateHelperExtractPatternsFromList(patterns types.List) []string {
+func updateGroupPolicyResourceStateContentFilteringHelperExtractPatternsFromList(patterns types.List) []string {
 	var result []string
 	for _, pattern := range patterns.Elements() {
 		result = append(result, pattern.(types.String).ValueString())
 	}
 	return result
 }
-func updateContentFilteringStateHelperValidateSettings(settings *string) *string {
+func updateGroupPolicyResourceStateContentFilteringHelperValidateSettings(settings *string) *string {
 	validSettings := []string{"network default", "append", "override"}
 	for _, valid := range validSettings {
 		if settings != nil && *settings == valid {
@@ -1315,7 +1320,7 @@ func updateGroupPolicyResourcePayload(data *GroupPolicyResourceModel) (client.Cr
 
 	if !data.Scheduling.IsNull() && !data.Scheduling.IsUnknown() {
 
-		scheduling, err := updateScheduleDayModelPayload(data.Scheduling)
+		scheduling, err := updateGroupPolicyResourcePayloadScheduleDay(data.Scheduling)
 		if err.HasError() {
 			diags.Append(err...)
 		}
@@ -1346,7 +1351,7 @@ func updateGroupPolicyResourcePayload(data *GroupPolicyResourceModel) (client.Cr
 	}
 
 	if !data.FirewallAndTrafficShaping.IsNull() && !data.FirewallAndTrafficShaping.IsUnknown() {
-		firewallAndTrafficShaping, err := updateFirewallAndTrafficShapingModelPayload(data.FirewallAndTrafficShaping)
+		firewallAndTrafficShaping, err := updateGroupPolicyResourcePayloadFirewallAndTrafficShaping(data.FirewallAndTrafficShaping)
 		if err.HasError() {
 			diags.Append(err...)
 		}
@@ -1374,16 +1379,16 @@ func updateGroupPolicyResourcePayload(data *GroupPolicyResourceModel) (client.Cr
 
 		groupPolicy.ContentFiltering = &client.CreateNetworkGroupPolicyRequestContentFiltering{
 			AllowedUrlPatterns: &client.CreateNetworkGroupPolicyRequestContentFilteringAllowedUrlPatterns{
-				Settings: updateContentFilteringStateHelperValidateSettings(allowedSettings.ValueStringPointer()),
-				Patterns: updateContentFilteringStateHelperExtractPatternsFromList(allowedPatterns),
+				Settings: updateGroupPolicyResourceStateContentFilteringHelperValidateSettings(allowedSettings.ValueStringPointer()),
+				Patterns: updateGroupPolicyResourceStateContentFilteringHelperExtractPatternsFromList(allowedPatterns),
 			},
 			BlockedUrlPatterns: &client.CreateNetworkGroupPolicyRequestContentFilteringBlockedUrlPatterns{
-				Settings: updateContentFilteringStateHelperValidateSettings(blockedSettings.ValueStringPointer()),
-				Patterns: updateContentFilteringStateHelperExtractPatternsFromList(blockedPatterns),
+				Settings: updateGroupPolicyResourceStateContentFilteringHelperValidateSettings(blockedSettings.ValueStringPointer()),
+				Patterns: updateGroupPolicyResourceStateContentFilteringHelperExtractPatternsFromList(blockedPatterns),
 			},
 			BlockedUrlCategories: &client.CreateNetworkGroupPolicyRequestContentFilteringBlockedUrlCategories{
-				Settings:   updateContentFilteringStateHelperValidateSettings(blockedCategoriesSettings.ValueStringPointer()),
-				Categories: updateContentFilteringStateHelperExtractPatternsFromList(blockedCategories),
+				Settings:   updateGroupPolicyResourceStateContentFilteringHelperValidateSettings(blockedCategoriesSettings.ValueStringPointer()),
+				Categories: updateGroupPolicyResourceStateContentFilteringHelperExtractPatternsFromList(blockedCategories),
 			},
 		}
 	} else {
@@ -1405,7 +1410,7 @@ func updateGroupPolicyResourcePayload(data *GroupPolicyResourceModel) (client.Cr
 	}
 
 	if !data.VlanTagging.IsNull() && !data.VlanTagging.IsUnknown() {
-		vlanTagging, err := updateVlanTaggingModelPayload(data.VlanTagging)
+		vlanTagging, err := updateGroupPolicyResourcePayloadVlanTagging(data.VlanTagging)
 		if err.HasError() {
 			diags.Append(err...)
 		}
@@ -1414,7 +1419,7 @@ func updateGroupPolicyResourcePayload(data *GroupPolicyResourceModel) (client.Cr
 	}
 
 	if !data.BonjourForwarding.IsNull() && !data.BonjourForwarding.IsUnknown() {
-		bonjourForwarding, err := updateBonjourForwardingModelPayload(data.BonjourForwarding)
+		bonjourForwarding, err := updateGroupPolicyResourcePayloadBonjourForwarding(data.BonjourForwarding)
 		if err.HasError() {
 			diags.Append(err...)
 		}
@@ -1425,7 +1430,7 @@ func updateGroupPolicyResourcePayload(data *GroupPolicyResourceModel) (client.Cr
 	return groupPolicy, diags
 
 }
-func updateScheduleDayModelPayload(data types.Object) (*client.CreateNetworkGroupPolicyRequestScheduling, diag.Diagnostics) {
+func updateGroupPolicyResourcePayloadScheduleDay(data types.Object) (*client.CreateNetworkGroupPolicyRequestScheduling, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	// Extract attributes from the types.Object
@@ -1530,7 +1535,7 @@ func updateScheduleDayModelPayload(data types.Object) (*client.CreateNetworkGrou
 
 	return payload, diags
 }
-func updateFirewallAndTrafficShapingModelPayload(data types.Object) (*client.CreateNetworkGroupPolicyRequestFirewallAndTrafficShaping, diag.Diagnostics) {
+func updateGroupPolicyResourcePayloadFirewallAndTrafficShaping(data types.Object) (*client.CreateNetworkGroupPolicyRequestFirewallAndTrafficShaping, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	firewallAndTrafficShapingAttrs := data.Attributes()
@@ -1614,7 +1619,7 @@ func updateFirewallAndTrafficShapingModelPayload(data types.Object) (*client.Cre
 
 	return payload, diags
 }
-func updateBonjourForwardingModelPayload(data types.Object) (*client.CreateNetworkGroupPolicyRequestBonjourForwarding, diag.Diagnostics) {
+func updateGroupPolicyResourcePayloadBonjourForwarding(data types.Object) (*client.CreateNetworkGroupPolicyRequestBonjourForwarding, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	bonjourForwardingAttrs := data.Attributes()
@@ -1646,7 +1651,7 @@ func updateBonjourForwardingModelPayload(data types.Object) (*client.CreateNetwo
 
 	return payload, diags
 }
-func updateVlanTaggingModelPayload(data types.Object) (*client.CreateNetworkGroupPolicyRequestVlanTagging, diag.Diagnostics) {
+func updateGroupPolicyResourcePayloadVlanTagging(data types.Object) (*client.CreateNetworkGroupPolicyRequestVlanTagging, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	// Extract attributes from the types.Object
@@ -1678,38 +1683,62 @@ func updateVlanTaggingModelPayload(data types.Object) (*client.CreateNetworkGrou
 
 // Create handles the creation of the group policy.
 func (r *NetworksGroupPolicyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data GroupPolicyResourceModel
-	diags := req.Plan.Get(ctx, &data)
+	var plan GroupPolicyResourceModel
+
+	tflog.Trace(ctx, "Starting create operation for NetworksGroupPolicyResource")
+
+	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	groupPolicy, groupPolicyErr := updateGroupPolicyResourcePayload(&data)
-	if groupPolicyErr.HasError() {
+	tflog.Debug(ctx, "Required plan data for NetworksGroupPolicyResource", map[string]interface{}{
+		"networkId": plan.NetworkId.ValueString(),
+		"name":      plan.Name.ValueString(),
+	})
+
+	groupPolicy, groupPolicyDiags := updateGroupPolicyResourcePayload(&plan)
+	if groupPolicyDiags.HasError() {
+		tflog.Error(ctx, "Failed to create resource payload", map[string]interface{}{
+			"error": groupPolicyDiags,
+		})
 		resp.Diagnostics.AddError(
 			"Error creating group policy payload",
-			fmt.Sprintf("unexpected error: %s", groupPolicyErr),
+			fmt.Sprintf("Unexpected error: %s", groupPolicyDiags),
 		)
+		return
 	}
 
-	// The error “Group number has already been taken” suggests that the Meraki API is not handling rapid sequential requests very well.
-	// This could be due to rate limiting or some delay in the backend processing.
 	maxRetries := r.client.GetConfig().MaximumRetries
 	retryDelay := r.client.GetConfig().Retry4xxErrorWaitTime
 
-	createdPolicy, httpResp, err := r.client.NetworksApi.CreateNetworkGroupPolicy(ctx, data.NetworkId.ValueString()).CreateNetworkGroupPolicyRequest(groupPolicy).Execute()
+	var createdPolicy map[string]interface{}
+	var httpResp *http.Response
+	var err error
 	retries := 0
-	for retries < maxRetries && httpResp != nil && httpResp.StatusCode == http.StatusBadRequest {
-		fmt.Println(fmt.Sprintf("CREATE Retrying Max: %v, Delay: %v, Attempt:%v", maxRetries, retryDelay, retries))
-		fmt.Println(fmt.Sprintf("CREATE Name: %s", data.Name.ValueString()))
-		time.Sleep(time.Duration(retryDelay))
-		createdPolicy, httpResp, err = r.client.NetworksApi.CreateNetworkGroupPolicy(ctx, data.NetworkId.ValueString()).CreateNetworkGroupPolicyRequest(groupPolicy).Execute()
+
+	for retries < maxRetries {
+		remaining := maxRetries - retries
+		createdPolicy, httpResp, err = r.client.NetworksApi.CreateNetworkGroupPolicy(ctx, plan.NetworkId.ValueString()).CreateNetworkGroupPolicyRequest(groupPolicy).Execute()
+		if err == nil {
+			break
+		}
+		if httpResp != nil && httpResp.StatusCode == http.StatusBadRequest {
+			tflog.Warn(ctx, "Retrying Create API call", map[string]interface{}{
+				"maxRetries":        maxRetries,
+				"retryDelay":        retryDelay,
+				"remainingAttempts": remaining,
+				"httpStatusCode":    httpResp.StatusCode,
+			})
+			time.Sleep(time.Duration(retryDelay) * time.Second)
+		} else {
+			break
+		}
 		retries++
 	}
 
 	if err != nil {
-		// Extract additional information from the HTTP response
 		var responseBody string
 		if httpResp != nil && httpResp.Body != nil {
 			bodyBytes, readErr := io.ReadAll(httpResp.Body)
@@ -1717,7 +1746,11 @@ func (r *NetworksGroupPolicyResource) Create(ctx context.Context, req resource.C
 				responseBody = string(bodyBytes)
 			}
 		}
-
+		tflog.Error(ctx, "Failed to create resource", map[string]interface{}{
+			"error":          err.Error(),
+			"httpStatusCode": httpResp.StatusCode,
+			"responseBody":   responseBody,
+		})
 		resp.Diagnostics.AddError(
 			"Error creating group policy",
 			fmt.Sprintf("Could not create group policy, unexpected error: %s\nHTTP Response: %v\nResponse Body: %s", err, httpResp, responseBody),
@@ -1725,50 +1758,52 @@ func (r *NetworksGroupPolicyResource) Create(ctx context.Context, req resource.C
 		return
 	}
 
-	// Update the state with the new data
-	updateGroupPolicyResourceState(ctx, &data, createdPolicy)
+	tflog.Info(ctx, "Group policy created successfully", map[string]interface{}{
+		"name":          plan.Name.ValueString(),
+		"groupPolicyId": createdPolicy["groupPolicyId"],
+	})
 
-	//TODO: TEMP, Check GroupPolicyId
-	groupPolicyId, groupPolicyIdOk := createdPolicy["groupPolicyId"].(string)
-	if groupPolicyIdOk {
-		if groupPolicyId == "" {
-			diags.AddError("CREATE, Missing GroupPolicy.", fmt.Sprintf("Name: %s, ID: %s", data.Name.ValueString(), groupPolicyId))
-		}
-	}
-
-	fmt.Println(fmt.Sprintf("CREATE Name: %s, ID: %s", data.Name.ValueString(), groupPolicyId))
-
-	// TODO: TEMP Check GPO ID
-	if data.GroupPolicyId.IsNull() || data.GroupPolicyId.IsUnknown() {
-		diags.AddError("CREATE, Received empty GroupPolicy.", fmt.Sprintf("Name: %s, ID: %s", data.Name.ValueString(), data.GroupPolicyId.ValueString()))
-	}
-
-	diags = resp.State.Set(ctx, &data)
+	diags = updateGroupPolicyResourceState(ctx, &plan, createdPolicy)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	diags = resp.State.Set(ctx, &plan)
+	resp.Diagnostics.Append(diags...)
+
+	tflog.Trace(ctx, "Completed create operation for NetworksGroupPolicyResource")
 }
 
 // Read handles reading the group policy.
 func (r *NetworksGroupPolicyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data GroupPolicyResourceModel
-	diags := req.State.Get(ctx, &data)
+	var state GroupPolicyResourceModel
+
+	tflog.Trace(ctx, "Starting read operation for NetworksGroupPolicyResource")
+
+	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// TODO: TEMP Check GPO ID
-	if data.GroupPolicyId.IsNull() || data.GroupPolicyId.IsUnknown() {
-		diags.AddError("READ, Received empty GroupPolicy.", fmt.Sprintf("Name: %s, ID: %s", data.Name.ValueString(), data.GroupPolicyId.ValueString()))
+	// Check for empty GroupPolicyId
+	if state.GroupPolicyId.IsNull() || state.GroupPolicyId.IsUnknown() {
+		tflog.Error(ctx, "Received empty GroupPolicyId", map[string]interface{}{
+			"name":          state.Name.ValueString(),
+			"groupPolicyId": state.GroupPolicyId.ValueString(),
+		})
+		resp.Diagnostics.AddError("READ, Received empty GroupPolicy.", fmt.Sprintf("Name: %s, ID: %s", state.Name.ValueString(), state.GroupPolicyId.ValueString()))
+		return
 	}
 
-	fmt.Println(fmt.Sprintf("READ RECIEVED Name: %s, ID: %s", data.Name.ValueString(), data.GroupPolicyId.ValueString()))
+	tflog.Debug(ctx, "Reading group policy", map[string]interface{}{
+		"networkId":     state.NetworkId.ValueString(),
+		"groupPolicyId": state.GroupPolicyId.ValueString(),
+	})
 
-	readPolicy, httpResp, err := r.client.NetworksApi.GetNetworkGroupPolicy(ctx, data.NetworkId.ValueString(), data.GroupPolicyId.ValueString()).Execute()
+	readPolicy, httpResp, err := r.client.NetworksApi.GetNetworkGroupPolicy(ctx, state.NetworkId.ValueString(), state.GroupPolicyId.ValueString()).Execute()
 	if err != nil {
-
 		// Extract additional information from the HTTP response
 		var responseBody string
 		if httpResp != nil && httpResp.Body != nil {
@@ -1778,6 +1813,11 @@ func (r *NetworksGroupPolicyResource) Read(ctx context.Context, req resource.Rea
 			}
 		}
 
+		tflog.Error(ctx, "Failed to read group policy", map[string]interface{}{
+			"error":          err.Error(),
+			"httpStatusCode": httpResp.StatusCode,
+			"responseBody":   responseBody,
+		})
 		resp.Diagnostics.AddError(
 			"Error reading group policy",
 			fmt.Sprintf("Could not read group policy, unexpected error: %s\nHTTP Response: %v\nResponse Body: %s", err.Error(), httpResp, responseBody),
@@ -1785,47 +1825,75 @@ func (r *NetworksGroupPolicyResource) Read(ctx context.Context, req resource.Rea
 		return
 	}
 
-	// Update the state with the new data
-	updateGroupPolicyResourceState(ctx, &data, readPolicy)
+	tflog.Info(ctx, "Group policy read successfully", map[string]interface{}{
+		"name":          state.Name.ValueString(),
+		"groupPolicyId": state.GroupPolicyId.ValueString(),
+	})
 
-	//TODO: TEMP, Check GroupPolicyId
-	groupPolicyId, groupPolicyIdOk := readPolicy["groupPolicyId"].(string)
-	if groupPolicyIdOk {
-		if groupPolicyId == "" {
-			diags.AddError("READ, Missing GroupPolicy.", fmt.Sprintf("Name: %s, ID: %s", data.Name.ValueString(), groupPolicyId))
-		}
-	}
-	fmt.Println(fmt.Sprintf("READ Name: %s, ID: %s", data.Name.ValueString(), groupPolicyId))
-
-	diags = resp.State.Set(ctx, &data)
+	// Update the state with the new state
+	diags = updateGroupPolicyResourceState(ctx, &state, readPolicy)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Check for missing GroupPolicyId in the read response
+	groupPolicyId, groupPolicyIdOk := readPolicy["groupPolicyId"].(string)
+	if !groupPolicyIdOk || groupPolicyId == "" {
+		tflog.Error(ctx, "Missing GroupPolicyId in read response", map[string]interface{}{
+			"name":          state.Name.ValueString(),
+			"groupPolicyId": groupPolicyId,
+		})
+		resp.Diagnostics.AddError("READ, Missing GroupPolicy.", fmt.Sprintf("Name: %s, ID: %s", state.Name.ValueString(), groupPolicyId))
+		return
+	}
+
+	diags = resp.State.Set(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	tflog.Trace(ctx, "Completed read operation for NetworksGroupPolicyResource")
 }
 
 // Update handles updating the group policy.
 func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data GroupPolicyResourceModel
-	diags := req.Plan.Get(ctx, &data)
+	var plan GroupPolicyResourceModel
+
+	tflog.Trace(ctx, "Starting update operation for NetworksGroupPolicyResource")
+
+	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// TODO: TEMP Check GPO ID
-	if data.GroupPolicyId.IsNull() || data.GroupPolicyId.IsUnknown() {
-		diags.AddError("UPDATE, Received empty GroupPolicy.", fmt.Sprintf("Name: %s, ID: %s", data.Name.ValueString(), data.GroupPolicyId.ValueString()))
+	// Check for empty GroupPolicyId
+	if plan.GroupPolicyId.IsNull() || plan.GroupPolicyId.IsUnknown() {
+		tflog.Error(ctx, "Received empty GroupPolicyId", map[string]interface{}{
+			"name":          plan.Name.ValueString(),
+			"groupPolicyId": plan.GroupPolicyId.ValueString(),
+		})
+		resp.Diagnostics.AddError("UPDATE, Received empty GroupPolicy.", fmt.Sprintf("Name: %s, ID: %s", plan.Name.ValueString(), plan.GroupPolicyId.ValueString()))
+		return
 	}
 
-	fmt.Println(fmt.Sprintf("UPDATE Name: %s, ID: %s", data.Name.ValueString(), data.GroupPolicyId.ValueString()))
+	tflog.Debug(ctx, "Updating group policy", map[string]interface{}{
+		"networkId":     plan.NetworkId.ValueString(),
+		"groupPolicyId": plan.GroupPolicyId.ValueString(),
+	})
 
-	groupPolicy, groupPolicyErr := updateGroupPolicyResourcePayload(&data)
+	groupPolicy, groupPolicyErr := updateGroupPolicyResourcePayload(&plan)
 	if groupPolicyErr.HasError() {
+		tflog.Error(ctx, "Failed to create update resource payload", map[string]interface{}{
+			"error": groupPolicyErr,
+		})
 		resp.Diagnostics.AddError(
 			"Error updating group policy payload",
-			fmt.Sprintf("unexpected error: %s", groupPolicyErr),
+			fmt.Sprintf("Unexpected error: %s", groupPolicyErr),
 		)
+		return
 	}
 
 	groupPolicyUpdate := client.UpdateNetworkGroupPolicyRequest{
@@ -1839,9 +1907,8 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 		BonjourForwarding:         groupPolicy.BonjourForwarding,
 	}
 
-	updatePolicy, httpResp, err := r.client.NetworksApi.UpdateNetworkGroupPolicy(ctx, data.NetworkId.ValueString(), data.GroupPolicyId.ValueString()).UpdateNetworkGroupPolicyRequest(groupPolicyUpdate).Execute()
+	updatePolicy, httpResp, err := r.client.NetworksApi.UpdateNetworkGroupPolicy(ctx, plan.NetworkId.ValueString(), plan.GroupPolicyId.ValueString()).UpdateNetworkGroupPolicyRequest(groupPolicyUpdate).Execute()
 	if err != nil {
-
 		// Extract additional information from the HTTP response
 		var responseBody string
 		if httpResp != nil && httpResp.Body != nil {
@@ -1851,40 +1918,73 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 			}
 		}
 
+		tflog.Error(ctx, "Failed to update group policy", map[string]interface{}{
+			"error":          err.Error(),
+			"httpStatusCode": httpResp.StatusCode,
+			"responseBody":   responseBody,
+		})
 		resp.Diagnostics.AddError(
 			"Error updating group policy",
 			fmt.Sprintf("Could not update group policy, unexpected error: %s\nHTTP Response: %v\nResponse Body: %s", err.Error(), httpResp, responseBody),
 		)
 
 		resp.Diagnostics.AddError(
-			"group policy info",
-			fmt.Sprintf("NetworkId: %s\nGroupPolicyId: %v\n", data.NetworkId.ValueString(), data.GroupPolicyId.ValueString()),
+			"Group policy info",
+			fmt.Sprintf("NetworkId: %s\nGroupPolicyId: %v\n", plan.NetworkId.ValueString(), plan.GroupPolicyId.ValueString()),
 		)
 		return
 	}
 
-	// Update the state with the new data
-	updateGroupPolicyResourceState(ctx, &data, updatePolicy)
+	tflog.Info(ctx, "Group policy updated successfully", map[string]interface{}{
+		"name":          plan.Name.ValueString(),
+		"groupPolicyId": plan.GroupPolicyId.ValueString(),
+	})
 
-	diags = resp.State.Set(ctx, &data)
+	// Update the state with the new plan
+	diags = updateGroupPolicyResourceState(ctx, &plan, updatePolicy)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	diags = resp.State.Set(ctx, &plan)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	tflog.Trace(ctx, "Completed update operation for NetworksGroupPolicyResource")
 }
 
 // Delete handles deleting the group policy.
 func (r *NetworksGroupPolicyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data GroupPolicyResourceModel
-	diags := req.State.Get(ctx, &data)
+	var state GroupPolicyResourceModel
+
+	tflog.Trace(ctx, "Starting delete operation for NetworksGroupPolicyResource")
+
+	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	httpResp, err := r.client.NetworksApi.DeleteNetworkGroupPolicy(ctx, data.NetworkId.ValueString(), data.GroupPolicyId.ValueString()).Execute()
-	if err != nil {
+	// Check for empty GroupPolicyId
+	if state.GroupPolicyId.IsNull() || state.GroupPolicyId.IsUnknown() {
+		tflog.Error(ctx, "Received empty GroupPolicyId", map[string]interface{}{
+			"name":          state.Name.ValueString(),
+			"groupPolicyId": state.GroupPolicyId.ValueString(),
+		})
+		resp.Diagnostics.AddError("DELETE, Received empty GroupPolicy.", fmt.Sprintf("Name: %s, ID: %s", state.Name.ValueString(), state.GroupPolicyId.ValueString()))
+		return
+	}
 
+	tflog.Debug(ctx, "Deleting group policy", map[string]interface{}{
+		"networkId":     state.NetworkId.ValueString(),
+		"groupPolicyId": state.GroupPolicyId.ValueString(),
+	})
+
+	httpResp, err := r.client.NetworksApi.DeleteNetworkGroupPolicy(ctx, state.NetworkId.ValueString(), state.GroupPolicyId.ValueString()).Execute()
+	if err != nil {
 		// Extract additional information from the HTTP response
 		var responseBody string
 		if httpResp != nil && httpResp.Body != nil {
@@ -1894,6 +1994,11 @@ func (r *NetworksGroupPolicyResource) Delete(ctx context.Context, req resource.D
 			}
 		}
 
+		tflog.Error(ctx, "Failed to delete group policy", map[string]interface{}{
+			"error":          err.Error(),
+			"httpStatusCode": httpResp.StatusCode,
+			"responseBody":   responseBody,
+		})
 		resp.Diagnostics.AddError(
 			"Error deleting group policy",
 			fmt.Sprintf("Could not delete group policy, unexpected error: %s\nHTTP Response: %v\nResponse Body: %s", err.Error(), httpResp, responseBody),
@@ -1901,7 +2006,14 @@ func (r *NetworksGroupPolicyResource) Delete(ctx context.Context, req resource.D
 		return
 	}
 
+	tflog.Info(ctx, "Group policy deleted successfully", map[string]interface{}{
+		"name":          state.Name.ValueString(),
+		"groupPolicyId": state.GroupPolicyId.ValueString(),
+	})
+
 	resp.State.RemoveResource(ctx)
+
+	tflog.Trace(ctx, "Completed delete operation for NetworksGroupPolicyResource")
 }
 
 func (r *NetworksGroupPolicyResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
