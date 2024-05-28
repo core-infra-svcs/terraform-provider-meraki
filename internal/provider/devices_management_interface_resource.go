@@ -368,15 +368,15 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Update(ctx co
 	if !data.Wan2.IsNull() {
 		var wan2Plan DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan
 		data.Wan2.As(ctx, &wan2Plan, basetypes.ObjectAsOptions{})
-		var staticDNS []string
-		wan2Plan.StaticDns.ElementsAs(ctx, &staticDNS, false)
+		var staticDNS2 []string
+		wan2Plan.StaticDns.ElementsAs(ctx, &staticDNS2, false)
 		wan2 := openApiClient.UpdateDeviceManagementInterfaceRequestWan2{
 			WanEnabled:       wan2Plan.WanEnabled.ValueStringPointer(),
 			UsingStaticIp:    wan2Plan.UsingStaticIp.ValueBoolPointer(),
 			StaticIp:         wan2Plan.StaticIp.ValueStringPointer(),
 			StaticGatewayIp:  wan2Plan.StaticGatewayIp.ValueStringPointer(),
 			StaticSubnetMask: wan2Plan.StaticSubnetMask.ValueStringPointer(),
-			StaticDns:        staticDNS,
+			StaticDns:        staticDNS2,
 		}
 		if !wan2Plan.Vlan.IsNull() {
 			var vlan = int32(wan2Plan.Vlan.ValueInt64())
