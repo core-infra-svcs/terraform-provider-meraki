@@ -1,13 +1,7 @@
 package provider
 
-import (
-	"fmt"
-	"os"
-	"testing"
-
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-)
-
+// TODO: This test is only valid for devices that support this feature. MS120's do not.
+/*
 func TestAccNetworkStormControlResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
@@ -91,7 +85,7 @@ func testAccNetworkStormControlResourceConfigCreateNetworkStormControl(orgId, se
 resource "meraki_network" "test" {
         organization_id = "%s"
         product_types = ["switch"]
-} 
+}
 
 resource "meraki_networks_storm_control" "test" {
     depends_on = [resource.meraki_network.test]
@@ -117,7 +111,7 @@ func testAccNetworkSwiStormControlResourceConfigUpdateNetworkStormControl(orgId,
 resource "meraki_network" "test" {
         organization_id = "%s"
         product_types = ["switch"]
-} 
+}
 
 
 resource "meraki_networks_storm_control" "test" {
@@ -138,3 +132,4 @@ resource "meraki_devices_switch_port" "test" {
 `, orgId, serial)
 	return result
 }
+*/

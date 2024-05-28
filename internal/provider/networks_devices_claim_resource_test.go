@@ -21,6 +21,19 @@ func TestAccNetworksDevicesClaimResource(t *testing.T) {
 		// Steps is a slice of TestStep where each TestStep represents a test case.
 		Steps: []resource.TestStep{
 
+			// Claim a Device by Serial into the Organization
+			/*
+				{
+						Config: testAccNetworksDevicesClaimResourceConfigClaimOrgSerial(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"),
+							os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
+						Check: resource.ComposeAggregateTestCheckFunc(
+							resource.TestCheckResourceAttr("meraki_organizations_claim.test_serial", "id", "example-id"),
+							resource.TestCheckResourceAttr("meraki_organizations_claim.test_serial", "serials.#", "1"),
+							resource.TestCheckResourceAttr("meraki_organizations_claim.test_serial", "serials.0", os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
+						),
+					},
+			*/
+
 			// Create and Read a Network. If a network with the same name already exists this will not create.
 			{
 				Config: testAccNetworksDevicesClaimResourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
@@ -37,11 +50,13 @@ func TestAccNetworksDevicesClaimResource(t *testing.T) {
 
 			// Claim and Read NetworksDevicesClaim
 			{
-				Config: testAccNetworksDevicesClaimResourceConfigCreate(os.Getenv("TF_ACC_MERAKI_MX_SERIAL"), os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
+				Config: testAccNetworksDevicesClaimResourceConfigCreate(os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_networks_devices_claim.test", "serials.0", os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
 				),
 			},
+
+			// Import Test
 			{
 				ResourceName:      "meraki_networks_devices_claim.test",
 				ImportState:       true,
@@ -50,6 +65,21 @@ func TestAccNetworksDevicesClaimResource(t *testing.T) {
 		},
 	})
 }
+
+/*
+func testAccNetworksDevicesClaimResourceConfigClaimOrgSerial(orgId, serial string) string {
+	result := fmt.Sprintf(`
+
+	resource "meraki_organizations_claim" "test_serial" {
+		organization_id = %s
+		orders = []
+		licences = []
+		serials = ["%s"]
+	}
+`, orgId, serial)
+	return result
+}
+*/
 
 // testAccNetworksDevicesClaimResourceConfigCreateNetwork is a constant string that defines the configuration for creating a network resource in your tests.
 // It depends on the organization resource.
@@ -69,12 +99,12 @@ resource "meraki_network" "test" {
 
 // testAccNetworksDevicesClaimResourceConfigCreate is a constant string that defines the configuration for creating and reading a networks_devices_claim resource in your tests.
 // It depends on both the organization and network resources.
-func testAccNetworksDevicesClaimResourceConfigCreate(serial string, orgId string) string {
+func testAccNetworksDevicesClaimResourceConfigCreate(serial string) string {
 	result := fmt.Sprintf(`
 resource "meraki_network" "test" {
-        organization_id = "%s"
         product_types = ["appliance"]
 }    
+
 resource "meraki_networks_devices_claim" "test" {
     depends_on = [resource.meraki_network.test]
     network_id = resource.meraki_network.test.network_id
@@ -82,6 +112,6 @@ resource "meraki_networks_devices_claim" "test" {
       "%s"
   ]
 }	
-`, orgId, serial)
+`, serial)
 	return result
 }

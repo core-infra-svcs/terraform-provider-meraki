@@ -1,80 +1,17 @@
 package provider
 
 import (
-	"context"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"os"
-	"strings"
 	"testing"
-	"time"
 )
 
 func init() {
 	resource.AddTestSweepers("meraki_network", &resource.Sweeper{
 		Name: "meraki_network",
-
-		// The Organization used in acceptance tests
 		F: func(organization string) error {
-			client, err := SweeperHTTPClient()
-			if err != nil {
-				return fmt.Errorf("error getting http client: %s", err)
-			}
-
-			// HTTP DELETE METHOD does not leverage the retry-after header and throws 400 errors.
-			retries := 3
-			wait := 1
-			var deletedFromMerakiPortal bool
-			deletedFromMerakiPortal = false
-
-			// Search test organization for networks
-			perPage := int32(100000)
-			inlineResp, _, err := client.NetworksApi.GetOrganizationNetworks(context.Background(), organization).PerPage(perPage).Execute()
-			if err != nil {
-				return fmt.Errorf("error getting network list from organization:%s \nerror: %s", organization, err)
-			}
-
-			for _, merakiNetwork := range inlineResp {
-
-				// match on networks starting with "test_acc" in name
-				if strings.HasPrefix(*merakiNetwork.Name, "test_acc") {
-					fmt.Printf("deleting network: %s, id: %s", *merakiNetwork.Name, *merakiNetwork.Id)
-
-					for retries > 0 {
-						// Delete test network
-						httpResp, err2 := client.NetworksApi.DeleteNetwork(context.Background(), *merakiNetwork.Id).Execute()
-						if err2 != nil {
-							return fmt.Errorf("error deleting network from organization:%s \nerror: %s", organization, err2)
-						}
-
-						if httpResp.StatusCode == 204 {
-							fmt.Printf("Successfully deleted network: %s, id: %s", *merakiNetwork.Name, *merakiNetwork.Id)
-							deletedFromMerakiPortal = true
-
-							// escape loop
-							break
-
-						} else {
-
-							// decrement retry counter
-							retries -= 1
-
-							// exponential wait
-							time.Sleep(time.Duration(wait) * time.Second)
-							wait += 1
-						}
-
-						if !deletedFromMerakiPortal {
-							fmt.Printf("Failed to delete network: %s, id: %s", *merakiNetwork.Name, *merakiNetwork.Id)
-							fmt.Printf("HTTP response: \n%v", httpResp)
-						}
-
-					}
-
-				}
-
-			}
-			return nil
+			return sweepMerakiNetwork(organization)
 		},
 	})
 }

@@ -81,7 +81,7 @@ func TestAccNetworksWirelessSsidsSplashSettingsResource(t *testing.T) {
 					//resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "splash_url", "https://www.updatedcustom_splash_url.com"),
 					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "use_splash_url", "false"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "splash_timeout", "1450"),
+					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "splash_timeout", "1440"),
 					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "welcome_message", "Welcome hii!"),
 					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "redirect_url", "https://updatedexample.com"),
 					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "use_redirect_url", "false"),
@@ -232,7 +232,7 @@ resource "meraki_networks_wireless_ssids_splash_settings" "test" {
     number = "0"
     splash_url = "https://www.updatedcustom_splash_url.com"
 	use_splash_url = false
-	splash_timeout = 1450
+	splash_timeout = 1440
 	welcome_message = "Welcome hii!"
 	redirect_url = "https://updatedexample.com"
 	use_redirect_url = false

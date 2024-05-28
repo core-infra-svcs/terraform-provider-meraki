@@ -5,48 +5,44 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
-	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	openApiClient "github.com/meraki/dashboard-api-go/client"
+	"github.com/meraki/dashboard-api-go/client"
 )
 
-// Ensure provider defined types fully satisfy framework interfaces
-var _ resource.Resource = &OrganizationsSnmpResource{}
-var _ resource.ResourceWithImportState = &OrganizationsSnmpResource{}
-
-func NewOrganizationsSnmpResource() resource.Resource {
-	return &OrganizationsSnmpResource{}
+type NetworksSnmpResource struct {
+	client *client.APIClient
 }
 
-// OrganizationsSnmpResource defines the resource implementation.
-type OrganizationsSnmpResource struct {
-	client *openApiClient.APIClient
+func NewNetworksSnmpResource() resource.Resource {
+	return &NetworksSnmpResource{}
 }
 
-// OrganizationsSnmpResourceModel describes the resource data model.
-type OrganizationsSnmpResourceModel struct {
-	Id        jsontypes.String                      `tfsdk:"id"`
-	NetworkId jsontypes.String                      `tfsdk:"network_id" json:"network_id"`
-	Access    jsontypes.String                      `tfsdk:"access" json:"access"`
-	Users     []OrganizationsSnmpResourceModelUsers `tfsdk:"users" json:"users"`
+// NetworksSnmpResourceModel describes the resource data model.
+type NetworksSnmpResourceModel struct {
+	Id              jsontypes.String                 `tfsdk:"id"`
+	NetworkId       jsontypes.String                 `tfsdk:"organization_id" json:"organizationId"`
+	Access          jsontypes.String                 `tfsdk:"access" json:"access"`
+	CommunityString jsontypes.String                 `tfsdk:"community_string" json:"communityString"`
+	Users           []NetworksSnmpResourceModelUsers `tfsdk:"users" json:"users"`
 }
 
-type OrganizationsSnmpResourceModelUsers struct {
+type NetworksSnmpResourceModelUsers struct {
 	Username   jsontypes.String `tfsdk:"username"`
 	Passphrase jsontypes.String `tfsdk:"passphrase"`
 }
 
-func (r *OrganizationsSnmpResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_organizations_snmp"
+func (r *NetworksSnmpResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_networks_snmp"
 }
-func (r *OrganizationsSnmpResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+
+func (r *NetworksSnmpResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "OrganizationsSnmp resource for updating org snmp settings.",
+		MarkdownDescription: "network snmp settings.",
 		Attributes: map[string]schema.Attribute{
 
 			"id": schema.StringAttribute{
@@ -62,6 +58,12 @@ func (r *OrganizationsSnmpResource) Schema(ctx context.Context, req resource.Sch
 				},
 				CustomType: jsontypes.StringType,
 			},
+			"community_string": schema.StringAttribute{
+				MarkdownDescription: "The SNMP community string. Only relevant if 'access' is set to 'community'.",
+				Computed:            true,
+				Optional:            true,
+				CustomType:          jsontypes.StringType,
+			},
 			"access": schema.StringAttribute{
 				MarkdownDescription: "The type of SNMP access. Can be one of 'none' (disabled), 'community' (V1/V2c), or 'users' (V3).",
 				Optional:            true,
@@ -75,6 +77,7 @@ func (r *OrganizationsSnmpResource) Schema(ctx context.Context, req resource.Sch
 			"users": schema.SetNestedAttribute{
 				Description: "The list of SNMP users. Only relevant if 'access' is set to 'users'.",
 				Optional:    true,
+				Computed:    true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"username": schema.StringAttribute{
@@ -96,74 +99,51 @@ func (r *OrganizationsSnmpResource) Schema(ctx context.Context, req resource.Sch
 	}
 }
 
-func (r *OrganizationsSnmpResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	// Prevent panic if the provider has not been configured.
+func (r *NetworksSnmpResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
 
-	client, ok := req.ProviderData.(*openApiClient.APIClient)
-
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *http.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
-		)
-
-		return
-	}
-
-	r.client = client
+	r.client = req.ProviderData.(*client.APIClient)
 }
 
-func (r *OrganizationsSnmpResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *OrganizationsSnmpResourceModel
-
-	// Read Terraform plan data into the model
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-
+func (r *NetworksSnmpResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var plan NetworksSnmpResourceModel
+	diags := req.Plan.Get(ctx, &plan)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	updateNetworkSnmp := *openApiClient.NewUpdateNetworkSnmpRequest()
-	updateNetworkSnmp.SetAccess(data.Access.ValueString())
-	if len(data.Users) > 0 {
-		var usersData []openApiClient.UpdateNetworkSnmpRequestUsersInner
-		for _, user := range data.Users {
-			var userData openApiClient.UpdateNetworkSnmpRequestUsersInner
-			userData.Username = user.Username.ValueString()
-			userData.Passphrase = user.Passphrase.ValueString()
-			usersData = append(usersData, userData)
-		}
-		updateNetworkSnmp.SetUsers(usersData)
+	var users []client.UpdateNetworkSnmpRequestUsersInner
+
+	for _, user := range plan.Users {
+
+		users = append(users, client.UpdateNetworkSnmpRequestUsersInner{
+			Username:   user.Username.ValueString(),
+			Passphrase: user.Passphrase.ValueString(),
+		})
+
 	}
 
-	_, httpResp, err := r.client.NetworksApi.UpdateNetworkSnmp(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSnmpRequest(updateNetworkSnmp).Execute()
+	snmpCreateSettings := client.UpdateNetworkSnmpRequest{
+		Access:          plan.Access.ValueStringPointer(),
+		CommunityString: plan.CommunityString.ValueStringPointer(),
+		Users:           users,
+	}
+
+	_, httpResp, err := r.client.NetworksApi.UpdateNetworkSnmp(ctx, plan.NetworkId.ValueString()).UpdateNetworkSnmpRequest(snmpCreateSettings).Execute()
+
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"HTTP Client Failure",
-			tools.HttpDiagnostics(httpResp),
+			"Error creating SNMP settings",
+			fmt.Sprintf("Could not create SNMP settings, unexpected error: %s", err),
 		)
-		return
-	}
-
-	// Check for API success response code
-	if httpResp.StatusCode != 200 {
-		resp.Diagnostics.AddError(
-			"Unexpected HTTP Response Status Code",
-			fmt.Sprintf("%v", httpResp.StatusCode),
-		)
-	}
-
-	// Check for errors after diagnostics collected
-	if resp.Diagnostics.HasError() {
-		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
 		return
 	}
 
 	// Save data into Terraform state
-	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+	if err = json.NewDecoder(httpResp.Body).Decode(&plan); err != nil {
 		resp.Diagnostics.AddError(
 			"JSON decoding error",
 			fmt.Sprintf("%v\n", err.Error()),
@@ -171,50 +151,32 @@ func (r *OrganizationsSnmpResource) Create(ctx context.Context, req resource.Cre
 		return
 	}
 
-	data.Id = jsontypes.StringValue("example-id")
+	plan.Id = plan.NetworkId
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
-	// Write logs using the tflog package
-	tflog.Trace(ctx, "create resource")
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
-func (r *OrganizationsSnmpResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *OrganizationsSnmpResourceModel
-
-	// Read Terraform prior state data into the model
-	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
-
+func (r *NetworksSnmpResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var state NetworksSnmpResourceModel
+	diags := req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	_, httpResp, err := r.client.SnmpApi.GetNetworkSnmp(context.Background(), data.NetworkId.ValueString()).Execute()
+	tflog.Info(ctx, "Reading SNMP settings", map[string]interface{}{"network_id": state.NetworkId.ValueString()})
+
+	_, httpResp, err := r.client.SnmpApi.GetNetworkSnmp(ctx, state.NetworkId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"HTTP Client Failure",
-			tools.HttpDiagnostics(httpResp),
+			"Error reading SNMP settings",
+			fmt.Sprintf("Could not read SNMP settings, unexpected error: %s", err.Error()),
 		)
 		return
-	}
-
-	// Check for API success response code
-	if httpResp.StatusCode != 200 {
-		resp.Diagnostics.AddError(
-			"Unexpected HTTP Response Status Code",
-			fmt.Sprintf("%v", httpResp.StatusCode),
-		)
-	}
-
-	// Check for errors after diagnostics collected
-	if resp.Diagnostics.HasError() {
-		return
-	} else {
-		resp.Diagnostics.Append()
 	}
 
 	// Save data into Terraform state
-	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+	if err = json.NewDecoder(httpResp.Body).Decode(&state); err != nil {
 		resp.Diagnostics.AddError(
 			"JSON decoding error",
 			fmt.Sprintf("%v\n", err.Error()),
@@ -222,62 +184,54 @@ func (r *OrganizationsSnmpResource) Read(ctx context.Context, req resource.ReadR
 		return
 	}
 
-	data.Id = jsontypes.StringValue("example-id")
+	state.Id = state.NetworkId
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	diags = resp.State.Set(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
-	// Write logs using the tflog package
-	tflog.Trace(ctx, "read resource")
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
-func (r *OrganizationsSnmpResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-
-	var data *OrganizationsSnmpResourceModel
-
-	// Read Terraform plan data into the model
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-
+func (r *NetworksSnmpResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan NetworksSnmpResourceModel
+	diags := req.Plan.Get(ctx, &plan)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	updateNetworkSnmp := *openApiClient.NewUpdateNetworkSnmpRequest()
-	updateNetworkSnmp.SetAccess(data.Access.ValueString())
-	if len(data.Users) > 0 {
-		var usersData []openApiClient.UpdateNetworkSnmpRequestUsersInner
-		for _, user := range data.Users {
-			var userData openApiClient.UpdateNetworkSnmpRequestUsersInner
-			userData.Username = user.Username.ValueString()
-			userData.Passphrase = user.Passphrase.ValueString()
-			usersData = append(usersData, userData)
-		}
-		updateNetworkSnmp.SetUsers(usersData)
+	var users []client.UpdateNetworkSnmpRequestUsersInner
+
+	for _, user := range plan.Users {
+
+		users = append(users, client.UpdateNetworkSnmpRequestUsersInner{
+			Username:   user.Username.ValueString(),
+			Passphrase: user.Passphrase.ValueString(),
+		})
+
 	}
 
-	_, httpResp, err := r.client.NetworksApi.UpdateNetworkSnmp(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSnmpRequest(updateNetworkSnmp).Execute()
+	snmpCreateSettings := client.UpdateNetworkSnmpRequest{
+		Access:          plan.Access.ValueStringPointer(),
+		CommunityString: plan.CommunityString.ValueStringPointer(),
+		Users:           users,
+	}
+
+	_, httpResp, err := r.client.NetworksApi.UpdateNetworkSnmp(ctx, plan.NetworkId.ValueString()).UpdateNetworkSnmpRequest(snmpCreateSettings).Execute()
+
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"HTTP Client Failure",
-			tools.HttpDiagnostics(httpResp),
+			"Error updating SNMP settings",
+			fmt.Sprintf("Could not update SNMP settings, unexpected error: %s", err),
 		)
-		return
-	}
-
-	if httpResp.StatusCode != 200 {
-		resp.Diagnostics.AddError(
-			"Unexpected HTTP Response Status Code",
-			fmt.Sprintf("%v", httpResp.StatusCode),
-		)
-	}
-
-	// Check for errors after diagnostics collected
-	if resp.Diagnostics.HasError() {
-		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
 		return
 	}
 
 	// Save data into Terraform state
-	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
+	if err = json.NewDecoder(httpResp.Body).Decode(&plan); err != nil {
 		resp.Diagnostics.AddError(
 			"JSON decoding error",
 			fmt.Sprintf("%v\n", err.Error()),
@@ -285,69 +239,33 @@ func (r *OrganizationsSnmpResource) Update(ctx context.Context, req resource.Upd
 		return
 	}
 
-	data.Id = jsontypes.StringValue("example-id")
+	plan.Id = plan.NetworkId
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
-	// Write logs using the tflog package
-	tflog.Trace(ctx, "updated resource")
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
-func (r *OrganizationsSnmpResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-
-	var data *OrganizationsSnmpResourceModel
-
-	// Read Terraform prior state data into the model
-	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
-
+func (r *NetworksSnmpResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var state NetworksSnmpResourceModel
+	diags := req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	updateNetworkSnmp := *openApiClient.NewUpdateNetworkSnmpRequest()
-	updateNetworkSnmp.SetAccess("none")
-	updateNetworkSnmp.SetUsers(nil)
+	_, _, err := r.client.NetworksApi.UpdateNetworkSnmp(ctx, state.NetworkId.ValueString()).UpdateNetworkSnmpRequest(client.UpdateNetworkSnmpRequest{}).Execute()
 
-	_, httpResp, err := r.client.NetworksApi.UpdateNetworkSnmp(context.Background(), data.NetworkId.ValueString()).UpdateNetworkSnmpRequest(updateNetworkSnmp).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"HTTP Client Failure",
-			tools.HttpDiagnostics(httpResp),
-		)
-		return
-	}
-
-	// Check for API success response code
-	if httpResp.StatusCode != 200 {
-		resp.Diagnostics.AddError(
-			"Unexpected HTTP Response Status Code",
-			fmt.Sprintf("%v", httpResp.StatusCode),
-		)
-	}
-
-	// Check for errors after diagnostics collected
-	if resp.Diagnostics.HasError() {
-		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
-		return
-	}
-
-	// Save data into Terraform state
-	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
-		resp.Diagnostics.AddError(
-			"JSON decoding error",
-			fmt.Sprintf("%v\n", err.Error()),
+			"Error deleting SNMP settings",
+			fmt.Sprintf("Could not delete SNMP settings, unexpected error: %v", err),
 		)
 		return
 	}
 
 	resp.State.RemoveResource(ctx)
-
-	// Write logs using the tflog package
-	tflog.Trace(ctx, "removed resource")
-
 }
 
-func (r *OrganizationsSnmpResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *NetworksSnmpResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("network_id"), req.ID)...)
