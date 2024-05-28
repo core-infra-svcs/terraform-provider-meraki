@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.7.0](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.6.3...v0.7.0) (2024-05-28)
+
+
+### Features
+
+* NetworkApplianceVlanSettingsDataSource ([4e9d07e](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/4e9d07e9cd01b546dc4576d7c8832cd028acaeca))
+* networks_appliance_vlans datasource ([fca1e6d](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/fca1e6de2c7321b4ff580a99801bdb66b98d0903))
+
+
+### Bug Fixes
+
+* dhcpOptions value error ([#340](https://github.com/core-infra-svcs/terraform-provider-meraki/issues/340)) ([621f93d](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/621f93db07d2e898ab46dbd6a2dac707312a033f))
+* vlanId field HTTP client bug ([53f7fb4](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/53f7fb426a8df61885ea3d92fec0a749efbfb62d))
+* VlanSettingsDataSource Read ([ac20ec5](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/ac20ec58a32451b16901195ca0586eb180ae918e))
+
 ## [0.6.3](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.6.2...v0.6.3) (2024-04-11)
 
 
