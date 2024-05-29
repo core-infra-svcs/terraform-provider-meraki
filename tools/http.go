@@ -1,10 +1,13 @@
 package tools
 
 import (
+	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"io"
 	"log"
 	"net/http"
+	"time"
 )
 
 // HttpDiagnostics - responsible for gathering and logging HTTP driven events
@@ -40,4 +43,29 @@ func HttpDiagnostics(httpResp *http.Response) string {
 	}
 
 	return "No HTTP Response to Diagnose (Check Internet Connectivity)"
+}
+
+// RetryOn4xx Helper function for retrying API calls
+func RetryOn4xx(ctx context.Context, maxRetries int, retryDelay time.Duration, apiCall func() (map[string]interface{}, *http.Response, error)) (map[string]interface{}, *http.Response, error) {
+	retries := 0
+	for retries < maxRetries {
+		result, httpResp, err := apiCall()
+		if err == nil {
+			return result, httpResp, nil
+		}
+		if httpResp != nil && httpResp.StatusCode >= 400 && httpResp.StatusCode < 500 {
+			tflog.Warn(ctx, "Retrying API call due to 4xx error", map[string]interface{}{
+				"maxRetries":        maxRetries,
+				"retryDelay":        retryDelay,
+				"remainingAttempts": maxRetries - retries - 1,
+				"httpStatusCode":    httpResp.StatusCode,
+				"httpBody":          httpResp.Body,
+			})
+			time.Sleep(retryDelay * time.Second)
+			retries++
+		} else {
+			return nil, httpResp, err
+		}
+	}
+	return nil, nil, fmt.Errorf("max retries reached")
 }
