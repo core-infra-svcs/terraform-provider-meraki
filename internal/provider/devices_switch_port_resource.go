@@ -18,8 +18,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
+	"io"
 	"net/http"
 	"strings"
+	"time"
 )
 
 var (
@@ -347,29 +349,46 @@ func (r *DevicesSwitchPortResource) Create(ctx context.Context, req resource.Cre
 		return
 	}
 
-	// Wrap the API call in the retryAPICall function
-	apiResp, httpResp, err := retryAPICall(ctx, func() (interface{}, *http.Response, error) {
-		resp, httpResp, err := r.client.SwitchApi.UpdateDeviceSwitchPort(context.Background(), data.Serial.ValueString(), data.PortId.ValueString()).UpdateDeviceSwitchPortRequest(payload).Execute()
-		if err != nil {
-			return nil, httpResp, err
+	maxRetries := r.client.GetConfig().MaximumRetries
+	retryDelay := time.Duration(r.client.GetConfig().Retry4xxErrorWaitTime)
+
+	// API call function to be passed to retryOn4xx
+	apiCall := func() (*openApiClient.GetDeviceSwitchPorts200ResponseInner, *http.Response, error) {
+		return r.client.SwitchApi.UpdateDeviceSwitchPort(context.Background(), data.Serial.ValueString(), data.PortId.ValueString()).UpdateDeviceSwitchPortRequest(payload).Execute()
+	}
+
+	apiResp, httpResp, err := tools.CustomHttpRequestRetry(ctx, maxRetries, retryDelay, apiCall)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error creating switch port config",
+			fmt.Sprintf("Could not create group policy, unexpected error: %s", err),
+		)
+
+		if httpResp != nil {
+			var responseBody string
+			if httpResp != nil && httpResp.Body != nil {
+				bodyBytes, readErr := io.ReadAll(httpResp.Body)
+				if readErr == nil {
+					responseBody = string(bodyBytes)
+				}
+			}
+			tflog.Error(ctx, "Failed to create resource", map[string]interface{}{
+				"error":          err.Error(),
+				"httpStatusCode": httpResp.StatusCode,
+				"responseBody":   responseBody,
+			})
+			resp.Diagnostics.AddError(
+				"Error creating resource",
+				fmt.Sprintf("HTTP Response: %v\nResponse Body: %s", httpResp, responseBody),
+			)
 		}
-		return resp, httpResp, nil
-	})
+		return
+	}
 
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Create HTTP Client Failure",
 			tools.HttpDiagnostics(httpResp),
-		)
-		return
-	}
-
-	// Type assert apiResp to the expected *openApiClient.GetDeviceSwitchPorts200ResponseInner type
-	response, ok := apiResp.(*openApiClient.GetDeviceSwitchPorts200ResponseInner)
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Type Assertion Failed",
-			"Failed to assert API response type to *openapi.GetDeviceSwitchPorts200ResponseInner",
 		)
 		return
 	}
@@ -388,7 +407,7 @@ func (r *DevicesSwitchPortResource) Create(ctx context.Context, req resource.Cre
 		return
 	}
 
-	data, diag = DevicesSwitchPortResourceResponse(ctx, response, data)
+	data, diag = DevicesSwitchPortResourceResponse(ctx, apiResp, data)
 	if diag.HasError() {
 		resp.Diagnostics.AddError("Resource Response Error", fmt.Sprintf("\n%v", diag))
 		return
@@ -413,21 +432,27 @@ func (r *DevicesSwitchPortResource) Read(ctx context.Context, req resource.ReadR
 		return
 	}
 
-	// Wrap the API call in the retryAPICall function
-	apiResp, httpResp, err := retryAPICall(ctx, func() (interface{}, *http.Response, error) {
-		resp, httpResp, err := r.client.SwitchApi.GetDeviceSwitchPort(ctx, data.Serial.ValueString(), data.PortId.ValueString()).Execute()
-		if err != nil {
-			return nil, httpResp, err
-		}
-		return resp, httpResp, nil
-	})
+	maxRetries := r.client.GetConfig().MaximumRetries
+	retryDelay := time.Duration(r.client.GetConfig().Retry4xxErrorWaitTime)
 
-	// Check for errors after retrying
+	// usage of CustomHttpRequestRetry with a strongly typed struct
+	apiCall := func() (*openApiClient.GetDeviceSwitchPorts200ResponseInner, *http.Response, error) {
+		return r.client.SwitchApi.GetDeviceSwitchPort(ctx, data.Serial.ValueString(), data.PortId.ValueString()).Execute()
+	}
+
+	inlineResp, httpResp, err := tools.CustomHttpRequestRetryStronglyTyped(ctx, maxRetries, retryDelay, apiCall)
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Failed to read device switch port",
-			fmt.Sprintf("Could not read device switch port after retries: %s", err),
-		)
+		fmt.Printf("Error reading device switch port: %s\n", err)
+		if httpResp != nil {
+			var responseBody string
+			if httpResp.Body != nil {
+				bodyBytes, readErr := io.ReadAll(httpResp.Body)
+				if readErr == nil {
+					responseBody = string(bodyBytes)
+				}
+			}
+			fmt.Printf("Failed to create resource. HTTP Status Code: %d, Response Body: %s\n", httpResp.StatusCode, responseBody)
+		}
 		return
 	}
 
@@ -443,20 +468,10 @@ func (r *DevicesSwitchPortResource) Read(ctx context.Context, req resource.ReadR
 		return
 	}
 
-	// Type assert apiResp to the expected *openApiClient.GetDeviceSwitchPorts200ResponseInner type
-	response, ok := apiResp.(*openApiClient.GetDeviceSwitchPorts200ResponseInner)
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Type Assertion Failed",
-			"Failed to assert API response type to *openapi.GetDeviceSwitchPorts200ResponseInner",
-		)
-		return
-	}
-
 	// Use typedApiResp with the correct type for further processing
-	data, diag := DevicesSwitchPortResourceResponse(ctx, response, data)
-	if diag.HasError() {
-		resp.Diagnostics.AddError("Resource Response Error", fmt.Sprintf("\n%v", diag))
+	data, diags := DevicesSwitchPortResourceResponse(ctx, inlineResp, data)
+	if diags.HasError() {
+		resp.Diagnostics.AddError("Resource Response Error", fmt.Sprintf("\n%v", diags))
 		return
 	}
 
@@ -480,26 +495,45 @@ func (r *DevicesSwitchPortResource) Update(ctx context.Context, req resource.Upd
 		return
 	}
 
-	payload, diag := DevicesSwitchPortResourcePayload(context.Background(), data)
-	if diag.HasError() {
-		resp.Diagnostics.AddError("Resource Payload Error", fmt.Sprintf("\n%v", diag))
+	payload, diags := DevicesSwitchPortResourcePayload(context.Background(), data)
+	if diags.HasError() {
+		resp.Diagnostics.AddError("Resource Payload Error", fmt.Sprintf("\n%v", diags))
 		return
 	}
 
-	// Wrap the API call in the retryAPICall function
-	apiResp, httpResp, err := retryAPICall(ctx, func() (interface{}, *http.Response, error) {
-		resp, httpResp, err := r.client.SwitchApi.UpdateDeviceSwitchPort(context.Background(), data.Serial.ValueString(), data.PortId.ValueString()).UpdateDeviceSwitchPortRequest(payload).Execute()
-		if err != nil {
-			return nil, httpResp, err
-		}
-		return resp, httpResp, nil
-	})
+	maxRetries := r.client.GetConfig().MaximumRetries
+	retryDelay := time.Duration(r.client.GetConfig().Retry4xxErrorWaitTime)
 
+	// API call function to be passed to retryOn4xx
+	apiCall := func() (*openApiClient.GetDeviceSwitchPorts200ResponseInner, *http.Response, error) {
+		return r.client.SwitchApi.UpdateDeviceSwitchPort(context.Background(), data.Serial.ValueString(), data.PortId.ValueString()).UpdateDeviceSwitchPortRequest(payload).Execute()
+	}
+
+	inlineResp, httpResp, err := tools.CustomHttpRequestRetry(ctx, maxRetries, retryDelay, apiCall)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Create HTTP Client Failure",
-			tools.HttpDiagnostics(httpResp),
+			"Error creating switch port config",
+			fmt.Sprintf("Could not create group policy, unexpected error: %s", err),
 		)
+
+		if httpResp != nil {
+			var responseBody string
+			if httpResp != nil && httpResp.Body != nil {
+				bodyBytes, readErr := io.ReadAll(httpResp.Body)
+				if readErr == nil {
+					responseBody = string(bodyBytes)
+				}
+			}
+			tflog.Error(ctx, "Failed to create resource", map[string]interface{}{
+				"error":          err.Error(),
+				"httpStatusCode": httpResp.StatusCode,
+				"responseBody":   responseBody,
+			})
+			resp.Diagnostics.AddError(
+				"Error creating resource",
+				fmt.Sprintf("HTTP Response: %v\nResponse Body: %s", httpResp, responseBody),
+			)
+		}
 		return
 	}
 
@@ -511,25 +545,15 @@ func (r *DevicesSwitchPortResource) Update(ctx context.Context, req resource.Upd
 		)
 	}
 
-	// Type assert apiResp to the expected *openApiClient.GetDeviceSwitchPorts200ResponseInner type
-	response, ok := apiResp.(*openApiClient.GetDeviceSwitchPorts200ResponseInner)
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Type Assertion Failed",
-			"Failed to assert API response type to *openapi.GetDeviceSwitchPorts200ResponseInner",
-		)
-		return
-	}
-
 	// If there were any errors up to this point, log the plan data and return.
 	if resp.Diagnostics.HasError() {
 		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%v", data))
 		return
 	}
 
-	data, diag = DevicesSwitchPortResourceResponse(ctx, response, data)
-	if diag.HasError() {
-		resp.Diagnostics.AddError("Resource Response Error", fmt.Sprintf("\n%v", diag))
+	data, diags = DevicesSwitchPortResourceResponse(ctx, inlineResp, data)
+	if diags.HasError() {
+		resp.Diagnostics.AddError("Resource Response Error", fmt.Sprintf("\n%v", diags))
 		return
 	}
 
@@ -566,21 +590,48 @@ func (r *DevicesSwitchPortResource) Delete(ctx context.Context, req resource.Del
 	payload.SetAllowedVlans("1")
 	payload.SetAccessPolicyType("Open")
 
-	// Wrap the API call in the retryAPICall function
-	_, httpResp, err := retryAPICall(ctx, func() (interface{}, *http.Response, error) {
-		resp, httpResp, err := r.client.SwitchApi.UpdateDeviceSwitchPort(context.Background(), data.Serial.ValueString(), data.PortId.ValueString()).UpdateDeviceSwitchPortRequest(payload).Execute()
-		if err != nil {
-			return nil, httpResp, err
-		}
-		return resp, httpResp, nil
-	})
+	maxRetries := r.client.GetConfig().MaximumRetries
+	retryDelay := time.Duration(r.client.GetConfig().Retry4xxErrorWaitTime)
 
+	// API call function to be passed to retryOn4xx
+	apiCall := func() (*openApiClient.GetDeviceSwitchPorts200ResponseInner, *http.Response, error) {
+		return r.client.SwitchApi.UpdateDeviceSwitchPort(context.Background(), data.Serial.ValueString(), data.PortId.ValueString()).UpdateDeviceSwitchPortRequest(payload).Execute()
+	}
+
+	_, httpResp, err := tools.CustomHttpRequestRetry(ctx, maxRetries, retryDelay, apiCall)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Delete HTTP Client Failure",
-			tools.HttpDiagnostics(httpResp),
+			"Error creating switch port config",
+			fmt.Sprintf("Could not create group policy, unexpected error: %s", err),
 		)
+
+		if httpResp != nil {
+			var responseBody string
+			if httpResp != nil && httpResp.Body != nil {
+				bodyBytes, readErr := io.ReadAll(httpResp.Body)
+				if readErr == nil {
+					responseBody = string(bodyBytes)
+				}
+			}
+			tflog.Error(ctx, "Failed to create resource", map[string]interface{}{
+				"error":          err.Error(),
+				"httpStatusCode": httpResp.StatusCode,
+				"responseBody":   responseBody,
+			})
+			resp.Diagnostics.AddError(
+				"Error creating resource",
+				fmt.Sprintf("HTTP Response: %v\nResponse Body: %s", httpResp, responseBody),
+			)
+		}
 		return
+	}
+
+	// If it's not what you expect, add an error to diagnostics.
+	if httpResp.StatusCode != 200 {
+		resp.Diagnostics.AddError(
+			"Unexpected HTTP Response Status Code",
+			fmt.Sprintf("%v", httpResp.StatusCode),
+		)
 	}
 
 	// If it's not what you expect, add an error to diagnostics.

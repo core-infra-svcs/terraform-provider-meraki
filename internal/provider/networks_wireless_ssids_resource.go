@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
@@ -1343,40 +1345,49 @@ func (r *NetworksWirelessSsidsResource) Create(ctx context.Context, req resource
 		return
 	}
 
-	// Wrap the API call in the retryAPICall function
-	apiResp, httpResp, err := retryAPICall(ctx, func() (interface{}, *http.Response, error) {
-		resp, httpResp, err := r.client.WirelessApi.UpdateNetworkWirelessSsid(context.Background(), data.NetworkID.ValueString(), fmt.Sprint(data.Number.ValueInt64())).UpdateNetworkWirelessSsidRequest(payload).Execute()
-		if err != nil {
-			return nil, httpResp, err
-		}
-		return resp, httpResp, nil
-	})
+	maxRetries := r.client.GetConfig().MaximumRetries
+	retryDelay := time.Duration(r.client.GetConfig().Retry4xxErrorWaitTime)
 
-	// If there was an error during API call, add it to diagnostics.
+	// API call function to be passed to retryOn4xx
+	apiCall := func() (*openApiClient.GetNetworkWirelessSsids200ResponseInner, *http.Response, error) {
+		return r.client.WirelessApi.UpdateNetworkWirelessSsid(context.Background(), data.NetworkID.ValueString(), fmt.Sprint(data.Number.ValueInt64())).UpdateNetworkWirelessSsidRequest(payload).Execute()
+	}
+
+	// Use retryOn4xx for the API call as the meraki API backend returns HTTP 400 messages as a result of collision issues with rapid creation of postgres GroupPolicyIds.
+	inlineResp, httpResp, err := tools.CustomHttpRequestRetryStronglyTyped(ctx, maxRetries, retryDelay, apiCall)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Create HTTP Client Failure",
-			tools.HttpDiagnostics(httpResp),
+			"Error creating wireless ssids",
+			fmt.Sprintf("Could not create group policy, unexpected error: %s", err),
 		)
+
+		if httpResp != nil {
+			var responseBody string
+			if httpResp != nil && httpResp.Body != nil {
+				bodyBytes, readErr := io.ReadAll(httpResp.Body)
+				if readErr == nil {
+					responseBody = string(bodyBytes)
+				}
+			}
+			tflog.Error(ctx, "Failed to create resource", map[string]interface{}{
+				"error":          err.Error(),
+				"httpStatusCode": httpResp.StatusCode,
+				"responseBody":   responseBody,
+			})
+			resp.Diagnostics.AddError(
+				"Error creating group policy",
+				fmt.Sprintf("HTTP Response: %v\nResponse Body: %s", httpResp, responseBody),
+			)
+		}
 		return
 	}
 
-	// Check for API success response code
+	// Check for API success inlineResp code
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Create Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
-	}
-
-	// Type assert apiResp to the expected *openApiClient.GetNetworkWirelessSsids200ResponseInner type
-	response, ok := apiResp.(*openApiClient.GetNetworkWirelessSsids200ResponseInner)
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Type Assertion Failed",
-			"Failed to assert API response type to *openapi.GetDeviceSwitchPorts200ResponseInner",
-		)
-		return
 	}
 
 	// If there were any errors up to this point, log the state data and return.
@@ -1385,7 +1396,7 @@ func (r *NetworksWirelessSsidsResource) Create(ctx context.Context, req resource
 		return
 	}
 
-	updatePayloadRespDiags := ReadSSIDSHttpResponse(ctx, data, response)
+	updatePayloadRespDiags := ReadSSIDSHttpResponse(ctx, data, inlineResp)
 	if updatePayloadRespDiags != nil {
 		resp.Diagnostics.Append(updatePayloadRespDiags...)
 	}
@@ -1411,14 +1422,42 @@ func (r *NetworksWirelessSsidsResource) Read(ctx context.Context, req resource.R
 		return
 	}
 
-	// Wrap the API call in the retryAPICall function
-	apiResp, httpResp, err := retryAPICall(ctx, func() (interface{}, *http.Response, error) {
-		resp, httpResp, err := r.client.WirelessApi.GetNetworkWirelessSsid(context.Background(), data.NetworkID.ValueString(), fmt.Sprint(data.Number.ValueInt64())).Execute()
-		if err != nil {
-			return nil, httpResp, err
+	maxRetries := r.client.GetConfig().MaximumRetries
+	retryDelay := time.Duration(r.client.GetConfig().Retry4xxErrorWaitTime)
+
+	// API call function to be passed to retryOn4xx
+	apiCall := func() (*openApiClient.GetNetworkWirelessSsids200ResponseInner, *http.Response, error) {
+		return r.client.WirelessApi.GetNetworkWirelessSsid(context.Background(), data.NetworkID.ValueString(), fmt.Sprint(data.Number.ValueInt64())).Execute()
+	}
+
+	// Use retryOn4xx for the API call as the meraki API backend returns HTTP 400 messages as a result of collision issues with rapid creation of postgres GroupPolicyIds.
+	inlineResp, httpResp, err := tools.CustomHttpRequestRetryStronglyTyped(ctx, maxRetries, retryDelay, apiCall)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error creating wireless ssids",
+			fmt.Sprintf("Could not create group policy, unexpected error: %s", err),
+		)
+
+		if httpResp != nil {
+			var responseBody string
+			if httpResp != nil && httpResp.Body != nil {
+				bodyBytes, readErr := io.ReadAll(httpResp.Body)
+				if readErr == nil {
+					responseBody = string(bodyBytes)
+				}
+			}
+			tflog.Error(ctx, "Failed to create resource", map[string]interface{}{
+				"error":          err.Error(),
+				"httpStatusCode": httpResp.StatusCode,
+				"responseBody":   responseBody,
+			})
+			resp.Diagnostics.AddError(
+				"Error creating group policy",
+				fmt.Sprintf("HTTP Response: %v\nResponse Body: %s", httpResp, responseBody),
+			)
 		}
-		return resp, httpResp, nil
-	})
+		return
+	}
 
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
@@ -1436,23 +1475,13 @@ func (r *NetworksWirelessSsidsResource) Read(ctx context.Context, req resource.R
 		)
 	}
 
-	// Type assert apiResp to the expected *openApiClient.GetNetworkWirelessSsids200ResponseInner type
-	response, ok := apiResp.(*openApiClient.GetNetworkWirelessSsids200ResponseInner)
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Type Assertion Failed",
-			"Failed to assert API response type to *openapi.GetDeviceSwitchPorts200ResponseInner",
-		)
-		return
-	}
-
 	// If there were any errors up to this point, log the state data and return.
 	if resp.Diagnostics.HasError() {
 		resp.Diagnostics.AddError("State Data", fmt.Sprintf("\n%v", data))
 		return
 	}
 
-	getPayloadRespDiags := ReadSSIDSHttpResponse(ctx, data, response)
+	getPayloadRespDiags := ReadSSIDSHttpResponse(ctx, data, inlineResp)
 	if getPayloadRespDiags != nil {
 		resp.Diagnostics.Append(getPayloadRespDiags...)
 	}
@@ -1484,14 +1513,42 @@ func (r *NetworksWirelessSsidsResource) Update(ctx context.Context, req resource
 		return
 	}
 
-	// Wrap the API call in the retryAPICall function
-	apiResp, httpResp, err := retryAPICall(ctx, func() (interface{}, *http.Response, error) {
-		resp, httpResp, err := r.client.WirelessApi.UpdateNetworkWirelessSsid(context.Background(), data.NetworkID.ValueString(), fmt.Sprint(data.Number.ValueInt64())).UpdateNetworkWirelessSsidRequest(payload).Execute()
-		if err != nil {
-			return nil, httpResp, err
+	maxRetries := r.client.GetConfig().MaximumRetries
+	retryDelay := time.Duration(r.client.GetConfig().Retry4xxErrorWaitTime)
+
+	// API call function to be passed to retryOn4xx
+	apiCall := func() (*openApiClient.GetNetworkWirelessSsids200ResponseInner, *http.Response, error) {
+		return r.client.WirelessApi.UpdateNetworkWirelessSsid(context.Background(), data.NetworkID.ValueString(), fmt.Sprint(data.Number.ValueInt64())).UpdateNetworkWirelessSsidRequest(payload).Execute()
+	}
+
+	// Use retryOn4xx for the API call as the meraki API backend returns HTTP 400 messages as a result of collision issues with rapid creation of postgres GroupPolicyIds.
+	inlineResp, httpResp, err := tools.CustomHttpRequestRetryStronglyTyped(ctx, maxRetries, retryDelay, apiCall)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error creating wireless ssids",
+			fmt.Sprintf("Could not create group policy, unexpected error: %s", err),
+		)
+
+		if httpResp != nil {
+			var responseBody string
+			if httpResp != nil && httpResp.Body != nil {
+				bodyBytes, readErr := io.ReadAll(httpResp.Body)
+				if readErr == nil {
+					responseBody = string(bodyBytes)
+				}
+			}
+			tflog.Error(ctx, "Failed to create resource", map[string]interface{}{
+				"error":          err.Error(),
+				"httpStatusCode": httpResp.StatusCode,
+				"responseBody":   responseBody,
+			})
+			resp.Diagnostics.AddError(
+				"Error creating group policy",
+				fmt.Sprintf("HTTP Response: %v\nResponse Body: %s", httpResp, responseBody),
+			)
 		}
-		return resp, httpResp, nil
-	})
+		return
+	}
 
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
@@ -1510,23 +1567,13 @@ func (r *NetworksWirelessSsidsResource) Update(ctx context.Context, req resource
 		)
 	}
 
-	// Type assert apiResp to the expected *openApiClient.GetNetworkWirelessSsids200ResponseInner type
-	response, ok := apiResp.(*openApiClient.GetNetworkWirelessSsids200ResponseInner)
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Type Assertion Failed",
-			"Failed to assert API response type to *openapi.GetDeviceSwitchPorts200ResponseInner",
-		)
-		return
-	}
-
 	// If there were any errors up to this point, log the state data and return.
 	if resp.Diagnostics.HasError() {
 		resp.Diagnostics.AddError("State Data", fmt.Sprintf("\n%v", data))
 		return
 	}
 
-	updatePayloadRespDiags := ReadSSIDSHttpResponse(ctx, data, response)
+	updatePayloadRespDiags := ReadSSIDSHttpResponse(ctx, data, inlineResp)
 	if updatePayloadRespDiags != nil {
 		resp.Diagnostics.Append(updatePayloadRespDiags...)
 	}
@@ -1558,21 +1605,40 @@ func (r *NetworksWirelessSsidsResource) Delete(ctx context.Context, req resource
 	payload.SetAuthMode("open")
 	payload.SetVlanId(1)
 
-	//Wrap the API call in the retryAPICall function
-	_, httpResp, err := retryAPICall(ctx, func() (interface{}, *http.Response, error) {
-		resp, httpResp, err := r.client.WirelessApi.UpdateNetworkWirelessSsid(context.Background(), data.NetworkID.ValueString(), fmt.Sprint(data.Number.ValueInt64())).UpdateNetworkWirelessSsidRequest(payload).Execute()
-		if err != nil {
-			return nil, httpResp, err
-		}
-		return resp, httpResp, nil
-	})
+	maxRetries := r.client.GetConfig().MaximumRetries
+	retryDelay := time.Duration(r.client.GetConfig().Retry4xxErrorWaitTime)
 
-	// If there was an error during API call, add it to diagnostics.
+	// API call function to be passed to retryOn4xx
+	apiCall := func() (*openApiClient.GetNetworkWirelessSsids200ResponseInner, *http.Response, error) {
+		return r.client.WirelessApi.UpdateNetworkWirelessSsid(context.Background(), data.NetworkID.ValueString(), fmt.Sprint(data.Number.ValueInt64())).UpdateNetworkWirelessSsidRequest(payload).Execute()
+	}
+
+	// Use retryOn4xx for the API call as the meraki API backend returns HTTP 400 messages as a result of collision issues with rapid creation of postgres GroupPolicyIds.
+	_, httpResp, err := tools.CustomHttpRequestRetryStronglyTyped(ctx, maxRetries, retryDelay, apiCall)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Delete HTTP Client Failure",
-			tools.HttpDiagnostics(httpResp),
+			"Error creating wireless ssids",
+			fmt.Sprintf("Could not create group policy, unexpected error: %s", err),
 		)
+
+		if httpResp != nil {
+			var responseBody string
+			if httpResp != nil && httpResp.Body != nil {
+				bodyBytes, readErr := io.ReadAll(httpResp.Body)
+				if readErr == nil {
+					responseBody = string(bodyBytes)
+				}
+			}
+			tflog.Error(ctx, "Failed to create resource", map[string]interface{}{
+				"error":          err.Error(),
+				"httpStatusCode": httpResp.StatusCode,
+				"responseBody":   responseBody,
+			})
+			resp.Diagnostics.AddError(
+				"Error creating group policy",
+				fmt.Sprintf("HTTP Response: %v\nResponse Body: %s", httpResp, responseBody),
+			)
+		}
 		return
 	}
 

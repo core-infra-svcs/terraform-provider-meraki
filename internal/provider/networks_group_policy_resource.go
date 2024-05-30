@@ -1780,7 +1780,7 @@ func (r *NetworksGroupPolicyResource) Create(ctx context.Context, req resource.C
 	}
 
 	// Use retryOn4xx for the API call as the meraki API backend returns HTTP 400 messages as a result of collision issues with rapid creation of postgres GroupPolicyIds.
-	createdPolicy, httpResp, err := tools.RetryOn4xx(ctx, maxRetries, retryDelay, apiCall)
+	createdPolicy, httpResp, err := tools.CustomHttpRequestRetry(ctx, maxRetries, retryDelay, apiCall)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating group policy",

@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"io"
 	"net/http"
+	"time"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -207,23 +209,36 @@ func (d *OrganizationsAdminsDataSource) Read(ctx context.Context, req datasource
 		return
 	}
 
-	// Wrap the API call in the retryAPICall function
-	_, httpResp, err := retryAPICall(ctx, func() (interface{}, *http.Response, error) {
-		resp, httpResp, err := d.client.AdminsApi.GetOrganizationAdmins(context.Background(), data.OrgId.ValueString()).Execute()
-		if err != nil {
-			return nil, httpResp, err
-		}
-		return resp, httpResp, nil
-	})
+	maxRetries := d.client.GetConfig().MaximumRetries
+	retryDelay := time.Duration(d.client.GetConfig().Retry4xxErrorWaitTime)
 
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"HTTP Client Failure",
-			tools.HttpDiagnostics(httpResp),
-		)
+	// usage of CustomHttpRequestRetry with a slice of strongly typed structs
+	apiCallSlice := func() ([]openApiClient.GetOrganizationAdmins200ResponseInner, *http.Response, error) {
+		return d.client.AdminsApi.GetOrganizationAdmins(context.Background(), data.OrgId.ValueString()).Execute()
+	}
+
+	resultSlice, httpResp, errSlice := tools.CustomHttpRequestRetryStronglyTyped(ctx, maxRetries, retryDelay, apiCallSlice)
+	if errSlice != nil {
+		fmt.Printf("Error creating group policy: %s\n", errSlice)
+		if httpResp != nil {
+			var responseBody string
+			if httpResp.Body != nil {
+				bodyBytes, readErr := io.ReadAll(httpResp.Body)
+				if readErr == nil {
+					responseBody = string(bodyBytes)
+				}
+			}
+			fmt.Printf("Failed to create resource. HTTP Status Code: %d, Response Body: %s\n", httpResp.StatusCode, responseBody)
+		}
 		return
 	}
 
+	// Type assert apiResp to the expected []openApiClient.GetDeviceSwitchPorts200ResponseInner type
+	_, ok := any(resultSlice).([]openApiClient.GetDeviceSwitchPorts200ResponseInner)
+	if !ok {
+		fmt.Println("Failed to assert API response type to []openApiClient.GetDeviceSwitchPorts200ResponseInner. Please ensure the API response structure matches the expected type.")
+		return
+	}
 	// Check for API success inlineResp code
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
@@ -240,7 +255,7 @@ func (d *OrganizationsAdminsDataSource) Read(ctx context.Context, req datasource
 
 	// Save data into Terraform state
 	data.Id = types.StringValue("example-id")
-	if err = json.NewDecoder(httpResp.Body).Decode(&data.List); err != nil {
+	if err := json.NewDecoder(httpResp.Body).Decode(&data.List); err != nil {
 		resp.Diagnostics.AddError(
 			"JSON decoding error",
 			fmt.Sprintf("%v\n", err.Error()),

@@ -9,7 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
+	"io"
 	"net/http"
+	"time"
 )
 
 var _ datasource.DataSource = &DevicesSwitchPortsStatusesDataSource{}
@@ -319,40 +321,42 @@ func (d *DevicesSwitchPortsStatusesDataSource) Read(ctx context.Context, req dat
 		return
 	}
 
-	// Wrap the API call in the retryAPICall function
-	apiResp, httpResp, err := retryAPICall(ctx, func() (interface{}, *http.Response, error) {
-		resp, httpResp, err := d.client.SwitchApi.GetDeviceSwitchPorts(ctx, data.Serial.ValueString()).Execute()
-		if err != nil {
-			return nil, httpResp, err
-		}
-		return resp, httpResp, nil
-	})
+	maxRetries := d.client.GetConfig().MaximumRetries
+	retryDelay := time.Duration(d.client.GetConfig().Retry4xxErrorWaitTime)
 
-	// If there was an error during API call, add it to diagnostics.
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"HTTP Client Failure",
-			tools.HttpDiagnostics(httpResp),
-		)
+	// usage of CustomHttpRequestRetry with a slice of strongly typed structs
+	apiCallSlice := func() ([]openApiClient.GetDeviceSwitchPorts200ResponseInner, *http.Response, error) {
+		return d.client.SwitchApi.GetDeviceSwitchPorts(ctx, data.Serial.ValueString()).Execute()
+	}
+
+	resultSlice, httpRespSlice, errSlice := tools.CustomHttpRequestRetryStronglyTyped(ctx, maxRetries, retryDelay, apiCallSlice)
+	if errSlice != nil {
+		fmt.Printf("Error creating group policy: %s\n", errSlice)
+		if httpRespSlice != nil {
+			var responseBody string
+			if httpRespSlice.Body != nil {
+				bodyBytes, readErr := io.ReadAll(httpRespSlice.Body)
+				if readErr == nil {
+					responseBody = string(bodyBytes)
+				}
+			}
+			fmt.Printf("Failed to create resource. HTTP Status Code: %d, Response Body: %s\n", httpRespSlice.StatusCode, responseBody)
+		}
 		return
 	}
 
-	// Type assert apiResp to the expected *openApiClient.GetDeviceSwitchPorts200ResponseInner type
-	inlineResp, ok := apiResp.([]openApiClient.GetDeviceSwitchPorts200ResponseInner)
+	// Type assert apiResp to the expected []openApiClient.GetDeviceSwitchPorts200ResponseInner type
+	inlineResp, ok := any(resultSlice).([]openApiClient.GetDeviceSwitchPorts200ResponseInner)
 	if !ok {
-		resp.Diagnostics.AddError(
-			"Type Assertion Failed",
-			"Failed to assert API response type to []openApiClient.GetDeviceSwitchPorts200ResponseInner. Please ensure the API response structure matches the expected type.",
-		)
+		fmt.Println("Failed to assert API response type to []openApiClient.GetDeviceSwitchPorts200ResponseInner. Please ensure the API response structure matches the expected type.")
 		return
 	}
 
 	// If it's not what you expect, add an error to diagnostics.
-	// TODO: Check the HTTP response status code matches the API endpoint.
-	if httpResp.StatusCode != 200 {
+	if httpRespSlice.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
-			fmt.Sprintf("%v", httpResp.StatusCode),
+			fmt.Sprintf("%v", httpRespSlice.StatusCode),
 		)
 	}
 
