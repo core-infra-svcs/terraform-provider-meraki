@@ -71,5 +71,7 @@ This workflow publishes assets for release when a tag is created with the patter
 
 - Once the pull request is merged into main the `release-please-action.yml` workflow will create a new version major/minor and a release PR.
 
+
+
 - The final approval comes after the release PR is merged into main with the latest git tag version which starts the `terraform-provider-release.yml` workflow of generating the binaries which will be published to Terraform registry.
 
