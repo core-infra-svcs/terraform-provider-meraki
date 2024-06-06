@@ -229,44 +229,65 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Create(ctx co
 
 	if !data.Wan1.IsNull() {
 
-		var wan1Plan DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan
-		data.Wan1.As(ctx, &wan1Plan, basetypes.ObjectAsOptions{})
-		var staticDNS []string
-		wan1Plan.StaticDns.ElementsAs(ctx, &staticDNS, false)
-		wan1 := openApiClient.UpdateDeviceManagementInterfaceRequestWan1{
-			WanEnabled:       wan1Plan.WanEnabled.ValueStringPointer(),
-			UsingStaticIp:    wan1Plan.UsingStaticIp.ValueBoolPointer(),
-			StaticIp:         wan1Plan.StaticIp.ValueStringPointer(),
-			StaticGatewayIp:  wan1Plan.StaticGatewayIp.ValueStringPointer(),
-			StaticSubnetMask: wan1Plan.StaticSubnetMask.ValueStringPointer(),
-			StaticDns:        staticDNS,
-		}
-		if !wan1Plan.Vlan.IsNull() {
-			var vlan = int32(wan1Plan.Vlan.ValueInt64())
-			wan1.Vlan = &vlan
-		}
+		if !data.Wan1.IsUnknown() {
 
-		payload.Wan1 = &wan1
+			var wan1Plan DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan
+			data.Wan1.As(ctx, &wan1Plan, basetypes.ObjectAsOptions{})
+			var staticDNS1 []string
+			wan1Plan.StaticDns.ElementsAs(ctx, &staticDNS1, false)
+
+			wan1 := openApiClient.UpdateDeviceManagementInterfaceRequestWan1{}
+
+			if wan1Plan.WanEnabled.ValueString() != "" {
+				wan1.SetWanEnabled(wan1Plan.WanEnabled.ValueString())
+			}
+
+			wan1.SetStaticDns(staticDNS1)
+			wan1.SetStaticGatewayIp(wan1Plan.StaticGatewayIp.ValueString())
+			wan1.SetStaticSubnetMask(wan1Plan.StaticSubnetMask.ValueString())
+			wan1.SetStaticIp(wan1Plan.StaticIp.ValueString())
+			wan1.SetUsingStaticIp(wan1Plan.UsingStaticIp.ValueBool())
+
+			if !wan1Plan.Vlan.IsNull() {
+				var vlan = int32(wan1Plan.Vlan.ValueInt64())
+				wan1.Vlan = &vlan
+			}
+
+			payload.Wan1 = &wan1
+
+		}
 
 	}
+
 	if !data.Wan2.IsNull() {
-		var wan2Plan DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan
-		data.Wan2.As(ctx, &wan2Plan, basetypes.ObjectAsOptions{})
-		var staticDNS []string
-		wan2Plan.StaticDns.ElementsAs(ctx, &staticDNS, false)
-		wan2 := openApiClient.UpdateDeviceManagementInterfaceRequestWan2{
-			WanEnabled:       wan2Plan.WanEnabled.ValueStringPointer(),
-			UsingStaticIp:    wan2Plan.UsingStaticIp.ValueBoolPointer(),
-			StaticIp:         wan2Plan.StaticIp.ValueStringPointer(),
-			StaticGatewayIp:  wan2Plan.StaticGatewayIp.ValueStringPointer(),
-			StaticSubnetMask: wan2Plan.StaticSubnetMask.ValueStringPointer(),
-			StaticDns:        staticDNS,
+
+		if !data.Wan2.IsUnknown() {
+
+			var wan2Plan DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan
+			data.Wan2.As(ctx, &wan2Plan, basetypes.ObjectAsOptions{})
+			var staticDNS2 []string
+			wan2Plan.StaticDns.ElementsAs(ctx, &staticDNS2, false)
+
+			wan2 := openApiClient.UpdateDeviceManagementInterfaceRequestWan2{}
+
+			if wan2Plan.WanEnabled.ValueString() != "" {
+				wan2.SetWanEnabled(wan2Plan.WanEnabled.ValueString())
+			}
+
+			wan2.SetStaticDns(staticDNS2)
+			wan2.SetStaticGatewayIp(wan2Plan.StaticGatewayIp.ValueString())
+			wan2.SetStaticSubnetMask(wan2Plan.StaticSubnetMask.ValueString())
+			wan2.SetStaticIp(wan2Plan.StaticIp.ValueString())
+			wan2.SetUsingStaticIp(wan2Plan.UsingStaticIp.ValueBool())
+
+			if !wan2Plan.Vlan.IsNull() {
+				var vlan = int32(wan2Plan.Vlan.ValueInt64())
+				wan2.Vlan = &vlan
+			}
+
+			payload.Wan2 = &wan2
+
 		}
-		if !wan2Plan.Vlan.IsNull() {
-			var vlan = int32(wan2Plan.Vlan.ValueInt64())
-			wan2.Vlan = &vlan
-		}
-		payload.Wan2 = &wan2
 	}
 
 	inlineResp, httpResp, err := r.client.ManagementInterfaceApi.UpdateDeviceManagementInterface(context.Background(), data.Serial.ValueString()).UpdateDeviceManagementInterfaceRequest(*payload).Execute()
@@ -301,70 +322,92 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Create(ctx co
 		}
 	}
 
-	var wan1Output OutputDevicesTestAccDevicesManagementInterfaceModelWan
-	jsonData, _ := json.Marshal(inlineResp["wan1"].(map[string]interface{}))
-	json.Unmarshal(jsonData, &wan1Output)
+	if inlineResp != nil {
 
-	var wan2Output OutputDevicesTestAccDevicesManagementInterfaceModelWan
-	jsonData, _ = json.Marshal(inlineResp["wan2"].(map[string]interface{}))
-	json.Unmarshal(jsonData, &wan2Output)
+		if inlineResp["wan1"] != nil {
 
-	staticDnsList1, diags := types.ListValueFrom(ctx, types.StringType, wan1Output.StaticDns)
-	if diags.HasError() {
+			var wan1Output OutputDevicesTestAccDevicesManagementInterfaceModelWan
+			jsonData, _ := json.Marshal(inlineResp["wan1"].(map[string]interface{}))
+			json.Unmarshal(jsonData, &wan1Output)
+
+			staticDnsList1, diags := types.ListValueFrom(ctx, types.StringType, wan1Output.StaticDns)
+			if diags.HasError() {
+				return
+			}
+
+			if staticDnsList1.IsUnknown() {
+				staticDnsList1 = basetypes.NewListNull(types.StringType)
+			}
+
+			wan1Map, _ := basetypes.NewObjectValue(WANData(), map[string]attr.Value{
+				"wan_enabled":        basetypes.NewStringValue(wan1Output.WanEnabled),
+				"using_static_ip":    basetypes.NewBoolValue(wan1Output.UsingStaticIp),
+				"static_ip":          basetypes.NewStringValue(wan1Output.StaticIp),
+				"static_subnet_mask": basetypes.NewStringValue(wan1Output.StaticSubnetMask),
+				"static_gateway_ip":  basetypes.NewStringValue(wan1Output.StaticGatewayIp),
+				"static_dns":         staticDnsList1,
+				"vlan":               basetypes.NewInt64Value(wan1Output.Vlan),
+			})
+
+			objectVal1, diags := types.ObjectValueFrom(ctx, WANData(), wan1Map)
+			if diags.HasError() {
+				return
+			}
+
+			data.Wan1 = objectVal1
+
+		} else {
+			data.Wan1 = types.ObjectNull(WANData())
+		}
+
+		if inlineResp["wan2"] != nil {
+
+			var wan2Output OutputDevicesTestAccDevicesManagementInterfaceModelWan
+			jsonData, _ := json.Marshal(inlineResp["wan2"].(map[string]interface{}))
+			json.Unmarshal(jsonData, &wan2Output)
+
+			staticDnsList2, diags := types.ListValueFrom(ctx, types.StringType, wan2Output.StaticDns)
+			if diags.HasError() {
+				return
+			}
+
+			if staticDnsList2.IsUnknown() {
+				staticDnsList2 = basetypes.NewListNull(types.StringType)
+			}
+
+			wan2Map, _ := basetypes.NewObjectValue(WANData(), map[string]attr.Value{
+				"wan_enabled":        basetypes.NewStringValue(wan2Output.WanEnabled),
+				"using_static_ip":    basetypes.NewBoolValue(wan2Output.UsingStaticIp),
+				"static_ip":          basetypes.NewStringValue(wan2Output.StaticIp),
+				"static_subnet_mask": basetypes.NewStringValue(wan2Output.StaticSubnetMask),
+				"static_gateway_ip":  basetypes.NewStringValue(wan2Output.StaticGatewayIp),
+				"static_dns":         staticDnsList2,
+				"vlan":               basetypes.NewInt64Value(wan2Output.Vlan),
+			})
+
+			objectVal2, diags := types.ObjectValueFrom(ctx, WANData(), wan2Map)
+			if diags.HasError() {
+				return
+			}
+
+			data.Wan2 = objectVal2
+
+		} else {
+			data.Wan2 = types.ObjectNull(WANData())
+		}
+
+		if data.Wan1.IsUnknown() {
+			data.Wan1 = types.ObjectNull(WANData())
+		}
+		if data.Wan2.IsUnknown() {
+			data.Wan2 = types.ObjectNull(WANData())
+		}
+	} else {
+		resp.Diagnostics.AddError(
+			"No Response Unbable to Update",
+			fmt.Sprintf("%v", inlineResp),
+		)
 		return
-	}
-
-	if staticDnsList1.IsUnknown() {
-		staticDnsList1 = basetypes.NewListNull(types.StringType)
-	}
-
-	staticDnsList2, diags := types.ListValueFrom(ctx, types.StringType, wan2Output.StaticDns)
-	if diags.HasError() {
-		return
-	}
-
-	if staticDnsList2.IsUnknown() {
-		staticDnsList2 = basetypes.NewListNull(types.StringType)
-	}
-
-	wan1Map, _ := basetypes.NewObjectValue(WANData(), map[string]attr.Value{
-		"wan_enabled":        basetypes.NewStringValue(wan1Output.WanEnabled),
-		"using_static_ip":    basetypes.NewBoolValue(wan1Output.UsingStaticIp),
-		"static_ip":          basetypes.NewStringValue(wan1Output.StaticIp),
-		"static_subnet_mask": basetypes.NewStringValue(wan1Output.StaticSubnetMask),
-		"static_gateway_ip":  basetypes.NewStringValue(wan1Output.StaticGatewayIp),
-		"static_dns":         staticDnsList1,
-		"vlan":               basetypes.NewInt64Value(wan1Output.Vlan),
-	})
-
-	objectVal1, diags := types.ObjectValueFrom(ctx, WANData(), wan1Map)
-	if diags.HasError() {
-		return
-	}
-
-	wan2Map, _ := basetypes.NewObjectValue(WANData(), map[string]attr.Value{
-		"wan_enabled":        basetypes.NewStringValue(wan2Output.WanEnabled),
-		"using_static_ip":    basetypes.NewBoolValue(wan2Output.UsingStaticIp),
-		"static_ip":          basetypes.NewStringValue(wan2Output.StaticIp),
-		"static_subnet_mask": basetypes.NewStringValue(wan2Output.StaticSubnetMask),
-		"static_gateway_ip":  basetypes.NewStringValue(wan2Output.StaticGatewayIp),
-		"static_dns":         staticDnsList2,
-		"vlan":               basetypes.NewInt64Value(wan2Output.Vlan),
-	})
-
-	objectVal2, diags := types.ObjectValueFrom(ctx, WANData(), wan2Map)
-	if diags.HasError() {
-		return
-	}
-
-	data.Wan1 = objectVal1
-	data.Wan2 = objectVal2
-
-	if data.Wan1.IsUnknown() {
-		data.Wan1 = types.ObjectNull(WANData())
-	}
-	if data.Wan2.IsUnknown() {
-		data.Wan2 = types.ObjectNull(WANData())
 	}
 
 	data.Id = types.StringValue("example-id")
@@ -417,70 +460,92 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Read(ctx cont
 
 	}
 
-	var wan1Output OutputDevicesTestAccDevicesManagementInterfaceModelWan
-	jsonData, _ := json.Marshal(inlineResp["wan1"].(map[string]interface{}))
-	json.Unmarshal(jsonData, &wan1Output)
+	if inlineResp != nil {
 
-	var wan2Output OutputDevicesTestAccDevicesManagementInterfaceModelWan
-	jsonData, _ = json.Marshal(inlineResp["wan2"].(map[string]interface{}))
-	json.Unmarshal(jsonData, &wan2Output)
+		if inlineResp["wan1"] != nil {
 
-	staticDnsList1, diags := types.ListValueFrom(ctx, types.StringType, wan1Output.StaticDns)
-	if diags.HasError() {
+			var wan1Output OutputDevicesTestAccDevicesManagementInterfaceModelWan
+			jsonData, _ := json.Marshal(inlineResp["wan1"].(map[string]interface{}))
+			json.Unmarshal(jsonData, &wan1Output)
+
+			staticDnsList1, diags := types.ListValueFrom(ctx, types.StringType, wan1Output.StaticDns)
+			if diags.HasError() {
+				return
+			}
+
+			if staticDnsList1.IsUnknown() {
+				staticDnsList1 = basetypes.NewListNull(types.StringType)
+			}
+
+			wan1Map, _ := basetypes.NewObjectValue(WANData(), map[string]attr.Value{
+				"wan_enabled":        basetypes.NewStringValue(wan1Output.WanEnabled),
+				"using_static_ip":    basetypes.NewBoolValue(wan1Output.UsingStaticIp),
+				"static_ip":          basetypes.NewStringValue(wan1Output.StaticIp),
+				"static_subnet_mask": basetypes.NewStringValue(wan1Output.StaticSubnetMask),
+				"static_gateway_ip":  basetypes.NewStringValue(wan1Output.StaticGatewayIp),
+				"static_dns":         staticDnsList1,
+				"vlan":               basetypes.NewInt64Value(wan1Output.Vlan),
+			})
+
+			objectVal1, diags := types.ObjectValueFrom(ctx, WANData(), wan1Map)
+			if diags.HasError() {
+				return
+			}
+
+			data.Wan1 = objectVal1
+
+		} else {
+			data.Wan1 = types.ObjectNull(WANData())
+		}
+
+		if inlineResp["wan2"] != nil {
+
+			var wan2Output OutputDevicesTestAccDevicesManagementInterfaceModelWan
+			jsonData, _ := json.Marshal(inlineResp["wan2"].(map[string]interface{}))
+			json.Unmarshal(jsonData, &wan2Output)
+
+			staticDnsList2, diags := types.ListValueFrom(ctx, types.StringType, wan2Output.StaticDns)
+			if diags.HasError() {
+				return
+			}
+
+			if staticDnsList2.IsUnknown() {
+				staticDnsList2 = basetypes.NewListNull(types.StringType)
+			}
+
+			wan2Map, _ := basetypes.NewObjectValue(WANData(), map[string]attr.Value{
+				"wan_enabled":        basetypes.NewStringValue(wan2Output.WanEnabled),
+				"using_static_ip":    basetypes.NewBoolValue(wan2Output.UsingStaticIp),
+				"static_ip":          basetypes.NewStringValue(wan2Output.StaticIp),
+				"static_subnet_mask": basetypes.NewStringValue(wan2Output.StaticSubnetMask),
+				"static_gateway_ip":  basetypes.NewStringValue(wan2Output.StaticGatewayIp),
+				"static_dns":         staticDnsList2,
+				"vlan":               basetypes.NewInt64Value(wan2Output.Vlan),
+			})
+
+			objectVal2, diags := types.ObjectValueFrom(ctx, WANData(), wan2Map)
+			if diags.HasError() {
+				return
+			}
+
+			data.Wan2 = objectVal2
+
+		} else {
+			data.Wan2 = types.ObjectNull(WANData())
+		}
+
+		if data.Wan1.IsUnknown() {
+			data.Wan1 = types.ObjectNull(WANData())
+		}
+		if data.Wan2.IsUnknown() {
+			data.Wan2 = types.ObjectNull(WANData())
+		}
+	} else {
+		resp.Diagnostics.AddError(
+			"No Response Unbable to Update",
+			fmt.Sprintf("%v", inlineResp),
+		)
 		return
-	}
-
-	if staticDnsList1.IsUnknown() {
-		staticDnsList1 = basetypes.NewListNull(types.StringType)
-	}
-
-	staticDnsList2, diags := types.ListValueFrom(ctx, types.StringType, wan2Output.StaticDns)
-	if diags.HasError() {
-		return
-	}
-
-	if staticDnsList2.IsUnknown() {
-		staticDnsList2 = basetypes.NewListNull(types.StringType)
-	}
-
-	wan1Map, _ := basetypes.NewObjectValue(WANData(), map[string]attr.Value{
-		"wan_enabled":        basetypes.NewStringValue(wan1Output.WanEnabled),
-		"using_static_ip":    basetypes.NewBoolValue(wan1Output.UsingStaticIp),
-		"static_ip":          basetypes.NewStringValue(wan1Output.StaticIp),
-		"static_subnet_mask": basetypes.NewStringValue(wan1Output.StaticSubnetMask),
-		"static_gateway_ip":  basetypes.NewStringValue(wan1Output.StaticGatewayIp),
-		"static_dns":         staticDnsList1,
-		"vlan":               basetypes.NewInt64Value(wan1Output.Vlan),
-	})
-
-	objectVal1, diags := types.ObjectValueFrom(ctx, WANData(), wan1Map)
-	if diags.HasError() {
-		return
-	}
-
-	wan2Map, _ := basetypes.NewObjectValue(WANData(), map[string]attr.Value{
-		"wan_enabled":        basetypes.NewStringValue(wan2Output.WanEnabled),
-		"using_static_ip":    basetypes.NewBoolValue(wan2Output.UsingStaticIp),
-		"static_ip":          basetypes.NewStringValue(wan2Output.StaticIp),
-		"static_subnet_mask": basetypes.NewStringValue(wan2Output.StaticSubnetMask),
-		"static_gateway_ip":  basetypes.NewStringValue(wan2Output.StaticGatewayIp),
-		"static_dns":         staticDnsList2,
-		"vlan":               basetypes.NewInt64Value(wan2Output.Vlan),
-	})
-
-	objectVal2, diags := types.ObjectValueFrom(ctx, WANData(), wan2Map)
-	if diags.HasError() {
-		return
-	}
-
-	data.Wan1 = objectVal1
-	data.Wan2 = objectVal2
-
-	if data.Wan1.IsUnknown() {
-		data.Wan1 = types.ObjectNull(WANData())
-	}
-	if data.Wan2.IsUnknown() {
-		data.Wan2 = types.ObjectNull(WANData())
 	}
 
 	data.Id = types.StringValue("example-id")
@@ -505,44 +570,65 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Update(ctx co
 
 	if !data.Wan1.IsNull() {
 
-		var wan1Plan DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan
-		data.Wan1.As(ctx, &wan1Plan, basetypes.ObjectAsOptions{})
-		var staticDNS []string
-		wan1Plan.StaticDns.ElementsAs(ctx, &staticDNS, false)
-		wan1 := openApiClient.UpdateDeviceManagementInterfaceRequestWan1{
-			WanEnabled:       wan1Plan.WanEnabled.ValueStringPointer(),
-			UsingStaticIp:    wan1Plan.UsingStaticIp.ValueBoolPointer(),
-			StaticIp:         wan1Plan.StaticIp.ValueStringPointer(),
-			StaticGatewayIp:  wan1Plan.StaticGatewayIp.ValueStringPointer(),
-			StaticSubnetMask: wan1Plan.StaticSubnetMask.ValueStringPointer(),
-			StaticDns:        staticDNS,
-		}
-		if !wan1Plan.Vlan.IsNull() {
-			var vlan = int32(wan1Plan.Vlan.ValueInt64())
-			wan1.Vlan = &vlan
-		}
+		if !data.Wan1.IsUnknown() {
 
-		payload.Wan1 = &wan1
+			var wan1Plan DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan
+			data.Wan1.As(ctx, &wan1Plan, basetypes.ObjectAsOptions{})
+			var staticDNS1 []string
+			wan1Plan.StaticDns.ElementsAs(ctx, &staticDNS1, false)
+
+			wan1 := openApiClient.UpdateDeviceManagementInterfaceRequestWan1{}
+
+			if wan1Plan.WanEnabled.ValueString() != "" {
+				wan1.SetWanEnabled(wan1Plan.WanEnabled.ValueString())
+			}
+
+			wan1.SetStaticDns(staticDNS1)
+			wan1.SetStaticGatewayIp(wan1Plan.StaticGatewayIp.ValueString())
+			wan1.SetStaticSubnetMask(wan1Plan.StaticSubnetMask.ValueString())
+			wan1.SetStaticIp(wan1Plan.StaticIp.ValueString())
+			wan1.SetUsingStaticIp(wan1Plan.UsingStaticIp.ValueBool())
+
+			if !wan1Plan.Vlan.IsNull() {
+				var vlan = int32(wan1Plan.Vlan.ValueInt64())
+				wan1.Vlan = &vlan
+			}
+
+			payload.Wan1 = &wan1
+
+		}
 
 	}
+
 	if !data.Wan2.IsNull() {
-		var wan2Plan DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan
-		data.Wan2.As(ctx, &wan2Plan, basetypes.ObjectAsOptions{})
-		var staticDNS2 []string
-		wan2Plan.StaticDns.ElementsAs(ctx, &staticDNS2, false)
-		wan2 := openApiClient.UpdateDeviceManagementInterfaceRequestWan2{
-			WanEnabled:       wan2Plan.WanEnabled.ValueStringPointer(),
-			UsingStaticIp:    wan2Plan.UsingStaticIp.ValueBoolPointer(),
-			StaticIp:         wan2Plan.StaticIp.ValueStringPointer(),
-			StaticGatewayIp:  wan2Plan.StaticGatewayIp.ValueStringPointer(),
-			StaticSubnetMask: wan2Plan.StaticSubnetMask.ValueStringPointer(),
-			StaticDns:        staticDNS2,
+
+		if !data.Wan2.IsUnknown() {
+
+			var wan2Plan DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan
+			data.Wan2.As(ctx, &wan2Plan, basetypes.ObjectAsOptions{})
+			var staticDNS2 []string
+			wan2Plan.StaticDns.ElementsAs(ctx, &staticDNS2, false)
+
+			wan2 := openApiClient.UpdateDeviceManagementInterfaceRequestWan2{}
+
+			if wan2Plan.WanEnabled.ValueString() != "" {
+				wan2.SetWanEnabled(wan2Plan.WanEnabled.ValueString())
+			}
+
+			wan2.SetStaticDns(staticDNS2)
+			wan2.SetStaticGatewayIp(wan2Plan.StaticGatewayIp.ValueString())
+			wan2.SetStaticSubnetMask(wan2Plan.StaticSubnetMask.ValueString())
+			wan2.SetStaticIp(wan2Plan.StaticIp.ValueString())
+			wan2.SetUsingStaticIp(wan2Plan.UsingStaticIp.ValueBool())
+
+			if !wan2Plan.Vlan.IsNull() {
+				var vlan = int32(wan2Plan.Vlan.ValueInt64())
+				wan2.Vlan = &vlan
+			}
+
+			payload.Wan2 = &wan2
+
 		}
-		if !wan2Plan.Vlan.IsNull() {
-			var vlan = int32(wan2Plan.Vlan.ValueInt64())
-			wan2.Vlan = &vlan
-		}
-		payload.Wan2 = &wan2
 	}
 
 	inlineResp, httpResp, err := r.client.ManagementInterfaceApi.UpdateDeviceManagementInterface(context.Background(), data.Serial.ValueString()).UpdateDeviceManagementInterfaceRequest(*payload).Execute()
@@ -577,70 +663,92 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Update(ctx co
 
 	}
 
-	var wan1Output OutputDevicesTestAccDevicesManagementInterfaceModelWan
-	jsonData, _ := json.Marshal(inlineResp["wan1"].(map[string]interface{}))
-	json.Unmarshal(jsonData, &wan1Output)
+	if inlineResp != nil {
 
-	var wan2Output OutputDevicesTestAccDevicesManagementInterfaceModelWan
-	jsonData, _ = json.Marshal(inlineResp["wan2"].(map[string]interface{}))
-	json.Unmarshal(jsonData, &wan2Output)
+		if inlineResp["wan1"] != nil {
 
-	staticDnsList1, diags := types.ListValueFrom(ctx, types.StringType, wan1Output.StaticDns)
-	if diags.HasError() {
+			var wan1Output OutputDevicesTestAccDevicesManagementInterfaceModelWan
+			jsonData, _ := json.Marshal(inlineResp["wan1"].(map[string]interface{}))
+			json.Unmarshal(jsonData, &wan1Output)
+
+			staticDnsList1, diags := types.ListValueFrom(ctx, types.StringType, wan1Output.StaticDns)
+			if diags.HasError() {
+				return
+			}
+
+			if staticDnsList1.IsUnknown() {
+				staticDnsList1 = basetypes.NewListNull(types.StringType)
+			}
+
+			wan1Map, _ := basetypes.NewObjectValue(WANData(), map[string]attr.Value{
+				"wan_enabled":        basetypes.NewStringValue(wan1Output.WanEnabled),
+				"using_static_ip":    basetypes.NewBoolValue(wan1Output.UsingStaticIp),
+				"static_ip":          basetypes.NewStringValue(wan1Output.StaticIp),
+				"static_subnet_mask": basetypes.NewStringValue(wan1Output.StaticSubnetMask),
+				"static_gateway_ip":  basetypes.NewStringValue(wan1Output.StaticGatewayIp),
+				"static_dns":         staticDnsList1,
+				"vlan":               basetypes.NewInt64Value(wan1Output.Vlan),
+			})
+
+			objectVal1, diags := types.ObjectValueFrom(ctx, WANData(), wan1Map)
+			if diags.HasError() {
+				return
+			}
+
+			data.Wan1 = objectVal1
+
+		} else {
+			data.Wan1 = types.ObjectNull(WANData())
+		}
+
+		if inlineResp["wan2"] != nil {
+
+			var wan2Output OutputDevicesTestAccDevicesManagementInterfaceModelWan
+			jsonData, _ := json.Marshal(inlineResp["wan2"].(map[string]interface{}))
+			json.Unmarshal(jsonData, &wan2Output)
+
+			staticDnsList2, diags := types.ListValueFrom(ctx, types.StringType, wan2Output.StaticDns)
+			if diags.HasError() {
+				return
+			}
+
+			if staticDnsList2.IsUnknown() {
+				staticDnsList2 = basetypes.NewListNull(types.StringType)
+			}
+
+			wan2Map, _ := basetypes.NewObjectValue(WANData(), map[string]attr.Value{
+				"wan_enabled":        basetypes.NewStringValue(wan2Output.WanEnabled),
+				"using_static_ip":    basetypes.NewBoolValue(wan2Output.UsingStaticIp),
+				"static_ip":          basetypes.NewStringValue(wan2Output.StaticIp),
+				"static_subnet_mask": basetypes.NewStringValue(wan2Output.StaticSubnetMask),
+				"static_gateway_ip":  basetypes.NewStringValue(wan2Output.StaticGatewayIp),
+				"static_dns":         staticDnsList2,
+				"vlan":               basetypes.NewInt64Value(wan2Output.Vlan),
+			})
+
+			objectVal2, diags := types.ObjectValueFrom(ctx, WANData(), wan2Map)
+			if diags.HasError() {
+				return
+			}
+
+			data.Wan2 = objectVal2
+
+		} else {
+			data.Wan2 = types.ObjectNull(WANData())
+		}
+
+		if data.Wan1.IsUnknown() {
+			data.Wan1 = types.ObjectNull(WANData())
+		}
+		if data.Wan2.IsUnknown() {
+			data.Wan2 = types.ObjectNull(WANData())
+		}
+	} else {
+		resp.Diagnostics.AddError(
+			"No Response Unbable to Update",
+			fmt.Sprintf("%v", inlineResp),
+		)
 		return
-	}
-
-	if staticDnsList1.IsUnknown() {
-		staticDnsList1 = basetypes.NewListNull(types.StringType)
-	}
-
-	staticDnsList2, diags := types.ListValueFrom(ctx, types.StringType, wan2Output.StaticDns)
-	if diags.HasError() {
-		return
-	}
-
-	if staticDnsList2.IsUnknown() {
-		staticDnsList2 = basetypes.NewListNull(types.StringType)
-	}
-
-	wan1Map, _ := basetypes.NewObjectValue(WANData(), map[string]attr.Value{
-		"wan_enabled":        basetypes.NewStringValue(wan1Output.WanEnabled),
-		"using_static_ip":    basetypes.NewBoolValue(wan1Output.UsingStaticIp),
-		"static_ip":          basetypes.NewStringValue(wan1Output.StaticIp),
-		"static_subnet_mask": basetypes.NewStringValue(wan1Output.StaticSubnetMask),
-		"static_gateway_ip":  basetypes.NewStringValue(wan1Output.StaticGatewayIp),
-		"static_dns":         staticDnsList1,
-		"vlan":               basetypes.NewInt64Value(wan1Output.Vlan),
-	})
-
-	objectVal1, diags := types.ObjectValueFrom(ctx, WANData(), wan1Map)
-	if diags.HasError() {
-		return
-	}
-
-	wan2Map, _ := basetypes.NewObjectValue(WANData(), map[string]attr.Value{
-		"wan_enabled":        basetypes.NewStringValue(wan2Output.WanEnabled),
-		"using_static_ip":    basetypes.NewBoolValue(wan2Output.UsingStaticIp),
-		"static_ip":          basetypes.NewStringValue(wan2Output.StaticIp),
-		"static_subnet_mask": basetypes.NewStringValue(wan2Output.StaticSubnetMask),
-		"static_gateway_ip":  basetypes.NewStringValue(wan2Output.StaticGatewayIp),
-		"static_dns":         staticDnsList2,
-		"vlan":               basetypes.NewInt64Value(wan2Output.Vlan),
-	})
-
-	objectVal2, diags := types.ObjectValueFrom(ctx, WANData(), wan2Map)
-	if diags.HasError() {
-		return
-	}
-
-	data.Wan1 = objectVal1
-	data.Wan2 = objectVal2
-
-	if data.Wan1.IsUnknown() {
-		data.Wan1 = types.ObjectNull(WANData())
-	}
-	if data.Wan2.IsUnknown() {
-		data.Wan2 = types.ObjectNull(WANData())
 	}
 
 	data.Id = types.StringValue("example-id")
@@ -717,3 +825,4 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) ImportState(c
 		return
 	}
 }
+
