@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.1](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.7.0...v0.7.1) (2024-06-06)
+
+
+### Bug Fixes
+
+* device_management_interface null and panics ([#354](https://github.com/core-infra-svcs/terraform-provider-meraki/issues/354)) ([58dbae1](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/58dbae150d99f72f49dfcce8d1301da1069a22b5))
+
 ## [0.7.0](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.6.3...v0.7.0) (2024-05-28)
 
 
