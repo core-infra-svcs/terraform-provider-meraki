@@ -18,7 +18,7 @@ description: |-
 ### Required
 
 - `name` (String) The name of the group policy.
-- `network_id` (String) The network ID where the group policy is applied.
+- `network_id` (String) The network Id where the group policy is applied.
 
 ### Optional
 

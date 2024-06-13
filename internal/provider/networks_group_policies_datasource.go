@@ -152,7 +152,7 @@ type NetworkGroupPoliciesDataSourceModelDefinition struct {
 }
 
 func (d *NetworkGroupPoliciesDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_network_group_policies"
+	resp.TypeName = req.ProviderTypeName + "_networks_group_policies"
 }
 
 func (d *NetworkGroupPoliciesDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
