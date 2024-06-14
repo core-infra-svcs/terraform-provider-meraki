@@ -157,47 +157,44 @@ func TestAccNetworksGroupPolicyResource(t *testing.T) {
 								resource.TestCheckResourceAttr(resourceName, "bonjour_forwarding.settings", "network default"),
 								resource.TestCheckResourceAttr(resourceName, "firewall_and_traffic_shaping.settings", "network default"),
 
-								/*
-									// Not working
-										resource.TestCheckResourceAttr(resourceName, "firewall_and_traffic_shaping.l3_firewall_rules.0.comment", "Allow TCP traffic to subnet with HTTP servers."),
-										resource.TestCheckResourceAttr(resourceName, "firewall_and_traffic_shaping.l3_firewall_rules.0.policy", "allow"),
-										resource.TestCheckResourceAttr(resourceName, "firewall_and_traffic_shaping.l3_firewall_rules.0.protocol", "tcp"),
-										resource.TestCheckResourceAttr(resourceName, "firewall_and_traffic_shaping.l3_firewall_rules.0.dest_port", "443"),
-										resource.TestCheckResourceAttr(resourceName, "firewall_and_traffic_shaping.l3_firewall_rules.0.dest_cidr", "192.168.1.0/24"),
-										resource.TestCheckResourceAttr(resourceName, "firewall_and_traffic_shaping.l7_firewall_rules.0.policy", "deny"),
-										resource.TestCheckResourceAttr(resourceName, "firewall_and_traffic_shaping.l7_firewall_rules.0.type", "host"),
-										resource.TestCheckResourceAttr(resourceName, "firewall_and_traffic_shaping.l7_firewall_rules.0.value", "google.com"),
+								// Not working
+								resource.TestCheckResourceAttr(resourceName, "firewall_and_traffic_shaping.l3_firewall_rules.0.comment", "Allow TCP traffic to subnet with HTTP servers."),
+								resource.TestCheckResourceAttr(resourceName, "firewall_and_traffic_shaping.l3_firewall_rules.0.policy", "allow"),
+								resource.TestCheckResourceAttr(resourceName, "firewall_and_traffic_shaping.l3_firewall_rules.0.protocol", "tcp"),
+								resource.TestCheckResourceAttr(resourceName, "firewall_and_traffic_shaping.l3_firewall_rules.0.dest_port", "443"),
+								resource.TestCheckResourceAttr(resourceName, "firewall_and_traffic_shaping.l3_firewall_rules.0.dest_cidr", "192.168.1.0/24"),
+								resource.TestCheckResourceAttr(resourceName, "firewall_and_traffic_shaping.l7_firewall_rules.0.policy", "deny"),
+								resource.TestCheckResourceAttr(resourceName, "firewall_and_traffic_shaping.l7_firewall_rules.0.type", "host"),
+								resource.TestCheckResourceAttr(resourceName, "firewall_and_traffic_shaping.l7_firewall_rules.0.value", "google.com"),
 
-										resource.TestCheckResourceAttr(resourceName, "firewall_and_traffic_shaping.traffic_shaping_rules.0.dscp_tag_value", "0"),
-										resource.TestCheckResourceAttr(resourceName, "firewall_and_traffic_shaping.traffic_shaping_rules.0.pcp_tag_value", "0"),
-										resource.TestCheckResourceAttr(resourceName, "firewall_and_traffic_shaping.traffic_shaping_rules.0.per_client_bandwidth_limits.settings", "custom"),
-										resource.TestCheckResourceAttr(resourceName, "firewall_and_traffic_shaping.traffic_shaping_rules.0.per_client_bandwidth_limits.bandwidth_limits.limit_down", "100000"),
-										resource.TestCheckResourceAttr(resourceName, "firewall_and_traffic_shaping.traffic_shaping_rules.0.per_client_bandwidth_limits.bandwidth_limits.limit_up", "100000"),
+								resource.TestCheckResourceAttr(resourceName, "firewall_and_traffic_shaping.traffic_shaping_rules.0.dscp_tag_value", "0"),
+								resource.TestCheckResourceAttr(resourceName, "firewall_and_traffic_shaping.traffic_shaping_rules.0.pcp_tag_value", "0"),
+								resource.TestCheckResourceAttr(resourceName, "firewall_and_traffic_shaping.traffic_shaping_rules.0.per_client_bandwidth_limits.settings", "custom"),
+								resource.TestCheckResourceAttr(resourceName, "firewall_and_traffic_shaping.traffic_shaping_rules.0.per_client_bandwidth_limits.bandwidth_limits.limit_down", "100000"),
+								resource.TestCheckResourceAttr(resourceName, "firewall_and_traffic_shaping.traffic_shaping_rules.0.per_client_bandwidth_limits.bandwidth_limits.limit_up", "100000"),
 
-										resource.TestCheckResourceAttr(resourceName, "scheduling.enabled", "true"),
-										resource.TestCheckResourceAttr(resourceName, "scheduling.friday.active", "true"),
-										resource.TestCheckResourceAttr(resourceName, "scheduling.friday.from", "00:00"),
-										resource.TestCheckResourceAttr(resourceName, "scheduling.friday.to", "24:00"),
-										resource.TestCheckResourceAttr(resourceName, "scheduling.saturday.active", "true"),
-										resource.TestCheckResourceAttr(resourceName, "scheduling.saturday.from", "00:00"),
-										resource.TestCheckResourceAttr(resourceName, "scheduling.saturday.to", "24:00"),
-										resource.TestCheckResourceAttr(resourceName, "scheduling.sunday.active", "true"),
-										resource.TestCheckResourceAttr(resourceName, "scheduling.sunday.from", "00:00"),
-										resource.TestCheckResourceAttr(resourceName, "scheduling.sunday.to", "24:00"),
-										resource.TestCheckResourceAttr(resourceName, "scheduling.monday.active", "true"),
-										resource.TestCheckResourceAttr(resourceName, "scheduling.monday.from", "00:00"),
-										resource.TestCheckResourceAttr(resourceName, "scheduling.monday.to", "24:00"),
-										resource.TestCheckResourceAttr(resourceName, "scheduling.tuesday.active", "true"),
-										resource.TestCheckResourceAttr(resourceName, "scheduling.tuesday.from", "00:00"),
-										resource.TestCheckResourceAttr(resourceName, "scheduling.tuesday.to", "24:00"),
-										resource.TestCheckResourceAttr(resourceName, "scheduling.wednesday.active", "true"),
-										resource.TestCheckResourceAttr(resourceName, "scheduling.wednesday.from", "00:00"),
-										resource.TestCheckResourceAttr(resourceName, "scheduling.wednesday.to", "24:00"),
-										resource.TestCheckResourceAttr(resourceName, "scheduling.thursday.active", "true"),
-										resource.TestCheckResourceAttr(resourceName, "scheduling.thursday.from", "00:00"),
-										resource.TestCheckResourceAttr(resourceName, "scheduling.thursday.to", "24:00"),
-								*/
-
+								resource.TestCheckResourceAttr(resourceName, "scheduling.enabled", "true"),
+								resource.TestCheckResourceAttr(resourceName, "scheduling.friday.active", "true"),
+								resource.TestCheckResourceAttr(resourceName, "scheduling.friday.from", "00:00"),
+								resource.TestCheckResourceAttr(resourceName, "scheduling.friday.to", "24:00"),
+								resource.TestCheckResourceAttr(resourceName, "scheduling.saturday.active", "true"),
+								resource.TestCheckResourceAttr(resourceName, "scheduling.saturday.from", "00:00"),
+								resource.TestCheckResourceAttr(resourceName, "scheduling.saturday.to", "24:00"),
+								resource.TestCheckResourceAttr(resourceName, "scheduling.sunday.active", "true"),
+								resource.TestCheckResourceAttr(resourceName, "scheduling.sunday.from", "00:00"),
+								resource.TestCheckResourceAttr(resourceName, "scheduling.sunday.to", "24:00"),
+								resource.TestCheckResourceAttr(resourceName, "scheduling.monday.active", "true"),
+								resource.TestCheckResourceAttr(resourceName, "scheduling.monday.from", "00:00"),
+								resource.TestCheckResourceAttr(resourceName, "scheduling.monday.to", "24:00"),
+								resource.TestCheckResourceAttr(resourceName, "scheduling.tuesday.active", "true"),
+								resource.TestCheckResourceAttr(resourceName, "scheduling.tuesday.from", "00:00"),
+								resource.TestCheckResourceAttr(resourceName, "scheduling.tuesday.to", "24:00"),
+								resource.TestCheckResourceAttr(resourceName, "scheduling.wednesday.active", "true"),
+								resource.TestCheckResourceAttr(resourceName, "scheduling.wednesday.from", "00:00"),
+								resource.TestCheckResourceAttr(resourceName, "scheduling.wednesday.to", "24:00"),
+								resource.TestCheckResourceAttr(resourceName, "scheduling.thursday.active", "true"),
+								resource.TestCheckResourceAttr(resourceName, "scheduling.thursday.from", "00:00"),
+								resource.TestCheckResourceAttr(resourceName, "scheduling.thursday.to", "24:00"),
 							)
 						}
 						return resource.ComposeAggregateTestCheckFunc(checks...)(s)
@@ -376,10 +373,6 @@ resource "meraki_networks_group_policy" "test" {
 
     bandwidth = {
         settings = "network default"
-        bandwidth_limits = {
-            limit_up = null
-            limit_down = null
-        }
     }
 
     bonjour_forwarding = {
@@ -490,10 +483,6 @@ resource "meraki_networks_group_policy" "test%d" {
 
     bandwidth = {
         settings = "network default"
-        bandwidth_limits = {
-            limit_up = null
-            limit_down = null
-        }
     }
 
     bonjour_forwarding = {

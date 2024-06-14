@@ -1,10 +1,12 @@
 package tools
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"time"
 )
 
 // HttpDiagnostics - responsible for gathering and logging HTTP driven events
@@ -40,4 +42,37 @@ func HttpDiagnostics(httpResp *http.Response) string {
 	}
 
 	return "No HTTP Response to Diagnose (Check Internet Connectivity)"
+}
+
+// CustomHttpRequestRetry Helper function for retrying API calls. This is to recover from backend congestion errors which manifest as 4XX response codes
+func CustomHttpRequestRetry[T any](ctx context.Context, maxRetries int, retryDelay time.Duration, apiCall func() (T, *http.Response, error)) (T, *http.Response, error) {
+	var zero T
+	retries := 0
+	for retries < maxRetries {
+		result, httpResp, err := apiCall()
+		if err == nil {
+			return result, httpResp, nil
+		}
+		if httpResp != nil && httpResp.StatusCode >= 400 && httpResp.StatusCode < 501 {
+			fmt.Println("Retrying API call due to HTTP response error", map[string]interface{}{
+				"maxRetries":        maxRetries,
+				"retryDelay":        retryDelay,
+				"remainingAttempts": maxRetries - retries - 1,
+				"httpStatusCode":    httpResp.StatusCode,
+				"httpBody":          httpResp.Body,
+			})
+			time.Sleep(retryDelay)
+			retries++
+		} else {
+			return zero, httpResp, err
+		}
+	}
+	return zero, nil, fmt.Errorf("max retries reached")
+}
+
+// CustomHttpRequestRetryStronglyTyped is a generic function that leverages CustomHttpRequestRetry
+func CustomHttpRequestRetryStronglyTyped[T any](ctx context.Context, maxRetries int, retryDelay time.Duration, apiCall func() (T, *http.Response, error)) (T, *http.Response, error) {
+	return CustomHttpRequestRetry(ctx, maxRetries, retryDelay, func() (T, *http.Response, error) {
+		return apiCall()
+	})
 }

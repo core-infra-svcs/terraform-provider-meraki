@@ -9,7 +9,6 @@ import (
 	"net/url"
 	"os"
 	"regexp"
-	"strconv"
 	"time"
 
 	"github.com/hashicorp/go-retryablehttp"
@@ -30,53 +29,6 @@ var _ provider.Provider = &CiscoMerakiProvider{}
 // CiscoMerakiProvider defines the provider implementation.
 type CiscoMerakiProvider struct {
 	version string
-}
-
-// APICallFunc type represents a function that performs an API call and returns an HTTP response and error.
-type APICallFunc func() (interface{}, *http.Response, error)
-
-// retryAPICall executes the provided API call function with retry logic for 429 errors.
-func retryAPICall(ctx context.Context, call APICallFunc) (interface{}, *http.Response, error) {
-	var maxRetries = 5
-	var retryDelay = 2 * time.Second
-
-	for attempt := 0; attempt <= maxRetries; attempt++ {
-		apiResp, httpResp, err := call() // Execute the provided API call
-
-		if err == nil && httpResp != nil && httpResp.StatusCode < 500 {
-			return apiResp, httpResp, nil // Success or client error, no retry
-		}
-
-		if httpResp != nil && httpResp.StatusCode == http.StatusTooManyRequests {
-			// Parse Retry-After header to set dynamic delay
-			retryAfter := httpResp.Header.Get("Retry-After")
-			if retryAfter != "" {
-				if delay, err := strconv.Atoi(retryAfter); err == nil {
-					time.Sleep(time.Duration(delay) * time.Second)
-				} else if t, err := http.ParseTime(retryAfter); err == nil {
-					time.Sleep(time.Until(t))
-				} else {
-					time.Sleep(retryDelay) // Fallback to default delay
-				}
-			} else {
-				time.Sleep(retryDelay) // Fallback to default delay
-			}
-			retryDelay *= 2 // Exponential backoff
-			continue
-		}
-
-		if attempt < maxRetries {
-			time.Sleep(retryDelay) // Wait before retrying
-			retryDelay *= 2        // Exponential backoff
-			continue
-		}
-
-		// Return the last error after exceeding retries
-		return nil, httpResp, err
-	}
-
-	// This should be unreachable due to the loop, but included for completeness
-	return nil, nil, fmt.Errorf("retryAPICall exceeded maximum retries")
 }
 
 // CiscoMerakiProviderModel describes the provider data model.
@@ -114,7 +66,7 @@ func (p *CiscoMerakiProvider) Schema(ctx context.Context, req provider.SchemaReq
 			"base_url": schema.StringAttribute{
 				Description: "Endpoint for Meraki Dashboard API",
 				MarkdownDescription: "The API version must be specified in the URL:" +
-					"Example: `https://api.meraki.com" +
+					"Example: `https://api.meraki.com`" +
 					"For organizations hosted in the China dashboard, use: `https://api.meraki.cn/v1`",
 				Optional: true,
 				Validators: []validator.String{
@@ -126,7 +78,7 @@ func (p *CiscoMerakiProvider) Schema(ctx context.Context, req provider.SchemaReq
 			"base_path": schema.StringAttribute{
 				Description: "API version prefix to be appended after the base URL",
 				MarkdownDescription: "The API version to be specified in the URL:" +
-					"Example: `/api/v1",
+					"Example: `/api/v1`",
 				Optional: true,
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
@@ -172,14 +124,12 @@ type bearerAuthTransport struct {
 func (t *bearerAuthTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	// Add the bearer token to the Authorization header
 	req.Header.Set("Authorization", "Bearer "+t.Token)
-
 	// Use the underlying transport to perform the actual request
 	return t.Transport.RoundTrip(req)
 }
 
 func (p *CiscoMerakiProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 	var data CiscoMerakiProviderModel
-
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
@@ -299,7 +249,6 @@ func (p *CiscoMerakiProvider) Configure(ctx context.Context, req provider.Config
 	} else {
 		authenticatedTransport.Token = os.Getenv("MERAKI_DASHBOARD_API_KEY")
 	}
-
 	retryClient.HTTPClient.Transport = authenticatedTransport
 	configuration.HTTPClient = retryClient.HTTPClient
 

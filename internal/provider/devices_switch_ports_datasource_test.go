@@ -93,7 +93,7 @@ resource "meraki_devices_switch_port" "test_%[1]d" {
 				),
 			},
 
-			// Tests the datasource by reading a blank/unconfigured switch
+			// Tests the datasource by reading a blank switch
 			{
 				Config: testAccDevicesSwitchPortsDataSourceConfigRead(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), os.Getenv("TF_ACC_MERAKI_MS_SERIAL")),
 				Check: resource.ComposeAggregateTestCheckFunc(
