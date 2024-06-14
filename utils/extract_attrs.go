@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"context"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -48,7 +49,7 @@ func ExtractFloat64Attr(hashMap map[string]interface{}, key string) (types.Float
 func ExtractObjectAttr(hashMap map[string]interface{}, key string, attrTypes map[string]attr.Type) (types.Object, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	if value, ok := hashMap[key].(map[string]interface{}); ok {
-		objVal, err := types.ObjectValueFrom(nil, attrTypes, value)
+		objVal, err := types.ObjectValueFrom(context.Background(), attrTypes, value)
 		if err.HasError() {
 			diags.Append(err...)
 		}
@@ -124,7 +125,7 @@ func ExtractListAttr(hashMap map[string]interface{}, key string, elemType attr.T
 			}
 		}
 
-		result, err := types.ListValueFrom(nil, elemType, attrValues)
+		result, err := types.ListValueFrom(context.Background(), elemType, attrValues)
 		if err.HasError() {
 			diags.Append(err...)
 		}
@@ -156,7 +157,7 @@ func ExtractStringSliceAttr(hashMap map[string]interface{}, key string) (types.L
 			}
 		}
 
-		result, err := types.ListValueFrom(nil, types.StringType, stringValues)
+		result, err := types.ListValueFrom(context.Background(), types.StringType, stringValues)
 		if err.HasError() {
 			diags.Append(err...)
 		}

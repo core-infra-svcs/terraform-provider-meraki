@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -464,6 +465,9 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 								ElementType: types.StringType,
 								Optional:    true,
 								Computed:    true,
+								PlanModifiers: []planmodifier.List{
+									listplanmodifier.UseStateForUnknown(),
+								},
 							},
 							"settings": schema.StringAttribute{
 								Optional: true,
@@ -483,6 +487,9 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 								ElementType: types.StringType,
 								Optional:    true,
 								Computed:    true,
+								PlanModifiers: []planmodifier.List{
+									listplanmodifier.UseStateForUnknown(),
+								},
 							},
 							"settings": schema.StringAttribute{
 								Optional: true,
@@ -502,6 +509,9 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 								ElementType: types.StringType,
 								Optional:    true,
 								Computed:    true,
+								PlanModifiers: []planmodifier.List{
+									listplanmodifier.UseStateForUnknown(),
+								},
 							},
 							"settings": schema.StringAttribute{
 								Optional: true,
@@ -866,20 +876,58 @@ func updateGroupPolicyResourceState(ctx context.Context, state *GroupPolicyResou
 		}
 		state.ContentFiltering = contentFilteringObj
 	} else {
-		state.ContentFiltering = types.ObjectNull(map[string]attr.Type{
-			"allowed_url_patterns": types.ObjectType{AttrTypes: map[string]attr.Type{
-				"patterns": types.ListType{ElemType: types.StringType},
-				"settings": types.StringType,
-			}},
-			"blocked_url_patterns": types.ObjectType{AttrTypes: map[string]attr.Type{
-				"patterns": types.ListType{ElemType: types.StringType},
-				"settings": types.StringType,
-			}},
-			"blocked_url_categories": types.ObjectType{AttrTypes: map[string]attr.Type{
-				"categories": types.ListType{ElemType: types.StringType},
-				"settings":   types.StringType,
-			}},
+		// Ensure default values are explicitly set
+		settingsDefault := types.StringValue("network default")
+
+		URLPatternsAttrs := map[string]attr.Type{
+			"patterns": types.ListType{ElemType: types.StringType},
+			"settings": types.StringType,
+		}
+
+		URLCategoriesAttrs := map[string]attr.Type{
+			"categories": types.ListType{ElemType: types.StringType},
+			"settings":   types.StringType,
+		}
+
+		allowedURLPatterns, err := types.ObjectValue(URLPatternsAttrs, map[string]attr.Value{
+			"patterns": types.ListNull(types.StringType),
+			"settings": settingsDefault,
 		})
+		if err.HasError() {
+			diags.Append(err...)
+		}
+
+		blockedURLPatterns, err := types.ObjectValue(URLPatternsAttrs, map[string]attr.Value{
+			"patterns": types.ListNull(types.StringType),
+			"settings": settingsDefault,
+		})
+		if err.HasError() {
+			diags.Append(err...)
+		}
+
+		blockedURLCategories, err := types.ObjectValue(URLCategoriesAttrs, map[string]attr.Value{
+			"categories": types.ListNull(types.StringType),
+			"settings":   settingsDefault,
+		})
+		if err.HasError() {
+			diags.Append(err...)
+		}
+
+		contentFilteringAttrs := map[string]attr.Type{
+			"allowed_url_patterns":   types.ObjectType{AttrTypes: URLPatternsAttrs},
+			"blocked_url_patterns":   types.ObjectType{AttrTypes: URLPatternsAttrs},
+			"blocked_url_categories": types.ObjectType{AttrTypes: URLCategoriesAttrs},
+		}
+
+		state.ContentFiltering, err = types.ObjectValue(contentFilteringAttrs, map[string]attr.Value{
+			"allowed_url_patterns":   allowedURLPatterns,
+			"blocked_url_patterns":   blockedURLPatterns,
+			"blocked_url_categories": blockedURLCategories,
+		})
+		if err.HasError() {
+			diags.Append(err...)
+		}
+
 	}
 
 	return diags
@@ -1222,8 +1270,6 @@ func updateGroupPolicyResourceStateFirewallAndTrafficShapingRules(ctx context.Co
 							}
 
 							definitionsModel = append(definitionsModel, definitionModel)
-						} else {
-
 						}
 
 					}
@@ -1366,16 +1412,15 @@ func updateGroupPolicyResourceStateVlanTagging(ctx context.Context, vlanTagging 
 // updateGroupPolicyResourceStateContentFiltering updates the resource state with the content filtering data
 func updateGroupPolicyResourceStateContentFiltering(ctx context.Context, contentFiltering map[string]interface{}) (types.Object, diag.Diagnostics) {
 	var diags diag.Diagnostics
-	var err diag.Diagnostics
 
-	// url patterns
 	extractUrlPatterns := func(patterns map[string]interface{}) GroupPolicyResourceModelUrlPatterns {
 		var urlPatterns GroupPolicyResourceModelUrlPatterns
 
 		// settings
-		urlPatterns.Settings, err = utils.ExtractStringAttr(patterns, "settings")
-		if err.HasError() {
-			diags.Append(err...)
+		if settings, ok := patterns["settings"].(string); ok {
+			urlPatterns.Settings = types.StringValue(settings)
+		} else {
+			urlPatterns.Settings = types.StringValue("network default")
 		}
 
 		// patterns
@@ -1388,12 +1433,11 @@ func updateGroupPolicyResourceStateContentFiltering(ctx context.Context, content
 			}
 		}
 
-		if len(patternList) >= 0 {
+		if len(patternList) > 0 {
 			newPatternsArray, newPatternsObjErr := types.ListValueFrom(ctx, types.StringType, patternList)
-			if newPatternsObjErr.HasError() {
+			if newPatternsObjErr != nil {
 				diags.Append(newPatternsObjErr...)
 			}
-
 			urlPatterns.Patterns = newPatternsArray
 		} else {
 			urlPatterns.Patterns = types.ListNull(types.StringType)
@@ -1404,27 +1448,31 @@ func updateGroupPolicyResourceStateContentFiltering(ctx context.Context, content
 
 	// allowed url patterns
 	allowedUrlPatterns := GroupPolicyResourceModelUrlPatterns{}
-	if aup, aupOk := contentFiltering["allowedUrlPatterns"].(map[string]interface{}); aupOk {
+	if aup, aupOk := contentFiltering["allowed_url_patterns"].(map[string]interface{}); aupOk {
 		allowedUrlPatterns = extractUrlPatterns(aup)
+	} else {
+		allowedUrlPatterns.Settings = types.StringValue("network default")
+		allowedUrlPatterns.Patterns = types.ListNull(types.StringType)
 	}
 
 	// blocked url patterns
 	blockedUrlPatterns := GroupPolicyResourceModelUrlPatterns{}
-	if bup, bupOk := contentFiltering["blockedUrlPatterns"].(map[string]interface{}); bupOk {
+	if bup, bupOk := contentFiltering["blocked_url_patterns"].(map[string]interface{}); bupOk {
 		blockedUrlPatterns = extractUrlPatterns(bup)
+	} else {
+		blockedUrlPatterns.Settings = types.StringValue("network default")
+		blockedUrlPatterns.Patterns = types.ListNull(types.StringType)
 	}
 
 	// blocked url categories
 	blockedUrlCategories := GroupPolicyResourceModelUrlCategories{}
-	if buc, bucOk := contentFiltering["blockedUrlCategories"].(map[string]interface{}); bucOk {
-
-		// settings
-		blockedUrlCategories.Settings, err = utils.ExtractStringAttr(buc, "settings")
-		if err.HasError() {
-			diags.Append(err...)
+	if buc, bucOk := contentFiltering["blocked_url_categories"].(map[string]interface{}); bucOk {
+		if settings, ok := buc["settings"].(string); ok {
+			blockedUrlCategories.Settings = types.StringValue(settings)
+		} else {
+			blockedUrlCategories.Settings = types.StringValue("network default")
 		}
 
-		// categories
 		var categoriesList []string
 		if categories, categoriesOk := buc["categories"].([]interface{}); categoriesOk {
 			for _, category := range categories {
@@ -1435,79 +1483,45 @@ func updateGroupPolicyResourceStateContentFiltering(ctx context.Context, content
 		}
 
 		newCategoriesObj, newCategoriesObjErr := types.ListValueFrom(ctx, types.StringType, categoriesList)
-		if newCategoriesObjErr.HasError() {
+		if newCategoriesObjErr != nil {
 			diags.Append(newCategoriesObjErr...)
 		}
 
 		blockedUrlCategories.Categories = newCategoriesObj
+	} else {
+		blockedUrlCategories.Settings = types.StringValue("network default")
+		blockedUrlCategories.Categories = types.ListNull(types.StringType)
 	}
 
-	contentFilteringObj := GroupPolicyResourceModelContentFiltering{}
-
-	// AllowedUrlPatterns list
-	if &allowedUrlPatterns != nil {
-		allowedUrlPatternsObject, allowedUrlPatternsObjectErr := types.ObjectValueFrom(ctx, map[string]attr.Type{
-			"patterns": types.ListType{ElemType: types.StringType},
-			"settings": types.StringType,
-		}, allowedUrlPatterns)
-		if allowedUrlPatternsObjectErr.HasError() {
-			diags.Append(allowedUrlPatternsObjectErr...)
-		}
-
-		contentFilteringObj.AllowedUrlPatterns = allowedUrlPatternsObject
-	} else {
-
-		allowedUrlPatternsObjectNull := types.ObjectNull(map[string]attr.Type{
-			"patterns": types.ListType{ElemType: types.StringType},
-			"settings": types.StringType,
-		})
-
-		contentFilteringObj.AllowedUrlPatterns = allowedUrlPatternsObjectNull
-
+	// Convert GroupPolicyResourceModelUrlPatterns and GroupPolicyResourceModelUrlCategories to types.Object
+	allowedUrlPatternsObject, allowedUrlPatternsErr := types.ObjectValueFrom(ctx, map[string]attr.Type{
+		"patterns": types.ListType{ElemType: types.StringType},
+		"settings": types.StringType,
+	}, allowedUrlPatterns)
+	if allowedUrlPatternsErr != nil {
+		diags.Append(allowedUrlPatternsErr...)
 	}
 
-	// BlockedUrlPatterns list
-	if &blockedUrlPatterns != nil {
-		blockedUrlPatternsObject, blockedUrlPatternsObjectErr := types.ObjectValueFrom(ctx, map[string]attr.Type{
-			"patterns": types.ListType{ElemType: types.StringType},
-			"settings": types.StringType,
-		}, blockedUrlPatterns)
-		if blockedUrlPatternsObjectErr.HasError() {
-			diags.Append(blockedUrlPatternsObjectErr...)
-		}
-
-		contentFilteringObj.BlockedUrlPatterns = blockedUrlPatternsObject
-	} else {
-
-		blockedUrlPatternsObjectNull := types.ObjectNull(map[string]attr.Type{
-			"patterns": types.ListType{ElemType: types.StringType},
-			"settings": types.StringType,
-		})
-
-		contentFilteringObj.BlockedUrlPatterns = blockedUrlPatternsObjectNull
-
+	blockedUrlPatternsObject, blockedUrlPatternsErr := types.ObjectValueFrom(ctx, map[string]attr.Type{
+		"patterns": types.ListType{ElemType: types.StringType},
+		"settings": types.StringType,
+	}, blockedUrlPatterns)
+	if blockedUrlPatternsErr != nil {
+		diags.Append(blockedUrlPatternsErr...)
 	}
 
-	// BlockedUrlCategories list
-	if &blockedUrlCategories != nil {
-		blockedUrlCategoriesObject, blockedUrlCategoriesObjectErr := types.ObjectValueFrom(ctx, map[string]attr.Type{
-			"categories": types.ListType{ElemType: types.StringType},
-			"settings":   types.StringType,
-		}, blockedUrlCategories)
-		if blockedUrlCategoriesObjectErr.HasError() {
-			diags.Append(blockedUrlCategoriesObjectErr...)
-		}
+	blockedUrlCategoriesObject, blockedUrlCategoriesErr := types.ObjectValueFrom(ctx, map[string]attr.Type{
+		"categories": types.ListType{ElemType: types.StringType},
+		"settings":   types.StringType,
+	}, blockedUrlCategories)
+	if blockedUrlCategoriesErr != nil {
+		diags.Append(blockedUrlCategoriesErr...)
+	}
 
-		contentFilteringObj.BlockedUrlCategories = blockedUrlCategoriesObject
-	} else {
-
-		blockedUrlCategoriesObjectNull := types.ObjectNull(map[string]attr.Type{
-			"categories": types.ListType{ElemType: types.StringType},
-			"settings":   types.StringType,
-		})
-
-		contentFilteringObj.BlockedUrlCategories = blockedUrlCategoriesObjectNull
-
+	contentFilteringObj := GroupPolicyResourceModelContentFiltering{
+		AllowedUrlPatterns:   allowedUrlPatternsObject,
+		BlockedUrlPatterns:   blockedUrlPatternsObject,
+		BlockedUrlCategories: blockedUrlCategoriesObject,
 	}
 
 	newContentFilteringObject, contentFilteringObjErr := types.ObjectValueFrom(ctx, map[string]attr.Type{
@@ -1524,7 +1538,7 @@ func updateGroupPolicyResourceStateContentFiltering(ctx context.Context, content
 			"settings":   types.StringType,
 		}},
 	}, contentFilteringObj)
-	if contentFilteringObjErr.HasError() {
+	if contentFilteringObjErr != nil {
 		diags.Append(contentFilteringObjErr...)
 	}
 

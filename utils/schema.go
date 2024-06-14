@@ -43,7 +43,7 @@ func (d *int64Default) Description(ctx context.Context) string {
 }
 
 func (d *int64Default) MarkdownDescription(ctx context.Context) string {
-	return fmt.Sprintf("Default value is `%s`", d.defaultValue)
+	return fmt.Sprintf("Default value is `%v`", d.defaultValue)
 }
 
 func (d *int64Default) DefaultInt64(ctx context.Context, req defaults.Int64Request, resp *defaults.Int64Response) {
@@ -60,11 +60,11 @@ type boolDefault struct {
 }
 
 func (d *boolDefault) Description(ctx context.Context) string {
-	return fmt.Sprintf("Default value is '%s'", d.defaultValue)
+	return fmt.Sprintf("Default value is '%v'", d.defaultValue)
 }
 
 func (d *boolDefault) MarkdownDescription(ctx context.Context) string {
-	return fmt.Sprintf("Default value is `%s`", d.defaultValue)
+	return fmt.Sprintf("Default value is `%v`", d.defaultValue)
 }
 
 func (d *boolDefault) DefaultBool(ctx context.Context, req defaults.BoolRequest, resp *defaults.BoolResponse) {
@@ -85,7 +85,7 @@ func (d *float64Default) Description(ctx context.Context) string {
 }
 
 func (d *float64Default) MarkdownDescription(ctx context.Context) string {
-	return fmt.Sprintf("Default value is `%s`", d.defaultValue)
+	return fmt.Sprintf("Default value is `%v`", d.defaultValue)
 }
 
 func (d *float64Default) DefaultFloat64(ctx context.Context, req defaults.Float64Request, resp *defaults.Float64Response) {

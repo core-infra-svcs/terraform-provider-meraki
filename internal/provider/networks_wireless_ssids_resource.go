@@ -26,7 +26,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
@@ -277,7 +276,7 @@ func NetworksWirelessSsidPayloadDot11w(input types.Object) (*openApiClient.Updat
 	var diags diag.Diagnostics
 	var dot11wObject Dot11w
 
-	err := input.As(nil, &dot11wObject, basetypes.ObjectAsOptions{})
+	err := input.As(context.Background(), &dot11wObject, basetypes.ObjectAsOptions{})
 	if err.HasError() {
 		diags = append(diags, err.Errors()...)
 		return nil, diags
@@ -297,7 +296,7 @@ func NetworksWirelessSsidPayloadDot11r(input types.Object) (*openApiClient.Updat
 	var diags diag.Diagnostics
 	var dot11rObject Dot11r
 
-	err := input.As(nil, &dot11rObject, basetypes.ObjectAsOptions{})
+	err := input.As(context.Background(), &dot11rObject, basetypes.ObjectAsOptions{})
 	if err.HasError() {
 		diags = append(diags, err.Errors()...)
 		return nil, diags
@@ -317,7 +316,7 @@ func NetworksWirelessSsidPayloadOauth(input types.Object) (*openApiClient.Update
 	var diags diag.Diagnostics
 	var oauthObject OAuth
 
-	err := input.As(nil, &oauthObject, basetypes.ObjectAsOptions{
+	err := input.As(context.Background(), &oauthObject, basetypes.ObjectAsOptions{
 		UnhandledNullAsEmpty: true,
 	})
 	if err.HasError() {
@@ -347,7 +346,7 @@ func NetworksWirelessSsidPayloadLocalRadius(input types.Object) (openApiClient.U
 
 	// Unmarshalling input to LocalRadius struct
 	var localRadius LocalRadius
-	err := input.As(nil, &localRadius, basetypes.ObjectAsOptions{})
+	err := input.As(context.Background(), &localRadius, basetypes.ObjectAsOptions{})
 	if err.HasError() {
 		diags = append(diags, diag.NewErrorDiagnostic("Error converting LocalRadius", fmt.Sprintf("%s", err.Errors())))
 		return result, diags
@@ -362,7 +361,7 @@ func NetworksWirelessSsidPayloadLocalRadius(input types.Object) (openApiClient.U
 	// PasswordAuthentication
 	if !localRadius.PasswordAuthentication.IsUnknown() && !localRadius.PasswordAuthentication.IsNull() {
 		var passwordAuth PasswordAuthentication
-		err := localRadius.PasswordAuthentication.As(nil, &passwordAuth, basetypes.ObjectAsOptions{})
+		err := localRadius.PasswordAuthentication.As(context.Background(), &passwordAuth, basetypes.ObjectAsOptions{})
 		if err.HasError() {
 			diags = append(diags, diag.NewErrorDiagnostic("Error converting PasswordAuthentication", fmt.Sprintf("%s", err.Errors())))
 		} else {
@@ -375,14 +374,14 @@ func NetworksWirelessSsidPayloadLocalRadius(input types.Object) (openApiClient.U
 	// CertificateAuthentication
 	if !localRadius.CertificateAuthentication.IsNull() && !localRadius.CertificateAuthentication.IsUnknown() {
 		var certificateAuthentication CertificateAuthentication
-		err := localRadius.CertificateAuthentication.As(nil, &certificateAuthentication, basetypes.ObjectAsOptions{})
+		err := localRadius.CertificateAuthentication.As(context.Background(), &certificateAuthentication, basetypes.ObjectAsOptions{})
 		if err.HasError() {
 			diags = append(diags, err.Errors()...)
 		}
 		var clientRootCaCertificate openApiClient.UpdateNetworkWirelessSsidRequestLocalRadiusCertificateAuthenticationClientRootCaCertificate
 		if !certificateAuthentication.ClientRootCaCertificate.IsNull() {
 			var clientRootCaCert CaCertificate
-			err := certificateAuthentication.ClientRootCaCertificate.As(nil, &clientRootCaCert, basetypes.ObjectAsOptions{})
+			err := certificateAuthentication.ClientRootCaCertificate.As(context.Background(), &clientRootCaCert, basetypes.ObjectAsOptions{})
 			if err.HasError() {
 				diags = append(diags, err.Errors()...)
 			}
@@ -409,7 +408,7 @@ func NetworksWirelessSsidPayloadActiveDirectory(input types.Object) (*openApiCli
 
 	// Unmarshalling input to ActiveDirectory struct
 	var activeDirectoryObject ActiveDirectory
-	err := input.As(nil, &activeDirectoryObject, basetypes.ObjectAsOptions{})
+	err := input.As(context.Background(), &activeDirectoryObject, basetypes.ObjectAsOptions{})
 	if err.HasError() {
 		diags = append(diags, err.Errors()...)
 		return nil, diags
@@ -417,7 +416,7 @@ func NetworksWirelessSsidPayloadActiveDirectory(input types.Object) (*openApiCli
 
 	// Processing servers
 	var activeDirectoryServers []ActiveDirectoryServer
-	err = activeDirectoryObject.Servers.ElementsAs(nil, &activeDirectoryServers, true)
+	err = activeDirectoryObject.Servers.ElementsAs(context.Background(), &activeDirectoryServers, true)
 	if err != nil {
 		diags = append(diags, diag.NewErrorDiagnostic("Error converting ActiveDirectory Servers", fmt.Sprintf("%s", err.Errors())))
 	}
@@ -432,7 +431,7 @@ func NetworksWirelessSsidPayloadActiveDirectory(input types.Object) (*openApiCli
 
 	// Processing credentials
 	var credentialsObject AdCredentials
-	err = activeDirectoryObject.Credentials.As(nil, &credentialsObject, basetypes.ObjectAsOptions{})
+	err = activeDirectoryObject.Credentials.As(context.Background(), &credentialsObject, basetypes.ObjectAsOptions{})
 	if err.HasError() {
 		diags = append(diags, err.Errors()...)
 	}
@@ -455,7 +454,7 @@ func NetworksWirelessSsidPayloadRadiusServers(input types.List) ([]openApiClient
 	var serversList []openApiClient.UpdateNetworkWirelessSsidRequestRadiusServersInner
 	var servers []RadiusServer
 
-	err := input.ElementsAs(nil, &servers, true)
+	err := input.ElementsAs(context.Background(), &servers, true)
 	if err.HasError() {
 		diags = append(diags, err.Errors()...)
 		return nil, diags
@@ -491,7 +490,7 @@ func NetworksWirelessSsidPayloadRadiusAccountingServers(input types.List) ([]ope
 	var servers []openApiClient.UpdateNetworkWirelessSsidRequestRadiusAccountingServersInner
 	var radiusServers []RadiusServer
 
-	err := input.ElementsAs(nil, &radiusServers, true)
+	err := input.ElementsAs(context.Background(), &radiusServers, true)
 	if err.HasError() {
 		diags = append(diags, err.Errors()...)
 		return nil, diags
@@ -524,7 +523,7 @@ func NetworksWirelessSsidPayloadApTagsAndVlanIds(input types.List) ([]openApiCli
 	var tagsAndVlans []openApiClient.UpdateNetworkWirelessSsidRequestApTagsAndVlanIdsInner
 	var tagsAndVlansList []ApTagsAndVlanID
 
-	err := input.ElementsAs(nil, &tagsAndVlansList, true)
+	err := input.ElementsAs(context.Background(), &tagsAndVlansList, true)
 	if err.HasError() {
 		diags = append(diags, err.Errors()...)
 		return nil, diags
@@ -559,7 +558,7 @@ func NetworksWirelessSsidPayloadGre(input types.Object) (*openApiClient.UpdateNe
 
 	var gre GRE
 
-	err := input.As(nil, &gre, basetypes.ObjectAsOptions{})
+	err := input.As(context.Background(), &gre, basetypes.ObjectAsOptions{})
 	if err.HasError() {
 		diags = append(diags, err.Errors()...)
 		return nil, diags
@@ -567,7 +566,7 @@ func NetworksWirelessSsidPayloadGre(input types.Object) (*openApiClient.UpdateNe
 
 	var concentrator GreConcentrator
 
-	err = gre.Concentrator.As(nil, &concentrator, basetypes.ObjectAsOptions{})
+	err = gre.Concentrator.As(context.Background(), &concentrator, basetypes.ObjectAsOptions{})
 	if err.HasError() {
 		diags = append(diags, err.Errors()...)
 		return nil, diags
@@ -591,7 +590,7 @@ func NetworksWirelessSsidPayloadDnsRewrite(input types.Object) (*openApiClient.U
 	var diags diag.Diagnostics
 	var dnsRewriteObject DnsRewrite
 
-	err := input.As(nil, &dnsRewriteObject, basetypes.ObjectAsOptions{})
+	err := input.As(context.Background(), &dnsRewriteObject, basetypes.ObjectAsOptions{})
 	if err.HasError() {
 		diags = append(diags, err.Errors()...)
 		return nil, diags
@@ -618,7 +617,7 @@ func NetworksWirelessSsidPayloadSpeedBurst(input types.Object) (*openApiClient.U
 	var diags diag.Diagnostics
 	var speedBurst SpeedBurst
 
-	err := input.As(nil, &speedBurst, basetypes.ObjectAsOptions{})
+	err := input.As(context.Background(), &speedBurst, basetypes.ObjectAsOptions{})
 	if err.HasError() {
 		diags = append(diags, err.Errors()...)
 		return nil, diags
@@ -637,7 +636,7 @@ func NetworksWirelessSsidPayloadNamedVlans(input types.Object) (*openApiClient.U
 	var diags diag.Diagnostics
 	var namedVlansObject NamedVlans
 
-	err := input.As(nil, &namedVlansObject, basetypes.ObjectAsOptions{})
+	err := input.As(context.Background(), &namedVlansObject, basetypes.ObjectAsOptions{})
 	if err.HasError() {
 		diags = append(diags, err.Errors()...)
 		return nil, diags
@@ -645,14 +644,14 @@ func NetworksWirelessSsidPayloadNamedVlans(input types.Object) (*openApiClient.U
 
 	// Tagging
 	var tagging Tagging
-	err = namedVlansObject.Tagging.As(nil, &tagging, basetypes.ObjectAsOptions{})
+	err = namedVlansObject.Tagging.As(context.Background(), &tagging, basetypes.ObjectAsOptions{})
 	if err.HasError() {
 		diags = append(diags, err.Errors()...)
 	}
 
 	// GuestVlan
 	var guestVlan GuestVlan
-	err = namedVlansObject.Radius.As(nil, &guestVlan, basetypes.ObjectAsOptions{})
+	err = namedVlansObject.Radius.As(context.Background(), &guestVlan, basetypes.ObjectAsOptions{})
 	if err.HasError() {
 		diags = append(diags, err.Errors()...)
 	}
@@ -686,7 +685,7 @@ func NetworksWirelessSsidPayloadLdap(input types.Object) (*openApiClient.UpdateN
 
 	// Unmarshalling input to LDAP struct
 	var ldapObject LDAP
-	err := input.As(nil, &ldapObject, basetypes.ObjectAsOptions{})
+	err := input.As(context.Background(), &ldapObject, basetypes.ObjectAsOptions{})
 	if err.HasError() {
 		diags = append(diags, err.Errors()...)
 		return nil, diags
@@ -694,7 +693,7 @@ func NetworksWirelessSsidPayloadLdap(input types.Object) (*openApiClient.UpdateN
 
 	// Processing servers
 	var servers []LdapServer
-	err = ldapObject.Servers.ElementsAs(nil, &servers, true)
+	err = ldapObject.Servers.ElementsAs(context.Background(), &servers, true)
 	if err != nil {
 		diags = append(diags, diag.NewErrorDiagnostic("Error converting Servers", fmt.Sprintf("%s", err.Errors())))
 	}
@@ -709,14 +708,14 @@ func NetworksWirelessSsidPayloadLdap(input types.Object) (*openApiClient.UpdateN
 
 	// Processing credentials
 	var creds LdapCredentials
-	err = ldapObject.Credentials.As(nil, &creds, basetypes.ObjectAsOptions{})
+	err = ldapObject.Credentials.As(context.Background(), &creds, basetypes.ObjectAsOptions{})
 	if err.HasError() {
 		diags = append(diags, err.Errors()...)
 	}
 
 	// Processing server CA certificate
 	var serverCaCertificate CaCertificate
-	err = ldapObject.ServerCaCertificate.As(nil, &serverCaCertificate, basetypes.ObjectAsOptions{})
+	err = ldapObject.ServerCaCertificate.As(context.Background(), &serverCaCertificate, basetypes.ObjectAsOptions{})
 	if err.HasError() {
 		diags = append(diags, err.Errors()...)
 	}
@@ -742,7 +741,7 @@ func NetworksWirelessSsidPayloadSplashGuestSponsorDomains(input types.List) ([]s
 	var diags diag.Diagnostics
 	var splashGuestSponsorDomains []string
 
-	err := input.ElementsAs(nil, splashGuestSponsorDomains, true)
+	err := input.ElementsAs(context.Background(), splashGuestSponsorDomains, true)
 	if err.HasError() {
 		diags.Append(err...)
 	}
@@ -759,7 +758,7 @@ func NetworksWirelessSsidPayloadByApTags(input types.List) ([]openApiClient.Upda
 	var byApTags []openApiClient.UpdateNetworkWirelessSsidRequestNamedVlansTaggingByApTagsInner
 
 	var byApTagsList []ApTagsAndVlanID
-	err := input.ElementsAs(nil, &byApTagsList, true)
+	err := input.ElementsAs(context.Background(), &byApTagsList, true)
 	if err.HasError() {
 		diags = append(diags, err.Errors()...)
 		return nil, diags
@@ -818,7 +817,7 @@ func NetworksWirelessSsidStateRadiusServers(input []openApiClient.GetNetworkWire
 			CaCertificate:            types.StringValue(i.GetCaCertificate()),
 		}
 
-		radiusServerObject, err := types.ObjectValueFrom(nil, radiusServerAttr, radiusServer)
+		radiusServerObject, err := types.ObjectValueFrom(context.Background(), radiusServerAttr, radiusServer)
 		if err.HasError() {
 			diags.Append(err...)
 			continue
@@ -827,7 +826,7 @@ func NetworksWirelessSsidStateRadiusServers(input []openApiClient.GetNetworkWire
 		radiusServers = append(radiusServers, radiusServerObject)
 	}
 
-	radiusServersList, err := types.ListValueFrom(nil, types.ObjectType{AttrTypes: radiusServerAttr}, radiusServers)
+	radiusServersList, err := types.ListValueFrom(context.Background(), types.ObjectType{AttrTypes: radiusServerAttr}, radiusServers)
 	if err.HasError() {
 		diags.Append(err...)
 	}
@@ -858,7 +857,7 @@ func NetworksWirelessSsidStateRadiusAccountingServers(input []openApiClient.GetN
 			CaCertificate:            types.StringValue(i.GetCaCertificate()),
 		}
 
-		radiusServerObject, err := types.ObjectValueFrom(nil, radiusServerAttr, radiusServer)
+		radiusServerObject, err := types.ObjectValueFrom(context.Background(), radiusServerAttr, radiusServer)
 		if err.HasError() {
 			diags.Append(err...)
 			continue
@@ -867,7 +866,7 @@ func NetworksWirelessSsidStateRadiusAccountingServers(input []openApiClient.GetN
 		radiusServers = append(radiusServers, radiusServerObject)
 	}
 
-	radiusServersList, err := types.ListValueFrom(nil, types.ObjectType{AttrTypes: radiusServerAttr}, radiusServers)
+	radiusServersList, err := types.ListValueFrom(context.Background(), types.ObjectType{AttrTypes: radiusServerAttr}, radiusServers)
 	if err.HasError() {
 		diags.Append(err...)
 	}
@@ -905,9 +904,9 @@ func NetworksWirelessSsidStateOauth(input *openApiClient.UpdateNetworkWirelessSs
 		allowedDomains = append(allowedDomains, types.StringValue(domain))
 	}
 
-	allowedDomainsObj, err := types.ListValueFrom(nil, types.StringType, allowedDomains)
+	allowedDomainsObj, err := types.ListValueFrom(context.Background(), types.StringType, allowedDomains)
 	if err.HasError() {
-		tflog.Error(nil, fmt.Sprintf("%s", err.Errors()))
+		tflog.Error(context.Background(), fmt.Sprintf("%s", err.Errors()))
 	}
 
 	return &OAuth{
@@ -920,23 +919,23 @@ func NetworksWirelessSsidStateLocalRadius(input *openApiClient.UpdateNetworkWire
 		return nil
 	}
 
-	passwordAuthentication, err := types.ObjectValueFrom(nil, map[string]attr.Type{"enabled": types.BoolType}, input.PasswordAuthentication)
+	passwordAuthentication, err := types.ObjectValueFrom(context.Background(), map[string]attr.Type{"enabled": types.BoolType}, input.PasswordAuthentication)
 	if err.HasError() {
-		tflog.Error(nil, fmt.Sprintf("%s", err.Errors()))
+		tflog.Error(context.Background(), fmt.Sprintf("%s", err.Errors()))
 	}
 
 	// cacheTimeout
 	cacheTimeout := int64(*input.CacheTimeout)
 
 	// certificateAuthentication
-	certificateAuthentication, err := types.ObjectValueFrom(nil, map[string]attr.Type{"enabled": types.BoolType,
+	certificateAuthentication, err := types.ObjectValueFrom(context.Background(), map[string]attr.Type{"enabled": types.BoolType,
 		"useLdap": types.BoolType, "useOcsp": types.BoolType, "OcspResponderUrl": types.StringType, "clientRootCaCertificate": types.ObjectType{
 			AttrTypes: map[string]attr.Type{
 				"contents": types.StringType,
 			},
 		}}, input.CertificateAuthentication)
 	if err.HasError() {
-		tflog.Error(nil, fmt.Sprintf("%s", err.Errors()))
+		tflog.Error(context.Background(), fmt.Sprintf("%s", err.Errors()))
 	}
 
 	return &LocalRadius{
@@ -1025,7 +1024,7 @@ func NetworksWirelessSsidStateApTagsAndVlanIds(httpResp map[string]interface{}) 
 
 	apTagsAndVlanIdsList, err := utils.ExtractListAttr(httpResp, "apTagsAndVlanIds", apTagsAndVlanIdsAttrs)
 	if err.HasError() {
-		tflog.Error(nil, fmt.Sprintf("%s", err.Errors()))
+		tflog.Error(context.Background(), fmt.Sprintf("%s", err.Errors()))
 	}
 
 	return apTagsAndVlanIdsList, diags
@@ -1036,9 +1035,9 @@ func NetworksWirelessSsidStateGre(input *openApiClient.UpdateNetworkWirelessSsid
 		return nil
 	}
 
-	greConcentratorObject, err := types.ObjectValueFrom(nil, map[string]attr.Type{"host": types.StringType}, input.Concentrator)
+	greConcentratorObject, err := types.ObjectValueFrom(context.Background(), map[string]attr.Type{"host": types.StringType}, input.Concentrator)
 	if err.HasError() {
-		tflog.Error(nil, fmt.Sprintf("%s", err.Errors()))
+		tflog.Error(context.Background(), fmt.Sprintf("%s", err.Errors()))
 	}
 
 	return &GRE{
@@ -1072,15 +1071,15 @@ func NetworksWirelessSsidStateNamedVlans(input *openApiClient.UpdateNetworkWirel
 	}
 
 	// tagging
-	taggingObject, err := types.ObjectValueFrom(nil, map[string]attr.Type{"enabled": types.BoolType, "default_vlan_name": types.StringType, "by_ap_tags": types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{"tags": types.ListType{}, "vlan_name": types.StringType}}}}, input.Tagging)
+	taggingObject, err := types.ObjectValueFrom(context.Background(), map[string]attr.Type{"enabled": types.BoolType, "default_vlan_name": types.StringType, "by_ap_tags": types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{"tags": types.ListType{}, "vlan_name": types.StringType}}}}, input.Tagging)
 	if err.HasError() {
-		tflog.Error(nil, fmt.Sprintf("%s", err.Errors()))
+		tflog.Error(context.Background(), fmt.Sprintf("%s", err.Errors()))
 	}
 
 	// radius
-	radiusObject, err := types.ObjectValueFrom(nil, map[string]attr.Type{"guest_vlan": types.ObjectType{AttrTypes: map[string]attr.Type{"enabled": types.BoolType, "name": types.StringType}}}, input.Radius)
+	radiusObject, err := types.ObjectValueFrom(context.Background(), map[string]attr.Type{"guest_vlan": types.ObjectType{AttrTypes: map[string]attr.Type{"enabled": types.BoolType, "name": types.StringType}}}, input.Radius)
 	if err.HasError() {
-		tflog.Error(nil, fmt.Sprintf("%s", err.Errors()))
+		tflog.Error(context.Background(), fmt.Sprintf("%s", err.Errors()))
 	}
 
 	return &NamedVlans{
@@ -1840,23 +1839,17 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, state *Networ
 
 		if value, ok := httpResp["speedBurst"].(map[string]interface{}); ok {
 
-			if en, enOk := value["enabled"].(interface{}); enOk {
-
-				if enable, enableOk := en.(bool); enableOk {
-					s := SpeedBurst{Enabled: types.BoolValue(enable)}
-					objVal, err := types.ObjectValueFrom(nil, speedBurstAttrs, s)
-					if err.HasError() {
-						diags.Append(err...)
-					}
-
-					state.SpeedBurst = objVal
-					if diags.HasError() {
-						return diags
-					}
-				} else {
-					state.SpeedBurst = types.ObjectNull(speedBurstAttrs)
+			if enable, enableOk := value["enabled"].(bool); enableOk {
+				s := SpeedBurst{Enabled: types.BoolValue(enable)}
+				objVal, err := types.ObjectValueFrom(context.Background(), speedBurstAttrs, s)
+				if err.HasError() {
+					diags.Append(err...)
 				}
 
+				state.SpeedBurst = objVal
+				if diags.HasError() {
+					return diags
+				}
 			} else {
 				state.SpeedBurst = types.ObjectNull(speedBurstAttrs)
 			}
@@ -2035,7 +2028,7 @@ func updateNetworksWirelessSsidsResourcePayload(plan *NetworksWirelessSsidResour
 	if !plan.RadiusServerTimeout.IsNull() && !plan.RadiusServerTimeout.IsUnknown() {
 		radiusServerTimeout, err := utils.Int32Pointer(plan.RadiusServerTimeout.ValueInt64())
 		if err.HasError() {
-			tflog.Error(nil, fmt.Sprintf("%s", err.Errors()))
+			tflog.Error(context.Background(), fmt.Sprintf("%s", err.Errors()))
 			diags.Append(err...)
 		}
 		payload.SetRadiusServerTimeout(*radiusServerTimeout)
@@ -2044,7 +2037,7 @@ func updateNetworksWirelessSsidsResourcePayload(plan *NetworksWirelessSsidResour
 	if !plan.RadiusServerAttemptsLimit.IsNull() && !plan.RadiusServerAttemptsLimit.IsUnknown() {
 		radiusServerAttemptsLimit, err := utils.Int32Pointer(plan.RadiusServerAttemptsLimit.ValueInt64())
 		if err.HasError() {
-			tflog.Error(nil, fmt.Sprintf("%s", err.Errors()))
+			tflog.Error(context.Background(), fmt.Sprintf("%s", err.Errors()))
 			diags.Append(err...)
 		}
 		payload.RadiusServerAttemptsLimit = radiusServerAttemptsLimit
@@ -2053,7 +2046,7 @@ func updateNetworksWirelessSsidsResourcePayload(plan *NetworksWirelessSsidResour
 	if !plan.RadiusAccountingInterimInterval.IsNull() && !plan.RadiusAccountingInterimInterval.IsUnknown() {
 		radiusAccountingInterimInterval, err := utils.Int32Pointer(plan.RadiusAccountingInterimInterval.ValueInt64())
 		if err.HasError() {
-			tflog.Error(nil, fmt.Sprintf("%s", err.Errors()))
+			tflog.Error(context.Background(), fmt.Sprintf("%s", err.Errors()))
 			diags.Append(err...)
 		}
 		payload.RadiusAccountingInterimInterval = radiusAccountingInterimInterval
@@ -2062,7 +2055,7 @@ func updateNetworksWirelessSsidsResourcePayload(plan *NetworksWirelessSsidResour
 	if !plan.VlanID.IsNull() && !plan.VlanID.IsUnknown() {
 		vlanId, err := utils.Int32Pointer(plan.VlanID.ValueInt64())
 		if err.HasError() {
-			tflog.Error(nil, fmt.Sprintf("%s", err.Errors()))
+			tflog.Error(context.Background(), fmt.Sprintf("%s", err.Errors()))
 			diags.Append(err...)
 		}
 		payload.VlanId = vlanId
@@ -2071,7 +2064,7 @@ func updateNetworksWirelessSsidsResourcePayload(plan *NetworksWirelessSsidResour
 	if !plan.DefaultVlanID.IsNull() && !plan.DefaultVlanID.IsUnknown() {
 		defaultVlanId, err := utils.Int32Pointer(plan.DefaultVlanID.ValueInt64())
 		if err.HasError() {
-			tflog.Error(nil, fmt.Sprintf("%s", err.Errors()))
+			tflog.Error(context.Background(), fmt.Sprintf("%s", err.Errors()))
 			diags.Append(err...)
 		}
 		payload.DefaultVlanId = defaultVlanId
@@ -2080,7 +2073,7 @@ func updateNetworksWirelessSsidsResourcePayload(plan *NetworksWirelessSsidResour
 	if !plan.MinBitRate.IsNull() && !plan.MinBitRate.IsUnknown() {
 		minBitRate, err := utils.Float32Pointer(plan.MinBitRate.ValueFloat64())
 		if err.HasError() {
-			tflog.Error(nil, fmt.Sprintf("%s", err.Errors()))
+			tflog.Error(context.Background(), fmt.Sprintf("%s", err.Errors()))
 			diags.Append(err...)
 		}
 		payload.MinBitrate = minBitRate
@@ -2089,7 +2082,7 @@ func updateNetworksWirelessSsidsResourcePayload(plan *NetworksWirelessSsidResour
 	if !plan.RadiusGuestVlanID.IsNull() && !plan.RadiusGuestVlanID.IsUnknown() {
 		radiusGuestVlanId, err := utils.Int32Pointer(plan.RadiusGuestVlanID.ValueInt64())
 		if err.HasError() {
-			tflog.Error(nil, fmt.Sprintf("%s", err.Errors()))
+			tflog.Error(context.Background(), fmt.Sprintf("%s", err.Errors()))
 			diags.Append(err...)
 		}
 		payload.RadiusGuestVlanId = radiusGuestVlanId
@@ -2098,7 +2091,7 @@ func updateNetworksWirelessSsidsResourcePayload(plan *NetworksWirelessSsidResour
 	if !plan.PerClientBandwidthLimitUp.IsNull() && !plan.PerClientBandwidthLimitUp.IsUnknown() {
 		perClientBandwidthLimitUp, err := utils.Int32Pointer(plan.PerClientBandwidthLimitUp.ValueInt64())
 		if err.HasError() {
-			tflog.Error(nil, fmt.Sprintf("%s", err.Errors()))
+			tflog.Error(context.Background(), fmt.Sprintf("%s", err.Errors()))
 			diags.Append(err...)
 		}
 		payload.PerClientBandwidthLimitUp = perClientBandwidthLimitUp
@@ -2107,7 +2100,7 @@ func updateNetworksWirelessSsidsResourcePayload(plan *NetworksWirelessSsidResour
 	if !plan.PerClientBandwidthLimitDown.IsNull() && !plan.PerClientBandwidthLimitDown.IsUnknown() {
 		perClientBandwidthLimitDown, err := utils.Int32Pointer(plan.PerClientBandwidthLimitDown.ValueInt64())
 		if err.HasError() {
-			tflog.Error(nil, fmt.Sprintf("%s", err.Errors()))
+			tflog.Error(context.Background(), fmt.Sprintf("%s", err.Errors()))
 			diags.Append(err...)
 		}
 		payload.PerClientBandwidthLimitDown = perClientBandwidthLimitDown
@@ -2116,7 +2109,7 @@ func updateNetworksWirelessSsidsResourcePayload(plan *NetworksWirelessSsidResour
 	if !plan.PerSsidBandwidthLimitUp.IsNull() && !plan.PerSsidBandwidthLimitUp.IsUnknown() {
 		perSsidBandwidthLimitUp, err := utils.Int32Pointer(plan.PerSsidBandwidthLimitUp.ValueInt64())
 		if err.HasError() {
-			tflog.Error(nil, fmt.Sprintf("%s", err.Errors()))
+			tflog.Error(context.Background(), fmt.Sprintf("%s", err.Errors()))
 			diags.Append(err...)
 		}
 		payload.PerSsidBandwidthLimitUp = perSsidBandwidthLimitUp
@@ -2125,7 +2118,7 @@ func updateNetworksWirelessSsidsResourcePayload(plan *NetworksWirelessSsidResour
 	if !plan.PerSsidBandwidthLimitDown.IsNull() && !plan.PerSsidBandwidthLimitDown.IsUnknown() {
 		perSsidBandwidthLimitDown, err := utils.Int32Pointer(plan.PerSsidBandwidthLimitDown.ValueInt64())
 		if err.HasError() {
-			tflog.Error(nil, fmt.Sprintf("%s", err.Errors()))
+			tflog.Error(context.Background(), fmt.Sprintf("%s", err.Errors()))
 			diags.Append(err...)
 		}
 		payload.PerSsidBandwidthLimitDown = perSsidBandwidthLimitDown
@@ -2204,6 +2197,7 @@ func updateNetworksWirelessSsidsResourcePayload(plan *NetworksWirelessSsidResour
 		diags.Append(err...)
 	}
 	payload.RadiusAccountingServers = radiusAccountingServers
+
 	apTagsAndVlanIds, err := NetworksWirelessSsidPayloadApTagsAndVlanIds(plan.ApTagsAndVlanIDs)
 	if err.HasError() {
 		diags.Append(err...)
@@ -2218,12 +2212,21 @@ func updateNetworksWirelessSsidsResourcePayload(plan *NetworksWirelessSsidResour
 
 	dnsRewrite, err := NetworksWirelessSsidPayloadDnsRewrite(plan.DnsRewrite)
 	payload.DnsRewrite = dnsRewrite
+	if err.HasError() {
+		diags.Append(err...)
+	}
 
 	speedBurst, err := NetworksWirelessSsidPayloadSpeedBurst(plan.SpeedBurst)
 	payload.SpeedBurst = speedBurst
+	if err.HasError() {
+		diags.Append(err...)
+	}
 
 	namedVlans, err := NetworksWirelessSsidPayloadNamedVlans(plan.NamedVlans)
 	payload.NamedVlans = namedVlans
+	if err.HasError() {
+		diags.Append(err...)
+	}
 
 	return payload, diags
 
@@ -3431,7 +3434,7 @@ func (r *NetworksWirelessSsidsResource) Create(ctx context.Context, req resource
 	})
 
 	// Read the response body
-	body, err := ioutil.ReadAll(httpResp.Body)
+	body, err := io.ReadAll(httpResp.Body)
 	if err != nil {
 		diags.AddError("Error reading response body", err.Error())
 	}
@@ -3460,7 +3463,7 @@ func (r *NetworksWirelessSsidsResource) Read(ctx context.Context, req resource.R
 
 	// Read Terraform prior state into the model
 	diags := req.State.Get(ctx, &state)
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	resp.Diagnostics.Append(diags...)
 
 	if resp.Diagnostics.HasError() {
 		return
