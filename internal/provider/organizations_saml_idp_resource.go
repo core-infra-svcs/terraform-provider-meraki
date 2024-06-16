@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
+	"strings"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -14,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
 )
@@ -37,8 +37,8 @@ type OrganizationsSamlIdpResource struct {
 
 // OrganizationsSamlIdpResourceModel describes the resource data model.
 type OrganizationsSamlIdpResourceModel struct {
-	Id                      types.String     `tfsdk:"id"`
-	OrganizationId          jsontypes.String `tfsdk:"organization_id"`
+	Id                      jsontypes.String `tfsdk:"id" json:"-"`
+	OrganizationId          jsontypes.String `tfsdk:"organization_id" json:"-"`
 	ConsumerUrl             jsontypes.String `tfsdk:"consumer_url"`
 	IdpId                   jsontypes.String `tfsdk:"idp_id"`
 	SloLogoutUrl            jsontypes.String `tfsdk:"slo_logout_url"`
@@ -55,12 +55,16 @@ func (r *OrganizationsSamlIdpResource) Schema(ctx context.Context, req resource.
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed: true,
+				Optional:   true,
+				Computed:   true,
+				CustomType: jsontypes.StringType,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"organization_id": schema.StringAttribute{
 				MarkdownDescription: "Organization ID",
-				Optional:            true,
-				Computed:            true,
+				Required:            true,
 				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
@@ -171,7 +175,7 @@ func (r *OrganizationsSamlIdpResource) Create(ctx context.Context, req resource.
 		)
 		return
 	}
-	data.Id = types.StringValue("example-id")
+	data.Id = jsontypes.StringValue(data.OrganizationId.ValueString() + "," + data.IdpId.ValueString())
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -219,7 +223,7 @@ func (r *OrganizationsSamlIdpResource) Read(ctx context.Context, req resource.Re
 		)
 		return
 	}
-	data.Id = types.StringValue("example-id")
+
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -274,7 +278,6 @@ func (r *OrganizationsSamlIdpResource) Update(ctx context.Context, req resource.
 		)
 		return
 	}
-	data.Id = types.StringValue("example-id")
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -322,4 +325,15 @@ func (r *OrganizationsSamlIdpResource) Delete(ctx context.Context, req resource.
 
 func (r *OrganizationsSamlIdpResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+
+	idParts := strings.Split(req.ID, ",")
+	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: network_id, group_policy_id. Got: %q", req.ID),
+		)
+		return
+	}
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("organization_id"), idParts[0])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("idp_id"), idParts[1])...)
 }
