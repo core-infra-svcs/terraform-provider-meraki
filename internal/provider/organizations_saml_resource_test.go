@@ -30,6 +30,16 @@ func TestAccOrganizationSamlResource(t *testing.T) {
 				),
 			},
 
+			// Import State testing
+			{
+				ResourceName:            "meraki_organization_saml.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{
+					// Add any attributes you want to ignore during import verification
+				},
+			},
+
 			// Delete testing automatically occurs in TestCase
 		},
 	})
