@@ -52,6 +52,14 @@ func TestAccOrganizationResource(t *testing.T) {
 				),
 			},
 
+			// Import State testing
+			{
+				ResourceName:            "meraki_organization.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{},
+			},
+
 			// Delete testing automatically occurs in TestCase
 		},
 	})
