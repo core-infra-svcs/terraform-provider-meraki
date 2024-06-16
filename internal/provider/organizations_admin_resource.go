@@ -76,6 +76,7 @@ func (r *OrganizationsAdminResource) Schema(ctx context.Context, req resource.Sc
 			"id": schema.StringAttribute{
 				CustomType: jsontypes.StringType,
 				Computed:   true,
+				Optional:   true,
 			},
 			"organization_id": schema.StringAttribute{
 				MarkdownDescription: "Organization ID",
@@ -348,14 +349,18 @@ func (r *OrganizationsAdminResource) Read(ctx context.Context, req resource.Read
 	maxRetries := r.client.GetConfig().MaximumRetries
 	retryDelay := time.Duration(r.client.GetConfig().Retry4xxErrorWaitTime)
 
-	// usage of CustomHttpRequestRetry with a slice of strongly typed structs
+	// Usage of CustomHttpRequestRetry with a slice of strongly typed structs
 	apiCallSlice := func() ([]openApiClient.GetOrganizationAdmins200ResponseInner, *http.Response, error) {
 		return r.client.AdminsApi.GetOrganizationAdmins(context.Background(), data.OrgId.ValueString()).Execute()
 	}
 
+	// Directly use the type returned by the function
 	resultSlice, httpRespSlice, errSlice := tools.CustomHttpRequestRetry(ctx, maxRetries, retryDelay, apiCallSlice)
 	if errSlice != nil {
-		fmt.Printf("Error creating group policy: %s\n", errSlice)
+		resp.Diagnostics.AddError(
+			"Error reading admins",
+			fmt.Sprintf("Error retrieving admins from the API: %s", errSlice),
+		)
 		if httpRespSlice != nil {
 			var responseBody string
 			if httpRespSlice.Body != nil {
@@ -364,15 +369,11 @@ func (r *OrganizationsAdminResource) Read(ctx context.Context, req resource.Read
 					responseBody = string(bodyBytes)
 				}
 			}
-			fmt.Printf("Failed to create resource. HTTP Status Code: %d, Response Body: %s\n", httpRespSlice.StatusCode, responseBody)
+			resp.Diagnostics.AddError(
+				"HTTP Response",
+				fmt.Sprintf("Failed to read admins. HTTP Status Code: %d, Response Body: %s", httpRespSlice.StatusCode, responseBody),
+			)
 		}
-		return
-	}
-
-	// Type assert apiResp to the expected type
-	_, ok := any(resultSlice).([]openApiClient.GetDeviceSwitchPorts200ResponseInner)
-	if !ok {
-		fmt.Println("Failed to assert API response type to []openApiClient.GetOrganizationAdmins200ResponseInner. Please ensure the API response structure matches the expected type.")
 		return
 	}
 
@@ -385,32 +386,60 @@ func (r *OrganizationsAdminResource) Read(ctx context.Context, req resource.Read
 		return
 	}
 
-	// Check for errors after diagnostics collected
-	if resp.Diagnostics.HasError() {
-		return
+	// Iterate through the resultSlice directly since it is already of the expected type
+	var foundAdmin *OrganizationsAdminResourceModel
+	for _, admin := range resultSlice {
+		if admin.GetId() == data.AdminId.ValueString() {
+
+			// tags
+			var tags []OrganizationsAdminResourceModelTag
+			for _, t := range admin.GetTags() {
+				var tag OrganizationsAdminResourceModelTag
+				tag.Tag = jsontypes.StringValue(t.GetTag())
+				tag.Access = jsontypes.StringValue(t.GetAccess())
+
+				tags = append(tags, tag)
+			}
+
+			// networks
+			var networks []OrganizationsAdminResourceModelNetwork
+			for _, n := range admin.GetNetworks() {
+				var network OrganizationsAdminResourceModelNetwork
+				network.Id = jsontypes.StringValue(n.GetId())
+				network.Access = jsontypes.StringValue(n.GetAccess())
+				networks = append(networks, network)
+			}
+
+			foundAdmin = &OrganizationsAdminResourceModel{
+				Id:                   jsontypes.StringValue(fmt.Sprintf("%s,%s", data.OrgId.ValueString(), data.AdminId.ValueString())),
+				OrgId:                data.OrgId,
+				AdminId:              jsontypes.StringValue(admin.GetId()),
+				Name:                 jsontypes.StringValue(admin.GetName()),
+				Email:                jsontypes.StringValue(admin.GetEmail()),
+				OrgAccess:            jsontypes.StringValue(admin.GetOrgAccess()),
+				AccountStatus:        jsontypes.StringValue(admin.GetAccountStatus()),
+				TwoFactorAuthEnabled: jsontypes.BoolValue(admin.GetTwoFactorAuthEnabled()),
+				HasApiKey:            jsontypes.BoolValue(admin.GetHasApiKey()),
+				LastActive:           jsontypes.StringValue(admin.GetLastActive().String()),
+				Tags:                 tags,
+				Networks:             networks,
+				AuthenticationMethod: jsontypes.StringValue(admin.GetAuthenticationMethod()),
+			}
+
+			break
+		}
 	}
 
-	var admins []OrganizationsAdminResourceModel
-	if err := json.NewDecoder(httpRespSlice.Body).Decode(&admins); err != nil {
+	if foundAdmin == nil {
 		resp.Diagnostics.AddError(
-			"JSON decoding error",
-			fmt.Sprintf("%v\n", err.Error()),
+			"Admin not found",
+			fmt.Sprintf("No admin found with ID: %s", data.AdminId.ValueString()),
 		)
 		return
 	}
 
-	// There is no single GET ADMIN endpoint, so we must GET a list of all admins and search by adminId.
-	for _, admin := range admins {
-		// Match id found in tf state
-		if admin.AdminId.ValueString() == data.AdminId.ValueString() {
-			data.Id = data.OrgId
-			admin.OrgId = data.OrgId // this value does not exist in the api response
-
-			// Save updated data into Terraform state
-			resp.Diagnostics.Append(resp.State.Set(ctx, &admin)...)
-		}
-	}
-
+	// Save updated data into Terraform state
+	resp.Diagnostics.Append(resp.State.Set(ctx, foundAdmin)...)
 }
 
 func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
