@@ -516,23 +516,34 @@ func (r *NetworksWirelessSsidsSplashSettingsResource) Configure(ctx context.Cont
 func updateNetworksWirelessSsidsSplashSettingsResourceImageState(ctx context.Context, state *NetworksWirelessSsidsSplashSettingsResourceModel) (types.Object, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	imageObj := types.ObjectNull(NetworksWirelessSsidsSplashSettingsResourceModelImageAttrTypes)
+	imageObjNull := types.ObjectNull(NetworksWirelessSsidsSplashSettingsResourceModelImageAttrTypes)
 
-	// Handle SplashImageState
-	var splashImageState NetworksWirelessSsidsSplashSettingsResourceModelSplashImage
-	err := state.SplashImage.As(ctx, &splashImageState, basetypes.ObjectAsOptions{})
-	if err.HasError() {
-		diags.Append(err...)
-	}
-
-	if !splashImageState.Image.IsNull() && !splashImageState.Image.IsUnknown() {
-		imageObj, err = types.ObjectValueFrom(ctx, NetworksWirelessSsidsSplashSettingsResourceModelImageAttrTypes, splashImageState)
+	if !state.SplashImage.IsNull() {
+		// Handle SplashImageState
+		var splashImageState NetworksWirelessSsidsSplashSettingsResourceModelSplashImage
+		err := state.SplashImage.As(ctx, &splashImageState, basetypes.ObjectAsOptions{})
 		if err.HasError() {
 			diags.Append(err...)
 		}
+
+		// Handle ImageState
+		var imageState NetworksWirelessSsidsSplashSettingsResourceModelImage
+		err = splashImageState.Image.As(ctx, &imageState, basetypes.ObjectAsOptions{})
+		if err.HasError() {
+			diags.Append(err...)
+		}
+
+		if !imageState.Contents.IsNull() && !imageState.Contents.IsUnknown() &&
+			!imageState.Format.IsNull() && !imageState.Format.IsUnknown() {
+			imageObj, err := types.ObjectValueFrom(ctx, NetworksWirelessSsidsSplashSettingsResourceModelImageAttrTypes, imageState)
+			if err.HasError() {
+				diags.Append(err...)
+			}
+			return imageObj, diags
+		}
 	}
 
-	return imageObj, diags
+	return imageObjNull, diags
 }
 
 func updateNetworksWirelessSsidsSplashSettingsResourceSplashImageState(ctx context.Context, inlineResp openApiClient.GetNetworkWirelessSsidSplashSettings200Response, state *NetworksWirelessSsidsSplashSettingsResourceModel) (types.Object, diag.Diagnostics) {
@@ -548,24 +559,25 @@ func updateNetworksWirelessSsidsSplashSettingsResourceSplashImageState(ctx conte
 		splashImage.Md5 = types.StringNull()
 	}
 
-	// extension
+	// Extension
 	if inlineResp.SplashImage.HasExtension() {
 		splashImage.Extension = types.StringValue(inlineResp.SplashImage.GetExtension())
 	} else {
 		splashImage.Extension = types.StringNull()
 	}
 
-	// image
-	imageObj, err := updateNetworksWirelessSsidsSplashSettingsResourceImageState(ctx, state)
-	if err.HasError() {
-		diags.Append(err...)
-	}
+	// Image
+	if !state.SplashImage.IsNull() && !state.SplashImage.IsUnknown() {
+		imageObj, err := updateNetworksWirelessSsidsSplashSettingsResourceImageState(ctx, state)
+		if err.HasError() {
+			diags.Append(err...)
+		}
+		splashImage.Image = imageObj
 
-	splashImage.Image = imageObj
-
-	splashImageObj, err := types.ObjectValueFrom(ctx, NetworksWirelessSsidsSplashSettingsResourceModelSplashImageAttrTypes, splashImage)
-	if err.HasError() {
-		diags.Append(err...)
+		splashImageObj, err := types.ObjectValueFrom(ctx, NetworksWirelessSsidsSplashSettingsResourceModelSplashImageAttrTypes, splashImage)
+		if err.HasError() {
+			diags.Append(err...)
+		}
 		return splashImageObj, diags
 	}
 
@@ -576,6 +588,7 @@ func updateNetworksWirelessSsidsSplashSettingsResourceSplashLogoState(ctx contex
 	var diags diag.Diagnostics
 
 	var splashLogo NetworksWirelessSsidsSplashSettingsResourceModelSplashLogo
+	splashLogoObjNull := types.ObjectNull(NetworksWirelessSsidsSplashSettingsResourceModelSplashLogoAttrTypes)
 
 	// Md5
 	if inlineResp.SplashLogo.HasMd5() {
@@ -584,33 +597,36 @@ func updateNetworksWirelessSsidsSplashSettingsResourceSplashLogoState(ctx contex
 		splashLogo.Md5 = types.StringNull()
 	}
 
-	// extension
+	// Extension
 	if inlineResp.SplashLogo.HasExtension() {
 		splashLogo.Extension = types.StringValue(inlineResp.SplashLogo.GetExtension())
 	} else {
 		splashLogo.Extension = types.StringNull()
 	}
 
-	// image
-	imageObj, err := updateNetworksWirelessSsidsSplashSettingsResourceImageState(ctx, state)
-	if err.HasError() {
-		diags.Append(err...)
+	// Logo
+	if !state.SplashLogo.IsNull() && !state.SplashLogo.IsUnknown() {
+		imageObj, err := updateNetworksWirelessSsidsSplashSettingsResourceImageState(ctx, state)
+		if err.HasError() {
+			diags.Append(err...)
+		}
+		splashLogo.Image = imageObj
+
+		splashLogoObj, err := types.ObjectValueFrom(ctx, NetworksWirelessSsidsSplashSettingsResourceModelSplashLogoAttrTypes, splashLogo)
+		if err.HasError() {
+			diags.Append(err...)
+		}
+		return splashLogoObj, diags
 	}
 
-	splashLogo.Image = imageObj
-
-	splashLogoObj, err := types.ObjectValueFrom(ctx, NetworksWirelessSsidsSplashSettingsResourceModelSplashLogoAttrTypes, splashLogo)
-	if err.HasError() {
-		diags.Append(err...)
-	}
-
-	return splashLogoObj, diags
+	return splashLogoObjNull, diags
 }
 
 func updateNetworksWirelessSsidsSplashSettingsResourceSplashPrepaidFrontState(ctx context.Context, inlineResp openApiClient.GetNetworkWirelessSsidSplashSettings200Response, state *NetworksWirelessSsidsSplashSettingsResourceModel) (types.Object, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	var splashPrepaidFront NetworksWirelessSsidsSplashSettingsResourceModelSplashPrepaidFront
+	splashPrepaidFrontObjNull := types.ObjectNull(NetworksWirelessSsidsSplashSettingsResourceModelSplashPrepaidFrontAttrTypes)
 
 	// Md5
 	if inlineResp.SplashPrepaidFront.HasMd5() {
@@ -619,27 +635,29 @@ func updateNetworksWirelessSsidsSplashSettingsResourceSplashPrepaidFrontState(ct
 		splashPrepaidFront.Md5 = types.StringNull()
 	}
 
-	// extension
+	// Extension
 	if inlineResp.SplashPrepaidFront.HasExtension() {
 		splashPrepaidFront.Extension = types.StringValue(inlineResp.SplashPrepaidFront.GetExtension())
 	} else {
 		splashPrepaidFront.Extension = types.StringNull()
 	}
 
-	// image
-	imageObj, err := updateNetworksWirelessSsidsSplashSettingsResourceImageState(ctx, state)
-	if err.HasError() {
-		diags.Append(err...)
+	// PrepaidFront
+	if !state.SplashPrepaidFront.IsNull() && !state.SplashPrepaidFront.IsUnknown() {
+		imageObj, err := updateNetworksWirelessSsidsSplashSettingsResourceImageState(ctx, state)
+		if err.HasError() {
+			diags.Append(err...)
+		}
+		splashPrepaidFront.Image = imageObj
+
+		splashPrepaidFrontObj, err := types.ObjectValueFrom(ctx, NetworksWirelessSsidsSplashSettingsResourceModelSplashPrepaidFrontAttrTypes, splashPrepaidFront)
+		if err.HasError() {
+			diags.Append(err...)
+		}
+		return splashPrepaidFrontObj, diags
 	}
 
-	splashPrepaidFront.Image = imageObj
-
-	splashPrepaidFrontObj, err := types.ObjectValueFrom(ctx, NetworksWirelessSsidsSplashSettingsResourceModelSplashPrepaidFrontAttrTypes, splashPrepaidFront)
-	if err.HasError() {
-		diags.Append(err...)
-	}
-
-	return splashPrepaidFrontObj, diags
+	return splashPrepaidFrontObjNull, diags
 }
 
 func updateNetworksWirelessSsidsSplashSettingsResourceState(ctx context.Context, inlineResp openApiClient.GetNetworkWirelessSsidSplashSettings200Response, state *NetworksWirelessSsidsSplashSettingsResourceModel) diag.Diagnostics {
