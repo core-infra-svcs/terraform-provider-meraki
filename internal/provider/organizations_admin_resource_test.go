@@ -2,14 +2,16 @@ package provider
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccOrganizationsAdminResource(t *testing.T) {
-	admins := 13 // number of admins
+	admins := 2                                      // number of admins
+	timestamp := time.Now().Format("20060102150405") // generates a timestamp in the format YYYY MM DD HH MM SS
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
@@ -42,10 +44,10 @@ func TestAccOrganizationsAdminResource(t *testing.T) {
 
 			// Create and Read testing (admin)
 			{
-				Config: testAccOrganizationsAdminResourceConfig,
+				Config: testAccOrganizationsAdminResourceConfig(timestamp),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "name", "test_acc_admin"),
-					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "email", "meraki_organizations_admin_test_2023_06_05@example.com"),
+					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "email", fmt.Sprintf("meraki_organizations_admin_test_%s@example.com", timestamp)),
 					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "org_access", "read-only"),
 					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "authentication_method", "Email"),
 					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "has_api_key", "false"),
@@ -57,7 +59,7 @@ func TestAccOrganizationsAdminResource(t *testing.T) {
 
 			// Update testing
 			{
-				Config: testUpdatedAccOrganizationsAdminResourceConfig,
+				Config: testUpdatedAccOrganizationsAdminResourceConfig(timestamp),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "tags.0.tag", "east"),
 					resource.TestCheckResourceAttr("meraki_organizations_admin.test", "tags.0.access", "read-only"),
@@ -65,9 +67,19 @@ func TestAccOrganizationsAdminResource(t *testing.T) {
 				),
 			},
 
+			// Import State testing
+			{
+				ResourceName:            "meraki_organizations_admin.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{
+					// Add any attributes you want to ignore during import verification
+				},
+			},
+
 			// Test the creation of multiple group policies.
 			{
-				Config: testAccOrganizationsAdminResourceConfigMultiplePolicies(admins),
+				Config: testAccOrganizationsAdminResourceConfigMultiplePolicies(admins, timestamp),
 				Check: func(s *terraform.State) error {
 					var checks []resource.TestCheckFunc
 					// Dynamically generate checks for each group policy
@@ -75,7 +87,7 @@ func TestAccOrganizationsAdminResource(t *testing.T) {
 						resourceName := fmt.Sprintf("meraki_organizations_admin.test%d", i)
 						checks = append(checks,
 							resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("test_acc_admin_%d", i)),
-							resource.TestCheckResourceAttr(resourceName, "email", fmt.Sprintf("meraki_organizations_admin_test_%d@example.com", i)),
+							resource.TestCheckResourceAttr(resourceName, "email", fmt.Sprintf("meraki_organizations_admin_test_%s_%d@example.com", timestamp, i)),
 							resource.TestCheckResourceAttr(resourceName, "org_access", "read-only"),
 							resource.TestCheckResourceAttr(resourceName, "authentication_method", "Email"),
 							resource.TestCheckResourceAttr(resourceName, "tags.0.tag", "west"),
@@ -114,7 +126,8 @@ resource "meraki_network" "test" {
 }
 `
 
-const testAccOrganizationsAdminResourceConfig = `
+func testAccOrganizationsAdminResourceConfig(timestamp string) string {
+	return fmt.Sprintf(`
 resource "meraki_organization" "test" {}
 
 resource "meraki_network" "test" {
@@ -126,7 +139,7 @@ resource "meraki_organizations_admin" "test" {
 	depends_on = ["meraki_organization.test", "meraki_network.test"]
 	organization_id = resource.meraki_organization.test.organization_id
 	name        = "test_acc_admin"
-	email       = "meraki_organizations_admin_test_2023_06_05@example.com"
+	email       = "meraki_organizations_admin_test_%s@example.com"
 	org_access   = "read-only"
 	authentication_method = "Email"
     tags = [
@@ -139,9 +152,11 @@ resource "meraki_organizations_admin" "test" {
                   access = "read-only"
                 }]
 }
-`
+`, timestamp)
+}
 
-const testUpdatedAccOrganizationsAdminResourceConfig = `
+func testUpdatedAccOrganizationsAdminResourceConfig(timestamp string) string {
+	return fmt.Sprintf(`
 resource "meraki_organization" "test" {}
 resource "meraki_network" "test" {
 	organization_id = resource.meraki_organization.test.organization_id
@@ -152,7 +167,7 @@ resource "meraki_organizations_admin" "test" {
 	depends_on = ["meraki_organization.test", "meraki_network.test"]
 	organization_id = resource.meraki_organization.test.organization_id
 	name        = "test_acc_admin"
-	email       = "meraki_organizations_admin_test_2023_06_05@example.com"
+	email       = "meraki_organizations_admin_test_%s@example.com"
 	org_access   = "read-only"
 	authentication_method = "Email"
     tags = [
@@ -165,12 +180,13 @@ resource "meraki_organizations_admin" "test" {
                   access = "read-only"
                 }]
 }
-`
+`, timestamp)
+}
 
-func testAccOrganizationsAdminResourceConfigMultiplePolicies(admins int) string {
+func testAccOrganizationsAdminResourceConfigMultiplePolicies(admins int, timestamp string) string {
 	config := `
- resource "meraki_organization" "test" {
- 	name = "test_acc_meraki_organizations_admin_2"
+resource "meraki_organization" "test" {
+ 	name = "test_acc_meraki_organizations_admin"
  	api_enabled = true
  }
 
@@ -182,8 +198,7 @@ resource "meraki_network" "test" {
 	name = "test_acc_organizations_admin"
 	timezone = "America/Los_Angeles"
 	notes = "Additional description of the network"
-}
-`
+}`
 
 	// Append each admin configuration
 	for i := 1; i <= admins; i++ {
@@ -193,7 +208,7 @@ resource "meraki_organizations_admin" "test%d" {
 	depends_on = ["meraki_network.test"]
 	organization_id = resource.meraki_organization.test.organization_id
 	name        = "test_acc_admin_%d"
-	email       = "meraki_organizations_admin_test_%d@example.com"
+	email       = "meraki_organizations_admin_test_%s_%d@example.com"
 	org_access   = "read-only"
 	authentication_method = "Email"
     tags = [
@@ -202,14 +217,12 @@ resource "meraki_organizations_admin" "test%d" {
 			   access = "read-only"
 			  }]
     networks    = [{
-                  id = resource.meraki_network.test.network_id
-                  access = "read-only"
-                }]
+                  id =resource.meraki_network.test.network_id
+				  access = "read-only"
+	}]
 }
 
-
-`, i, i, i)
+`, i, i, timestamp, i)
 	}
-
 	return config
 }

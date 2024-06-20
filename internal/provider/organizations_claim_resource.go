@@ -240,7 +240,7 @@ func (r *OrganizationsClaimResource) Create(ctx context.Context, req resource.Cr
 	}
 
 	// Set ID for the new resource.
-	data.Id = jsontypes.StringValue("example-id")
+	data.Id = jsontypes.StringValue(data.OrganizationId.ValueString())
 
 	// Now set the final state of the resource.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -311,9 +311,6 @@ func (r *OrganizationsClaimResource) Read(ctx context.Context, req resource.Read
 		data.Serials = extractedSerials
 	}
 
-	// Set ID for the resource.
-	data.Id = jsontypes.StringValue("example-id")
-
 	// Now set the final state of the resource.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -332,9 +329,6 @@ func (r *OrganizationsClaimResource) Update(ctx context.Context, req resource.Up
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
-	// Set ID for the resource.
-	data.Id = jsontypes.StringValue("example-id")
 
 	// Now set the updated state of the resource.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

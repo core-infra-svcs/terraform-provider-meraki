@@ -36,8 +36,8 @@ type OrganizationSamlResource struct {
 
 // OrganizationSamlResourceModel describes the resource data model.
 type OrganizationSamlResourceModel struct {
-	Id             types.String     `tfsdk:"id"`
-	OrganizationId jsontypes.String `tfsdk:"organization_id"`
+	Id             types.String     `tfsdk:"id" json:"-"`
+	OrganizationId jsontypes.String `tfsdk:"organization_id" json:"organizationId"`
 	Enabled        jsontypes.Bool   `tfsdk:"enabled"`
 }
 
@@ -51,6 +51,7 @@ func (r *OrganizationSamlResource) Schema(ctx context.Context, req resource.Sche
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
+				Optional: true,
 			},
 			"organization_id": schema.StringAttribute{
 				MarkdownDescription: "Organization ID",
@@ -131,7 +132,7 @@ func (r *OrganizationSamlResource) Create(ctx context.Context, req resource.Crea
 	}
 
 	// save into the Terraform state.
-	data.Id = types.StringValue("example-id")
+	data.Id = types.StringValue(data.OrganizationId.ValueString())
 	data.Enabled = jsontypes.BoolValue(inlineResp.GetEnabled())
 
 	// Save data into Terraform state
@@ -171,7 +172,6 @@ func (r *OrganizationSamlResource) Read(ctx context.Context, req resource.ReadRe
 	}
 
 	// save into the Terraform state.
-	data.Id = types.StringValue("example-id")
 	data.Enabled = jsontypes.BoolValue(inlineResp.GetEnabled())
 
 	// Save updated data into Terraform state
@@ -215,7 +215,6 @@ func (r *OrganizationSamlResource) Update(ctx context.Context, req resource.Upda
 	}
 
 	// save into the Terraform state.
-	data.Id = types.StringValue("example-id")
 	data.Enabled = jsontypes.BoolValue(inlineResp.GetEnabled())
 
 	// Save updated data into Terraform state
@@ -241,4 +240,5 @@ func (r *OrganizationSamlResource) Delete(ctx context.Context, req resource.Dele
 
 func (r *OrganizationSamlResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("organization_id"), req.ID)...)
 }

@@ -61,6 +61,16 @@ func TestAccOrganizationsSamlRolesResource(t *testing.T) {
 					resource.TestCheckResourceAttr("meraki_organizations_saml_role.test", "networks.0.access", "read-only"),
 				),
 			},
+
+			// Import State testing
+			{
+				ResourceName:            "meraki_organizations_saml_role.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{
+					// Add any attributes you want to ignore during import verification
+				},
+			},
 		},
 	})
 }

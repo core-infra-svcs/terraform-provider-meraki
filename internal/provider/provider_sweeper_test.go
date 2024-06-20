@@ -50,6 +50,13 @@ func TestMain(m *testing.M) {
 			fmt.Println("Network sweeper ran successfully")
 		}
 
+		err = sweepMerakiAdmins(organizationID)
+		if err != nil {
+			fmt.Printf("Error running admin sweeper: %s\n", err)
+		} else {
+			fmt.Println("Admin sweeper ran successfully")
+		}
+
 		err = sweepMerakiOrganization(organizationID)
 		if err != nil {
 			fmt.Printf("Error running organization sweeper: %s\n", err)
@@ -109,6 +116,37 @@ func sweepMerakiNetwork(organization string) error {
 	return nil
 }
 
+func sweepMerakiAdmins(organization string) error {
+	fmt.Printf("Starting admin sweeper for organization: %s\n", organization)
+
+	client, err := SweeperHTTPClient()
+	if err != nil {
+		return fmt.Errorf("error getting http client: %s", err)
+	}
+
+	admins, _, err := client.AdminsApi.GetOrganizationAdmins(context.Background(), organization).Execute()
+	if err != nil {
+		return fmt.Errorf("error getting admin list from organization:%s \nerror: %s", organization, err)
+	}
+
+	for _, admin := range admins {
+		if strings.HasPrefix(*admin.Email, "test_acc") {
+			fmt.Printf("Deleting admin: %s, id: %s\n", *admin.Email, *admin.Id)
+
+			httpResp, err2 := client.AdminsApi.DeleteOrganizationAdmin(context.Background(), organization, *admin.Id).Execute()
+			if err2 != nil {
+				fmt.Printf("Error deleting admin from organization:%s \nerror: %s\n", organization, err2)
+			}
+
+			if httpResp.StatusCode == 204 {
+				fmt.Printf("Successfully deleted admin: %s, id: %s\n", *admin.Email, *admin.Id)
+			}
+		}
+	}
+	fmt.Println("Finished running admin sweeper")
+	return nil
+}
+
 func sweepMerakiOrganization(organization string) error {
 	fmt.Printf("Starting organization sweeper for organization: %s\n", organization)
 
@@ -143,6 +181,12 @@ func sweepMerakiOrganization(organization string) error {
 				if networkHttpResp.StatusCode == 204 {
 					fmt.Printf("Successfully deleted network: %s, id: %s\n", *merakiNetwork.Name, *merakiNetwork.Id)
 				}
+			}
+
+			// Delete admins before deleting the organization
+			err = sweepMerakiAdmins(*merakiOrganization.Id)
+			if err != nil {
+				fmt.Printf("Error running admin sweeper for organization %s: %s\n", *merakiOrganization.Id, err)
 			}
 
 			httpRespOrg, err3 := client.OrganizationsApi.DeleteOrganization(context.Background(), *merakiOrganization.Id).Execute()

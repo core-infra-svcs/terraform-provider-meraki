@@ -38,19 +38,19 @@ type OrganizationsAdaptivePolicyAclResource struct {
 
 // OrganizationsAdaptivePolicyAclResourceModel describes the resource data model.
 type OrganizationsAdaptivePolicyAclResourceModel struct {
-	Id          types.String                                       `tfsdk:"id"`
-	OrgId       jsontypes.String                                   `tfsdk:"organization_id" json:"organizationId"`
-	AclId       jsontypes.String                                   `tfsdk:"acl_id" json:"aclId"`
-	Name        jsontypes.String                                   `tfsdk:"name"`
-	Description jsontypes.String                                   `tfsdk:"description"`
-	IpVersion   jsontypes.String                                   `tfsdk:"ip_version" json:"ipVersion"`
-	Rules       []OOrganizationsAdaptivePolicyAclResourceModelRule `tfsdk:"rules"`
-	CreatedAt   jsontypes.String                                   `tfsdk:"created_at" json:"createdAt"`
-	UpdatedAt   jsontypes.String                                   `tfsdk:"updated_at" json:"updatedAt"`
+	Id          types.String                                      `tfsdk:"id"`
+	OrgId       jsontypes.String                                  `tfsdk:"organization_id" json:"organizationId"`
+	AclId       jsontypes.String                                  `tfsdk:"acl_id" json:"aclId"`
+	Name        jsontypes.String                                  `tfsdk:"name"`
+	Description jsontypes.String                                  `tfsdk:"description"`
+	IpVersion   jsontypes.String                                  `tfsdk:"ip_version" json:"ipVersion"`
+	Rules       []OrganizationsAdaptivePolicyAclResourceModelRule `tfsdk:"rules"`
+	CreatedAt   jsontypes.String                                  `tfsdk:"created_at" json:"createdAt"`
+	UpdatedAt   jsontypes.String                                  `tfsdk:"updated_at" json:"updatedAt"`
 }
 
-// OOrganizationsAdaptivePolicyAclResourceModelRule  describes the rules data model
-type OOrganizationsAdaptivePolicyAclResourceModelRule struct {
+// OrganizationsAdaptivePolicyAclResourceModelRule  describes the rules data model
+type OrganizationsAdaptivePolicyAclResourceModelRule struct {
 	Policy   jsontypes.String `tfsdk:"policy"`
 	Protocol jsontypes.String `tfsdk:"protocol"`
 	SrcPort  jsontypes.String `tfsdk:"src_port" json:"srcPort"`
@@ -67,6 +67,7 @@ func (r *OrganizationsAdaptivePolicyAclResource) Schema(ctx context.Context, req
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
+				Optional: true,
 			},
 			"organization_id": schema.StringAttribute{
 				MarkdownDescription: "Organization ID",
@@ -246,7 +247,7 @@ func (r *OrganizationsAdaptivePolicyAclResource) Create(ctx context.Context, req
 		)
 		return
 	}
-	data.Id = types.StringValue("example-id")
+	data.Id = types.StringValue(fmt.Sprintf("%s,%s", data.OrgId.ValueString(), data.AclId.ValueString()))
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -296,7 +297,8 @@ func (r *OrganizationsAdaptivePolicyAclResource) Read(ctx context.Context, req r
 		)
 		return
 	}
-	data.Id = types.StringValue("example-id")
+
+	data.Id = types.StringValue(fmt.Sprintf("%s,%s", data.OrgId.ValueString(), data.AclId.ValueString()))
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -367,7 +369,8 @@ func (r *OrganizationsAdaptivePolicyAclResource) Update(ctx context.Context, req
 		)
 		return
 	}
-	data.Id = types.StringValue("example-id")
+
+	data.Id = types.StringValue(fmt.Sprintf("%s,%s", data.OrgId.ValueString(), data.AclId.ValueString()))
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 

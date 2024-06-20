@@ -35,10 +35,10 @@ type OrganizationsSamlRolesResource struct {
 // OrganizationsSamlRolesResourceModel describes the resource data model.
 type OrganizationsSamlRolesResourceModel struct {
 	Id        jsontypes.String                            `tfsdk:"id"`
-	OrgId     jsontypes.String                            `tfsdk:"organization_id" json:"organization_id"`
+	OrgId     jsontypes.String                            `tfsdk:"organization_id" json:"organizationId"`
 	RoleId    jsontypes.String                            `tfsdk:"role_id" json:"id"`
 	Role      jsontypes.String                            `tfsdk:"role" json:"role"`
-	OrgAccess jsontypes.String                            `tfsdk:"org_access" json:"org_access"`
+	OrgAccess jsontypes.String                            `tfsdk:"org_access" json:"orgAccess"`
 	Tags      []OrganizationsSamlRoleResourceModelTag     `tfsdk:"tags" json:"tags"`
 	Networks  []OrganizationsSamlRoleResourceModelNetwork `tfsdk:"networks" json:"networks"`
 }
@@ -237,7 +237,7 @@ func (r *OrganizationsSamlRolesResource) Create(ctx context.Context, req resourc
 		return
 	}
 
-	data.Id = jsontypes.StringValue("example-id")
+	data.Id = jsontypes.StringValue(data.OrgId.ValueString() + "," + data.RoleId.ValueString())
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -287,8 +287,6 @@ func (r *OrganizationsSamlRolesResource) Read(ctx context.Context, req resource.
 		)
 		return
 	}
-
-	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -365,8 +363,6 @@ func (r *OrganizationsSamlRolesResource) Update(ctx context.Context, req resourc
 		)
 		return
 	}
-
-	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 

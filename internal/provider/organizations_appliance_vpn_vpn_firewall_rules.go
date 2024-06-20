@@ -60,6 +60,7 @@ func (r *OrganizationsApplianceVpnVpnFirewallRulesResource) Schema(ctx context.C
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:   true,
+				Optional:   true,
 				CustomType: jsontypes.StringType,
 			},
 			"organization_id": schema.StringAttribute{
@@ -217,7 +218,7 @@ func (r *OrganizationsApplianceVpnVpnFirewallRulesResource) Create(ctx context.C
 		return
 	}
 
-	data.Id = jsontypes.StringValue("example-id")
+	data.Id = jsontypes.StringValue(data.OrganizationId.ValueString())
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -266,8 +267,6 @@ func (r *OrganizationsApplianceVpnVpnFirewallRulesResource) Read(ctx context.Con
 		)
 		return
 	}
-
-	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -339,8 +338,6 @@ func (r *OrganizationsApplianceVpnVpnFirewallRulesResource) Update(ctx context.C
 		return
 	}
 
-	data.Id = jsontypes.StringValue("example-id")
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
@@ -359,7 +356,7 @@ func (r *OrganizationsApplianceVpnVpnFirewallRulesResource) Delete(ctx context.C
 	}
 
 	organizationsApplianceVpnVpnFirewallRules := *openApiClient.NewUpdateOrganizationApplianceVpnVpnFirewallRulesRequest()
-	rules := []openApiClient.UpdateOrganizationApplianceVpnVpnFirewallRulesRequestRulesInner{}
+	var rules []openApiClient.UpdateOrganizationApplianceVpnVpnFirewallRulesRequestRulesInner
 	organizationsApplianceVpnVpnFirewallRules.SetRules(rules)
 	organizationsApplianceVpnVpnFirewallRules.SetSyslogDefaultRule(false)
 

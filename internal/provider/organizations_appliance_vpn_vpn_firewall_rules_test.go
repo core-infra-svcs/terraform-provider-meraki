@@ -22,16 +22,6 @@ func TestAccOrganizationsApplianceVpnVpnFirewallRulesResource(t *testing.T) {
 				),
 			},
 
-			// TODO - ImportState testing - This only works when hard-coded networkId.
-			/*
-				{
-					ResourceName:      "meraki_networks_appliance_firewall_l3_firewall_rules.test",
-					ImportState:       true,
-					ImportStateVerify: false,
-					ImportStateId:     "657525545596096508",
-				},
-			*/
-
 			// Create and Read Network.
 			{
 				Config: testAccOrganizationsApplianceVpnVpnFirewallRulesResourceConfigCreateNetwork,
@@ -61,6 +51,16 @@ func TestAccOrganizationsApplianceVpnVpnFirewallRulesResource(t *testing.T) {
 					resource.TestCheckResourceAttr("meraki_organizations_appliance_vpn_vpn_firewall_rules.test", "rules.0.src_cidr", "Any"),
 					resource.TestCheckResourceAttr("meraki_organizations_appliance_vpn_vpn_firewall_rules.test", "rules.0.syslog_enabled", "false"),
 				),
+			},
+
+			// Import State testing
+			{
+				ResourceName:            "meraki_organizations_appliance_vpn_vpn_firewall_rules.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{
+					// Add any attributes you want to ignore during import verification
+				},
 			},
 		},
 	})

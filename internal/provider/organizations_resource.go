@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"net/http"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
@@ -37,7 +36,7 @@ type OrganizationResource struct {
 
 // OrganizationResourceModel describes the resource data model.
 type OrganizationResourceModel struct {
-	Id                     types.String     `tfsdk:"id"`
+	Id                     jsontypes.String `tfsdk:"id"`
 	ApiEnabled             jsontypes.Bool   `tfsdk:"api_enabled"`
 	CloudRegionName        jsontypes.String `tfsdk:"cloud_region_name"`
 	ManagementDetailsName  jsontypes.String `tfsdk:"management_details_name"`
@@ -59,7 +58,9 @@ func (r *OrganizationResource) Schema(ctx context.Context, req resource.SchemaRe
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed: true,
+				Optional:   true,
+				Computed:   true,
+				CustomType: jsontypes.StringType,
 			},
 			"api_enabled": schema.BoolAttribute{
 				MarkdownDescription: "Enable API access",
@@ -204,7 +205,7 @@ func (r *OrganizationResource) Create(ctx context.Context, req resource.CreateRe
 	}
 
 	// save into the Terraform state.
-	data.Id = types.StringValue("example-id")
+	data.Id = jsontypes.StringValue(inlineResp.GetId())
 	data.OrgId = jsontypes.StringValue(inlineResp.GetId())
 	data.Name = jsontypes.StringValue(inlineResp.GetName())
 	data.CloudRegionName = jsontypes.StringValue(inlineResp.Cloud.Region.GetName())
@@ -272,8 +273,9 @@ func (r *OrganizationResource) Read(ctx context.Context, req resource.ReadReques
 	}
 
 	// save inlineResp data into Terraform state.
-	data.Id = types.StringValue("example-id")
+
 	data.OrgId = jsontypes.StringValue(inlineResp.GetId())
+	data.Id = jsontypes.StringValue(inlineResp.GetId())
 	data.Name = jsontypes.StringValue(inlineResp.GetName())
 	data.CloudRegionName = jsontypes.StringValue(inlineResp.Cloud.Region.GetName())
 	data.Url = jsontypes.StringValue(inlineResp.GetUrl())
@@ -360,7 +362,7 @@ func (r *OrganizationResource) Update(ctx context.Context, req resource.UpdateRe
 	}
 
 	// save inlineResp data into Terraform state
-	data.Id = types.StringValue("example-id")
+	data.Id = jsontypes.StringValue(inlineResp.GetId())
 	data.OrgId = jsontypes.StringValue(inlineResp.GetId())
 	data.Name = jsontypes.StringValue(inlineResp.GetName())
 	data.CloudRegionName = jsontypes.StringValue(inlineResp.Cloud.Region.GetName())

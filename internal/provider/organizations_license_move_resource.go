@@ -172,7 +172,7 @@ func (r *OrganizationsLicenseResource) Create(ctx context.Context, req resource.
 		return
 	}
 
-	data.Id = jsontypes.StringValue("example-id")
+	data.Id = jsontypes.StringValue(data.OrganizationId.ValueString())
 
 	// Now set the final state of the resource.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -233,9 +233,6 @@ func (r *OrganizationsLicenseResource) Delete(ctx context.Context, req resource.
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
-	// Set ID for the new resource.
-	data.Id = jsontypes.StringValue("example-id")
 
 	resp.State.RemoveResource(ctx)
 

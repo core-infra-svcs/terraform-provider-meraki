@@ -16,7 +16,6 @@ func TestAccOrganizationsAdaptivePolicyAclResource(t *testing.T) {
 			{
 				Config: testAccOrganizationsAdaptivePolicyAclResourceConfigCreateOrganization,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					//resource.TestCheckResourceAttr("meraki_organization.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_organization.test", "name", "test_acc_meraki_organizations_adaptive_policy_acl"),
 				),
 			},
@@ -25,7 +24,6 @@ func TestAccOrganizationsAdaptivePolicyAclResource(t *testing.T) {
 			{
 				Config: testAccOrganizationsAdaptivePolicyAclResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					//resource.TestCheckResourceAttr("meraki_organizations_adaptive_policy_acl.test", "id", "example-id"),
 					resource.TestCheckResourceAttr("meraki_organizations_adaptive_policy_acl.test", "name", "Block sensitive web traffic"),
 					resource.TestCheckResourceAttr("meraki_organizations_adaptive_policy_acl.test", "description", "Blocks sensitive web traffic"),
 					resource.TestCheckResourceAttr("meraki_organizations_adaptive_policy_acl.test", "ip_version", "ipv6"),
@@ -38,16 +36,6 @@ func TestAccOrganizationsAdaptivePolicyAclResource(t *testing.T) {
 				),
 			},
 
-			// TODO - ImportState testing
-			/*
-				{
-						ResourceName:      "meraki_organizations_adaptive_policy_acl.test",
-						ImportState:       true,
-						ImportStateVerify: true,
-						ImportStateId:     "1234567890, 00000111111",
-					},
-			*/
-
 			// Update testing
 			{
 				Config: testAccOrganizationsAdaptivePolicyAclResourceConfigUpdate,
@@ -59,6 +47,16 @@ func TestAccOrganizationsAdaptivePolicyAclResource(t *testing.T) {
 					resource.TestCheckResourceAttr("meraki_organizations_adaptive_policy_acl.test", "rules.1.src_port", "any"),
 					resource.TestCheckResourceAttr("meraki_organizations_adaptive_policy_acl.test", "rules.1.dst_port", "any"),
 				),
+			},
+
+			// Import State testing
+			{
+				ResourceName:            "meraki_organizations_adaptive_policy_acl.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{
+					// Add any attributes you want to ignore during import verification
+				},
 			},
 
 			// Delete testing automatically occurs in TestCase
