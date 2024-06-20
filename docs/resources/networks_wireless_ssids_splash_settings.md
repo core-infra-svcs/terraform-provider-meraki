@@ -30,8 +30,8 @@ NetworksWirelessSsidsSplashSettings
 - `redirect_url` (String) The custom redirect URL where the users will go after the splash page.
 - `sentry_enrollment` (Attributes) Systems Manager sentry enrollment splash settings. (see [below for nested schema](#nestedatt--sentry_enrollment))
 - `splash_image` (Attributes) The image used in the splash page. (see [below for nested schema](#nestedatt--splash_image))
-- `splash_logo` (Attributes) The logo used in the splash page. (see [below for nested schema](#nestedatt--splash_logo))
-- `splash_prepaid_front` (Attributes) The prepaid front image used in the splash page. (see [below for nested schema](#nestedatt--splash_prepaid_front))
+- `splash_logo` (Attributes) (see [below for nested schema](#nestedatt--splash_logo))
+- `splash_prepaid_front` (Attributes) (see [below for nested schema](#nestedatt--splash_prepaid_front))
 - `splash_timeout` (Number) Splash timeout in minutes. This will determine how often users will see the splash page.
 - `splash_url` (String) The custom splash URL of the click-through splash page. Note that the URL can be configured without necessarily being used. In order to enable the custom URL, see 'useSplashUrl'
 - `use_redirect_url` (Boolean) Boolean indicating whether the users will be redirected to the custom splash url. A custom splash URL must be set if this is true. Note that depending on your SSID's access control settings, it may not be possible to use the custom splash URL.
@@ -75,7 +75,7 @@ Optional:
 
 Optional:
 
-- `enforced_systems` (Set of String) The system types that the Sentry enforces. Must be included in: 'iOS, 'Android', 'macOS', and 'Windows'.
+- `enforced_systems` (List of String) The system types that the Sentry enforces. Must be included in: 'iOS, 'Android', 'macOS', and 'Windows'.
 - `strength` (String) The strength of the enforcement of selected system types. Must be one of: 'focused', 'click-through', and 'strict'.
 - `systems_manager_network` (Attributes) Systems Manager network targeted for sentry enrollment.. (see [below for nested schema](#nestedatt--sentry_enrollment--systems_manager_network))
 
@@ -95,7 +95,7 @@ Optional:
 
 - `extension` (String) The extension of the image file.
 - `image` (Attributes) Properties for setting a new image. (see [below for nested schema](#nestedatt--splash_image--image))
-- `md5` (String) The system types that the Sentry enforces. Must be included in: 'iOS, 'Android', 'macOS', and 'Windows'.
+- `md5` (String) The MD5 value of the image file.
 
 <a id="nestedatt--splash_image--image"></a>
 ### Nested Schema for `splash_image.image`
@@ -112,16 +112,16 @@ Optional:
 
 Optional:
 
-- `extension` (String) The extension of the logo file.
+- `extension` (String) The extension of the image file.
 - `image` (Attributes) Properties for setting a new image. (see [below for nested schema](#nestedatt--splash_logo--image))
-- `md5` (String) The MD5 value of the logo file. Setting this to null will remove the logo from the splash page.
+- `md5` (String) The MD5 value of the image file.
 
 <a id="nestedatt--splash_logo--image"></a>
 ### Nested Schema for `splash_logo.image`
 
 Optional:
 
-- `contents` (String) The file contents (a base 64 encoded string) of your new logo.
+- `contents` (String) The file contents (a base 64 encoded string) of your new image.
 - `format` (String) The format of the encoded contents. Supported formats are 'png', 'gif', and jpg'.
 
 
@@ -131,14 +131,14 @@ Optional:
 
 Optional:
 
-- `extension` (String) The extension of the prepaid front image file.
+- `extension` (String) The extension of the image file.
 - `image` (Attributes) Properties for setting a new image. (see [below for nested schema](#nestedatt--splash_prepaid_front--image))
-- `md5` (String) The MD5 value of the prepaid front image file. Setting this to null will remove the prepaid front from the splash page.
+- `md5` (String) The MD5 value of the image file.
 
 <a id="nestedatt--splash_prepaid_front--image"></a>
 ### Nested Schema for `splash_prepaid_front.image`
 
 Optional:
 
-- `contents` (String) The file contents (a base 64 encoded string) of your new prepaid.
+- `contents` (String) The file contents (a base 64 encoded string) of your new image.
 - `format` (String) The format of the encoded contents. Supported formats are 'png', 'gif', and jpg'.
