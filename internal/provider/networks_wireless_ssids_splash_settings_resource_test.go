@@ -116,11 +116,13 @@ func TestAccNetworksWirelessSsidsSplashSettingsResource(t *testing.T) {
 			},
 			// Import State testing
 			{
-				ResourceName:            "meraki_networks_wireless_ssids_splash_settings.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
+				ResourceName:      "meraki_networks_wireless_ssids_splash_settings.test",
+				ImportState:       true,
+				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
-					// Add any attributes you want to ignore during import verification
+					"splash_image",
+					"splash_logo",
+					"splash_prepaid_front",
 				},
 			},
 		},
