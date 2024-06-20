@@ -1165,7 +1165,7 @@ func (r *NetworksWirelessSsidsSplashSettingsResource) Delete(ctx context.Context
 
 // ImportState function is used to import an existing resource into Terraform.
 // The function expects an ImportStateRequest and responds with an ImportStateResponse which contains
-// the new state of the resource or an error.
+// the new state of the resource or an error
 func (r *NetworksWirelessSsidsSplashSettingsResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 
 	// Pass through the ID directly from the ImportStateRequest to the ImportStateResponse
