@@ -184,8 +184,8 @@ resource "meraki_organizations_admin" "test" {
 }
 
 func testAccOrganizationsAdminResourceConfigMultiplePolicies(admins int, timestamp string) string {
-	config := fmt.Sprintf(`
- resource "meraki_organization" "test" {
+	config := `
+resource "meraki_organization" "test" {
  	name = "test_acc_meraki_organizations_admin"
  	api_enabled = true
  }
@@ -198,8 +198,7 @@ resource "meraki_network" "test" {
 	name = "test_acc_organizations_admin"
 	timezone = "America/Los_Angeles"
 	notes = "Additional description of the network"
-}
-`)
+}`
 
 	// Append each admin configuration
 	for i := 1; i <= admins; i++ {
