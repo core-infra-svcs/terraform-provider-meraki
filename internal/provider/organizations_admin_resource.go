@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"io"
 	"net/http"
@@ -227,6 +228,7 @@ func (r *OrganizationsAdminResource) Configure(ctx context.Context, req resource
 
 func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data *OrganizationsAdminResourceModel
+	var diags diag.Diagnostics
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -273,17 +275,22 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 	retryDelay := time.Duration(r.client.GetConfig().Retry4xxErrorWaitTime)
 
 	// API call function to be passed to retryOn4xx
-	apiCall := func() (*openApiClient.GetOrganizationAdmins200ResponseInner, *http.Response, error) {
-		return r.client.AdminsApi.CreateOrganizationAdmin(context.Background(), data.OrgId.ValueString()).CreateOrganizationAdminRequest(createOrganizationAdmin).Execute()
+	apiCall := func() (*openApiClient.GetOrganizationAdmins200ResponseInner, *http.Response, error, diag.Diagnostics) {
+		inline, httpResp, err := r.client.AdminsApi.CreateOrganizationAdmin(context.Background(), data.OrgId.ValueString()).CreateOrganizationAdminRequest(createOrganizationAdmin).Execute()
+		return inline, httpResp, err, diags
 	}
 
 	// Use retryOn4xx for the API call as the meraki API backend returns HTTP 400 messages as a result of collision issues with rapid creation of postgres GroupPolicyIds.
-	_, httpResp, err := tools.CustomHttpRequestRetryStronglyTyped(ctx, maxRetries, retryDelay, apiCall)
+	_, httpResp, err, tfDiags := tools.CustomHttpRequestRetryStronglyTyped(ctx, maxRetries, retryDelay, apiCall)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating group policy",
 			fmt.Sprintf("Could not create group policy, unexpected error: %s", err),
 		)
+
+		if tfDiags.HasError() {
+			fmt.Printf(": %s\n", tfDiags.Errors())
+		}
 
 		if httpResp != nil {
 			var responseBody string
@@ -338,7 +345,6 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 
 func (r *OrganizationsAdminResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var data *OrganizationsAdminResourceModel
-
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
@@ -351,7 +357,8 @@ func (r *OrganizationsAdminResource) Read(ctx context.Context, req resource.Read
 
 	// Usage of CustomHttpRequestRetry with a slice of strongly typed structs
 	apiCallSlice := func() ([]openApiClient.GetOrganizationAdmins200ResponseInner, *http.Response, error) {
-		return r.client.AdminsApi.GetOrganizationAdmins(context.Background(), data.OrgId.ValueString()).Execute()
+		inline, httpResp, err := r.client.AdminsApi.GetOrganizationAdmins(context.Background(), data.OrgId.ValueString()).Execute()
+		return inline, httpResp, err
 	}
 
 	// Directly use the type returned by the function
@@ -444,7 +451,7 @@ func (r *OrganizationsAdminResource) Read(ctx context.Context, req resource.Read
 
 func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var data *OrganizationsAdminResourceModel
-
+	var diags diag.Diagnostics
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
@@ -485,17 +492,22 @@ func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.Up
 	retryDelay := time.Duration(r.client.GetConfig().Retry4xxErrorWaitTime)
 
 	// API call function to be passed to retryOn4xx
-	apiCall := func() (*openApiClient.GetOrganizationAdmins200ResponseInner, *http.Response, error) {
-		return r.client.AdminsApi.UpdateOrganizationAdmin(context.Background(), data.OrgId.ValueString(), data.AdminId.ValueString()).UpdateOrganizationAdminRequest(updateOrganizationAdmin).Execute()
+	apiCall := func() (*openApiClient.GetOrganizationAdmins200ResponseInner, *http.Response, error, diag.Diagnostics) {
+		inline, httpResp, err := r.client.AdminsApi.UpdateOrganizationAdmin(context.Background(), data.OrgId.ValueString(), data.AdminId.ValueString()).UpdateOrganizationAdminRequest(updateOrganizationAdmin).Execute()
+		return inline, httpResp, err, diags
 	}
 
 	// Use retryOn4xx for the API call as the meraki API backend returns HTTP 400 messages as a result of collision issues with rapid creation of postgres GroupPolicyIds.
-	_, httpResp, err := tools.CustomHttpRequestRetryStronglyTyped(ctx, maxRetries, retryDelay, apiCall)
+	_, httpResp, err, tfDiags := tools.CustomHttpRequestRetryStronglyTyped(ctx, maxRetries, retryDelay, apiCall)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error updating group policy",
 			fmt.Sprintf("Could not create group policy, unexpected error: %s", err),
 		)
+
+		if tfDiags.HasError() {
+			fmt.Printf(": %s\n", tfDiags.Errors())
+		}
 
 		if httpResp != nil {
 			var responseBody string
@@ -564,6 +576,7 @@ func (r *OrganizationsAdminResource) Delete(ctx context.Context, req resource.De
 	// API call function to be passed to retryOn4xx
 	apiCall := func() (map[string]interface{}, *http.Response, error) {
 		httpResp, err := r.client.AdminsApi.DeleteOrganizationAdmin(context.Background(), data.OrgId.ValueString(), data.AdminId.ValueString()).Execute()
+
 		return nil, httpResp, err
 	}
 

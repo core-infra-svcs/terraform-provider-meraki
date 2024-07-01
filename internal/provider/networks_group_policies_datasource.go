@@ -705,7 +705,6 @@ func (d *NetworkGroupPoliciesDataSource) Configure(ctx context.Context, req data
 func (d *NetworkGroupPoliciesDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 
 	var data *NetworkGroupPoliciesDataSourceModel
-
 	// Read Terraform state data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
@@ -718,11 +717,13 @@ func (d *NetworkGroupPoliciesDataSource) Read(ctx context.Context, req datasourc
 
 	// usage of CustomHttpRequestRetry with a slice of strongly typed structs
 	apiCallSlice := func() ([]map[string]interface{}, *http.Response, error) {
-		return d.client.NetworksApi.GetNetworkGroupPolicies(ctx, data.NetworkId.ValueString()).Execute()
+		inline, httpResp, err := d.client.NetworksApi.GetNetworkGroupPolicies(ctx, data.NetworkId.ValueString()).Execute()
+		return inline, httpResp, err
 	}
 
 	resultSlice, httpRespSlice, errSlice := tools.CustomHttpRequestRetry(ctx, maxRetries, retryDelay, apiCallSlice)
 	if errSlice != nil {
+
 		fmt.Printf("Error creating group policy: %s\n", errSlice)
 		if httpRespSlice != nil {
 			var responseBody string
