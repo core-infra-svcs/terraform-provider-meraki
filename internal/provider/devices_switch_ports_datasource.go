@@ -7,6 +7,7 @@ import (
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
 	"io"
@@ -312,7 +313,7 @@ func (d *DevicesSwitchPortsStatusesDataSource) Configure(ctx context.Context, re
 // Read method is responsible for reading an existing data source's state.
 func (d *DevicesSwitchPortsStatusesDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data DevicesSwitchPortsStatusesDataSourceModel
-
+	var diags diag.Diagnostics
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
@@ -325,12 +326,17 @@ func (d *DevicesSwitchPortsStatusesDataSource) Read(ctx context.Context, req dat
 	retryDelay := time.Duration(d.client.GetConfig().Retry4xxErrorWaitTime)
 
 	// usage of CustomHttpRequestRetry with a slice of strongly typed structs
-	apiCallSlice := func() ([]openApiClient.GetDeviceSwitchPorts200ResponseInner, *http.Response, error) {
-		return d.client.SwitchApi.GetDeviceSwitchPorts(ctx, data.Serial.ValueString()).Execute()
+	apiCallSlice := func() ([]openApiClient.GetDeviceSwitchPorts200ResponseInner, *http.Response, error, diag.Diagnostics) {
+		inline, httpResp, err := d.client.SwitchApi.GetDeviceSwitchPorts(ctx, data.Serial.ValueString()).Execute()
+		return inline, httpResp, err, diags
 	}
 
-	resultSlice, httpRespSlice, errSlice := tools.CustomHttpRequestRetryStronglyTyped(ctx, maxRetries, retryDelay, apiCallSlice)
+	resultSlice, httpRespSlice, errSlice, tfDiags := tools.CustomHttpRequestRetryStronglyTyped(ctx, maxRetries, retryDelay, apiCallSlice)
 	if errSlice != nil {
+
+		if tfDiags.HasError() {
+		}
+
 		fmt.Printf("Error creating group policy: %s\n", errSlice)
 		if httpRespSlice != nil {
 			var responseBody string

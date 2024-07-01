@@ -283,7 +283,7 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		NewNetworksSwitchQosRuleResource,
 		NewNetworksSwitchDscpToCosMappingsResource,
 		NewNetworksSwitchMtuResource,
-		NewNetworksGroupPolicyResource,
+		//NewNetworksGroupPolicyResource,
 		NewOrganizationsLicenseResource,
 		NewNetworksWirelessSsidsFirewallL3FirewallRulesResource,
 		NewNetworksWirelessSsidsFirewallL7FirewallRulesResource,

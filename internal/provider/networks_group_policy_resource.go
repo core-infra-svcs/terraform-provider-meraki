@@ -1,5 +1,8 @@
 package provider
 
+/*
+
+
 import (
 	"context"
 	"fmt"
@@ -595,977 +598,6 @@ func (r *NetworksGroupPolicyResource) Configure(ctx context.Context, req resourc
 
 }
 
-// updateGroupPolicyResourceState updates the resource state with the provided api data.
-func updateGroupPolicyResourceState(ctx context.Context, state *GroupPolicyResourceModel, data map[string]interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	// GroupPolicyId
-	state.GroupPolicyId, diags = utils.ExtractStringAttr(data, "groupPolicyId")
-	if diags.HasError() {
-		return diags
-	}
-
-	// Safety check for NetworkId
-	if state.NetworkId.IsNull() && state.NetworkId.IsUnknown() {
-		state.NetworkId, diags = utils.ExtractStringAttr(data, "networkId")
-		if diags.HasError() {
-			return diags
-		}
-	}
-
-	// Import Id
-	if !state.NetworkId.IsNull() && !state.NetworkId.IsUnknown() && !state.GroupPolicyId.IsNull() && !state.GroupPolicyId.IsUnknown() {
-		state.ID = types.StringValue(state.NetworkId.ValueString() + "," + state.GroupPolicyId.ValueString())
-	} else {
-		state.ID = types.StringNull()
-	}
-
-	// Name
-	state.Name, diags = utils.ExtractStringAttr(data, "name")
-	if diags.HasError() {
-		return diags
-	}
-
-	// Update Scheduling
-	if scheduling, schedulingOk := data["scheduling"].(map[string]interface{}); schedulingOk {
-		if scheduling != nil {
-
-			schedulingObj, schedulingDiags := updateGroupPolicyResourceStateScheduling(ctx, scheduling)
-			// Add detailed diagnostics for scheduling extraction
-			if schedulingDiags.HasError() {
-				diags.AddError(
-					"Scheduling Extraction Error",
-					fmt.Sprintf("Failed to extract scheduling settings: %v", schedulingDiags.Errors()),
-				)
-				return diags
-			}
-			state.Scheduling = schedulingObj
-
-		}
-	} else {
-		state.Scheduling = types.ObjectNull(map[string]attr.Type{
-			"enabled":   types.BoolType,
-			"monday":    types.ObjectType{AttrTypes: map[string]attr.Type{"active": types.BoolType, "from": types.StringType, "to": types.StringType}},
-			"tuesday":   types.ObjectType{AttrTypes: map[string]attr.Type{"active": types.BoolType, "from": types.StringType, "to": types.StringType}},
-			"wednesday": types.ObjectType{AttrTypes: map[string]attr.Type{"active": types.BoolType, "from": types.StringType, "to": types.StringType}},
-			"thursday":  types.ObjectType{AttrTypes: map[string]attr.Type{"active": types.BoolType, "from": types.StringType, "to": types.StringType}},
-			"friday":    types.ObjectType{AttrTypes: map[string]attr.Type{"active": types.BoolType, "from": types.StringType, "to": types.StringType}},
-			"saturday":  types.ObjectType{AttrTypes: map[string]attr.Type{"active": types.BoolType, "from": types.StringType, "to": types.StringType}},
-			"sunday":    types.ObjectType{AttrTypes: map[string]attr.Type{"active": types.BoolType, "from": types.StringType, "to": types.StringType}},
-		})
-	}
-
-	// Update Bandwidth
-	if bandwidth, ok := data["bandwidth"].(map[string]interface{}); ok {
-		var bandwidthModel GroupPolicyResourceModelBandwidth
-
-		// settings
-		if settings, ok := bandwidth["settings"].(string); ok {
-			bandwidthModel.Settings = types.StringValue(settings)
-		} else {
-			bandwidthModel.Settings = types.StringNull()
-		}
-
-		// limits
-		var bandwidthLimitsModel GroupPolicyResourceModelBandwidthLimits
-		limitUpVal := types.Int64Null()
-		limitDownVal := types.Int64Null()
-
-		if limits, ok := bandwidth["bandwidth_limits"].(map[string]interface{}); ok {
-			// limit up
-			if limitUp, ok := limits["limit_up"].(float64); ok {
-				limitUpVal = types.Int64Value(int64(limitUp))
-			}
-
-			// limit down
-			if limitDown, ok := limits["limit_down"].(float64); ok {
-				limitDownVal = types.Int64Value(int64(limitDown))
-			}
-
-			bandwidthLimitsModel.LimitUp = limitUpVal
-			bandwidthLimitsModel.LimitDown = limitDownVal
-		}
-
-		bandwidthModel.BandwidthLimits, diags = types.ObjectValue(
-			map[string]attr.Type{
-				"limit_up":   types.Int64Type,
-				"limit_down": types.Int64Type,
-			},
-			map[string]attr.Value{
-				"limit_up":   limitUpVal,
-				"limit_down": limitDownVal,
-			},
-		)
-		if diags != nil {
-			return diags
-		}
-
-		// Convert GroupPolicyResourceModelBandwidth to types.Object
-		bandwidthObject, err := types.ObjectValue(
-			map[string]attr.Type{
-				"settings": types.StringType,
-				"bandwidth_limits": types.ObjectType{
-					AttrTypes: map[string]attr.Type{
-						"limit_up":   types.Int64Type,
-						"limit_down": types.Int64Type,
-					},
-				},
-			},
-			map[string]attr.Value{
-				"settings":         bandwidthModel.Settings,
-				"bandwidth_limits": bandwidthModel.BandwidthLimits,
-			},
-		)
-		if err != nil {
-			diags.Append(err...)
-			return diags
-		}
-
-		// update bandwidth with populated type.Object
-		state.Bandwidth = bandwidthObject
-	} else {
-		state.Bandwidth = types.ObjectNull(map[string]attr.Type{
-			"settings": types.StringType,
-			"bandwidth_limits": types.ObjectType{
-				AttrTypes: map[string]attr.Type{
-					"limit_up":   types.Int64Type,
-					"limit_down": types.Int64Type,
-				},
-			},
-		})
-	}
-
-	//SplashAuthSettings
-	state.SplashAuthSettings, diags = utils.ExtractStringAttr(data, "splashAuthSettings")
-	if diags.HasError() {
-		return diags
-	}
-
-	// Update VlanTagging
-	if vlanTagging, ok := data["vlanTagging"].(map[string]interface{}); ok {
-		vlanTaggingObj, vlanTaggingDiags := updateGroupPolicyResourceStateVlanTagging(ctx, vlanTagging)
-		if vlanTaggingDiags.HasError() {
-			diags.Append(vlanTaggingDiags...)
-		}
-		state.VlanTagging = vlanTaggingObj
-	} else {
-		state.VlanTagging = types.ObjectNull(map[string]attr.Type{
-			"settings": types.StringType,
-			"vlan_id":  types.StringType,
-		})
-	}
-
-	// Update BonjourForwarding
-	if bonjourForwarding, ok := data["bonjourForwarding"].(map[string]interface{}); ok {
-		settings := types.StringNull()
-		if s, ok := bonjourForwarding["settings"].(string); ok {
-			settings = types.StringValue(s)
-		}
-		rules := types.ListNull(types.ObjectType{AttrTypes: map[string]attr.Type{
-			"description": types.StringType,
-			"vlan_id":     types.StringType,
-			"services":    types.ListType{ElemType: types.StringType},
-		}})
-
-		if r, ok := bonjourForwarding["rules"].([]interface{}); ok {
-			var rulesList []attr.Value
-			for _, rule := range r {
-				ruleMap := rule.(map[string]interface{})
-				description := types.StringNull()
-				if d, ok := ruleMap["description"].(string); ok {
-					description = types.StringValue(d)
-				}
-				vlanID := types.StringNull()
-				if v, ok := ruleMap["vlanId"].(string); ok {
-					vlanID = types.StringValue(v)
-				}
-				services := types.ListNull(types.StringType)
-				if s, ok := ruleMap["services"].([]interface{}); ok {
-					var serviceList []attr.Value
-					for _, service := range s {
-						if svc, ok := service.(string); ok {
-							serviceList = append(serviceList, types.StringValue(svc))
-						}
-					}
-					services = types.ListValueMust(types.StringType, serviceList)
-				}
-				ruleObj, _ := types.ObjectValue(
-					map[string]attr.Type{
-						"description": types.StringType,
-						"vlan_id":     types.StringType,
-						"services":    types.ListType{ElemType: types.StringType},
-					},
-					map[string]attr.Value{
-						"description": description,
-						"vlan_id":     vlanID,
-						"services":    services,
-					},
-				)
-				rulesList = append(rulesList, ruleObj)
-			}
-			rules = types.ListValueMust(types.ObjectType{AttrTypes: map[string]attr.Type{"description": types.StringType, "vlan_id": types.StringType, "services": types.ListType{ElemType: types.StringType}}}, rulesList)
-		}
-
-		bonjourForwardingObj, err := types.ObjectValue(
-			map[string]attr.Type{
-				"settings": types.StringType,
-				"rules":    types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{"description": types.StringType, "vlan_id": types.StringType, "services": types.ListType{ElemType: types.StringType}}}},
-			},
-			map[string]attr.Value{
-				"settings": settings,
-				"rules":    rules,
-			},
-		)
-		if err.HasError() {
-			diags = append(diags, err...)
-		}
-		state.BonjourForwarding = bonjourForwardingObj
-	} else {
-		state.BonjourForwarding = types.ObjectNull(map[string]attr.Type{
-			"settings": types.StringType,
-			"rules":    types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{"description": types.StringType, "vlan_id": types.StringType, "services": types.ListType{ElemType: types.StringType}}}},
-		})
-	}
-
-	// Update FirewallAndTrafficShaping
-	if firewallAndTrafficShaping, ok := data["firewallAndTrafficShaping"].(map[string]interface{}); ok {
-
-		firewallAndTrafficShapingObject, firewallAndTrafficShapingObjectDiags := updateGroupPolicyResourceStateFirewallAndTrafficShapingRules(ctx, firewallAndTrafficShaping)
-		if firewallAndTrafficShapingObjectDiags.HasError() {
-			diags.Append(firewallAndTrafficShapingObjectDiags...)
-		}
-		state.FirewallAndTrafficShaping = firewallAndTrafficShapingObject
-
-	} else {
-
-		firewallAndTrafficShapingAttrs := types.ObjectType{AttrTypes: map[string]attr.Type{
-			"dscp_tag_value": types.Int64Type,
-			"pcp_tag_value":  types.Int64Type,
-			"per_client_bandwidth_limits": types.ObjectType{AttrTypes: map[string]attr.Type{
-				"settings": types.StringType,
-				"bandwidth_limits": types.ObjectType{AttrTypes: map[string]attr.Type{
-					"limit_up":   types.Int64Type,
-					"limit_down": types.Int64Type}}}},
-			"definitions": types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
-				"type":  types.StringType,
-				"value": types.StringType}}}}}
-
-		state.FirewallAndTrafficShaping = types.ObjectNull(
-			map[string]attr.Type{
-				"settings": types.StringType,
-				"l3_firewall_rules": types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
-					"comment":   types.StringType,
-					"policy":    types.StringType,
-					"protocol":  types.StringType,
-					"dest_port": types.StringType,
-					"dest_cidr": types.StringType}}},
-				"l7_firewall_rules": types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
-					"policy": types.StringType,
-					"type":   types.StringType,
-					"value":  types.StringType}}},
-				"traffic_shaping_rules": types.ListType{ElemType: firewallAndTrafficShapingAttrs},
-			},
-		)
-	}
-
-	// Update ContentFiltering
-	if contentFiltering, ok := data["contentFiltering"].(map[string]interface{}); ok {
-		contentFilteringObj, cfDiags := updateGroupPolicyResourceStateContentFiltering(ctx, contentFiltering)
-		if cfDiags.HasError() {
-			diags.Append(cfDiags...)
-		}
-		state.ContentFiltering = contentFilteringObj
-	} else {
-		// Ensure default values are explicitly set
-		settingsDefault := types.StringValue("network default")
-
-		URLPatternsAttrs := map[string]attr.Type{
-			"patterns": types.ListType{ElemType: types.StringType},
-			"settings": types.StringType,
-		}
-
-		URLCategoriesAttrs := map[string]attr.Type{
-			"categories": types.ListType{ElemType: types.StringType},
-			"settings":   types.StringType,
-		}
-
-		allowedURLPatterns, err := types.ObjectValue(URLPatternsAttrs, map[string]attr.Value{
-			"patterns": types.ListNull(types.StringType),
-			"settings": settingsDefault,
-		})
-		if err.HasError() {
-			diags.Append(err...)
-		}
-
-		blockedURLPatterns, err := types.ObjectValue(URLPatternsAttrs, map[string]attr.Value{
-			"patterns": types.ListNull(types.StringType),
-			"settings": settingsDefault,
-		})
-		if err.HasError() {
-			diags.Append(err...)
-		}
-
-		blockedURLCategories, err := types.ObjectValue(URLCategoriesAttrs, map[string]attr.Value{
-			"categories": types.ListNull(types.StringType),
-			"settings":   settingsDefault,
-		})
-		if err.HasError() {
-			diags.Append(err...)
-		}
-
-		contentFilteringAttrs := map[string]attr.Type{
-			"allowed_url_patterns":   types.ObjectType{AttrTypes: URLPatternsAttrs},
-			"blocked_url_patterns":   types.ObjectType{AttrTypes: URLPatternsAttrs},
-			"blocked_url_categories": types.ObjectType{AttrTypes: URLCategoriesAttrs},
-		}
-
-		state.ContentFiltering, err = types.ObjectValue(contentFilteringAttrs, map[string]attr.Value{
-			"allowed_url_patterns":   allowedURLPatterns,
-			"blocked_url_patterns":   blockedURLPatterns,
-			"blocked_url_categories": blockedURLCategories,
-		})
-		if err.HasError() {
-			diags.Append(err...)
-		}
-
-	}
-
-	return diags
-}
-
-// updateGroupPolicyResourceStateScheduling updates the resource state with the scheduling data
-func updateGroupPolicyResourceStateScheduling(ctx context.Context, scheduling map[string]interface{}) (types.Object, diag.Diagnostics) {
-	var diags diag.Diagnostics
-	var err diag.Diagnostics
-
-	newSchedulingModel := GroupPolicyResourceModelScheduling{}
-
-	// Update scheduling enabled status
-	newSchedulingModel.Enabled, err = utils.ExtractBoolAttr(scheduling, "enabled")
-	if diags.HasError() {
-		diags.Append(err...)
-	}
-
-	// Helper function to update individual days
-	updateScheduleDay := func(dayAttrName string) (types.Object, diag.Diagnostics) {
-		var scheduleDayDiags diag.Diagnostics
-
-		scheduleDayObject := types.ObjectNull(map[string]attr.Type{
-			"active": types.BoolType,
-			"to":     types.StringType,
-			"from":   types.StringType,
-		})
-
-		if day, ok := scheduling[dayAttrName].(map[string]interface{}); ok {
-
-			var scheduleDay GroupPolicyResourceModelScheduleDay
-
-			scheduleDay.Active, scheduleDayDiags = utils.ExtractBoolAttr(day, "active")
-			if scheduleDayDiags.HasError() {
-				diags.Append(scheduleDayDiags...)
-			}
-
-			scheduleDay.To, scheduleDayDiags = utils.ExtractStringAttr(day, "to")
-			if scheduleDayDiags.HasError() {
-				diags.Append(scheduleDayDiags...)
-			}
-
-			scheduleDay.From, scheduleDayDiags = utils.ExtractStringAttr(day, "from")
-			if scheduleDayDiags.HasError() {
-				diags.Append(scheduleDayDiags...)
-			}
-
-			scheduleDayObject, err = types.ObjectValueFrom(ctx, map[string]attr.Type{
-				"active": types.BoolType,
-				"to":     types.StringType,
-				"from":   types.StringType,
-			}, scheduleDay)
-			if err.HasError() {
-				diags.Append(err...)
-			}
-
-		}
-
-		return scheduleDayObject, diags
-	}
-
-	// Update each day of the week
-	days := []string{"monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"}
-	for _, day := range days {
-		daySchedule, dayDiags := updateScheduleDay(day)
-		if dayDiags.HasError() {
-			diags.Append(dayDiags...)
-		}
-		switch day {
-		case "monday":
-			newSchedulingModel.Monday = daySchedule
-		case "tuesday":
-			newSchedulingModel.Tuesday = daySchedule
-		case "wednesday":
-			newSchedulingModel.Wednesday = daySchedule
-		case "thursday":
-			newSchedulingModel.Thursday = daySchedule
-		case "friday":
-			newSchedulingModel.Friday = daySchedule
-		case "saturday":
-			newSchedulingModel.Saturday = daySchedule
-		case "sunday":
-			newSchedulingModel.Sunday = daySchedule
-		}
-	}
-
-	// Convert new scheduling model to types.Object
-	newSchedulingObject, err := types.ObjectValueFrom(ctx, map[string]attr.Type{
-		"enabled":   types.BoolType,
-		"monday":    types.ObjectType{AttrTypes: map[string]attr.Type{"active": types.BoolType, "from": types.StringType, "to": types.StringType}},
-		"tuesday":   types.ObjectType{AttrTypes: map[string]attr.Type{"active": types.BoolType, "from": types.StringType, "to": types.StringType}},
-		"wednesday": types.ObjectType{AttrTypes: map[string]attr.Type{"active": types.BoolType, "from": types.StringType, "to": types.StringType}},
-		"thursday":  types.ObjectType{AttrTypes: map[string]attr.Type{"active": types.BoolType, "from": types.StringType, "to": types.StringType}},
-		"friday":    types.ObjectType{AttrTypes: map[string]attr.Type{"active": types.BoolType, "from": types.StringType, "to": types.StringType}},
-		"saturday":  types.ObjectType{AttrTypes: map[string]attr.Type{"active": types.BoolType, "from": types.StringType, "to": types.StringType}},
-		"sunday":    types.ObjectType{AttrTypes: map[string]attr.Type{"active": types.BoolType, "from": types.StringType, "to": types.StringType}},
-	}, newSchedulingModel)
-	if err.HasError() {
-		diags.Append(err...)
-	}
-
-	return newSchedulingObject, diags
-}
-
-// updateGroupPolicyResourceStateFirewallAndTrafficShapingRules updates the resource state with the firewall and traffic shaping rules data
-func updateGroupPolicyResourceStateFirewallAndTrafficShapingRules(ctx context.Context, firewallAndTrafficShapingRules map[string]interface{}) (types.Object, diag.Diagnostics) {
-	var diags diag.Diagnostics
-	var err diag.Diagnostics
-
-	firewallAndTrafficShapingAttrs := types.ObjectType{AttrTypes: map[string]attr.Type{
-		"dscp_tag_value": types.Int64Type,
-		"pcp_tag_value":  types.Int64Type,
-		"per_client_bandwidth_limits": types.ObjectType{AttrTypes: map[string]attr.Type{
-			"settings": types.StringType,
-			"bandwidth_limits": types.ObjectType{AttrTypes: map[string]attr.Type{
-				"limit_up":   types.Int64Type,
-				"limit_down": types.Int64Type}}}},
-		"definitions": types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
-			"type":  types.StringType,
-			"value": types.StringType}}}}}
-	firewallAndTrafficShapingObjectNull := types.ObjectNull(map[string]attr.Type{
-		"settings":              types.StringType,
-		"l3_firewall_rules":     types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{"comment": types.StringType, "policy": types.StringType, "protocol": types.StringType, "dest_port": types.StringType, "dest_cidr": types.StringType}}},
-		"l7_firewall_rules":     types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{"policy": types.StringType, "type": types.StringType, "value": types.StringType}}},
-		"traffic_shaping_rules": types.ListType{ElemType: firewallAndTrafficShapingAttrs},
-	})
-
-	if firewallAndTrafficShapingRules == nil {
-		return firewallAndTrafficShapingObjectNull, diags
-	}
-
-	// Extract settings
-	settings, setErr := utils.ExtractStringAttr(firewallAndTrafficShapingRules, "settings")
-	if setErr.HasError() {
-		diags.Append(setErr...)
-	}
-
-	// Extract L3 firewall rules
-	var l3FirewallRules []GroupPolicyResourceModelL3FirewallRule
-	if l3frs, l3frsOk := firewallAndTrafficShapingRules["l3FirewallRules"].([]interface{}); l3frsOk {
-		for _, l3fr := range l3frs {
-			if l3, l3Ok := l3fr.(map[string]interface{}); l3Ok {
-				rule := GroupPolicyResourceModelL3FirewallRule{
-					Comment:  types.StringNull(),
-					Policy:   types.StringNull(),
-					Protocol: types.StringNull(),
-					DestPort: types.StringNull(),
-					DestCidr: types.StringNull(),
-				}
-
-				// comment
-				rule.Comment, err = utils.ExtractStringAttr(l3, "comment")
-				if err.HasError() {
-					diags.Append(err...)
-				}
-
-				// policy
-				rule.Policy, err = utils.ExtractStringAttr(l3, "policy")
-				if err.HasError() {
-					diags.Append(err...)
-				}
-
-				// protocol
-				rule.Protocol, err = utils.ExtractStringAttr(l3, "protocol")
-				if err.HasError() {
-					diags.Append(err...)
-				}
-
-				// dest port
-				rule.DestPort, err = utils.ExtractStringAttr(l3, "destPort")
-				if err.HasError() {
-					diags.Append(err...)
-				}
-
-				// dest cidr
-				rule.DestCidr, err = utils.ExtractStringAttr(l3, "destCidr")
-				if err.HasError() {
-					diags.Append(err...)
-				}
-
-				l3FirewallRules = append(l3FirewallRules, rule)
-			}
-		}
-	}
-
-	// Extract L7 firewall rules
-	var l7FirewallRules []GroupPolicyResourceModelL7FirewallRule
-	if l7frs, l7frsOk := firewallAndTrafficShapingRules["l7FirewallRules"].([]interface{}); l7frsOk {
-		for _, l7fr := range l7frs {
-			if l7, l7Ok := l7fr.(map[string]interface{}); l7Ok {
-				rule := GroupPolicyResourceModelL7FirewallRule{
-					Policy: types.StringNull(),
-					Type:   types.StringNull(),
-					Value:  types.StringNull(),
-				}
-
-				// policy
-				rule.Policy, err = utils.ExtractStringAttr(l7, "policy")
-				if err.HasError() {
-					diags.Append(err...)
-				}
-
-				// type
-				rule.Type, err = utils.ExtractStringAttr(l7, "type")
-				if err.HasError() {
-					diags.Append(err...)
-				}
-
-				// value
-				rule.Value, err = utils.ExtractStringAttr(l7, "value")
-				if err.HasError() {
-					diags.Append(err...)
-				}
-
-				l7FirewallRules = append(l7FirewallRules, rule)
-			}
-		}
-	}
-
-	// Extract traffic shaping rules
-	var trafficShapingRules []GroupPolicyResourceModelTrafficShapingRule
-	if tsRs, tsRsOk := firewallAndTrafficShapingRules["trafficShapingRules"].([]interface{}); tsRsOk {
-		for _, tsr := range tsRs {
-			if sr, srOk := tsr.(map[string]interface{}); srOk {
-				var trafficShapingRule GroupPolicyResourceModelTrafficShapingRule
-
-				// dscp tag value
-				dscpTagValue, dscpTagValueErr := utils.ExtractFloat64Attr(sr, "dscpTagValue")
-				if dscpTagValueErr.HasError() {
-					diags.Append(dscpTagValueErr...)
-				}
-				trafficShapingRule.DscpTagValue = types.Int64Value(int64(dscpTagValue.ValueFloat64()))
-
-				// pcp tag value
-				pcpTagValue, pcpTagValueErr := utils.ExtractFloat64Attr(sr, "pcpTagValue")
-				if pcpTagValueErr.HasError() {
-					diags.Append(pcpTagValueErr...)
-				}
-				trafficShapingRule.PcpTagValue = types.Int64Value(int64(pcpTagValue.ValueFloat64()))
-
-				// perClientBandwidthLimits
-				if pcBl, pcBlOk := sr["perClientBandwidthLimits"].(map[string]interface{}); pcBlOk {
-
-					perClientBandwidthLimits := GroupPolicyResourceModelPerClientBandwidthLimits{}
-
-					// settings
-					if _, settingsOk := pcBl["settings"].(string); settingsOk {
-
-						settingsVal, settingsErr := utils.ExtractStringAttr(pcBl, "settings")
-						if settingsErr.HasError() {
-							diags.Append(settingsErr...)
-						}
-
-						perClientBandwidthLimits.Settings = settingsVal
-
-					}
-
-					// bandwidth limits
-					if bandwidthLimits, bandwidthLimitsOk := pcBl["bandwidthLimits"].(map[string]interface{}); bandwidthLimitsOk {
-
-						var BandwidthLimits GroupPolicyResourceModelBandwidthLimits
-
-						// limit up
-						limitUp, limitUpErr := utils.ExtractFloat64Attr(bandwidthLimits, "limitUp")
-						if limitUpErr.HasError() {
-							diags.Append(limitUpErr...)
-						}
-						BandwidthLimits.LimitUp = types.Int64Value(int64(limitUp.ValueFloat64()))
-
-						// limit down
-						limitDown, limitDownErr := utils.ExtractFloat64Attr(bandwidthLimits, "limitDown")
-						if limitDownErr.HasError() {
-							diags.Append(limitDownErr...)
-						}
-						BandwidthLimits.LimitDown = types.Int64Value(int64(limitDown.ValueFloat64()))
-
-						BandwidthLimitsObject, BandwidthLimitsObjectErr := types.ObjectValueFrom(ctx, map[string]attr.Type{
-							"limit_up":   types.Int64Type,
-							"limit_down": types.Int64Type,
-						}, BandwidthLimits)
-
-						if BandwidthLimitsObjectErr.HasError() {
-							diags.Append(BandwidthLimitsObjectErr...)
-						}
-
-						perClientBandwidthLimits.BandwidthLimits = BandwidthLimitsObject
-
-					}
-
-					// create types.Object
-					perClientBandwidthLimitsObject, perClientBandwidthLimitsObjectErr := types.ObjectValueFrom(ctx, map[string]attr.Type{
-						"settings": types.StringType,
-						"bandwidth_limits": types.ObjectType{
-							AttrTypes: map[string]attr.Type{
-								"limit_up":   types.Int64Type,
-								"limit_down": types.Int64Type,
-							},
-						},
-					}, perClientBandwidthLimits)
-
-					if perClientBandwidthLimitsObjectErr.HasError() {
-						diags.Append(perClientBandwidthLimitsObjectErr...)
-					}
-
-					trafficShapingRule.PerClientBandwidthLimits = perClientBandwidthLimitsObject
-				} else {
-
-					perClientBandwidthLimitsObjectNull := types.ObjectNull(map[string]attr.Type{
-						"settings": types.StringType,
-						"bandwidth_limits": types.ObjectType{
-							AttrTypes: map[string]attr.Type{
-								"limit_up":   types.Int64Type,
-								"limit_down": types.Int64Type,
-							},
-						},
-					})
-
-					trafficShapingRule.PerClientBandwidthLimits = perClientBandwidthLimitsObjectNull
-				}
-
-				// definitions
-				if defs, defsOk := sr["definitions"].([]interface{}); defsOk {
-					var definitionsModel []GroupPolicyResourceModelTrafficShapingDefinition
-
-					for _, definitions := range defs {
-
-						definitionModel := GroupPolicyResourceModelTrafficShapingDefinition{}
-						if def, defOk := definitions.(map[string]interface{}); defOk {
-
-							// type
-							definitionModel.Type, err = utils.ExtractStringAttr(def, "type")
-							if err.HasError() {
-								diags.Append(err...)
-							}
-
-							// value
-							definitionModel.Value, err = utils.ExtractStringAttr(def, "value")
-							if err.HasError() {
-								diags.Append(err...)
-							}
-
-							definitionsModel = append(definitionsModel, definitionModel)
-						}
-
-					}
-
-					if definitionsModel != nil {
-						definitionsList, definitionsListErr := types.ListValueFrom(ctx, types.ObjectType{
-							AttrTypes: map[string]attr.Type{
-								"type":  types.StringType,
-								"value": types.StringType,
-							},
-						}, definitionsModel)
-						if definitionsListErr.HasError() {
-							diags.Append(definitionsListErr...)
-						}
-						trafficShapingRule.Definitions = definitionsList
-					} else {
-						definitionsListNull := types.ListNull(types.ObjectType{
-							AttrTypes: map[string]attr.Type{
-								"type":  types.StringType,
-								"value": types.StringType,
-							},
-						})
-
-						trafficShapingRule.Definitions = definitionsListNull
-					}
-
-				}
-
-				trafficShapingRules = append(trafficShapingRules, trafficShapingRule)
-			}
-		}
-	}
-
-	firewallAndTrafficShapingData := GroupPolicyResourceModelFirewallAndTrafficShaping{
-		Settings: settings,
-	}
-
-	// L3 firewall rules list
-	if l3FirewallRules != nil {
-
-		l3FirewallRulesList, l3FirewallRulesListErr := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: map[string]attr.Type{"comment": types.StringType, "policy": types.StringType, "protocol": types.StringType, "dest_port": types.StringType, "dest_cidr": types.StringType}}, l3FirewallRules)
-		if l3FirewallRulesListErr.HasError() {
-			diags.Append(l3FirewallRulesListErr...)
-		}
-
-		firewallAndTrafficShapingData.L3FirewallRules = l3FirewallRulesList
-
-	} else {
-
-		l3FirewallRulesNull := types.ListNull(types.ObjectType{AttrTypes: map[string]attr.Type{"comment": types.StringType, "policy": types.StringType, "protocol": types.StringType, "dest_port": types.StringType, "dest_cidr": types.StringType}})
-		firewallAndTrafficShapingData.L3FirewallRules = l3FirewallRulesNull
-	}
-
-	// L7 firewall rules list
-	if l7FirewallRules != nil {
-
-		l7FirewallRulesList, l7FirewallRulesListErr := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: map[string]attr.Type{"policy": types.StringType, "type": types.StringType, "value": types.StringType}}, l7FirewallRules)
-		if l7FirewallRulesListErr.HasError() {
-			diags.Append(l7FirewallRulesListErr...)
-		}
-
-		firewallAndTrafficShapingData.L7FirewallRules = l7FirewallRulesList
-
-	} else {
-
-		l7FirewallRulesNull := types.ListNull(types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{"policy": types.StringType, "type": types.StringType, "value": types.StringType}}})
-		firewallAndTrafficShapingData.L7FirewallRules = l7FirewallRulesNull
-	}
-
-	// traffic shaping rules list
-	if trafficShapingRules != nil {
-		trafficShapingRulesList, trafficShapingRulesListErr := types.ListValueFrom(ctx, firewallAndTrafficShapingAttrs, trafficShapingRules)
-		if trafficShapingRulesListErr.HasError() {
-			diags.Append(trafficShapingRulesListErr...)
-		}
-		firewallAndTrafficShapingData.TrafficShapingRules = trafficShapingRulesList
-
-	} else {
-		trafficShapingRulesListNull := types.ListNull(firewallAndTrafficShapingAttrs)
-		firewallAndTrafficShapingData.TrafficShapingRules = trafficShapingRulesListNull
-	}
-
-	firewallAndTrafficShapingObj, err := types.ObjectValueFrom(ctx, map[string]attr.Type{
-		"settings":              types.StringType,
-		"l3_firewall_rules":     types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{"comment": types.StringType, "policy": types.StringType, "protocol": types.StringType, "dest_port": types.StringType, "dest_cidr": types.StringType}}},
-		"l7_firewall_rules":     types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{"policy": types.StringType, "type": types.StringType, "value": types.StringType}}},
-		"traffic_shaping_rules": types.ListType{ElemType: firewallAndTrafficShapingAttrs},
-	}, firewallAndTrafficShapingData)
-	if err.HasError() {
-		diags.Append(err...)
-		return firewallAndTrafficShapingObjectNull, diags
-	}
-
-	return firewallAndTrafficShapingObj, diags
-}
-
-// updateGroupPolicyResourceStateVlanTagging updates the resource state with the vlan tagging data
-func updateGroupPolicyResourceStateVlanTagging(ctx context.Context, vlanTagging map[string]interface{}) (types.Object, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	vlanTaggingObjectNull := types.ObjectNull(map[string]attr.Type{
-		"settings": types.StringType,
-		"vlan_id":  types.StringType,
-	})
-
-	if vlanTagging == nil {
-		return vlanTaggingObjectNull, diags
-	}
-
-	settings := types.StringValue("network default")
-	vlanID := types.StringNull()
-
-	// settings
-	if set, setOk := vlanTagging["settings"].(string); setOk {
-		settings = types.StringValue(set)
-	}
-
-	// vlan id
-	if vlan, vlanOk := vlanTagging["vlanId"].(string); vlanOk {
-		vlanID = types.StringValue(vlan)
-	}
-
-	vlanTaggingObjectData := GroupPolicyResourceModelVlanTagging{
-		VlanID:   vlanID,
-		Settings: settings,
-	}
-
-	vlanTaggingObject, err := types.ObjectValueFrom(ctx, map[string]attr.Type{
-		"settings": types.StringType,
-		"vlan_id":  types.StringType,
-	}, vlanTaggingObjectData)
-	if err.HasError() {
-		diags.Append(err...)
-		return vlanTaggingObjectNull, diags
-	}
-
-	return vlanTaggingObject, diags
-}
-
-// updateGroupPolicyResourceStateContentFiltering updates the resource state with the content filtering data
-func updateGroupPolicyResourceStateContentFiltering(ctx context.Context, contentFiltering map[string]interface{}) (types.Object, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	extractUrlPatterns := func(patterns map[string]interface{}) GroupPolicyResourceModelUrlPatterns {
-		var urlPatterns GroupPolicyResourceModelUrlPatterns
-
-		// settings
-		if settings, ok := patterns["settings"].(string); ok {
-			urlPatterns.Settings = types.StringValue(settings)
-		} else {
-			urlPatterns.Settings = types.StringValue("network default")
-		}
-
-		// patterns
-		var patternList []string
-		if patternsList, ok := patterns["patterns"].([]interface{}); ok {
-			for _, pattern := range patternsList {
-				if p, pOk := pattern.(string); pOk {
-					patternList = append(patternList, p)
-				}
-			}
-		}
-
-		if len(patternList) > 0 {
-			newPatternsArray, newPatternsObjErr := types.ListValueFrom(ctx, types.StringType, patternList)
-			if newPatternsObjErr != nil {
-				diags.Append(newPatternsObjErr...)
-			}
-			urlPatterns.Patterns = newPatternsArray
-		} else {
-			urlPatterns.Patterns = types.ListNull(types.StringType)
-		}
-
-		return urlPatterns
-	}
-
-	// allowed url patterns
-	allowedUrlPatterns := GroupPolicyResourceModelUrlPatterns{}
-	if aup, aupOk := contentFiltering["allowed_url_patterns"].(map[string]interface{}); aupOk {
-		allowedUrlPatterns = extractUrlPatterns(aup)
-	} else {
-		allowedUrlPatterns.Settings = types.StringValue("network default")
-		allowedUrlPatterns.Patterns = types.ListNull(types.StringType)
-	}
-
-	// blocked url patterns
-	blockedUrlPatterns := GroupPolicyResourceModelUrlPatterns{}
-	if bup, bupOk := contentFiltering["blocked_url_patterns"].(map[string]interface{}); bupOk {
-		blockedUrlPatterns = extractUrlPatterns(bup)
-	} else {
-		blockedUrlPatterns.Settings = types.StringValue("network default")
-		blockedUrlPatterns.Patterns = types.ListNull(types.StringType)
-	}
-
-	// blocked url categories
-	blockedUrlCategories := GroupPolicyResourceModelUrlCategories{}
-	if buc, bucOk := contentFiltering["blocked_url_categories"].(map[string]interface{}); bucOk {
-		if settings, ok := buc["settings"].(string); ok {
-			blockedUrlCategories.Settings = types.StringValue(settings)
-		} else {
-			blockedUrlCategories.Settings = types.StringValue("network default")
-		}
-
-		var categoriesList []string
-		if categories, categoriesOk := buc["categories"].([]interface{}); categoriesOk {
-			for _, category := range categories {
-				if c, cOk := category.(string); cOk {
-					categoriesList = append(categoriesList, c)
-				}
-			}
-		}
-
-		newCategoriesObj, newCategoriesObjErr := types.ListValueFrom(ctx, types.StringType, categoriesList)
-		if newCategoriesObjErr != nil {
-			diags.Append(newCategoriesObjErr...)
-		}
-
-		blockedUrlCategories.Categories = newCategoriesObj
-	} else {
-		blockedUrlCategories.Settings = types.StringValue("network default")
-		blockedUrlCategories.Categories = types.ListNull(types.StringType)
-	}
-
-	// Convert GroupPolicyResourceModelUrlPatterns and GroupPolicyResourceModelUrlCategories to types.Object
-	allowedUrlPatternsObject, allowedUrlPatternsErr := types.ObjectValueFrom(ctx, map[string]attr.Type{
-		"patterns": types.ListType{ElemType: types.StringType},
-		"settings": types.StringType,
-	}, allowedUrlPatterns)
-	if allowedUrlPatternsErr != nil {
-		diags.Append(allowedUrlPatternsErr...)
-	}
-
-	blockedUrlPatternsObject, blockedUrlPatternsErr := types.ObjectValueFrom(ctx, map[string]attr.Type{
-		"patterns": types.ListType{ElemType: types.StringType},
-		"settings": types.StringType,
-	}, blockedUrlPatterns)
-	if blockedUrlPatternsErr != nil {
-		diags.Append(blockedUrlPatternsErr...)
-	}
-
-	blockedUrlCategoriesObject, blockedUrlCategoriesErr := types.ObjectValueFrom(ctx, map[string]attr.Type{
-		"categories": types.ListType{ElemType: types.StringType},
-		"settings":   types.StringType,
-	}, blockedUrlCategories)
-	if blockedUrlCategoriesErr != nil {
-		diags.Append(blockedUrlCategoriesErr...)
-	}
-
-	contentFilteringObj := GroupPolicyResourceModelContentFiltering{
-		AllowedUrlPatterns:   allowedUrlPatternsObject,
-		BlockedUrlPatterns:   blockedUrlPatternsObject,
-		BlockedUrlCategories: blockedUrlCategoriesObject,
-	}
-
-	newContentFilteringObject, contentFilteringObjErr := types.ObjectValueFrom(ctx, map[string]attr.Type{
-		"allowed_url_patterns": types.ObjectType{AttrTypes: map[string]attr.Type{
-			"patterns": types.ListType{ElemType: types.StringType},
-			"settings": types.StringType,
-		}},
-		"blocked_url_patterns": types.ObjectType{AttrTypes: map[string]attr.Type{
-			"patterns": types.ListType{ElemType: types.StringType},
-			"settings": types.StringType,
-		}},
-		"blocked_url_categories": types.ObjectType{AttrTypes: map[string]attr.Type{
-			"categories": types.ListType{ElemType: types.StringType},
-			"settings":   types.StringType,
-		}},
-	}, contentFilteringObj)
-	if contentFilteringObjErr != nil {
-		diags.Append(contentFilteringObjErr...)
-	}
-
-	return newContentFilteringObject, diags
-}
-
-// updateGroupPolicyResourceStateHelperValidateGroupPolicyId checks if the GroupPolicyId is valid.
-func (r *NetworksGroupPolicyResource) updateGroupPolicyResourceStateHelperValidateGroupPolicyId(ctx context.Context, state *GroupPolicyResourceModel, readResp *resource.ReadResponse, updateResp *resource.UpdateResponse) error {
-	if state.GroupPolicyId.IsNull() || state.GroupPolicyId.IsUnknown() {
-		tflog.Error(ctx, "Received empty GroupPolicyId", map[string]interface{}{
-			"name":          state.Name.ValueString(),
-			"groupPolicyId": state.GroupPolicyId.ValueString(),
-		})
-
-		if readResp != nil {
-			readResp.Diagnostics.AddError("Received empty GroupPolicy.", fmt.Sprintf("Name: %s, Id: %s", state.Name.ValueString(), state.GroupPolicyId.ValueString()))
-		}
-
-		if updateResp != nil {
-			updateResp.Diagnostics.AddError("Received empty GroupPolicy.", fmt.Sprintf("Name: %s, Id: %s", state.Name.ValueString(), state.GroupPolicyId.ValueString()))
-		}
-
-		return fmt.Errorf("invalid GroupPolicyId")
-	}
-	return nil
-}
-
 // updateGroupPolicyResourcePayload creates a network group policy request payload from the given GroupPolicyResourceModel data
 // and returns the payload along with any diagnostics.
 func updateGroupPolicyResourcePayload(data *GroupPolicyResourceModel) (client.CreateNetworkGroupPolicyRequest, diag.Diagnostics) {
@@ -1990,6 +1022,975 @@ func updateGroupPolicyResourcePayloadVlanTagging(data types.Object) (*client.Cre
 	return payload, diags
 }
 
+// state
+
+// Update Scheduling Day
+func updateGroupPolicyResourceStateSchedulingDay(httpResp map[string]interface{}, key string) (types.Object, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	var day GroupPolicyResourceModelScheduleDay
+
+	dayAttrs := map[string]attr.Type{"active": types.BoolType, "from": types.StringType, "to": types.StringType}
+
+	d, ok := httpResp[key].(map[string]interface{})
+	if ok {
+
+		// active
+		active, err := utils.ExtractBoolAttr(d, "active")
+		if err.HasError() {
+			diags.AddError("active Attr", fmt.Sprintf("%s", err.Errors()))
+		}
+		day.Active = active
+
+		// from
+		from, err := utils.ExtractStringAttr(d, "from")
+		if err.HasError() {
+			diags.AddError("from Attr", fmt.Sprintf("%s", err.Errors()))
+		}
+		day.From = from
+
+		// to
+		to, err := utils.ExtractStringAttr(d, "to")
+		if err.HasError() {
+			diags.AddError("to Attr", fmt.Sprintf("%s", err.Errors()))
+		}
+		day.To = to
+
+	} else {
+		dayObjNull := types.ObjectNull(dayAttrs)
+		return dayObjNull, diags
+	}
+
+	dayObj, err := types.ObjectValueFrom(context.Background(), dayAttrs, day)
+	if err.HasError() {
+		diags.AddError("day object Attr", fmt.Sprintf("%s", err.Errors()))
+	}
+
+	return dayObj, diags
+}
+
+// Update Scheduling
+func updateGroupPolicyResourceStateScheduling(httpResp map[string]interface{}) (types.Object, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	var scheduling GroupPolicyResourceModelScheduling
+
+	dayAttrs := map[string]attr.Type{"active": types.BoolType, "from": types.StringType, "to": types.StringType}
+
+	schedulingAttrs := map[string]attr.Type{
+		"enabled":   types.BoolType,
+		"monday":    types.ObjectType{AttrTypes: dayAttrs},
+		"tuesday":   types.ObjectType{AttrTypes: dayAttrs},
+		"wednesday": types.ObjectType{AttrTypes: dayAttrs},
+		"thursday":  types.ObjectType{AttrTypes: dayAttrs},
+		"friday":    types.ObjectType{AttrTypes: dayAttrs},
+		"saturday":  types.ObjectType{AttrTypes: dayAttrs},
+		"sunday":    types.ObjectType{AttrTypes: dayAttrs},
+	}
+
+	if schedulingMap, schedulingOk := httpResp["scheduling"].(map[string]interface{}); schedulingOk {
+
+		//  Enabled
+		enabled, err := utils.ExtractBoolAttr(schedulingMap, "enabled")
+		if err.HasError() {
+			diags.AddError("enabled Attr", fmt.Sprintf("%s", err.Errors()))
+		}
+		scheduling.Enabled = enabled
+
+		//    Friday
+		friday, err := updateGroupPolicyResourceStateSchedulingDay(httpResp, "friday")
+		if err.HasError() {
+			diags.AddError("friday Attr", fmt.Sprintf("%s", err.Errors()))
+		}
+		scheduling.Friday = friday
+
+		//    Monday
+		monday, err := updateGroupPolicyResourceStateSchedulingDay(httpResp, "monday")
+		if err.HasError() {
+			diags.AddError("monday Attr", fmt.Sprintf("%s", err.Errors()))
+		}
+		scheduling.Monday = monday
+
+		//    Saturday
+		saturday, err := updateGroupPolicyResourceStateSchedulingDay(httpResp, "saturday")
+		if err.HasError() {
+			diags.AddError("saturday Attr", fmt.Sprintf("%s", err.Errors()))
+		}
+		scheduling.Saturday = saturday
+
+		//    Sunday
+		sunday, err := updateGroupPolicyResourceStateSchedulingDay(httpResp, "sunday")
+		if err.HasError() {
+			diags.AddError("sunday Attr", fmt.Sprintf("%s", err.Errors()))
+		}
+		scheduling.Sunday = sunday
+
+		//    Thursday
+		thursday, err := updateGroupPolicyResourceStateSchedulingDay(httpResp, "thursday")
+		if err.HasError() {
+			diags.AddError("thursday Attr", fmt.Sprintf("%s", err.Errors()))
+		}
+		scheduling.Thursday = thursday
+
+		//    Tuesday
+		tuesday, err := updateGroupPolicyResourceStateSchedulingDay(httpResp, "tuesday")
+		if err.HasError() {
+			diags.AddError("tuesday Attr", fmt.Sprintf("%s", err.Errors()))
+		}
+		scheduling.Tuesday = tuesday
+
+		//    Wednesday
+		wednesday, err := updateGroupPolicyResourceStateSchedulingDay(httpResp, "wednesday")
+		if err.HasError() {
+			diags.AddError("wednesday Attr", fmt.Sprintf("%s", err.Errors()))
+		}
+		scheduling.Wednesday = wednesday
+
+	} else {
+		schedulingObjNull := types.ObjectNull(schedulingAttrs)
+		return schedulingObjNull, diags
+	}
+
+	schedulingObj, err := types.ObjectValueFrom(context.Background(), schedulingAttrs, scheduling)
+	if err.HasError() {
+		diags.AddError("scheduling object Attr", fmt.Sprintf("%s", err.Errors()))
+	}
+
+	return schedulingObj, diags
+}
+
+// Update Bandwidth
+func updateGroupPolicyResourceStateBandwidth(httpResp map[string]interface{}) (types.Object, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	var bandwidth GroupPolicyResourceModelBandwidth
+
+	bandwidthLimitsAttrs := map[string]attr.Type{
+		"limit_up":   types.Int64Type,
+		"limit_down": types.Int64Type,
+	}
+
+	bandwidthAttrs := map[string]attr.Type{
+		"settings": types.StringType,
+		"bandwidth_limits": types.ObjectType{
+			AttrTypes: bandwidthLimitsAttrs,
+		},
+	}
+
+	if bandwidthMap, ok := httpResp["bandwidth"].(map[string]interface{}); ok {
+
+		// settings
+		settings, err := utils.ExtractStringAttr(bandwidthMap, "settings")
+		if err.HasError() {
+			diags.AddError("settingsAttr", fmt.Sprintf("%s", err.Errors()))
+		}
+		bandwidth.Settings = settings
+
+		// bandwidth limits
+		if blMap, ok := httpResp["bandwidthLimits"].(map[string]interface{}); ok {
+			var bandwidthLimits GroupPolicyResourceModelBandwidthLimits
+
+			// limit up
+			limitUp, err := utils.ExtractInt64Attr(blMap, "limitUp")
+			if err.HasError() {
+				diags.AddError("limitUp Attr", fmt.Sprintf("%s", err.Errors()))
+			}
+			bandwidthLimits.LimitUp = limitUp
+
+			// limit down
+			limitDown, err := utils.ExtractInt64Attr(blMap, "limitDown")
+			if err.HasError() {
+				diags.AddError("limitDown Attr", fmt.Sprintf("%s", err.Errors()))
+			}
+			bandwidthLimits.LimitDown = limitDown
+
+			bandwidthLimitsObj, err := types.ObjectValueFrom(context.Background(), bandwidthLimitsAttrs, bandwidthLimits)
+			if err.HasError() {
+				diags.AddError("bandwidthLimitsObj Attr", fmt.Sprintf("%s", err.Errors()))
+			}
+
+			bandwidth.BandwidthLimits = bandwidthLimitsObj
+
+		} else {
+			bandwidthLimitsObjNull := types.ObjectNull(bandwidthLimitsAttrs)
+			bandwidth.BandwidthLimits = bandwidthLimitsObjNull
+		}
+
+	} else {
+		bandwidthObjNull := types.ObjectNull(bandwidthAttrs)
+		return bandwidthObjNull, diags
+	}
+
+	bandwidthObj, err := types.ObjectValueFrom(context.Background(), bandwidthAttrs, bandwidth)
+	if err.HasError() {
+		diags.AddError("bandwidthObj Attr", fmt.Sprintf("%s", err.Errors()))
+	}
+
+	return bandwidthObj, diags
+}
+
+// updateGroupPolicyResourceStateFirewallAndTrafficShapingRules updates the resource state with the firewall and traffic shaping rules data
+func updateGroupPolicyResourceStateFirewallAndTrafficShapingRules(ctx context.Context, httpResp map[string]interface{}) (types.Object, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	var firewallAndTrafficShapingRules GroupPolicyResourceModelFirewallAndTrafficShaping
+
+	perClientBandwidthLimitsAttr := map[string]attr.Type{
+		"settings": types.StringType,
+		"bandwidth_limits": types.ObjectType{AttrTypes: map[string]attr.Type{
+			"limit_up":   types.Int64Type,
+			"limit_down": types.Int64Type}},
+	}
+
+	definitionsAttr := map[string]attr.Type{
+		"type":  types.StringType,
+		"value": types.StringType}
+
+	firewallAndTrafficShapingAttrs := types.ObjectType{AttrTypes: map[string]attr.Type{
+		"dscp_tag_value":              types.Int64Type,
+		"pcp_tag_value":               types.Int64Type,
+		"per_client_bandwidth_limits": types.ObjectType{AttrTypes: perClientBandwidthLimitsAttr},
+		"definitions":                 types.ListType{ElemType: types.ObjectType{AttrTypes: definitionsAttr}}},
+	}
+
+	l3FirewallRulesAttr := map[string]attr.Type{"comment": types.StringType, "policy": types.StringType, "protocol": types.StringType, "dest_port": types.StringType, "dest_cidr": types.StringType}
+
+	l7FirewallRulesAttr := map[string]attr.Type{"policy": types.StringType, "type": types.StringType, "value": types.StringType}
+
+	firewallAndTrafficShapingRulesAttrs := map[string]attr.Type{
+		"settings":              types.StringType,
+		"l3_firewall_rules":     types.ListType{ElemType: types.ObjectType{AttrTypes: l3FirewallRulesAttr}},
+		"l7_firewall_rules":     types.ListType{ElemType: types.ObjectType{AttrTypes: l7FirewallRulesAttr}},
+		"traffic_shaping_rules": types.ListType{ElemType: firewallAndTrafficShapingAttrs},
+	}
+
+	ftsr, ok := httpResp["firewallAndTrafficShapingRules"].(map[string]interface{})
+	if ok {
+
+		// settings
+		settings, err := utils.ExtractStringAttr(ftsr, "settings")
+		if err.HasError() {
+			diags.AddError("settings Attr", fmt.Sprintf("%s", err.Errors()))
+		}
+		firewallAndTrafficShapingRules.Settings = settings
+
+		// l3FirewallRules
+		var l3FirewallRules []GroupPolicyResourceModelL3FirewallRule
+		if l3frs, l3frsOk := ftsr["l3FirewallRules"].([]interface{}); l3frsOk {
+			for _, l3fr := range l3frs {
+				if l3, l3Ok := l3fr.(map[string]interface{}); l3Ok {
+					rule := GroupPolicyResourceModelL3FirewallRule{
+						Comment:  types.StringNull(),
+						Policy:   types.StringNull(),
+						Protocol: types.StringNull(),
+						DestPort: types.StringNull(),
+						DestCidr: types.StringNull(),
+					}
+
+					// comment
+					rule.Comment, err = utils.ExtractStringAttr(l3, "comment")
+					if err.HasError() {
+						diags.Append(err...)
+					}
+
+					// policy
+					rule.Policy, err = utils.ExtractStringAttr(l3, "policy")
+					if err.HasError() {
+						diags.Append(err...)
+					}
+
+					// protocol
+					rule.Protocol, err = utils.ExtractStringAttr(l3, "protocol")
+					if err.HasError() {
+						diags.Append(err...)
+					}
+
+					// dest port
+					rule.DestPort, err = utils.ExtractStringAttr(l3, "destPort")
+					if err.HasError() {
+						diags.Append(err...)
+					}
+
+					// dest cidr
+					rule.DestCidr, err = utils.ExtractStringAttr(l3, "destCidr")
+					if err.HasError() {
+						diags.Append(err...)
+					}
+
+					l3FirewallRules = append(l3FirewallRules, rule)
+				}
+			}
+
+			l3FirewallRulesList, l3FirewallRulesListErr := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: l3FirewallRulesAttr}, l3FirewallRules)
+			if l3FirewallRulesListErr.HasError() {
+				diags.Append(l3FirewallRulesListErr...)
+			}
+
+			firewallAndTrafficShapingRules.L3FirewallRules = l3FirewallRulesList
+
+		} else {
+			l3FirewallRulesNull := types.ListNull(types.ObjectType{AttrTypes: l3FirewallRulesAttr})
+			firewallAndTrafficShapingRules.L3FirewallRules = l3FirewallRulesNull
+		}
+
+		// l7FirewallRules
+		var l7FirewallRules []GroupPolicyResourceModelL7FirewallRule
+		if l7frs, l7frsOk := ftsr["l7FirewallRules"].([]interface{}); l7frsOk {
+			for _, l7fr := range l7frs {
+				if l7, l7Ok := l7fr.(map[string]interface{}); l7Ok {
+					rule := GroupPolicyResourceModelL7FirewallRule{
+						Policy: types.StringNull(),
+						Type:   types.StringNull(),
+						Value:  types.StringNull(),
+					}
+
+					// policy
+					rule.Policy, err = utils.ExtractStringAttr(l7, "policy")
+					if err.HasError() {
+						diags.Append(err...)
+					}
+
+					// type
+					rule.Type, err = utils.ExtractStringAttr(l7, "type")
+					if err.HasError() {
+						diags.Append(err...)
+					}
+
+					// value
+					rule.Value, err = utils.ExtractStringAttr(l7, "value")
+					if err.HasError() {
+						diags.Append(err...)
+					}
+
+					l7FirewallRules = append(l7FirewallRules, rule)
+				}
+
+				l7FirewallRulesList, l7FirewallRulesListErr := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: l7FirewallRulesAttr}, l7FirewallRules)
+				if l7FirewallRulesListErr.HasError() {
+					diags.Append(l7FirewallRulesListErr...)
+				}
+
+				firewallAndTrafficShapingRules.L7FirewallRules = l7FirewallRulesList
+			}
+		} else {
+			l7FirewallRulesNull := types.ListNull(types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{"policy": types.StringType, "type": types.StringType, "value": types.StringType}}})
+			firewallAndTrafficShapingRules.L7FirewallRules = l7FirewallRulesNull
+		}
+
+		// trafficShapingRules
+		var trafficShapingRules []GroupPolicyResourceModelTrafficShapingRule
+		if tsRs, tsRsOk := ftsr["trafficShapingRules"].([]interface{}); tsRsOk {
+
+			for _, tsr := range tsRs {
+				if sr, srOk := tsr.(map[string]interface{}); srOk {
+					var trafficShapingRule GroupPolicyResourceModelTrafficShapingRule
+
+					// dscp tag value
+					dscpTagValue, dscpTagValueErr := utils.ExtractFloat64Attr(sr, "dscpTagValue")
+					if dscpTagValueErr.HasError() {
+						diags.Append(dscpTagValueErr...)
+					}
+					trafficShapingRule.DscpTagValue = types.Int64Value(int64(dscpTagValue.ValueFloat64()))
+
+					// pcp tag value
+					pcpTagValue, pcpTagValueErr := utils.ExtractFloat64Attr(sr, "pcpTagValue")
+					if pcpTagValueErr.HasError() {
+						diags.Append(pcpTagValueErr...)
+					}
+					trafficShapingRule.PcpTagValue = types.Int64Value(int64(pcpTagValue.ValueFloat64()))
+
+					// perClientBandwidthLimits
+					if pcBl, pcBlOk := sr["perClientBandwidthLimits"].(map[string]interface{}); pcBlOk {
+
+						perClientBandwidthLimits := GroupPolicyResourceModelPerClientBandwidthLimits{}
+
+						// settings
+						if _, settingsOk := pcBl["settings"].(string); settingsOk {
+
+							settingsVal, settingsErr := utils.ExtractStringAttr(pcBl, "settings")
+							if settingsErr.HasError() {
+								diags.Append(settingsErr...)
+							}
+
+							perClientBandwidthLimits.Settings = settingsVal
+
+						}
+
+						// bandwidth limits
+						if bandwidthLimits, bandwidthLimitsOk := pcBl["bandwidthLimits"].(map[string]interface{}); bandwidthLimitsOk {
+
+							var BandwidthLimits GroupPolicyResourceModelBandwidthLimits
+
+							// limit up
+							limitUp, limitUpErr := utils.ExtractFloat64Attr(bandwidthLimits, "limitUp")
+							if limitUpErr.HasError() {
+								diags.Append(limitUpErr...)
+							}
+							BandwidthLimits.LimitUp = types.Int64Value(int64(limitUp.ValueFloat64()))
+
+							// limit down
+							limitDown, limitDownErr := utils.ExtractFloat64Attr(bandwidthLimits, "limitDown")
+							if limitDownErr.HasError() {
+								diags.Append(limitDownErr...)
+							}
+							BandwidthLimits.LimitDown = types.Int64Value(int64(limitDown.ValueFloat64()))
+
+							BandwidthLimitsObject, BandwidthLimitsObjectErr := types.ObjectValueFrom(ctx, map[string]attr.Type{
+								"limit_up":   types.Int64Type,
+								"limit_down": types.Int64Type,
+							}, BandwidthLimits)
+
+							if BandwidthLimitsObjectErr.HasError() {
+								diags.Append(BandwidthLimitsObjectErr...)
+							}
+
+							perClientBandwidthLimits.BandwidthLimits = BandwidthLimitsObject
+
+						}
+
+						// create types.Object
+						perClientBandwidthLimitsObject, perClientBandwidthLimitsObjectErr := types.ObjectValueFrom(ctx, map[string]attr.Type{
+							"settings": types.StringType,
+							"bandwidth_limits": types.ObjectType{
+								AttrTypes: map[string]attr.Type{
+									"limit_up":   types.Int64Type,
+									"limit_down": types.Int64Type,
+								},
+							},
+						}, perClientBandwidthLimits)
+
+						if perClientBandwidthLimitsObjectErr.HasError() {
+							diags.Append(perClientBandwidthLimitsObjectErr...)
+						}
+
+						trafficShapingRule.PerClientBandwidthLimits = perClientBandwidthLimitsObject
+					} else {
+
+						perClientBandwidthLimitsObjectNull := types.ObjectNull(map[string]attr.Type{
+							"settings": types.StringType,
+							"bandwidth_limits": types.ObjectType{
+								AttrTypes: map[string]attr.Type{
+									"limit_up":   types.Int64Type,
+									"limit_down": types.Int64Type,
+								},
+							},
+						})
+
+						trafficShapingRule.PerClientBandwidthLimits = perClientBandwidthLimitsObjectNull
+					}
+
+					// definitions
+					if defs, defsOk := sr["definitions"].([]interface{}); defsOk {
+						var definitionsModel []GroupPolicyResourceModelTrafficShapingDefinition
+
+						for _, definitions := range defs {
+
+							definitionModel := GroupPolicyResourceModelTrafficShapingDefinition{}
+							if def, defOk := definitions.(map[string]interface{}); defOk {
+
+								// type
+								definitionModel.Type, err = utils.ExtractStringAttr(def, "type")
+								if err.HasError() {
+									diags.Append(err...)
+								}
+
+								// value
+								definitionModel.Value, err = utils.ExtractStringAttr(def, "value")
+								if err.HasError() {
+									diags.Append(err...)
+								}
+
+								definitionsModel = append(definitionsModel, definitionModel)
+							}
+
+						}
+
+						if definitionsModel != nil {
+							definitionsList, definitionsListErr := types.ListValueFrom(ctx, types.ObjectType{
+								AttrTypes: map[string]attr.Type{
+									"type":  types.StringType,
+									"value": types.StringType,
+								},
+							}, definitionsModel)
+							if definitionsListErr.HasError() {
+								diags.Append(definitionsListErr...)
+							}
+							trafficShapingRule.Definitions = definitionsList
+						} else {
+							definitionsListNull := types.ListNull(types.ObjectType{
+								AttrTypes: map[string]attr.Type{
+									"type":  types.StringType,
+									"value": types.StringType,
+								},
+							})
+
+							trafficShapingRule.Definitions = definitionsListNull
+						}
+
+					}
+
+					trafficShapingRules = append(trafficShapingRules, trafficShapingRule)
+				}
+			}
+
+			trafficShapingRulesList, trafficShapingRulesListErr := types.ListValueFrom(ctx, firewallAndTrafficShapingAttrs, trafficShapingRules)
+			if trafficShapingRulesListErr.HasError() {
+				diags.Append(trafficShapingRulesListErr...)
+			}
+			firewallAndTrafficShapingRules.TrafficShapingRules = trafficShapingRulesList
+
+		} else {
+			trafficShapingRulesListNull := types.ListNull(firewallAndTrafficShapingAttrs)
+			firewallAndTrafficShapingRules.TrafficShapingRules = trafficShapingRulesListNull
+		}
+
+	} else {
+		firewallAndTrafficShapingObjectNull := types.ObjectNull(firewallAndTrafficShapingRulesAttrs)
+		return firewallAndTrafficShapingObjectNull, diags
+	}
+
+	firewallAndTrafficShapingObj, err := types.ObjectValueFrom(ctx, firewallAndTrafficShapingRulesAttrs, firewallAndTrafficShapingRules)
+	if err.HasError() {
+		diags.Append(err...)
+	}
+
+	return firewallAndTrafficShapingObj, diags
+}
+
+// updateGroupPolicyResourceStateVlanTagging updates the resource state with the vlan tagging data
+func updateGroupPolicyResourceStateVlanTagging(ctx context.Context, httpResp map[string]interface{}) (types.Object, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	var vlanTagging GroupPolicyResourceModelVlanTagging
+
+	vlanTaggingAttr := map[string]attr.Type{
+		"settings": types.StringType,
+		"vlan_id":  types.StringType,
+	}
+
+	vt, ok := httpResp["vlanTagging"].(map[string]interface{})
+	if ok {
+
+		// settings
+		settings, err := utils.ExtractStringAttr(vt, "settings")
+		if err.HasError() {
+			diags.AddError("settings Attr", fmt.Sprintf("%s", err.Errors()))
+		}
+		vlanTagging.Settings = settings
+
+		// vlan id
+		vlanId, err := utils.ExtractStringAttr(vt, "vlanId")
+		if err.HasError() {
+			diags.AddError("vlanId Attr", fmt.Sprintf("%s", err.Errors()))
+		}
+		vlanTagging.VlanID = vlanId
+
+	} else {
+		vlanTaggingObjNull := types.ObjectNull(vlanTaggingAttr)
+		return vlanTaggingObjNull, diags
+	}
+
+	vlanTaggingObject, err := types.ObjectValueFrom(ctx, vlanTaggingAttr, vlanTagging)
+	if err.HasError() {
+		diags.AddError("vlanTagging obj Attr", fmt.Sprintf("%s", err.Errors()))
+	}
+
+	return vlanTaggingObject, diags
+}
+
+func updateGroupPolicyResourceStateBonjourForwarding(httpResp map[string]interface{}) (types.Object, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	var bonjourForwarding GroupPolicyResourceModelBonjourForwarding
+
+	rulesAttrs := map[string]attr.Type{
+		"description": types.StringType,
+		"vlan_id":     types.StringType,
+		"services":    types.ListType{ElemType: types.StringType},
+	}
+
+	bonjourForwardingAttrs := map[string]attr.Type{
+		"settings": types.StringType,
+		"rules":    types.ListType{ElemType: types.ObjectType{AttrTypes: rulesAttrs}},
+	}
+
+	if bf, ok := httpResp["bonjourForwarding"].(map[string]interface{}); ok {
+
+		// settings
+		settings, err := utils.ExtractStringAttr(bf, "settings")
+		if err.HasError() {
+			diags.AddError("settings Attr", fmt.Sprintf("%s", err.Errors()))
+		}
+		bonjourForwarding.Settings = settings
+
+		// rules
+		if rs, ok := bf["rules"].([]map[string]interface{}); ok {
+			var rules []types.Object
+			for _, r := range rs {
+
+				var rule GroupPolicyResourceModelBonjourForwardingRule
+				// description
+				description, err := utils.ExtractStringAttr(r, "description")
+				if err.HasError() {
+					diags.AddError("description Attr", fmt.Sprintf("%s", err.Errors()))
+				}
+				rule.Description = description
+
+				// vlanId
+				vlanId, err := utils.ExtractStringAttr(r, "vlanId")
+				if err.HasError() {
+					diags.AddError("vlanId Attr", fmt.Sprintf("%s", err.Errors()))
+				}
+				rule.VlanID = vlanId
+
+				// services
+				services, err := utils.ExtractListStringAttr(r, "services")
+				if err.HasError() {
+					diags.AddError("vlanId Attr", fmt.Sprintf("%s", err.Errors()))
+				}
+				rule.Services = services
+
+				ruleObj, err := types.ObjectValueFrom(context.Background(), rulesAttrs, rule)
+				if err.HasError() {
+					diags.AddError("ruleObj Attr", fmt.Sprintf("%s", err.Errors()))
+				}
+
+				rules = append(rules, ruleObj)
+			}
+
+			rulesArray, err := types.ListValueFrom(context.Background(), types.ObjectType{AttrTypes: rulesAttrs}, rules)
+			if err.HasError() {
+				diags.AddError("rulesArray Attr", fmt.Sprintf("%s", err.Errors()))
+			}
+			bonjourForwarding.Rules = rulesArray
+
+		} else {
+			rulesArrayNull := types.ListNull(types.ObjectType{AttrTypes: rulesAttrs})
+			bonjourForwarding.Rules = rulesArrayNull
+		}
+
+	} else {
+		bonjourForwardingObjNull := types.ObjectNull(bonjourForwardingAttrs)
+		return bonjourForwardingObjNull, diags
+	}
+
+	bonjourForwardingObj, err := types.ObjectValueFrom(context.Background(), bonjourForwardingAttrs, bonjourForwarding)
+	if err.HasError() {
+		diags.AddError("bonjourForwardingObj Attr", fmt.Sprintf("%s", err.Errors()))
+	}
+
+	return bonjourForwardingObj, diags
+}
+
+// updateGroupPolicyResourceStateContentFiltering updates the resource state with the content filtering data
+func updateGroupPolicyResourceStateContentFiltering(ctx context.Context, httpResp map[string]interface{}) (types.Object, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	var contentFiltering GroupPolicyResourceModelContentFiltering
+
+	URLPatternsAttrs := map[string]attr.Type{
+		"patterns": types.ListType{ElemType: types.StringType},
+		"settings": types.StringType,
+	}
+
+	URLCategoriesAttrs := map[string]attr.Type{
+		"categories": types.ListType{ElemType: types.StringType},
+		"settings":   types.StringType,
+	}
+
+	contentFilteringAttrs := map[string]attr.Type{
+		"allowed_url_patterns":   types.ObjectType{AttrTypes: URLPatternsAttrs},
+		"blocked_url_patterns":   types.ObjectType{AttrTypes: URLPatternsAttrs},
+		"blocked_url_categories": types.ObjectType{AttrTypes: URLCategoriesAttrs},
+	}
+
+	if cf, ok := httpResp["contentFiltering"].(map[string]interface{}); ok {
+
+		// allowedURLPatterns
+		if aup, aupOk := cf["allowedUrlPatterns"].(map[string]interface{}); aupOk {
+			var allowedURLPatterns GroupPolicyResourceModelUrlPatterns
+
+			allowedURLPatternsObj, err := types.ObjectValue(URLPatternsAttrs, allowedURLPatterns)
+			if err.HasError() {
+				diags.Append(err...)
+			}
+		} else {
+			allowedURLPatternsObjNull := types.ObjectNull(URLPatternsAttrs)
+			contentFiltering.AllowedUrlPatterns = allowedURLPatternsObjNull
+		}
+
+		// blockedURLPatterns
+
+		// blockedURLCategories
+
+		blockedURLPatterns, err := types.ObjectValue(URLPatternsAttrs, map[string]attr.Value{
+			"patterns": types.ListNull(types.StringType),
+			"settings": settingsDefault,
+		})
+		if err.HasError() {
+			diags.Append(err...)
+		}
+
+		blockedURLCategories, err := types.ObjectValue(URLCategoriesAttrs, map[string]attr.Value{
+			"categories": types.ListNull(types.StringType),
+			"settings":   settingsDefault,
+		})
+		if err.HasError() {
+			diags.Append(err...)
+		}
+
+		contentFiltering, err = types.ObjectValue(contentFilteringAttrs, map[string]attr.Value{
+			"allowed_url_patterns":   allowedURLPatterns,
+			"blocked_url_patterns":   blockedURLPatterns,
+			"blocked_url_categories": blockedURLCategories,
+		})
+		if err.HasError() {
+			diags.Append(err...)
+		}
+
+	} else {
+		contentFilteringObjNull := types.ObjectNull(contentFilteringAttrs)
+		return contentFilteringObjNull, diags
+	}
+
+	extractUrlPatterns := func(patterns map[string]interface{}) GroupPolicyResourceModelUrlPatterns {
+		var urlPatterns GroupPolicyResourceModelUrlPatterns
+
+		// settings
+		if settings, ok := patterns["settings"].(string); ok {
+			urlPatterns.Settings = types.StringValue(settings)
+		} else {
+			urlPatterns.Settings = types.StringValue("network default")
+		}
+
+		// patterns
+		var patternList []string
+		if patternsList, ok := patterns["patterns"].([]interface{}); ok {
+			for _, pattern := range patternsList {
+				if p, pOk := pattern.(string); pOk {
+					patternList = append(patternList, p)
+				}
+			}
+		}
+
+		if len(patternList) > 0 {
+			newPatternsArray, newPatternsObjErr := types.ListValueFrom(ctx, types.StringType, patternList)
+			if newPatternsObjErr != nil {
+				diags.Append(newPatternsObjErr...)
+			}
+			urlPatterns.Patterns = newPatternsArray
+		} else {
+			urlPatterns.Patterns = types.ListNull(types.StringType)
+		}
+
+		return urlPatterns
+	}
+
+	// allowed url patterns
+	allowedUrlPatterns := GroupPolicyResourceModelUrlPatterns{}
+	if aup, aupOk := httpResp["allowed_url_patterns"].(map[string]interface{}); aupOk {
+		allowedUrlPatterns = extractUrlPatterns(aup)
+	} else {
+		allowedUrlPatterns.Settings = types.StringValue("network default")
+		allowedUrlPatterns.Patterns = types.ListNull(types.StringType)
+	}
+
+	// blocked url patterns
+	blockedUrlPatterns := GroupPolicyResourceModelUrlPatterns{}
+	if bup, bupOk := httpResp["blocked_url_patterns"].(map[string]interface{}); bupOk {
+		blockedUrlPatterns = extractUrlPatterns(bup)
+	} else {
+		blockedUrlPatterns.Settings = types.StringValue("network default")
+		blockedUrlPatterns.Patterns = types.ListNull(types.StringType)
+	}
+
+	// blocked url categories
+	blockedUrlCategories := GroupPolicyResourceModelUrlCategories{}
+	if buc, bucOk := httpResp["blocked_url_categories"].(map[string]interface{}); bucOk {
+		if settings, ok := buc["settings"].(string); ok {
+			blockedUrlCategories.Settings = types.StringValue(settings)
+		} else {
+			blockedUrlCategories.Settings = types.StringValue("network default")
+		}
+
+		var categoriesList []string
+		if categories, categoriesOk := buc["categories"].([]interface{}); categoriesOk {
+			for _, category := range categories {
+				if c, cOk := category.(string); cOk {
+					categoriesList = append(categoriesList, c)
+				}
+			}
+		}
+
+		newCategoriesObj, newCategoriesObjErr := types.ListValueFrom(ctx, types.StringType, categoriesList)
+		if newCategoriesObjErr != nil {
+			diags.Append(newCategoriesObjErr...)
+		}
+
+		blockedUrlCategories.Categories = newCategoriesObj
+
+	} else {
+		blockedUrlCategories.Settings = types.StringValue("network default")
+		blockedUrlCategories.Categories = types.ListNull(types.StringType)
+	}
+
+	// Convert GroupPolicyResourceModelUrlPatterns and GroupPolicyResourceModelUrlCategories to types.Object
+	allowedUrlPatternsObject, allowedUrlPatternsErr := types.ObjectValueFrom(ctx, map[string]attr.Type{
+		"patterns": types.ListType{ElemType: types.StringType},
+		"settings": types.StringType,
+	}, allowedUrlPatterns)
+	if allowedUrlPatternsErr != nil {
+		diags.Append(allowedUrlPatternsErr...)
+	}
+
+	blockedUrlPatternsObject, blockedUrlPatternsErr := types.ObjectValueFrom(ctx, map[string]attr.Type{
+		"patterns": types.ListType{ElemType: types.StringType},
+		"settings": types.StringType,
+	}, blockedUrlPatterns)
+	if blockedUrlPatternsErr != nil {
+		diags.Append(blockedUrlPatternsErr...)
+	}
+
+	blockedUrlCategoriesObject, blockedUrlCategoriesErr := types.ObjectValueFrom(ctx, map[string]attr.Type{
+		"categories": types.ListType{ElemType: types.StringType},
+		"settings":   types.StringType,
+	}, blockedUrlCategories)
+	if blockedUrlCategoriesErr != nil {
+		diags.Append(blockedUrlCategoriesErr...)
+	}
+
+	newContentFilteringObject, contentFilteringObjErr := types.ObjectValueFrom(ctx, contentFilteringAttrs, contentFilteringObj)
+	if contentFilteringObjErr != nil {
+		diags.Append(contentFilteringObjErr...)
+	}
+
+	return newContentFilteringObject, diags
+}
+
+// updateGroupPolicyResourceStateHelperValidateGroupPolicyId checks if the GroupPolicyId is valid.
+func (r *NetworksGroupPolicyResource) updateGroupPolicyResourceStateHelperValidateGroupPolicyId(ctx context.Context, state *GroupPolicyResourceModel, readResp *resource.ReadResponse, updateResp *resource.UpdateResponse) error {
+	if state.GroupPolicyId.IsNull() || state.GroupPolicyId.IsUnknown() {
+		tflog.Error(ctx, "Received empty GroupPolicyId", map[string]interface{}{
+			"name":          state.Name.ValueString(),
+			"groupPolicyId": state.GroupPolicyId.ValueString(),
+		})
+
+		if readResp != nil {
+			readResp.Diagnostics.AddError("Received empty GroupPolicy.", fmt.Sprintf("Name: %s, Id: %s", state.Name.ValueString(), state.GroupPolicyId.ValueString()))
+		}
+
+		if updateResp != nil {
+			updateResp.Diagnostics.AddError("Received empty GroupPolicy.", fmt.Sprintf("Name: %s, Id: %s", state.Name.ValueString(), state.GroupPolicyId.ValueString()))
+		}
+
+		return fmt.Errorf("invalid GroupPolicyId")
+	}
+	return nil
+}
+
+// updateGroupPolicyResourceState updates the resource state with the provided api data.
+func updateGroupPolicyResourceState(ctx context.Context, state *GroupPolicyResourceModel, httpResp *http.Response) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	data, err := tools.ExtractResponseToMap(httpResp)
+	if err != nil {
+		diags.AddError("Failed to Unmarshal HttpResp", err.Error())
+	}
+
+	// GroupPolicyId
+	if state.GroupPolicyId.IsNull() || state.GroupPolicyId.IsUnknown() {
+		state.GroupPolicyId, diags = utils.ExtractStringAttr(data, "groupPolicyId")
+		if diags.HasError() {
+			diags.AddError("groupPolicyId Attribute", "")
+			return diags
+		}
+	}
+
+	// check for NetworkId
+	if state.NetworkId.IsNull() || state.NetworkId.IsUnknown() {
+		state.NetworkId, diags = utils.ExtractStringAttr(data, "networkId")
+		if diags.HasError() {
+			diags.AddError("networkId Attribute", "")
+			return diags
+		}
+	}
+
+	// Import ID
+	if !state.NetworkId.IsNull() || !state.NetworkId.IsUnknown() && !state.GroupPolicyId.IsNull() || !state.GroupPolicyId.IsUnknown() {
+		state.ID = types.StringValue(state.NetworkId.ValueString() + "," + state.GroupPolicyId.ValueString())
+	} else {
+		state.ID = types.StringNull()
+	}
+
+	// Name
+	if state.Name.IsNull() || state.Name.IsUnknown() {
+		state.Name, diags = utils.ExtractStringAttr(data, "name")
+		if diags.HasError() {
+			diags.AddError("name Attribute", "")
+			return diags
+		}
+	}
+
+	// Update Scheduling
+	if state.Scheduling.IsNull() || state.Scheduling.IsUnknown() {
+		scheduling, err := updateGroupPolicyResourceStateScheduling(data)
+		if err.HasError() {
+			diags.AddError("scheduling Attr", fmt.Sprintf("%s", err.Errors()))
+		}
+		state.Scheduling = scheduling
+	}
+
+	// Update Bandwidth
+	if state.Bandwidth.IsNull() || state.Bandwidth.IsUnknown() {
+		bandwidth, err := updateGroupPolicyResourceStateBandwidth(data)
+		if err.HasError() {
+			diags.AddError("bandwidth Attr", fmt.Sprintf("%s", err.Errors()))
+		}
+		state.Bandwidth = bandwidth
+	}
+
+	//SplashAuthSettings
+	if state.SplashAuthSettings.IsNull() || state.SplashAuthSettings.IsUnknown() {
+		state.SplashAuthSettings, diags = utils.ExtractStringAttr(data, "splashAuthSettings")
+		if diags.HasError() {
+			return diags
+		}
+	}
+
+	// Update VlanTagging
+	if state.VlanTagging.IsNull() || state.VlanTagging.IsUnknown() {
+		vlanTaggingObj, err := updateGroupPolicyResourceStateVlanTagging(ctx, data)
+		if err.HasError() {
+			diags.AddError("vlanTagging Attr", fmt.Sprintf("%s", err.Errors()))
+		}
+		state.VlanTagging = vlanTaggingObj
+	}
+
+	// Update BonjourForwarding
+	if state.BonjourForwarding.IsNull() || state.BonjourForwarding.IsUnknown() {
+		bonjourForwarding, err := updateGroupPolicyResourceStateBonjourForwarding(data)
+		if err.HasError() {
+			diags.AddError("vlanTagging Attr", fmt.Sprintf("%s", err.Errors()))
+		}
+		state.BonjourForwarding = bonjourForwarding
+
+	}
+
+	// Update FirewallAndTrafficShaping
+	if state.FirewallAndTrafficShaping.IsNull() || state.FirewallAndTrafficShaping.IsUnknown() {
+		firewallAndTrafficShapingObject, firewallAndTrafficShapingObjectDiags := updateGroupPolicyResourceStateFirewallAndTrafficShapingRules(ctx, data)
+		if firewallAndTrafficShapingObjectDiags.HasError() {
+			diags.Append(firewallAndTrafficShapingObjectDiags...)
+		}
+		state.FirewallAndTrafficShaping = firewallAndTrafficShapingObject
+	}
+
+	// Update ContentFiltering
+	if state.ContentFiltering.IsNull() || state.ContentFiltering.IsUnknown() {
+
+		contentFilteringObj, cfDiags := updateGroupPolicyResourceStateContentFiltering(ctx, httpResp)
+		if cfDiags.HasError() {
+			diags.Append(cfDiags...)
+		}
+		state.ContentFiltering = contentFilteringObj
+	}
+
+	return diags
+}
+
 // Create handles the creation of the group policy.
 func (r *NetworksGroupPolicyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan GroupPolicyResourceModel
@@ -2024,7 +2025,8 @@ func (r *NetworksGroupPolicyResource) Create(ctx context.Context, req resource.C
 
 	// API call function to be passed to retryOn4xx
 	apiCall := func() (map[string]interface{}, *http.Response, error) {
-		return r.client.NetworksApi.CreateNetworkGroupPolicy(ctx, plan.NetworkId.ValueString()).CreateNetworkGroupPolicyRequest(groupPolicy).Execute()
+		inline, httpResp, err := r.client.NetworksApi.CreateNetworkGroupPolicy(ctx, plan.NetworkId.ValueString()).CreateNetworkGroupPolicyRequest(groupPolicy).Execute()
+		return inline, httpResp, err
 	}
 
 	// Use retryOn4xx for the API call as the meraki API backend returns HTTP 400 messages as a result of collision issues with rapid creation of postgres GroupPolicyIds.
@@ -2061,7 +2063,7 @@ func (r *NetworksGroupPolicyResource) Create(ctx context.Context, req resource.C
 		"groupPolicyId": createdPolicy["groupPolicyId"],
 	})
 
-	diags = updateGroupPolicyResourceState(ctx, &plan, createdPolicy)
+	diags = updateGroupPolicyResourceState(ctx, &plan, httpResp)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -2094,7 +2096,7 @@ func (r *NetworksGroupPolicyResource) Read(ctx context.Context, req resource.Rea
 		"groupPolicyId": state.GroupPolicyId.ValueString(),
 	})
 
-	readPolicy, httpResp, err := r.client.NetworksApi.GetNetworkGroupPolicy(ctx, state.NetworkId.ValueString(), state.GroupPolicyId.ValueString()).Execute()
+	_, httpResp, err := r.client.NetworksApi.GetNetworkGroupPolicy(ctx, state.NetworkId.ValueString(), state.GroupPolicyId.ValueString()).Execute()
 	if err != nil {
 		var responseBody string
 		if httpResp != nil && httpResp.Body != nil {
@@ -2123,7 +2125,7 @@ func (r *NetworksGroupPolicyResource) Read(ctx context.Context, req resource.Rea
 	})
 
 	// Update the state with the new state
-	diags = updateGroupPolicyResourceState(ctx, &state, readPolicy)
+	diags = updateGroupPolicyResourceState(ctx, &state, httpResp)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -2212,7 +2214,7 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 	})
 
 	// Update the state with the new plan
-	diags = updateGroupPolicyResourceState(ctx, &plan, updatePolicy)
+	diags = updateGroupPolicyResourceState(ctx, &plan, httpResp)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -2304,3 +2306,6 @@ func (r *NetworksGroupPolicyResource) ImportState(ctx context.Context, req resou
 		return
 	}
 }
+
+
+*/

@@ -894,6 +894,7 @@ func NetworksWirelessSsidStateRadiusAccountingServers(input []openApiClient.GetN
 func NetworksWirelessSsidStateDot11w(rawResp map[string]interface{}) (types.Object, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	var dot11w Dot11w
+
 	dot11wAttrs := map[string]attr.Type{
 		"enabled":  types.BoolType,
 		"required": types.BoolType,

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"io"
 	"net/http"
@@ -201,6 +202,7 @@ func (d *OrganizationsAdminsDataSource) Configure(ctx context.Context, req datas
 
 func (d *OrganizationsAdminsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data OrganizationsAdminsDataSourceModel
+	var diags diag.Diagnostics
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
@@ -213,12 +215,17 @@ func (d *OrganizationsAdminsDataSource) Read(ctx context.Context, req datasource
 	retryDelay := time.Duration(d.client.GetConfig().Retry4xxErrorWaitTime)
 
 	// usage of CustomHttpRequestRetry with a slice of strongly typed structs
-	apiCallSlice := func() ([]openApiClient.GetOrganizationAdmins200ResponseInner, *http.Response, error) {
-		return d.client.AdminsApi.GetOrganizationAdmins(context.Background(), data.OrgId.ValueString()).Execute()
+	apiCallSlice := func() ([]openApiClient.GetOrganizationAdmins200ResponseInner, *http.Response, error, diag.Diagnostics) {
+		inline, httpResp, err := d.client.AdminsApi.GetOrganizationAdmins(context.Background(), data.OrgId.ValueString()).Execute()
+		return inline, httpResp, err, diags
 	}
 
-	resultSlice, httpResp, errSlice := tools.CustomHttpRequestRetryStronglyTyped(ctx, maxRetries, retryDelay, apiCallSlice)
+	resultSlice, httpResp, errSlice, tfDiag := tools.CustomHttpRequestRetryStronglyTyped(ctx, maxRetries, retryDelay, apiCallSlice)
 	if errSlice != nil {
+
+		if tfDiag.HasError() {
+
+		}
 		fmt.Printf("Error creating group policy: %s\n", errSlice)
 		if httpResp != nil {
 			var responseBody string

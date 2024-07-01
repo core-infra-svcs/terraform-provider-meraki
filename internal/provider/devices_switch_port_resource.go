@@ -343,9 +343,9 @@ func (r *DevicesSwitchPortResource) Create(ctx context.Context, req resource.Cre
 		return
 	}
 
-	payload, diag := DevicesSwitchPortResourcePayload(context.Background(), data)
-	if diag.HasError() {
-		resp.Diagnostics.AddError("Resource Payload Error", fmt.Sprintf("\n%v", diag))
+	payload, diags := DevicesSwitchPortResourcePayload(context.Background(), data)
+	if diags.HasError() {
+		resp.Diagnostics.AddError("Resource Payload Error", fmt.Sprintf("\n%v", diags))
 		return
 	}
 
@@ -354,7 +354,8 @@ func (r *DevicesSwitchPortResource) Create(ctx context.Context, req resource.Cre
 
 	// API call function to be passed to retryOn4xx
 	apiCall := func() (*openApiClient.GetDeviceSwitchPorts200ResponseInner, *http.Response, error) {
-		return r.client.SwitchApi.UpdateDeviceSwitchPort(context.Background(), data.Serial.ValueString(), data.PortId.ValueString()).UpdateDeviceSwitchPortRequest(payload).Execute()
+		inline, httpResp, err := r.client.SwitchApi.UpdateDeviceSwitchPort(context.Background(), data.Serial.ValueString(), data.PortId.ValueString()).UpdateDeviceSwitchPortRequest(payload).Execute()
+		return inline, httpResp, err
 	}
 
 	apiResp, httpResp, err := tools.CustomHttpRequestRetry(ctx, maxRetries, retryDelay, apiCall)
@@ -407,9 +408,9 @@ func (r *DevicesSwitchPortResource) Create(ctx context.Context, req resource.Cre
 		return
 	}
 
-	data, diag = DevicesSwitchPortResourceResponse(ctx, apiResp, data)
-	if diag.HasError() {
-		resp.Diagnostics.AddError("Resource Response Error", fmt.Sprintf("\n%v", diag))
+	data, diags = DevicesSwitchPortResourceResponse(ctx, apiResp, data)
+	if diags.HasError() {
+		resp.Diagnostics.AddError("Resource Response Error", fmt.Sprintf("\n%v", diags))
 		return
 	}
 
@@ -424,7 +425,7 @@ func (r *DevicesSwitchPortResource) Create(ctx context.Context, req resource.Cre
 // It takes a ReadRequest and returns a ReadResponse with the current state of the resource or an error.
 func (r *DevicesSwitchPortResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var data *DevicesSwitchPortResourceModel
-
+	var diags diag.Diagnostics
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
@@ -436,12 +437,18 @@ func (r *DevicesSwitchPortResource) Read(ctx context.Context, req resource.ReadR
 	retryDelay := time.Duration(r.client.GetConfig().Retry4xxErrorWaitTime)
 
 	// usage of CustomHttpRequestRetry with a strongly typed struct
-	apiCall := func() (*openApiClient.GetDeviceSwitchPorts200ResponseInner, *http.Response, error) {
-		return r.client.SwitchApi.GetDeviceSwitchPort(ctx, data.Serial.ValueString(), data.PortId.ValueString()).Execute()
+	apiCall := func() (*openApiClient.GetDeviceSwitchPorts200ResponseInner, *http.Response, error, diag.Diagnostics) {
+		inline, httpResp, err := r.client.SwitchApi.GetDeviceSwitchPort(ctx, data.Serial.ValueString(), data.PortId.ValueString()).Execute()
+
+		return inline, httpResp, err, diags
 	}
 
-	inlineResp, httpResp, err := tools.CustomHttpRequestRetryStronglyTyped(ctx, maxRetries, retryDelay, apiCall)
+	inlineResp, httpResp, err, tfDiags := tools.CustomHttpRequestRetryStronglyTyped(ctx, maxRetries, retryDelay, apiCall)
 	if err != nil {
+
+		if tfDiags.HasError() {
+
+		}
 		fmt.Printf("Error reading device switch port: %s\n", err)
 		if httpResp != nil {
 			var responseBody string
@@ -469,7 +476,7 @@ func (r *DevicesSwitchPortResource) Read(ctx context.Context, req resource.ReadR
 	}
 
 	// Use typedApiResp with the correct type for further processing
-	data, diags := DevicesSwitchPortResourceResponse(ctx, inlineResp, data)
+	data, diags = DevicesSwitchPortResourceResponse(ctx, inlineResp, data)
 	if diags.HasError() {
 		resp.Diagnostics.AddError("Resource Response Error", fmt.Sprintf("\n%v", diags))
 		return
@@ -506,7 +513,8 @@ func (r *DevicesSwitchPortResource) Update(ctx context.Context, req resource.Upd
 
 	// API call function to be passed to retryOn4xx
 	apiCall := func() (*openApiClient.GetDeviceSwitchPorts200ResponseInner, *http.Response, error) {
-		return r.client.SwitchApi.UpdateDeviceSwitchPort(context.Background(), data.Serial.ValueString(), data.PortId.ValueString()).UpdateDeviceSwitchPortRequest(payload).Execute()
+		inline, httpResp, err := r.client.SwitchApi.UpdateDeviceSwitchPort(context.Background(), data.Serial.ValueString(), data.PortId.ValueString()).UpdateDeviceSwitchPortRequest(payload).Execute()
+		return inline, httpResp, err
 	}
 
 	inlineResp, httpResp, err := tools.CustomHttpRequestRetry(ctx, maxRetries, retryDelay, apiCall)
@@ -570,7 +578,6 @@ func (r *DevicesSwitchPortResource) Update(ctx context.Context, req resource.Upd
 func (r *DevicesSwitchPortResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 
 	var data *DevicesSwitchPortResourceModel
-
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	// If there was an error reading the state, return early.
@@ -595,7 +602,8 @@ func (r *DevicesSwitchPortResource) Delete(ctx context.Context, req resource.Del
 
 	// API call function to be passed to retryOn4xx
 	apiCall := func() (*openApiClient.GetDeviceSwitchPorts200ResponseInner, *http.Response, error) {
-		return r.client.SwitchApi.UpdateDeviceSwitchPort(context.Background(), data.Serial.ValueString(), data.PortId.ValueString()).UpdateDeviceSwitchPortRequest(payload).Execute()
+		inline, httpResp, err := r.client.SwitchApi.UpdateDeviceSwitchPort(context.Background(), data.Serial.ValueString(), data.PortId.ValueString()).UpdateDeviceSwitchPortRequest(payload).Execute()
+		return inline, httpResp, err
 	}
 
 	_, httpResp, err := tools.CustomHttpRequestRetry(ctx, maxRetries, retryDelay, apiCall)
