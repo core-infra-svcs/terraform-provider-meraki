@@ -288,6 +288,10 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 			fmt.Sprintf("Could not create group policy, unexpected error: %s", err),
 		)
 
+		if tfDiags.HasError() {
+			fmt.Printf(": %s\n", tfDiags.Errors())
+		}
+
 		if httpResp != nil {
 			var responseBody string
 			if httpResp != nil && httpResp.Body != nil {
@@ -309,9 +313,6 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 		return
 	}
 
-	if tfDiags.HasError() {
-
-	}
 	// Check for API success response code
 	if httpResp.StatusCode != 201 {
 		resp.Diagnostics.AddError(
@@ -505,6 +506,7 @@ func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.Up
 		)
 
 		if tfDiags.HasError() {
+			fmt.Printf(": %s\n", tfDiags.Errors())
 		}
 
 		if httpResp != nil {

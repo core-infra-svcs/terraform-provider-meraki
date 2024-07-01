@@ -335,6 +335,7 @@ func (d *DevicesSwitchPortsStatusesDataSource) Read(ctx context.Context, req dat
 	if errSlice != nil {
 
 		if tfDiags.HasError() {
+			fmt.Printf(": %s\n", tfDiags.Errors())
 		}
 
 		fmt.Printf("Error creating group policy: %s\n", errSlice)

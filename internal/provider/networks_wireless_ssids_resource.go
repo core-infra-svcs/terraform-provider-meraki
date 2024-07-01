@@ -1038,6 +1038,9 @@ func NetworksWirelessSsidStateLocalRadius(rawResp map[string]interface{}) (types
 
 	// cacheTimeout
 	cacheTimeout, err := utils.ExtractInt64Attr(rawResp, "cacheTimeOut")
+	if diags.HasError() {
+		diags.Append(err...)
+	}
 	localRadius.CacheTimeout = cacheTimeout
 
 	// Password Authentication

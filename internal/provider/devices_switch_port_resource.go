@@ -447,7 +447,7 @@ func (r *DevicesSwitchPortResource) Read(ctx context.Context, req resource.ReadR
 	if err != nil {
 
 		if tfDiags.HasError() {
-
+			fmt.Printf(": %s\n", tfDiags.Errors())
 		}
 		fmt.Printf("Error reading device switch port: %s\n", err)
 		if httpResp != nil {

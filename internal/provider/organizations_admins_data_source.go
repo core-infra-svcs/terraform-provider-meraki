@@ -224,7 +224,7 @@ func (d *OrganizationsAdminsDataSource) Read(ctx context.Context, req datasource
 	if errSlice != nil {
 
 		if tfDiag.HasError() {
-
+			fmt.Printf(": %s\n", tfDiag.Errors())
 		}
 		fmt.Printf("Error creating group policy: %s\n", errSlice)
 		if httpResp != nil {
