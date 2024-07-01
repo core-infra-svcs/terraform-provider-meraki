@@ -2,12 +2,38 @@ package tools
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"time"
 )
+
+// ExtractResponseToMap reads an HTTP response body and unmarshals the JSON content into a map[string]interface{}.
+// It returns the map along with any error that occurs during the read or unmarshal process.
+func ExtractResponseToMap(resp *http.Response) (map[string]interface{}, error) {
+	if resp == nil {
+		return nil, fmt.Errorf("received nil http response")
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("error reading response body: %v", err)
+	}
+
+	var result map[string]interface{}
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshaling response to map: %v", err)
+	}
+
+	return result, nil
+}
 
 // HttpDiagnostics - responsible for gathering and logging HTTP driven events
 func HttpDiagnostics(httpResp *http.Response) string {
@@ -42,37 +68,109 @@ func HttpDiagnostics(httpResp *http.Response) string {
 	}
 
 	return "No HTTP Response to Diagnose (Check Internet Connectivity)"
+
+}
+
+// NewHttpDiagnostics - responsible for gathering and logging HTTP driven events
+func NewHttpDiagnostics(httpResp *http.Response, bodyContent string) string {
+	if httpResp == nil {
+		return "No HTTP Response to Diagnose (Check Internet Connectivity)"
+	}
+
+	sanitizedHeaders := make(http.Header)
+	for key, values := range httpResp.Request.Header {
+		if key == "Authorization" {
+			sanitizedHeaders[key] = []string{"**REDACTED**"}
+		} else {
+			sanitizedHeaders[key] = values
+		}
+	}
+
+	return fmt.Sprintf("HTTP Method: %s\nRequest URL: %s\nRequest Headers: %v\nStatus Code: %d\nResponse Body: %s",
+		httpResp.Request.Method, httpResp.Request.URL, sanitizedHeaders, httpResp.StatusCode, bodyContent)
+}
+
+// ReadAndCloseBody Define a helper function to read and close the HTTP response body
+func ReadAndCloseBody(httpResp *http.Response) (string, error) {
+	if httpResp == nil {
+		return "", nil
+	}
+	bodyBytes, err := io.ReadAll(httpResp.Body)
+	if err != nil {
+		return "", fmt.Errorf("failed to read response body: %v", err)
+	}
+	httpResp.Body.Close() // Ensure the body is closed after reading
+	return string(bodyBytes), nil
 }
 
 // CustomHttpRequestRetry Helper function for retrying API calls. This is to recover from backend congestion errors which manifest as 4XX response codes
 func CustomHttpRequestRetry[T any](ctx context.Context, maxRetries int, retryDelay time.Duration, apiCall func() (T, *http.Response, error)) (T, *http.Response, error) {
-	var zero T
-	retries := 0
-	for retries < maxRetries {
+	var result T
+	var lastResponse *http.Response
+	var lastError error
+
+	for i := 0; i < maxRetries; i++ {
 		result, httpResp, err := apiCall()
-		if err == nil {
+		if httpResp.StatusCode >= 200 && httpResp.StatusCode <= 299 {
 			return result, httpResp, nil
 		}
-		if httpResp != nil && httpResp.StatusCode >= 400 && httpResp.StatusCode < 501 {
-			fmt.Println("Retrying API call due to HTTP response error", map[string]interface{}{
-				"maxRetries":        maxRetries,
-				"retryDelay":        retryDelay,
-				"remainingAttempts": maxRetries - retries - 1,
-				"httpStatusCode":    httpResp.StatusCode,
-				"httpBody":          httpResp.Body,
-			})
+
+		// Log err message before retry
+		if err != nil {
+			if httpResp != nil {
+				responseBody, _ := io.ReadAll(httpResp.Body) // Read and close the body to free up the connection
+				httpResp.Body.Close()
+				tflog.Warn(ctx, fmt.Sprintf("Retry %d/%d", i+1, maxRetries))
+				tflog.Trace(ctx, fmt.Sprintf("API call failed with status %d: %s", httpResp.StatusCode, responseBody))
+			}
+		}
+
+		lastResponse = httpResp
+		lastError = err
+
+		if i < maxRetries-1 {
 			time.Sleep(retryDelay)
-			retries++
 		} else {
-			return zero, httpResp, err
+			return result, httpResp, lastError
 		}
 	}
-	return zero, nil, fmt.Errorf("max retries reached")
+
+	return result, lastResponse, fmt.Errorf("after %d retries, last error: %w", maxRetries, lastError)
 }
 
 // CustomHttpRequestRetryStronglyTyped is a generic function that leverages CustomHttpRequestRetry
-func CustomHttpRequestRetryStronglyTyped[T any](ctx context.Context, maxRetries int, retryDelay time.Duration, apiCall func() (T, *http.Response, error)) (T, *http.Response, error) {
-	return CustomHttpRequestRetry(ctx, maxRetries, retryDelay, func() (T, *http.Response, error) {
-		return apiCall()
-	})
+func CustomHttpRequestRetryStronglyTyped[T any](ctx context.Context, maxRetries int, retryDelay time.Duration, apiCall func() (T, *http.Response, error, diag.Diagnostics)) (T, *http.Response, error, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	var result T
+	var lastResponse *http.Response
+	var lastError error
+
+	for i := 0; i < maxRetries; i++ {
+		result, httpResp, err, newDiags := apiCall()
+		diags = append(diags, newDiags...) // Accumulate diagnostics from each attempt
+
+		if httpResp.StatusCode >= 200 && httpResp.StatusCode <= 299 {
+			return result, httpResp, nil, diags
+		}
+
+		// Append diagnostics about retry
+		if httpResp != nil {
+			responseBody, _ := io.ReadAll(httpResp.Body) // Read and close the body to free up the connection
+			httpResp.Body.Close()
+			diags = append(diags, diag.NewErrorDiagnostic(
+				fmt.Sprintf("Retry %d/%d", i+1, maxRetries),
+				fmt.Sprintf("API call failed with status %d: %s", httpResp.StatusCode, responseBody),
+			))
+		}
+
+		lastResponse = httpResp
+		lastError = err
+
+		if i < maxRetries-1 {
+			time.Sleep(retryDelay)
+		}
+	}
+
+	// Return the last error and response if all retries are exhausted
+	return result, lastResponse, fmt.Errorf("after %d retries, last error: %w", maxRetries, lastError), diags
 }

@@ -36,11 +36,29 @@ func ExtractInt64Attr(hashMap map[string]interface{}, key string) (types.Int64, 
 	return types.Int64Null(), diags
 }
 
+// ExtractInt32Attr Extracts an int64 attribute from a hashmap
+func ExtractInt32Attr(hashMap map[string]interface{}, key string) (types.Int64, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	if value, ok := hashMap[key].(int32); ok {
+		return types.Int64Value(int64(value)), diags
+	}
+	return types.Int64Null(), diags
+}
+
 // ExtractFloat64Attr Extracts a float attribute from a hashmap
 func ExtractFloat64Attr(hashMap map[string]interface{}, key string) (types.Float64, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	if value, ok := hashMap[key].(float64); ok {
 		return types.Float64Value(value), diags
+	}
+	return types.Float64Null(), diags
+}
+
+// ExtractFloat32Attr Extracts a float attribute from a hashmap
+func ExtractFloat32Attr(hashMap map[string]interface{}, key string) (types.Float64, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	if value, ok := hashMap[key].(float32); ok {
+		return types.Float64Value(float64(value)), diags
 	}
 	return types.Float64Null(), diags
 }
@@ -143,8 +161,8 @@ func ExtractStringsFromList(array types.List) ([]string, diag.Diagnostics) {
 	return result, diags
 }
 
-// ExtractStringSliceAttr extracts a slice of string attributes from a hashmap
-func ExtractStringSliceAttr(hashMap map[string]interface{}, key string) (types.List, diag.Diagnostics) {
+// ExtractListStringAttr extracts a slice of string attributes from a hashmap
+func ExtractListStringAttr(hashMap map[string]interface{}, key string) (types.List, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	if value, ok := hashMap[key].([]interface{}); ok {
 		var stringValues []attr.Value
