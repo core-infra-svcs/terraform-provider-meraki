@@ -10,7 +10,7 @@ import (
 
 func TestAccNetworksWirelessSsidsResource(t *testing.T) {
 	orgId := os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")
-	ssids := 1 // Number of SSIDs to create, Meraki max is 15
+	ssids := 10 // Number of SSIDs to create, Meraki max is 15
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
@@ -34,30 +34,21 @@ func TestAccNetworksWirelessSsidsResource(t *testing.T) {
 
 			// Create and Read testing
 			{
-				Config: testAccNetworksWirelessSsidsResourceConfigBasic(),
+				Config: testAccNetworksWirelessSsidsResourceConfigBasic,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test", "number", "0"),
 					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test", "name", "My SSID"),
 					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test", "enabled", "true"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test", "auth_mode", "open"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test", "adult_content_filtering_enabled", "false"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test", "availability_tags.#", "0"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test", "available_on_all_aps", "true"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test", "band_selection", "Dual band operation"),
-					//resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test", "dns_rewrite.dns_custom_nameservers.#", "0"),
-					//resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test", "dns_rewrite.enabled", "false"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test", "ip_assignment_mode", "Bridge mode"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test", "mandatory_dhcp_enabled", "false"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test", "min_bit_rate", "1"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test", "per_client_bandwidth_limit_down", "0"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test", "per_client_bandwidth_limit_up", "0"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test", "per_ssid_bandwidth_limit_down", "0"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test", "per_ssid_bandwidth_limit_up", "0"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test", "speed_burst.enabled", "false"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test", "splash_page", "Click-through splash page"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test", "ssid_admin_accessible", "true"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test", "visible", "true"),
+					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test", "auth_mode", "psk"),
 				),
+			},
+
+			// Import test
+			{
+				ResourceName:            "meraki_networks_wireless_ssids.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{},
 			},
 
 			// Test the creation of multiple SSIDs.
@@ -73,37 +64,12 @@ func TestAccNetworksWirelessSsidsResource(t *testing.T) {
 							resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("SSID %d", i)),
 							resource.TestCheckResourceAttr(resourceName, "number", expectedNumber),
 							resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
-							resource.TestCheckResourceAttr(resourceName, "auth_mode", "open"),
-							resource.TestCheckResourceAttr(resourceName, "adult_content_filtering_enabled", "false"),
-							resource.TestCheckResourceAttr(resourceName, "availability_tags.#", "0"),
-							resource.TestCheckResourceAttr(resourceName, "available_on_all_aps", "true"),
-							resource.TestCheckResourceAttr(resourceName, "band_selection", "Dual band operation"),
-							resource.TestCheckResourceAttr(resourceName, "ip_assignment_mode", "NAT mode"),
-							resource.TestCheckResourceAttr(resourceName, "mandatory_dhcp_enabled", "false"),
-							resource.TestCheckResourceAttr(resourceName, "min_bit_rate", "11"),
-							resource.TestCheckResourceAttr(resourceName, "per_client_bandwidth_limit_down", "0"),
-							resource.TestCheckResourceAttr(resourceName, "per_client_bandwidth_limit_up", "0"),
-							resource.TestCheckResourceAttr(resourceName, "per_ssid_bandwidth_limit_down", "0"),
-							resource.TestCheckResourceAttr(resourceName, "per_ssid_bandwidth_limit_up", "0"),
-							resource.TestCheckResourceAttr(resourceName, "speed_burst.enabled", "false"),
-							resource.TestCheckResourceAttr(resourceName, "splash_page", "None"),
-							resource.TestCheckResourceAttr(resourceName, "ssid_admin_accessible", "false"),
-							resource.TestCheckResourceAttr(resourceName, "visible", "true"),
+							resource.TestCheckResourceAttr(resourceName, "auth_mode", "psk"),
 						)
 					}
 					return resource.ComposeAggregateTestCheckFunc(checks...)(s)
 				},
 			},
-
-			// Import test
-			/*
-				{
-						ResourceName:      "meraki_networks_wireless_ssids.test",
-						ImportState:       true,
-						ImportStateVerify: false,
-						ImportStateId:     "1234567890,0987654321",
-					},
-			*/
 		},
 	})
 }
@@ -123,52 +89,23 @@ resource "meraki_network" "test" {
 `, orgId)
 }
 
-func testAccNetworksWirelessSsidsResourceConfigBasic() string {
-	return `
-
+const testAccNetworksWirelessSsidsResourceConfigBasic = `
 resource "meraki_network" "test" {
-	product_types = ["appliance", "switch", "wireless"]
+  product_types = ["appliance", "switch", "wireless"]
 }
 
 resource "meraki_networks_wireless_ssids" "test" {
 	depends_on = [resource.meraki_network.test]
-    network_id = resource.meraki_network.test.network_id
+	network_id = resource.meraki_network.test.network_id
 	number = 0
-    name = "My SSID"
-    enabled = true
-	splash_page = "Click-through splash page"
-
-	/*
-	auth_mode = "open"
-	gre = {
-		concentrator = {
-			host = "Test Host"
-		}
-		key = 0
-
-	}
-    adult_content_filtering_enabled = false
-    availability_tags = []
-    available_on_all_aps = true
-    band_selection = "Dual band operation"
-    ip_assignment_mode = "NAT mode"
-    mandatory_dhcp_enabled = false
-    min_bit_rate = 11
-    per_client_bandwidth_limit_down = 0
-    per_client_bandwidth_limit_up = 0
-    per_ssid_bandwidth_limit_down = 0
-    per_ssid_bandwidth_limit_up = 0
-    speed_burst = {
-      enabled = false
-    }
-    
-    ssid_admin_accessible = false
-    visible = true
-	*/
-    
+	auth_mode = "psk"
+	enabled = true
+	encryption_mode = "wpa"
+	name = "My SSID"
+	psk = "deadbeef"
+	wpa_encryption_mode = "WPA2 only"	
 }
 `
-}
 
 func testAccNetworksWirelessSsidsResourceConfigMultiplePolicies(orgId string, ssids int) string {
 	config := fmt.Sprintf(`
@@ -184,40 +121,20 @@ resource "meraki_network" "test" {
 
 	// Append each ssid configuration
 	for i := 1; i <= ssids; i++ {
+
 		config += fmt.Sprintf(`
 resource "meraki_networks_wireless_ssids" "test%d" {
-    depends_on = [resource.meraki_network.test]
-    network_id = resource.meraki_network.test.id
+	depends_on = [resource.meraki_network.test]
+	network_id = resource.meraki_network.test.network_id
 	number = %d
-    name = "SSID %d"
+	name = "SSID %d"
+	auth_mode = "psk"
 	enabled = true
-    auth_mode = "open"
-    adult_content_filtering_enabled = false
-    availability_tags = []
-    available_on_all_aps = true
-    band_selection = "Dual band operation"
-	gre = {
-		concentrator = {
-			host = "Test Host"
-		}
-		key = 0
-	}
-    ip_assignment_mode = "NAT mode"
-    mandatory_dhcp_enabled = false
-    min_bit_rate = 11
-    per_client_bandwidth_limit_down = 0
-    per_client_bandwidth_limit_up = 0
-    per_ssid_bandwidth_limit_down = 0
-    per_ssid_bandwidth_limit_up = 0
-    speed_burst = {
-      enabled = false
-    }
-    splash_page = "None"
-    ssid_admin_accessible = false
-    visible = true
+	encryption_mode = "wpa"
+	psk = "deadbeef"
+	wpa_encryption_mode = "WPA2 only"
 }
 `, i, i-1, i)
 	}
-
 	return config
 }
