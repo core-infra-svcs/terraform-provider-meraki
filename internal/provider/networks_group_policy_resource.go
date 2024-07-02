@@ -1284,7 +1284,7 @@ func updateGroupPolicyResourceStateFirewallAndTrafficShapingRules(ctx context.Co
 		firewallAndTrafficShapingRules.Settings = settings
 
 		// l3FirewallRules
-		var l3FirewallRules []GroupPolicyResourceModelL3FirewallRule
+		var l3FirewallRules []types.Object
 		if l3frs, l3frsOk := ftsr["l3FirewallRules"].([]interface{}); l3frsOk {
 			for _, l3fr := range l3frs {
 				if l3, l3Ok := l3fr.(map[string]interface{}); l3Ok {
@@ -1320,7 +1320,12 @@ func updateGroupPolicyResourceStateFirewallAndTrafficShapingRules(ctx context.Co
 						diags.Append(err...)
 					}
 
-					l3FirewallRules = append(l3FirewallRules, rule)
+					ruleObj, err := types.ObjectValueFrom(ctx, l3FirewallRulesAttr, rule)
+					if err.HasError() {
+						diags.Append(err...)
+					}
+
+					l3FirewallRules = append(l3FirewallRules, ruleObj)
 				}
 			}
 
@@ -1337,7 +1342,7 @@ func updateGroupPolicyResourceStateFirewallAndTrafficShapingRules(ctx context.Co
 		}
 
 		// l7FirewallRules
-		var l7FirewallRules []GroupPolicyResourceModelL7FirewallRule
+		var l7FirewallRules []types.Object
 		if l7frs, l7frsOk := ftsr["l7FirewallRules"].([]interface{}); l7frsOk {
 			for _, l7fr := range l7frs {
 				if l7, l7Ok := l7fr.(map[string]interface{}); l7Ok {
@@ -1361,7 +1366,12 @@ func updateGroupPolicyResourceStateFirewallAndTrafficShapingRules(ctx context.Co
 						diags.Append(err...)
 					}
 
-					l7FirewallRules = append(l7FirewallRules, rule)
+					ruleObj, err := types.ObjectValueFrom(ctx, l7FirewallRulesAttr, rule)
+					if err.HasError() {
+						diags.Append(err...)
+					}
+
+					l7FirewallRules = append(l7FirewallRules, ruleObj)
 				}
 
 				l7FirewallRulesList, l7FirewallRulesListErr := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: l7FirewallRulesAttr}, l7FirewallRules)
@@ -1372,12 +1382,12 @@ func updateGroupPolicyResourceStateFirewallAndTrafficShapingRules(ctx context.Co
 				firewallAndTrafficShapingRules.L7FirewallRules = l7FirewallRulesList
 			}
 		} else {
-			l7FirewallRulesNull := types.ListNull(types.ListType{ElemType: types.ObjectType{AttrTypes: l7FirewallRulesAttr}})
+			l7FirewallRulesNull := types.ListNull(types.ObjectType{AttrTypes: l7FirewallRulesAttr})
 			firewallAndTrafficShapingRules.L7FirewallRules = l7FirewallRulesNull
 		}
 
 		// trafficShapingRules
-		var trafficShapingRules []GroupPolicyResourceModelTrafficShapingRule
+		var trafficShapingRules []types.Object
 		if tsRs, tsRsOk := ftsr["trafficShapingRules"].([]interface{}); tsRsOk {
 
 			for _, tsr := range tsRs {
@@ -1528,7 +1538,12 @@ func updateGroupPolicyResourceStateFirewallAndTrafficShapingRules(ctx context.Co
 
 					}
 
-					trafficShapingRules = append(trafficShapingRules, trafficShapingRule)
+					trafficShapingRuleObj, err := types.ObjectValueFrom(ctx, trafficShapingAttrs, trafficShapingRule)
+					if err.HasError() {
+						diags.Append(err...)
+					}
+
+					trafficShapingRules = append(trafficShapingRules, trafficShapingRuleObj)
 				}
 			}
 
@@ -1834,11 +1849,19 @@ func updateGroupPolicyResourceState(ctx context.Context, state *GroupPolicyResou
 
 	// GroupPolicyId
 	if state.GroupPolicyId.IsNull() || state.GroupPolicyId.IsUnknown() {
-		state.GroupPolicyId, diags = utils.ExtractStringAttr(data, "groupPolicyId")
+		groupPolicyId, diags := utils.ExtractStringAttr(data, "groupPolicyId")
 		if diags.HasError() {
-			diags.AddError("groupPolicyId Attribute", "")
 			return diags
 		}
+
+		if groupPolicyId.IsNull() || groupPolicyId.IsUnknown() {
+			tflog.Error(ctx, fmt.Sprintf("GroupPolicyId Missing:%s", groupPolicyId))
+			diags.AddError("GroupPolicyId Missing", fmt.Sprintf("GroupPolicyId Missing:%s", groupPolicyId))
+			diags.AddError("GroupPolicyId Missing", fmt.Sprintf("HTTPRESP: \n%s", data))
+			return diags
+		}
+
+		state.GroupPolicyId = groupPolicyId
 	}
 
 	// check for NetworkId
