@@ -270,10 +270,6 @@ resource "meraki_networks_group_policy" "test" {
 
     bandwidth = {
         settings = "network default"
-        bandwidth_limits = {
-            limit_up = null
-            limit_down = null
-        }
     }
 
     bonjour_forwarding = {
