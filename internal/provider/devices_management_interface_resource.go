@@ -137,13 +137,6 @@ func DevicesManagementInterfaceStateWan(rawResp map[string]interface{}, wanKey s
 		}
 		wan.StaticDns = staticDns
 
-		//// vlan
-		//vlan, err := utils.ExtractInt64Attr(d, "vlan")
-		//if err != nil {
-		//	diags.Append(err...)
-		//}
-		//wan.Vlan = vlan
-
 		// vlan
 		if vlanValue, exists := d["vlan"]; exists && vlanValue != nil {
 			switch v := vlanValue.(type) {
@@ -220,8 +213,8 @@ func updateDevicesManagementInterfaceResourceState(ctx context.Context, state *D
 		return diags
 	}
 
-	// Log the state after updating
-	tflog.Debug(ctx, "State after update", map[string]interface{}{
+	// Log the updated state
+	tflog.Debug(ctx, "Updated state", map[string]interface{}{
 		"state": state,
 	})
 
@@ -424,7 +417,7 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Create(ctx co
 			wan2.Vlan = &vlan
 		}
 
-		tflog.Debug(ctx, "Wan2 payload before API call", map[string]interface{}{
+		tflog.Debug(ctx, "Wan2 payload", map[string]interface{}{
 			"wan2": wan2,
 		})
 
@@ -704,6 +697,12 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Update(ctx co
 	}
 
 	// Write logs using the tflog package
+	tflog.Debug(ctx, "Updated state after API call", map[string]interface{}{
+		"data": data,
+	})
+
+	diags = resp.State.Set(ctx, &data)
+	resp.Diagnostics.Append(diags...)
 	tflog.Trace(ctx, "updated resource")
 }
 
