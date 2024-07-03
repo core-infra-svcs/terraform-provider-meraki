@@ -314,14 +314,11 @@ func (r *DevicesManagementInterfaceDatasource) Configure(ctx context.Context, re
 func (r *DevicesManagementInterfaceDatasource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data DevicesManagementInterfaceDatasourceModel
 
-	// Read Terraform prior state data into the model
 	diags := req.Config.Get(ctx, &data)
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
-
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	//inlineResp, httpResp, err := r.client.DevicesApi.GetDeviceManagementInterface(context.Background(), data.Serial.ValueString()).Execute()
 
 	maxRetries := r.client.GetConfig().MaximumRetries
