@@ -1974,10 +1974,11 @@ func (r *NetworksGroupPolicyResource) Create(ctx context.Context, req resource.C
 
 	// API call function to be passed to retryOn4xx
 	apiCall := func() (map[string]interface{}, *http.Response, error) {
+		time.Sleep(retryDelay * time.Millisecond)
+
 		inline, httpResp, err := r.client.NetworksApi.CreateNetworkGroupPolicy(ctx, plan.NetworkId.ValueString()).CreateNetworkGroupPolicyRequest(groupPolicy).Execute()
 		return inline, httpResp, err
 	}
-
 	// Use retryOn4xx for the API call as the meraki API backend returns HTTP 400 messages as a result of collision issues with rapid creation of postgres GroupPolicyIds.
 	inlineResp, httpResp, err := tools.CustomHttpRequestRetry(ctx, maxRetries, retryDelay, apiCall)
 	if err != nil {
