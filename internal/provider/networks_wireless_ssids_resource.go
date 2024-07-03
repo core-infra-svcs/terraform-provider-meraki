@@ -843,6 +843,15 @@ func NetworksWirelessSsidStateRadiusServers(input []openApiClient.GetNetworkWire
 		radiusServers = append(radiusServers, radiusServerObject)
 	}
 
+	// returns a populated or empty list instead of a null value
+	if radiusServers == nil {
+		radiusServersList, err := types.ListValueFrom(context.Background(), types.ObjectType{AttrTypes: radiusServerAttr}, []attr.Value{})
+		if err.HasError() {
+			diags.Append(err...)
+		}
+		return radiusServersList, diags
+	}
+
 	radiusServersList, err := types.ListValueFrom(context.Background(), types.ObjectType{AttrTypes: radiusServerAttr}, radiusServers)
 	if err.HasError() {
 		diags.Append(err...)
@@ -881,6 +890,15 @@ func NetworksWirelessSsidStateRadiusAccountingServers(input []openApiClient.GetN
 		}
 
 		radiusServers = append(radiusServers, radiusServerObject)
+	}
+
+	// returns a populated or empty list instead of a null value
+	if radiusServers == nil {
+		radiusServersList, err := types.ListValueFrom(context.Background(), types.ObjectType{AttrTypes: radiusServerAttr}, []attr.Value{})
+		if err.HasError() {
+			diags.Append(err...)
+		}
+		return radiusServersList, diags
 	}
 
 	radiusServersList, err := types.ListValueFrom(context.Background(), types.ObjectType{AttrTypes: radiusServerAttr}, radiusServers)
@@ -985,11 +1003,20 @@ func NetworksWirelessSsidStateOauth(rawResp map[string]interface{}) (types.Objec
 				allowedDomains = append(allowedDomains, types.StringValue(domain))
 			}
 
-			allowedDomainsObj, err := types.ListValueFrom(context.Background(), types.StringType, allowedDomains)
-			if err.HasError() {
-				diags.Append(err...)
+			// returns a populated or empty list instead of a null value
+			if allowedDomains != nil {
+				allowedDomainsObj, err := types.ListValueFrom(context.Background(), types.StringType, allowedDomains)
+				if err.HasError() {
+					diags.Append(err...)
+				}
+				oauth.AllowedDomains = allowedDomainsObj
+			} else {
+				allowedDomainsObj, err := types.ListValueFrom(context.Background(), types.StringType, []attr.Value{})
+				if err.HasError() {
+					diags.Append(err...)
+				}
+				oauth.AllowedDomains = allowedDomainsObj
 			}
-			oauth.AllowedDomains = allowedDomainsObj
 
 		} else {
 			allowedDomainsObjNull := types.ListNull(types.StringType)
@@ -1281,13 +1308,23 @@ func NetworksWirelessSsidStateLdap(httpResp map[string]interface{}) (types.Objec
 				serversArray = append(serversArray, serverObj)
 			}
 
-			// servers Array
-			serversArrayObj, err := types.ListValueFrom(context.Background(), types.ObjectType{AttrTypes: serverAttr}, serversArray)
-			if err.HasError() {
-				diags.AddError("servers array Attribute", fmt.Sprintf("%s", err.Errors()))
-			}
+			// returns a populated or empty list instead of a null value
+			if serversArray != nil {
+				// servers Array
+				serversArrayObj, err := types.ListValueFrom(context.Background(), types.ObjectType{AttrTypes: serverAttr}, serversArray)
+				if err.HasError() {
+					diags.AddError("servers array Attribute", fmt.Sprintf("%s", err.Errors()))
+				}
 
-			ldap.Servers = serversArrayObj
+				ldap.Servers = serversArrayObj
+			} else {
+				serversArrayObj, err := types.ListValueFrom(context.Background(), types.ObjectType{AttrTypes: serverAttr}, []attr.Value{})
+				if err.HasError() {
+					diags.AddError("servers array Attribute", fmt.Sprintf("%s", err.Errors()))
+				}
+
+				ldap.Servers = serversArrayObj
+			}
 
 		} else {
 			lisObjNull := types.ListNull(types.ObjectType{AttrTypes: serverAttr})
@@ -1363,13 +1400,24 @@ func NetworksWirelessSsidStateActiveDirectory(httpResp map[string]interface{}) (
 				serversArray = append(serversArray, serverObj)
 			}
 
-			// servers Array
-			serversArrayObj, err := types.ListValueFrom(context.Background(), types.ObjectType{AttrTypes: serverAttr}, serversArray)
-			if err.HasError() {
-				diags.AddError("servers array Attribute", fmt.Sprintf("%s", err.Errors()))
-			}
+			// returns a populated or empty list instead of a null value
+			if serversArray != nil {
+				// servers Array
+				serversArrayObj, err := types.ListValueFrom(context.Background(), types.ObjectType{AttrTypes: serverAttr}, serversArray)
+				if err.HasError() {
+					diags.AddError("servers array Attribute", fmt.Sprintf("%s", err.Errors()))
+				}
 
-			activeDirectory.Servers = serversArrayObj
+				activeDirectory.Servers = serversArrayObj
+			} else {
+				// servers Array
+				serversArrayObj, err := types.ListValueFrom(context.Background(), types.ObjectType{AttrTypes: serverAttr}, []attr.Value{})
+				if err.HasError() {
+					diags.AddError("servers array Attribute", fmt.Sprintf("%s", err.Errors()))
+				}
+
+				activeDirectory.Servers = serversArrayObj
+			}
 
 		} else {
 			lisObjNull := types.ListNull(types.ObjectType{AttrTypes: serverAttr})
@@ -1609,36 +1657,57 @@ func NetworksWirelessSsidStateNamedVlans(httpResp map[string]interface{}) (types
 			}
 			tagging.DefaultVlanName = defaultVlanName
 
+			var byApTagsArray []types.Object
+
 			// ByApTags
-			b, ok := nv["byApTags"].(map[string]interface{})
+			bat, ok := nv["byApTags"].([]interface{})
 			if ok {
-				var byApTags ByApTag
 
-				// tags
-				tags, err := utils.ExtractListStringAttr(b, "tags")
-				if err.HasError() {
-					diags.AddError("tags Attr", fmt.Sprintf("%s", err.Errors()))
+				for _, ba := range bat {
+					if b, ok := ba.(map[string]interface{}); ok {
+						var byApTags ByApTag
+
+						// tags
+						tags, err := utils.ExtractListStringAttr(b, "tags")
+						if err.HasError() {
+							diags.AddError("tags Attr", fmt.Sprintf("%s", err.Errors()))
+						}
+						byApTags.Tags = tags
+
+						// vlanName
+						vlanName, err := utils.ExtractStringAttr(b, "vlanName")
+						if err.HasError() {
+							diags.AddError("vlanName Attr", fmt.Sprintf("%s", err.Errors()))
+						}
+						byApTags.VlanName = vlanName
+
+						byApTagsObj, err := types.ObjectValueFrom(context.Background(), byApTagsAttrs, byApTags)
+						if err.HasError() {
+							diags.AddError("byApTags Object Attr", fmt.Sprintf("%s", err.Errors()))
+						}
+
+						byApTagsArray = append(byApTagsArray, byApTagsObj)
+
+					}
 				}
-				byApTags.Tags = tags
 
-				// vlanName
-				vlanName, err := utils.ExtractStringAttr(b, "vlanName")
-				if err.HasError() {
-					diags.AddError("vlanName Attr", fmt.Sprintf("%s", err.Errors()))
+				// returns a populated or empty list instead of a null value
+				if byApTagsArray != nil {
+					byApTagsObjArray, err := types.ListValueFrom(context.Background(), types.ObjectType{AttrTypes: byApTagsAttrs}, byApTagsArray)
+					if err.HasError() {
+						diags.AddError("byApTags Array Attr", fmt.Sprintf("%s", err.Errors()))
+					}
+
+					tagging.ByApTags = byApTagsObjArray
+				} else {
+					byApTagsObjArray, err := types.ListValueFrom(context.Background(), types.ObjectType{AttrTypes: byApTagsAttrs}, []attr.Value{})
+					if err.HasError() {
+						diags.AddError("byApTags Array Attr", fmt.Sprintf("%s", err.Errors()))
+					}
+
+					tagging.ByApTags = byApTagsObjArray
 				}
-				byApTags.VlanName = vlanName
 
-				byApTagsObj, err := types.ObjectValueFrom(context.Background(), byApTagsAttrs, byApTags)
-				if err.HasError() {
-					diags.AddError("byApTags Object Attr", fmt.Sprintf("%s", err.Errors()))
-				}
-
-				byApTagsArray, err := types.ListValueFrom(context.Background(), types.ObjectType{AttrTypes: byApTagsAttrs}, byApTagsObj)
-				if err.HasError() {
-					diags.AddError("byApTags Array Attr", fmt.Sprintf("%s", err.Errors()))
-				}
-
-				tagging.ByApTags = byApTagsArray
 			} else {
 				byApTagsArrayNull := types.ListNull(types.ObjectType{AttrTypes: byApTagsAttrs})
 				tagging.ByApTags = byApTagsArrayNull
