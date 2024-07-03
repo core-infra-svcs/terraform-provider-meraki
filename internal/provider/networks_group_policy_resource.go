@@ -1099,49 +1099,49 @@ func updateGroupPolicyResourceStateScheduling(httpResp map[string]interface{}) (
 		scheduling.Enabled = enabled
 
 		//    Friday
-		friday, err := updateGroupPolicyResourceStateSchedulingDay(httpResp, "friday")
+		friday, err := updateGroupPolicyResourceStateSchedulingDay(schedulingMap, "friday")
 		if err.HasError() {
 			diags.AddError("friday Attr", fmt.Sprintf("%s", err.Errors()))
 		}
 		scheduling.Friday = friday
 
 		//    Monday
-		monday, err := updateGroupPolicyResourceStateSchedulingDay(httpResp, "monday")
+		monday, err := updateGroupPolicyResourceStateSchedulingDay(schedulingMap, "monday")
 		if err.HasError() {
 			diags.AddError("monday Attr", fmt.Sprintf("%s", err.Errors()))
 		}
 		scheduling.Monday = monday
 
 		//    Saturday
-		saturday, err := updateGroupPolicyResourceStateSchedulingDay(httpResp, "saturday")
+		saturday, err := updateGroupPolicyResourceStateSchedulingDay(schedulingMap, "saturday")
 		if err.HasError() {
 			diags.AddError("saturday Attr", fmt.Sprintf("%s", err.Errors()))
 		}
 		scheduling.Saturday = saturday
 
 		//    Sunday
-		sunday, err := updateGroupPolicyResourceStateSchedulingDay(httpResp, "sunday")
+		sunday, err := updateGroupPolicyResourceStateSchedulingDay(schedulingMap, "sunday")
 		if err.HasError() {
 			diags.AddError("sunday Attr", fmt.Sprintf("%s", err.Errors()))
 		}
 		scheduling.Sunday = sunday
 
 		//    Thursday
-		thursday, err := updateGroupPolicyResourceStateSchedulingDay(httpResp, "thursday")
+		thursday, err := updateGroupPolicyResourceStateSchedulingDay(schedulingMap, "thursday")
 		if err.HasError() {
 			diags.AddError("thursday Attr", fmt.Sprintf("%s", err.Errors()))
 		}
 		scheduling.Thursday = thursday
 
 		//    Tuesday
-		tuesday, err := updateGroupPolicyResourceStateSchedulingDay(httpResp, "tuesday")
+		tuesday, err := updateGroupPolicyResourceStateSchedulingDay(schedulingMap, "tuesday")
 		if err.HasError() {
 			diags.AddError("tuesday Attr", fmt.Sprintf("%s", err.Errors()))
 		}
 		scheduling.Tuesday = tuesday
 
 		//    Wednesday
-		wednesday, err := updateGroupPolicyResourceStateSchedulingDay(httpResp, "wednesday")
+		wednesday, err := updateGroupPolicyResourceStateSchedulingDay(schedulingMap, "wednesday")
 		if err.HasError() {
 			diags.AddError("wednesday Attr", fmt.Sprintf("%s", err.Errors()))
 		}
@@ -1329,12 +1329,21 @@ func updateGroupPolicyResourceStateFirewallAndTrafficShapingRules(ctx context.Co
 				}
 			}
 
-			l3FirewallRulesList, l3FirewallRulesListErr := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: l3FirewallRulesAttr}, l3FirewallRules)
-			if l3FirewallRulesListErr.HasError() {
-				diags.Append(l3FirewallRulesListErr...)
-			}
+			// returns a populated or empty list instead of a null value
+			if l3FirewallRules != nil {
+				l3FirewallRulesList, l3FirewallRulesListErr := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: l3FirewallRulesAttr}, l3FirewallRules)
+				if l3FirewallRulesListErr.HasError() {
+					diags.Append(l3FirewallRulesListErr...)
+				}
 
-			firewallAndTrafficShapingRules.L3FirewallRules = l3FirewallRulesList
+				firewallAndTrafficShapingRules.L3FirewallRules = l3FirewallRulesList
+			} else {
+				l3FirewallRulesList, err := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: l3FirewallRulesAttr}, []attr.Value{})
+				if err.HasError() {
+					diags.Append(err...)
+				}
+				firewallAndTrafficShapingRules.L3FirewallRules = l3FirewallRulesList
+			}
 
 		} else {
 			l3FirewallRulesNull := types.ListNull(types.ObjectType{AttrTypes: l3FirewallRulesAttr})
@@ -1343,28 +1352,33 @@ func updateGroupPolicyResourceStateFirewallAndTrafficShapingRules(ctx context.Co
 
 		// l7FirewallRules
 		var l7FirewallRules []types.Object
-		if l7frs, l7frsOk := ftsr["l7FirewallRules"].([]interface{}); l7frsOk {
+
+		if l7frs, ok := ftsr["l7FirewallRules"].([]interface{}); ok {
+
 			for _, l7fr := range l7frs {
-				if l7, l7Ok := l7fr.(map[string]interface{}); l7Ok {
+				if l7, ok := l7fr.(map[string]interface{}); ok {
 					var rule GroupPolicyResourceModelL7FirewallRule
 
 					// policy
-					rule.Policy, err = utils.ExtractStringAttr(l7, "policy")
+					policy, err := utils.ExtractStringAttr(l7, "policy")
 					if err.HasError() {
 						diags.Append(err...)
 					}
+					rule.Policy = policy
 
 					// type
-					rule.Type, err = utils.ExtractStringAttr(l7, "type")
+					t, err := utils.ExtractStringAttr(l7, "type")
 					if err.HasError() {
 						diags.Append(err...)
 					}
+					rule.Type = t
 
 					// value
-					rule.Value, err = utils.ExtractStringAttr(l7, "value")
+					value, err := utils.ExtractStringAttr(l7, "value")
 					if err.HasError() {
 						diags.Append(err...)
 					}
+					rule.Value = value
 
 					ruleObj, err := types.ObjectValueFrom(ctx, l7FirewallRulesAttr, rule)
 					if err.HasError() {
@@ -1373,14 +1387,23 @@ func updateGroupPolicyResourceStateFirewallAndTrafficShapingRules(ctx context.Co
 
 					l7FirewallRules = append(l7FirewallRules, ruleObj)
 				}
+			}
 
+			// returns a populated or empty list instead of a null value
+			if l7FirewallRules != nil {
 				l7FirewallRulesList, l7FirewallRulesListErr := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: l7FirewallRulesAttr}, l7FirewallRules)
 				if l7FirewallRulesListErr.HasError() {
 					diags.Append(l7FirewallRulesListErr...)
 				}
-
+				firewallAndTrafficShapingRules.L7FirewallRules = l7FirewallRulesList
+			} else {
+				l7FirewallRulesList, err := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: l7FirewallRulesAttr}, []attr.Value{})
+				if err.HasError() {
+					diags.Append(err...)
+				}
 				firewallAndTrafficShapingRules.L7FirewallRules = l7FirewallRulesList
 			}
+
 		} else {
 			l7FirewallRulesNull := types.ListNull(types.ObjectType{AttrTypes: l7FirewallRulesAttr})
 			firewallAndTrafficShapingRules.L7FirewallRules = l7FirewallRulesNull
@@ -1547,11 +1570,20 @@ func updateGroupPolicyResourceStateFirewallAndTrafficShapingRules(ctx context.Co
 				}
 			}
 
-			trafficShapingRulesList, trafficShapingRulesListErr := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: trafficShapingAttrs}, trafficShapingRules)
-			if trafficShapingRulesListErr.HasError() {
-				diags.Append(trafficShapingRulesListErr...)
+			// returns a populated or empty list instead of a null value
+			if trafficShapingRules != nil {
+				trafficShapingRulesList, trafficShapingRulesListErr := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: trafficShapingAttrs}, trafficShapingRules)
+				if trafficShapingRulesListErr.HasError() {
+					diags.Append(trafficShapingRulesListErr...)
+				}
+				firewallAndTrafficShapingRules.TrafficShapingRules = trafficShapingRulesList
+			} else {
+				trafficShapingRulesList, err := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: trafficShapingAttrs}, []attr.Value{})
+				if err.HasError() {
+					diags.Append(err...)
+				}
+				firewallAndTrafficShapingRules.TrafficShapingRules = trafficShapingRulesList
 			}
-			firewallAndTrafficShapingRules.TrafficShapingRules = trafficShapingRulesList
 
 		} else {
 			trafficShapingRulesListNull := types.ListNull(types.ObjectType{AttrTypes: trafficShapingAttrs})
@@ -1817,56 +1849,26 @@ func updateGroupPolicyResourceStateContentFiltering(ctx context.Context, httpRes
 	return contentFilteringObj, diags
 }
 
-// updateGroupPolicyResourceStateHelperValidateGroupPolicyId checks if the GroupPolicyId is valid.
-func (r *NetworksGroupPolicyResource) updateGroupPolicyResourceStateHelperValidateGroupPolicyId(ctx context.Context, state *GroupPolicyResourceModel, readResp *resource.ReadResponse, updateResp *resource.UpdateResponse) error {
-	if state.GroupPolicyId.IsNull() || state.GroupPolicyId.IsUnknown() {
-		tflog.Error(ctx, "Received empty GroupPolicyId", map[string]interface{}{
-			"name":          state.Name.ValueString(),
-			"groupPolicyId": state.GroupPolicyId.ValueString(),
-		})
-
-		if readResp != nil {
-			readResp.Diagnostics.AddError("Received empty GroupPolicy.", fmt.Sprintf("Name: %s, Id: %s", state.Name.ValueString(), state.GroupPolicyId.ValueString()))
-		}
-
-		if updateResp != nil {
-			updateResp.Diagnostics.AddError("Received empty GroupPolicy.", fmt.Sprintf("Name: %s, Id: %s", state.Name.ValueString(), state.GroupPolicyId.ValueString()))
-		}
-
-		return fmt.Errorf("invalid GroupPolicyId")
-	}
-	return nil
-}
-
 // updateGroupPolicyResourceState updates the resource state with the provided api data.
-func updateGroupPolicyResourceState(ctx context.Context, state *GroupPolicyResourceModel, httpResp *http.Response) diag.Diagnostics {
+func updateGroupPolicyResourceState(ctx context.Context, state *GroupPolicyResourceModel, inlineResp map[string]interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-
-	data, err := tools.ExtractResponseToMap(httpResp)
-	if err != nil {
-		diags.AddError("Failed to Unmarshal HttpResp", err.Error())
-	}
 
 	// GroupPolicyId
 	if state.GroupPolicyId.IsNull() || state.GroupPolicyId.IsUnknown() {
-		groupPolicyId, diags := utils.ExtractStringAttr(data, "groupPolicyId")
-		if diags.HasError() {
+		groupPolicyId, err := utils.ExtractStringAttr(inlineResp, "groupPolicyId")
+		if err.HasError() {
+			diags.AddError("groupPolicyId Attribute", fmt.Sprintf("%s", err.Errors()))
 			return diags
 		}
 
-		if groupPolicyId.IsNull() || groupPolicyId.IsUnknown() {
-			tflog.Error(ctx, fmt.Sprintf("GroupPolicyId Missing:%s", groupPolicyId))
-			diags.AddError("GroupPolicyId Missing", fmt.Sprintf("GroupPolicyId Missing:%s", groupPolicyId))
-			diags.AddError("GroupPolicyId Missing", fmt.Sprintf("HTTPRESP: \n%s", data))
-			return diags
+		if !groupPolicyId.IsNull() {
+			state.GroupPolicyId = groupPolicyId
 		}
-
-		state.GroupPolicyId = groupPolicyId
 	}
 
 	// check for NetworkId
 	if state.NetworkId.IsNull() || state.NetworkId.IsUnknown() {
-		state.NetworkId, diags = utils.ExtractStringAttr(data, "networkId")
+		state.NetworkId, diags = utils.ExtractStringAttr(inlineResp, "networkId")
 		if diags.HasError() {
 			diags.AddError("networkId Attribute", "")
 			return diags
@@ -1882,7 +1884,7 @@ func updateGroupPolicyResourceState(ctx context.Context, state *GroupPolicyResou
 
 	// Name
 	if state.Name.IsNull() || state.Name.IsUnknown() {
-		state.Name, diags = utils.ExtractStringAttr(data, "name")
+		state.Name, diags = utils.ExtractStringAttr(inlineResp, "name")
 		if diags.HasError() {
 			diags.AddError("name Attribute", "")
 			return diags
@@ -1891,7 +1893,7 @@ func updateGroupPolicyResourceState(ctx context.Context, state *GroupPolicyResou
 
 	// Update Scheduling
 	if state.Scheduling.IsNull() || state.Scheduling.IsUnknown() {
-		scheduling, err := updateGroupPolicyResourceStateScheduling(data)
+		scheduling, err := updateGroupPolicyResourceStateScheduling(inlineResp)
 		if err.HasError() {
 			diags.AddError("scheduling Attr", fmt.Sprintf("%s", err.Errors()))
 		}
@@ -1899,7 +1901,7 @@ func updateGroupPolicyResourceState(ctx context.Context, state *GroupPolicyResou
 	}
 
 	// Update Bandwidth
-	bandwidth, bandwidthErr := updateGroupPolicyResourceStateBandwidth(data)
+	bandwidth, bandwidthErr := updateGroupPolicyResourceStateBandwidth(inlineResp)
 	if bandwidthErr.HasError() {
 		diags.AddError("bandwidth Attr", fmt.Sprintf("%s", bandwidthErr.Errors()))
 	}
@@ -1907,14 +1909,14 @@ func updateGroupPolicyResourceState(ctx context.Context, state *GroupPolicyResou
 
 	//SplashAuthSettings
 	if state.SplashAuthSettings.IsNull() || state.SplashAuthSettings.IsUnknown() {
-		state.SplashAuthSettings, diags = utils.ExtractStringAttr(data, "splashAuthSettings")
+		state.SplashAuthSettings, diags = utils.ExtractStringAttr(inlineResp, "splashAuthSettings")
 		if diags.HasError() {
 			return diags
 		}
 	}
 
 	// Update VlanTagging
-	vlanTaggingObj, vlanTaggingObjErr := updateGroupPolicyResourceStateVlanTagging(ctx, data)
+	vlanTaggingObj, vlanTaggingObjErr := updateGroupPolicyResourceStateVlanTagging(ctx, inlineResp)
 	if vlanTaggingObjErr.HasError() {
 		diags.AddError("vlanTagging Attr", fmt.Sprintf("%s", vlanTaggingObjErr.Errors()))
 	}
@@ -1922,7 +1924,7 @@ func updateGroupPolicyResourceState(ctx context.Context, state *GroupPolicyResou
 
 	// Update BonjourForwarding
 	if state.BonjourForwarding.IsNull() || state.BonjourForwarding.IsUnknown() {
-		bonjourForwarding, err := updateGroupPolicyResourceStateBonjourForwarding(data)
+		bonjourForwarding, err := updateGroupPolicyResourceStateBonjourForwarding(inlineResp)
 		if err.HasError() {
 			diags.AddError("vlanTagging Attr", fmt.Sprintf("%s", err.Errors()))
 		}
@@ -1931,14 +1933,14 @@ func updateGroupPolicyResourceState(ctx context.Context, state *GroupPolicyResou
 	}
 
 	// Update FirewallAndTrafficShaping
-	firewallAndTrafficShapingObject, firewallAndTrafficShapingObjectDiags := updateGroupPolicyResourceStateFirewallAndTrafficShapingRules(ctx, data)
+	firewallAndTrafficShapingObject, firewallAndTrafficShapingObjectDiags := updateGroupPolicyResourceStateFirewallAndTrafficShapingRules(ctx, inlineResp)
 	if firewallAndTrafficShapingObjectDiags.HasError() {
 		diags.Append(firewallAndTrafficShapingObjectDiags...)
 	}
 	state.FirewallAndTrafficShaping = firewallAndTrafficShapingObject
 
 	// Update ContentFiltering
-	contentFilteringObj, cfDiags := updateGroupPolicyResourceStateContentFiltering(ctx, data)
+	contentFilteringObj, cfDiags := updateGroupPolicyResourceStateContentFiltering(ctx, inlineResp)
 	if cfDiags.HasError() {
 		diags.Append(cfDiags...)
 	}
@@ -1977,7 +1979,7 @@ func (r *NetworksGroupPolicyResource) Create(ctx context.Context, req resource.C
 	}
 
 	// Use retryOn4xx for the API call as the meraki API backend returns HTTP 400 messages as a result of collision issues with rapid creation of postgres GroupPolicyIds.
-	_, httpResp, err := tools.CustomHttpRequestRetry(ctx, maxRetries, retryDelay, apiCall)
+	inlineResp, httpResp, err := tools.CustomHttpRequestRetry(ctx, maxRetries, retryDelay, apiCall)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating group policy",
@@ -2005,7 +2007,7 @@ func (r *NetworksGroupPolicyResource) Create(ctx context.Context, req resource.C
 		return
 	}
 
-	diags = updateGroupPolicyResourceState(ctx, &plan, httpResp)
+	diags = updateGroupPolicyResourceState(ctx, &plan, inlineResp)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -2025,11 +2027,7 @@ func (r *NetworksGroupPolicyResource) Read(ctx context.Context, req resource.Rea
 		return
 	}
 
-	if err := r.updateGroupPolicyResourceStateHelperValidateGroupPolicyId(ctx, &state, resp, nil); err != nil {
-		return
-	}
-
-	_, httpResp, err := r.client.NetworksApi.GetNetworkGroupPolicy(ctx, state.NetworkId.ValueString(), state.GroupPolicyId.ValueString()).Execute()
+	inlineResp, httpResp, err := r.client.NetworksApi.GetNetworkGroupPolicy(ctx, state.NetworkId.ValueString(), state.GroupPolicyId.ValueString()).Execute()
 	if err != nil {
 		var responseBody string
 		if httpResp != nil && httpResp.Body != nil {
@@ -2047,7 +2045,7 @@ func (r *NetworksGroupPolicyResource) Read(ctx context.Context, req resource.Rea
 	}
 
 	// Update the state with the new state
-	diags = updateGroupPolicyResourceState(ctx, &state, httpResp)
+	diags = updateGroupPolicyResourceState(ctx, &state, inlineResp)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -2070,19 +2068,20 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 		return
 	}
 
-	// Check for empty GroupPolicyId
-	if err := r.updateGroupPolicyResourceStateHelperValidateGroupPolicyId(ctx, &plan, nil, resp); err != nil {
+	var state GroupPolicyResourceModel
+
+	diags = req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	groupPolicy, groupPolicyErr := updateGroupPolicyResourcePayload(&plan)
-	if groupPolicyErr.HasError() {
-		tflog.Error(ctx, "Failed to create update resource payload", map[string]interface{}{
-			"error": groupPolicyErr,
-		})
+	groupPolicy, groupPolicyDiags := updateGroupPolicyResourcePayload(&plan)
+	if groupPolicyDiags.HasError() {
+
 		resp.Diagnostics.AddError(
-			"Error updating group policy payload",
-			fmt.Sprintf("Unexpected error: %s", groupPolicyErr),
+			"Error creating group policy payload",
+			fmt.Sprintf("Unexpected error: %s", groupPolicyDiags),
 		)
 		return
 	}
@@ -2098,7 +2097,7 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 		BonjourForwarding:         groupPolicy.BonjourForwarding,
 	}
 
-	_, httpResp, err := r.client.NetworksApi.UpdateNetworkGroupPolicy(ctx, plan.NetworkId.ValueString(), plan.GroupPolicyId.ValueString()).UpdateNetworkGroupPolicyRequest(groupPolicyUpdate).Execute()
+	inlineResp, httpResp, err := r.client.NetworksApi.UpdateNetworkGroupPolicy(ctx, plan.NetworkId.ValueString(), state.GroupPolicyId.ValueString()).UpdateNetworkGroupPolicyRequest(groupPolicyUpdate).Execute()
 	if err != nil {
 		var responseBody string
 		if httpResp != nil && httpResp.Body != nil {
@@ -2116,7 +2115,7 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 	}
 
 	// Update the state with the new plan
-	diags = updateGroupPolicyResourceState(ctx, &plan, httpResp)
+	diags = updateGroupPolicyResourceState(ctx, &plan, inlineResp)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
