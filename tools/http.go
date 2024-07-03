@@ -9,6 +9,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -103,34 +104,50 @@ func ReadAndCloseBody(httpResp *http.Response) (string, error) {
 }
 
 // CustomHttpRequestRetry Helper function for retrying API calls. This is to recover from backend congestion errors which manifest as 4XX response codes
-func CustomHttpRequestRetry[T any](ctx context.Context, maxRetries int, retryDelay time.Duration, apiCall func() (T, *http.Response, error)) (T, *http.Response, error) {
+func CustomHttpRequestRetry[T any](ctx context.Context, maxRetries int, initialRetryDelay time.Duration, apiCall func() (T, *http.Response, error)) (T, *http.Response, error) {
 	var result T
 	var lastResponse *http.Response
 	var lastError error
 
+	// Convert retry delay to milliseconds
+	retryDelay := initialRetryDelay
+
 	for i := 0; i < maxRetries; i++ {
+		tflog.Info(ctx, fmt.Sprintf("Attempt %d/%d", i+1, maxRetries))
+
 		result, httpResp, err := apiCall()
-		if httpResp.StatusCode >= 200 && httpResp.StatusCode <= 299 {
+		if httpResp != nil && httpResp.StatusCode >= 200 && httpResp.StatusCode <= 299 {
 			return result, httpResp, nil
 		}
 
-		// Log err message before retry
+		// Log error message before retry
 		if err != nil {
 			if httpResp != nil {
 				responseBody, _ := io.ReadAll(httpResp.Body) // Read and close the body to free up the connection
 				httpResp.Body.Close()
+				responseBodyStr := string(responseBody)
 				tflog.Warn(ctx, fmt.Sprintf("Retry %d/%d", i+1, maxRetries))
-				tflog.Trace(ctx, fmt.Sprintf("API call failed with status %d: %s", httpResp.StatusCode, responseBody))
+				tflog.Trace(ctx, fmt.Sprintf("API call failed with status %d: %s", httpResp.StatusCode, responseBodyStr))
+
+				// Check for specific error conditions to terminate early
+				if strings.Contains(responseBodyStr, "Open Roaming certificate 0 not found") {
+					tflog.Error(ctx, fmt.Sprintf("Terminating early due to specific error condition: %s", responseBodyStr))
+					return result, httpResp, fmt.Errorf("terminated early due to specific error condition: %s", responseBodyStr)
+				}
+
+				lastResponse = httpResp
+				lastError = fmt.Errorf("%w: %s", err, responseBodyStr)
 			}
 		}
 
-		lastResponse = httpResp
-		lastError = err
-
 		if i < maxRetries-1 {
-			time.Sleep(retryDelay)
+			// Ensure retryDelay is in milliseconds
+			tflog.Info(ctx, fmt.Sprintf("Sleeping for %s before next retry", retryDelay*time.Millisecond))
+			time.Sleep(retryDelay * time.Millisecond)
+			// Exponential backoff: Increase retry delay for next attempt
+			retryDelay *= 2
 		} else {
-			return result, httpResp, lastError
+			return result, lastResponse, lastError
 		}
 	}
 
@@ -166,7 +183,7 @@ func CustomHttpRequestRetryStronglyTyped[T any](ctx context.Context, maxRetries 
 		lastError = err
 
 		if i < maxRetries-1 {
-			time.Sleep(retryDelay)
+			time.Sleep(retryDelay * time.Millisecond)
 		}
 	}
 
