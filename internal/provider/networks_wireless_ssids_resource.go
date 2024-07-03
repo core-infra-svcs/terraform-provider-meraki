@@ -23,6 +23,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -3995,13 +3996,38 @@ func (r *NetworksWirelessSsidsResource) Create(ctx context.Context, req resource
 		inline, respHttp, err := r.client.WirelessApi.UpdateNetworkWirelessSsid(context.Background(), plan.NetworkId.ValueString(), fmt.Sprint(plan.Number.ValueInt64())).UpdateNetworkWirelessSsidRequest(payload).Execute()
 		return inline, respHttp, err
 	})
+
+	// Capture the response body for logging
+	var responseBody string
+	if httpResp != nil && httpResp.Body != nil {
+		bodyBytes, readErr := io.ReadAll(httpResp.Body)
+		if readErr == nil {
+			responseBody = string(bodyBytes)
+		}
+	}
+
+	// Check if the error matches a specific condition
 	if err != nil {
+		// Terminate early if specific error condition is met
+		if strings.Contains(responseBody, "Open Roaming certificate 0 not found") {
+			tflog.Error(ctx, "Terminating early due to specific error condition", map[string]interface{}{
+				"error":        err.Error(),
+				"responseBody": responseBody,
+			})
+			resp.Diagnostics.AddError(
+				"HTTP Call Failed",
+				fmt.Sprintf("Details: %s", responseBody),
+			)
+			return
+		}
+
 		// Check for the specific unmarshaling error
 		if strings.Contains(err.Error(), "json: cannot unmarshal number") && strings.Contains(err.Error(), "GetNetworkWirelessSsids200ResponseInner.minBitrate") {
 			tflog.Warn(ctx, "Suppressing unmarshaling error: json: cannot unmarshal number into GetNetworkWirelessSsids200ResponseInner.minBitrate of type int32")
 		} else {
 			tflog.Error(ctx, "HTTP Call Failed", map[string]interface{}{
-				"error": err.Error(),
+				"error":        err.Error(),
+				"responseBody": responseBody,
 			})
 			resp.Diagnostics.AddError(
 				"HTTP Call Failed",
