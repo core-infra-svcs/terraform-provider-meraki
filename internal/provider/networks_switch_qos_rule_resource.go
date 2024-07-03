@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
+	"net/http"
 	"strings"
+	"time"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -152,13 +154,13 @@ func (r *NetworksSwitchQosRuleResource) Create(ctx context.Context, req resource
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	payload := *openApiClient.NewCreateNetworkSwitchQosRuleRequest(int32(data.Vlan.ValueInt64()))
 
+	// Set payload fields
 	if !data.Dscp.IsUnknown() {
 		payload.SetDscp(int32(data.Dscp.ValueInt64()))
 	}
@@ -178,13 +180,54 @@ func (r *NetworksSwitchQosRuleResource) Create(ctx context.Context, req resource
 		payload.SetSrcPort(int32(data.SrcPort.ValueFloat64()))
 	}
 
-	inlineResp, httpResp, err := r.client.QosRulesApi.CreateNetworkSwitchQosRule(context.Background(), data.NetworkId.ValueString()).CreateNetworkSwitchQosRuleRequest(payload).Execute()
+	// Log the payload before sending
+	tflog.Debug(ctx, "Creating QoS Rule with payload", map[string]interface{}{
+		"payload": payload,
+	})
+
+	// Retry logic for 500 Internal Server Error
+	const maxRetries500 = 3
+	const retryDelay500 = 3 * time.Second
+
+	// retry variables for all other errors
+	maxRetries := r.client.GetConfig().MaximumRetries
+	retryDelay := time.Duration(r.client.GetConfig().Retry4xxErrorWaitTime)
+
+	apiCall := func() (map[string]interface{}, *http.Response, error) {
+		return r.client.QosRulesApi.CreateNetworkSwitchQosRule(context.Background(), data.NetworkId.ValueString()).CreateNetworkSwitchQosRuleRequest(payload).Execute()
+	}
+
+	var inlineResp map[string]interface{}
+	var httpResp *http.Response
+	var err error
+
+	for attempt := 0; attempt < maxRetries500; attempt++ {
+		inlineResp, httpResp, err = tools.CustomHttpRequestRetry[map[string]interface{}](ctx, maxRetries, retryDelay, apiCall)
+
+		if err == nil && httpResp.StatusCode == 201 {
+			// Success, break the retry loop
+			break
+		}
+
+		if httpResp != nil && httpResp.StatusCode == 500 {
+			tflog.Warn(ctx, "Received 500 Internal Server Error, retrying...", map[string]interface{}{
+				"attempt": attempt + 1,
+			})
+			time.Sleep(retryDelay500)
+		} else {
+			// Break on other errors
+			break
+		}
+	}
+
 	if err != nil {
+		tflog.Error(ctx, "HTTP Call Failed", map[string]interface{}{
+			"error": err.Error(),
+		})
 		resp.Diagnostics.AddError(
-			"Create HTTP Client Failure",
-			tools.HttpDiagnostics(httpResp),
+			"HTTP Call Failed",
+			fmt.Sprintf("Details: %s", err.Error()),
 		)
-		return
 	}
 
 	// Check for API success response code
@@ -195,13 +238,7 @@ func (r *NetworksSwitchQosRuleResource) Create(ctx context.Context, req resource
 		)
 	}
 
-	// Check for errors after diagnostics collected
-	if resp.Diagnostics.HasError() {
-		resp.Diagnostics.AddError("Plan Data", fmt.Sprintf("\n%s", data))
-		return
-	}
-
-	// save inlineResp data into Terraform state.
+	// Decode the response into the model
 	if err = json.NewDecoder(httpResp.Body).Decode(&data); err != nil {
 		resp.Diagnostics.AddError(
 			"JSON Decode issue",
@@ -210,12 +247,12 @@ func (r *NetworksSwitchQosRuleResource) Create(ctx context.Context, req resource
 		return
 	}
 
+	// Populate the data model with the response
 	if iD := inlineResp["id"]; iD != nil {
 		data.QosRulesId = jsontypes.StringValue(iD.(string))
 	} else {
 		data.QosRulesId = jsontypes.StringNull()
 	}
-
 	if dstPortRange := inlineResp["dstPortRange"]; dstPortRange != nil {
 		data.DstPortRange = jsontypes.StringValue(dstPortRange.(string))
 	} else {
@@ -263,13 +300,22 @@ func (r *NetworksSwitchQosRuleResource) Read(ctx context.Context, req resource.R
 		return
 	}
 
-	inlineResp, httpResp, err := r.client.QosRulesApi.GetNetworkSwitchQosRule(ctx, data.NetworkId.ValueString(), data.QosRulesId.ValueString()).Execute()
+	maxRetries := r.client.GetConfig().MaximumRetries
+	retryDelay := time.Duration(r.client.GetConfig().Retry4xxErrorWaitTime)
+
+	inlineResp, httpResp, err := tools.CustomHttpRequestRetry[*openApiClient.GetNetworkSwitchQosRule200Response](ctx, maxRetries, retryDelay, func() (*openApiClient.GetNetworkSwitchQosRule200Response, *http.Response, error) {
+		inline, respHttp, err := r.client.QosRulesApi.GetNetworkSwitchQosRule(ctx, data.NetworkId.ValueString(), data.QosRulesId.ValueString()).Execute()
+		return inline, respHttp, err
+	})
+
 	if err != nil {
+		tflog.Error(ctx, "HTTP Call Failed", map[string]interface{}{
+			"error": err.Error(),
+		})
 		resp.Diagnostics.AddError(
-			"HTTP Client Failure",
-			tools.HttpDiagnostics(httpResp),
+			"HTTP Call Failed",
+			fmt.Sprintf("Details: %s", err.Error()),
 		)
-		return
 	}
 
 	// Check for API success response code
@@ -363,7 +409,24 @@ func (r *NetworksSwitchQosRuleResource) Update(ctx context.Context, req resource
 		payload.SetSrcPort(int32(data.SrcPort.ValueFloat64()))
 	}
 
-	inlineResp, httpResp, err := r.client.QosRulesApi.UpdateNetworkSwitchQosRule(ctx, data.NetworkId.ValueString(), stateData.QosRulesId.ValueString()).UpdateNetworkSwitchQosRuleRequest(payload).Execute()
+	maxRetries := r.client.GetConfig().MaximumRetries
+	retryDelay := time.Duration(r.client.GetConfig().Retry4xxErrorWaitTime)
+
+	inlineResp, httpResp, err := tools.CustomHttpRequestRetry[map[string]interface{}](ctx, maxRetries, retryDelay, func() (map[string]interface{}, *http.Response, error) {
+		inline, respHttp, err := r.client.QosRulesApi.UpdateNetworkSwitchQosRule(ctx, data.NetworkId.ValueString(), stateData.QosRulesId.ValueString()).UpdateNetworkSwitchQosRuleRequest(payload).Execute()
+		return inline, respHttp, err
+	})
+
+	if err != nil {
+		tflog.Error(ctx, "HTTP Call Failed", map[string]interface{}{
+			"error": err.Error(),
+		})
+		resp.Diagnostics.AddError(
+			"HTTP Call Failed",
+			fmt.Sprintf("Details: %s", err.Error()),
+		)
+	}
+
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"HTTP Client Failure",
@@ -434,7 +497,26 @@ func (r *NetworksSwitchQosRuleResource) Delete(ctx context.Context, req resource
 		return
 	}
 
-	httpResp, err := r.client.QosRulesApi.DeleteNetworkSwitchQosRule(ctx, data.NetworkId.ValueString(), data.QosRulesId.ValueString()).Execute()
+	//httpResp, err := r.client.QosRulesApi.DeleteNetworkSwitchQosRule(ctx, data.NetworkId.ValueString(), data.QosRulesId.ValueString()).Execute()
+
+	maxRetries := r.client.GetConfig().MaximumRetries
+	retryDelay := time.Duration(r.client.GetConfig().Retry4xxErrorWaitTime)
+
+	_, httpResp, err := tools.CustomHttpRequestRetry[map[string]interface{}](ctx, maxRetries, retryDelay, func() (map[string]interface{}, *http.Response, error) {
+		respHttp, err := r.client.QosRulesApi.DeleteNetworkSwitchQosRule(ctx, data.NetworkId.ValueString(), data.QosRulesId.ValueString()).Execute()
+		return nil, respHttp, err
+	})
+
+	if err != nil {
+		tflog.Error(ctx, "HTTP Call Failed", map[string]interface{}{
+			"error": err.Error(),
+		})
+		resp.Diagnostics.AddError(
+			"HTTP Call Failed",
+			fmt.Sprintf("Details: %s", err.Error()),
+		)
+	}
+
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"HTTP Client Failure",

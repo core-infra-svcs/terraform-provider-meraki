@@ -12,6 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
+	"net/http"
+	"time"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -159,7 +161,24 @@ func (r *NetworksSwitchQosRulesDataSource) Read(ctx context.Context, req datasou
 		return
 	}
 
-	inlineResp, httpResp, err := r.client.QosRulesApi.GetNetworkSwitchQosRules(ctx, data.NetworkId.ValueString()).Execute()
+	maxRetries := r.client.GetConfig().MaximumRetries
+	retryDelay := time.Duration(r.client.GetConfig().Retry4xxErrorWaitTime)
+
+	inlineResp, httpResp, err := tools.CustomHttpRequestRetry[[]map[string]interface{}](ctx, maxRetries, retryDelay, func() ([]map[string]interface{}, *http.Response, error) {
+		inline, respHttp, err := r.client.QosRulesApi.GetNetworkSwitchQosRules(ctx, data.NetworkId.ValueString()).Execute()
+		return inline, respHttp, err
+	})
+
+	if err != nil {
+		tflog.Error(ctx, "HTTP Call Failed", map[string]interface{}{
+			"error": err.Error(),
+		})
+		resp.Diagnostics.AddError(
+			"HTTP Call Failed",
+			fmt.Sprintf("Details: %s", err.Error()),
+		)
+	}
+
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"HTTP Client Failure",
