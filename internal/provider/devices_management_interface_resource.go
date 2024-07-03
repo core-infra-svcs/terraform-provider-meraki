@@ -2,11 +2,14 @@ package provider
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+	"github.com/core-infra-svcs/terraform-provider-meraki/utils"
+	"net/http"
+	"time"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -75,6 +78,147 @@ func WANData() map[string]attr.Type {
 		"static_dns":         types.ListType{ElemType: types.StringType},
 		"vlan":               types.Int64Type,
 	}
+}
+
+func DevicesManagementInterfaceStateWan(rawResp map[string]interface{}, wanKey string) (types.Object, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	var wan DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan
+
+	wanAttrs := map[string]attr.Type{
+		"wan_enabled":        types.StringType,
+		"using_static_ip":    types.BoolType,
+		"static_ip":          types.StringType,
+		"static_subnet_mask": types.StringType,
+		"static_gateway_ip":  types.StringType,
+		"static_dns":         types.ListType{ElemType: types.StringType},
+		"vlan":               types.Int64Type,
+	}
+
+	if d, ok := rawResp[wanKey].(map[string]interface{}); ok {
+		// wan_enabled
+		wanEnabled, err := utils.ExtractStringAttr(d, "wanEnabled")
+		if err != nil {
+			diags.Append(err...)
+		}
+		wan.WanEnabled = wanEnabled
+
+		// using_static_ip
+		usingStaticIp, err := utils.ExtractBoolAttr(d, "usingStaticIp")
+		if err != nil {
+			diags.Append(err...)
+		}
+		wan.UsingStaticIp = usingStaticIp
+
+		// static_ip
+		staticIp, err := utils.ExtractStringAttr(d, "staticIp")
+		if err != nil {
+			diags.Append(err...)
+		}
+		wan.StaticIp = staticIp
+
+		// static_subnet_mask
+		staticSubnetMask, err := utils.ExtractStringAttr(d, "staticSubnetMask")
+		if err != nil {
+			diags.Append(err...)
+		}
+		wan.StaticSubnetMask = staticSubnetMask
+
+		// static_gateway_ip
+		staticGatewayIp, err := utils.ExtractStringAttr(d, "staticGatewayIp")
+		if err != nil {
+			diags.Append(err...)
+		}
+		wan.StaticGatewayIp = staticGatewayIp
+
+		// static_dns
+		staticDns, err := utils.ExtractListStringAttr(d, "staticDns")
+		if err != nil {
+			diags.Append(err...)
+		}
+		wan.StaticDns = staticDns
+
+		// vlan
+		if vlanValue, exists := d["vlan"]; exists && vlanValue != nil {
+			switch v := vlanValue.(type) {
+			case float64:
+				wan.Vlan = types.Int64Value(int64(v))
+			case int64:
+				wan.Vlan = types.Int64Value(v)
+			case int:
+				wan.Vlan = types.Int64Value(int64(v))
+			default:
+				wan.Vlan = types.Int64Null()
+				diags.AddError("Type Error", fmt.Sprintf("Unsupported type for vlan attribute: %T", v))
+			}
+		} else {
+			wan.Vlan = types.Int64Null()
+		}
+
+		// Log the extracted vlan value
+		tflog.Debug(context.Background(), "Extracted vlan", map[string]interface{}{
+			"vlan": wan.Vlan.ValueInt64(),
+		})
+
+	} else {
+		WanNull := types.ObjectNull(wanAttrs)
+		return WanNull, diags
+	}
+
+	wanObj, err := types.ObjectValueFrom(context.Background(), wanAttrs, wan)
+	if err != nil {
+		diags.Append(err...)
+	}
+
+	return wanObj, diags
+}
+
+func updateDevicesManagementInterfaceResourceState(ctx context.Context, state *DevicesTestAccDevicesManagementInterfaceResourceResourceModel, data map[string]interface{}, httpResp *http.Response) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	rawResp, err := tools.ExtractResponseToMap(httpResp)
+	if err != nil {
+		diags.AddError("Failed to Unmarshal HttpResp", err.Error())
+		return diags
+	}
+
+	// ID
+	if state.Id.IsNull() || state.Id.IsUnknown() {
+		state.Id, diags = utils.ExtractStringAttr(rawResp, "id")
+		if diags.HasError() {
+			diags.AddError("ID Attribute", "")
+			return diags
+		}
+	}
+
+	// Serial
+	if state.Serial.IsNull() || state.Serial.IsUnknown() {
+		state.Serial, diags = utils.ExtractStringAttr(rawResp, "serial")
+		if diags.HasError() {
+			diags.AddError("Serial Attribute", "")
+			return diags
+		}
+	}
+
+	// Wan1
+	state.Wan1, diags = DevicesManagementInterfaceStateWan(rawResp, "wan1")
+	if diags.HasError() {
+		diags.AddError("Wan1 Attribute", "")
+		return diags
+	}
+
+	// Wan2
+	state.Wan2, diags = DevicesManagementInterfaceStateWan(rawResp, "wan2")
+	if diags.HasError() {
+		diags.AddError("Wan2 Attribute", "")
+		return diags
+	}
+
+	// Log the updated state
+	tflog.Debug(ctx, "Updated state", map[string]interface{}{
+		"state": state,
+	})
+
+	return diags
 }
 
 func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -216,10 +360,11 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Configure(ctx
 }
 
 func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *DevicesTestAccDevicesManagementInterfaceResourceResourceModel
+	var data DevicesTestAccDevicesManagementInterfaceResourceResourceModel
 
 	// Read Terraform plan data into the model
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	diags := req.Plan.Get(ctx, &data)
+	resp.Diagnostics.Append(diags...)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -227,70 +372,91 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Create(ctx co
 
 	payload := openApiClient.NewUpdateDeviceManagementInterfaceRequest()
 
-	if !data.Wan1.IsNull() {
+	if !data.Wan1.IsNull() && !data.Wan1.IsUnknown() {
+		var wan1Plan DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan
+		data.Wan1.As(ctx, &wan1Plan, basetypes.ObjectAsOptions{})
+		var staticDNS1 []string
+		wan1Plan.StaticDns.ElementsAs(ctx, &staticDNS1, false)
 
-		if !data.Wan1.IsUnknown() {
+		wan1 := openApiClient.UpdateDeviceManagementInterfaceRequestWan1{}
+		wan1.SetWanEnabled(wan1Plan.WanEnabled.ValueString())
+		wan1.SetStaticDns(staticDNS1)
+		wan1.SetStaticGatewayIp(wan1Plan.StaticGatewayIp.ValueString())
+		wan1.SetStaticSubnetMask(wan1Plan.StaticSubnetMask.ValueString())
+		wan1.SetStaticIp(wan1Plan.StaticIp.ValueString())
+		wan1.SetUsingStaticIp(wan1Plan.UsingStaticIp.ValueBool())
 
-			var wan1Plan DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan
-			data.Wan1.As(ctx, &wan1Plan, basetypes.ObjectAsOptions{})
-			var staticDNS1 []string
-			wan1Plan.StaticDns.ElementsAs(ctx, &staticDNS1, false)
-
-			wan1 := openApiClient.UpdateDeviceManagementInterfaceRequestWan1{}
-
-			if wan1Plan.WanEnabled.ValueString() != "" {
-				wan1.SetWanEnabled(wan1Plan.WanEnabled.ValueString())
-			}
-
-			wan1.SetStaticDns(staticDNS1)
-			wan1.SetStaticGatewayIp(wan1Plan.StaticGatewayIp.ValueString())
-			wan1.SetStaticSubnetMask(wan1Plan.StaticSubnetMask.ValueString())
-			wan1.SetStaticIp(wan1Plan.StaticIp.ValueString())
-			wan1.SetUsingStaticIp(wan1Plan.UsingStaticIp.ValueBool())
-
-			if !wan1Plan.Vlan.IsNull() {
-				var vlan = int32(wan1Plan.Vlan.ValueInt64())
-				wan1.Vlan = &vlan
-			}
-
-			payload.Wan1 = &wan1
-
+		if !wan1Plan.Vlan.IsNull() {
+			vlan := int32(wan1Plan.Vlan.ValueInt64())
+			wan1.Vlan = &vlan
 		}
 
+		tflog.Debug(ctx, "Wan1 payload before API call", map[string]interface{}{
+			"wan1": wan1,
+		})
+
+		payload.Wan1 = &wan1
 	}
 
-	if !data.Wan2.IsNull() {
+	if !data.Wan2.IsNull() && !data.Wan2.IsUnknown() {
+		var wan2Plan DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan
+		data.Wan2.As(ctx, &wan2Plan, basetypes.ObjectAsOptions{})
+		var staticDNS2 []string
+		wan2Plan.StaticDns.ElementsAs(ctx, &staticDNS2, false)
 
-		if !data.Wan2.IsUnknown() {
+		wan2 := openApiClient.UpdateDeviceManagementInterfaceRequestWan2{}
+		wan2.SetWanEnabled(wan2Plan.WanEnabled.ValueString())
+		wan2.SetStaticDns(staticDNS2)
+		wan2.SetStaticGatewayIp(wan2Plan.StaticGatewayIp.ValueString())
+		wan2.SetStaticSubnetMask(wan2Plan.StaticSubnetMask.ValueString())
+		wan2.SetStaticIp(wan2Plan.StaticIp.ValueString())
+		wan2.SetUsingStaticIp(wan2Plan.UsingStaticIp.ValueBool())
 
-			var wan2Plan DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan
-			data.Wan2.As(ctx, &wan2Plan, basetypes.ObjectAsOptions{})
-			var staticDNS2 []string
-			wan2Plan.StaticDns.ElementsAs(ctx, &staticDNS2, false)
-
-			wan2 := openApiClient.UpdateDeviceManagementInterfaceRequestWan2{}
-
-			if wan2Plan.WanEnabled.ValueString() != "" {
-				wan2.SetWanEnabled(wan2Plan.WanEnabled.ValueString())
-			}
-
-			wan2.SetStaticDns(staticDNS2)
-			wan2.SetStaticGatewayIp(wan2Plan.StaticGatewayIp.ValueString())
-			wan2.SetStaticSubnetMask(wan2Plan.StaticSubnetMask.ValueString())
-			wan2.SetStaticIp(wan2Plan.StaticIp.ValueString())
-			wan2.SetUsingStaticIp(wan2Plan.UsingStaticIp.ValueBool())
-
-			if !wan2Plan.Vlan.IsNull() {
-				var vlan = int32(wan2Plan.Vlan.ValueInt64())
-				wan2.Vlan = &vlan
-			}
-
-			payload.Wan2 = &wan2
-
+		if !wan2Plan.Vlan.IsNull() {
+			vlan := int32(wan2Plan.Vlan.ValueInt64())
+			wan2.Vlan = &vlan
 		}
+
+		tflog.Debug(ctx, "Wan2 payload", map[string]interface{}{
+			"wan2": wan2,
+		})
+
+		payload.Wan2 = &wan2
 	}
 
-	inlineResp, httpResp, err := r.client.ManagementInterfaceApi.UpdateDeviceManagementInterface(context.Background(), data.Serial.ValueString()).UpdateDeviceManagementInterfaceRequest(*payload).Execute()
+	if data.Serial.IsNull() || data.Serial.IsUnknown() {
+		resp.Diagnostics.AddError(
+			"Serial Number Not Found",
+			"The serial number must be provided to create the device management interface.",
+		)
+		return
+	}
+
+	serial := data.Serial.ValueString()
+	if serial == "" {
+		resp.Diagnostics.AddError(
+			"Serial Number Empty",
+			"The serial number provided is empty. Ensure the serial number is set correctly.",
+		)
+		return
+	}
+
+	maxRetries := r.client.GetConfig().MaximumRetries
+	retryDelay := time.Duration(r.client.GetConfig().Retry4xxErrorWaitTime)
+
+	inlineResp, httpResp, err := tools.CustomHttpRequestRetry[map[string]interface{}](ctx, maxRetries, retryDelay, func() (map[string]interface{}, *http.Response, error) {
+		inline, respHttp, err := r.client.ManagementInterfaceApi.UpdateDeviceManagementInterface(context.Background(), data.Serial.ValueString()).UpdateDeviceManagementInterfaceRequest(*payload).Execute()
+		return inline, respHttp, err
+	})
+	if err != nil {
+		tflog.Error(ctx, "HTTP Call Failed", map[string]interface{}{
+			"error": err.Error(),
+		})
+		resp.Diagnostics.AddError(
+			"HTTP Call Failed",
+			fmt.Sprintf("Details: %s", err.Error()),
+		)
+	}
 
 	// Check for API success response code
 	if httpResp.StatusCode == 404 {
@@ -298,15 +464,11 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Create(ctx co
 			"No Management interface information found in API",
 			tools.HttpDiagnostics(httpResp),
 		)
-
 	} else if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
-
-		// HTTP 400 counts as an error so moving this here
-		// If there was an error during API call, add it to diagnostics.
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"HTTP Client Failure",
@@ -314,120 +476,54 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Create(ctx co
 			)
 			return
 		}
-
-		// If there were any errors up to this point, log the state data and return.
 		if resp.Diagnostics.HasError() {
 			resp.Diagnostics.AddError("State Data", fmt.Sprintf("\n%v", data))
 			return
 		}
 	}
 
-	if inlineResp != nil {
-
-		if inlineResp["wan1"] != nil {
-
-			var wan1Output OutputDevicesTestAccDevicesManagementInterfaceModelWan
-			jsonData, _ := json.Marshal(inlineResp["wan1"].(map[string]interface{}))
-			json.Unmarshal(jsonData, &wan1Output)
-
-			staticDnsList1, diags := types.ListValueFrom(ctx, types.StringType, wan1Output.StaticDns)
-			if diags.HasError() {
-				return
-			}
-
-			if staticDnsList1.IsUnknown() {
-				staticDnsList1 = basetypes.NewListNull(types.StringType)
-			}
-
-			wan1Map, _ := basetypes.NewObjectValue(WANData(), map[string]attr.Value{
-				"wan_enabled":        basetypes.NewStringValue(wan1Output.WanEnabled),
-				"using_static_ip":    basetypes.NewBoolValue(wan1Output.UsingStaticIp),
-				"static_ip":          basetypes.NewStringValue(wan1Output.StaticIp),
-				"static_subnet_mask": basetypes.NewStringValue(wan1Output.StaticSubnetMask),
-				"static_gateway_ip":  basetypes.NewStringValue(wan1Output.StaticGatewayIp),
-				"static_dns":         staticDnsList1,
-				"vlan":               basetypes.NewInt64Value(wan1Output.Vlan),
-			})
-
-			objectVal1, diags := types.ObjectValueFrom(ctx, WANData(), wan1Map)
-			if diags.HasError() {
-				return
-			}
-
-			data.Wan1 = objectVal1
-
-		} else {
-			data.Wan1 = types.ObjectNull(WANData())
-		}
-
-		if inlineResp["wan2"] != nil {
-
-			var wan2Output OutputDevicesTestAccDevicesManagementInterfaceModelWan
-			jsonData, _ := json.Marshal(inlineResp["wan2"].(map[string]interface{}))
-			json.Unmarshal(jsonData, &wan2Output)
-
-			staticDnsList2, diags := types.ListValueFrom(ctx, types.StringType, wan2Output.StaticDns)
-			if diags.HasError() {
-				return
-			}
-
-			if staticDnsList2.IsUnknown() {
-				staticDnsList2 = basetypes.NewListNull(types.StringType)
-			}
-
-			wan2Map, _ := basetypes.NewObjectValue(WANData(), map[string]attr.Value{
-				"wan_enabled":        basetypes.NewStringValue(wan2Output.WanEnabled),
-				"using_static_ip":    basetypes.NewBoolValue(wan2Output.UsingStaticIp),
-				"static_ip":          basetypes.NewStringValue(wan2Output.StaticIp),
-				"static_subnet_mask": basetypes.NewStringValue(wan2Output.StaticSubnetMask),
-				"static_gateway_ip":  basetypes.NewStringValue(wan2Output.StaticGatewayIp),
-				"static_dns":         staticDnsList2,
-				"vlan":               basetypes.NewInt64Value(wan2Output.Vlan),
-			})
-
-			objectVal2, diags := types.ObjectValueFrom(ctx, WANData(), wan2Map)
-			if diags.HasError() {
-				return
-			}
-
-			data.Wan2 = objectVal2
-
-		} else {
-			data.Wan2 = types.ObjectNull(WANData())
-		}
-
-		if data.Wan1.IsUnknown() {
-			data.Wan1 = types.ObjectNull(WANData())
-		}
-		if data.Wan2.IsUnknown() {
-			data.Wan2 = types.ObjectNull(WANData())
-		}
-	} else {
-		resp.Diagnostics.AddError(
-			"No Response Unbable to Update",
-			fmt.Sprintf("%v", inlineResp),
-		)
+	diags = updateDevicesManagementInterfaceResourceState(ctx, &data, inlineResp, httpResp)
+	data.Id = types.StringValue(data.Serial.ValueString())
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	data.Id = types.StringValue("example-id")
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
-	// Write logs using the tflog package
+	diags = resp.State.Set(ctx, &data)
+	resp.Diagnostics.Append(diags...)
 	tflog.Trace(ctx, "create resource")
 }
 
 func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *DevicesTestAccDevicesManagementInterfaceResourceResourceModel
+	var data DevicesTestAccDevicesManagementInterfaceResourceResourceModel
 
 	// Read Terraform prior state data into the model
+
+	diags := req.State.Get(ctx, &data)
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	inlineResp, httpResp, err := r.client.DevicesApi.GetDeviceManagementInterface(context.Background(), data.Serial.ValueString()).Execute()
+	//inlineResp, httpResp, err := r.client.DevicesApi.GetDeviceManagementInterface(context.Background(), data.Serial.ValueString()).Execute()
+
+	maxRetries := r.client.GetConfig().MaximumRetries
+	retryDelay := time.Duration(r.client.GetConfig().Retry4xxErrorWaitTime)
+
+	inlineResp, httpResp, err := tools.CustomHttpRequestRetry[map[string]interface{}](ctx, maxRetries, retryDelay, func() (map[string]interface{}, *http.Response, error) {
+		inline, respHttp, err := r.client.DevicesApi.GetDeviceManagementInterface(context.Background(), data.Serial.ValueString()).Execute()
+		return inline, respHttp, err
+	})
+	if err != nil {
+		tflog.Error(ctx, "HTTP Call Failed", map[string]interface{}{
+			"error": err.Error(),
+		})
+		resp.Diagnostics.AddError(
+			"HTTP Call Failed",
+			fmt.Sprintf("Details: %s", err.Error()),
+		)
+	}
 
 	// Check for API success response code
 	if httpResp.StatusCode == 404 {
@@ -460,107 +556,29 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Read(ctx cont
 
 	}
 
-	if inlineResp != nil {
+	diags = updateDevicesManagementInterfaceResourceState(ctx, &data, inlineResp, httpResp)
 
-		if inlineResp["wan1"] != nil {
+	data.Id = types.StringValue(data.Serial.ValueString())
 
-			var wan1Output OutputDevicesTestAccDevicesManagementInterfaceModelWan
-			jsonData, _ := json.Marshal(inlineResp["wan1"].(map[string]interface{}))
-			json.Unmarshal(jsonData, &wan1Output)
+	resp.Diagnostics.Append(diags...)
 
-			staticDnsList1, diags := types.ListValueFrom(ctx, types.StringType, wan1Output.StaticDns)
-			if diags.HasError() {
-				return
-			}
-
-			if staticDnsList1.IsUnknown() {
-				staticDnsList1 = basetypes.NewListNull(types.StringType)
-			}
-
-			wan1Map, _ := basetypes.NewObjectValue(WANData(), map[string]attr.Value{
-				"wan_enabled":        basetypes.NewStringValue(wan1Output.WanEnabled),
-				"using_static_ip":    basetypes.NewBoolValue(wan1Output.UsingStaticIp),
-				"static_ip":          basetypes.NewStringValue(wan1Output.StaticIp),
-				"static_subnet_mask": basetypes.NewStringValue(wan1Output.StaticSubnetMask),
-				"static_gateway_ip":  basetypes.NewStringValue(wan1Output.StaticGatewayIp),
-				"static_dns":         staticDnsList1,
-				"vlan":               basetypes.NewInt64Value(wan1Output.Vlan),
-			})
-
-			objectVal1, diags := types.ObjectValueFrom(ctx, WANData(), wan1Map)
-			if diags.HasError() {
-				return
-			}
-
-			data.Wan1 = objectVal1
-
-		} else {
-			data.Wan1 = types.ObjectNull(WANData())
-		}
-
-		if inlineResp["wan2"] != nil {
-
-			var wan2Output OutputDevicesTestAccDevicesManagementInterfaceModelWan
-			jsonData, _ := json.Marshal(inlineResp["wan2"].(map[string]interface{}))
-			json.Unmarshal(jsonData, &wan2Output)
-
-			staticDnsList2, diags := types.ListValueFrom(ctx, types.StringType, wan2Output.StaticDns)
-			if diags.HasError() {
-				return
-			}
-
-			if staticDnsList2.IsUnknown() {
-				staticDnsList2 = basetypes.NewListNull(types.StringType)
-			}
-
-			wan2Map, _ := basetypes.NewObjectValue(WANData(), map[string]attr.Value{
-				"wan_enabled":        basetypes.NewStringValue(wan2Output.WanEnabled),
-				"using_static_ip":    basetypes.NewBoolValue(wan2Output.UsingStaticIp),
-				"static_ip":          basetypes.NewStringValue(wan2Output.StaticIp),
-				"static_subnet_mask": basetypes.NewStringValue(wan2Output.StaticSubnetMask),
-				"static_gateway_ip":  basetypes.NewStringValue(wan2Output.StaticGatewayIp),
-				"static_dns":         staticDnsList2,
-				"vlan":               basetypes.NewInt64Value(wan2Output.Vlan),
-			})
-
-			objectVal2, diags := types.ObjectValueFrom(ctx, WANData(), wan2Map)
-			if diags.HasError() {
-				return
-			}
-
-			data.Wan2 = objectVal2
-
-		} else {
-			data.Wan2 = types.ObjectNull(WANData())
-		}
-
-		if data.Wan1.IsUnknown() {
-			data.Wan1 = types.ObjectNull(WANData())
-		}
-		if data.Wan2.IsUnknown() {
-			data.Wan2 = types.ObjectNull(WANData())
-		}
-	} else {
-		resp.Diagnostics.AddError(
-			"No Response Unbable to Update",
-			fmt.Sprintf("%v", inlineResp),
-		)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	data.Id = types.StringValue("example-id")
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	diags = resp.State.Set(ctx, &data)
+	resp.Diagnostics.Append(diags...)
 
 	// Write logs using the tflog package
 	tflog.Trace(ctx, "read resource")
 }
 
 func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data *DevicesTestAccDevicesManagementInterfaceResourceResourceModel
+	var data DevicesTestAccDevicesManagementInterfaceResourceResourceModel
 
 	// Read Terraform plan data into the model
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+	diags := req.Plan.Get(ctx, &data)
+	resp.Diagnostics.Append(diags...)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -568,70 +586,75 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Update(ctx co
 
 	payload := openApiClient.NewUpdateDeviceManagementInterfaceRequest()
 
-	if !data.Wan1.IsNull() {
+	if !data.Wan1.IsNull() && !data.Wan1.IsUnknown() {
+		var wan1Plan DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan
+		data.Wan1.As(ctx, &wan1Plan, basetypes.ObjectAsOptions{})
+		var staticDNS1 []string
+		wan1Plan.StaticDns.ElementsAs(ctx, &staticDNS1, false)
 
-		if !data.Wan1.IsUnknown() {
+		wan1 := openApiClient.UpdateDeviceManagementInterfaceRequestWan1{}
+		wan1.SetWanEnabled(wan1Plan.WanEnabled.ValueString())
+		wan1.SetStaticDns(staticDNS1)
+		wan1.SetStaticGatewayIp(wan1Plan.StaticGatewayIp.ValueString())
+		wan1.SetStaticSubnetMask(wan1Plan.StaticSubnetMask.ValueString())
+		wan1.SetStaticIp(wan1Plan.StaticIp.ValueString())
+		wan1.SetUsingStaticIp(wan1Plan.UsingStaticIp.ValueBool())
 
-			var wan1Plan DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan
-			data.Wan1.As(ctx, &wan1Plan, basetypes.ObjectAsOptions{})
-			var staticDNS1 []string
-			wan1Plan.StaticDns.ElementsAs(ctx, &staticDNS1, false)
-
-			wan1 := openApiClient.UpdateDeviceManagementInterfaceRequestWan1{}
-
-			if wan1Plan.WanEnabled.ValueString() != "" {
-				wan1.SetWanEnabled(wan1Plan.WanEnabled.ValueString())
-			}
-
-			wan1.SetStaticDns(staticDNS1)
-			wan1.SetStaticGatewayIp(wan1Plan.StaticGatewayIp.ValueString())
-			wan1.SetStaticSubnetMask(wan1Plan.StaticSubnetMask.ValueString())
-			wan1.SetStaticIp(wan1Plan.StaticIp.ValueString())
-			wan1.SetUsingStaticIp(wan1Plan.UsingStaticIp.ValueBool())
-
-			if !wan1Plan.Vlan.IsNull() {
-				var vlan = int32(wan1Plan.Vlan.ValueInt64())
-				wan1.Vlan = &vlan
-			}
-
-			payload.Wan1 = &wan1
-
+		if !wan1Plan.Vlan.IsNull() {
+			vlan := int32(wan1Plan.Vlan.ValueInt64())
+			wan1.Vlan = &vlan
 		}
 
+		tflog.Debug(ctx, "Wan1 payload before API call", map[string]interface{}{
+			"wan1": wan1,
+		})
+
+		payload.Wan1 = &wan1
 	}
 
-	if !data.Wan2.IsNull() {
+	if !data.Wan2.IsNull() && !data.Wan2.IsUnknown() {
+		var wan2Plan DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan
+		data.Wan2.As(ctx, &wan2Plan, basetypes.ObjectAsOptions{})
+		var staticDNS2 []string
+		wan2Plan.StaticDns.ElementsAs(ctx, &staticDNS2, false)
 
-		if !data.Wan2.IsUnknown() {
+		wan2 := openApiClient.UpdateDeviceManagementInterfaceRequestWan2{}
+		wan2.SetWanEnabled(wan2Plan.WanEnabled.ValueString())
+		wan2.SetStaticDns(staticDNS2)
+		wan2.SetStaticGatewayIp(wan2Plan.StaticGatewayIp.ValueString())
+		wan2.SetStaticSubnetMask(wan2Plan.StaticSubnetMask.ValueString())
+		wan2.SetStaticIp(wan2Plan.StaticIp.ValueString())
+		wan2.SetUsingStaticIp(wan2Plan.UsingStaticIp.ValueBool())
 
-			var wan2Plan DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan
-			data.Wan2.As(ctx, &wan2Plan, basetypes.ObjectAsOptions{})
-			var staticDNS2 []string
-			wan2Plan.StaticDns.ElementsAs(ctx, &staticDNS2, false)
-
-			wan2 := openApiClient.UpdateDeviceManagementInterfaceRequestWan2{}
-
-			if wan2Plan.WanEnabled.ValueString() != "" {
-				wan2.SetWanEnabled(wan2Plan.WanEnabled.ValueString())
-			}
-
-			wan2.SetStaticDns(staticDNS2)
-			wan2.SetStaticGatewayIp(wan2Plan.StaticGatewayIp.ValueString())
-			wan2.SetStaticSubnetMask(wan2Plan.StaticSubnetMask.ValueString())
-			wan2.SetStaticIp(wan2Plan.StaticIp.ValueString())
-			wan2.SetUsingStaticIp(wan2Plan.UsingStaticIp.ValueBool())
-
-			if !wan2Plan.Vlan.IsNull() {
-				var vlan = int32(wan2Plan.Vlan.ValueInt64())
-				wan2.Vlan = &vlan
-			}
-
-			payload.Wan2 = &wan2
-
+		if !wan2Plan.Vlan.IsNull() {
+			vlan := int32(wan2Plan.Vlan.ValueInt64())
+			wan2.Vlan = &vlan
 		}
+
+		tflog.Debug(ctx, "Wan2 payload before API call", map[string]interface{}{
+			"wan2": wan2,
+		})
+
+		payload.Wan2 = &wan2
 	}
 
-	inlineResp, httpResp, err := r.client.ManagementInterfaceApi.UpdateDeviceManagementInterface(context.Background(), data.Serial.ValueString()).UpdateDeviceManagementInterfaceRequest(*payload).Execute()
+	maxRetries := r.client.GetConfig().MaximumRetries
+	retryDelay := time.Duration(r.client.GetConfig().Retry4xxErrorWaitTime)
+
+	inlineResp, httpResp, err := tools.CustomHttpRequestRetry[map[string]interface{}](ctx, maxRetries, retryDelay, func() (map[string]interface{}, *http.Response, error) {
+		inline, respHttp, err := r.client.ManagementInterfaceApi.UpdateDeviceManagementInterface(context.Background(), data.Serial.ValueString()).UpdateDeviceManagementInterfaceRequest(*payload).Execute()
+		return inline, respHttp, err
+	})
+	if err != nil {
+		tflog.Error(ctx, "HTTP Call Failed", map[string]interface{}{
+			"error": err.Error(),
+		})
+		resp.Diagnostics.AddError(
+			"HTTP Call Failed",
+			fmt.Sprintf("Details: %s", err.Error()),
+		)
+	}
+
 	// Check for API success response code
 	if httpResp.StatusCode == 404 {
 		resp.Diagnostics.AddWarning(
@@ -663,99 +686,23 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Update(ctx co
 
 	}
 
-	if inlineResp != nil {
+	diags = updateDevicesManagementInterfaceResourceState(ctx, &data, inlineResp, httpResp)
 
-		if inlineResp["wan1"] != nil {
+	data.Id = types.StringValue(data.Serial.ValueString())
 
-			var wan1Output OutputDevicesTestAccDevicesManagementInterfaceModelWan
-			jsonData, _ := json.Marshal(inlineResp["wan1"].(map[string]interface{}))
-			json.Unmarshal(jsonData, &wan1Output)
+	resp.Diagnostics.Append(diags...)
 
-			staticDnsList1, diags := types.ListValueFrom(ctx, types.StringType, wan1Output.StaticDns)
-			if diags.HasError() {
-				return
-			}
-
-			if staticDnsList1.IsUnknown() {
-				staticDnsList1 = basetypes.NewListNull(types.StringType)
-			}
-
-			wan1Map, _ := basetypes.NewObjectValue(WANData(), map[string]attr.Value{
-				"wan_enabled":        basetypes.NewStringValue(wan1Output.WanEnabled),
-				"using_static_ip":    basetypes.NewBoolValue(wan1Output.UsingStaticIp),
-				"static_ip":          basetypes.NewStringValue(wan1Output.StaticIp),
-				"static_subnet_mask": basetypes.NewStringValue(wan1Output.StaticSubnetMask),
-				"static_gateway_ip":  basetypes.NewStringValue(wan1Output.StaticGatewayIp),
-				"static_dns":         staticDnsList1,
-				"vlan":               basetypes.NewInt64Value(wan1Output.Vlan),
-			})
-
-			objectVal1, diags := types.ObjectValueFrom(ctx, WANData(), wan1Map)
-			if diags.HasError() {
-				return
-			}
-
-			data.Wan1 = objectVal1
-
-		} else {
-			data.Wan1 = types.ObjectNull(WANData())
-		}
-
-		if inlineResp["wan2"] != nil {
-
-			var wan2Output OutputDevicesTestAccDevicesManagementInterfaceModelWan
-			jsonData, _ := json.Marshal(inlineResp["wan2"].(map[string]interface{}))
-			json.Unmarshal(jsonData, &wan2Output)
-
-			staticDnsList2, diags := types.ListValueFrom(ctx, types.StringType, wan2Output.StaticDns)
-			if diags.HasError() {
-				return
-			}
-
-			if staticDnsList2.IsUnknown() {
-				staticDnsList2 = basetypes.NewListNull(types.StringType)
-			}
-
-			wan2Map, _ := basetypes.NewObjectValue(WANData(), map[string]attr.Value{
-				"wan_enabled":        basetypes.NewStringValue(wan2Output.WanEnabled),
-				"using_static_ip":    basetypes.NewBoolValue(wan2Output.UsingStaticIp),
-				"static_ip":          basetypes.NewStringValue(wan2Output.StaticIp),
-				"static_subnet_mask": basetypes.NewStringValue(wan2Output.StaticSubnetMask),
-				"static_gateway_ip":  basetypes.NewStringValue(wan2Output.StaticGatewayIp),
-				"static_dns":         staticDnsList2,
-				"vlan":               basetypes.NewInt64Value(wan2Output.Vlan),
-			})
-
-			objectVal2, diags := types.ObjectValueFrom(ctx, WANData(), wan2Map)
-			if diags.HasError() {
-				return
-			}
-
-			data.Wan2 = objectVal2
-
-		} else {
-			data.Wan2 = types.ObjectNull(WANData())
-		}
-
-		if data.Wan1.IsUnknown() {
-			data.Wan1 = types.ObjectNull(WANData())
-		}
-		if data.Wan2.IsUnknown() {
-			data.Wan2 = types.ObjectNull(WANData())
-		}
-	} else {
-		resp.Diagnostics.AddError(
-			"No Response Unbable to Update",
-			fmt.Sprintf("%v", inlineResp),
-		)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	data.Id = types.StringValue("example-id")
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
 	// Write logs using the tflog package
+	tflog.Debug(ctx, "Updated state after API call", map[string]interface{}{
+		"data": data,
+	})
+
+	diags = resp.State.Set(ctx, &data)
+	resp.Diagnostics.Append(diags...)
 	tflog.Trace(ctx, "updated resource")
 }
 
@@ -808,8 +755,6 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Delete(ctx co
 		}
 	}
 
-	data.Id = types.StringValue("example-id")
-
 	resp.State.RemoveResource(ctx)
 
 	// Write logs using the tflog package
@@ -825,4 +770,3 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) ImportState(c
 		return
 	}
 }
-
