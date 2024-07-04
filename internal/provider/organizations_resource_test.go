@@ -5,15 +5,6 @@ import (
 	"testing"
 )
 
-func init() {
-	resource.AddTestSweepers("meraki_organization", &resource.Sweeper{
-		Name: "meraki_organization",
-		F: func(organization string) error {
-			return sweepMerakiOrganization(organization)
-		},
-	})
-}
-
 func TestAccOrganizationResource(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
