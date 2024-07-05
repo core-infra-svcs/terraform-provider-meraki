@@ -35,74 +35,74 @@ var testAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServe
 // TestMain is the entry point for the test suite.
 func TestMain(m *testing.M) {
 	ctx := context.Background()
-	fmt.Println(ctx, "Starting TestMain")
+	fmt.Println("Starting TestMain")
 
 	// Setup code here (e.g., initialize resources, set environment variables).
 	setup(ctx)
 
 	// Run the tests
-	fmt.Println(ctx, "Running tests")
+	fmt.Println("Running tests")
 	exitCode := m.Run()
 
 	// Run sweepers or other cleanup code if tests failed.
 	if exitCode != 0 {
-		fmt.Println(ctx, "Tests failed, running cleanup")
+		fmt.Println("Tests failed, running cleanup")
 		cleanup(ctx)
 	}
 
 	// Additional cleanup code here (e.g., close connections, remove files).
 	teardown(ctx)
 
-	fmt.Println(ctx, "Exiting TestMain", map[string]interface{}{"exitCode": exitCode})
+	fmt.Println("Exiting TestMain", map[string]interface{}{"exitCode": exitCode})
 	os.Exit(exitCode)
 }
 
 // setup is a placeholder for setup code.
 func setup(ctx context.Context) {
-	fmt.Println(ctx, "Setup code running...")
+	fmt.Println("Setup code running...")
 }
 
 // cleanup is a placeholder for cleanup code executed on test failures.
 func cleanup(ctx context.Context) {
-	fmt.Println(ctx, "Cleanup code running...")
+	fmt.Println("Cleanup code running...")
 
 	organizationId := os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")
 	if organizationId == "" {
-		fmt.Println(ctx, "TF_ACC_MERAKI_ORGANIZATION_ID must be set for sweeper to run")
+		fmt.Println("TF_ACC_MERAKI_ORGANIZATION_ID must be set for sweeper to run")
 		os.Exit(1)
 	}
 
 	client, clientErr := SweeperHTTPClient()
 	if clientErr != nil {
-		fmt.Println(ctx, "Error getting HTTP client", map[string]interface{}{
+		fmt.Println("Error getting HTTP client", map[string]interface{}{
 			"error": clientErr,
 		})
 	}
 
 	// Sweep a Specified Static Organization
-	fmt.Println(ctx, "Running terraform sweepers due to test failures...")
+	fmt.Println("Running terraform sweepers due to test failures...")
 	err := sweepMerakiOrganization(ctx, client, organizationId)
 	if err != nil {
-		fmt.Println(ctx, "Error running organization sweeper", map[string]interface{}{
+		fmt.Println("Error running organization sweeper", map[string]interface{}{
 			"error": err,
 		})
 	} else {
-		fmt.Println(ctx, "Organization sweeper ran successfully")
+		fmt.Println("Organization sweeper ran successfully")
 	}
 
 	// Targeted "test_acc" Organizations Sweeper
 	err = sweepMerakiOrganizations(ctx, client)
 	if err != nil {
-		fmt.Println(ctx, "Error running organizations sweeper", map[string]interface{}{
+		fmt.Println("Error running organizations sweeper", map[string]interface{}{
 			"error": err,
 		})
 	} else {
-		fmt.Println(ctx, "Organizations sweeper ran successfully")
+		fmt.Println("Organizations sweeper ran successfully")
 	}
 
 }
 
 // teardown is a placeholder for teardown code.
 func teardown(ctx context.Context) {
-	fmt.Println(ctx, "Teardown code running...")
+	fmt.Println("Teardown code running...")
 }
