@@ -74,6 +74,74 @@ To set up your integration testing environment, follow these steps:
 - **Clean Up**: Write tests that clean up resources after they run to prevent unnecessary charges and clutter in your Meraki environment.
 - **Monitoring**: Keep an eye on the Meraki dashboard while tests are running. This will help you understand the changes being made and troubleshoot any issues that arise.
 
+## Sweepers 
+
+We use terraform sweepers to clean up build artifacts left in the Meraki dashboard from failed integration tests. 
+In normal conditions sweepers are run atomatically during testing due to TestMain func in the `provider_sweeper_test.go` file.
+
+When writing tests it is important to label all resources with a `test_acc` prefix as this is what the sweepers use to identify artifacts for cleanup.
+
+As specified below, you have the option to manually run the Terraform sweepers for cleaning up test artifacts in the Meraki Dashboard using CLI or IDE program arguments.
+
+**Setting Environment Variables**
+
+In your terminal, set the environment variables as follows:
+
+```shell
+export MERAKI_DASHBOARD_API_KEY=your_meraki_api_key
+export TF_ACC_MERAKI_ORGANIZATION_ID=your_organization_id
+```
+
+**Commands**
+
+To run the meraki_networks sweeper:
+```shell
+go test -v -sweep=123467890 -sweep-run='meraki_networks'
+```
+
+To run the meraki_admins sweeper:
+```shell
+go test -v -sweep=123467890 -sweep-run='meraki_admins'
+```
+To run the meraki_organization sweeper:
+```shell
+go test -v -sweep=123467890 -sweep-run='meraki_organization'
+```
+
+To run the meraki_organizations sweeper:
+```shell
+go test -v -sweep=123467890 -sweep-run='meraki_organizations'
+```
+
+
+**Running in an IDE**
+
+If you are using an IDE like GoLand, you can configure the run configuration to include the necessary program arguments.
+
+	1.	Open Run/Debug Configurations:
+	•	Go to Run > Edit Configurations...
+	2.	Add New Configuration:
+	•	Click on the + icon and select Go Test.
+	3.	Set Program Arguments:
+	•	In the Program arguments field, add:
+
+   ```shell
+   -v -sweep=123467890 -sweep-run='meraki_organization'
+   ```
+•	Or for meraki_network:
+   ```shell
+   -v -sweep=123467890 -sweep-run='meraki_network'
+   ```
+	4.	Set Environment Variables:
+	•	In the Environment field, add:
+   ```shell
+  MERAKI_DASHBOARD_API_KEY=your_meraki_api_key
+  TF_ACC_MERAKI_ORGANIZATION_ID=your_organization_id
+   ```
+	5.	Apply and Run:
+	•	Apply the configuration and click Run.
+
+
 ## Troubleshooting
 
 If you encounter any issues during testing, consider the following steps:

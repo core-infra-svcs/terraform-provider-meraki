@@ -87,7 +87,7 @@ func TestAccOrganizationsAdminResource(t *testing.T) {
 						resourceName := fmt.Sprintf("meraki_organizations_admin.test%d", i)
 						checks = append(checks,
 							resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("test_acc_admin_%d", i)),
-							resource.TestCheckResourceAttr(resourceName, "email", fmt.Sprintf("meraki_organizations_admin_test_%s_%d@example.com", timestamp, i)),
+							resource.TestCheckResourceAttr(resourceName, "email", fmt.Sprintf("test_acc_meraki_organizations_admin_test_%s_%d@example.com", timestamp, i)),
 							resource.TestCheckResourceAttr(resourceName, "org_access", "read-only"),
 							resource.TestCheckResourceAttr(resourceName, "authentication_method", "Email"),
 							resource.TestCheckResourceAttr(resourceName, "tags.0.tag", "west"),
@@ -139,7 +139,7 @@ resource "meraki_organizations_admin" "test" {
 	depends_on = ["meraki_organization.test", "meraki_network.test"]
 	organization_id = resource.meraki_organization.test.organization_id
 	name        = "test_acc_admin"
-	email       = "meraki_organizations_admin_test_%s@example.com"
+	email       = "test_acc_meraki_organizations_admin_test_%s@example.com"
 	org_access   = "read-only"
 	authentication_method = "Email"
     tags = [
@@ -167,7 +167,7 @@ resource "meraki_organizations_admin" "test" {
 	depends_on = ["meraki_organization.test", "meraki_network.test"]
 	organization_id = resource.meraki_organization.test.organization_id
 	name        = "test_acc_admin"
-	email       = "meraki_organizations_admin_test_%s@example.com"
+	email       = "test_acc_meraki_organizations_admin_test_%s@example.com"
 	org_access   = "read-only"
 	authentication_method = "Email"
     tags = [
@@ -208,7 +208,7 @@ resource "meraki_organizations_admin" "test%d" {
 	depends_on = ["meraki_network.test"]
 	organization_id = resource.meraki_organization.test.organization_id
 	name        = "test_acc_admin_%d"
-	email       = "meraki_organizations_admin_test_%s_%d@example.com"
+	email       = "test_acc_meraki_organizations_admin_test_%s_%d@example.com"
 	org_access   = "read-only"
 	authentication_method = "Email"
     tags = [
