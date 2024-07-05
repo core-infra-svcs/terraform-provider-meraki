@@ -5,18 +5,35 @@ import (
 	"crypto/tls"
 	"fmt"
 	"github.com/hashicorp/go-retryablehttp"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
 	"io"
 	"net/http"
 	"os"
 	"strings"
-	"testing"
 	"time"
 )
 
 // Meraki Dashboard API Calls //
+
+func SweeperHTTPClient() (*openApiClient.APIClient, error) {
+	configuration := openApiClient.NewConfiguration()
+	configuration.UserAgent = configuration.UserAgent + " terraform/dev-sweeper"
+	transport := &http.Transport{
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: false,
+		},
+	}
+	authenticatedTransport := &bearerAuthTransport{
+		Transport: transport,
+	}
+	authenticatedTransport.Token = os.Getenv("MERAKI_DASHBOARD_API_KEY")
+	retryClient := retryablehttp.NewClient()
+	retryClient.HTTPClient.Transport = authenticatedTransport
+	configuration.HTTPClient = retryClient.HTTPClient
+	client := openApiClient.NewAPIClient(configuration)
+	return client, nil
+}
 
 func getMerakiOrganization(ctx context.Context, client *openApiClient.APIClient, organizationId string) (*openApiClient.GetOrganizations200ResponseInner, error) {
 	inlineResp, _, err := client.OrganizationsApi.GetOrganization(ctx, organizationId).Execute()
@@ -35,7 +52,7 @@ func getMerakiOrganizations(ctx context.Context, client *openApiClient.APIClient
 }
 
 func deleteMerakiOrganization(ctx context.Context, client *openApiClient.APIClient, organization openApiClient.GetOrganizations200ResponseInner) error {
-	tflog.Info(ctx, "Deleting organization", map[string]interface{}{
+	fmt.Println(ctx, "Deleting organization", map[string]interface{}{
 		"name": *organization.Name,
 		"id":   *organization.Id,
 	})
@@ -57,7 +74,7 @@ func deleteMerakiOrganization(ctx context.Context, client *openApiClient.APIClie
 		} else {
 			responseBody = "No response body"
 		}
-		tflog.Error(ctx, "Error deleting organization", map[string]interface{}{
+		fmt.Println(ctx, "Error deleting organization", map[string]interface{}{
 			"name":         *organization.Name,
 			"id":           *organization.Id,
 			"error":        err,
@@ -67,7 +84,7 @@ func deleteMerakiOrganization(ctx context.Context, client *openApiClient.APIClie
 	}
 
 	if httpRespOrg.StatusCode == 204 {
-		tflog.Info(ctx, "Successfully deleted organization", map[string]interface{}{
+		fmt.Println(ctx, "Successfully deleted organization", map[string]interface{}{
 			"name": *organization.Name,
 			"id":   *organization.Id,
 		})
@@ -88,7 +105,7 @@ func deleteMerakiNetwork(ctx context.Context, client *openApiClient.APIClient, n
 	wait := 1
 	var deletedFromMerakiPortal bool
 
-	tflog.Info(ctx, "Deleting network", map[string]interface{}{
+	fmt.Println(ctx, "Deleting network", map[string]interface{}{
 		"name": *network.Name,
 		"id":   *network.Id,
 	})
@@ -96,14 +113,14 @@ func deleteMerakiNetwork(ctx context.Context, client *openApiClient.APIClient, n
 	for retries > 0 {
 		httpResp, err := client.NetworksApi.DeleteNetwork(ctx, *network.Id).Execute()
 		if err != nil {
-			tflog.Error(ctx, "Error deleting network", map[string]interface{}{
+			fmt.Println(ctx, "Error deleting network", map[string]interface{}{
 				"networkID": network.Id,
 				"error":     err,
 			})
 		}
 
 		if httpResp.StatusCode == 204 {
-			tflog.Info(ctx, "Successfully deleted network", map[string]interface{}{
+			fmt.Println(ctx, "Successfully deleted network", map[string]interface{}{
 				"name": *network.Name,
 				"id":   *network.Id,
 			})
@@ -117,7 +134,7 @@ func deleteMerakiNetwork(ctx context.Context, client *openApiClient.APIClient, n
 	}
 
 	if !deletedFromMerakiPortal {
-		tflog.Error(ctx, "Failed to delete network", map[string]interface{}{
+		fmt.Println(ctx, "Failed to delete network", map[string]interface{}{
 			"name": *network.Name,
 			"id":   *network.Id,
 		})
@@ -154,7 +171,7 @@ func getMerakiAdmins(ctx context.Context, client *openApiClient.APIClient, organ
 }
 
 func deleteMerakiAdmin(ctx context.Context, client *openApiClient.APIClient, organizationId string, admin openApiClient.GetOrganizationAdmins200ResponseInner) error {
-	tflog.Info(ctx, "Deleting admin", map[string]interface{}{"email": *admin.Email, "id": *admin.Id})
+	fmt.Println(ctx, "Deleting admin", map[string]interface{}{"email": *admin.Email, "id": *admin.Id})
 
 	httpResp, err := client.AdminsApi.DeleteOrganizationAdmin(ctx, organizationId, *admin.Id).Execute()
 	if err != nil {
@@ -174,7 +191,7 @@ func deleteMerakiAdmin(ctx context.Context, client *openApiClient.APIClient, org
 			} else {
 				responseBody = "No response body"
 			}
-			tflog.Error(ctx, "Error deleting admin", map[string]interface{}{
+			fmt.Println(ctx, "Error deleting admin", map[string]interface{}{
 				"email":        *admin.Email,
 				"id":           *admin.Id,
 				"organization": organizationId,
@@ -183,7 +200,7 @@ func deleteMerakiAdmin(ctx context.Context, client *openApiClient.APIClient, org
 				"responseBody": responseBody,
 			})
 		} else {
-			tflog.Error(ctx, "Error deleting admin", map[string]interface{}{
+			fmt.Println(ctx, "Error deleting admin", map[string]interface{}{
 				"email":        *admin.Email,
 				"id":           *admin.Id,
 				"organization": organizationId,
@@ -194,7 +211,7 @@ func deleteMerakiAdmin(ctx context.Context, client *openApiClient.APIClient, org
 	}
 
 	if httpResp.StatusCode == http.StatusNoContent {
-		tflog.Info(ctx, "Successfully deleted admin", map[string]interface{}{"email": *admin.Email, "id": *admin.Id})
+		fmt.Println(ctx, "Successfully deleted admin", map[string]interface{}{"email": *admin.Email, "id": *admin.Id})
 	} else {
 		var responseBody string
 		if httpResp.Body != nil {
@@ -211,7 +228,7 @@ func deleteMerakiAdmin(ctx context.Context, client *openApiClient.APIClient, org
 		} else {
 			responseBody = "No response body"
 		}
-		tflog.Error(ctx, "Failed to delete admin", map[string]interface{}{
+		fmt.Println(ctx, "Failed to delete admin", map[string]interface{}{
 			"email":        *admin.Email,
 			"id":           *admin.Id,
 			"status":       httpResp.StatusCode,
@@ -226,7 +243,7 @@ func deleteMerakiAdmin(ctx context.Context, client *openApiClient.APIClient, org
 // Terraform Sweepers //
 
 func sweepMerakiNetworks(ctx context.Context, client *openApiClient.APIClient, organizationId string) error {
-	tflog.Info(ctx, "Starting network sweeper for organization", map[string]interface{}{"organization": organizationId})
+	fmt.Println(ctx, "Starting network sweeper for organization", map[string]interface{}{"organization": organizationId})
 
 	perPage := int32(100000)
 	networks, err := getMerakiNetworks(ctx, client, organizationId, perPage)
@@ -237,7 +254,7 @@ func sweepMerakiNetworks(ctx context.Context, client *openApiClient.APIClient, o
 	for _, network := range networks {
 		if strings.HasPrefix(*network.Name, "test_acc") {
 			if err := deleteMerakiNetwork(ctx, client, network); err != nil {
-				tflog.Error(ctx, "Failed to delete network", map[string]interface{}{
+				fmt.Println(ctx, "Failed to delete network", map[string]interface{}{
 					"name":  *network.Name,
 					"id":    *network.Id,
 					"error": err,
@@ -246,12 +263,12 @@ func sweepMerakiNetworks(ctx context.Context, client *openApiClient.APIClient, o
 		}
 	}
 
-	tflog.Info(ctx, "Finished running network sweeper")
+	fmt.Println(ctx, "Finished running network sweeper")
 	return nil
 }
 
 func sweepMerakiAdmins(ctx context.Context, client *openApiClient.APIClient, organizationId string) error {
-	tflog.Info(ctx, "Starting admin sweeper for organization", map[string]interface{}{"organization": organizationId})
+	fmt.Println(ctx, "Starting admin sweeper for organization", map[string]interface{}{"organization": organizationId})
 
 	admins, err := getMerakiAdmins(ctx, client, organizationId)
 	if err != nil {
@@ -260,13 +277,13 @@ func sweepMerakiAdmins(ctx context.Context, client *openApiClient.APIClient, org
 
 	for _, admin := range admins {
 		if admin.Email == nil || admin.Id == nil {
-			tflog.Warn(ctx, "Skipping admin with missing email or ID", map[string]interface{}{"admin": admin})
+			fmt.Println(ctx, "Skipping admin with missing email or ID", map[string]interface{}{"admin": admin})
 			continue
 		}
 
 		if strings.HasPrefix(*admin.Email, "test_acc") {
 			if err := deleteMerakiAdmin(ctx, client, organizationId, admin); err != nil {
-				tflog.Error(ctx, "Failed to delete admin", map[string]interface{}{
+				fmt.Println(ctx, "Failed to delete admin", map[string]interface{}{
 					"email": *admin.Email,
 					"id":    *admin.Id,
 					"error": err,
@@ -275,12 +292,12 @@ func sweepMerakiAdmins(ctx context.Context, client *openApiClient.APIClient, org
 		}
 	}
 
-	tflog.Info(ctx, "Finished running admin sweeper")
+	fmt.Println(ctx, "Finished running admin sweeper")
 	return nil
 }
 
 func sweepMerakiOrganizations(ctx context.Context, client *openApiClient.APIClient) error {
-	tflog.Info(ctx, "Starting organizations sweeper")
+	fmt.Println(ctx, "Starting organizations sweeper")
 
 	organizations, err := getMerakiOrganizations(ctx, client)
 	if err != nil {
@@ -292,7 +309,7 @@ func sweepMerakiOrganizations(ctx context.Context, client *openApiClient.APIClie
 
 			// First, sweep networks and admins within the organization
 			if err := sweepMerakiNetworks(ctx, client, *organization.Id); err != nil {
-				tflog.Error(ctx, "Failed to sweep networks", map[string]interface{}{
+				fmt.Println(ctx, "Failed to sweep networks", map[string]interface{}{
 					"organization": *organization.Name,
 					"id":           *organization.Id,
 					"error":        err,
@@ -300,7 +317,7 @@ func sweepMerakiOrganizations(ctx context.Context, client *openApiClient.APIClie
 				continue
 			}
 			if err := sweepMerakiAdmins(ctx, client, *organization.Id); err != nil {
-				tflog.Error(ctx, "Failed to sweep admins", map[string]interface{}{
+				fmt.Println(ctx, "Failed to sweep admins", map[string]interface{}{
 					"organization": *organization.Name,
 					"id":           *organization.Id,
 					"error":        err,
@@ -309,7 +326,7 @@ func sweepMerakiOrganizations(ctx context.Context, client *openApiClient.APIClie
 			}
 			// Finally, delete the organization
 			if err := deleteMerakiOrganization(ctx, client, organization); err != nil {
-				tflog.Error(ctx, "Failed to delete organization", map[string]interface{}{
+				fmt.Println(ctx, "Failed to delete organization", map[string]interface{}{
 					"name":  *organization.Name,
 					"id":    *organization.Id,
 					"error": err,
@@ -318,12 +335,12 @@ func sweepMerakiOrganizations(ctx context.Context, client *openApiClient.APIClie
 		}
 	}
 
-	tflog.Info(ctx, "Finished running organizations sweeper")
+	fmt.Println(ctx, "Finished running organizations sweeper")
 	return nil
 }
 
 func sweepMerakiOrganization(ctx context.Context, client *openApiClient.APIClient, organizationId string) error {
-	tflog.Info(ctx, "Starting organization sweeper")
+	fmt.Println(ctx, "Starting organization sweeper")
 
 	organization, err := getMerakiOrganization(ctx, client, organizationId)
 	if err != nil {
@@ -331,51 +348,37 @@ func sweepMerakiOrganization(ctx context.Context, client *openApiClient.APIClien
 	}
 
 	if err := sweepMerakiNetworks(ctx, client, *organization.Id); err != nil {
-		tflog.Error(ctx, "Failed to sweep networks", map[string]interface{}{
+		fmt.Println(ctx, "Failed to sweep networks", map[string]interface{}{
 			"organization": *organization.Name,
 			"id":           *organization.Id,
 			"error":        err,
 		})
 	}
 	if err := sweepMerakiAdmins(ctx, client, *organization.Id); err != nil {
-		tflog.Error(ctx, "Failed to sweep admins", map[string]interface{}{
+		fmt.Println(ctx, "Failed to sweep admins", map[string]interface{}{
 			"organization": *organization.Name,
 			"id":           *organization.Id,
 			"error":        err,
 		})
 	}
 
-	tflog.Info(ctx, "Finished running organization sweeper")
+	fmt.Println(ctx, "Finished running organization sweeper")
 	return nil
 }
 
-func SweeperHTTPClient() (*openApiClient.APIClient, error) {
-	configuration := openApiClient.NewConfiguration()
-	configuration.UserAgent = configuration.UserAgent + " terraform/dev-sweeper"
-	transport := &http.Transport{
-		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: false,
-		},
-	}
-	authenticatedTransport := &bearerAuthTransport{
-		Transport: transport,
-	}
-	authenticatedTransport.Token = os.Getenv("MERAKI_DASHBOARD_API_KEY")
-	retryClient := retryablehttp.NewClient()
-	retryClient.HTTPClient.Transport = authenticatedTransport
-	configuration.HTTPClient = retryClient.HTTPClient
-	client := openApiClient.NewAPIClient(configuration)
-	return client, nil
-}
+// Sweeper Definitions //
 
 func init() {
+	ctx := context.Background()
+	fmt.Println(ctx, "Registering sweepers")
 
 	resource.AddTestSweepers("meraki_networks", &resource.Sweeper{
 		Name: "meraki_networks",
 		F: func(organizationId string) error {
-			ctx := context.Background()
+			fmt.Println(ctx, "Running meraki_networks sweeper")
 			client, err := SweeperHTTPClient()
 			if err != nil {
+				fmt.Println(ctx, "Error creating HTTP client", map[string]interface{}{"error": err})
 				return err
 			}
 			return sweepMerakiNetworks(ctx, client, organizationId)
@@ -385,9 +388,10 @@ func init() {
 	resource.AddTestSweepers("meraki_admins", &resource.Sweeper{
 		Name: "meraki_admins",
 		F: func(organizationId string) error {
-			ctx := context.Background()
+			fmt.Println(ctx, "Running meraki_admins sweeper")
 			client, err := SweeperHTTPClient()
 			if err != nil {
+				fmt.Println(ctx, "Error creating HTTP client", map[string]interface{}{"error": err})
 				return err
 			}
 			return sweepMerakiAdmins(ctx, client, organizationId)
@@ -397,9 +401,10 @@ func init() {
 	resource.AddTestSweepers("meraki_organization", &resource.Sweeper{
 		Name: "meraki_organization",
 		F: func(organizationId string) error {
-			ctx := context.Background()
+			fmt.Println(ctx, "Running meraki_organization sweeper")
 			client, err := SweeperHTTPClient()
 			if err != nil {
+				fmt.Println(ctx, "Error creating HTTP client", map[string]interface{}{"error": err})
 				return err
 			}
 			return sweepMerakiOrganization(ctx, client, organizationId)
@@ -409,56 +414,13 @@ func init() {
 	resource.AddTestSweepers("meraki_organizations", &resource.Sweeper{
 		Name: "meraki_organizations",
 		F: func(organizationId string) error {
-			ctx := context.Background()
+			fmt.Println(ctx, "Running meraki_organizations sweeper")
 			client, err := SweeperHTTPClient()
 			if err != nil {
+				fmt.Println(ctx, "Error creating HTTP client", map[string]interface{}{"error": err})
 				return err
 			}
 			return sweepMerakiOrganizations(ctx, client)
 		},
 	})
-}
-
-func TestMain(m *testing.M) {
-	exitCode := m.Run()
-
-	ctx := context.Background()
-
-	if exitCode != 0 {
-		organizationId := os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")
-		if organizationId == "" {
-			tflog.Error(ctx, "TF_ACC_MERAKI_ORGANIZATION_ID must be set for sweeper to run")
-			os.Exit(exitCode)
-		}
-
-		client, clientErr := SweeperHTTPClient()
-		if clientErr != nil {
-			tflog.Error(ctx, "Error getting HTTP client", map[string]interface{}{
-				"error": clientErr,
-			})
-		}
-
-		// Any Specified Organization Sweeper
-		tflog.Info(ctx, "Running terraform sweepers due to test failures...")
-		err := sweepMerakiOrganization(ctx, client, organizationId)
-		if err != nil {
-			tflog.Error(ctx, "Error running organization sweeper", map[string]interface{}{
-				"error": err,
-			})
-		} else {
-			tflog.Info(ctx, "Organization sweeper ran successfully")
-		}
-
-		// Targeted "test_acc" Organizations Sweeper
-		err = sweepMerakiOrganizations(ctx, client)
-		if err != nil {
-			tflog.Error(ctx, "Error running organizations sweeper", map[string]interface{}{
-				"error": err,
-			})
-		} else {
-			tflog.Info(ctx, "Organizations sweeper ran successfully")
-		}
-	}
-
-	os.Exit(exitCode)
 }
