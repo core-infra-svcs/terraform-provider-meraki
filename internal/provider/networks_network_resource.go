@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"strings"
 	"time"
 
@@ -304,7 +306,6 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 		return
 	}
 
-	// Note: Id is properly returned here, shouldnt be example
 	data.Id = data.NetworkId.StringValue
 
 	if data.CopyFromNetworkId.IsUnknown() {
@@ -590,61 +591,66 @@ func (r *NetworkResource) Delete(ctx context.Context, req resource.DeleteRequest
 	// Read Terraform state data
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-	// HTTP DELETE METHOD does not leverage the retry-after header and throws 400 errors.
-	retries := 100 // This is the only way to ensure a scaled result.
-	wait := 1
-	var deletedFromMerakiPortal bool
-	deletedFromMerakiPortal = false
+	maxRetries := r.client.GetConfig().MaximumRetries
+	retryDelay := time.Duration(r.client.GetConfig().Retry4xxErrorWaitTime)
 
-	for retries > 0 {
+	// API call function to be passed to retryOn4xx
+	apiCall := func() (map[string]interface{}, *http.Response, error) {
+		time.Sleep(retryDelay * time.Millisecond)
 
-		// Initialize provider client and make API call
 		httpResp, err := r.client.NetworksApi.DeleteNetwork(context.Background(), data.NetworkId.ValueString()).Execute()
+		return nil, httpResp, err
+	}
 
-		if httpResp.StatusCode == 204 {
-			// check for HTTP errors
-			if err != nil {
-				resp.Diagnostics.AddError(
-					"HTTP Client Failure",
-					tools.HttpDiagnostics(httpResp),
-				)
-				return
+	// HTTP DELETE METHOD does not leverage the retry-after header and throws 400 errors.
+	_, httpResp, err := tools.CustomHttpRequestRetry(ctx, maxRetries, retryDelay, apiCall)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error creating group policy",
+			fmt.Sprintf("Could not create group policy, unexpected error: %s", err),
+		)
+
+		if httpResp != nil {
+			var responseBody string
+			if httpResp != nil && httpResp.Body != nil {
+				bodyBytes, readErr := io.ReadAll(httpResp.Body)
+				if readErr == nil {
+					responseBody = string(bodyBytes)
+				}
 			}
+			tflog.Error(ctx, "Failed to create resource", map[string]interface{}{
+				"error":          err.Error(),
+				"httpStatusCode": httpResp.StatusCode,
+				"responseBody":   responseBody,
+			})
+			resp.Diagnostics.AddError(
+				"Error creating group policy",
+				fmt.Sprintf("HTTP Response: %v\nResponse Body: %s", httpResp, responseBody),
+			)
+		}
+		return
+	}
 
-			// Check for errors after diagnostics collected
-			if resp.Diagnostics.HasError() {
-				return
-			}
-
-			deletedFromMerakiPortal = true
-
-			// escape loop
-			break
-
-		} else {
-
-			// decrement retry counter
-			retries -= 1
-
-			// exponential wait
-			time.Sleep(time.Duration(wait) * time.Second)
-			wait += 1
+	// check for HTTP errors
+	if httpResp.StatusCode != 204 {
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"HTTP Client Failure",
+				tools.HttpDiagnostics(httpResp),
+			)
+			return
 		}
 	}
 
-	// Check if deleted from Meraki Portal was successful
-	if deletedFromMerakiPortal {
-		resp.State.RemoveResource(ctx)
-
-		// Write logs using the tflog package
-		tflog.Trace(ctx, "removed resource")
-	} else {
-		resp.Diagnostics.AddError(
-			"Failed to delete resource",
-			"Failed to delete resource",
-		)
+	// Check for errors after diagnostics collected
+	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	resp.State.RemoveResource(ctx)
+
+	// Write logs using the tflog package
+	tflog.Trace(ctx, "removed resource")
 
 }
 

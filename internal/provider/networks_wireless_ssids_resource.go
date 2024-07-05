@@ -4081,6 +4081,12 @@ func (r *NetworksWirelessSsidsResource) Read(ctx context.Context, req resource.R
 				tflog.Warn(ctx, "Suppressing unmarshaling error: json: cannot unmarshal number into GetNetworkWirelessSsids200ResponseInner.minBitrate of type int32")
 				err = nil
 			}
+
+			// Check for specific error
+			if strings.Contains(err.Error(), "Open Roaming certificate 0 not found") {
+				tflog.Warn(ctx, "Suppressing unmarshaling error: Open Roaming certificate 0 not found")
+				err = nil
+			}
 		}
 		return inline, respHttp, err
 	})
@@ -4148,6 +4154,13 @@ func (r *NetworksWirelessSsidsResource) Update(ctx context.Context, req resource
 				tflog.Warn(ctx, "Suppressing unmarshaling error: json: cannot unmarshal number into GetNetworkWirelessSsids200ResponseInner.minBitrate of type int32")
 				err = nil
 			}
+
+			// Check for specific error
+			if strings.Contains(err.Error(), "Open Roaming certificate 0 not found") {
+				tflog.Warn(ctx, "Suppressing unmarshaling error: Open Roaming certificate 0 not found")
+				err = nil
+			}
+
 		}
 		return inline, respHttp, err
 	})
@@ -4201,6 +4214,13 @@ func (r *NetworksWirelessSsidsResource) Delete(ctx context.Context, req resource
 				tflog.Warn(ctx, "Suppressing unmarshaling error: json: cannot unmarshal number into GetNetworkWirelessSsids200ResponseInner.minBitrate of type int32")
 				err = nil
 			}
+
+			// Check for specific error
+			if strings.Contains(err.Error(), "Open Roaming certificate 0 not found") {
+				tflog.Warn(ctx, "Suppressing unmarshaling error: Open Roaming certificate 0 not found")
+				err = nil
+			}
+
 		}
 		return inline, respHttp, err
 	})

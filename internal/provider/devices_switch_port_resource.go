@@ -445,21 +445,35 @@ func (r *DevicesSwitchPortResource) Read(ctx context.Context, req resource.ReadR
 
 	inlineResp, httpResp, err, tfDiags := tools.CustomHttpRequestRetryStronglyTyped(ctx, maxRetries, retryDelay, apiCall)
 	if err != nil {
-
 		if tfDiags.HasError() {
-			fmt.Printf(": %s\n", tfDiags.Errors())
+			resp.Diagnostics.AddError("Diagnostics Errors", fmt.Sprintf(" %s", tfDiags.Errors()))
 		}
-		fmt.Printf("Error reading device switch port: %s\n", err)
+		resp.Diagnostics.AddError("Error reading device switch port", fmt.Sprintf(" %s", err))
+
 		if httpResp != nil {
 			var responseBody string
 			if httpResp.Body != nil {
 				bodyBytes, readErr := io.ReadAll(httpResp.Body)
 				if readErr == nil {
 					responseBody = string(bodyBytes)
+				} else {
+					responseBody = fmt.Sprintf("Failed to read response body: %s", readErr)
 				}
+			} else {
+				responseBody = "No response body"
 			}
-			fmt.Printf("Failed to create resource. HTTP Status Code: %d, Response Body: %s\n", httpResp.StatusCode, responseBody)
+			resp.Diagnostics.AddError("Failed to create resource.",
+				fmt.Sprintf("HTTP Status Code: %d, Response Body: %s\n", httpResp.StatusCode, responseBody))
+		} else {
+			resp.Diagnostics.AddError("HTTP Response is nil", "")
 		}
+
+		return
+	}
+
+	// Ensure inlineResp is not nil before dereferencing it
+	if inlineResp == nil {
+		fmt.Printf("Received nil response for device switch port: %s, port ID: %s\n", data.Serial.ValueString(), data.PortId.ValueString())
 		return
 	}
 
