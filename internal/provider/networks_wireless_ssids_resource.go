@@ -484,6 +484,9 @@ func NetworksWirelessSsidPayloadRadiusServers(input types.List) ([]openApiClient
 			diags = append(diags, diag.NewErrorDiagnostic("Error converting OpenRoamingCertificateID", fmt.Sprintf("%s", err.Errors())))
 		}
 
+		if *openRoamingCertificateId == 0 {
+			openRoamingCertificateId = nil
+		}
 		serversList = append(serversList, openApiClient.UpdateNetworkWirelessSsidRequestRadiusServersInner{
 			Host:                     server.Host.ValueString(),
 			Port:                     port,
