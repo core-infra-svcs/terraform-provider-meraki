@@ -70,6 +70,51 @@ func TestAccNetworksWirelessSsidsResource(t *testing.T) {
 					return resource.ComposeAggregateTestCheckFunc(checks...)(s)
 				},
 			},
+			/*
+
+				// Active Directory Authentication Test
+					{
+						Config: testAccNetworksWirelessSsidsResourceConfigAD,
+						Check: resource.ComposeTestCheckFunc(
+							resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.active_directory", "number", "1"),
+							resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.active_directory", "name", "AD_SSID"),
+							resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.active_directory", "enabled", "true"),
+						),
+					},
+
+					// VLAN and Bandwidth Limits Test
+					{
+						Config: testAccNetworksWirelessSsidsResourceConfigVLANBandwidth,
+						Check: resource.ComposeTestCheckFunc(
+							resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.vlan_bandwidth", "number", "2"),
+							resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.vlan_bandwidth", "name", "VLANBandwidth"),
+							resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.vlan_bandwidth", "enabled", "true"),
+						),
+					},
+
+					// Full Configuration Test
+					{
+						Config: testAccNetworksWirelessSsidsResourceConfigFullConfig,
+						Check: resource.ComposeTestCheckFunc(
+							resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.full_config", "number", "3"),
+							resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.full_config", "name", "FullConfigSSID"),
+							resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.full_config", "enabled", "true"),
+						),
+					},
+
+					// Guest Access and Walled Garden Test
+					{
+						Config: testAccNetworksWirelessSsidsResourceConfigGuestAccess,
+						Check: resource.ComposeTestCheckFunc(
+							resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.guest_access", "number", "4"),
+							resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.guest_access", "name", "GuestAccess"),
+							resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.guest_access", "enabled", "true"),
+						),
+					},
+
+
+
+			*/
 		},
 	})
 }
@@ -88,6 +133,105 @@ resource "meraki_network" "test" {
 }
 `, orgId)
 }
+
+/*
+const testAccNetworksWirelessSsidsResourceConfigAD = `
+resource "meraki_network" "test" {
+  product_types = ["appliance", "switch", "wireless"]
+}
+
+resource "meraki_networks_wireless_ssids" "active_directory" {
+	depends_on = [resource.meraki_network.test]
+	network_id = resource.meraki_network.test.network_id
+	number = 1
+	name = "AD_SSID"
+	auth_mode = "psk"
+	encryption_mode = "wpa"
+	psk = "deadbeef"
+	wpa_encryption_mode = "WPA2 only"
+	splash_page = "Password-protected with Active Directory"
+	active_directory = {
+		credentials = {
+			login_name = "user@example.com"
+			password = "password"
+		}
+		servers = [
+			{
+				host = "192.168.1.1"
+				port = 389
+			}
+		]
+	}
+	enabled = true
+}
+`
+
+const testAccNetworksWirelessSsidsResourceConfigVLANBandwidth = `
+resource "meraki_network" "test" {
+  product_types = ["appliance", "switch", "wireless"]
+}
+
+resource "meraki_networks_wireless_ssids" "vlan_bandwidth" {
+	depends_on = [resource.meraki_network.test]
+	network_id = resource.meraki_network.test.network_id
+	number = 2
+	name = "VLANBandwidth"
+	auth_mode = "psk"
+	use_vlan_tagging = true
+	vlan_id = 100
+	enabled = true
+	per_client_bandwidth_limit_down = 5000  // 5 Mbps
+	per_client_bandwidth_limit_up   = 1000  // 1 Mbps
+}
+`
+
+const testAccNetworksWirelessSsidsResourceConfigFullConfig = `
+resource "meraki_network" "test" {
+  product_types = ["appliance", "switch", "wireless"]
+}
+
+resource "meraki_networks_wireless_ssids" "full_config" {
+	depends_on = [resource.meraki_network.test]
+	network_id = resource.meraki_network.test.network_id
+	number = 3
+	name = "FullConfigSSID"
+	auth_mode = "8021x-radius"
+	radius_servers = {
+		host = "radius.example.com"
+		secret = "radiussecret"
+	}
+	ldap = {
+		base_distinguished_name = "dc=example,dc=com"
+		credentials = {
+			distinguished_name = "cn=admin,dc=example,dc=com"
+			password = "ldappassword"
+		}
+	}
+	dns_rewrite = {
+		enabled = true
+		dns_custom_name_servers = ["8.8.8.8", "8.8.4.4"]
+	}
+	enabled = true
+}
+`
+
+const testAccNetworksWirelessSsidsResourceConfigGuestAccess = `
+resource "meraki_network" "test" {
+  product_types = ["appliance", "switch", "wireless"]
+}
+
+resource "meraki_networks_wireless_ssids" "guest_access" {
+	depends_on = [resource.meraki_network.test]
+	network_id = resource.meraki_network.test.network_id
+	number = 4
+	name = "GuestAccess"
+	splash_page = "Click-through splash page"
+	walled_garden_enabled = true
+	walled_garden_ranges = ["192.168.100.0/24", "www.example.com"]
+	enabled = true
+}
+`
+*/
 
 const testAccNetworksWirelessSsidsResourceConfigBasic = `
 resource "meraki_network" "test" {
