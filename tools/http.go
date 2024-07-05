@@ -9,7 +9,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"strings"
 	"time"
 )
 
@@ -122,22 +121,42 @@ func CustomHttpRequestRetry[T any](ctx context.Context, maxRetries int, initialR
 
 		// Log error message before retry
 		if err != nil {
+			var responseBody string
 			if httpResp != nil {
-				responseBody, _ := io.ReadAll(httpResp.Body) // Read and close the body to free up the connection
-				httpResp.Body.Close()
-				responseBodyStr := string(responseBody)
-				tflog.Warn(ctx, fmt.Sprintf("Retry %d/%d", i+1, maxRetries))
-				tflog.Trace(ctx, fmt.Sprintf("API call failed with status %d: %s", httpResp.StatusCode, responseBodyStr))
-
-				// Check for specific error conditions to terminate early
-				if strings.Contains(responseBodyStr, "Open Roaming certificate 0 not found") {
-					tflog.Error(ctx, fmt.Sprintf("Terminating early due to specific error condition: %s", responseBodyStr))
-					return result, httpResp, fmt.Errorf("terminated early due to specific error condition: %s", responseBodyStr)
+				if httpResp.Body != nil {
+					bodyBytes, readErr := io.ReadAll(httpResp.Body)
+					if readErr == nil {
+						responseBody = string(bodyBytes)
+					} else {
+						responseBody = fmt.Sprintf("Failed to read response body: %s", readErr)
+					}
+					closeErr := httpResp.Body.Close()
+					if closeErr != nil {
+						tflog.Error(ctx, fmt.Sprintf("Error closing HTTP response body: %s", closeErr))
+					} // Close the body to free up the connection
+				} else {
+					responseBody = "No response body"
 				}
 
+				// Check if the error message matches the criteria for retrying
+				if httpResp.StatusCode >= 400 && httpResp.StatusCode <= 599 {
+					tflog.Warn(ctx, fmt.Sprintf("Retry %d/%d due to specific error: %s", i+1, maxRetries, responseBody))
+				} else {
+					// If not, break the loop and return the error
+					return result, httpResp, fmt.Errorf("API call failed with status %d: %s", httpResp.StatusCode, responseBody)
+				}
+
+				tflog.Warn(ctx, fmt.Sprintf("Retry %d/%d", i+1, maxRetries))
+				tflog.Trace(ctx, fmt.Sprintf("API call failed with status %d: %s", httpResp.StatusCode, responseBody))
 				lastResponse = httpResp
-				lastError = fmt.Errorf("%w: %s", err, responseBodyStr)
+				lastError = fmt.Errorf("%w: %s", err, responseBody)
+			} else {
+				tflog.Warn(ctx, fmt.Sprintf("Retry %d/%d", i+1, maxRetries))
+				tflog.Trace(ctx, fmt.Sprintf("API call failed: %s", err))
+				lastError = err
 			}
+		} else {
+			tflog.Warn(ctx, fmt.Sprintf("Retry %d/%d due to no response or no error", i+1, maxRetries))
 		}
 
 		if i < maxRetries-1 {
@@ -146,8 +165,6 @@ func CustomHttpRequestRetry[T any](ctx context.Context, maxRetries int, initialR
 			time.Sleep(retryDelay * time.Millisecond)
 			// Exponential backoff: Increase retry delay for next attempt
 			retryDelay *= 2
-		} else {
-			return result, lastResponse, lastError
 		}
 	}
 
@@ -162,28 +179,60 @@ func CustomHttpRequestRetryStronglyTyped[T any](ctx context.Context, maxRetries 
 	var lastError error
 
 	for i := 0; i < maxRetries; i++ {
+		tflog.Info(ctx, fmt.Sprintf("Attempt %d/%d", i+1, maxRetries))
 		result, httpResp, err, newDiags := apiCall()
 		diags = append(diags, newDiags...) // Accumulate diagnostics from each attempt
 
-		if httpResp.StatusCode >= 200 && httpResp.StatusCode <= 299 {
+		if httpResp != nil && httpResp.StatusCode >= 200 && httpResp.StatusCode <= 299 {
 			return result, httpResp, nil, diags
 		}
 
 		// Append diagnostics about retry
 		if httpResp != nil {
-			responseBody, _ := io.ReadAll(httpResp.Body) // Read and close the body to free up the connection
-			httpResp.Body.Close()
+			var responseBody string
+			if httpResp.Body != nil {
+				bodyBytes, readErr := io.ReadAll(httpResp.Body)
+				if readErr == nil {
+					responseBody = string(bodyBytes)
+				} else {
+					responseBody = fmt.Sprintf("Failed to read response body: %s", readErr)
+				}
+				closeErr := httpResp.Body.Close()
+				if closeErr != nil {
+					diags.AddError("HTTP Body Close Error", fmt.Sprintf("Error closing HTTP response body: %s", closeErr))
+				} // Close the body to free up the connection
+			} else {
+				responseBody = "No response body"
+			}
+
+			// Check if the error message matches the criteria for retrying
+			if httpResp.StatusCode >= 400 && httpResp.StatusCode <= 599 {
+				tflog.Warn(ctx, fmt.Sprintf("Retry %d/%d due to specific error: %s", i+1, maxRetries, responseBody))
+				diags = append(diags, diag.NewErrorDiagnostic(
+					fmt.Sprintf("Retry %d/%d", i+1, maxRetries),
+					fmt.Sprintf("API call failed with status %d: %s", httpResp.StatusCode, responseBody),
+				))
+			} else {
+				// If not, break the loop and return the error
+				return result, httpResp, fmt.Errorf("API call failed with status %d: %s", httpResp.StatusCode, responseBody), diags
+			}
+
+			lastResponse = httpResp
+			lastError = err
+		} else {
 			diags = append(diags, diag.NewErrorDiagnostic(
 				fmt.Sprintf("Retry %d/%d", i+1, maxRetries),
-				fmt.Sprintf("API call failed with status %d: %s", httpResp.StatusCode, responseBody),
+				fmt.Sprintf("API call failed: %s", err),
 			))
+			lastError = err
 		}
 
-		lastResponse = httpResp
-		lastError = err
-
 		if i < maxRetries-1 {
+			// Ensure retryDelay is in milliseconds
+			tflog.Info(ctx, fmt.Sprintf("Sleeping for %s before next retry", retryDelay*time.Millisecond))
 			time.Sleep(retryDelay * time.Millisecond)
+			// Exponential backoff: Increase retry delay for next attempt
+			retryDelay *= 2
 		}
 	}
 
