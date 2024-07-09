@@ -2,14 +2,13 @@ package provider
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"io"
 	"net/http"
 	"strings"
 	"time"
 
-	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/tools"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -41,34 +40,20 @@ type NetworkResource struct {
 	client *openApiClient.APIClient
 }
 
-type Tag string
-
-func (t *Tag) UnmarshalJSON(b []byte) error {
-	var s string
-	if err := json.Unmarshal(b, &s); err != nil {
-		return err
-	}
-
-	*t = Tag(strings.Trim(s, `"`))
-	return nil
-}
-
 // NetworkResourceModel describes the resource data model.
 type NetworkResourceModel struct {
-	Id                      types.String                    `tfsdk:"id"`
-	NetworkId               jsontypes.String                `tfsdk:"network_id" json:"id"`
-	OrganizationId          jsontypes.String                `tfsdk:"organization_id" json:"organizationId"`
-	Name                    jsontypes.String                `tfsdk:"name"`
-	ProductTypes            jsontypes.Set[jsontypes.String] `tfsdk:"product_types" json:"productTypes"`
-	Timezone                jsontypes.String                `tfsdk:"timezone" json:"timeZone"`
-	Tags                    []Tag                           `tfsdk:"tags"`
-	EnrollmentString        jsontypes.String                `tfsdk:"enrollment_string" json:"enrollmentString"`
-	Url                     jsontypes.String                `tfsdk:"url"`
-	Notes                   jsontypes.String                `tfsdk:"notes"`
-	IsBoundToConfigTemplate jsontypes.Bool                  `tfsdk:"is_bound_to_config_template" json:"IsBoundToConfigTemplate"`
-	ConfigTemplateId        jsontypes.String                `tfsdk:"config_template_id" json:"configTemplateId"`
-	CopyFromNetworkId       jsontypes.String                `tfsdk:"copy_from_network_id" json:"copyFromNetworkId"`
-	AutoBind                types.Bool                      `tfsdk:"auto_bind" json:"autoBind"`
+	Id                      types.String `tfsdk:"id"`
+	NetworkId               types.String `tfsdk:"network_id" json:"id"`
+	OrganizationId          types.String `tfsdk:"organization_id" json:"organizationId"`
+	Name                    types.String `tfsdk:"name"`
+	ProductTypes            types.Set    `tfsdk:"product_types" json:"productTypes"`
+	Timezone                types.String `tfsdk:"timezone" json:"timeZone"`
+	Tags                    types.Set    `tfsdk:"tags"`
+	EnrollmentString        types.String `tfsdk:"enrollment_string" json:"enrollmentString"`
+	Url                     types.String `tfsdk:"url"`
+	Notes                   types.String `tfsdk:"notes"`
+	IsBoundToConfigTemplate types.Bool   `tfsdk:"is_bound_to_config_template" json:"IsBoundToConfigTemplate"`
+	CopyFromNetworkId       types.String `tfsdk:"copy_from_network_id" json:"copyFromNetworkId"`
 }
 
 func (r *NetworkResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -87,7 +72,6 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 				MarkdownDescription: "Network ID",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -97,9 +81,7 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 			},
 			"organization_id": schema.StringAttribute{
 				MarkdownDescription: "Organization ID",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.StringType,
+				Required:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -111,16 +93,14 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 				MarkdownDescription: "Network name",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes.StringType,
 			},
 			"product_types": schema.SetAttribute{
-				//ElementType: types.StringType,
-				CustomType: jsontypes.SetType[jsontypes.String](),
-				Required:   true,
+				ElementType: types.StringType,
+				Optional:    true,
+				Computed:    true,
 				Validators: []validator.Set{
 					setvalidator.ValueStringsAre(
-						stringvalidator.OneOf([]string{"appliance", "switch", "wireless", "systemsManager", "camera", "cellularGateway", "sensor", "cloudGateway"}...), //
-						stringvalidator.LengthAtLeast(5),
+						stringvalidator.OneOf([]string{"appliance", "switch", "wireless", "systemsManager", "camera", "cellularGateway", "sensor", "cloudGateway"}...),
 					),
 				},
 			},
@@ -128,15 +108,13 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 				MarkdownDescription: "Timezone of the network",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"tags": schema.SetAttribute{
 				Description: "Network tags",
-				ElementType: jsontypes.StringType,
-				CustomType:  jsontypes.SetType[jsontypes.String](),
+				ElementType: types.StringType,
 				Computed:    true,
 				Optional:    true,
 				PlanModifiers: []planmodifier.Set{
@@ -147,10 +125,9 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 				MarkdownDescription: "A unique identifier which can be used for device enrollment or easy access through the Meraki SM Registration page or the Self Service Portal. Once enabled, a network enrollment strings can be changed but they cannot be deleted.",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes.StringType,
 				Validators: []validator.String{
 					stringvalidator.NoneOf([]string{";", ":", "@", "=", "&", "$", "!", "‘", "“", ",", "?", ".", "(", ")", "{", "}", "[", "]", "\\", "*", "+", "/", "#", "<", ">", "|", "^", "%"}...),
-					stringvalidator.LengthBetween(4, 50),
+					stringvalidator.LengthBetween(1, 50),
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
@@ -159,7 +136,6 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 			"url": schema.StringAttribute{
 				MarkdownDescription: "URL to the network Dashboard UI",
 				Computed:            true,
-				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -168,7 +144,17 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 				MarkdownDescription: "Notes for the network",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes.StringType,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
+			"copy_from_network_id": schema.StringAttribute{
+				MarkdownDescription: "The ID of the network to copy configuration from. Other provided parameters will override the copied configuration, except type which must match this network's type exactly.",
+				Optional:            true,
+				Computed:            true,
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(1, 31),
+				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -176,31 +162,6 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 			"is_bound_to_config_template": schema.BoolAttribute{
 				MarkdownDescription: "If the network is bound to a config template",
 				Computed:            true,
-				CustomType:          jsontypes.BoolType,
-			},
-			"config_template_id": schema.StringAttribute{
-				MarkdownDescription: "Config Template Id",
-				Optional:            true,
-				CustomType:          jsontypes.StringType,
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 31),
-				},
-			},
-			"copy_from_network_id": schema.StringAttribute{
-				MarkdownDescription: "The ID of the network to copy configuration from. Other provided parameters will override the copied configuration, except type which must match this network's type exactly.",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.StringType,
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 31),
-				},
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"auto_bind": schema.BoolAttribute{
-				MarkdownDescription: "Optional boolean indicating whether the network's switches should automatically bind to profiles of the same model. Defaults to false if left unspecified. This option only affects switch networks and switch templates. Auto-bind is not valid unless the switch template has at least one profile and has at most one profile per switch model.",
-				Optional:            true,
 			},
 		},
 	}
@@ -225,61 +186,225 @@ func (r *NetworkResource) Configure(ctx context.Context, req resource.ConfigureR
 	r.client = client
 }
 
-func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *NetworkResourceModel
+func updateNetworksNetworksResourceCreatePayload(plan *NetworkResourceModel) (openApiClient.CreateOrganizationNetworkRequest, diag.Diagnostics) {
+	var diags diag.Diagnostics
 
-	// Read Terraform plan data
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	// Create HTTP request body
-	createOrganizationNetwork := openApiClient.NewCreateOrganizationNetworkRequest(data.Name.ValueString(), nil)
-	if !data.Timezone.IsUnknown() {
-		createOrganizationNetwork.SetTimeZone(data.Timezone.ValueString())
-	}
+	// name
+	name := plan.Name.ValueString()
 
 	// ProductTypes
 	var productTypes []string
-	for _, product := range data.ProductTypes.Elements() {
-		pt := fmt.Sprint(strings.Trim(product.String(), "\""))
-		productTypes = append(productTypes, pt)
+	if !plan.ProductTypes.IsNull() && !plan.ProductTypes.IsUnknown() {
+		for _, product := range plan.ProductTypes.Elements() {
+			pt := fmt.Sprint(strings.Trim(product.String(), "\""))
+			productTypes = append(productTypes, pt)
+		}
 	}
-	createOrganizationNetwork.SetProductTypes(productTypes)
 
+	// Create HTTP request body
+	payload := openApiClient.NewCreateOrganizationNetworkRequest(name, productTypes)
+
+	// Tags
+	if !plan.Tags.IsNull() && !plan.Tags.IsUnknown() {
+		var tags []string
+		for _, tag := range plan.Tags.Elements() {
+			t := fmt.Sprint(strings.Trim(tag.String(), "\""))
+			tags = append(tags, t)
+		}
+		payload.SetTags(tags)
+	}
+
+	//    TimeZone
+	if !plan.Timezone.IsNull() && !plan.Timezone.IsUnknown() {
+		payload.SetTimeZone(plan.Timezone.ValueString())
+	}
+
+	// CopyFromNetworkId
+	if !plan.CopyFromNetworkId.IsNull() && !plan.CopyFromNetworkId.IsUnknown() {
+		payload.SetCopyFromNetworkId(plan.CopyFromNetworkId.ValueString())
+	}
+
+	// Notes
+	if !plan.Notes.IsNull() && !plan.Notes.IsUnknown() {
+		payload.SetNotes(plan.Notes.ValueString())
+	}
+
+	return *payload, diags
+
+}
+
+func updateNetworksNetworksResourceUpdatePayload(plan *NetworkResourceModel) (openApiClient.UpdateNetworkRequest, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	payload := openApiClient.NewUpdateNetworkRequest()
+
+	//   Name
+	if !plan.Name.IsNull() && !plan.Name.IsUnknown() {
+		payload.SetName(plan.Name.ValueString())
+	}
+
+	//    TimeZone
+	if !plan.Timezone.IsNull() && !plan.Timezone.IsUnknown() {
+		payload.SetTimeZone(plan.Timezone.ValueString())
+	}
+
+	//    Tags
+	if !plan.Tags.IsNull() && !plan.Tags.IsUnknown() {
+		var tags []string
+		for _, tag := range plan.Tags.Elements() {
+			tags = append(tags, tag.String())
+		}
+		payload.SetTags(tags)
+	}
+
+	//    EnrollmentString
+	if !plan.EnrollmentString.IsNull() && !plan.EnrollmentString.IsUnknown() {
+		payload.SetEnrollmentString(plan.EnrollmentString.ValueString())
+	}
+
+	//    Notes
+	if !plan.Notes.IsNull() && !plan.Notes.IsUnknown() {
+		payload.SetNotes(plan.Notes.ValueString())
+	}
+
+	return *payload, diags
+
+}
+
+func createNetworksNetworksResourceState(ctx context.Context, state *NetworkResourceModel, inlineResp *openApiClient.GetNetwork200Response, httpResp *http.Response) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	//  Id (NetworkId)
+	if state.NetworkId.IsNull() || state.NetworkId.IsUnknown() {
+		state.NetworkId = types.StringValue(inlineResp.GetId())
+	}
+
+	orgId := fmt.Sprint(strings.Trim(inlineResp.GetOrganizationId(), "\""))
+	state.OrganizationId = types.StringValue(orgId)
+
+	//  Id (Terraform Resource)
+	if !state.NetworkId.IsNull() || !state.NetworkId.IsUnknown() && !state.OrganizationId.IsNull() || !state.OrganizationId.IsUnknown() {
+		importId := state.OrganizationId.String() + "," + inlineResp.GetId()
+		state.Id = types.StringValue(importId)
+	} else {
+		state.Id = types.StringNull()
+	}
+
+	//    Name
+	if state.Name.IsNull() || state.Name.IsUnknown() {
+		state.Name = types.StringValue(inlineResp.GetName())
+	}
+
+	//    ProductTypes
+	if state.ProductTypes.IsNull() || state.ProductTypes.IsUnknown() {
+
+		var productTypesList []string
+
+		productTypesList = append(productTypesList, inlineResp.ProductTypes...)
+
+		productTypesListObj, err := types.SetValueFrom(ctx, types.StringType, productTypesList)
+		if err.HasError() {
+			diags.Append(err...)
+		}
+
+		state.ProductTypes = productTypesListObj
+
+	}
+
+	//  	Timezone
+	if state.Timezone.IsNull() || state.Timezone.IsUnknown() {
+		state.Timezone = types.StringValue(inlineResp.GetTimeZone())
+	}
+
+	//    Tags
+	if state.Tags.IsNull() || state.Tags.IsUnknown() {
+
+		// Tags
+		var tagsList []string
+		for _, tag := range inlineResp.Tags {
+			// Strip any extra quotes from the tags
+			tagsList = append(tagsList, strings.Trim(tag, `"`))
+		}
+		tagsListObj, err := types.SetValueFrom(ctx, types.StringType, tagsList)
+		if err.HasError() {
+			diags.Append(err...)
+		}
+		state.Tags = tagsListObj
+
+	}
+
+	//    EnrollmentString
+	if state.EnrollmentString.IsNull() || state.EnrollmentString.IsUnknown() {
+		if inlineResp.GetEnrollmentString() == "" {
+			state.EnrollmentString = types.StringNull()
+		} else {
+			state.EnrollmentString = types.StringValue(inlineResp.GetEnrollmentString())
+		}
+
+	}
+
+	//    Url
+	if state.Url.IsNull() || state.Url.IsUnknown() {
+		state.Url = types.StringValue(inlineResp.GetUrl())
+	}
+
+	//    Notes
+	if state.Notes.IsNull() || state.Notes.IsUnknown() {
+		state.Notes = types.StringValue(inlineResp.GetNotes())
+	}
+
+	//    IsBoundToConfigTemplate
+	if state.IsBoundToConfigTemplate.IsNull() || state.IsBoundToConfigTemplate.IsUnknown() {
+		state.IsBoundToConfigTemplate = types.BoolValue(inlineResp.GetIsBoundToConfigTemplate())
+	}
+
+	// CopyFromNetworkId
+	if state.CopyFromNetworkId.IsNull() || state.CopyFromNetworkId.IsUnknown() {
+		state.CopyFromNetworkId = types.StringNull()
+	}
+
+	return diags
+}
+
+func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var plan NetworkResourceModel
+
+	// Read Terraform plan data
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	createOrganizationNetwork.SetProductTypes(productTypes)
-
-	// Tags
-	if len(data.Tags) > 0 {
-		var tags []string
-		for _, attribute := range data.Tags {
-			tags = append(tags, string(attribute))
-		}
-		createOrganizationNetwork.SetTags(tags)
-	}
-
-	// Notes
-	if !data.Notes.IsUnknown() {
-		createOrganizationNetwork.SetNotes(data.Notes.ValueString())
-	}
-
-	// CopyFromNetworkId
-	if !data.CopyFromNetworkId.IsUnknown() {
-		createOrganizationNetwork.SetCopyFromNetworkId(data.CopyFromNetworkId.ValueString())
+	// Prepare the request payload
+	createPayload, createPayloadDiags := updateNetworksNetworksResourceCreatePayload(&plan)
+	if createPayloadDiags.HasError() {
+		tflog.Error(ctx, "Failed to create resource payload", map[string]interface{}{
+			"error": createPayloadDiags,
+		})
+		resp.Diagnostics.AddError(
+			"Error creating ssid payload",
+			fmt.Sprintf("Unexpected error: %s", createPayloadDiags),
+		)
+		return
 	}
 
 	// Initialize provider client and make API call
-	_, httpResp, err := r.client.OrganizationsApi.CreateOrganizationNetwork(ctx, data.OrganizationId.ValueString()).CreateOrganizationNetworkRequest(*createOrganizationNetwork).Execute()
+	inlineResp, httpResp, err := r.client.OrganizationsApi.CreateOrganizationNetwork(ctx, plan.OrganizationId.ValueString()).CreateOrganizationNetworkRequest(createPayload).Execute()
 	if err != nil {
+		// Capture the response body for logging
+		var responseBody string
+		if httpResp != nil && httpResp.Body != nil {
+			bodyBytes, readErr := io.ReadAll(httpResp.Body)
+			if readErr == nil {
+				responseBody = string(bodyBytes)
+			}
+		}
+
 		resp.Diagnostics.AddError(
 			"HTTP Client Failure",
-			tools.HttpDiagnostics(httpResp),
+			responseBody,
 		)
+
 		return
 	}
 
@@ -289,7 +414,6 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
-		return
 	}
 
 	// Check for errors after diagnostics collected
@@ -297,87 +421,42 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 		return
 	}
 
-	// save inlineResp data into Terraform state.
-	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
-		resp.Diagnostics.AddError(
-			"JSON Decode issue",
-			fmt.Sprintf("%v", httpResp.StatusCode),
-		)
+	diags := createNetworksNetworksResourceState(ctx, &plan, inlineResp, httpResp)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+	}
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	data.Id = data.NetworkId.StringValue
-
-	if data.CopyFromNetworkId.IsUnknown() {
-		data.CopyFromNetworkId = jsontypes.StringNull()
-	}
-
-	resp.State.Set(ctx, &data)
-
-	// Validate Whether we need to bind a template
-	if !data.ConfigTemplateId.IsNull() {
-
-		createNetworkBindRequest := openApiClient.NewBindNetworkRequest(data.ConfigTemplateId.ValueString())
-
-		if !data.AutoBind.IsUnknown() {
-			createNetworkBindRequest.SetAutoBind(data.AutoBind.ValueBool())
-		}
-
-		_, bindHttpResp, bindErr := r.client.NetworksApi.BindNetwork(ctx, data.NetworkId.ValueString()).BindNetworkRequest(*createNetworkBindRequest).Execute()
-
-		if bindErr != nil {
-			resp.Diagnostics.AddError(
-				"HTTP Client Failure",
-				tools.HttpDiagnostics(bindHttpResp),
-			)
-			return
-		}
-
-		// Check for API success response code
-		if bindHttpResp.StatusCode != 200 {
-			resp.Diagnostics.AddError(
-				"Unexpected HTTP Response Status Code",
-				fmt.Sprintf("%v", bindHttpResp.StatusCode),
-			)
-			return
-		}
-		var bindRes *NetworkResourceModel
-
-		req.Plan.Get(ctx, &bindRes)
-
-		if err = json.NewDecoder(bindHttpResp.Body).Decode(bindRes); err != nil {
-			resp.Diagnostics.AddError(
-				"JSON Decode issue",
-				fmt.Sprintf("%v", bindHttpResp.StatusCode),
-			)
-
-			return
-		}
-
-		data.ConfigTemplateId = bindRes.ConfigTemplateId
-		data.IsBoundToConfigTemplate = bindRes.IsBoundToConfigTemplate
-	}
-
-	// Save data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
-	// Write logs using the tflog package
-	tflog.Trace(ctx, "created resource")
+	diags = resp.State.Set(ctx, &plan)
+	resp.Diagnostics.Append(diags...)
 }
 
 func (r *NetworkResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *NetworkResourceModel
+	var state NetworkResourceModel
 
-	// Read Terraform state data into the model
-	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+	// Read Terraform prior state into the model
+	diags := req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
 
 	// Initialize provider client and make API call
-	_, httpResp, err := r.client.NetworksApi.GetNetwork(context.Background(), data.NetworkId.ValueString()).Execute()
+	inlineResp, httpResp, err := r.client.NetworksApi.GetNetwork(context.Background(), state.NetworkId.ValueString()).Execute()
 	if err != nil {
+		// Capture the response body for logging
+		var responseBody string
+		if httpResp != nil && httpResp.Body != nil {
+			bodyBytes, readErr := io.ReadAll(httpResp.Body)
+			if readErr == nil {
+				responseBody = string(bodyBytes)
+			}
+		}
+
 		resp.Diagnostics.AddError(
 			"HTTP Client Failure",
-			tools.HttpDiagnostics(httpResp),
+			responseBody,
 		)
+
 		return
 	}
 
@@ -387,77 +466,61 @@ func (r *NetworkResource) Read(ctx context.Context, req resource.ReadRequest, re
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
-		return
 	}
 
 	// Check for errors after diagnostics collected
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
 
-		resp.Diagnostics.AddError(
-			"JSON Decode issue",
-			fmt.Sprintf("%v", httpResp.StatusCode),
-		)
-
+	// unmarshal Payload into state
+	diags = createNetworksNetworksResourceState(ctx, &state, inlineResp, httpResp)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
-	// save inlineResp data into Terraform state.
-	data.Id = data.NetworkId.StringValue
-
-	if data.CopyFromNetworkId.IsUnknown() {
-		data.CopyFromNetworkId = jsontypes.StringNull()
-	}
-
-	// Save updated data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
-	// Write logs using the tflog package
-	tflog.Trace(ctx, "read resource")
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data, state, plan *NetworkResourceModel
+	var plan NetworkResourceModel
 
 	// Read Terraform plan data into the model
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-
+	diags := req.Plan.Get(ctx, &plan)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Create HTTP request body
-	updateNetwork := openApiClient.NewUpdateNetworkRequest()
-	updateNetwork.SetName(data.Name.ValueString())
-	updateNetwork.SetTimeZone(data.Timezone.ValueString())
-
-	// Tags
-	if len(data.Tags) > 0 {
-		var tags []string
-		for _, attribute := range data.Tags {
-			tags = append(tags, string(attribute))
-		}
-		updateNetwork.SetTags(tags)
+	// Prepare the request payload
+	updatePayload, updatePayloadDiags := updateNetworksNetworksResourceUpdatePayload(&plan)
+	if updatePayloadDiags.HasError() {
+		tflog.Error(ctx, "Failed to update resource payload", map[string]interface{}{
+			"error": updatePayloadDiags,
+		})
+		resp.Diagnostics.AddError(
+			"Error updating network payload",
+			fmt.Sprintf("Unexpected error: %s", updatePayloadDiags),
+		)
+		return
 	}
-
-	// Enrollment String
-	if !data.EnrollmentString.IsUnknown() {
-		updateNetwork.SetEnrollmentString(data.EnrollmentString.ValueString())
-	}
-
-	// Notes
-	updateNetwork.SetNotes(data.Notes.ValueString())
 
 	// Initialize provider client and make API call
-	_, httpResp, err := r.client.NetworksApi.UpdateNetwork(context.Background(),
-		data.NetworkId.ValueString()).UpdateNetworkRequest(*updateNetwork).Execute()
+	inlineResp, httpResp, err := r.client.NetworksApi.UpdateNetwork(ctx, plan.NetworkId.ValueString()).UpdateNetworkRequest(updatePayload).Execute()
 	if err != nil {
+
+		// Capture the response body for logging
+		var responseBody string
+		if httpResp != nil && httpResp.Body != nil {
+			bodyBytes, readErr := io.ReadAll(httpResp.Body)
+			if readErr == nil {
+				responseBody = string(bodyBytes)
+			}
+		}
+
 		resp.Diagnostics.AddError(
 			"HTTP Client Failure",
-			tools.HttpDiagnostics(httpResp),
+			responseBody,
 		)
 		return
 	}
@@ -468,7 +531,6 @@ func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest
 			"Unexpected HTTP Response Status Code",
 			fmt.Sprintf("%v", httpResp.StatusCode),
 		)
-		return
 	}
 
 	// Check for errors after diagnostics collected
@@ -476,121 +538,25 @@ func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest
 		return
 	}
 
-	// save inlineResp data into Terraform state.
-	if err = json.NewDecoder(httpResp.Body).Decode(data); err != nil {
-		resp.Diagnostics.AddError(
-			"JSON Decode issue",
-			fmt.Sprintf("%v", httpResp.StatusCode),
-		)
+	// Save updated data into Terraform state
+	diags = createNetworksNetworksResourceState(ctx, &plan, inlineResp, httpResp)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	resp.State.Set(ctx, &data)
-
-	// If a new template is being added, unbind
-	if (plan.ConfigTemplateId.IsUnknown() && len(state.ConfigTemplateId.ValueString()) > 0) ||
-		state.ConfigTemplateId.StringValue != plan.ConfigTemplateId.StringValue && len(state.ConfigTemplateId.ValueString()) > 0 {
-
-		_, httpResp, err := r.client.NetworksApi.UnbindNetwork(context.Background(), plan.NetworkId.ValueString()).Execute()
-
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"HTTP Client Failure",
-				tools.HttpDiagnostics(httpResp),
-			)
-			return
-		}
-
-		// Check for API success response code
-		if httpResp.StatusCode != 200 {
-			resp.Diagnostics.AddError(
-				"Unexpected HTTP Response Status Code",
-				fmt.Sprintf("%v", httpResp.StatusCode),
-			)
-			return
-		}
-		var bindRes *NetworkResourceModel
-
-		req.Plan.Get(ctx, &bindRes)
-
-		if err = json.NewDecoder(httpResp.Body).Decode(bindRes); err != nil {
-			resp.Diagnostics.AddError(
-				"JSON Decode issue",
-				fmt.Sprintf("%v", httpResp.StatusCode),
-			)
-
-			return
-		}
-
-		data = bindRes
-	}
-
-	resp.State.Set(ctx, &data)
-
-	// If new template, or swapping, bind
-	if (state.ConfigTemplateId.IsUnknown() && len(plan.ConfigTemplateId.ValueString()) > 0) ||
-		state.ConfigTemplateId.StringValue != plan.ConfigTemplateId.StringValue && len(plan.ConfigTemplateId.ValueString()) > 0 {
-		tflog.Debug(ctx, "binding")
-
-		createNetworkBindRequest := openApiClient.NewBindNetworkRequest(plan.ConfigTemplateId.ValueString())
-
-		if !plan.AutoBind.IsUnknown() {
-			createNetworkBindRequest.SetAutoBind(plan.AutoBind.ValueBool())
-		}
-
-		_, bindHttpResp, bindErr := r.client.NetworksApi.BindNetwork(ctx, plan.NetworkId.ValueString()).BindNetworkRequest(*createNetworkBindRequest).Execute()
-
-		if bindErr != nil {
-			resp.Diagnostics.AddError(
-				"HTTP Client Failure",
-				tools.HttpDiagnostics(bindHttpResp),
-			)
-			return
-		}
-
-		// Check for API success response code
-		if bindHttpResp.StatusCode != 200 {
-			resp.Diagnostics.AddError(
-				"Unexpected HTTP Response Status Code",
-				fmt.Sprintf("%v", bindHttpResp.StatusCode),
-			)
-			return
-		}
-		var bindRes *NetworkResourceModel
-
-		req.Plan.Get(ctx, &bindRes)
-
-		if err = json.NewDecoder(bindHttpResp.Body).Decode(bindRes); err != nil {
-			resp.Diagnostics.AddError(
-				"JSON Decode issue",
-				fmt.Sprintf("%v", bindHttpResp.StatusCode),
-			)
-
-			return
-		}
-
-		data = bindRes
-	}
-
-	data.Id = data.NetworkId.StringValue
-
-	if data.CopyFromNetworkId.IsUnknown() {
-		data.CopyFromNetworkId = jsontypes.StringNull()
-	}
-
-	// Save updated data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
-	// Write logs using the tflog package
-	tflog.Trace(ctx, "updated resource")
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 func (r *NetworkResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data *NetworkResourceModel
+	var state NetworkResourceModel
 
-	// Read Terraform state data
-	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+	// Read Terraform plan state into the model
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	maxRetries := r.client.GetConfig().MaximumRetries
 	retryDelay := time.Duration(r.client.GetConfig().Retry4xxErrorWaitTime)
 
@@ -598,17 +564,13 @@ func (r *NetworkResource) Delete(ctx context.Context, req resource.DeleteRequest
 	apiCall := func() (map[string]interface{}, *http.Response, error) {
 		time.Sleep(retryDelay * time.Millisecond)
 
-		httpResp, err := r.client.NetworksApi.DeleteNetwork(context.Background(), data.NetworkId.ValueString()).Execute()
+		httpResp, err := r.client.NetworksApi.DeleteNetwork(context.Background(), state.NetworkId.ValueString()).Execute()
 		return nil, httpResp, err
 	}
 
 	// HTTP DELETE METHOD does not leverage the retry-after header and throws 400 errors.
 	_, httpResp, err := tools.CustomHttpRequestRetry(ctx, maxRetries, retryDelay, apiCall)
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating group policy",
-			fmt.Sprintf("Could not create group policy, unexpected error: %s", err),
-		)
 
 		if httpResp != nil {
 			var responseBody string
@@ -618,13 +580,13 @@ func (r *NetworkResource) Delete(ctx context.Context, req resource.DeleteRequest
 					responseBody = string(bodyBytes)
 				}
 			}
-			tflog.Error(ctx, "Failed to create resource", map[string]interface{}{
+			tflog.Error(ctx, "Failed to delete resource", map[string]interface{}{
 				"error":          err.Error(),
 				"httpStatusCode": httpResp.StatusCode,
 				"responseBody":   responseBody,
 			})
 			resp.Diagnostics.AddError(
-				"Error creating group policy",
+				"Error deleting network",
 				fmt.Sprintf("HTTP Response: %v\nResponse Body: %s", httpResp, responseBody),
 			)
 		}
@@ -638,7 +600,6 @@ func (r *NetworkResource) Delete(ctx context.Context, req resource.DeleteRequest
 				"HTTP Client Failure",
 				tools.HttpDiagnostics(httpResp),
 			)
-			return
 		}
 	}
 
@@ -648,10 +609,6 @@ func (r *NetworkResource) Delete(ctx context.Context, req resource.DeleteRequest
 	}
 
 	resp.State.RemoveResource(ctx)
-
-	// Write logs using the tflog package
-	tflog.Trace(ctx, "removed resource")
-
 }
 
 func (r *NetworkResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
