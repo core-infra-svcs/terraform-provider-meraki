@@ -79,6 +79,10 @@ func cleanup(ctx context.Context) {
 		})
 	}
 
+	// Set default retry and wait limit for provider client
+	client.GetConfig().MaximumRetries = 3
+	client.GetConfig().Retry4xxErrorWaitTime = 5
+
 	// Sweep a Specified Static Organization
 	fmt.Println("Running terraform sweepers due to test failures...")
 	err := sweepMerakiOrganization(ctx, client, organizationId)
