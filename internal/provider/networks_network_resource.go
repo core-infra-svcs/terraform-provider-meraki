@@ -391,18 +391,10 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 	// Initialize provider client and make API call
 	inlineResp, httpResp, err := r.client.OrganizationsApi.CreateOrganizationNetwork(ctx, plan.OrganizationId.ValueString()).CreateOrganizationNetworkRequest(createPayload).Execute()
 	if err != nil {
-		// Capture the response body for logging
-		var responseBody string
-		if httpResp != nil && httpResp.Body != nil {
-			bodyBytes, readErr := io.ReadAll(httpResp.Body)
-			if readErr == nil {
-				responseBody = string(bodyBytes)
-			}
-		}
 
 		resp.Diagnostics.AddError(
-			"HTTP Client Failure",
-			responseBody,
+			"Create Network HTTP Client Failure",
+			err.Error(),
 		)
 
 		return
@@ -443,18 +435,9 @@ func (r *NetworkResource) Read(ctx context.Context, req resource.ReadRequest, re
 	// Initialize provider client and make API call
 	inlineResp, httpResp, err := r.client.NetworksApi.GetNetwork(context.Background(), state.NetworkId.ValueString()).Execute()
 	if err != nil {
-		// Capture the response body for logging
-		var responseBody string
-		if httpResp != nil && httpResp.Body != nil {
-			bodyBytes, readErr := io.ReadAll(httpResp.Body)
-			if readErr == nil {
-				responseBody = string(bodyBytes)
-			}
-		}
-
 		resp.Diagnostics.AddError(
-			"HTTP Client Failure",
-			responseBody,
+			"Read Network HTTP Client Failure",
+			err.Error(),
 		)
 
 		return
@@ -509,18 +492,9 @@ func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest
 	inlineResp, httpResp, err := r.client.NetworksApi.UpdateNetwork(ctx, plan.NetworkId.ValueString()).UpdateNetworkRequest(updatePayload).Execute()
 	if err != nil {
 
-		// Capture the response body for logging
-		var responseBody string
-		if httpResp != nil && httpResp.Body != nil {
-			bodyBytes, readErr := io.ReadAll(httpResp.Body)
-			if readErr == nil {
-				responseBody = string(bodyBytes)
-			}
-		}
-
 		resp.Diagnostics.AddError(
-			"HTTP Client Failure",
-			responseBody,
+			"Update Network HTTP Client Failure",
+			err.Error(),
 		)
 		return
 	}
@@ -589,6 +563,10 @@ func (r *NetworkResource) Delete(ctx context.Context, req resource.DeleteRequest
 				"Error deleting network",
 				fmt.Sprintf("HTTP Response: %v\nResponse Body: %s", httpResp, responseBody),
 			)
+			resp.Diagnostics.AddError(
+				"Error deleting network",
+				err.Error(),
+			)
 		}
 		return
 	}
@@ -597,7 +575,7 @@ func (r *NetworkResource) Delete(ctx context.Context, req resource.DeleteRequest
 	if httpResp.StatusCode != 204 {
 		if err != nil {
 			resp.Diagnostics.AddError(
-				"HTTP Client Failure",
+				"Delete Network HTTP Client Failure",
 				tools.HttpDiagnostics(httpResp),
 			)
 		}
