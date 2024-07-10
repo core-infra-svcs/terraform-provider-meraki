@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.11.0](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.10.3...v0.11.0) (2024-07-10)
+
+
+### Features
+
+* device claim enhancements ([61cbaf4](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/61cbaf45f0e7949603e0126712e63b99bda1a1ec))
+* devices resource enhancements ([1efd021](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/1efd021a8dd71ac99dad8fa2c7423b1e7abe1597))
+* network Devices datasource ([fd7beeb](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/fd7beeb0682d2fdbaeca80670a3d16a4ab9eefbd))
+
 ## [0.10.0](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.9.0...v0.10.0) (2024-06-14)
 
 
