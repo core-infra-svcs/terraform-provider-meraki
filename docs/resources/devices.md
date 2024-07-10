@@ -22,7 +22,7 @@ Manage network Devices resource. This only works for devices associated with a n
 ### Optional
 
 - `address` (String) The address of a device
-- `beacon_id_params` (Attributes) (see [below for nested schema](#nestedatt--beacon_id_params))
+- `details` (Attributes List) Network tags (see [below for nested schema](#nestedatt--details))
 - `firmware` (String) The firmware version of a device
 - `floor_plan_id` (String) The floor plan to associate to this device. null disassociates the device from the floor plan.
 - `lan_ip` (String) The ipv4 lan ip of a device
@@ -35,17 +35,27 @@ Manage network Devices resource. This only works for devices associated with a n
 - `network_id` (String) Network ID
 - `notes` (String) Notes for the network
 - `switch_profile_id` (String) The ID of a switch profile to bind to the device (for available switch profiles, see the 'Switch Profiles' endpoint). Use null to unbind the switch device from the current profile. For a device to be bindable to a switch profile, it must (1) be a switch, and (2) belong to a network that is bound to a configuration template.
-- `tags` (Set of String) Network tags
+- `tags` (List of String) Network tags
 - `url` (String) The url for the network associated with the device.
 
 ### Read-Only
 
+- `beacon_id_params` (Attributes) (see [below for nested schema](#nestedatt--beacon_id_params))
 - `id` (String) The ID of this resource.
+
+<a id="nestedatt--details"></a>
+### Nested Schema for `details`
+
+Optional:
+
+- `name` (String) The name of a device
+- `value` (String) The value of a device
+
 
 <a id="nestedatt--beacon_id_params"></a>
 ### Nested Schema for `beacon_id_params`
 
-Optional:
+Read-Only:
 
 - `major` (Number)
 - `minor` (Number)
