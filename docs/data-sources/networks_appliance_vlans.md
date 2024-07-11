@@ -98,7 +98,7 @@ Optional:
 - `static_prefix` (String) Manual configuration of a /64 prefix on the VLAN
 
 <a id="nestedatt--list--ipv6--prefix_assignments--origin"></a>
-### Nested Schema for `list.ipv6.prefix_assignments.static_prefix`
+### Nested Schema for `list.ipv6.prefix_assignments.origin`
 
 Optional:
 
