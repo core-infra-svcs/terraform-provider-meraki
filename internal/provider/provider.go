@@ -5,9 +5,12 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/devices"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/meraki/administered"
+	devices2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/meraki/devices"
 	networks2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/meraki/networks"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/meraki/networks/appliance"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/meraki/networks/switch"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/meraki/networks/wireless"
 	organizations2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/meraki/organizations"
 	"net/http"
 	"net/url"
@@ -119,13 +122,13 @@ func (p *CiscoMerakiProvider) Schema(ctx context.Context, req provider.SchemaReq
 	}
 }
 
-// Custom transport to add bearer token in the Authorization header
-type bearerAuthTransport struct {
+// BearerAuthTransport Custom transport to add bearer token in the Authorization header
+type BearerAuthTransport struct {
 	Transport *http.Transport
 	Token     string
 }
 
-func (t *bearerAuthTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+func (t *BearerAuthTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	// Add the bearer token to the Authorization header
 	req.Header.Set("Authorization", "Bearer "+t.Token)
 	// Use the underlying transport to perform the actual request
@@ -243,7 +246,7 @@ func (p *CiscoMerakiProvider) Configure(ctx context.Context, req provider.Config
 	configuration.UserAgent = configuration.UserAgent + "terraform" + p.version
 
 	// Set Bearer Token in transport
-	authenticatedTransport := &bearerAuthTransport{
+	authenticatedTransport := &BearerAuthTransport{
 		Transport: transport,
 	}
 
@@ -271,42 +274,42 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		organizations2.NewOrganizationsAdaptivePolicyAclResource,
 		networks2.NewNetworkResource,
 		organizations2.NewOrganizationsSamlRolesResource,
-		networks2.NewNetworksSwitchSettingsResource,
+		_switch.NewNetworksSwitchSettingsResource,
 		networks2.NewNetworksSnmpResource,
 		organizations2.NewOrganizationsSnmpResource,
 		networks2.NewNetworksSettingsResource,
-		networks2.NewNetworksApplianceFirewallL3FirewallRulesResource,
-		networks2.NewNetworksApplianceFirewallL7FirewallRulesResource,
+		appliance.NewNetworksApplianceFirewallL3FirewallRulesResource,
+		appliance.NewNetworksApplianceFirewallL7FirewallRulesResource,
 		organizations2.NewOrganizationsApplianceVpnVpnFirewallRulesResource,
 		networks2.NewNetworksTrafficAnalysisResource,
 		networks2.NewNetworksNetflowResource,
 		networks2.NewNetworksSyslogServersResource,
-		networks2.NewNetworksApplianceVlansSettingsResource,
-		networks2.NewNetworksApplianceSettingsResource,
-		networks2.NewNetworksApplianceFirewallSettingsResource,
-		networks2.NewNetworksSwitchQosRuleResource,
-		networks2.NewNetworksSwitchDscpToCosMappingsResource,
-		networks2.NewNetworksSwitchMtuResource,
+		appliance.NewNetworksApplianceVlansSettingsResource,
+		appliance.NewNetworksApplianceSettingsResource,
+		appliance.NewNetworksApplianceFirewallSettingsResource,
+		_switch.NewNetworksSwitchQosRuleResource,
+		_switch.NewNetworksSwitchDscpToCosMappingsResource,
+		_switch.NewNetworksSwitchMtuResource,
 		networks2.NewNetworksGroupPolicyResource,
 		organizations2.NewOrganizationsLicenseResource,
-		networks2.NewNetworksWirelessSsidsFirewallL3FirewallRulesResource,
-		networks2.NewNetworksWirelessSsidsFirewallL7FirewallRulesResource,
-		devices.NewDevicesResource,
+		wireless.NewNetworksWirelessSsidsFirewallL3FirewallRulesResource,
+		wireless.NewNetworksWirelessSsidsFirewallL7FirewallRulesResource,
+		devices2.NewDevicesResource,
 		organizations2.NewOrganizationsClaimResource,
 		networks2.NewNetworksDevicesClaimResource,
-		networks2.NewNetworkApplianceStaticRoutesResource,
+		appliance.NewNetworkApplianceStaticRoutesResource,
 		networks2.NewNetworksCellularGatewaySubnetPoolResource,
 		networks2.NewNetworksCellularGatewayUplinkResource,
-		networks2.NewNetworksWirelessSsidsSplashSettingsResource,
-		devices.NewDevicesCellularSimsResource,
-		devices.NewDevicesTestAccDevicesManagementInterfaceResourceResource,
-		networks2.NewNetworksApplianceVpnSiteToSiteVpnResource,
-		devices.NewDevicesSwitchPortsCycleResource,
-		networks2.NewNetworksApplianceTrafficShapingUplinkBandWidthResource,
-		networks2.NewNetworksApplianceVLANResource,
-		devices.NewDevicesSwitchPortResource,
-		networks2.NewNetworksAppliancePortsResource,
-		networks2.NewNetworksWirelessSsidsResource,
+		wireless.NewNetworksWirelessSsidsSplashSettingsResource,
+		devices2.NewDevicesCellularSimsResource,
+		devices2.NewDevicesTestAccDevicesManagementInterfaceResourceResource,
+		appliance.NewNetworksApplianceVpnSiteToSiteVpnResource,
+		_switch.NewDevicesSwitchPortsCycleResource,
+		appliance.NewNetworksApplianceTrafficShapingUplinkBandWidthResource,
+		appliance.NewNetworksApplianceVLANResource,
+		_switch.NewDevicesSwitchPortResource,
+		appliance.NewNetworksAppliancePortsResource,
+		wireless.NewNetworksWirelessSsidsResource,
 		networks2.NewNetworksStormControlResource,
 	}
 }
@@ -316,26 +319,26 @@ func (p *CiscoMerakiProvider) DataSources(ctx context.Context) []func() datasour
 		organizations2.NewOrganizationsDataSource,
 		organizations2.NewOrganizationsNetworksDataSource,
 		administered.NewAdministeredIdentitiesMeDataSource,
-		networks2.NewNetworkDevicesDataSource,
+		devices2.NewNetworkDevicesDataSource,
 		organizations2.NewOrganizationsAdminsDataSource,
 		organizations2.NewOrganizationsSamlIdpsDataSource,
 		organizations2.NewOrganizationsInventoryDevicesDataSource,
 		organizations2.NewOrganizationsAdaptivePolicyAclsDataSource,
 		organizations2.NewOrganizationsSamlRolesDataSource,
 		networks2.NewNetworkGroupPoliciesDataSource,
-		networks2.NewNetworksAppliancePortsDataSource,
-		networks2.NewNetworksApplianceVLANsDatasource,
+		appliance.NewNetworksAppliancePortsDataSource,
+		appliance.NewNetworksApplianceVLANsDatasource,
 		organizations2.NewOrganizationsCellularGatewayUplinkStatusesDataSource,
 		organizations2.NewOrganizationsLicensesDataSource,
-		networks2.NewNetworksApplianceVlansSettingsDatasource,
-		devices.NewDevicesSwitchPortsStatusesDataSource,
-		devices.NewDevicesApplianceDhcpSubnetsDataSource,
-		networks2.NewNetworksWirelessSsidsDataSource,
-		networks2.NewNetworksSwitchQosRulesDataSource,
-		networks2.NewNetworksApplianceVpnSiteToSiteVpnDatasource,
-		networks2.NewNetworksSwitchMtuDataSource,
-		devices.NewDevicesManagementInterfaceDatasource,
-		networks2.NewNetworksApplianceFirewallL3FirewallRulesDataSource,
+		appliance.NewNetworksApplianceVlansSettingsDatasource,
+		_switch.NewDevicesSwitchPortsStatusesDataSource,
+		appliance.NewDevicesApplianceDhcpSubnetsDataSource,
+		wireless.NewNetworksWirelessSsidsDataSource,
+		_switch.NewNetworksSwitchQosRulesDataSource,
+		appliance.NewNetworksApplianceVpnSiteToSiteVpnDatasource,
+		_switch.NewNetworksSwitchMtuDataSource,
+		devices2.NewDevicesManagementInterfaceDatasource,
+		appliance.NewNetworksApplianceFirewallL3FirewallRulesDataSource,
 		networks2.NewNetworksSwitchStormControlDataSource,
 	}
 }

@@ -15,8 +15,6 @@ import (
 	"time"
 )
 
-// Meraki Dashboard API Calls //
-
 func SweeperHTTPClient() (*openApiClient.APIClient, error) {
 	configuration := openApiClient.NewConfiguration()
 	configuration.UserAgent = configuration.UserAgent + " terraform/dev-sweeper"
@@ -25,7 +23,7 @@ func SweeperHTTPClient() (*openApiClient.APIClient, error) {
 			InsecureSkipVerify: false,
 		},
 	}
-	authenticatedTransport := &provider.bearerAuthTransport{
+	authenticatedTransport := &provider.BearerAuthTransport{
 		Transport: transport,
 	}
 	authenticatedTransport.Token = os.Getenv("MERAKI_DASHBOARD_API_KEY")

@@ -138,7 +138,7 @@ func configureClient(baseURL string, retries int, retryWaitMax time.Duration) *o
 	retryClient.RetryMax = retries
 	retryClient.RetryWaitMax = retryWaitMax
 	//retryClient.CheckRetry = customRetryPolicy
-	retryClient.HTTPClient.Transport = &provider.bearerAuthTransport{
+	retryClient.HTTPClient.Transport = &provider.BearerAuthTransport{
 		Transport: http.DefaultTransport.(*http.Transport),
 		Token:     "dummy_api_key",
 	}
