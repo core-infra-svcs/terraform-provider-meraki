@@ -1,9 +1,10 @@
-package provider
+package tests
 
 import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider"
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
@@ -24,7 +25,7 @@ func SweeperHTTPClient() (*openApiClient.APIClient, error) {
 			InsecureSkipVerify: false,
 		},
 	}
-	authenticatedTransport := &bearerAuthTransport{
+	authenticatedTransport := &provider.bearerAuthTransport{
 		Transport: transport,
 	}
 	authenticatedTransport.Token = os.Getenv("MERAKI_DASHBOARD_API_KEY")

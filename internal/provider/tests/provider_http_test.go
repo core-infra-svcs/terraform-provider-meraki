@@ -1,7 +1,8 @@
-package provider
+package tests
 
 import (
 	"context"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider"
 	"github.com/hashicorp/go-retryablehttp"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
 	"github.com/stretchr/testify/assert"
@@ -137,7 +138,7 @@ func configureClient(baseURL string, retries int, retryWaitMax time.Duration) *o
 	retryClient.RetryMax = retries
 	retryClient.RetryWaitMax = retryWaitMax
 	//retryClient.CheckRetry = customRetryPolicy
-	retryClient.HTTPClient.Transport = &bearerAuthTransport{
+	retryClient.HTTPClient.Transport = &provider.bearerAuthTransport{
 		Transport: http.DefaultTransport.(*http.Transport),
 		Token:     "dummy_api_key",
 	}
