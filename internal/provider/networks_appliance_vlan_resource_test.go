@@ -31,7 +31,7 @@ func TestAccNetworksApplianceVlansResource(t *testing.T) {
 
 			// Create and Read a VLAN
 			{
-				Config: testAccNetworksApplianceVlansResourceConfigCreate,
+				Config: testAccNetworksApplianceVlansResourceConfigCreate(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "vlan_id", "10"),
 					resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "name", "My VLAN"),
@@ -47,7 +47,7 @@ func TestAccNetworksApplianceVlansResource(t *testing.T) {
 
 			// Update testing
 			{
-				Config: testAccNetworksApplianceVlansResourceConfigUpdate,
+				Config: testAccNetworksApplianceVlansResourceConfigUpdate(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "vlan_id", "10"),
 					resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "name", "My Updated VLAN"),
@@ -130,9 +130,15 @@ notes = "Additional description of the network"
 	return result
 }
 
-const testAccNetworksApplianceVlansResourceConfigCreate = `
+func testAccNetworksApplianceVlansResourceConfigCreate(orgId string) string {
+	result := fmt.Sprintf(`
 resource "meraki_network" "test" {
-    product_types = ["appliance", "switch", "wireless"]
+organization_id = %s
+product_types = ["appliance", "switch", "wireless"]
+tags = ["tag1"]
+name = "test_acc_meraki_networks_appliance_vlan"
+timezone = "America/Los_Angeles"
+notes = "Additional description of the network"
 }
 
 resource "meraki_networks_appliance_vlans_settings" "test" {
@@ -157,7 +163,10 @@ resource "meraki_networks_appliance_vlan" "test" {
     }
 
 }
-`
+
+`, orgId)
+	return result
+}
 
 /*
 // TODO: Figure out IPv6 dependencies
@@ -196,9 +205,15 @@ resource "meraki_networks_appliance_vlan" "test" {
 `
 */
 
-const testAccNetworksApplianceVlansResourceConfigUpdate = `
+func testAccNetworksApplianceVlansResourceConfigUpdate(orgId string) string {
+	result := fmt.Sprintf(`
 resource "meraki_network" "test" {
-    product_types = ["appliance", "switch", "wireless"]
+organization_id = %s
+product_types = ["appliance", "switch", "wireless"]
+tags = ["tag1"]
+name = "test_acc_meraki_networks_appliance_vlan"
+timezone = "America/Los_Angeles"
+notes = "Additional description of the network"
 }
 
 resource "meraki_networks_appliance_vlan" "test" {
@@ -238,7 +253,10 @@ resource "meraki_networks_appliance_vlan" "test" {
         enabled = true
     }
 }
-`
+
+`, orgId)
+	return result
+}
 
 /*
 const testAccNetworksApplianceVlansResourceConfigUpdateIPv6 = `
