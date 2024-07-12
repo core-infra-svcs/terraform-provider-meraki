@@ -28,12 +28,12 @@ var (
 	_ resource.ResourceWithImportState = &NetworksWirelessSsidsSplashSettingsResource{} // Interface for resources with import state functionality
 )
 
-func NewNetworksWirelessSsidsSplashSettingsResource() resource.Resource {
-	return &NetworksWirelessSsidsSplashSettingsResource{}
-}
-
 type NetworksWirelessSsidsSplashSettingsResource struct {
 	client *openApiClient.APIClient // APIClient instance for making API requests
+}
+
+func NewNetworksWirelessSsidsSplashSettingsResource() resource.Resource {
+	return &NetworksWirelessSsidsSplashSettingsResource{}
 }
 
 // The NetworksWirelessSsidsSplashSettingsResourceModel structure describes the data model.

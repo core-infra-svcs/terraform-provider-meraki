@@ -14,18 +14,12 @@ import (
 // NetworksWirelessSsidsDataSource struct. If not, implement them.
 var _ datasource.DataSource = &NetworksWirelessSsidsDataSource{}
 
-// The NewNetworksWirelessSsidsDataSource function is a constructor for the data source. This function needs
-// to be added to the list of Data Sources in provider.go: func (p *ScaffoldingProvider) DataSources.
-// If it's not added, the provider won't be aware of this data source's existence.
-func NewNetworksWirelessSsidsDataSource() datasource.DataSource {
-	return &NetworksWirelessSsidsDataSource{}
-}
-
-// NetworksWirelessSsidsDataSource struct defines the structure for this data source.
-// It includes an APIClient field for making requests to the Meraki API.
-// If additional fields are required (e.g., for caching or for tracking internal state), add them here.
 type NetworksWirelessSsidsDataSource struct {
 	client *openApiClient.APIClient
+}
+
+func NewNetworksWirelessSsidsDataSource() datasource.DataSource {
+	return &NetworksWirelessSsidsDataSource{}
 }
 
 // The NetworksWirelessSsidsDataSourceModel structure describes the data model.

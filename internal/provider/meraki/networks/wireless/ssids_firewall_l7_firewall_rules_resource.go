@@ -25,7 +25,6 @@ var (
 	_ resource.ResourceWithImportState = &NetworksWirelessSsidsFirewallL7FirewallRulesResource{} // Interface for resources with import state functionality
 )
 
-// The NewNetworksWirelessSsidsFirewallL7FirewallRulesResource function is a constructor for the resource.
 func NewNetworksWirelessSsidsFirewallL7FirewallRulesResource() resource.Resource {
 	return &NetworksWirelessSsidsFirewallL7FirewallRulesResource{}
 }

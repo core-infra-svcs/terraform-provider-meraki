@@ -5,13 +5,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/meraki/administered"
-	devices2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/meraki/devices"
-	networks2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/meraki/networks"
-	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/meraki/networks/appliance"
-	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/meraki/networks/switch"
-	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/meraki/networks/wireless"
-	organizations2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/meraki/organizations"
 	"net/http"
 	"net/url"
 	"os"
@@ -266,81 +259,11 @@ func (p *CiscoMerakiProvider) Configure(ctx context.Context, req provider.Config
 }
 
 func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.Resource {
-	return []func() resource.Resource{
-		organizations2.NewOrganizationResource,
-		organizations2.NewOrganizationSamlResource,
-		organizations2.NewOrganizationsSamlIdpResource,
-		organizations2.NewOrganizationsAdminResource,
-		organizations2.NewOrganizationsAdaptivePolicyAclResource,
-		networks2.NewNetworkResource,
-		organizations2.NewOrganizationsSamlRolesResource,
-		_switch.NewNetworksSwitchSettingsResource,
-		networks2.NewNetworksSnmpResource,
-		organizations2.NewOrganizationsSnmpResource,
-		networks2.NewNetworksSettingsResource,
-		appliance.NewNetworksApplianceFirewallL3FirewallRulesResource,
-		appliance.NewNetworksApplianceFirewallL7FirewallRulesResource,
-		organizations2.NewOrganizationsApplianceVpnVpnFirewallRulesResource,
-		networks2.NewNetworksTrafficAnalysisResource,
-		networks2.NewNetworksNetflowResource,
-		networks2.NewNetworksSyslogServersResource,
-		appliance.NewNetworksApplianceVlansSettingsResource,
-		appliance.NewNetworksApplianceSettingsResource,
-		appliance.NewNetworksApplianceFirewallSettingsResource,
-		_switch.NewNetworksSwitchQosRuleResource,
-		_switch.NewNetworksSwitchDscpToCosMappingsResource,
-		_switch.NewNetworksSwitchMtuResource,
-		networks2.NewNetworksGroupPolicyResource,
-		organizations2.NewOrganizationsLicenseResource,
-		wireless.NewNetworksWirelessSsidsFirewallL3FirewallRulesResource,
-		wireless.NewNetworksWirelessSsidsFirewallL7FirewallRulesResource,
-		devices2.NewDevicesResource,
-		organizations2.NewOrganizationsClaimResource,
-		networks2.NewNetworksDevicesClaimResource,
-		appliance.NewNetworkApplianceStaticRoutesResource,
-		networks2.NewNetworksCellularGatewaySubnetPoolResource,
-		networks2.NewNetworksCellularGatewayUplinkResource,
-		wireless.NewNetworksWirelessSsidsSplashSettingsResource,
-		devices2.NewDevicesCellularSimsResource,
-		devices2.NewDevicesTestAccDevicesManagementInterfaceResourceResource,
-		appliance.NewNetworksApplianceVpnSiteToSiteVpnResource,
-		_switch.NewDevicesSwitchPortsCycleResource,
-		appliance.NewNetworksApplianceTrafficShapingUplinkBandWidthResource,
-		appliance.NewNetworksApplianceVLANResource,
-		_switch.NewDevicesSwitchPortResource,
-		appliance.NewNetworksAppliancePortsResource,
-		wireless.NewNetworksWirelessSsidsResource,
-		networks2.NewNetworksStormControlResource,
-	}
+	return MerakiResources
 }
 
 func (p *CiscoMerakiProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
-	return []func() datasource.DataSource{
-		organizations2.NewOrganizationsDataSource,
-		organizations2.NewOrganizationsNetworksDataSource,
-		administered.NewAdministeredIdentitiesMeDataSource,
-		devices2.NewNetworkDevicesDataSource,
-		organizations2.NewOrganizationsAdminsDataSource,
-		organizations2.NewOrganizationsSamlIdpsDataSource,
-		organizations2.NewOrganizationsInventoryDevicesDataSource,
-		organizations2.NewOrganizationsAdaptivePolicyAclsDataSource,
-		organizations2.NewOrganizationsSamlRolesDataSource,
-		networks2.NewNetworkGroupPoliciesDataSource,
-		appliance.NewNetworksAppliancePortsDataSource,
-		appliance.NewNetworksApplianceVLANsDatasource,
-		organizations2.NewOrganizationsCellularGatewayUplinkStatusesDataSource,
-		organizations2.NewOrganizationsLicensesDataSource,
-		appliance.NewNetworksApplianceVlansSettingsDatasource,
-		_switch.NewDevicesSwitchPortsStatusesDataSource,
-		appliance.NewDevicesApplianceDhcpSubnetsDataSource,
-		wireless.NewNetworksWirelessSsidsDataSource,
-		_switch.NewNetworksSwitchQosRulesDataSource,
-		appliance.NewNetworksApplianceVpnSiteToSiteVpnDatasource,
-		_switch.NewNetworksSwitchMtuDataSource,
-		devices2.NewDevicesManagementInterfaceDatasource,
-		appliance.NewNetworksApplianceFirewallL3FirewallRulesDataSource,
-		networks2.NewNetworksSwitchStormControlDataSource,
-	}
+	return MerakiDataSources
 }
 
 func New(version string) func() provider.Provider {
