@@ -43,6 +43,7 @@ type CiscoMerakiProviderModel struct {
 	MaximumRetries        types.Int64  `tfsdk:"maximum_retries"`
 	Nginx429RetryWaitTime types.Int64  `tfsdk:"nginx_429_retry_wait_time"`
 	WaitOnRateLimit       types.Bool   `tfsdk:"wait_on_rate_limit"`
+	EncryptionKey         types.String `tfsdk:"encryption_key"`
 }
 
 func (p *CiscoMerakiProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
@@ -110,6 +111,11 @@ func (p *CiscoMerakiProvider) Schema(ctx context.Context, req provider.SchemaReq
 			"wait_on_rate_limit": schema.BoolAttribute{
 				Description: "Retry if 429 rate limit error encountered",
 				Optional:    true,
+			},
+			"encryption_key": schema.StringAttribute{
+				Optional:            true,
+				Description:         "Encryption key for encrypting sensitive values.",
+				MarkdownDescription: "Encryption key for encrypting sensitive values.",
 			},
 		},
 	}
@@ -254,8 +260,18 @@ func (p *CiscoMerakiProvider) Configure(ctx context.Context, req provider.Config
 
 	client := openApiClient.NewAPIClient(configuration)
 
-	resp.DataSourceData = client
-	resp.ResourceData = client
+	// Add the encryption key to the client configuration
+	encryptionKey := ""
+	if !data.EncryptionKey.IsNull() {
+		encryptionKey = data.EncryptionKey.ValueString()
+	}
+
+	// Pass the encryption key to resources and data sources
+	resp.DataSourceData = map[string]interface{}{
+		"client":         client,
+		"encryption_key": encryptionKey,
+	}
+	resp.ResourceData = client // Directly passing the client for resources
 }
 
 func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.Resource {
