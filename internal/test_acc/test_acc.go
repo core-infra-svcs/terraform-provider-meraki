@@ -1,6 +1,8 @@
 package test_acc
 
 import (
+	"context"
+	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -23,10 +25,32 @@ func TestAccPreCheck(t *testing.T) {
 	}
 }
 
-// test_acc.TestAccProtoV6ProviderFactories are used to instantiate a provider during
-// acceptance testing. The factory function will be invoked for every Terraform
-// CLI command executed to create a provider server to which the CLI can
-// reattach.
+// TestAccProtoV6ProviderFactories are used to instantiate a provider during acceptance testing.
 var TestAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){
 	"meraki": providerserver.NewProtocol6WithError(provider.New("test")()),
+}
+
+// EntryPoint is the entry point for the test suite.
+func EntryPoint(m *testing.M) {
+	ctx := context.Background()
+	fmt.Println("Starting EntryPoint")
+
+	// Setup code here (e.g., initialize resources, set environment variables).
+	Setup(ctx)
+
+	// Run the tests
+	fmt.Println("Running tests")
+	exitCode := m.Run()
+
+	// Run sweepers or other Cleanup code if tests failed.
+	if exitCode != 0 {
+		fmt.Println("Tests failed, running Cleanup")
+		Cleanup(ctx)
+	}
+
+	// Additional Cleanup code here (e.g., close connections, remove files).
+	Teardown(ctx)
+
+	fmt.Println("Exiting EntryPoint", map[string]interface{}{"exitCode": exitCode})
+	os.Exit(exitCode)
 }

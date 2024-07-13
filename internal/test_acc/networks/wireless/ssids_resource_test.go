@@ -33,14 +33,27 @@ func TestAccNetworksWirelessSsidsResource(t *testing.T) {
 				),
 			},
 
-			// Create and Read testing
+			// Create and Read testing without encryption
 			{
-				Config: testAccNetworksWirelessSsidsResourceConfigBasic,
+				Config: testAccNetworksWirelessSsidsResourceConfigBasic(false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test", "number", "0"),
 					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test", "name", "My SSID"),
 					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test", "enabled", "true"),
 					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test", "auth_mode", "psk"),
+					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test", "psk", "deadbeef"),
+				),
+			},
+
+			// Create and Read testing with encryption
+			{
+				Config: testAccNetworksWirelessSsidsResourceConfigBasic(true),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test", "number", "0"),
+					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test", "name", "My SSID"),
+					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test", "enabled", "true"),
+					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test", "auth_mode", "psk"),
+					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test", "psk", "deadbeef"),
 				),
 			},
 
@@ -71,69 +84,148 @@ func TestAccNetworksWirelessSsidsResource(t *testing.T) {
 					return resource.ComposeAggregateTestCheckFunc(checks...)(s)
 				},
 			},
-			/*
-
-				// Active Directory Authentication Test
-					{
-						Config: testAccNetworksWirelessSsidsResourceConfigAD,
-						Check: resource.ComposeTestCheckFunc(
-							resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.active_directory", "number", "1"),
-							resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.active_directory", "name", "AD_SSID"),
-							resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.active_directory", "enabled", "true"),
-						),
-					},
-
-					// VLAN and Bandwidth Limits Test
-					{
-						Config: testAccNetworksWirelessSsidsResourceConfigVLANBandwidth,
-						Check: resource.ComposeTestCheckFunc(
-							resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.vlan_bandwidth", "number", "2"),
-							resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.vlan_bandwidth", "name", "VLANBandwidth"),
-							resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.vlan_bandwidth", "enabled", "true"),
-						),
-					},
-
-					// Full Configuration Test
-					{
-						Config: testAccNetworksWirelessSsidsResourceConfigFullConfig,
-						Check: resource.ComposeTestCheckFunc(
-							resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.full_config", "number", "3"),
-							resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.full_config", "name", "FullConfigSSID"),
-							resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.full_config", "enabled", "true"),
-						),
-					},
-
-					// Guest Access and Walled Garden Test
-					{
-						Config: testAccNetworksWirelessSsidsResourceConfigGuestAccess,
-						Check: resource.ComposeTestCheckFunc(
-							resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.guest_access", "number", "4"),
-							resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.guest_access", "name", "GuestAccess"),
-							resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.guest_access", "enabled", "true"),
-						),
-					},
-
-
-
-			*/
 		},
 	})
 }
 
 // testAccNetworksWirelessSsidsResourceConfigCreateNetwork is a function which returns a string that defines the configuration for creating a network resource in your tests.
-// It depends on the organization resource.
 func testAccNetworksWirelessSsidsResourceConfigCreateNetwork(orgId string) string {
 	return fmt.Sprintf(`
 resource "meraki_network" "test" {
-  name          = "test_acc_networks_wireless_ssids_resource"
-  organization_id = "%s"
-  timezone      = "America/Los_Angeles"
-  tags          = ["tag1"]
-  product_types = ["appliance", "switch", "wireless"]
-  notes         = "Additional description of the network"
+	organization_id = "%s"
+	name = "test_acc_networks_wireless_ssids_resource"
+	product_types = ["appliance", "switch", "wireless"]
+	tags = ["tag1"]
+	timezone = "America/Los_Angeles"
+	notes = "Additional description of the network"
 }
+  
+
 `, orgId)
 }
+
+func testAccNetworksWirelessSsidsResourceConfigBasic(encryption bool) string {
+	if encryption {
+		return `
+provider "meraki" {
+  encryption_key = "my_secret_encryption_key"
+}
+
+resource "meraki_network" "test" {
+  organization_id = "%s"
+  product_types = ["appliance", "switch", "wireless"]
+}
+
+resource "meraki_networks_wireless_ssids" "test" {
+	depends_on = [resource.meraki_network.test]
+	network_id = resource.meraki_network.test.network_id
+	number = 0
+	auth_mode = "psk"
+	enabled = true
+	encryption_mode = "wpa"
+	name = "My SSID"
+	psk = "deadbeef"
+	wpa_encryption_mode = "WPA2 only"	
+}
+`
+	} else {
+		return `
+resource "meraki_network" "test" {
+  product_types = ["appliance", "switch", "wireless"]
+}
+
+resource "meraki_networks_wireless_ssids" "test" {
+	depends_on = [resource.meraki_network.test]
+	network_id = resource.meraki_network.test.network_id
+	number = 0
+	auth_mode = "psk"
+	enabled = true
+	encryption_mode = "wpa"
+	name = "My SSID"
+	psk = "deadbeef"
+	wpa_encryption_mode = "WPA2 only"	
+}
+`
+	}
+}
+
+func testAccNetworksWirelessSsidsResourceConfigMultiplePolicies(orgId string, ssids int) string {
+	config := fmt.Sprintf(`
+resource "meraki_network" "test" {
+	organization_id = "%s"
+	product_types = ["appliance", "switch", "wireless"]
+	tags = ["tag1"]
+	name = "test_acc_networks_wireless_ssids_resource"
+	timezone = "America/Los_Angeles"
+	notes = "Additional description of the network"
+}
+`, orgId)
+
+	// Append each ssid configuration
+	for i := 1; i <= ssids; i++ {
+
+		config += fmt.Sprintf(`
+resource "meraki_networks_wireless_ssids" "test%d" {
+	depends_on = [resource.meraki_network.test]
+	network_id = resource.meraki_network.test.network_id
+	number = %d
+	name = "SSID %d"
+	auth_mode = "psk"
+	enabled = true
+	encryption_mode = "wpa"
+	psk = "deadbeef"
+	wpa_encryption_mode = "WPA2 only"
+}
+`, i, i-1, i)
+	}
+	return config
+}
+
+/*
+
+	// Active Directory Authentication Test
+		{
+			Config: testAccNetworksWirelessSsidsResourceConfigAD,
+			Check: resource.ComposeTestCheckFunc(
+				resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.active_directory", "number", "1"),
+				resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.active_directory", "name", "AD_SSID"),
+				resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.active_directory", "enabled", "true"),
+			),
+		},
+
+		// VLAN and Bandwidth Limits Test
+		{
+			Config: testAccNetworksWirelessSsidsResourceConfigVLANBandwidth,
+			Check: resource.ComposeTestCheckFunc(
+				resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.vlan_bandwidth", "number", "2"),
+				resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.vlan_bandwidth", "name", "VLANBandwidth"),
+				resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.vlan_bandwidth", "enabled", "true"),
+			),
+		},
+
+		// Full Configuration Test
+		{
+			Config: testAccNetworksWirelessSsidsResourceConfigFullConfig,
+			Check: resource.ComposeTestCheckFunc(
+				resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.full_config", "number", "3"),
+				resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.full_config", "name", "FullConfigSSID"),
+				resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.full_config", "enabled", "true"),
+			),
+		},
+
+		// Guest Access and Walled Garden Test
+		{
+			Config: testAccNetworksWirelessSsidsResourceConfigGuestAccess,
+			Check: resource.ComposeTestCheckFunc(
+				resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.guest_access", "number", "4"),
+				resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.guest_access", "name", "GuestAccess"),
+				resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.guest_access", "enabled", "true"),
+			),
+		},
+
+
+
+*/
 
 /*
 const testAccNetworksWirelessSsidsResourceConfigAD = `
@@ -233,53 +325,3 @@ resource "meraki_networks_wireless_ssids" "guest_access" {
 }
 `
 */
-
-const testAccNetworksWirelessSsidsResourceConfigBasic = `
-resource "meraki_network" "test" {
-  product_types = ["appliance", "switch", "wireless"]
-}
-
-resource "meraki_networks_wireless_ssids" "test" {
-	depends_on = [resource.meraki_network.test]
-	network_id = resource.meraki_network.test.network_id
-	number = 0
-	auth_mode = "psk"
-	enabled = true
-	encryption_mode = "wpa"
-	name = "My SSID"
-	psk = "deadbeef"
-	wpa_encryption_mode = "WPA2 only"	
-}
-`
-
-func testAccNetworksWirelessSsidsResourceConfigMultiplePolicies(orgId string, ssids int) string {
-	config := fmt.Sprintf(`
-resource "meraki_network" "test" {
-	organization_id = "%s"
-	product_types = ["appliance", "switch", "wireless"]
-	tags = ["tag1"]
-	name = "test_acc_networks_wireless_ssids_resource"
-	timezone = "America/Los_Angeles"
-	notes = "Additional description of the network"
-}
-`, orgId)
-
-	// Append each ssid configuration
-	for i := 1; i <= ssids; i++ {
-
-		config += fmt.Sprintf(`
-resource "meraki_networks_wireless_ssids" "test%d" {
-	depends_on = [resource.meraki_network.test]
-	network_id = resource.meraki_network.test.network_id
-	number = %d
-	name = "SSID %d"
-	auth_mode = "psk"
-	enabled = true
-	encryption_mode = "wpa"
-	psk = "deadbeef"
-	wpa_encryption_mode = "WPA2 only"
-}
-`, i, i-1, i)
-	}
-	return config
-}
