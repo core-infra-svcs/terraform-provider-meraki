@@ -81,7 +81,8 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 			},
 			"organization_id": schema.StringAttribute{
 				MarkdownDescription: "Organization ID",
-				Required:            true,
+				Optional:            true,
+				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -378,12 +379,10 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 	// Prepare the request payload
 	createPayload, createPayloadDiags := updateNetworksNetworksResourceCreatePayload(&plan)
 	if createPayloadDiags.HasError() {
-		tflog.Error(ctx, "Failed to create resource payload", map[string]interface{}{
-			"error": createPayloadDiags,
-		})
+
 		resp.Diagnostics.AddError(
-			"Error creating ssid payload",
-			fmt.Sprintf("Unexpected error: %s", createPayloadDiags),
+			"Error creating payload",
+			fmt.Sprintf("Unexpected error: %s", createPayloadDiags.Errors()),
 		)
 		return
 	}
