@@ -1,10 +1,10 @@
 package provider
 
 import (
-	merakiAdministered "github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/meraki/administered"
-	merakiDevices "github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/meraki/devices"
-	merakiNetworks "github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/meraki/networks"
-	merakiOrganizations "github.com/core-infra-svcs/terraform-provider-meraki/internal/provider/meraki/organizations"
+	merakiAdministered "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/administered"
+	merakiDevices "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices"
+	merakiNetworks "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks"
+	merakiOrganizations "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
