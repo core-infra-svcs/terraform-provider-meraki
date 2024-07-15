@@ -56,20 +56,34 @@ provider "meraki" {
 `
 }
 
+// Define a custom type for context keys
+type contextKey string
+
+const encryptionKeyContextKey contextKey = "encryption_key"
+
 func testCheckEncryptionDecryptionWithKey(encryptionKey string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		ctx := context.WithValue(context.Background(), "encryption_key", encryptionKey)
+
+		// Set a value in the context using the custom key type
+		ctx := context.WithValue(context.Background(), encryptionKeyContextKey, encryptionKey)
+
+		// Retrieve the value from the context
+		if v, ok := ctx.Value(encryptionKeyContextKey).(string); ok {
+			fmt.Println("Encryption Key from context:", v)
+		} else {
+			fmt.Println("Encryption Key not found in context")
+		}
 
 		// Test encryption
 		encrypted, err := utils.Encrypt(encryptionKey, "supersecret")
 		if err != nil {
-			return fmt.Errorf("error encrypting: %s, context: %s", err, ctx)
+			return fmt.Errorf("error encrypting: %s, context: %v", err, ctx)
 		}
 
 		// Test decryption
 		decrypted, err := utils.Decrypt(encryptionKey, encrypted)
 		if err != nil {
-			return fmt.Errorf("error decrypting: %s, context: %s", err, ctx)
+			return fmt.Errorf("error decrypting: %s, context: %v", err, ctx)
 		}
 
 		if decrypted != "supersecret" {
