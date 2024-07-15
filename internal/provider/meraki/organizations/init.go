@@ -25,6 +25,7 @@ func init() {
 		NewOrganizationsSamlRolesResource,
 		NewOrganizationsSnmpResource,
 		NewOrganizationResource,
+		NewOrganizationPolicyObjectResource,
 	)
 
 	// Initialize with all organization data sources //
