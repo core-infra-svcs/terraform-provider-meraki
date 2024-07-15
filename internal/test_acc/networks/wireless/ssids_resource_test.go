@@ -112,7 +112,6 @@ provider "meraki" {
 }
 
 resource "meraki_network" "test" {
-  organization_id = "%s"
   product_types = ["appliance", "switch", "wireless"]
 }
 
