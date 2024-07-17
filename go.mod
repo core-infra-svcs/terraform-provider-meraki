@@ -12,7 +12,6 @@ require (
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.34.0
 	github.com/meraki/dashboard-api-go/client v0.0.0-20240215080146-3e39f2b5baa8
 	github.com/stretchr/testify v1.8.4
-	golang.org/x/crypto v0.25.0
 )
 
 require (
@@ -74,6 +73,7 @@ require (
 	github.com/yuin/goldmark-meta v1.1.0 // indirect
 	github.com/zclconf/go-cty v1.14.4 // indirect
 	go.abhg.dev/goldmark/frontmatter v0.2.0 // indirect
+	golang.org/x/crypto v0.25.0 // indirect
 	golang.org/x/exp v0.0.0-20240707233637-46b078467d37 // indirect
 	golang.org/x/mod v0.19.0 // indirect
 	golang.org/x/net v0.27.0 // indirect
