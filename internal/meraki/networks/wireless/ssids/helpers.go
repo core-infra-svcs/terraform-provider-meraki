@@ -195,10 +195,10 @@ func NetworksWirelessSsidPayloadRadiusServers(ctx context.Context, input types.L
 	}
 
 	var diags diag.Diagnostics
-	var serversList []openApiClient.UpdateNetworkWirelessSsidRequestRadiusServersInner
-	var servers []RadiusServer
+	var servers []openApiClient.UpdateNetworkWirelessSsidRequestRadiusServersInner
+	var radiusServers []RadiusServer
 
-	err := input.ElementsAs(ctx, &servers, true)
+	err := input.ElementsAs(ctx, &radiusServers, true)
 	if err.HasError() {
 		diags = append(diags, err.Errors()...)
 		return nil, diags
@@ -211,7 +211,7 @@ func NetworksWirelessSsidPayloadRadiusServers(ctx context.Context, input types.L
 		tflog.Warn(ctx, "The encryption key is not available in the context, proceeding without decryption")
 	}
 
-	for _, server := range servers {
+	for _, server := range radiusServers {
 
 		var serverPayload openApiClient.UpdateNetworkWirelessSsidRequestRadiusServersInner
 
@@ -257,36 +257,63 @@ func NetworksWirelessSsidPayloadRadiusServers(ctx context.Context, input types.L
 		// CaCertificate
 		serverPayload.SetCaCertificate(server.CaCertificate.ValueString())
 
-		serversList = append(serversList, serverPayload)
+		servers = append(servers, serverPayload)
 	}
 
-	return serversList, diags
+	return servers, diags
 }
 
-func NetworksWirelessSsidPayloadRadiusAccountingServers(input types.List) ([]openApiClient.UpdateNetworkWirelessSsidRequestRadiusAccountingServersInner, diag.Diagnostics) {
+func NetworksWirelessSsidPayloadRadiusAccountingServers(ctx context.Context, input types.List) ([]openApiClient.UpdateNetworkWirelessSsidRequestRadiusAccountingServersInner, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	var servers []openApiClient.UpdateNetworkWirelessSsidRequestRadiusAccountingServersInner
 	var radiusServers []RadiusServer
 
-	err := input.ElementsAs(context.Background(), &radiusServers, true)
+	err := input.ElementsAs(ctx, &radiusServers, true)
 	if err.HasError() {
 		diags = append(diags, err.Errors()...)
 		return nil, diags
 	}
 
+	// Retrieve the encryption key from the context
+	encryptionKey, ok := ctx.Value("encryption_key").(string)
+	if !ok {
+		// If encryption key is not available, log a warning and proceed without decryption
+		tflog.Warn(ctx, "The encryption key is not available in the context, proceeding without decryption")
+	}
+
 	for _, server := range radiusServers {
+
+		var serverPayload openApiClient.UpdateNetworkWirelessSsidRequestRadiusAccountingServersInner
+
+		// Host
+		serverPayload.SetHost(server.Host.ValueString())
+
+		// Port
 		port, err := utils.Int32Pointer(server.Port.ValueInt64())
 		if err != nil {
 			diags = append(diags, diag.NewErrorDiagnostic("Error converting Port", fmt.Sprintf("%s", err.Errors())))
 		}
-		servers = append(servers, openApiClient.UpdateNetworkWirelessSsidRequestRadiusAccountingServersInner{
-			Host:          server.Host.ValueString(),
-			Port:          port,
-			Secret:        server.Secret.ValueStringPointer(),
-			CaCertificate: server.CaCertificate.ValueStringPointer(),
-			RadsecEnabled: server.RadSecEnabled.ValueBoolPointer(),
-			//OpenRoamingCertificateID: server.OpenRoamingCertificateID.ValueInt64Pointer(),
-		})
+		serverPayload.SetPort(*port)
+
+		// Secret
+		if encryptionKey != "" {
+			decryptedSecret, err := utils.Decrypt(encryptionKey, server.Secret.ValueString())
+			if err != nil {
+				diags = append(diags, diag.NewErrorDiagnostic("Error Decrypting Secret", err.Error()))
+			} else {
+				serverPayload.SetSecret(decryptedSecret)
+			}
+		} else {
+			serverPayload.SetSecret(server.Secret.ValueString())
+		}
+
+		// RadSecEnabled
+		serverPayload.SetRadsecEnabled(server.RadSecEnabled.ValueBool())
+
+		// CaCertificate
+		serverPayload.SetCaCertificate(server.CaCertificate.ValueString())
+
+		servers = append(servers, serverPayload)
 	}
 
 	return servers, diags
@@ -578,7 +605,7 @@ func networksWirelessSsidAdminSplashUrl(data *openApiClient.GetNetworkWirelessSs
 	return result, diags
 }
 
-func NetworksWirelessSsidStateRadiusServers(ctx context.Context, plan NetworksWirelessSsidResourceModel, input []openApiClient.GetNetworkWirelessSsids200ResponseInnerRadiusServersInner, httpResp map[string]interface{}) (types.List, diag.Diagnostics) {
+func NetworksWirelessSsidStateRadiusServers(ctx context.Context, plan NetworksWirelessSsidResourceModel, httpResp map[string]interface{}) (types.List, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	var radiusServers []RadiusServer
 
@@ -697,7 +724,7 @@ func NetworksWirelessSsidStateRadiusServers(ctx context.Context, plan NetworksWi
 	return newRadiusServersList, diags
 }
 
-func NetworksWirelessSsidStateRadiusAccountingServers(ctx context.Context, plan NetworksWirelessSsidResourceModel, input []openApiClient.GetNetworkWirelessSsids200ResponseInnerRadiusAccountingServersInner, httpResp map[string]interface{}) (types.List, diag.Diagnostics) {
+func NetworksWirelessSsidStateRadiusAccountingServers(ctx context.Context, plan NetworksWirelessSsidResourceModel, httpResp map[string]interface{}) (types.List, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	var radiusServers []RadiusServer
 
@@ -751,7 +778,7 @@ func NetworksWirelessSsidStateRadiusAccountingServers(ctx context.Context, plan 
 	var newRadiusServers []attr.Value
 
 	var radiusServersPlan []RadiusServer
-	err := plan.RadiusServers.ElementsAs(ctx, &radiusServersPlan, true)
+	err := plan.RadiusAccountingServers.ElementsAs(ctx, &radiusServersPlan, true)
 	if err.HasError() {
 		diags.Append(err...)
 	}

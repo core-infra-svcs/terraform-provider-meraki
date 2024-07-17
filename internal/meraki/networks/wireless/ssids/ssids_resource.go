@@ -178,18 +178,19 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 	// RadiusServers
 	if state.RadiusServers.IsNull() || state.RadiusServers.IsUnknown() {
 
-		state.RadiusServers, diags = NetworksWirelessSsidStateRadiusServers(ctx, *plan, data.RadiusServers, rawResp)
+		radiusServers, diags := NetworksWirelessSsidStateRadiusServers(ctx, *plan, rawResp)
 		if diags.HasError() {
 			diags.AddError("Radius Servers Attribute", "")
 			return diags
 		}
+		state.RadiusServers = radiusServers
 
 	}
 
 	// RadiusAccountingServers
 	if state.RadiusAccountingServers.IsNull() || state.RadiusAccountingServers.IsUnknown() {
 
-		radiusAccountingServers, diags := NetworksWirelessSsidStateRadiusAccountingServers(ctx, *plan, data.RadiusAccountingServers, rawResp)
+		radiusAccountingServers, diags := NetworksWirelessSsidStateRadiusAccountingServers(ctx, *plan, rawResp)
 		if diags.HasError() {
 			diags.AddError("Radius Accounting Servers Attribute", "")
 			return diags
@@ -1025,7 +1026,7 @@ func updateNetworksWirelessSsidsResourcePayload(ctx context.Context, plan *Netwo
 	}
 	payload.RadiusServers = radiusServers
 
-	radiusAccountingServers, err := NetworksWirelessSsidPayloadRadiusAccountingServers(plan.RadiusAccountingServers)
+	radiusAccountingServers, err := NetworksWirelessSsidPayloadRadiusAccountingServers(ctx, plan.RadiusAccountingServers)
 	if err.HasError() {
 		diags.Append(err...)
 	}
@@ -1843,7 +1844,6 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 			"radius_accounting_servers": schema.ListNestedAttribute{
 				MarkdownDescription: `List of RADIUS accounting 802.1X servers to be used for authentication`,
 				Optional:            true,
-				Computed:            true,
 				PlanModifiers: []planmodifier.List{
 					listplanmodifier.UseStateForUnknown(),
 				},
@@ -2045,7 +2045,6 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 			"radius_servers": schema.ListNestedAttribute{
 				MarkdownDescription: `The RADIUS 802.1X servers to be used for authentication. This param is only valid if the authMode is 'open-with-radius', '8021x-radius' or 'ipsk-with-radius'`,
 				Optional:            true,
-				Computed:            true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 
