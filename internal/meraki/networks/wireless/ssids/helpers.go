@@ -226,7 +226,7 @@ func NetworksWirelessSsidPayloadRadiusServers(ctx context.Context, input types.L
 		serverPayload.SetPort(*port)
 
 		// Secret
-		if encryptionKey != "" && !server.Secret.IsNull() {
+		if encryptionKey != "" {
 			decryptedSecret, err := utils2.Decrypt(encryptionKey, server.Secret.ValueString())
 			if err != nil {
 				diags = append(diags, diag.NewErrorDiagnostic("Error Decrypting Secret", err.Error()))
@@ -250,7 +250,9 @@ func NetworksWirelessSsidPayloadRadiusServers(ctx context.Context, input types.L
 			openRoamingCertificateId = nil
 		}
 
-		serverPayload.SetOpenRoamingCertificateId(*openRoamingCertificateId)
+		if openRoamingCertificateId != nil {
+			serverPayload.SetOpenRoamingCertificateId(*openRoamingCertificateId)
+		}
 
 		// CaCertificate
 		serverPayload.SetCaCertificate(server.CaCertificate.ValueString())
@@ -561,7 +563,7 @@ func NetworksWirelessSsidPayloadRadiusGuestVlan(input types.Object) (openApiClie
 	return guestVlans, diags
 }
 
-// update terraform state funcs
+// update terraform state funcs //
 
 func networksWirelessSsidAdminSplashUrl(data *openApiClient.GetNetworkWirelessSsids200ResponseInner) (basetypes.StringValue, diag.Diagnostics) {
 	var diags diag.Diagnostics
@@ -576,12 +578,13 @@ func networksWirelessSsidAdminSplashUrl(data *openApiClient.GetNetworkWirelessSs
 	return result, diags
 }
 
-func NetworksWirelessSsidStateRadiusServers(ctx context.Context, input []openApiClient.GetNetworkWirelessSsids200ResponseInnerRadiusServersInner, httpResp map[string]interface{}) (types.List, diag.Diagnostics) {
+func NetworksWirelessSsidStateRadiusServers(ctx context.Context, plan NetworksWirelessSsidResourceModel, input []openApiClient.GetNetworkWirelessSsids200ResponseInnerRadiusServersInner, httpResp map[string]interface{}) (types.List, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	var radiusServers []RadiusServer
 
 	radiusServerAttr := map[string]attr.Type{
-		"host":                        types.StringType,
+		"host": types.StringType,
+		// "server_id":                   types.StringType,  // not in api spec and changes all the time
 		"port":                        types.Int64Type,
 		"secret":                      types.StringType,
 		"rad_sec_enabled":             types.BoolType,
@@ -589,114 +592,92 @@ func NetworksWirelessSsidStateRadiusServers(ctx context.Context, input []openApi
 		"ca_certificate":              types.StringType,
 	}
 
-	if radiusServersResp, ok := httpResp["radiusServers"].([]interface{}); ok {
-
-		for _, rsr := range radiusServersResp {
-
-			if rs, ok := rsr.(map[string]interface{}); ok {
-				var radiusServerResp RadiusServer
-
-				// host
-				host, err := utils2.ExtractStringAttr(rs, "host")
-				if err.HasError() {
-					diags.Append(err...)
-				}
-				radiusServerResp.Host = host
-
-				// port
-				port, err := utils2.ExtractInt32Attr(rs, "port")
-				if err.HasError() {
-					diags.Append(err...)
-				}
-				radiusServerResp.Port = port
-
-				// secret
-				secret, err := utils2.ExtractStringAttr(rs, "secret")
-				if err.HasError() {
-					diags.Append(err...)
-				}
-				radiusServerResp.Secret = secret
-
-				// radSecEnabled
-				radSecEnabled, err := utils2.ExtractBoolAttr(rs, "radSecEnabled")
-				if err.HasError() {
-					diags.Append(err...)
-				}
-				radiusServerResp.RadSecEnabled = radSecEnabled
-
-				// openRoamingCertificateId
-				openRoamingCertificateId, err := utils2.ExtractInt32Attr(rs, "openRoamingCertificateId")
-				if err.HasError() {
-					diags.Append(err...)
-				}
-				radiusServerResp.OpenRoamingCertificateID = openRoamingCertificateId
-
-				// caCertificate
-				caCertificate, err := utils2.ExtractStringAttr(rs, "caCertificate")
-				if err.HasError() {
-					diags.Append(err...)
-				}
-				radiusServerResp.CaCertificate = caCertificate
-
-				radiusServers = append(radiusServers, radiusServerResp)
-
-			}
-
-		}
-
-	}
-
 	// Retrieve the encryption key from the context
 	encryptionKey, ok := ctx.Value("encryption_key").(string)
 	if !ok {
-		// If encryption key is not available, continue without encryption
+		// If encryption key is not available, log a warning and proceed without encryption
 		tflog.Warn(ctx, "The encryption key is not available in the context, proceeding without encryption")
+	}
+
+	// Process the response from the API
+	if radiusServersResp, ok := httpResp["radiusServers"].([]interface{}); ok {
+		for _, rsr := range radiusServersResp {
+			if rs, ok := rsr.(map[string]interface{}); ok {
+				var radiusServerResp RadiusServer
+
+				// Extract attributes from the response
+				radiusServerResp.Host, _ = utils2.ExtractStringAttr(rs, "host")
+
+				portFloat, _ := utils2.ExtractFloat64Attr(rs, "port")
+				if !portFloat.IsNull() && !portFloat.IsUnknown() {
+					radiusServerResp.Port = types.Int64Value(int64(portFloat.ValueFloat64()))
+				} else {
+					radiusServerResp.Port = types.Int64Null()
+				}
+
+				// radiusServerResp.ServerId, _ = utils2.ExtractStringAttr(rs, "id")  // not in api spec and changes all the time
+
+				radiusServerResp.OpenRoamingCertificateID, _ = utils2.ExtractInt32Attr(rs, "openRoamingCertificateId")
+				radiusServerResp.CaCertificate, _ = utils2.ExtractStringAttr(rs, "caCertificate")
+				radiusServerResp.RadSecEnabled, _ = utils2.ExtractBoolAttr(rs, "radsecEnabled")
+
+				// Secret not returned by API, will be set from the plan
+				radiusServerResp.Secret = types.StringNull()
+
+				radiusServers = append(radiusServers, radiusServerResp)
+			}
+		}
 	}
 
 	var newRadiusServers []attr.Value
 
-	for p, i := range input {
+	var radiusServersPlan []RadiusServer
+	err := plan.RadiusServers.ElementsAs(ctx, &radiusServersPlan, true)
+	if err.HasError() {
+		diags.Append(err...)
+	}
 
-		// secret
-		var secret types.String
-		if p < len(radiusServers) && !radiusServers[p].Secret.IsNull() {
-			if encryptionKey != "" {
-				// Encrypt the secret if it is available
-				encrypted, encryptedErr := utils2.Encrypt(encryptionKey, radiusServers[p].Secret.ValueString())
-				if encryptedErr != nil {
-					diags.AddError("Error Encrypting Secret", encryptedErr.Error())
-					return types.ListNull(types.ObjectType{AttrTypes: radiusServerAttr}), diags
-				}
-				secret = types.StringValue(encrypted)
+	// Process the plan to extract secret then handle encryption
+	for i, radiusServerPlan := range radiusServersPlan {
+
+		if i < len(radiusServers) {
+
+			if !radiusServerPlan.Secret.IsNull() && !radiusServerPlan.Secret.IsUnknown() {
+				// Extract the secret from the plan
+				radiusServers[i].Secret = radiusServerPlan.Secret
 			} else {
-				secret = radiusServers[p].Secret
+				radiusServers[i].Secret = types.StringNull()
 			}
-		} else {
-			secret = types.StringNull() // Secret is not returned by API or set in state
-		}
 
-		// radSecEnabled
-		radSecEnabled := types.BoolNull()
-		if !radiusServers[p].RadSecEnabled.IsNull() && !radiusServers[p].RadSecEnabled.IsUnknown() {
-			radSecEnabled = radiusServers[p].RadSecEnabled
-		}
+			// Encrypt the secret if the encryption key is available
+			if encryptionKey != "" {
+				encryptedSecret, err := utils2.Encrypt(encryptionKey, radiusServerPlan.Secret.ValueString())
+				if err != nil {
+					diags.Append(diag.NewErrorDiagnostic("Error Encrypting Secret", err.Error()))
+				} else {
+					radiusServers[i].Secret = types.StringValue(encryptedSecret)
+				}
+			}
 
-		radiusServer := RadiusServer{
-			Host:                     types.StringValue(i.GetHost()),
-			Port:                     types.Int64Value(int64(i.GetPort())),
-			Secret:                   secret,
-			RadSecEnabled:            radSecEnabled,
-			OpenRoamingCertificateID: types.Int64Value(int64(i.GetOpenRoamingCertificateId())),
-			CaCertificate:            types.StringValue(i.GetCaCertificate()),
-		}
+			// Encrypt the ca_certificate if the encryption key is available
+			if encryptionKey != "" {
+				encryptedCaCertificate, err := utils2.Encrypt(encryptionKey, radiusServers[i].CaCertificate.ValueString())
+				if err != nil {
+					diags.Append(diag.NewErrorDiagnostic("Error Encrypting CA Certificate", err.Error()))
+				} else {
+					radiusServers[i].CaCertificate = types.StringValue(encryptedCaCertificate)
+				}
+			}
 
-		radiusServerObject, radiusServerObjectErr := types.ObjectValueFrom(ctx, radiusServerAttr, radiusServer)
-		if radiusServerObjectErr.HasError() {
-			diags.Append(radiusServerObjectErr...)
-			continue
-		}
+			// Convert the RadiusServer object to a types.ObjectValue
+			radiusServerObject, radiusServerObjectErr := types.ObjectValueFrom(ctx, radiusServerAttr, radiusServers[i])
+			if radiusServerObjectErr.HasError() {
+				diags.Append(radiusServerObjectErr...)
+				continue
+			}
 
-		newRadiusServers = append(newRadiusServers, radiusServerObject)
+			newRadiusServers = append(newRadiusServers, radiusServerObject)
+		}
 	}
 
 	// Return a populated or empty list instead of a null value
@@ -716,53 +697,123 @@ func NetworksWirelessSsidStateRadiusServers(ctx context.Context, input []openApi
 	return newRadiusServersList, diags
 }
 
-func NetworksWirelessSsidStateRadiusAccountingServers(input []openApiClient.GetNetworkWirelessSsids200ResponseInnerRadiusAccountingServersInner) (types.List, diag.Diagnostics) {
+func NetworksWirelessSsidStateRadiusAccountingServers(ctx context.Context, plan NetworksWirelessSsidResourceModel, input []openApiClient.GetNetworkWirelessSsids200ResponseInnerRadiusAccountingServersInner, httpResp map[string]interface{}) (types.List, diag.Diagnostics) {
 	var diags diag.Diagnostics
-	var radiusServers []attr.Value
+	var radiusServers []RadiusServer
 
 	radiusServerAttr := map[string]attr.Type{
-		"host":                        types.StringType,
+		"host": types.StringType,
+		// "server_id":                   types.StringType,  // not in api spec and changes all the time
 		"port":                        types.Int64Type,
 		"secret":                      types.StringType,
 		"rad_sec_enabled":             types.BoolType,
-		"ca_certificate":              types.StringType,
 		"open_roaming_certificate_id": types.Int64Type,
+		"ca_certificate":              types.StringType,
 	}
 
-	for _, i := range input {
-		radiusServer := RadiusServer{
-			Host:                     types.StringValue(i.GetHost()),
-			Port:                     types.Int64Value(int64(i.GetPort())),
-			Secret:                   types.StringNull(), // secret is not returned for security reasons
-			RadSecEnabled:            types.BoolNull(),   // not sure why this isn't returned.
-			OpenRoamingCertificateID: types.Int64Value(int64(i.GetOpenRoamingCertificateId())),
-			CaCertificate:            types.StringValue(i.GetCaCertificate()),
-		}
-
-		radiusServerObject, err := types.ObjectValueFrom(context.Background(), radiusServerAttr, radiusServer)
-		if err.HasError() {
-			diags.Append(err...)
-			continue
-		}
-
-		radiusServers = append(radiusServers, radiusServerObject)
+	// Retrieve the encryption key from the context
+	encryptionKey, ok := ctx.Value("encryption_key").(string)
+	if !ok {
+		// If encryption key is not available, log a warning and proceed without encryption
+		tflog.Warn(ctx, "The encryption key is not available in the context, proceeding without encryption")
 	}
 
-	// returns a populated or empty list instead of a null value
-	if radiusServers == nil {
-		radiusServersList, err := types.ListValueFrom(context.Background(), types.ObjectType{AttrTypes: radiusServerAttr}, []attr.Value{})
-		if err.HasError() {
-			diags.Append(err...)
+	// Process the response from the API
+	if radiusServersResp, ok := httpResp["radiusAccountingServers"].([]interface{}); ok {
+		for _, rsr := range radiusServersResp {
+			if rs, ok := rsr.(map[string]interface{}); ok {
+				var radiusServerResp RadiusServer
+
+				// Extract attributes from the response
+				radiusServerResp.Host, _ = utils2.ExtractStringAttr(rs, "host")
+
+				portFloat, _ := utils2.ExtractFloat64Attr(rs, "port")
+				if !portFloat.IsNull() && !portFloat.IsUnknown() {
+					radiusServerResp.Port = types.Int64Value(int64(portFloat.ValueFloat64()))
+				} else {
+					radiusServerResp.Port = types.Int64Null()
+				}
+
+				// radiusServerResp.ServerId, _ = utils2.ExtractStringAttr(rs, "id")  // not in api spec and changes all the time
+
+				radiusServerResp.OpenRoamingCertificateID, _ = utils2.ExtractInt32Attr(rs, "openRoamingCertificateId")
+				radiusServerResp.CaCertificate, _ = utils2.ExtractStringAttr(rs, "caCertificate")
+				radiusServerResp.RadSecEnabled, _ = utils2.ExtractBoolAttr(rs, "radsecEnabled")
+
+				// Secret not returned by API, will be set from the plan
+				radiusServerResp.Secret = types.StringNull()
+
+				radiusServers = append(radiusServers, radiusServerResp)
+			}
 		}
-		return radiusServersList, diags
 	}
 
-	radiusServersList, err := types.ListValueFrom(context.Background(), types.ObjectType{AttrTypes: radiusServerAttr}, radiusServers)
+	var newRadiusServers []attr.Value
+
+	var radiusServersPlan []RadiusServer
+	err := plan.RadiusServers.ElementsAs(ctx, &radiusServersPlan, true)
 	if err.HasError() {
 		diags.Append(err...)
 	}
 
-	return radiusServersList, diags
+	// Process the plan to extract secret then handle encryption
+	for i, radiusServerPlan := range radiusServersPlan {
+
+		if i < len(radiusServers) {
+
+			if !radiusServerPlan.Secret.IsNull() && !radiusServerPlan.Secret.IsUnknown() {
+				// Extract the secret from the plan
+				radiusServers[i].Secret = radiusServerPlan.Secret
+			} else {
+				radiusServers[i].Secret = types.StringNull()
+			}
+
+			// Encrypt the secret if the encryption key is available
+			if encryptionKey != "" {
+				encryptedSecret, err := utils2.Encrypt(encryptionKey, radiusServerPlan.Secret.ValueString())
+				if err != nil {
+					diags.Append(diag.NewErrorDiagnostic("Error Encrypting Secret", err.Error()))
+				} else {
+					radiusServers[i].Secret = types.StringValue(encryptedSecret)
+				}
+			}
+
+			// Encrypt the ca_certificate if the encryption key is available
+			if encryptionKey != "" {
+				encryptedCaCertificate, err := utils2.Encrypt(encryptionKey, radiusServers[i].CaCertificate.ValueString())
+				if err != nil {
+					diags.Append(diag.NewErrorDiagnostic("Error Encrypting CA Certificate", err.Error()))
+				} else {
+					radiusServers[i].CaCertificate = types.StringValue(encryptedCaCertificate)
+				}
+			}
+
+			// Convert the RadiusServer object to a types.ObjectValue
+			radiusServerObject, radiusServerObjectErr := types.ObjectValueFrom(ctx, radiusServerAttr, radiusServers[i])
+			if radiusServerObjectErr.HasError() {
+				diags.Append(radiusServerObjectErr...)
+				continue
+			}
+
+			newRadiusServers = append(newRadiusServers, radiusServerObject)
+		}
+	}
+
+	// Return a populated or empty list instead of a null value
+	if newRadiusServers == nil {
+		newRadiusServersList, err := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: radiusServerAttr}, []attr.Value{})
+		if err.HasError() {
+			diags.Append(err...)
+		}
+		return newRadiusServersList, diags
+	}
+
+	newRadiusServersList, err := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: radiusServerAttr}, newRadiusServers)
+	if err.HasError() {
+		diags.Append(err...)
+	}
+
+	return newRadiusServersList, diags
 }
 
 func NetworksWirelessSsidStateDot11w(rawResp map[string]interface{}) (types.Object, diag.Diagnostics) {

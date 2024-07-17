@@ -4,79 +4,58 @@ import (
 	"context"
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/rand"
 	"crypto/sha256"
-	"encoding/hex"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"golang.org/x/crypto/pbkdf2"
+	"io"
 )
 
-func createHash(key string) []byte {
-	return pbkdf2.Key([]byte(key), []byte("salt"), 4096, 32, sha256.New)
-}
-
+// Encrypt encrypts the given plaintext with the provided key.
 func Encrypt(key, text string) (string, error) {
-	if key == "" {
-		// If no key is provided, return the original text
-		return text, nil
-	}
-
-	block, err := aes.NewCipher(createHash(key))
+	block, err := aes.NewCipher([]byte(createHash(key)))
 	if err != nil {
 		return "", err
 	}
-
 	plaintext := []byte(text)
-	gcm, err := cipher.NewGCM(block)
-	if err != nil {
+	ciphertext := make([]byte, aes.BlockSize+len(plaintext))
+	iv := ciphertext[:aes.BlockSize]
+	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
 		return "", err
 	}
-
-	nonce := make([]byte, gcm.NonceSize())
-	ciphertext := gcm.Seal(nonce, nonce, plaintext, nil)
-	return hex.EncodeToString(ciphertext), nil
+	stream := cipher.NewCFBEncrypter(block, iv)
+	stream.XORKeyStream(ciphertext[aes.BlockSize:], plaintext)
+	return base64.URLEncoding.EncodeToString(ciphertext), nil
 }
 
+// Decrypt decrypts the given ciphertext with the provided key.
 func Decrypt(key, cryptoText string) (string, error) {
-	if key == "" {
-		// If no key is provided, return the original text
-		return cryptoText, nil
-	}
-
-	block, err := aes.NewCipher(createHash(key))
+	block, err := aes.NewCipher([]byte(createHash(key)))
 	if err != nil {
 		return "", err
 	}
-
-	gcm, err := cipher.NewGCM(block)
+	ciphertext, err := base64.URLEncoding.DecodeString(cryptoText)
 	if err != nil {
 		return "", err
 	}
-
-	data, err := hex.DecodeString(cryptoText)
-	if err != nil {
-		return "", err
-	}
-
-	nonceSize := gcm.NonceSize()
-	if len(data) < nonceSize {
+	if len(ciphertext) < aes.BlockSize {
 		return "", errors.New("ciphertext too short")
 	}
-
-	nonce, ciphertext := data[:nonceSize], data[nonceSize:]
-	plaintext, err := gcm.Open(nil, nonce, ciphertext, nil)
-	if err != nil {
-		return "", err
-	}
-
-	return string(plaintext), nil
+	iv := ciphertext[:aes.BlockSize]
+	ciphertext = ciphertext[aes.BlockSize:]
+	stream := cipher.NewCFBDecrypter(block, iv)
+	stream.XORKeyStream(ciphertext, ciphertext)
+	return string(ciphertext), nil
 }
-func hashString(s string) string {
-	h := sha256.New()
-	h.Write([]byte(s))
-	return hex.EncodeToString(h.Sum(nil))
+
+// createHash creates a hash of the given key.
+func createHash(key string) string {
+	hash := sha256.New()
+	hash.Write([]byte(key))
+	return base64.URLEncoding.EncodeToString(hash.Sum(nil))
 }
 
 type SensitivePlanModifier struct {
@@ -85,7 +64,8 @@ type SensitivePlanModifier struct {
 
 func (m SensitivePlanModifier) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	// If password is not set in the plan, preserve the value from the state
-	if req.ConfigValue.IsNull() {
+	// Preserve the value from the state if the config value is null or unknown
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 		resp.PlanValue = req.StateValue
 		return
 	}
@@ -104,8 +84,8 @@ func (m SensitivePlanModifier) PlanModifyString(ctx context.Context, req planmod
 			return
 		}
 	} else {
-		// Hash the new password and set it in the plan if no encryption key is provided
-		planValue = hashString(req.ConfigValue.ValueString())
+		// If encryption key is not set, use the plain value directly
+		planValue = req.ConfigValue.ValueString()
 	}
 
 	resp.PlanValue = types.StringValue(planValue)

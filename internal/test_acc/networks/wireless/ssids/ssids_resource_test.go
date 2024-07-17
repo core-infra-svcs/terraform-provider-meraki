@@ -33,7 +33,7 @@ func TestAccNetworksWirelessSsidsResource(t *testing.T) {
 				),
 			},
 
-			// Create and Read testing without encryption
+			// Create and Read SSID without encryption
 			{
 				Config: testAccNetworksWirelessSsidsResourceConfigBasic(false),
 				Check: resource.ComposeAggregateTestCheckFunc(
@@ -45,7 +45,7 @@ func TestAccNetworksWirelessSsidsResource(t *testing.T) {
 				),
 			},
 
-			// Create and Read testing with encryption
+			// Create and Read SSID with encryption
 			{
 				Config: testAccNetworksWirelessSsidsResourceConfigBasic(true),
 				Check: resource.ComposeAggregateTestCheckFunc(
@@ -57,12 +57,38 @@ func TestAccNetworksWirelessSsidsResource(t *testing.T) {
 				),
 			},
 
+			// Test RADIUS servers creation
+			{
+				Config: testAccNetworksWirelessSsidsResourceConfigRadiusServers(),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test_radius", "radius_servers.#", "1"),
+					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test_radius", "radius_servers.0.host", "radius.example.com"),
+					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test_radius", "radius_servers.0.port", "1812"),
+					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test_radius", "radius_servers.0.secret", "radius_secret"),
+					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test_radius", "radius_servers.0.rad_sec_enabled", "true"),
+					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test_radius", "radius_servers.0.ca_certificate", "ca_cert_value"),
+				),
+			},
+
+			// Test RADIUS updating
+			{
+				Config: testAccNetworksWirelessSsidsResourceConfigRadiusServersUpdate(),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test_radius", "radius_servers.#", "1"),
+					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test_radius", "radius_servers.0.host", "radius.example.com"),
+					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test_radius", "radius_servers.0.port", "1812"),
+					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test_radius", "radius_servers.0.secret", "new_radius_secret"),
+					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test_radius", "radius_servers.0.rad_sec_enabled", "true"),
+					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test_radius", "radius_servers.0.ca_certificate", "new_ca_cert_value"),
+				),
+			},
+
 			// Import test
 			{
-				ResourceName:            "meraki_networks_wireless_ssids.test",
+				ResourceName:            "meraki_networks_wireless_ssids.test_radius",
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{},
+				ImportStateVerifyIgnore: []string{"psk"},
 			},
 
 			// Test the creation of multiple SSIDs.
@@ -99,8 +125,6 @@ resource "meraki_network" "test" {
 	timezone = "America/Los_Angeles"
 	notes = "Additional description of the network"
 }
-  
-
 `, orgId)
 }
 
@@ -148,6 +172,66 @@ resource "meraki_networks_wireless_ssids" "test" {
 	}
 }
 
+func testAccNetworksWirelessSsidsResourceConfigRadiusServers() string {
+	return `
+provider "meraki" {
+  encryption_key = "my_secret_encryption_key"
+}
+
+resource "meraki_network" "test" {
+  product_types = ["appliance", "switch", "wireless"]
+}
+
+resource "meraki_networks_wireless_ssids" "test_radius" {
+	depends_on = [resource.meraki_network.test]
+	network_id = resource.meraki_network.test.network_id
+	number = 1
+	auth_mode = "8021x-radius"
+	enabled = true
+	encryption_mode = "wpa-eap"
+	name = "My Radius SSID"
+	wpa_encryption_mode = "WPA2 only"
+	radius_servers = [{
+		host = "radius.example.com"
+		port = 1812
+		secret = "radius_secret"
+		rad_sec_enabled = true
+		ca_certificate = "ca_cert_value"
+	}]
+}
+`
+}
+
+func testAccNetworksWirelessSsidsResourceConfigRadiusServersUpdate() string {
+	return `
+provider "meraki" {
+  encryption_key = "my_secret_encryption_key"
+}
+
+resource "meraki_network" "test" {
+  product_types = ["appliance", "switch", "wireless"]
+}
+
+resource "meraki_networks_wireless_ssids" "test_radius" {
+	depends_on = [resource.meraki_network.test]
+	network_id = resource.meraki_network.test.network_id
+	number = 1
+	auth_mode = "8021x-radius"
+	enabled = true
+	encryption_mode = "wpa-eap"
+	name = "My Radius SSID"
+	wpa_encryption_mode = "WPA2 only"
+	radius_servers = [{
+		host = "radius.example.com"
+		port = 1812
+		secret = "new_radius_secret"
+		rad_sec_enabled = true
+		ca_certificate = "new_ca_cert_value"
+	}]
+}
+`
+}
+
 func testAccNetworksWirelessSsidsResourceConfigMultiplePolicies(orgId string, ssids int) string {
 	config := fmt.Sprintf(`
 resource "meraki_network" "test" {
@@ -179,148 +263,3 @@ resource "meraki_networks_wireless_ssids" "test%d" {
 	}
 	return config
 }
-
-/*
-
-	// Active Directory Authentication Test
-		{
-			Config: testAccNetworksWirelessSsidsResourceConfigAD,
-			Check: resource.ComposeTestCheckFunc(
-				resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.active_directory", "number", "1"),
-				resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.active_directory", "name", "AD_SSID"),
-				resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.active_directory", "enabled", "true"),
-			),
-		},
-
-		// VLAN and Bandwidth Limits Test
-		{
-			Config: testAccNetworksWirelessSsidsResourceConfigVLANBandwidth,
-			Check: resource.ComposeTestCheckFunc(
-				resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.vlan_bandwidth", "number", "2"),
-				resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.vlan_bandwidth", "name", "VLANBandwidth"),
-				resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.vlan_bandwidth", "enabled", "true"),
-			),
-		},
-
-		// Full Configuration Test
-		{
-			Config: testAccNetworksWirelessSsidsResourceConfigFullConfig,
-			Check: resource.ComposeTestCheckFunc(
-				resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.full_config", "number", "3"),
-				resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.full_config", "name", "FullConfigSSID"),
-				resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.full_config", "enabled", "true"),
-			),
-		},
-
-		// Guest Access and Walled Garden Test
-		{
-			Config: testAccNetworksWirelessSsidsResourceConfigGuestAccess,
-			Check: resource.ComposeTestCheckFunc(
-				resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.guest_access", "number", "4"),
-				resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.guest_access", "name", "GuestAccess"),
-				resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.guest_access", "enabled", "true"),
-			),
-		},
-
-
-
-*/
-
-/*
-const testAccNetworksWirelessSsidsResourceConfigAD = `
-resource "meraki_network" "test" {
-  product_types = ["appliance", "switch", "wireless"]
-}
-
-resource "meraki_networks_wireless_ssids" "active_directory" {
-	depends_on = [resource.meraki_network.test]
-	network_id = resource.meraki_network.test.network_id
-	number = 1
-	name = "AD_SSID"
-	auth_mode = "psk"
-	encryption_mode = "wpa"
-	psk = "deadbeef"
-	wpa_encryption_mode = "WPA2 only"
-	splash_page = "Password-protected with Active Directory"
-	active_directory = {
-		credentials = {
-			login_name = "user@example.com"
-			password = "password"
-		}
-		servers = [
-			{
-				host = "192.168.1.1"
-				port = 389
-			}
-		]
-	}
-	enabled = true
-}
-`
-
-const testAccNetworksWirelessSsidsResourceConfigVLANBandwidth = `
-resource "meraki_network" "test" {
-  product_types = ["appliance", "switch", "wireless"]
-}
-
-resource "meraki_networks_wireless_ssids" "vlan_bandwidth" {
-	depends_on = [resource.meraki_network.test]
-	network_id = resource.meraki_network.test.network_id
-	number = 2
-	name = "VLANBandwidth"
-	auth_mode = "psk"
-	use_vlan_tagging = true
-	vlan_id = 100
-	enabled = true
-	per_client_bandwidth_limit_down = 5000  // 5 Mbps
-	per_client_bandwidth_limit_up   = 1000  // 1 Mbps
-}
-`
-
-const testAccNetworksWirelessSsidsResourceConfigFullConfig = `
-resource "meraki_network" "test" {
-  product_types = ["appliance", "switch", "wireless"]
-}
-
-resource "meraki_networks_wireless_ssids" "full_config" {
-	depends_on = [resource.meraki_network.test]
-	network_id = resource.meraki_network.test.network_id
-	number = 3
-	name = "FullConfigSSID"
-	auth_mode = "8021x-radius"
-	radius_servers = {
-		host = "radius.example.com"
-		secret = "radiussecret"
-	}
-	ldap = {
-		base_distinguished_name = "dc=example,dc=com"
-		credentials = {
-			distinguished_name = "cn=admin,dc=example,dc=com"
-			password = "ldappassword"
-		}
-	}
-	dns_rewrite = {
-		enabled = true
-		dns_custom_name_servers = ["8.8.8.8", "8.8.4.4"]
-	}
-	enabled = true
-}
-`
-
-const testAccNetworksWirelessSsidsResourceConfigGuestAccess = `
-resource "meraki_network" "test" {
-  product_types = ["appliance", "switch", "wireless"]
-}
-
-resource "meraki_networks_wireless_ssids" "guest_access" {
-	depends_on = [resource.meraki_network.test]
-	network_id = resource.meraki_network.test.network_id
-	number = 4
-	name = "GuestAccess"
-	splash_page = "Click-through splash page"
-	walled_garden_enabled = true
-	walled_garden_ranges = ["192.168.100.0/24", "www.example.com"]
-	enabled = true
-}
-`
-*/

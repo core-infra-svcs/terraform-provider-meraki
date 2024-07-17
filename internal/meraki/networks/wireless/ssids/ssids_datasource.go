@@ -1,4 +1,4 @@
-package wireless
+package ssids
 
 import (
 	"context"

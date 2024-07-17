@@ -161,6 +161,7 @@ type AdCredentials struct {
 
 // RadiusServer represents the structure for a RADIUS server
 type RadiusServer struct {
+	//ServerId                 types.String `tfsdk:"server_id" json:"id"`  // not in api spec and changes all the time
 	Host                     types.String `tfsdk:"host" json:"host"`
 	Port                     types.Int64  `tfsdk:"port" json:"port"`
 	Secret                   types.String `tfsdk:"secret" json:"secret"`
