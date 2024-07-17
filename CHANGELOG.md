@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.1](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.11.0...v0.11.1) (2024-07-17)
+
+
+### Bug Fixes
+
+* ssids ([fa47824](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/fa47824cd7156389cbc9d59de5b4557a392a9d51))
+
 ## [0.11.0](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.10.3...v0.11.0) (2024-07-10)
 
 
