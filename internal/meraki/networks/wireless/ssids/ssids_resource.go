@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	utils2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -52,7 +52,7 @@ type NetworksWirelessSsidsResource struct {
 func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *NetworksWirelessSsidResourceModel, state *NetworksWirelessSsidResourceModel, data *openApiClient.GetNetworkWirelessSsids200ResponseInner, httpResp *http.Response) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	rawResp, err := utils2.ExtractResponseToMap(httpResp)
+	rawResp, err := utils.ExtractResponseToMap(httpResp)
 	if err != nil {
 		diags.AddError("Failed to Unmarshal HttpResp", err.Error())
 		return diags
@@ -86,7 +86,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 
 	// Name
 	if state.Name.IsNull() || state.Name.IsUnknown() {
-		state.Name, diags = utils2.ExtractStringAttr(rawResp, "name")
+		state.Name, diags = utils.ExtractStringAttr(rawResp, "name")
 		if diags.HasError() {
 			diags.AddError("Name Attribute", state.Name.ValueString())
 			return diags
@@ -96,7 +96,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 
 	// Enabled
 	if state.Enabled.IsNull() || state.Enabled.IsUnknown() {
-		state.Enabled, diags = utils2.ExtractBoolAttr(rawResp, "enabled")
+		state.Enabled, diags = utils.ExtractBoolAttr(rawResp, "enabled")
 		if diags.HasError() {
 			diags.AddError("Enabled Attribute", "")
 			return diags
@@ -105,7 +105,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 
 	// SplashPage
 	if state.SplashPage.IsNull() || state.SplashPage.IsUnknown() {
-		state.SplashPage, diags = utils2.ExtractStringAttr(rawResp, "splashPage")
+		state.SplashPage, diags = utils.ExtractStringAttr(rawResp, "splashPage")
 
 		if diags.HasError() {
 			tflog.Error(ctx, "SplashPage Attribute")
@@ -117,7 +117,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 	// SsidAdminAccessible
 	if state.SsidAdminAccessible.IsNull() || state.SsidAdminAccessible.IsUnknown() {
 
-		state.SsidAdminAccessible, diags = utils2.ExtractBoolAttr(rawResp, "ssidAdminAccessible")
+		state.SsidAdminAccessible, diags = utils.ExtractBoolAttr(rawResp, "ssidAdminAccessible")
 		if diags.HasError() {
 			diags.AddError("SSIDAdminAccessible Attribute", "")
 			return diags
@@ -127,7 +127,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 	// LocalAuth
 	if state.LocalAuth.IsNull() || state.LocalAuth.IsUnknown() {
 
-		state.LocalAuth, diags = utils2.ExtractBoolAttr(rawResp, "localAuth")
+		state.LocalAuth, diags = utils.ExtractBoolAttr(rawResp, "localAuth")
 		if diags.HasError() {
 			diags.AddError("LocalAuth Attribute", "")
 			return diags
@@ -137,7 +137,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 	// AuthMode
 	if state.AuthMode.IsNull() || state.AuthMode.IsUnknown() {
 
-		state.AuthMode, diags = utils2.ExtractStringAttr(rawResp, "authMode")
+		state.AuthMode, diags = utils.ExtractStringAttr(rawResp, "authMode")
 		if diags.HasError() {
 			diags.AddError("AuthMode Attribute", "")
 			return diags
@@ -148,7 +148,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 	// EncryptionMode
 	if state.EncryptionMode.IsNull() || state.EncryptionMode.IsUnknown() {
 
-		state.EncryptionMode, diags = utils2.ExtractStringAttr(rawResp, "encryptionMode")
+		state.EncryptionMode, diags = utils.ExtractStringAttr(rawResp, "encryptionMode")
 		if diags.HasError() {
 			diags.AddError("Encryption Attribute", "")
 			return diags
@@ -159,7 +159,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 	// WPAEncryptionMode
 	if state.WPAEncryptionMode.IsNull() || state.WPAEncryptionMode.IsUnknown() {
 
-		state.WPAEncryptionMode, diags = utils2.ExtractStringAttr(rawResp, "wpaEncryptionMode")
+		state.WPAEncryptionMode, diags = utils.ExtractStringAttr(rawResp, "wpaEncryptionMode")
 		if diags.HasError() {
 			diags.AddError("WPAEncryptionMode Attribute", "")
 			return diags
@@ -168,7 +168,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 
 	// RadiusAuthenticationNASID
 	if state.RadiusAuthenticationNASID.IsNull() || state.RadiusAuthenticationNASID.IsUnknown() {
-		state.RadiusAuthenticationNASID, diags = utils2.ExtractStringAttr(rawResp, "radiusAuthenticationNasId")
+		state.RadiusAuthenticationNASID, diags = utils.ExtractStringAttr(rawResp, "radiusAuthenticationNasId")
 		if diags.HasError() {
 			diags.AddError("radiusAuthenticationNasId Attribute", "")
 			return diags
@@ -199,7 +199,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 
 	// RadiusAccountingEnabled
 	if state.RadiusAccountingEnabled.IsNull() || state.RadiusAccountingEnabled.IsUnknown() {
-		state.RadiusAccountingEnabled, diags = utils2.ExtractBoolAttr(rawResp, "radiusAccountingEnabled")
+		state.RadiusAccountingEnabled, diags = utils.ExtractBoolAttr(rawResp, "radiusAccountingEnabled")
 		if diags.HasError() {
 			diags.AddError("Radius Accounting Enabled Attribute", "")
 			return diags
@@ -209,7 +209,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 	// RadiusEnabled
 	if state.RadiusEnabled.IsNull() || state.RadiusEnabled.IsUnknown() {
 
-		state.RadiusEnabled, diags = utils2.ExtractBoolAttr(rawResp, "radiusEnabled")
+		state.RadiusEnabled, diags = utils.ExtractBoolAttr(rawResp, "radiusEnabled")
 		if diags.HasError() {
 			diags.AddError("Radius Enabled Attribute", "")
 			return diags
@@ -219,7 +219,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 	// RadiusAttributeForGroupPolicies
 	if state.RadiusAttributeForGroupPolicies.IsNull() || state.RadiusAttributeForGroupPolicies.IsUnknown() {
 
-		state.RadiusAttributeForGroupPolicies, diags = utils2.ExtractStringAttr(rawResp, "radiusAttributeForGroupPolicies")
+		state.RadiusAttributeForGroupPolicies, diags = utils.ExtractStringAttr(rawResp, "radiusAttributeForGroupPolicies")
 		if diags.HasError() {
 			diags.AddError("Radius Attribute for Group Policies Attribute", "")
 			return diags
@@ -230,7 +230,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 	// RadiusFailOverPolicy
 	if state.RadiusFailOverPolicy.IsNull() || state.RadiusFailOverPolicy.IsUnknown() {
 
-		state.RadiusFailOverPolicy, diags = utils2.ExtractStringAttr(rawResp, "radiusFailOverPolicy")
+		state.RadiusFailOverPolicy, diags = utils.ExtractStringAttr(rawResp, "radiusFailOverPolicy")
 		if diags.HasError() {
 			diags.AddError("Radius Failover Attribute", "")
 			return diags
@@ -241,7 +241,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 	// RadiusLoadBalancingPolicy
 	if state.RadiusLoadBalancingPolicy.IsNull() || state.RadiusLoadBalancingPolicy.IsUnknown() {
 
-		state.RadiusLoadBalancingPolicy, diags = utils2.ExtractStringAttr(rawResp, "radiusLoadBalancingPolicy")
+		state.RadiusLoadBalancingPolicy, diags = utils.ExtractStringAttr(rawResp, "radiusLoadBalancingPolicy")
 		if diags.HasError() {
 			diags.AddError("Radius load balancing policyAttribute", "")
 			return diags
@@ -252,7 +252,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 	// IPAssignmentMode
 	if state.IPAssignmentMode.IsNull() || state.IPAssignmentMode.IsUnknown() {
 
-		state.IPAssignmentMode, diags = utils2.ExtractStringAttr(rawResp, "ipAssignmentMode")
+		state.IPAssignmentMode, diags = utils.ExtractStringAttr(rawResp, "ipAssignmentMode")
 		if diags.HasError() {
 			diags.AddError("IP Assignment mode Attribute", "")
 			return diags
@@ -274,7 +274,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 	// SplashTimeout
 	if state.SplashTimeout.IsNull() || state.SplashTimeout.IsUnknown() {
 
-		state.SplashTimeout, diags = utils2.ExtractStringAttr(rawResp, "splashTimeout")
+		state.SplashTimeout, diags = utils.ExtractStringAttr(rawResp, "splashTimeout")
 		if diags.HasError() {
 			diags.AddError("SplashTimeout Attribute", "")
 			return diags
@@ -285,7 +285,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 	// WalledGardenEnabled
 	if state.WalledGardenEnabled.IsNull() || state.WalledGardenEnabled.IsUnknown() {
 
-		state.WalledGardenEnabled, diags = utils2.ExtractBoolAttr(rawResp, "walledGardenEnabled")
+		state.WalledGardenEnabled, diags = utils.ExtractBoolAttr(rawResp, "walledGardenEnabled")
 		if diags.HasError() {
 			diags.AddError("WalledGardanEnabled Attribute", "")
 			return diags
@@ -296,7 +296,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 	// WalledGardenRanges
 	if state.WalledGardenRanges.IsNull() || state.WalledGardenRanges.IsUnknown() {
 
-		state.WalledGardenRanges, diags = utils2.ExtractListStringAttr(rawResp, "walledGardenRanges")
+		state.WalledGardenRanges, diags = utils.ExtractListStringAttr(rawResp, "walledGardenRanges")
 		if diags.HasError() {
 			diags.AddError("Walled Garden Ranges Attribute", "")
 			return diags
@@ -306,7 +306,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 	// MinBitRate
 	if state.MinBitRate.IsNull() || state.MinBitRate.IsUnknown() {
 
-		minBitrateInt, diags := utils2.ExtractInt64Attr(rawResp, "minBitrate")
+		minBitrateInt, diags := utils.ExtractInt64Attr(rawResp, "minBitrate")
 		if diags.HasError() {
 			diags.AddError("Min Bite Rate Attribute", "")
 			return diags
@@ -326,7 +326,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 	// BandSelection
 	if state.BandSelection.IsNull() || state.BandSelection.IsUnknown() {
 
-		state.BandSelection, diags = utils2.ExtractStringAttr(rawResp, "bandSelection")
+		state.BandSelection, diags = utils.ExtractStringAttr(rawResp, "bandSelection")
 		if diags.HasError() {
 			diags.AddError("Band Selection Attribute", "")
 			return diags
@@ -337,7 +337,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 	// PerClientBandwidthLimitUp
 	if state.PerClientBandwidthLimitUp.IsNull() || state.PerClientBandwidthLimitUp.IsUnknown() {
 
-		state.PerClientBandwidthLimitUp, diags = utils2.ExtractInt32Attr(rawResp, "ipAssignmentMode")
+		state.PerClientBandwidthLimitUp, diags = utils.ExtractInt32Attr(rawResp, "ipAssignmentMode")
 		if diags.HasError() {
 			diags.AddError("Per client Bandwidth limit up Attribute", "")
 			return diags
@@ -348,7 +348,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 	// PerClientBandwidthLimitDown
 	if state.PerClientBandwidthLimitDown.IsNull() || state.PerClientBandwidthLimitDown.IsUnknown() {
 
-		state.PerClientBandwidthLimitDown, diags = utils2.ExtractInt64Attr(rawResp, "perClientBandwidthLimitDown")
+		state.PerClientBandwidthLimitDown, diags = utils.ExtractInt64Attr(rawResp, "perClientBandwidthLimitDown")
 		if diags.HasError() {
 			diags.AddError("Per client Bandwidth limit down Attribute", "")
 			return diags
@@ -359,7 +359,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 	// Visible
 	if state.Visible.IsNull() || state.Visible.IsUnknown() {
 
-		state.Visible, diags = utils2.ExtractBoolAttr(rawResp, "perClientBandwidthLimitDown")
+		state.Visible, diags = utils.ExtractBoolAttr(rawResp, "perClientBandwidthLimitDown")
 		if diags.HasError() {
 			diags.AddError("Visible Attribute", "")
 			return diags
@@ -370,7 +370,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 	// AvailableOnAllAps
 	if state.AvailableOnAllAps.IsNull() || state.AvailableOnAllAps.IsUnknown() {
 
-		state.AvailableOnAllAps, diags = utils2.ExtractBoolAttr(rawResp, "availableOnAllAps")
+		state.AvailableOnAllAps, diags = utils.ExtractBoolAttr(rawResp, "availableOnAllAps")
 		if diags.HasError() {
 			diags.AddError("AvailableOnAllAPs Attribute", "")
 			return diags
@@ -381,7 +381,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 	// AvailabilityTags
 	if state.AvailabilityTags.IsNull() || state.AvailabilityTags.IsUnknown() {
 
-		state.AvailabilityTags, diags = utils2.ExtractListStringAttr(rawResp, "availabilityTags")
+		state.AvailabilityTags, diags = utils.ExtractListStringAttr(rawResp, "availabilityTags")
 		if diags.HasError() {
 			diags.AddError("AvailabilityTags Attribute", "")
 			return diags
@@ -392,7 +392,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 	// PerSsidBandwidthLimitUp
 	if state.PerSsidBandwidthLimitUp.IsNull() || state.PerSsidBandwidthLimitUp.IsUnknown() {
 
-		state.PerSsidBandwidthLimitUp, diags = utils2.ExtractInt32Attr(rawResp, "perSsidBandwidthLimitUp")
+		state.PerSsidBandwidthLimitUp, diags = utils.ExtractInt32Attr(rawResp, "perSsidBandwidthLimitUp")
 		if diags.HasError() {
 			diags.AddError("perSsidBandwidthLimitUp Attribute", "")
 			return diags
@@ -403,7 +403,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 	// PerSsidBandwidthLimitDown
 	if state.PerSsidBandwidthLimitDown.IsNull() || state.PerSsidBandwidthLimitDown.IsUnknown() {
 
-		state.PerSsidBandwidthLimitDown, diags = utils2.ExtractInt32Attr(rawResp, "perSsidBandwidthLimitDown")
+		state.PerSsidBandwidthLimitDown, diags = utils.ExtractInt32Attr(rawResp, "perSsidBandwidthLimitDown")
 		if diags.HasError() {
 			diags.AddError("perSsidBandwidthLimitDown Attribute", "")
 			return diags
@@ -414,7 +414,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 	// MandatoryDhcpEnabled
 	if state.MandatoryDhcpEnabled.IsNull() || state.MandatoryDhcpEnabled.IsUnknown() {
 
-		state.MandatoryDhcpEnabled, diags = utils2.ExtractBoolAttr(rawResp, "mandatoryDhcpEnabled")
+		state.MandatoryDhcpEnabled, diags = utils.ExtractBoolAttr(rawResp, "mandatoryDhcpEnabled")
 		if diags.HasError() {
 			diags.AddError("mandatoryDhcpEnabled Attribute", "")
 			return diags
@@ -433,7 +433,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 
 	// Ensure the PSK value from the state is preserved if the API does not return it
 	if state.PSK.IsNull() || state.PSK.IsUnknown() {
-		state.PSK, diags = utils2.ExtractStringAttr(rawResp, "psk")
+		state.PSK, diags = utils.ExtractStringAttr(rawResp, "psk")
 		if diags.HasError() {
 			diags.AddError("PSK Attribute", "Error extracting PSK attribute")
 			return diags
@@ -450,7 +450,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 
 	// EnterpriseAdminAccess
 	if state.EnterpriseAdminAccess.IsNull() || state.EnterpriseAdminAccess.IsUnknown() {
-		state.EnterpriseAdminAccess, diags = utils2.ExtractStringAttr(rawResp, "enterpriseAdminAccess")
+		state.EnterpriseAdminAccess, diags = utils.ExtractStringAttr(rawResp, "enterpriseAdminAccess")
 		if diags.HasError() {
 			diags.AddError("enterpriseAdminAccess Attribute", "")
 			return diags
@@ -479,7 +479,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 
 	// SplashGuestSponsorDomains
 	if state.SplashGuestSponsorDomains.IsNull() || state.SplashGuestSponsorDomains.IsUnknown() {
-		state.SplashGuestSponsorDomains, diags = utils2.ExtractListStringAttr(rawResp, "splashGuestSponsorDomains")
+		state.SplashGuestSponsorDomains, diags = utils.ExtractListStringAttr(rawResp, "splashGuestSponsorDomains")
 		if diags.HasError() {
 			diags.AddError("splashGuestSponsorDomains Attribute", "")
 			return diags
@@ -517,7 +517,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 
 	// RadiusProxyEnabled
 	if state.RadiusProxyEnabled.IsNull() || state.RadiusProxyEnabled.IsUnknown() {
-		state.RadiusProxyEnabled, diags = utils2.ExtractBoolAttr(rawResp, "radiusProxyEnabled")
+		state.RadiusProxyEnabled, diags = utils.ExtractBoolAttr(rawResp, "radiusProxyEnabled")
 		if diags.HasError() {
 			diags.AddError("radiusProxyEnabled Attribute", "")
 			return diags
@@ -526,7 +526,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 
 	// RadiusTestingEnabled
 	if state.RadiusTestingEnabled.IsNull() || state.RadiusTestingEnabled.IsUnknown() {
-		state.RadiusTestingEnabled, diags = utils2.ExtractBoolAttr(rawResp, "radiusTestingEnabled")
+		state.RadiusTestingEnabled, diags = utils.ExtractBoolAttr(rawResp, "radiusTestingEnabled")
 		if diags.HasError() {
 			diags.AddError("radiusTestingEnabled Attribute", "")
 			return diags
@@ -535,7 +535,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 
 	// RadiusCalledStationID
 	if state.RadiusCalledStationID.IsNull() || state.RadiusCalledStationID.IsUnknown() {
-		state.RadiusCalledStationID, diags = utils2.ExtractStringAttr(rawResp, "radiusCalledStationId")
+		state.RadiusCalledStationID, diags = utils.ExtractStringAttr(rawResp, "radiusCalledStationId")
 		if diags.HasError() {
 			diags.AddError("radiusCalledStationId Attribute", "")
 			return diags
@@ -544,7 +544,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 
 	// RadiusServerTimeout
 	if state.RadiusServerTimeout.IsNull() || state.RadiusServerTimeout.IsUnknown() {
-		state.RadiusServerTimeout, diags = utils2.ExtractInt64Attr(rawResp, "radiusServerTimeout")
+		state.RadiusServerTimeout, diags = utils.ExtractInt64Attr(rawResp, "radiusServerTimeout")
 		if diags.HasError() {
 			diags.AddError("radiusServerTimeout Attribute", "")
 			return diags
@@ -553,7 +553,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 
 	// RadiusServerAttemptsLimit
 	if state.RadiusServerAttemptsLimit.IsNull() || state.RadiusServerAttemptsLimit.IsUnknown() {
-		state.RadiusServerAttemptsLimit, diags = utils2.ExtractInt64Attr(rawResp, "radiusServerAttemptsLimit")
+		state.RadiusServerAttemptsLimit, diags = utils.ExtractInt64Attr(rawResp, "radiusServerAttemptsLimit")
 		if diags.HasError() {
 			diags.AddError("radiusServerAttemptsLimit Attribute", "")
 			return diags
@@ -562,7 +562,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 
 	// RadiusFallbackEnabled
 	if state.RadiusFallbackEnabled.IsNull() || state.RadiusFallbackEnabled.IsUnknown() {
-		state.RadiusFallbackEnabled, diags = utils2.ExtractBoolAttr(rawResp, "radiusFallbackEnabled")
+		state.RadiusFallbackEnabled, diags = utils.ExtractBoolAttr(rawResp, "radiusFallbackEnabled")
 		if diags.HasError() {
 			diags.AddError("radiusFallbackEnabled Attribute", "")
 			return diags
@@ -571,7 +571,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 
 	// RadiusCoaEnabled
 	if state.RadiusCoaEnabled.IsNull() || state.RadiusCoaEnabled.IsUnknown() {
-		state.RadiusCoaEnabled, diags = utils2.ExtractBoolAttr(rawResp, "radiusCoaEnabled")
+		state.RadiusCoaEnabled, diags = utils.ExtractBoolAttr(rawResp, "radiusCoaEnabled")
 		if diags.HasError() {
 			diags.AddError("radiusCoaEnabled Attribute", "")
 			return diags
@@ -580,7 +580,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 
 	// RadiusAccountingInterimInterval
 	if state.RadiusAccountingInterimInterval.IsNull() || state.RadiusAccountingInterimInterval.IsUnknown() {
-		state.RadiusAccountingInterimInterval, diags = utils2.ExtractInt64Attr(rawResp, "radiusAccountingInterimInterval")
+		state.RadiusAccountingInterimInterval, diags = utils.ExtractInt64Attr(rawResp, "radiusAccountingInterimInterval")
 		if diags.HasError() {
 			diags.AddError("radiusAccountingInterimInterval Attribute", "")
 			return diags
@@ -589,7 +589,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 
 	// UseVlanTagging
 	if state.UseVlanTagging.IsNull() || state.UseVlanTagging.IsUnknown() {
-		state.UseVlanTagging, diags = utils2.ExtractBoolAttr(rawResp, "useVlanTagging")
+		state.UseVlanTagging, diags = utils.ExtractBoolAttr(rawResp, "useVlanTagging")
 		if diags.HasError() {
 			diags.AddError("useVlanTagging Attribute", "")
 			return diags
@@ -598,7 +598,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 
 	// ConcentratorNetworkID
 	if state.ConcentratorNetworkID.IsNull() || state.ConcentratorNetworkID.IsUnknown() {
-		state.ConcentratorNetworkID, diags = utils2.ExtractStringAttr(rawResp, "concentratorNetworkId")
+		state.ConcentratorNetworkID, diags = utils.ExtractStringAttr(rawResp, "concentratorNetworkId")
 		if diags.HasError() {
 			diags.AddError("concentratorNetworkId Attribute", "")
 			return diags
@@ -607,7 +607,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 
 	// SecondaryConcentratorNetworkID
 	if state.SecondaryConcentratorNetworkID.IsNull() || state.SecondaryConcentratorNetworkID.IsUnknown() {
-		state.SecondaryConcentratorNetworkID, diags = utils2.ExtractStringAttr(rawResp, "secondaryConcentratorNetworkId")
+		state.SecondaryConcentratorNetworkID, diags = utils.ExtractStringAttr(rawResp, "secondaryConcentratorNetworkId")
 		if diags.HasError() {
 			diags.AddError("secondaryConcentratorNetworkId Attribute", "")
 			return diags
@@ -616,7 +616,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 
 	// DisassociateClientsOnVpnFailOver
 	if state.DisassociateClientsOnVpnFailOver.IsNull() || state.DisassociateClientsOnVpnFailOver.IsUnknown() {
-		state.DisassociateClientsOnVpnFailOver, diags = utils2.ExtractBoolAttr(rawResp, "disassociateClientsOnVpnFailOver")
+		state.DisassociateClientsOnVpnFailOver, diags = utils.ExtractBoolAttr(rawResp, "disassociateClientsOnVpnFailOver")
 		if diags.HasError() {
 			diags.AddError("disassociateClientsOnVpnFailOver Attribute", "")
 			return diags
@@ -625,7 +625,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 
 	// VlanID
 	if state.VlanID.IsNull() || state.VlanID.IsUnknown() {
-		state.VlanID, diags = utils2.ExtractInt64Attr(rawResp, "vlanId")
+		state.VlanID, diags = utils.ExtractInt64Attr(rawResp, "vlanId")
 		if diags.HasError() {
 			diags.AddError("vlanId Attribute", "")
 			return diags
@@ -634,7 +634,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 
 	// DefaultVlanID
 	if state.DefaultVlanID.IsNull() || state.DefaultVlanID.IsUnknown() {
-		state.DefaultVlanID, diags = utils2.ExtractInt64Attr(rawResp, "defaultVlanId")
+		state.DefaultVlanID, diags = utils.ExtractInt64Attr(rawResp, "defaultVlanId")
 		if diags.HasError() {
 			diags.AddError("defaultVlanId Attribute", "")
 			return diags
@@ -662,7 +662,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 
 	// RadiusOverride
 	if state.RadiusOverride.IsNull() || state.RadiusOverride.IsUnknown() {
-		state.RadiusOverride, diags = utils2.ExtractBoolAttr(rawResp, "radiusOverride")
+		state.RadiusOverride, diags = utils.ExtractBoolAttr(rawResp, "radiusOverride")
 		if diags.HasError() {
 			diags.AddError("radiusOverride Attribute", "")
 			return diags
@@ -671,7 +671,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 
 	// RadiusGuestVlanEnabled
 	if state.RadiusGuestVlanEnabled.IsNull() || state.RadiusGuestVlanEnabled.IsUnknown() {
-		state.RadiusGuestVlanEnabled, diags = utils2.ExtractBoolAttr(rawResp, "radiusGuestVlanEnabled")
+		state.RadiusGuestVlanEnabled, diags = utils.ExtractBoolAttr(rawResp, "radiusGuestVlanEnabled")
 		if diags.HasError() {
 			diags.AddError("radiusGuestVlanEnabled Attribute", "")
 			return diags
@@ -680,7 +680,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 
 	// RadiusGuestVlanId
 	if state.RadiusGuestVlanId.IsNull() || state.RadiusGuestVlanId.IsUnknown() {
-		state.RadiusGuestVlanId, diags = utils2.ExtractInt64Attr(rawResp, "radiusGuestVlanId")
+		state.RadiusGuestVlanId, diags = utils.ExtractInt64Attr(rawResp, "radiusGuestVlanId")
 		if diags.HasError() {
 			diags.AddError("radiusGuestVlanId Attribute", "")
 			return diags
@@ -689,7 +689,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 
 	// LanIsolationEnabled
 	if state.LanIsolationEnabled.IsNull() || state.LanIsolationEnabled.IsUnknown() {
-		state.LanIsolationEnabled, diags = utils2.ExtractBoolAttr(rawResp, "lanIsolationEnabled")
+		state.LanIsolationEnabled, diags = utils.ExtractBoolAttr(rawResp, "lanIsolationEnabled")
 		if diags.HasError() {
 			diags.AddError("lanIsolationEnabled Attribute", "")
 			return diags
@@ -698,7 +698,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 
 	// AdultContentFilteringEnabled
 	if state.AdultContentFilteringEnabled.IsNull() || state.AdultContentFilteringEnabled.IsUnknown() {
-		state.AdultContentFilteringEnabled, diags = utils2.ExtractBoolAttr(rawResp, "adultContentFilteringEnabled")
+		state.AdultContentFilteringEnabled, diags = utils.ExtractBoolAttr(rawResp, "adultContentFilteringEnabled")
 		if diags.HasError() {
 			diags.AddError("AdultContentFilteringEnabled Attribute", "")
 			return diags
@@ -868,7 +868,7 @@ func updateNetworksWirelessSsidsResourcePayload(ctx context.Context, plan *Netwo
 	}
 
 	if !plan.RadiusServerTimeout.IsNull() && !plan.RadiusServerTimeout.IsUnknown() {
-		radiusServerTimeout, err := utils2.Int32Pointer(plan.RadiusServerTimeout.ValueInt64())
+		radiusServerTimeout, err := utils.Int32Pointer(plan.RadiusServerTimeout.ValueInt64())
 		if err.HasError() {
 			tflog.Error(context.Background(), fmt.Sprintf("%s", err.Errors()))
 			diags.Append(err...)
@@ -877,7 +877,7 @@ func updateNetworksWirelessSsidsResourcePayload(ctx context.Context, plan *Netwo
 	}
 
 	if !plan.RadiusServerAttemptsLimit.IsNull() && !plan.RadiusServerAttemptsLimit.IsUnknown() {
-		radiusServerAttemptsLimit, err := utils2.Int32Pointer(plan.RadiusServerAttemptsLimit.ValueInt64())
+		radiusServerAttemptsLimit, err := utils.Int32Pointer(plan.RadiusServerAttemptsLimit.ValueInt64())
 		if err.HasError() {
 			tflog.Error(context.Background(), fmt.Sprintf("%s", err.Errors()))
 			diags.Append(err...)
@@ -886,7 +886,7 @@ func updateNetworksWirelessSsidsResourcePayload(ctx context.Context, plan *Netwo
 	}
 
 	if !plan.RadiusAccountingInterimInterval.IsNull() && !plan.RadiusAccountingInterimInterval.IsUnknown() {
-		radiusAccountingInterimInterval, err := utils2.Int32Pointer(plan.RadiusAccountingInterimInterval.ValueInt64())
+		radiusAccountingInterimInterval, err := utils.Int32Pointer(plan.RadiusAccountingInterimInterval.ValueInt64())
 		if err.HasError() {
 			tflog.Error(context.Background(), fmt.Sprintf("%s", err.Errors()))
 			diags.Append(err...)
@@ -895,7 +895,7 @@ func updateNetworksWirelessSsidsResourcePayload(ctx context.Context, plan *Netwo
 	}
 
 	if !plan.VlanID.IsNull() && !plan.VlanID.IsUnknown() {
-		vlanId, err := utils2.Int32Pointer(plan.VlanID.ValueInt64())
+		vlanId, err := utils.Int32Pointer(plan.VlanID.ValueInt64())
 		if err.HasError() {
 			tflog.Error(context.Background(), fmt.Sprintf("%s", err.Errors()))
 			diags.Append(err...)
@@ -904,7 +904,7 @@ func updateNetworksWirelessSsidsResourcePayload(ctx context.Context, plan *Netwo
 	}
 
 	if !plan.DefaultVlanID.IsNull() && !plan.DefaultVlanID.IsUnknown() {
-		defaultVlanId, err := utils2.Int32Pointer(plan.DefaultVlanID.ValueInt64())
+		defaultVlanId, err := utils.Int32Pointer(plan.DefaultVlanID.ValueInt64())
 		if err.HasError() {
 			tflog.Error(context.Background(), fmt.Sprintf("%s", err.Errors()))
 			diags.Append(err...)
@@ -913,7 +913,7 @@ func updateNetworksWirelessSsidsResourcePayload(ctx context.Context, plan *Netwo
 	}
 
 	if !plan.MinBitRate.IsNull() && !plan.MinBitRate.IsUnknown() {
-		minBitRate, err := utils2.Float32Pointer(plan.MinBitRate.ValueFloat64())
+		minBitRate, err := utils.Float32Pointer(plan.MinBitRate.ValueFloat64())
 		if err.HasError() {
 			tflog.Error(context.Background(), fmt.Sprintf("%s", err.Errors()))
 			diags.Append(err...)
@@ -922,7 +922,7 @@ func updateNetworksWirelessSsidsResourcePayload(ctx context.Context, plan *Netwo
 	}
 
 	if !plan.PerClientBandwidthLimitUp.IsNull() && !plan.PerClientBandwidthLimitUp.IsUnknown() {
-		perClientBandwidthLimitUp, err := utils2.Int32Pointer(plan.PerClientBandwidthLimitUp.ValueInt64())
+		perClientBandwidthLimitUp, err := utils.Int32Pointer(plan.PerClientBandwidthLimitUp.ValueInt64())
 		if err.HasError() {
 			tflog.Error(context.Background(), fmt.Sprintf("%s", err.Errors()))
 			diags.Append(err...)
@@ -931,7 +931,7 @@ func updateNetworksWirelessSsidsResourcePayload(ctx context.Context, plan *Netwo
 	}
 
 	if !plan.PerClientBandwidthLimitDown.IsNull() && !plan.PerClientBandwidthLimitDown.IsUnknown() {
-		perClientBandwidthLimitDown, err := utils2.Int32Pointer(plan.PerClientBandwidthLimitDown.ValueInt64())
+		perClientBandwidthLimitDown, err := utils.Int32Pointer(plan.PerClientBandwidthLimitDown.ValueInt64())
 		if err.HasError() {
 			tflog.Error(context.Background(), fmt.Sprintf("%s", err.Errors()))
 			diags.Append(err...)
@@ -940,7 +940,7 @@ func updateNetworksWirelessSsidsResourcePayload(ctx context.Context, plan *Netwo
 	}
 
 	if !plan.PerSsidBandwidthLimitUp.IsNull() && !plan.PerSsidBandwidthLimitUp.IsUnknown() {
-		perSsidBandwidthLimitUp, err := utils2.Int32Pointer(plan.PerSsidBandwidthLimitUp.ValueInt64())
+		perSsidBandwidthLimitUp, err := utils.Int32Pointer(plan.PerSsidBandwidthLimitUp.ValueInt64())
 		if err.HasError() {
 			tflog.Error(context.Background(), fmt.Sprintf("%s", err.Errors()))
 			diags.Append(err...)
@@ -949,7 +949,7 @@ func updateNetworksWirelessSsidsResourcePayload(ctx context.Context, plan *Netwo
 	}
 
 	if !plan.PerSsidBandwidthLimitDown.IsNull() && !plan.PerSsidBandwidthLimitDown.IsUnknown() {
-		perSsidBandwidthLimitDown, err := utils2.Int32Pointer(plan.PerSsidBandwidthLimitDown.ValueInt64())
+		perSsidBandwidthLimitDown, err := utils.Int32Pointer(plan.PerSsidBandwidthLimitDown.ValueInt64())
 		if err.HasError() {
 			tflog.Error(context.Background(), fmt.Sprintf("%s", err.Errors()))
 			diags.Append(err...)
@@ -958,20 +958,20 @@ func updateNetworksWirelessSsidsResourcePayload(ctx context.Context, plan *Netwo
 	}
 
 	if !plan.WalledGardenRanges.IsNull() && !plan.WalledGardenRanges.IsUnknown() {
-		walledGardenRanges, err := utils2.ExtractStringsFromList(plan.WalledGardenRanges)
+		walledGardenRanges, err := utils.ExtractStringsFromList(plan.WalledGardenRanges)
 		if err.HasError() {
 			diags.Append(err...)
 		}
 		payload.WalledGardenRanges = walledGardenRanges
 	}
 
-	availabilityTags, err := utils2.ExtractStringsFromList(plan.AvailabilityTags)
+	availabilityTags, err := utils.ExtractStringsFromList(plan.AvailabilityTags)
 	if err.HasError() {
 		diags.Append(err...)
 	}
 	payload.AvailabilityTags = availabilityTags
 
-	splashGuestSponsorDomains, err := utils2.ExtractStringsFromList(plan.SplashGuestSponsorDomains)
+	splashGuestSponsorDomains, err := utils.ExtractStringsFromList(plan.SplashGuestSponsorDomains)
 	if err.HasError() {
 		diags.Append(err...)
 	}
@@ -1820,7 +1820,7 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 				Computed:            true,
 				Sensitive:           true,
 				PlanModifiers: []planmodifier.String{
-					utils2.NewSensitivePlanModifier(r.encryptionKey),
+					utils.NewSensitivePlanModifier(r.encryptionKey),
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
@@ -1854,7 +1854,7 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 									MarkdownDescription: `ServerId of your RADIUS server`,
 									Computed:            true,
 									PlanModifiers: []planmodifier.String{
-										utils2.NewSuppressDiffServerIDModifier(),
+										utils.NewSuppressDiffServerIDModifier(),
 									},
 								},
 						*/
@@ -1864,7 +1864,7 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 							Computed:            true,
 							Sensitive:           true,
 							PlanModifiers: []planmodifier.String{
-								utils2.NewSensitivePlanModifier(r.encryptionKey),
+								utils.NewSensitivePlanModifier(r.encryptionKey),
 							},
 						},
 						"host": schema.StringAttribute{
@@ -1905,7 +1905,7 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 							Computed:            true,
 							Sensitive:           true,
 							PlanModifiers: []planmodifier.String{
-								utils2.NewSensitivePlanModifier(r.encryptionKey),
+								utils.NewSensitivePlanModifier(r.encryptionKey),
 							},
 						},
 					},
@@ -2055,7 +2055,7 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 							Computed:            true,
 							Sensitive:           true,
 							PlanModifiers: []planmodifier.String{
-								utils2.NewSensitivePlanModifier(r.encryptionKey),
+								utils.NewSensitivePlanModifier(r.encryptionKey),
 							},
 						},
 						/*
@@ -2063,7 +2063,7 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 									MarkdownDescription: `ServerId of your RADIUS server`,
 									Computed:            true,
 									PlanModifiers: []planmodifier.String{
-										utils2.NewSuppressDiffServerIDModifier(),
+										utils.NewSuppressDiffServerIDModifier(),
 									},
 								},
 						*/
@@ -2105,7 +2105,7 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 							Computed:            true,
 							Sensitive:           true,
 							PlanModifiers: []planmodifier.String{
-								utils2.NewSensitivePlanModifier(r.encryptionKey),
+								utils.NewSensitivePlanModifier(r.encryptionKey),
 							},
 						},
 					},
@@ -2318,7 +2318,7 @@ func (r *NetworksWirelessSsidsResource) Create(ctx context.Context, req resource
 	maxRetries := r.client.GetConfig().MaximumRetries
 	retryDelay := time.Duration(r.client.GetConfig().Retry4xxErrorWaitTime)
 
-	inlineResp, httpResp, err := utils2.CustomHttpRequestRetry[*openApiClient.GetNetworkWirelessSsids200ResponseInner](ctx, maxRetries, retryDelay, func() (*openApiClient.GetNetworkWirelessSsids200ResponseInner, *http.Response, error) {
+	inlineResp, httpResp, err := utils.CustomHttpRequestRetry[*openApiClient.GetNetworkWirelessSsids200ResponseInner](ctx, maxRetries, retryDelay, func() (*openApiClient.GetNetworkWirelessSsids200ResponseInner, *http.Response, error) {
 		inline, respHttp, err := r.client.WirelessApi.UpdateNetworkWirelessSsid(context.Background(), plan.NetworkId.ValueString(), fmt.Sprint(plan.Number.ValueInt64())).UpdateNetworkWirelessSsidRequest(payload).Execute()
 		return inline, respHttp, err
 	})
@@ -2401,7 +2401,7 @@ func (r *NetworksWirelessSsidsResource) Read(ctx context.Context, req resource.R
 	maxRetries := r.client.GetConfig().MaximumRetries
 	retryDelay := time.Duration(r.client.GetConfig().Retry4xxErrorWaitTime)
 
-	inlineResp, httpResp, err := utils2.CustomHttpRequestRetry[*openApiClient.GetNetworkWirelessSsids200ResponseInner](ctx, maxRetries, retryDelay, func() (*openApiClient.GetNetworkWirelessSsids200ResponseInner, *http.Response, error) {
+	inlineResp, httpResp, err := utils.CustomHttpRequestRetry[*openApiClient.GetNetworkWirelessSsids200ResponseInner](ctx, maxRetries, retryDelay, func() (*openApiClient.GetNetworkWirelessSsids200ResponseInner, *http.Response, error) {
 		inline, respHttp, err := r.client.WirelessApi.GetNetworkWirelessSsid(context.Background(), plan.NetworkId.ValueString(), fmt.Sprint(plan.Number.ValueInt64())).Execute()
 		if err != nil {
 			// Check for specific error
@@ -2446,10 +2446,10 @@ func (r *NetworksWirelessSsidsResource) Read(ctx context.Context, req resource.R
 
 	// Check for API success response code
 	if httpResp.StatusCode != 200 {
-		responseBody, _ := utils2.ReadAndCloseBody(httpResp)
+		responseBody, _ := utils.ReadAndCloseBody(httpResp)
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
-			utils2.NewHttpDiagnostics(httpResp, responseBody),
+			utils.NewHttpDiagnostics(httpResp, responseBody),
 		)
 	}
 
@@ -2492,7 +2492,7 @@ func (r *NetworksWirelessSsidsResource) Update(ctx context.Context, req resource
 	maxRetries := r.client.GetConfig().MaximumRetries
 	retryDelay := time.Duration(r.client.GetConfig().Retry4xxErrorWaitTime)
 
-	inlineResp, httpResp, err := utils2.CustomHttpRequestRetry[*openApiClient.GetNetworkWirelessSsids200ResponseInner](ctx, maxRetries, retryDelay, func() (*openApiClient.GetNetworkWirelessSsids200ResponseInner, *http.Response, error) {
+	inlineResp, httpResp, err := utils.CustomHttpRequestRetry[*openApiClient.GetNetworkWirelessSsids200ResponseInner](ctx, maxRetries, retryDelay, func() (*openApiClient.GetNetworkWirelessSsids200ResponseInner, *http.Response, error) {
 		inline, respHttp, err := r.client.WirelessApi.UpdateNetworkWirelessSsid(context.Background(), plan.NetworkId.ValueString(), fmt.Sprint(plan.Number.ValueInt64())).UpdateNetworkWirelessSsidRequest(payload).Execute()
 		if err != nil {
 			// Check for specific error
@@ -2520,10 +2520,10 @@ func (r *NetworksWirelessSsidsResource) Update(ctx context.Context, req resource
 
 	// Check for API success response code
 	if httpResp != nil && httpResp.StatusCode != 200 {
-		responseBody, _ := utils2.ReadAndCloseBody(httpResp)
+		responseBody, _ := utils.ReadAndCloseBody(httpResp)
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
-			utils2.NewHttpDiagnostics(httpResp, responseBody),
+			utils.NewHttpDiagnostics(httpResp, responseBody),
 		)
 	}
 
@@ -2559,7 +2559,7 @@ func (r *NetworksWirelessSsidsResource) Delete(ctx context.Context, req resource
 	maxRetries := r.client.GetConfig().MaximumRetries
 	retryDelay := time.Duration(r.client.GetConfig().Retry4xxErrorWaitTime)
 
-	_, httpResp, err := utils2.CustomHttpRequestRetry[*openApiClient.GetNetworkWirelessSsids200ResponseInner](ctx, maxRetries, retryDelay, func() (*openApiClient.GetNetworkWirelessSsids200ResponseInner, *http.Response, error) {
+	_, httpResp, err := utils.CustomHttpRequestRetry[*openApiClient.GetNetworkWirelessSsids200ResponseInner](ctx, maxRetries, retryDelay, func() (*openApiClient.GetNetworkWirelessSsids200ResponseInner, *http.Response, error) {
 		inline, respHttp, err := r.client.WirelessApi.UpdateNetworkWirelessSsid(context.Background(), state.NetworkId.ValueString(), fmt.Sprint(state.Number.ValueInt64())).UpdateNetworkWirelessSsidRequest(payload).Execute()
 		if err != nil {
 			// Check for specific error
@@ -2587,10 +2587,10 @@ func (r *NetworksWirelessSsidsResource) Delete(ctx context.Context, req resource
 
 	// Check for API success response code
 	if httpResp != nil && httpResp.StatusCode != 200 {
-		responseBody, _ := utils2.ReadAndCloseBody(httpResp)
+		responseBody, _ := utils.ReadAndCloseBody(httpResp)
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
-			utils2.NewHttpDiagnostics(httpResp, responseBody),
+			utils.NewHttpDiagnostics(httpResp, responseBody),
 		)
 	}
 	if resp.Diagnostics.HasError() {

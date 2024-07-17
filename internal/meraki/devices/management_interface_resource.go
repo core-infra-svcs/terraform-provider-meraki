@@ -3,7 +3,7 @@ package devices
 import (
 	"context"
 	"fmt"
-	utils2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"net/http"
 	"time"
 
@@ -95,42 +95,42 @@ func DevicesManagementInterfaceStateWan(rawResp map[string]interface{}, wanKey s
 
 	if d, ok := rawResp[wanKey].(map[string]interface{}); ok {
 		// wan_enabled
-		wanEnabled, err := utils2.ExtractStringAttr(d, "wanEnabled")
+		wanEnabled, err := utils.ExtractStringAttr(d, "wanEnabled")
 		if err != nil {
 			diags.Append(err...)
 		}
 		wan.WanEnabled = wanEnabled
 
 		// using_static_ip
-		usingStaticIp, err := utils2.ExtractBoolAttr(d, "usingStaticIp")
+		usingStaticIp, err := utils.ExtractBoolAttr(d, "usingStaticIp")
 		if err != nil {
 			diags.Append(err...)
 		}
 		wan.UsingStaticIp = usingStaticIp
 
 		// static_ip
-		staticIp, err := utils2.ExtractStringAttr(d, "staticIp")
+		staticIp, err := utils.ExtractStringAttr(d, "staticIp")
 		if err != nil {
 			diags.Append(err...)
 		}
 		wan.StaticIp = staticIp
 
 		// static_subnet_mask
-		staticSubnetMask, err := utils2.ExtractStringAttr(d, "staticSubnetMask")
+		staticSubnetMask, err := utils.ExtractStringAttr(d, "staticSubnetMask")
 		if err != nil {
 			diags.Append(err...)
 		}
 		wan.StaticSubnetMask = staticSubnetMask
 
 		// static_gateway_ip
-		staticGatewayIp, err := utils2.ExtractStringAttr(d, "staticGatewayIp")
+		staticGatewayIp, err := utils.ExtractStringAttr(d, "staticGatewayIp")
 		if err != nil {
 			diags.Append(err...)
 		}
 		wan.StaticGatewayIp = staticGatewayIp
 
 		// static_dns
-		staticDns, err := utils2.ExtractListStringAttr(d, "staticDns")
+		staticDns, err := utils.ExtractListStringAttr(d, "staticDns")
 		if err != nil {
 			diags.Append(err...)
 		}
@@ -174,7 +174,7 @@ func DevicesManagementInterfaceStateWan(rawResp map[string]interface{}, wanKey s
 func updateDevicesManagementInterfaceResourceState(ctx context.Context, state *DevicesTestAccDevicesManagementInterfaceResourceResourceModel, data map[string]interface{}, httpResp *http.Response) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	rawResp, err := utils2.ExtractResponseToMap(httpResp)
+	rawResp, err := utils.ExtractResponseToMap(httpResp)
 	if err != nil {
 		diags.AddError("Failed to Unmarshal HttpResp", err.Error())
 		return diags
@@ -182,7 +182,7 @@ func updateDevicesManagementInterfaceResourceState(ctx context.Context, state *D
 
 	// ID
 	if state.Id.IsNull() || state.Id.IsUnknown() {
-		state.Id, diags = utils2.ExtractStringAttr(rawResp, "id")
+		state.Id, diags = utils.ExtractStringAttr(rawResp, "id")
 		if diags.HasError() {
 			diags.AddError("ID Attribute", "")
 			return diags
@@ -191,7 +191,7 @@ func updateDevicesManagementInterfaceResourceState(ctx context.Context, state *D
 
 	// Serial
 	if state.Serial.IsNull() || state.Serial.IsUnknown() {
-		state.Serial, diags = utils2.ExtractStringAttr(rawResp, "serial")
+		state.Serial, diags = utils.ExtractStringAttr(rawResp, "serial")
 		if diags.HasError() {
 			diags.AddError("Serial Attribute", "")
 			return diags
@@ -443,7 +443,7 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Create(ctx co
 	maxRetries := r.client.GetConfig().MaximumRetries
 	retryDelay := time.Duration(r.client.GetConfig().Retry4xxErrorWaitTime)
 
-	inlineResp, httpResp, err := utils2.CustomHttpRequestRetry[map[string]interface{}](ctx, maxRetries, retryDelay, func() (map[string]interface{}, *http.Response, error) {
+	inlineResp, httpResp, err := utils.CustomHttpRequestRetry[map[string]interface{}](ctx, maxRetries, retryDelay, func() (map[string]interface{}, *http.Response, error) {
 		inline, respHttp, err := r.client.ManagementInterfaceApi.UpdateDeviceManagementInterface(context.Background(), data.Serial.ValueString()).UpdateDeviceManagementInterfaceRequest(*payload).Execute()
 		return inline, respHttp, err
 	})
@@ -461,7 +461,7 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Create(ctx co
 	if httpResp.StatusCode == 404 {
 		resp.Diagnostics.AddWarning(
 			"No Management interface information found in API",
-			utils2.HttpDiagnostics(httpResp),
+			utils.HttpDiagnostics(httpResp),
 		)
 	} else if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
@@ -471,7 +471,7 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Create(ctx co
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"HTTP Client Failure",
-				utils2.HttpDiagnostics(httpResp),
+				utils.HttpDiagnostics(httpResp),
 			)
 			return
 		}
@@ -509,7 +509,7 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Read(ctx cont
 	maxRetries := r.client.GetConfig().MaximumRetries
 	retryDelay := time.Duration(r.client.GetConfig().Retry4xxErrorWaitTime)
 
-	inlineResp, httpResp, err := utils2.CustomHttpRequestRetry[map[string]interface{}](ctx, maxRetries, retryDelay, func() (map[string]interface{}, *http.Response, error) {
+	inlineResp, httpResp, err := utils.CustomHttpRequestRetry[map[string]interface{}](ctx, maxRetries, retryDelay, func() (map[string]interface{}, *http.Response, error) {
 		inline, respHttp, err := r.client.DevicesApi.GetDeviceManagementInterface(context.Background(), data.Serial.ValueString()).Execute()
 		return inline, respHttp, err
 	})
@@ -527,7 +527,7 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Read(ctx cont
 	if httpResp.StatusCode == 404 {
 		resp.Diagnostics.AddWarning(
 			"No Management interface information found in API",
-			utils2.HttpDiagnostics(httpResp),
+			utils.HttpDiagnostics(httpResp),
 		)
 
 	} else if httpResp.StatusCode != 200 {
@@ -541,7 +541,7 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Read(ctx cont
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"HTTP Client Failure",
-				utils2.HttpDiagnostics(httpResp),
+				utils.HttpDiagnostics(httpResp),
 			)
 			return
 		}
@@ -639,7 +639,7 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Update(ctx co
 	maxRetries := r.client.GetConfig().MaximumRetries
 	retryDelay := time.Duration(r.client.GetConfig().Retry4xxErrorWaitTime)
 
-	inlineResp, httpResp, err := utils2.CustomHttpRequestRetry[map[string]interface{}](ctx, maxRetries, retryDelay, func() (map[string]interface{}, *http.Response, error) {
+	inlineResp, httpResp, err := utils.CustomHttpRequestRetry[map[string]interface{}](ctx, maxRetries, retryDelay, func() (map[string]interface{}, *http.Response, error) {
 		inline, respHttp, err := r.client.ManagementInterfaceApi.UpdateDeviceManagementInterface(context.Background(), data.Serial.ValueString()).UpdateDeviceManagementInterfaceRequest(*payload).Execute()
 		return inline, respHttp, err
 	})
@@ -657,7 +657,7 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Update(ctx co
 	if httpResp.StatusCode == 404 {
 		resp.Diagnostics.AddWarning(
 			"No Management interface information found in API",
-			utils2.HttpDiagnostics(httpResp),
+			utils.HttpDiagnostics(httpResp),
 		)
 
 	} else if httpResp.StatusCode != 200 {
@@ -671,7 +671,7 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Update(ctx co
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"HTTP Client Failure",
-				utils2.HttpDiagnostics(httpResp),
+				utils.HttpDiagnostics(httpResp),
 			)
 			return
 		}
@@ -727,7 +727,7 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Delete(ctx co
 	if httpResp.StatusCode == 404 {
 		resp.Diagnostics.AddWarning(
 			"No Management interface information found in API",
-			utils2.HttpDiagnostics(httpResp),
+			utils.HttpDiagnostics(httpResp),
 		)
 
 	} else if httpResp.StatusCode != 200 {
@@ -741,7 +741,7 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Delete(ctx co
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"HTTP Client Failure",
-				utils2.HttpDiagnostics(httpResp),
+				utils.HttpDiagnostics(httpResp),
 			)
 			return
 		}

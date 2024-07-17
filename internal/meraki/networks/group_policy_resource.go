@@ -3,7 +3,7 @@ package networks
 import (
 	"context"
 	"fmt"
-	utils2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -477,7 +477,7 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 							"settings": schema.StringAttribute{
 								Optional: true,
 								Computed: true,
-								Default:  utils2.NewStringDefault("network default"),
+								Default:  utils.NewStringDefault("network default"),
 								Validators: []validator.String{
 									stringvalidator.OneOf("network default", "append", "override"),
 								},
@@ -499,7 +499,7 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 							"settings": schema.StringAttribute{
 								Optional: true,
 								Computed: true,
-								Default:  utils2.NewStringDefault("network default"),
+								Default:  utils.NewStringDefault("network default"),
 								Validators: []validator.String{
 									stringvalidator.OneOf("network default", "append", "override"),
 								},
@@ -521,7 +521,7 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 							"settings": schema.StringAttribute{
 								Optional: true,
 								Computed: true,
-								Default:  utils2.NewStringDefault("network default"),
+								Default:  utils.NewStringDefault("network default"),
 								Validators: []validator.String{
 									stringvalidator.OneOf("network default", "append", "override"),
 								},
@@ -675,7 +675,7 @@ func updateGroupPolicyResourcePayload(data *GroupPolicyResourceModel) (client.Cr
 		allowedUrlPatternsAttrs := allowedUrlPatternsObj.Attributes()
 		allowedPatterns := allowedUrlPatternsAttrs["patterns"].(types.List)
 		allowedSettings := allowedUrlPatternsAttrs["settings"].(types.String)
-		allowedPatternsList, allowedPatternsListErr := utils2.ExtractStringsFromList(allowedPatterns)
+		allowedPatternsList, allowedPatternsListErr := utils.ExtractStringsFromList(allowedPatterns)
 		if allowedPatternsListErr.HasError() {
 			diags.Append(allowedPatternsListErr...)
 		}
@@ -685,7 +685,7 @@ func updateGroupPolicyResourcePayload(data *GroupPolicyResourceModel) (client.Cr
 		blockedUrlPatternsAttrs := blockedUrlPatternsObj.Attributes()
 		blockedPatterns := blockedUrlPatternsAttrs["patterns"].(types.List)
 		blockedSettings := blockedUrlPatternsAttrs["settings"].(types.String)
-		blockedPatternsList, blockedPatternsListErr := utils2.ExtractStringsFromList(blockedPatterns)
+		blockedPatternsList, blockedPatternsListErr := utils.ExtractStringsFromList(blockedPatterns)
 		if blockedPatternsListErr.HasError() {
 			diags.Append(blockedPatternsListErr...)
 		}
@@ -695,7 +695,7 @@ func updateGroupPolicyResourcePayload(data *GroupPolicyResourceModel) (client.Cr
 		blockedUrlCategoriesAttrs := blockedUrlCategoriesObj.Attributes()
 		blockedCategories := blockedUrlCategoriesAttrs["categories"].(types.List)
 		blockedCategoriesSettings := blockedUrlCategoriesAttrs["settings"].(types.String)
-		blockedCategoriesList, blockedCategoriesListErr := utils2.ExtractStringsFromList(blockedCategories)
+		blockedCategoriesList, blockedCategoriesListErr := utils.ExtractStringsFromList(blockedCategories)
 		if blockedCategoriesListErr.HasError() {
 			diags.Append(blockedCategoriesListErr...)
 		}
@@ -1037,21 +1037,21 @@ func updateGroupPolicyResourceStateSchedulingDay(httpResp map[string]interface{}
 	if ok {
 
 		// active
-		active, err := utils2.ExtractBoolAttr(d, "active")
+		active, err := utils.ExtractBoolAttr(d, "active")
 		if err.HasError() {
 			diags.AddError("active Attr", fmt.Sprintf("%s", err.Errors()))
 		}
 		day.Active = active
 
 		// from
-		from, err := utils2.ExtractStringAttr(d, "from")
+		from, err := utils.ExtractStringAttr(d, "from")
 		if err.HasError() {
 			diags.AddError("from Attr", fmt.Sprintf("%s", err.Errors()))
 		}
 		day.From = from
 
 		// to
-		to, err := utils2.ExtractStringAttr(d, "to")
+		to, err := utils.ExtractStringAttr(d, "to")
 		if err.HasError() {
 			diags.AddError("to Attr", fmt.Sprintf("%s", err.Errors()))
 		}
@@ -1091,7 +1091,7 @@ func updateGroupPolicyResourceStateScheduling(httpResp map[string]interface{}) (
 	if schedulingMap, schedulingOk := httpResp["scheduling"].(map[string]interface{}); schedulingOk {
 
 		//  Enabled
-		enabled, err := utils2.ExtractBoolAttr(schedulingMap, "enabled")
+		enabled, err := utils.ExtractBoolAttr(schedulingMap, "enabled")
 		if err.HasError() {
 			diags.AddError("enabled Attr", fmt.Sprintf("%s", err.Errors()))
 		}
@@ -1179,7 +1179,7 @@ func updateGroupPolicyResourceStateBandwidth(httpResp map[string]interface{}) (t
 	if bandwidthMap, ok := httpResp["bandwidth"].(map[string]interface{}); ok {
 
 		// settings
-		settings, err := utils2.ExtractStringAttr(bandwidthMap, "settings")
+		settings, err := utils.ExtractStringAttr(bandwidthMap, "settings")
 		if err.HasError() {
 			diags.AddError("settingsAttr", fmt.Sprintf("%s", err.Errors()))
 		}
@@ -1190,14 +1190,14 @@ func updateGroupPolicyResourceStateBandwidth(httpResp map[string]interface{}) (t
 			var bandwidthLimits GroupPolicyResourceModelBandwidthLimits
 
 			// limit up
-			limitUp, err := utils2.ExtractInt32Attr(blMap, "limitUp")
+			limitUp, err := utils.ExtractInt32Attr(blMap, "limitUp")
 			if err.HasError() {
 				diags.AddError("limitUp Attr", fmt.Sprintf("%s", err.Errors()))
 			}
 			bandwidthLimits.LimitUp = limitUp
 
 			// limit down
-			limitDown, err := utils2.ExtractInt32Attr(blMap, "limitDown")
+			limitDown, err := utils.ExtractInt32Attr(blMap, "limitDown")
 			if err.HasError() {
 				diags.AddError("limitDown Attr", fmt.Sprintf("%s", err.Errors()))
 			}
@@ -1276,7 +1276,7 @@ func updateGroupPolicyResourceStateFirewallAndTrafficShapingRules(ctx context.Co
 	if ok {
 
 		// settings
-		settings, err := utils2.ExtractStringAttr(ftsr, "settings")
+		settings, err := utils.ExtractStringAttr(ftsr, "settings")
 		if err.HasError() {
 			diags.AddError("settings Attr", fmt.Sprintf("%s", err.Errors()))
 		}
@@ -1290,31 +1290,31 @@ func updateGroupPolicyResourceStateFirewallAndTrafficShapingRules(ctx context.Co
 					var rule GroupPolicyResourceModelL3FirewallRule
 
 					// comment
-					rule.Comment, err = utils2.ExtractStringAttr(l3, "comment")
+					rule.Comment, err = utils.ExtractStringAttr(l3, "comment")
 					if err.HasError() {
 						diags.Append(err...)
 					}
 
 					// policy
-					rule.Policy, err = utils2.ExtractStringAttr(l3, "policy")
+					rule.Policy, err = utils.ExtractStringAttr(l3, "policy")
 					if err.HasError() {
 						diags.Append(err...)
 					}
 
 					// protocol
-					rule.Protocol, err = utils2.ExtractStringAttr(l3, "protocol")
+					rule.Protocol, err = utils.ExtractStringAttr(l3, "protocol")
 					if err.HasError() {
 						diags.Append(err...)
 					}
 
 					// dest port
-					rule.DestPort, err = utils2.ExtractStringAttr(l3, "destPort")
+					rule.DestPort, err = utils.ExtractStringAttr(l3, "destPort")
 					if err.HasError() {
 						diags.Append(err...)
 					}
 
 					// dest cidr
-					rule.DestCidr, err = utils2.ExtractStringAttr(l3, "destCidr")
+					rule.DestCidr, err = utils.ExtractStringAttr(l3, "destCidr")
 					if err.HasError() {
 						diags.Append(err...)
 					}
@@ -1359,21 +1359,21 @@ func updateGroupPolicyResourceStateFirewallAndTrafficShapingRules(ctx context.Co
 					var rule GroupPolicyResourceModelL7FirewallRule
 
 					// policy
-					policy, err := utils2.ExtractStringAttr(l7, "policy")
+					policy, err := utils.ExtractStringAttr(l7, "policy")
 					if err.HasError() {
 						diags.Append(err...)
 					}
 					rule.Policy = policy
 
 					// type
-					t, err := utils2.ExtractStringAttr(l7, "type")
+					t, err := utils.ExtractStringAttr(l7, "type")
 					if err.HasError() {
 						diags.Append(err...)
 					}
 					rule.Type = t
 
 					// value
-					value, err := utils2.ExtractStringAttr(l7, "value")
+					value, err := utils.ExtractStringAttr(l7, "value")
 					if err.HasError() {
 						diags.Append(err...)
 					}
@@ -1417,14 +1417,14 @@ func updateGroupPolicyResourceStateFirewallAndTrafficShapingRules(ctx context.Co
 					var trafficShapingRule GroupPolicyResourceModelTrafficShapingRule
 
 					// dscp tag value
-					dscpTagValue, dscpTagValueErr := utils2.ExtractFloat64Attr(sr, "dscpTagValue")
+					dscpTagValue, dscpTagValueErr := utils.ExtractFloat64Attr(sr, "dscpTagValue")
 					if dscpTagValueErr.HasError() {
 						diags.Append(dscpTagValueErr...)
 					}
 					trafficShapingRule.DscpTagValue = types.Int64Value(int64(dscpTagValue.ValueFloat64()))
 
 					// pcp tag value
-					pcpTagValue, pcpTagValueErr := utils2.ExtractFloat64Attr(sr, "pcpTagValue")
+					pcpTagValue, pcpTagValueErr := utils.ExtractFloat64Attr(sr, "pcpTagValue")
 					if pcpTagValueErr.HasError() {
 						diags.Append(pcpTagValueErr...)
 					}
@@ -1438,7 +1438,7 @@ func updateGroupPolicyResourceStateFirewallAndTrafficShapingRules(ctx context.Co
 						// settings
 						if _, settingsOk := pcBl["settings"].(string); settingsOk {
 
-							settingsVal, settingsErr := utils2.ExtractStringAttr(pcBl, "settings")
+							settingsVal, settingsErr := utils.ExtractStringAttr(pcBl, "settings")
 							if settingsErr.HasError() {
 								diags.Append(settingsErr...)
 							}
@@ -1453,14 +1453,14 @@ func updateGroupPolicyResourceStateFirewallAndTrafficShapingRules(ctx context.Co
 							var BandwidthLimits GroupPolicyResourceModelBandwidthLimits
 
 							// limit up
-							limitUp, limitUpErr := utils2.ExtractFloat64Attr(bandwidthLimits, "limitUp")
+							limitUp, limitUpErr := utils.ExtractFloat64Attr(bandwidthLimits, "limitUp")
 							if limitUpErr.HasError() {
 								diags.Append(limitUpErr...)
 							}
 							BandwidthLimits.LimitUp = types.Int64Value(int64(limitUp.ValueFloat64()))
 
 							// limit down
-							limitDown, limitDownErr := utils2.ExtractFloat64Attr(bandwidthLimits, "limitDown")
+							limitDown, limitDownErr := utils.ExtractFloat64Attr(bandwidthLimits, "limitDown")
 							if limitDownErr.HasError() {
 								diags.Append(limitDownErr...)
 							}
@@ -1520,13 +1520,13 @@ func updateGroupPolicyResourceStateFirewallAndTrafficShapingRules(ctx context.Co
 							if def, defOk := definitions.(map[string]interface{}); defOk {
 
 								// type
-								definitionModel.Type, err = utils2.ExtractStringAttr(def, "type")
+								definitionModel.Type, err = utils.ExtractStringAttr(def, "type")
 								if err.HasError() {
 									diags.Append(err...)
 								}
 
 								// value
-								definitionModel.Value, err = utils2.ExtractStringAttr(def, "value")
+								definitionModel.Value, err = utils.ExtractStringAttr(def, "value")
 								if err.HasError() {
 									diags.Append(err...)
 								}
@@ -1616,14 +1616,14 @@ func updateGroupPolicyResourceStateVlanTagging(ctx context.Context, httpResp map
 	if ok {
 
 		// settings
-		settings, err := utils2.ExtractStringAttr(vt, "settings")
+		settings, err := utils.ExtractStringAttr(vt, "settings")
 		if err.HasError() {
 			diags.AddError("settings Attr", fmt.Sprintf("%s", err.Errors()))
 		}
 		vlanTagging.Settings = settings
 
 		// vlan id
-		vlanId, err := utils2.ExtractStringAttr(vt, "vlanId")
+		vlanId, err := utils.ExtractStringAttr(vt, "vlanId")
 		if err.HasError() {
 			diags.AddError("vlanId Attr", fmt.Sprintf("%s", err.Errors()))
 		}
@@ -1660,7 +1660,7 @@ func updateGroupPolicyResourceStateBonjourForwarding(httpResp map[string]interfa
 	if bf, ok := httpResp["bonjourForwarding"].(map[string]interface{}); ok {
 
 		// settings
-		settings, err := utils2.ExtractStringAttr(bf, "settings")
+		settings, err := utils.ExtractStringAttr(bf, "settings")
 		if err.HasError() {
 			diags.AddError("settings Attr", fmt.Sprintf("%s", err.Errors()))
 		}
@@ -1673,21 +1673,21 @@ func updateGroupPolicyResourceStateBonjourForwarding(httpResp map[string]interfa
 
 				var rule GroupPolicyResourceModelBonjourForwardingRule
 				// description
-				description, err := utils2.ExtractStringAttr(r, "description")
+				description, err := utils.ExtractStringAttr(r, "description")
 				if err.HasError() {
 					diags.AddError("description Attr", fmt.Sprintf("%s", err.Errors()))
 				}
 				rule.Description = description
 
 				// vlanId
-				vlanId, err := utils2.ExtractStringAttr(r, "vlanId")
+				vlanId, err := utils.ExtractStringAttr(r, "vlanId")
 				if err.HasError() {
 					diags.AddError("vlanId Attr", fmt.Sprintf("%s", err.Errors()))
 				}
 				rule.VlanID = vlanId
 
 				// services
-				services, err := utils2.ExtractListStringAttr(r, "services")
+				services, err := utils.ExtractListStringAttr(r, "services")
 				if err.HasError() {
 					diags.AddError("vlanId Attr", fmt.Sprintf("%s", err.Errors()))
 				}
@@ -1753,14 +1753,14 @@ func updateGroupPolicyResourceStateContentFiltering(ctx context.Context, httpRes
 			var allowedURLPatterns GroupPolicyResourceModelUrlPatterns
 
 			// patterns array
-			patterns, err := utils2.ExtractListStringAttr(ap, "patterns")
+			patterns, err := utils.ExtractListStringAttr(ap, "patterns")
 			if diags.HasError() {
 				diags.AddError("patterns array Attr", fmt.Sprintf("%s", err.Errors()))
 			}
 			allowedURLPatterns.Patterns = patterns
 
 			// settings
-			settings, err := utils2.ExtractStringAttr(ap, "settings")
+			settings, err := utils.ExtractStringAttr(ap, "settings")
 			if diags.HasError() {
 				diags.AddError("settings Attr", fmt.Sprintf("%s", err.Errors()))
 			}
@@ -1782,14 +1782,14 @@ func updateGroupPolicyResourceStateContentFiltering(ctx context.Context, httpRes
 			var blockedURLPatterns GroupPolicyResourceModelUrlPatterns
 
 			// patterns array
-			patterns, err := utils2.ExtractListStringAttr(bp, "patterns")
+			patterns, err := utils.ExtractListStringAttr(bp, "patterns")
 			if diags.HasError() {
 				diags.AddError("patterns array Attr", fmt.Sprintf("%s", err.Errors()))
 			}
 			blockedURLPatterns.Patterns = patterns
 
 			// settings
-			settings, err := utils2.ExtractStringAttr(bp, "settings")
+			settings, err := utils.ExtractStringAttr(bp, "settings")
 			if diags.HasError() {
 				diags.AddError("settings Attr", fmt.Sprintf("%s", err.Errors()))
 			}
@@ -1811,14 +1811,14 @@ func updateGroupPolicyResourceStateContentFiltering(ctx context.Context, httpRes
 			var blockedURLCategories GroupPolicyResourceModelUrlCategories
 
 			// patterns array
-			patterns, err := utils2.ExtractListStringAttr(bc, "categories")
+			patterns, err := utils.ExtractListStringAttr(bc, "categories")
 			if diags.HasError() {
 				diags.AddError("categories array Attr", fmt.Sprintf("%s", err.Errors()))
 			}
 			blockedURLCategories.Categories = patterns
 
 			// settings
-			settings, err := utils2.ExtractStringAttr(bc, "settings")
+			settings, err := utils.ExtractStringAttr(bc, "settings")
 			if diags.HasError() {
 				diags.AddError("settings Attr", fmt.Sprintf("%s", err.Errors()))
 			}
@@ -1854,7 +1854,7 @@ func updateGroupPolicyResourceState(ctx context.Context, state *GroupPolicyResou
 
 	// GroupPolicyId
 	if state.GroupPolicyId.IsNull() || state.GroupPolicyId.IsUnknown() {
-		groupPolicyId, err := utils2.ExtractStringAttr(inlineResp, "groupPolicyId")
+		groupPolicyId, err := utils.ExtractStringAttr(inlineResp, "groupPolicyId")
 		if err.HasError() {
 			diags.AddError("groupPolicyId Attribute", fmt.Sprintf("%s", err.Errors()))
 			return diags
@@ -1867,7 +1867,7 @@ func updateGroupPolicyResourceState(ctx context.Context, state *GroupPolicyResou
 
 	// check for NetworkId
 	if state.NetworkId.IsNull() || state.NetworkId.IsUnknown() {
-		state.NetworkId, diags = utils2.ExtractStringAttr(inlineResp, "networkId")
+		state.NetworkId, diags = utils.ExtractStringAttr(inlineResp, "networkId")
 		if diags.HasError() {
 			diags.AddError("networkId Attribute", "")
 			return diags
@@ -1883,7 +1883,7 @@ func updateGroupPolicyResourceState(ctx context.Context, state *GroupPolicyResou
 
 	// Name
 	if state.Name.IsNull() || state.Name.IsUnknown() {
-		state.Name, diags = utils2.ExtractStringAttr(inlineResp, "name")
+		state.Name, diags = utils.ExtractStringAttr(inlineResp, "name")
 		if diags.HasError() {
 			diags.AddError("name Attribute", "")
 			return diags
@@ -1908,7 +1908,7 @@ func updateGroupPolicyResourceState(ctx context.Context, state *GroupPolicyResou
 
 	//SplashAuthSettings
 	if state.SplashAuthSettings.IsNull() || state.SplashAuthSettings.IsUnknown() {
-		state.SplashAuthSettings, diags = utils2.ExtractStringAttr(inlineResp, "splashAuthSettings")
+		state.SplashAuthSettings, diags = utils.ExtractStringAttr(inlineResp, "splashAuthSettings")
 		if diags.HasError() {
 			return diags
 		}
@@ -1979,7 +1979,7 @@ func (r *NetworksGroupPolicyResource) Create(ctx context.Context, req resource.C
 		return inline, httpResp, err
 	}
 	// Use retryOn4xx for the API call as the meraki API backend returns HTTP 400 messages as a result of collision issues with rapid creation of postgres GroupPolicyIds.
-	inlineResp, httpResp, err := utils2.CustomHttpRequestRetry(ctx, maxRetries, retryDelay, apiCall)
+	inlineResp, httpResp, err := utils.CustomHttpRequestRetry(ctx, maxRetries, retryDelay, apiCall)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating group policy",

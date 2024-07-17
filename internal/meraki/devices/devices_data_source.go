@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
-	utils2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -327,7 +327,7 @@ func updateDevicesDatasourceState(ctx context.Context, state *DevicesDatasourceM
 		var device DevicesDatasourceModelDevice
 
 		// "name": "My AP",
-		name, err := utils2.ExtractStringAttr(d, "name")
+		name, err := utils.ExtractStringAttr(d, "name")
 		if err != nil {
 			diags.Append(err...)
 		}
@@ -335,7 +335,7 @@ func updateDevicesDatasourceState(ctx context.Context, state *DevicesDatasourceM
 
 		//  "lat": 37.4180951010362,
 		if device.Lat.IsNull() || device.Lat.IsUnknown() {
-			lat, err := utils2.ExtractFloat64Attr(d, "lat")
+			lat, err := utils.ExtractFloat64Attr(d, "lat")
 			if err != nil {
 				diags.Append(err...)
 			}
@@ -344,7 +344,7 @@ func updateDevicesDatasourceState(ctx context.Context, state *DevicesDatasourceM
 
 		//  "lng": -122.098531723022,
 		if device.Lng.IsNull() || device.Lng.IsUnknown() {
-			lng, err := utils2.ExtractFloat64Attr(d, "lng")
+			lng, err := utils.ExtractFloat64Attr(d, "lng")
 			if err != nil {
 				diags.Append(err...)
 			}
@@ -353,7 +353,7 @@ func updateDevicesDatasourceState(ctx context.Context, state *DevicesDatasourceM
 
 		//  "address": "1600 Pennsylvania Ave",
 		if device.Address.IsNull() || device.Address.IsUnknown() {
-			address, err := utils2.ExtractStringAttr(d, "address")
+			address, err := utils.ExtractStringAttr(d, "address")
 			if err != nil {
 				diags.Append(err...)
 			}
@@ -362,7 +362,7 @@ func updateDevicesDatasourceState(ctx context.Context, state *DevicesDatasourceM
 
 		//  "notes": "My AP's note",
 		if device.Notes.IsNull() || device.Notes.IsUnknown() {
-			notes, err := utils2.ExtractStringAttr(d, "notes")
+			notes, err := utils.ExtractStringAttr(d, "notes")
 			if err != nil {
 				diags.Append(err...)
 			}
@@ -373,7 +373,7 @@ func updateDevicesDatasourceState(ctx context.Context, state *DevicesDatasourceM
 		//    " recently-added "
 		//  ],
 		if device.Tags.IsNull() || device.Tags.IsUnknown() {
-			tags, err := utils2.ExtractListStringAttr(d, "tags")
+			tags, err := utils.ExtractListStringAttr(d, "tags")
 			if err != nil {
 				diags.Append(err...)
 			}
@@ -383,7 +383,7 @@ func updateDevicesDatasourceState(ctx context.Context, state *DevicesDatasourceM
 
 		//  "networkId": "N_24329156",
 		if device.NetworkId.IsNull() || device.NetworkId.IsUnknown() {
-			networkId, err := utils2.ExtractStringAttr(d, "networkId")
+			networkId, err := utils.ExtractStringAttr(d, "networkId")
 			if err != nil {
 				diags.Append(err...)
 			}
@@ -392,7 +392,7 @@ func updateDevicesDatasourceState(ctx context.Context, state *DevicesDatasourceM
 
 		//  "serial": "Q234-ABCD-5678",
 		if device.Serial.IsNull() || device.Serial.IsUnknown() {
-			serial, err := utils2.ExtractStringAttr(d, "serial")
+			serial, err := utils.ExtractStringAttr(d, "serial")
 			if err != nil {
 				diags.Append(err...)
 			}
@@ -401,7 +401,7 @@ func updateDevicesDatasourceState(ctx context.Context, state *DevicesDatasourceM
 
 		//  "model": "MR34",
 		if device.Model.IsNull() || device.Model.IsUnknown() {
-			model, err := utils2.ExtractStringAttr(d, "model")
+			model, err := utils.ExtractStringAttr(d, "model")
 			if err != nil {
 				diags.Append(err...)
 			}
@@ -410,7 +410,7 @@ func updateDevicesDatasourceState(ctx context.Context, state *DevicesDatasourceM
 
 		//  "mac": "00:11:22:33:44:55",
 		if device.Mac.IsNull() || device.Mac.IsUnknown() {
-			mac, err := utils2.ExtractStringAttr(d, "mac")
+			mac, err := utils.ExtractStringAttr(d, "mac")
 			if err != nil {
 				diags.Append(err...)
 			}
@@ -419,7 +419,7 @@ func updateDevicesDatasourceState(ctx context.Context, state *DevicesDatasourceM
 
 		//  "lanIp": "1.2.3.4",
 		if device.LanIp.IsNull() || device.LanIp.IsUnknown() {
-			lanIp, err := utils2.ExtractStringAttr(d, "lanIp")
+			lanIp, err := utils.ExtractStringAttr(d, "lanIp")
 			if err != nil {
 				diags.Append(err...)
 			}
@@ -428,7 +428,7 @@ func updateDevicesDatasourceState(ctx context.Context, state *DevicesDatasourceM
 
 		//  "firmware": "wireless-25-14",
 		if device.Firmware.IsNull() || device.Firmware.IsUnknown() {
-			firmware, err := utils2.ExtractStringAttr(d, "firmware")
+			firmware, err := utils.ExtractStringAttr(d, "firmware")
 			if err != nil {
 				diags.Append(err...)
 			}
@@ -437,7 +437,7 @@ func updateDevicesDatasourceState(ctx context.Context, state *DevicesDatasourceM
 
 		//  "floorPlanId": "g_2176982374",
 		if device.FloorPlanId.IsNull() || device.FloorPlanId.IsUnknown() {
-			floorPlanId, err := utils2.ExtractStringAttr(d, "floorPlanId")
+			floorPlanId, err := utils.ExtractStringAttr(d, "floorPlanId")
 			if err != nil {
 				diags.Append(err...)
 			}
@@ -462,7 +462,7 @@ func updateDevicesDatasourceState(ctx context.Context, state *DevicesDatasourceM
 			_, ok := d["details"].([]map[string]interface{})
 			if ok {
 
-				detailsList, err := utils2.ExtractListAttr(d, "details", detailsAttrs)
+				detailsList, err := utils.ExtractListAttr(d, "details", detailsAttrs)
 				if err.HasError() {
 					tflog.Error(context.Background(), fmt.Sprintf("%s", err.Errors()))
 				}
@@ -492,7 +492,7 @@ func updateDevicesDatasourceState(ctx context.Context, state *DevicesDatasourceM
 				var beaconIdParams DevicesResourceModelBeaconIdParams
 
 				// uuid
-				uuid, err := utils2.ExtractStringAttr(beaconIdParamsResp, "uuid")
+				uuid, err := utils.ExtractStringAttr(beaconIdParamsResp, "uuid")
 				if err.HasError() {
 					diags.AddError("uuid Attr", fmt.Sprintf("%s", err.Errors()))
 				}
@@ -500,7 +500,7 @@ func updateDevicesDatasourceState(ctx context.Context, state *DevicesDatasourceM
 				beaconIdParams.Uuid = uuid
 
 				// major
-				major, err := utils2.ExtractInt32Attr(beaconIdParamsResp, "major")
+				major, err := utils.ExtractInt32Attr(beaconIdParamsResp, "major")
 				if err.HasError() {
 					diags.AddError("major Attr", fmt.Sprintf("%s", err.Errors()))
 				}
@@ -508,7 +508,7 @@ func updateDevicesDatasourceState(ctx context.Context, state *DevicesDatasourceM
 				beaconIdParams.Major = major
 
 				// minor
-				minor, err := utils2.ExtractInt32Attr(beaconIdParamsResp, "minor")
+				minor, err := utils.ExtractInt32Attr(beaconIdParamsResp, "minor")
 				if err.HasError() {
 					diags.AddError("minor Attr", fmt.Sprintf("%s", err.Errors()))
 				}
@@ -530,7 +530,7 @@ func updateDevicesDatasourceState(ctx context.Context, state *DevicesDatasourceM
 
 		// url
 		if device.Url.IsNull() || device.Url.IsUnknown() {
-			url, err := utils2.ExtractStringAttr(d, "url")
+			url, err := utils.ExtractStringAttr(d, "url")
 			if err.HasError() {
 				diags.AddError("url Attr", fmt.Sprintf("%s", err.Errors()))
 			}
@@ -539,7 +539,7 @@ func updateDevicesDatasourceState(ctx context.Context, state *DevicesDatasourceM
 
 		// SwitchProfileId
 		if device.SwitchProfileId.IsNull() || device.SwitchProfileId.IsUnknown() {
-			switchProfileId, err := utils2.ExtractStringAttr(d, "switchProfileId")
+			switchProfileId, err := utils.ExtractStringAttr(d, "switchProfileId")
 			if err.HasError() {
 				diags.AddError("switchProfileId Attr", fmt.Sprintf("%s", err.Errors()))
 			}
@@ -548,7 +548,7 @@ func updateDevicesDatasourceState(ctx context.Context, state *DevicesDatasourceM
 
 		// MoveMapMarker
 		if device.MoveMapMarker.IsNull() || device.MoveMapMarker.IsUnknown() {
-			moveMapMarker, err := utils2.ExtractBoolAttr(d, "moveMapMarker")
+			moveMapMarker, err := utils.ExtractBoolAttr(d, "moveMapMarker")
 			if err.HasError() {
 				diags.AddError("moveMapMarker Attr", fmt.Sprintf("%s", err.Errors()))
 			}
@@ -587,7 +587,7 @@ func (d *NetworkDevicesDataSource) Read(ctx context.Context, req datasource.Read
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"HTTP Client Failure",
-			utils2.HttpDiagnostics(httpResp),
+			utils.HttpDiagnostics(httpResp),
 		)
 	}
 

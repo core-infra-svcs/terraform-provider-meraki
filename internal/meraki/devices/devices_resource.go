@@ -3,7 +3,7 @@ package devices
 import (
 	"context"
 	"fmt"
-	utils2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"io"
@@ -247,14 +247,14 @@ func (r *DevicesResource) Configure(ctx context.Context, req resource.ConfigureR
 func updateDevicesResourceState(ctx context.Context, state *DevicesResourceModel, httpResp *http.Response) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	httpRespMap, httpRespMapErr := utils2.ExtractResponseToMap(httpResp)
+	httpRespMap, httpRespMapErr := utils.ExtractResponseToMap(httpResp)
 	if httpRespMapErr != nil {
 		diags.AddError("Failed to Unmarshal HttpResp", httpRespMapErr.Error())
 	}
 
 	// "name": "My AP",
 	if state.Name.IsNull() || state.Name.IsUnknown() {
-		name, err := utils2.ExtractStringAttr(httpRespMap, "name")
+		name, err := utils.ExtractStringAttr(httpRespMap, "name")
 		if err != nil {
 			diags.Append(err...)
 		}
@@ -263,7 +263,7 @@ func updateDevicesResourceState(ctx context.Context, state *DevicesResourceModel
 
 	//  "lat": 37.4180951010362,
 	if state.Lat.IsNull() || state.Lat.IsUnknown() {
-		lat, err := utils2.ExtractFloat64Attr(httpRespMap, "lat")
+		lat, err := utils.ExtractFloat64Attr(httpRespMap, "lat")
 		if err != nil {
 			diags.Append(err...)
 		}
@@ -272,7 +272,7 @@ func updateDevicesResourceState(ctx context.Context, state *DevicesResourceModel
 
 	//  "lng": -122.098531723022,
 	if state.Lng.IsNull() || state.Lng.IsUnknown() {
-		lng, err := utils2.ExtractFloat64Attr(httpRespMap, "lng")
+		lng, err := utils.ExtractFloat64Attr(httpRespMap, "lng")
 		if err != nil {
 			diags.Append(err...)
 		}
@@ -281,7 +281,7 @@ func updateDevicesResourceState(ctx context.Context, state *DevicesResourceModel
 
 	//  "address": "1600 Pennsylvania Ave",
 	if state.Address.IsNull() || state.Address.IsUnknown() {
-		address, err := utils2.ExtractStringAttr(httpRespMap, "address")
+		address, err := utils.ExtractStringAttr(httpRespMap, "address")
 		if err != nil {
 			diags.Append(err...)
 		}
@@ -290,7 +290,7 @@ func updateDevicesResourceState(ctx context.Context, state *DevicesResourceModel
 
 	//  "notes": "My AP's note",
 	if state.Notes.IsNull() || state.Notes.IsUnknown() {
-		notes, err := utils2.ExtractStringAttr(httpRespMap, "notes")
+		notes, err := utils.ExtractStringAttr(httpRespMap, "notes")
 		if err != nil {
 			diags.Append(err...)
 		}
@@ -301,7 +301,7 @@ func updateDevicesResourceState(ctx context.Context, state *DevicesResourceModel
 	//    " recently-added "
 	//  ],
 	if state.Tags.IsNull() || state.Tags.IsUnknown() {
-		tags, err := utils2.ExtractListStringAttr(httpRespMap, "tags")
+		tags, err := utils.ExtractListStringAttr(httpRespMap, "tags")
 		if err != nil {
 			diags.Append(err...)
 		}
@@ -311,7 +311,7 @@ func updateDevicesResourceState(ctx context.Context, state *DevicesResourceModel
 
 	//  "networkId": "N_24329156",
 	if state.NetworkId.IsNull() || state.NetworkId.IsUnknown() {
-		networkId, err := utils2.ExtractStringAttr(httpRespMap, "networkId")
+		networkId, err := utils.ExtractStringAttr(httpRespMap, "networkId")
 		if err != nil {
 			diags.Append(err...)
 		}
@@ -325,7 +325,7 @@ func updateDevicesResourceState(ctx context.Context, state *DevicesResourceModel
 
 	//  "model": "MR34",
 	if state.Model.IsNull() || state.Model.IsUnknown() {
-		model, err := utils2.ExtractStringAttr(httpRespMap, "model")
+		model, err := utils.ExtractStringAttr(httpRespMap, "model")
 		if err != nil {
 			diags.Append(err...)
 		}
@@ -334,7 +334,7 @@ func updateDevicesResourceState(ctx context.Context, state *DevicesResourceModel
 
 	//  "mac": "00:11:22:33:44:55",
 	if state.Mac.IsNull() || state.Mac.IsUnknown() {
-		mac, err := utils2.ExtractStringAttr(httpRespMap, "mac")
+		mac, err := utils.ExtractStringAttr(httpRespMap, "mac")
 		if err != nil {
 			diags.Append(err...)
 		}
@@ -343,7 +343,7 @@ func updateDevicesResourceState(ctx context.Context, state *DevicesResourceModel
 
 	//  "lanIp": "1.2.3.4",
 	if state.LanIp.IsNull() || state.LanIp.IsUnknown() {
-		lanIp, err := utils2.ExtractStringAttr(httpRespMap, "lanIp")
+		lanIp, err := utils.ExtractStringAttr(httpRespMap, "lanIp")
 		if err != nil {
 			diags.Append(err...)
 		}
@@ -352,7 +352,7 @@ func updateDevicesResourceState(ctx context.Context, state *DevicesResourceModel
 
 	//  "firmware": "wireless-25-14",
 	if state.Firmware.IsNull() || state.Firmware.IsUnknown() {
-		firmware, err := utils2.ExtractStringAttr(httpRespMap, "firmware")
+		firmware, err := utils.ExtractStringAttr(httpRespMap, "firmware")
 		if err != nil {
 			diags.Append(err...)
 		}
@@ -361,7 +361,7 @@ func updateDevicesResourceState(ctx context.Context, state *DevicesResourceModel
 
 	//  "floorPlanId": "g_2176982374",
 	if state.FloorPlanId.IsNull() || state.FloorPlanId.IsUnknown() {
-		floorPlanId, err := utils2.ExtractStringAttr(httpRespMap, "floorPlanId")
+		floorPlanId, err := utils.ExtractStringAttr(httpRespMap, "floorPlanId")
 		if err != nil {
 			diags.Append(err...)
 		}
@@ -386,7 +386,7 @@ func updateDevicesResourceState(ctx context.Context, state *DevicesResourceModel
 		_, ok := httpRespMap["details"].([]map[string]interface{})
 		if ok {
 
-			detailsList, err := utils2.ExtractListAttr(httpRespMap, "details", detailsAttrs)
+			detailsList, err := utils.ExtractListAttr(httpRespMap, "details", detailsAttrs)
 			if err.HasError() {
 				tflog.Error(context.Background(), fmt.Sprintf("%s", err.Errors()))
 			}
@@ -416,7 +416,7 @@ func updateDevicesResourceState(ctx context.Context, state *DevicesResourceModel
 			var beaconIdParams DevicesResourceModelBeaconIdParams
 
 			// uuid
-			uuid, err := utils2.ExtractStringAttr(beaconIdParamsResp, "uuid")
+			uuid, err := utils.ExtractStringAttr(beaconIdParamsResp, "uuid")
 			if err.HasError() {
 				diags.AddError("uuid Attr", fmt.Sprintf("%s", err.Errors()))
 			}
@@ -424,7 +424,7 @@ func updateDevicesResourceState(ctx context.Context, state *DevicesResourceModel
 			beaconIdParams.Uuid = uuid
 
 			// major
-			major, err := utils2.ExtractInt32Attr(beaconIdParamsResp, "major")
+			major, err := utils.ExtractInt32Attr(beaconIdParamsResp, "major")
 			if err.HasError() {
 				diags.AddError("major Attr", fmt.Sprintf("%s", err.Errors()))
 			}
@@ -432,7 +432,7 @@ func updateDevicesResourceState(ctx context.Context, state *DevicesResourceModel
 			beaconIdParams.Major = major
 
 			// minor
-			minor, err := utils2.ExtractInt32Attr(beaconIdParamsResp, "minor")
+			minor, err := utils.ExtractInt32Attr(beaconIdParamsResp, "minor")
 			if err.HasError() {
 				diags.AddError("minor Attr", fmt.Sprintf("%s", err.Errors()))
 			}
@@ -454,7 +454,7 @@ func updateDevicesResourceState(ctx context.Context, state *DevicesResourceModel
 
 	// url
 	if state.Url.IsNull() || state.Url.IsUnknown() {
-		url, err := utils2.ExtractStringAttr(httpRespMap, "url")
+		url, err := utils.ExtractStringAttr(httpRespMap, "url")
 		if err.HasError() {
 			diags.AddError("url Attr", fmt.Sprintf("%s", err.Errors()))
 		}
@@ -463,7 +463,7 @@ func updateDevicesResourceState(ctx context.Context, state *DevicesResourceModel
 
 	// SwitchProfileId
 	if state.SwitchProfileId.IsNull() || state.SwitchProfileId.IsUnknown() {
-		switchProfileId, err := utils2.ExtractStringAttr(httpRespMap, "switchProfileId")
+		switchProfileId, err := utils.ExtractStringAttr(httpRespMap, "switchProfileId")
 		if err.HasError() {
 			diags.AddError("switchProfileId Attr", fmt.Sprintf("%s", err.Errors()))
 		}
@@ -472,7 +472,7 @@ func updateDevicesResourceState(ctx context.Context, state *DevicesResourceModel
 
 	// MoveMapMarker
 	if state.MoveMapMarker.IsNull() || state.MoveMapMarker.IsUnknown() {
-		moveMapMarker, err := utils2.ExtractBoolAttr(httpRespMap, "moveMapMarker")
+		moveMapMarker, err := utils.ExtractBoolAttr(httpRespMap, "moveMapMarker")
 		if err.HasError() {
 			diags.AddError("moveMapMarker Attr", fmt.Sprintf("%s", err.Errors()))
 		}
@@ -574,7 +574,7 @@ func (r *DevicesResource) Create(ctx context.Context, req resource.CreateRequest
 		return inline, httpResp, err
 	}
 
-	inlineResp, httpResp, err := utils2.CustomHttpRequestRetry(ctx, maxRetries, retryDelay, apiCall)
+	inlineResp, httpResp, err := utils.CustomHttpRequestRetry(ctx, maxRetries, retryDelay, apiCall)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Create Error",
@@ -613,7 +613,7 @@ func (r *DevicesResource) Create(ctx context.Context, req resource.CreateRequest
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Create HTTP Client Failure",
-			utils2.HttpDiagnostics(httpResp),
+			utils.HttpDiagnostics(httpResp),
 		)
 		return
 	}
@@ -666,7 +666,7 @@ func (r *DevicesResource) Read(ctx context.Context, req resource.ReadRequest, re
 		return inline, httpResp, err
 	}
 
-	_, httpResp, err := utils2.CustomHttpRequestRetry(ctx, maxRetries, retryDelay, apiCall)
+	_, httpResp, err := utils.CustomHttpRequestRetry(ctx, maxRetries, retryDelay, apiCall)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Read Error",
@@ -701,7 +701,7 @@ func (r *DevicesResource) Read(ctx context.Context, req resource.ReadRequest, re
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Read HTTP Client Failure",
-			utils2.HttpDiagnostics(httpResp),
+			utils.HttpDiagnostics(httpResp),
 		)
 		return
 	}
@@ -760,7 +760,7 @@ func (r *DevicesResource) Update(ctx context.Context, req resource.UpdateRequest
 		return inline, httpResp, err
 	}
 
-	_, httpResp, err := utils2.CustomHttpRequestRetry(ctx, maxRetries, retryDelay, apiCall)
+	_, httpResp, err := utils.CustomHttpRequestRetry(ctx, maxRetries, retryDelay, apiCall)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Update Error",
@@ -795,7 +795,7 @@ func (r *DevicesResource) Update(ctx context.Context, req resource.UpdateRequest
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Create HTTP Client Failure",
-			utils2.HttpDiagnostics(httpResp),
+			utils.HttpDiagnostics(httpResp),
 		)
 		return
 	}
@@ -871,7 +871,7 @@ func (r *DevicesResource) Delete(ctx context.Context, req resource.DeleteRequest
 		return inline, httpResp, err
 	}
 
-	_, httpResp, err := utils2.CustomHttpRequestRetry(ctx, maxRetries, retryDelay, apiCall)
+	_, httpResp, err := utils.CustomHttpRequestRetry(ctx, maxRetries, retryDelay, apiCall)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Delete Error",

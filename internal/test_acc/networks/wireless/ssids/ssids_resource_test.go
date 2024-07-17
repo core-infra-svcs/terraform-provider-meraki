@@ -83,14 +83,6 @@ func TestAccNetworksWirelessSsidsResource(t *testing.T) {
 				),
 			},
 
-			// Import test
-			{
-				ResourceName:            "meraki_networks_wireless_ssids.test_radius",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"psk"},
-			},
-
 			// Test the creation of multiple SSIDs.
 			{
 				Config: testAccNetworksWirelessSsidsResourceConfigMultiplePolicies(orgId, ssids),

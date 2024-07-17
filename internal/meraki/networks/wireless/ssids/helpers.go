@@ -3,7 +3,7 @@ package ssids
 import (
 	"context"
 	"fmt"
-	utils2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -219,7 +219,7 @@ func NetworksWirelessSsidPayloadRadiusServers(ctx context.Context, input types.L
 		serverPayload.SetHost(server.Host.ValueString())
 
 		// Port
-		port, err := utils2.Int32Pointer(server.Port.ValueInt64())
+		port, err := utils.Int32Pointer(server.Port.ValueInt64())
 		if err != nil {
 			diags = append(diags, diag.NewErrorDiagnostic("Error converting Port", fmt.Sprintf("%s", err.Errors())))
 		}
@@ -227,7 +227,7 @@ func NetworksWirelessSsidPayloadRadiusServers(ctx context.Context, input types.L
 
 		// Secret
 		if encryptionKey != "" {
-			decryptedSecret, err := utils2.Decrypt(encryptionKey, server.Secret.ValueString())
+			decryptedSecret, err := utils.Decrypt(encryptionKey, server.Secret.ValueString())
 			if err != nil {
 				diags = append(diags, diag.NewErrorDiagnostic("Error Decrypting Secret", err.Error()))
 			} else {
@@ -241,7 +241,7 @@ func NetworksWirelessSsidPayloadRadiusServers(ctx context.Context, input types.L
 		serverPayload.SetRadsecEnabled(server.RadSecEnabled.ValueBool())
 
 		// OpenRoamingCertificateId
-		openRoamingCertificateId, err := utils2.Int32Pointer(server.OpenRoamingCertificateID.ValueInt64())
+		openRoamingCertificateId, err := utils.Int32Pointer(server.OpenRoamingCertificateID.ValueInt64())
 		if err != nil {
 			diags = append(diags, diag.NewErrorDiagnostic("Error converting OpenRoamingCertificateID", fmt.Sprintf("%s", err.Errors())))
 		}
@@ -275,7 +275,7 @@ func NetworksWirelessSsidPayloadRadiusAccountingServers(input types.List) ([]ope
 	}
 
 	for _, server := range radiusServers {
-		port, err := utils2.Int32Pointer(server.Port.ValueInt64())
+		port, err := utils.Int32Pointer(server.Port.ValueInt64())
 		if err != nil {
 			diags = append(diags, diag.NewErrorDiagnostic("Error converting Port", fmt.Sprintf("%s", err.Errors())))
 		}
@@ -308,7 +308,7 @@ func NetworksWirelessSsidPayloadApTagsAndVlanIds(input types.List) ([]openApiCli
 	}
 
 	for _, tagAndVlan := range tagsAndVlansList {
-		vlanId, err := utils2.Int32Pointer(tagAndVlan.VlanId.ValueInt64())
+		vlanId, err := utils.Int32Pointer(tagAndVlan.VlanId.ValueInt64())
 		if err != nil {
 			diags = append(diags, diag.NewErrorDiagnostic("Error converting VlanID", fmt.Sprintf("%s", err.Errors())))
 		}
@@ -606,20 +606,20 @@ func NetworksWirelessSsidStateRadiusServers(ctx context.Context, plan NetworksWi
 				var radiusServerResp RadiusServer
 
 				// Extract attributes from the response
-				radiusServerResp.Host, _ = utils2.ExtractStringAttr(rs, "host")
+				radiusServerResp.Host, _ = utils.ExtractStringAttr(rs, "host")
 
-				portFloat, _ := utils2.ExtractFloat64Attr(rs, "port")
+				portFloat, _ := utils.ExtractFloat64Attr(rs, "port")
 				if !portFloat.IsNull() && !portFloat.IsUnknown() {
 					radiusServerResp.Port = types.Int64Value(int64(portFloat.ValueFloat64()))
 				} else {
 					radiusServerResp.Port = types.Int64Null()
 				}
 
-				// radiusServerResp.ServerId, _ = utils2.ExtractStringAttr(rs, "id")  // not in api spec and changes all the time
+				// radiusServerResp.ServerId, _ = utils.ExtractStringAttr(rs, "id")  // not in api spec and changes all the time
 
-				radiusServerResp.OpenRoamingCertificateID, _ = utils2.ExtractInt32Attr(rs, "openRoamingCertificateId")
-				radiusServerResp.CaCertificate, _ = utils2.ExtractStringAttr(rs, "caCertificate")
-				radiusServerResp.RadSecEnabled, _ = utils2.ExtractBoolAttr(rs, "radsecEnabled")
+				radiusServerResp.OpenRoamingCertificateID, _ = utils.ExtractInt32Attr(rs, "openRoamingCertificateId")
+				radiusServerResp.CaCertificate, _ = utils.ExtractStringAttr(rs, "caCertificate")
+				radiusServerResp.RadSecEnabled, _ = utils.ExtractBoolAttr(rs, "radsecEnabled")
 
 				// Secret not returned by API, will be set from the plan
 				radiusServerResp.Secret = types.StringNull()
@@ -651,7 +651,7 @@ func NetworksWirelessSsidStateRadiusServers(ctx context.Context, plan NetworksWi
 
 			// Encrypt the secret if the encryption key is available
 			if encryptionKey != "" {
-				encryptedSecret, err := utils2.Encrypt(encryptionKey, radiusServerPlan.Secret.ValueString())
+				encryptedSecret, err := utils.Encrypt(encryptionKey, radiusServerPlan.Secret.ValueString())
 				if err != nil {
 					diags.Append(diag.NewErrorDiagnostic("Error Encrypting Secret", err.Error()))
 				} else {
@@ -661,7 +661,7 @@ func NetworksWirelessSsidStateRadiusServers(ctx context.Context, plan NetworksWi
 
 			// Encrypt the ca_certificate if the encryption key is available
 			if encryptionKey != "" {
-				encryptedCaCertificate, err := utils2.Encrypt(encryptionKey, radiusServers[i].CaCertificate.ValueString())
+				encryptedCaCertificate, err := utils.Encrypt(encryptionKey, radiusServers[i].CaCertificate.ValueString())
 				if err != nil {
 					diags.Append(diag.NewErrorDiagnostic("Error Encrypting CA Certificate", err.Error()))
 				} else {
@@ -725,20 +725,20 @@ func NetworksWirelessSsidStateRadiusAccountingServers(ctx context.Context, plan 
 				var radiusServerResp RadiusServer
 
 				// Extract attributes from the response
-				radiusServerResp.Host, _ = utils2.ExtractStringAttr(rs, "host")
+				radiusServerResp.Host, _ = utils.ExtractStringAttr(rs, "host")
 
-				portFloat, _ := utils2.ExtractFloat64Attr(rs, "port")
+				portFloat, _ := utils.ExtractFloat64Attr(rs, "port")
 				if !portFloat.IsNull() && !portFloat.IsUnknown() {
 					radiusServerResp.Port = types.Int64Value(int64(portFloat.ValueFloat64()))
 				} else {
 					radiusServerResp.Port = types.Int64Null()
 				}
 
-				// radiusServerResp.ServerId, _ = utils2.ExtractStringAttr(rs, "id")  // not in api spec and changes all the time
+				// radiusServerResp.ServerId, _ = utils.ExtractStringAttr(rs, "id")  // not in api spec and changes all the time
 
-				radiusServerResp.OpenRoamingCertificateID, _ = utils2.ExtractInt32Attr(rs, "openRoamingCertificateId")
-				radiusServerResp.CaCertificate, _ = utils2.ExtractStringAttr(rs, "caCertificate")
-				radiusServerResp.RadSecEnabled, _ = utils2.ExtractBoolAttr(rs, "radsecEnabled")
+				radiusServerResp.OpenRoamingCertificateID, _ = utils.ExtractInt32Attr(rs, "openRoamingCertificateId")
+				radiusServerResp.CaCertificate, _ = utils.ExtractStringAttr(rs, "caCertificate")
+				radiusServerResp.RadSecEnabled, _ = utils.ExtractBoolAttr(rs, "radsecEnabled")
 
 				// Secret not returned by API, will be set from the plan
 				radiusServerResp.Secret = types.StringNull()
@@ -770,7 +770,7 @@ func NetworksWirelessSsidStateRadiusAccountingServers(ctx context.Context, plan 
 
 			// Encrypt the secret if the encryption key is available
 			if encryptionKey != "" {
-				encryptedSecret, err := utils2.Encrypt(encryptionKey, radiusServerPlan.Secret.ValueString())
+				encryptedSecret, err := utils.Encrypt(encryptionKey, radiusServerPlan.Secret.ValueString())
 				if err != nil {
 					diags.Append(diag.NewErrorDiagnostic("Error Encrypting Secret", err.Error()))
 				} else {
@@ -780,7 +780,7 @@ func NetworksWirelessSsidStateRadiusAccountingServers(ctx context.Context, plan 
 
 			// Encrypt the ca_certificate if the encryption key is available
 			if encryptionKey != "" {
-				encryptedCaCertificate, err := utils2.Encrypt(encryptionKey, radiusServers[i].CaCertificate.ValueString())
+				encryptedCaCertificate, err := utils.Encrypt(encryptionKey, radiusServers[i].CaCertificate.ValueString())
 				if err != nil {
 					diags.Append(diag.NewErrorDiagnostic("Error Encrypting CA Certificate", err.Error()))
 				} else {
@@ -828,14 +828,14 @@ func NetworksWirelessSsidStateDot11w(rawResp map[string]interface{}) (types.Obje
 	if d, ok := rawResp["dot11w"].(map[string]interface{}); ok {
 
 		// enabled
-		enabled, err := utils2.ExtractBoolAttr(d, "enabled")
+		enabled, err := utils.ExtractBoolAttr(d, "enabled")
 		if diags.HasError() {
 			diags.Append(err...)
 		}
 		dot11w.Enabled = enabled
 
 		// required
-		required, err := utils2.ExtractBoolAttr(d, "required")
+		required, err := utils.ExtractBoolAttr(d, "required")
 		if diags.HasError() {
 			diags.Append(err...)
 		}
@@ -866,14 +866,14 @@ func NetworksWirelessSsidStateDot11r(rawResp map[string]interface{}) (types.Obje
 	if d, ok := rawResp["dot11r"].(map[string]interface{}); ok {
 
 		// enabled
-		enabled, err := utils2.ExtractBoolAttr(d, "enabled")
+		enabled, err := utils.ExtractBoolAttr(d, "enabled")
 		if diags.HasError() {
 			diags.Append(err...)
 		}
 		dot11r.Enabled = enabled
 
 		// adaptive
-		adaptive, err := utils2.ExtractBoolAttr(d, "adaptive")
+		adaptive, err := utils.ExtractBoolAttr(d, "adaptive")
 		if diags.HasError() {
 			diags.Append(err...)
 		}
@@ -971,7 +971,7 @@ func NetworksWirelessSsidStateLocalRadius(rawResp map[string]interface{}) (types
 	var localRadius LocalRadius
 
 	// cacheTimeout
-	cacheTimeout, err := utils2.ExtractInt64Attr(rawResp, "cacheTimeOut")
+	cacheTimeout, err := utils.ExtractInt64Attr(rawResp, "cacheTimeOut")
 	if diags.HasError() {
 		diags.Append(err...)
 	}
@@ -982,7 +982,7 @@ func NetworksWirelessSsidStateLocalRadius(rawResp map[string]interface{}) (types
 		var passwordAuth PasswordAuthentication
 
 		// enabled
-		enabled, err := utils2.ExtractBoolAttr(pa, "enabled")
+		enabled, err := utils.ExtractBoolAttr(pa, "enabled")
 		if diags.HasError() {
 			diags.Append(err...)
 		}
@@ -1000,7 +1000,7 @@ func NetworksWirelessSsidStateLocalRadius(rawResp map[string]interface{}) (types
 		//   Enabled
 		if _, ok := ca["enabled"].(types.Bool); ok {
 
-			caEnabled, err := utils2.ExtractBoolAttr(ca, "enabled")
+			caEnabled, err := utils.ExtractBoolAttr(ca, "enabled")
 			if diags.HasError() {
 				diags.Append(err...)
 			}
@@ -1015,7 +1015,7 @@ func NetworksWirelessSsidStateLocalRadius(rawResp map[string]interface{}) (types
 		//    UseLdap
 		if _, ok := ca["useLdap"].(types.Bool); ok {
 
-			useLdap, err := utils2.ExtractBoolAttr(ca, "useLdap")
+			useLdap, err := utils.ExtractBoolAttr(ca, "useLdap")
 			if diags.HasError() {
 				diags.Append(err...)
 			}
@@ -1030,7 +1030,7 @@ func NetworksWirelessSsidStateLocalRadius(rawResp map[string]interface{}) (types
 		//    UseOcsp
 		if _, ok := ca["useOcsp"].(types.Bool); ok {
 
-			useOcsp, err := utils2.ExtractBoolAttr(ca, "useOcsp")
+			useOcsp, err := utils.ExtractBoolAttr(ca, "useOcsp")
 			if diags.HasError() {
 				diags.Append(err...)
 			}
@@ -1045,7 +1045,7 @@ func NetworksWirelessSsidStateLocalRadius(rawResp map[string]interface{}) (types
 		//    OcspResponderUrl
 		if _, ok := ca["ocspResponderUrl"].(types.String); ok {
 
-			ocspResponderUrl, err := utils2.ExtractStringAttr(ca, "ocspResponderUrl")
+			ocspResponderUrl, err := utils.ExtractStringAttr(ca, "ocspResponderUrl")
 			if diags.HasError() {
 				diags.Append(err...)
 			}
@@ -1064,7 +1064,7 @@ func NetworksWirelessSsidStateLocalRadius(rawResp map[string]interface{}) (types
 			// Contents
 			if _, ok := crca["contents"].(types.String); ok {
 
-				contents, err := utils2.ExtractStringAttr(ca, "contents")
+				contents, err := utils.ExtractStringAttr(ca, "contents")
 				if diags.HasError() {
 					diags.Append(err...)
 				}
@@ -1125,7 +1125,7 @@ func NetworksWirelessSsidStateLdap(httpResp map[string]interface{}) (types.Objec
 	if l, ok := httpResp["ldap"].(map[string]interface{}); ok {
 
 		// baseDistinguishedName
-		baseDistinguishedName, err := utils2.ExtractStringAttr(l, "baseDistinguishedName")
+		baseDistinguishedName, err := utils.ExtractStringAttr(l, "baseDistinguishedName")
 		if err.HasError() {
 			diags.AddError("baseDistinguishedName Attribute", fmt.Sprintf("%s", err.Errors()))
 		}
@@ -1136,14 +1136,14 @@ func NetworksWirelessSsidStateLdap(httpResp map[string]interface{}) (types.Objec
 			var creds LdapCredentials
 
 			// loginName
-			DistinguishedNameObj, err := utils2.ExtractStringAttr(credsMap, "DistinguishedName")
+			DistinguishedNameObj, err := utils.ExtractStringAttr(credsMap, "DistinguishedName")
 			if err.HasError() {
 				diags.AddError("DistinguishedName Attribute", fmt.Sprintf("%s", err.Errors()))
 			}
 			creds.DistinguishedName = DistinguishedNameObj
 
 			// Password
-			passwordObj, err := utils2.ExtractStringAttr(credsMap, "password")
+			passwordObj, err := utils.ExtractStringAttr(credsMap, "password")
 			if err.HasError() {
 				diags.AddError("password Attribute", fmt.Sprintf("%s", err.Errors()))
 			}
@@ -1166,7 +1166,7 @@ func NetworksWirelessSsidStateLdap(httpResp map[string]interface{}) (types.Objec
 			var serverCaCertificate LdapServerCaCertificate
 
 			// contents
-			contents, err := utils2.ExtractStringAttr(serverCaCertificateMap, "contents")
+			contents, err := utils.ExtractStringAttr(serverCaCertificateMap, "contents")
 			if err.HasError() {
 				diags.AddError("contents Attribute", fmt.Sprintf("%s", err.Errors()))
 			}
@@ -1194,14 +1194,14 @@ func NetworksWirelessSsidStateLdap(httpResp map[string]interface{}) (types.Objec
 				var server ActiveDirectoryServer
 
 				// host
-				host, err := utils2.ExtractStringAttr(listMap, "host")
+				host, err := utils.ExtractStringAttr(listMap, "host")
 				if err.HasError() {
 					diags.AddError("host Attribute", fmt.Sprintf("%s", err.Errors()))
 				}
 				server.Host = host
 
 				// port
-				port, err := utils2.ExtractInt64Attr(listMap, "port")
+				port, err := utils.ExtractInt64Attr(listMap, "port")
 				if err.HasError() {
 					diags.AddError("port Attribute", fmt.Sprintf("%s", err.Errors()))
 				}
@@ -1286,14 +1286,14 @@ func NetworksWirelessSsidStateActiveDirectory(httpResp map[string]interface{}) (
 				var server ActiveDirectoryServer
 
 				// host
-				host, err := utils2.ExtractStringAttr(listMap, "host")
+				host, err := utils.ExtractStringAttr(listMap, "host")
 				if err.HasError() {
 					diags.AddError("host Attribute", fmt.Sprintf("%s", err.Errors()))
 				}
 				server.Host = host
 
 				// port
-				port, err := utils2.ExtractInt64Attr(listMap, "port")
+				port, err := utils.ExtractInt64Attr(listMap, "port")
 				if err.HasError() {
 					diags.AddError("port Attribute", fmt.Sprintf("%s", err.Errors()))
 				}
@@ -1337,14 +1337,14 @@ func NetworksWirelessSsidStateActiveDirectory(httpResp map[string]interface{}) (
 			var creds AdCredentials
 
 			// loginName
-			loginNameObj, err := utils2.ExtractStringAttr(credsMap, "loginName")
+			loginNameObj, err := utils.ExtractStringAttr(credsMap, "loginName")
 			if err.HasError() {
 				diags.AddError("loginName Attribute", fmt.Sprintf("%s", err.Errors()))
 			}
 			creds.LoginName = loginNameObj
 
 			// Password
-			passwordObj, err := utils2.ExtractStringAttr(credsMap, "password")
+			passwordObj, err := utils.ExtractStringAttr(credsMap, "password")
 			if err.HasError() {
 				diags.AddError("password Attribute", fmt.Sprintf("%s", err.Errors()))
 			}
@@ -1385,7 +1385,7 @@ func NetworksWirelessSsidStateApTagsAndVlanIds(httpResp map[string]interface{}) 
 
 	apTagsAndVlanIdsAttrs := types.ObjectType{AttrTypes: apTagsAndVlanIdsAttr}
 
-	apTagsAndVlanIdsList, err := utils2.ExtractListAttr(httpResp, "apTagsAndVlanIds", apTagsAndVlanIdsAttrs)
+	apTagsAndVlanIdsList, err := utils.ExtractListAttr(httpResp, "apTagsAndVlanIds", apTagsAndVlanIdsAttrs)
 	if err.HasError() {
 		tflog.Error(context.Background(), fmt.Sprintf("%s", err.Errors()))
 	}
@@ -1408,13 +1408,13 @@ func NetworksWirelessSsidStateGre(httpResp map[string]interface{}) (types.Object
 	if g, ok := httpResp["gre"].(map[string]interface{}); ok {
 
 		// key
-		gre.Key, diags = utils2.ExtractInt64Attr(httpResp, "key")
+		gre.Key, diags = utils.ExtractInt64Attr(httpResp, "key")
 
 		// concentrator
 		if c, ok := g["concentrator"].(map[string]interface{}); ok {
 			var concentrator GreConcentrator
 
-			concentrator.Host, diags = utils2.ExtractStringAttr(c, "host")
+			concentrator.Host, diags = utils.ExtractStringAttr(c, "host")
 
 			concentratorObj, err := types.ObjectValueFrom(context.Background(), concentratorAttrs, concentrator)
 			if err.HasError() {
@@ -1455,7 +1455,7 @@ func NetworksWirelessSsidStateDnsRewrite(httpResp map[string]interface{}) (types
 	if ok {
 
 		// enabled
-		enabled, err := utils2.ExtractBoolAttr(dns, "enabled")
+		enabled, err := utils.ExtractBoolAttr(dns, "enabled")
 		if err.HasError() {
 			diags.AddError("enabled Attr", fmt.Sprintf("%s", err.Errors()))
 		}
@@ -1463,7 +1463,7 @@ func NetworksWirelessSsidStateDnsRewrite(httpResp map[string]interface{}) (types
 		dnsRewrite.Enabled = enabled
 
 		// dns custom Name Servers
-		dnsCustomNameservers, err := utils2.ExtractListStringAttr(dns, "dnsCustomNameServers")
+		dnsCustomNameservers, err := utils.ExtractListStringAttr(dns, "dnsCustomNameServers")
 		if err.HasError() {
 			diags.AddError("dnsCustomNameservers Attr", fmt.Sprintf("%s", err.Errors()))
 		}
@@ -1494,7 +1494,7 @@ func NetworksWirelessSsidStateSpeedBurst(httpResp map[string]interface{}) (types
 
 	sb, ok := httpResp["speedBurst"].(map[string]interface{})
 	if ok {
-		enabled, err := utils2.ExtractBoolAttr(sb, "enabled")
+		enabled, err := utils.ExtractBoolAttr(sb, "enabled")
 		if err.HasError() {
 			diags.AddError("enabled Attr", fmt.Sprintf("%s", err.Errors()))
 		}
@@ -1551,14 +1551,14 @@ func NetworksWirelessSsidStateNamedVlans(httpResp map[string]interface{}) (types
 			var tagging Tagging
 
 			// Enabled
-			enabled, err := utils2.ExtractBoolAttr(t, "enabled")
+			enabled, err := utils.ExtractBoolAttr(t, "enabled")
 			if err.HasError() {
 				diags.AddError("enabled Attr", fmt.Sprintf("%s", err.Errors()))
 			}
 			tagging.Enabled = enabled
 
 			// DefaultVlanName
-			defaultVlanName, err := utils2.ExtractStringAttr(t, "defaultVlanName")
+			defaultVlanName, err := utils.ExtractStringAttr(t, "defaultVlanName")
 			if err.HasError() {
 				diags.AddError("defaultVlanName Attr", fmt.Sprintf("%s", err.Errors()))
 			}
@@ -1575,14 +1575,14 @@ func NetworksWirelessSsidStateNamedVlans(httpResp map[string]interface{}) (types
 						var byApTags ByApTag
 
 						// tags
-						tags, err := utils2.ExtractListStringAttr(b, "tags")
+						tags, err := utils.ExtractListStringAttr(b, "tags")
 						if err.HasError() {
 							diags.AddError("tags Attr", fmt.Sprintf("%s", err.Errors()))
 						}
 						byApTags.Tags = tags
 
 						// vlanName
-						vlanName, err := utils2.ExtractStringAttr(b, "vlanName")
+						vlanName, err := utils.ExtractStringAttr(b, "vlanName")
 						if err.HasError() {
 							diags.AddError("vlanName Attr", fmt.Sprintf("%s", err.Errors()))
 						}
@@ -1641,14 +1641,14 @@ func NetworksWirelessSsidStateNamedVlans(httpResp map[string]interface{}) (types
 				var guestVlans RadiusGuestVlan
 
 				// enabled
-				enabled, err := utils2.ExtractBoolAttr(g, "enabled")
+				enabled, err := utils.ExtractBoolAttr(g, "enabled")
 				if err.HasError() {
 					diags.AddError("enabled Attr", fmt.Sprintf("%s", err.Errors()))
 				}
 				guestVlans.Enabled = enabled
 
 				// name
-				name, err := utils2.ExtractStringAttr(g, "name")
+				name, err := utils.ExtractStringAttr(g, "name")
 				if err.HasError() {
 					diags.AddError("name Attr", fmt.Sprintf("%s", err.Errors()))
 				}
