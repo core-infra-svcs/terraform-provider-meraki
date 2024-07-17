@@ -52,7 +52,7 @@ description: |-
 - `per_client_bandwidth_limit_up` (Number) The upload bandwidth limit in Kbps. (0 represents no limit.)
 - `per_ssid_bandwidth_limit_down` (Number) The total download bandwidth limit in Kbps (0 represents no limit)
 - `per_ssid_bandwidth_limit_up` (Number) The total upload bandwidth limit in Kbps (0 represents no limit)
-- `psk` (String) The passkey for the SSID. This param is only valid if the authMode is 'psk'
+- `psk` (String, Sensitive) The passkey for the SSID. This param is only valid if the authMode is 'psk'
 - `radius_accounting_enabled` (Boolean) Whether or not RADIUS accounting is enabled
 - `radius_accounting_interim_interval` (Number) The interval (in seconds) in which accounting information is updated and sent to the RADIUS accounting server.
 - `radius_accounting_servers` (Attributes List) List of RADIUS accounting 802.1X servers to be used for authentication (see [below for nested schema](#nestedatt--radius_accounting_servers))
@@ -304,12 +304,12 @@ Optional:
 
 Optional:
 
-- `ca_certificate` (String) Certificate used for authorization for the RADSEC Server
+- `ca_certificate` (String, Sensitive) Certificate used for authorization for the RADSEC Server
 - `host` (String) IP address (or FQDN) to which the APs will send RADIUS accounting messages
 - `open_roaming_certificate_id` (Number) The ID of the Open roaming Certificate attached to radius server
 - `port` (Number) Port on the RADIUS server that is listening for accounting messages
 - `rad_sec_enabled` (Boolean) Use RADSEC (TLS over TCP) to connect to this RADIUS accounting server. Requires radiusProxyEnabled.
-- `secret` (String) Shared key used to authenticate messages between the APs and RADIUS server
+- `secret` (String, Sensitive) Shared key used to authenticate messages between the APs and RADIUS server
 
 
 <a id="nestedatt--radius_servers"></a>
@@ -317,12 +317,12 @@ Optional:
 
 Optional:
 
-- `ca_certificate` (String) Certificate used for authorization for the RADSEC Server
+- `ca_certificate` (String, Sensitive) Certificate used for authorization for the RADSEC Server
 - `host` (String) IP address of your RADIUS server
 - `open_roaming_certificate_id` (Number) The ID of the Openroaming Certificate attached to radius server.
 - `port` (Number) UDP port the RADIUS server listens on for Access-requests
 - `rad_sec_enabled` (Boolean) Use RADSEC (TLS over TCP) to connect to this RADIUS server. Requires radiusProxyEnabled.
-- `secret` (String) RADIUS client shared secret
+- `secret` (String, Sensitive) RADIUS client shared secret
 
 
 <a id="nestedatt--speed_burst"></a>

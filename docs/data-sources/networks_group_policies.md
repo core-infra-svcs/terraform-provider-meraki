@@ -165,7 +165,7 @@ Optional:
 - `per_client_bandwidth_limits` (Attributes) (see [below for nested schema](#nestedatt--list--firewall_and_traffic_shaping--traffic_shaping_rules--per_client_bandwidth_limits))
 
 <a id="nestedatt--list--firewall_and_traffic_shaping--traffic_shaping_rules--definitions"></a>
-### Nested Schema for `list.firewall_and_traffic_shaping.traffic_shaping_rules.per_client_bandwidth_limits`
+### Nested Schema for `list.firewall_and_traffic_shaping.traffic_shaping_rules.definitions`
 
 Optional:
 

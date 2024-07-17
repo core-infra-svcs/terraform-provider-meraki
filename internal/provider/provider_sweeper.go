@@ -14,8 +14,6 @@ import (
 	"time"
 )
 
-// Meraki Dashboard API Calls //
-
 func SweeperHTTPClient() (*openApiClient.APIClient, error) {
 	configuration := openApiClient.NewConfiguration()
 	configuration.UserAgent = configuration.UserAgent + " terraform/dev-sweeper"
@@ -24,7 +22,7 @@ func SweeperHTTPClient() (*openApiClient.APIClient, error) {
 			InsecureSkipVerify: false,
 		},
 	}
-	authenticatedTransport := &bearerAuthTransport{
+	authenticatedTransport := &BearerAuthTransport{
 		Transport: transport,
 	}
 	authenticatedTransport.Token = os.Getenv("MERAKI_DASHBOARD_API_KEY")
@@ -242,7 +240,7 @@ func deleteMerakiAdmin(ctx context.Context, client *openApiClient.APIClient, org
 
 // Terraform Sweepers //
 
-func sweepMerakiNetworks(ctx context.Context, client *openApiClient.APIClient, organizationId string) error {
+func SweepMerakiNetworks(ctx context.Context, client *openApiClient.APIClient, organizationId string) error {
 	fmt.Println("Starting network sweeper for organization", map[string]interface{}{"organization": organizationId})
 
 	perPage := int32(100000)
@@ -267,7 +265,7 @@ func sweepMerakiNetworks(ctx context.Context, client *openApiClient.APIClient, o
 	return nil
 }
 
-func sweepMerakiAdmins(ctx context.Context, client *openApiClient.APIClient, organizationId string) error {
+func SweepMerakiAdmins(ctx context.Context, client *openApiClient.APIClient, organizationId string) error {
 	fmt.Println("Starting admin sweeper for organization", map[string]interface{}{"organization": organizationId})
 
 	admins, err := getMerakiAdmins(ctx, client, organizationId)
@@ -296,7 +294,7 @@ func sweepMerakiAdmins(ctx context.Context, client *openApiClient.APIClient, org
 	return nil
 }
 
-func sweepMerakiOrganizations(ctx context.Context, client *openApiClient.APIClient) error {
+func SweepMerakiOrganizations(ctx context.Context, client *openApiClient.APIClient) error {
 	fmt.Println("Starting organizations sweeper")
 
 	organizations, err := getMerakiOrganizations(ctx, client)
@@ -308,7 +306,7 @@ func sweepMerakiOrganizations(ctx context.Context, client *openApiClient.APIClie
 		if strings.HasPrefix(*organization.Name, "test_acc") {
 
 			// First, sweep networks and admins within the organization
-			if err := sweepMerakiNetworks(ctx, client, *organization.Id); err != nil {
+			if err := SweepMerakiNetworks(ctx, client, *organization.Id); err != nil {
 				fmt.Println("Failed to sweep networks", map[string]interface{}{
 					"organization": *organization.Name,
 					"id":           *organization.Id,
@@ -316,7 +314,7 @@ func sweepMerakiOrganizations(ctx context.Context, client *openApiClient.APIClie
 				})
 				continue
 			}
-			if err := sweepMerakiAdmins(ctx, client, *organization.Id); err != nil {
+			if err := SweepMerakiAdmins(ctx, client, *organization.Id); err != nil {
 				fmt.Println("Failed to sweep admins", map[string]interface{}{
 					"organization": *organization.Name,
 					"id":           *organization.Id,
@@ -339,7 +337,7 @@ func sweepMerakiOrganizations(ctx context.Context, client *openApiClient.APIClie
 	return nil
 }
 
-func sweepMerakiOrganization(ctx context.Context, client *openApiClient.APIClient, organizationId string) error {
+func SweepMerakiOrganization(ctx context.Context, client *openApiClient.APIClient, organizationId string) error {
 	fmt.Println("Starting organization sweeper")
 
 	organization, err := getMerakiOrganization(ctx, client, organizationId)
@@ -347,14 +345,14 @@ func sweepMerakiOrganization(ctx context.Context, client *openApiClient.APIClien
 		return err
 	}
 
-	if err := sweepMerakiNetworks(ctx, client, *organization.Id); err != nil {
+	if err := SweepMerakiNetworks(ctx, client, *organization.Id); err != nil {
 		fmt.Println("Failed to sweep networks", map[string]interface{}{
 			"organization": *organization.Name,
 			"id":           *organization.Id,
 			"error":        err,
 		})
 	}
-	if err := sweepMerakiAdmins(ctx, client, *organization.Id); err != nil {
+	if err := SweepMerakiAdmins(ctx, client, *organization.Id); err != nil {
 		fmt.Println("Failed to sweep admins", map[string]interface{}{
 			"organization": *organization.Name,
 			"id":           *organization.Id,
@@ -380,7 +378,7 @@ func init() {
 				fmt.Println("Error creating HTTP client", map[string]interface{}{"error": err})
 				return err
 			}
-			return sweepMerakiNetworks(ctx, client, organizationId)
+			return SweepMerakiNetworks(ctx, client, organizationId)
 		},
 	})
 
@@ -393,7 +391,7 @@ func init() {
 				fmt.Println("Error creating HTTP client", map[string]interface{}{"error": err})
 				return err
 			}
-			return sweepMerakiAdmins(ctx, client, organizationId)
+			return SweepMerakiAdmins(ctx, client, organizationId)
 		},
 	})
 
@@ -406,7 +404,7 @@ func init() {
 				fmt.Println("Error creating HTTP client", map[string]interface{}{"error": err})
 				return err
 			}
-			return sweepMerakiOrganization(ctx, client, organizationId)
+			return SweepMerakiOrganization(ctx, client, organizationId)
 		},
 	})
 
@@ -419,7 +417,7 @@ func init() {
 				fmt.Println("Error creating HTTP client", map[string]interface{}{"error": err})
 				return err
 			}
-			return sweepMerakiOrganizations(ctx, client)
+			return SweepMerakiOrganizations(ctx, client)
 		},
 	})
 }

@@ -43,6 +43,7 @@ type CiscoMerakiProviderModel struct {
 	MaximumRetries        types.Int64  `tfsdk:"maximum_retries"`
 	Nginx429RetryWaitTime types.Int64  `tfsdk:"nginx_429_retry_wait_time"`
 	WaitOnRateLimit       types.Bool   `tfsdk:"wait_on_rate_limit"`
+	EncryptionKey         types.String `tfsdk:"encryption_key"`
 }
 
 func (p *CiscoMerakiProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
@@ -111,17 +112,22 @@ func (p *CiscoMerakiProvider) Schema(ctx context.Context, req provider.SchemaReq
 				Description: "Retry if 429 rate limit error encountered",
 				Optional:    true,
 			},
+			"encryption_key": schema.StringAttribute{
+				Optional:            true,
+				Description:         "Encryption key for encrypting sensitive values.",
+				MarkdownDescription: "Encryption key for encrypting sensitive values.",
+			},
 		},
 	}
 }
 
-// Custom transport to add bearer token in the Authorization header
-type bearerAuthTransport struct {
+// BearerAuthTransport Custom transport to add bearer token in the Authorization header
+type BearerAuthTransport struct {
 	Transport *http.Transport
 	Token     string
 }
 
-func (t *bearerAuthTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+func (t *BearerAuthTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	// Add the bearer token to the Authorization header
 	req.Header.Set("Authorization", "Bearer "+t.Token)
 	// Use the underlying transport to perform the actual request
@@ -239,7 +245,7 @@ func (p *CiscoMerakiProvider) Configure(ctx context.Context, req provider.Config
 	configuration.UserAgent = configuration.UserAgent + "terraform" + p.version
 
 	// Set Bearer Token in transport
-	authenticatedTransport := &bearerAuthTransport{
+	authenticatedTransport := &BearerAuthTransport{
 		Transport: transport,
 	}
 
@@ -254,86 +260,26 @@ func (p *CiscoMerakiProvider) Configure(ctx context.Context, req provider.Config
 
 	client := openApiClient.NewAPIClient(configuration)
 
-	resp.DataSourceData = client
-	resp.ResourceData = client
+	// Add the encryption key to the client configuration
+	encryptionKey := ""
+	if !data.EncryptionKey.IsNull() {
+		encryptionKey = data.EncryptionKey.ValueString()
+	}
+
+	// Pass the encryption key to resources and data sources
+	resp.DataSourceData = map[string]interface{}{
+		"client":         client,
+		"encryption_key": encryptionKey,
+	}
+	resp.ResourceData = client // Directly passing the client for resources
 }
 
 func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.Resource {
-	return []func() resource.Resource{
-		NewOrganizationResource,
-		NewOrganizationSamlResource,
-		NewOrganizationsSamlIdpResource,
-		NewOrganizationsAdminResource,
-		NewOrganizationsAdaptivePolicyAclResource,
-		NewNetworkResource,
-		NewOrganizationsSamlRolesResource,
-		NewNetworksSwitchSettingsResource,
-		NewNetworksSnmpResource,
-		NewOrganizationsSnmpResource,
-		NewNetworksSettingsResource,
-		NewNetworksApplianceFirewallL3FirewallRulesResource,
-		NewNetworksApplianceFirewallL7FirewallRulesResource,
-		NewOrganizationsApplianceVpnVpnFirewallRulesResource,
-		NewNetworksTrafficAnalysisResource,
-		NewNetworksNetflowResource,
-		NewNetworksSyslogServersResource,
-		NewNetworksApplianceVlansSettingsResource,
-		NewNetworksApplianceSettingsResource,
-		NewNetworksApplianceFirewallSettingsResource,
-		NewNetworksSwitchQosRuleResource,
-		NewNetworksSwitchDscpToCosMappingsResource,
-		NewNetworksSwitchMtuResource,
-		NewNetworksGroupPolicyResource,
-		NewOrganizationsLicenseResource,
-		NewNetworksWirelessSsidsFirewallL3FirewallRulesResource,
-		NewNetworksWirelessSsidsFirewallL7FirewallRulesResource,
-		NewDevicesResource,
-		NewOrganizationsClaimResource,
-		NewNetworksDevicesClaimResource,
-		NewNetworkApplianceStaticRoutesResource,
-		NewNetworksCellularGatewaySubnetPoolResource,
-		NewNetworksCellularGatewayUplinkResource,
-		NewNetworksWirelessSsidsSplashSettingsResource,
-		NewDevicesCellularSimsResource,
-		NewDevicesTestAccDevicesManagementInterfaceResourceResource,
-		NewNetworksApplianceVpnSiteToSiteVpnResource,
-		NewDevicesSwitchPortsCycleResource,
-		NewNetworksApplianceTrafficShapingUplinkBandWidthResource,
-		NewNetworksApplianceVLANResource,
-		NewDevicesSwitchPortResource,
-		NewNetworksAppliancePortsResource,
-		NewNetworksWirelessSsidsResource,
-		NewNetworksStormControlResource,
-	}
+	return MerakiResources
 }
 
 func (p *CiscoMerakiProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
-	return []func() datasource.DataSource{
-		NewOrganizationsDataSource,
-		NewOrganizationsNetworksDataSource,
-		NewAdministeredIdentitiesMeDataSource,
-		NewNetworkDevicesDataSource,
-		NewOrganizationsAdminsDataSource,
-		NewOrganizationsSamlIdpsDataSource,
-		NewOrganizationsInventoryDevicesDataSource,
-		NewOrganizationsAdaptivePolicyAclsDataSource,
-		NewOrganizationsSamlRolesDataSource,
-		NewNetworkGroupPoliciesDataSource,
-		NewNetworksAppliancePortsDataSource,
-		NewNetworksApplianceVLANsDatasource,
-		NewOrganizationsCellularGatewayUplinkStatusesDataSource,
-		NewOrganizationsLicensesDataSource,
-		NewNetworksApplianceVlansSettingsDatasource,
-		NewDevicesSwitchPortsStatusesDataSource,
-		NewDevicesApplianceDhcpSubnetsDataSource,
-		NewNetworksWirelessSsidsDataSource,
-		NewNetworksSwitchQosRulesDataSource,
-		NewNetworksApplianceVpnSiteToSiteVpnDatasource,
-		NewNetworksSwitchMtuDataSource,
-		NewDevicesManagementInterfaceDatasource,
-		NewNetworksApplianceFirewallL3FirewallRulesDataSource,
-		NewNetworksSwitchStormControlDataSource,
-	}
+	return MerakiDataSources
 }
 
 func New(version string) func() provider.Provider {
