@@ -63,11 +63,12 @@ func TestAccDevicesManagementInterfaceResource(t *testing.T) {
 			},
 
 			{
-				Config: testAccDevicesManagementInterfaceResourceConfigCreateMS(os.Getenv("TF_ACC_MERAKI_MR_SERIAL")),
+				Config: testAccDevicesManagementInterfaceResourceConfigCreateMR(os.Getenv("TF_ACC_MERAKI_MR_SERIAL")),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_devices_management_interface.ms", "serial", os.Getenv("TF_ACC_MERAKI_MR_SERIAL")),
-					resource.TestCheckResourceAttr("meraki_devices_management_interface.ms", "wan1.vlan", "2"),
-					resource.TestCheckResourceAttr("meraki_devices_management_interface.ms", "wan1.using_static_ip", "false"),
+					resource.TestCheckResourceAttr("meraki_devices_management_interface.mr", "serial", os.Getenv("TF_ACC_MERAKI_MR_SERIAL")),
+					resource.TestCheckResourceAttr("meraki_devices_management_interface.mr", "wan1.wan_enabled", "not configured"),
+					resource.TestCheckResourceAttr("meraki_devices_management_interface.mr", "wan1.vlan", "2"),
+					resource.TestCheckResourceAttr("meraki_devices_management_interface.mr", "wan1.using_static_ip", "false"),
 				),
 			},
 
@@ -185,7 +186,7 @@ resource "meraki_devices_management_interface" "mr" {
     depends_on = [meraki_network.test, meraki_networks_devices_claim.test]
 	serial = "%s"
 	wan1 = {
-		wan_enabled = ""
+		wan_enabled = "not configured"
 		vlan = 2
 		using_static_ip = false
 	}
