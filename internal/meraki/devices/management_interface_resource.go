@@ -100,6 +100,11 @@ func DevicesManagementInterfaceStateWan(rawResp map[string]interface{}, wanKey s
 		if wanEnabledPlan == "not configured" && wanEnabled.IsNull() {
 			wanEnabled = types.StringValue("not configured")
 		}
+
+		if wanEnabledPlan == "" && wanEnabled.IsNull() {
+			wanEnabled = types.StringValue("")
+		}
+
 		if err != nil {
 			diags.Append(err...)
 		}
@@ -384,7 +389,7 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Create(ctx co
 		wan1 := openApiClient.UpdateDeviceManagementInterfaceRequestWan1{}
 		wan1Enabled := wan1Plan.WanEnabled.ValueString()
 		if wan1Plan.WanEnabled.IsNull() || wan1Enabled == "" {
-			wan1Enabled = "not configured" // *** Edit: Handle null or empty wan1.WanEnabled ***
+			wan1Enabled = "not configured"
 		}
 		wan1.SetWanEnabled(wan1Enabled)
 		wan1.SetStaticDns(staticDNS1)
@@ -414,7 +419,7 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Create(ctx co
 		wan2 := openApiClient.UpdateDeviceManagementInterfaceRequestWan2{}
 		wan2Enabled := wan2Plan.WanEnabled.ValueString()
 		if wan2Plan.WanEnabled.IsNull() || wan2Enabled == "" {
-			wan2Enabled = "not configured" // *** Edit: Handle null or empty wan2.WanEnabled ***
+			wan2Enabled = "not configured"
 		}
 		wan2.SetWanEnabled(wan2Enabled)
 		wan2.SetStaticDns(staticDNS2)
@@ -632,7 +637,7 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Update(ctx co
 		wan1 := openApiClient.UpdateDeviceManagementInterfaceRequestWan1{}
 		wan1Enabled := wan1Plan.WanEnabled.ValueString()
 		if wan1Plan.WanEnabled.IsNull() || wan1Enabled == "" {
-			wan1Enabled = "not configured" // *** Edit: Handle null or empty wan1.WanEnabled ***
+			wan1Enabled = "not configured"
 		}
 		wan1.SetWanEnabled(wan1Enabled)
 		wan1.SetStaticDns(staticDNS1)
@@ -662,7 +667,7 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Update(ctx co
 		wan2 := openApiClient.UpdateDeviceManagementInterfaceRequestWan2{}
 		wan2Enabled := wan2Plan.WanEnabled.ValueString()
 		if wan2Plan.WanEnabled.IsNull() || wan2Enabled == "" {
-			wan2Enabled = "not configured" // *** Edit: Handle null or empty wan2.WanEnabled ***
+			wan2Enabled = "not configured"
 		}
 		wan2.SetWanEnabled(wan2Enabled)
 		wan2.SetStaticDns(staticDNS2)
