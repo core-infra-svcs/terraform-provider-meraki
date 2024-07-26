@@ -243,7 +243,7 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Schema(ctx co
 				Computed: true,
 				Attributes: map[string]schema.Attribute{
 					"wan_enabled": schema.StringAttribute{
-						MarkdownDescription: "Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled', and 'not configured'.",
+						MarkdownDescription: "Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled' for MX devices. Leave value null for MR and MS devices.",
 						Optional:            true,
 						Computed:            true,
 						CustomType:          types.StringType,
@@ -378,7 +378,11 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Create(ctx co
 		wan1Plan.StaticDns.ElementsAs(ctx, &staticDNS1, false)
 
 		wan1 := openApiClient.UpdateDeviceManagementInterfaceRequestWan1{}
-		wan1.SetWanEnabled(wan1Plan.WanEnabled.ValueString())
+		wan1Enabled := wan1Plan.WanEnabled.ValueString()
+		if wan1Plan.WanEnabled.IsNull() || wan1Enabled == "" {
+			wan1Enabled = "not configured" // *** Edit: Handle null or empty wan1.WanEnabled ***
+		}
+		wan1.SetWanEnabled(wan1Enabled)
 		wan1.SetStaticDns(staticDNS1)
 		wan1.SetStaticGatewayIp(wan1Plan.StaticGatewayIp.ValueString())
 		wan1.SetStaticSubnetMask(wan1Plan.StaticSubnetMask.ValueString())
@@ -404,7 +408,11 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Create(ctx co
 		wan2Plan.StaticDns.ElementsAs(ctx, &staticDNS2, false)
 
 		wan2 := openApiClient.UpdateDeviceManagementInterfaceRequestWan2{}
-		wan2.SetWanEnabled(wan2Plan.WanEnabled.ValueString())
+		wan2Enabled := wan2Plan.WanEnabled.ValueString()
+		if wan2Plan.WanEnabled.IsNull() || wan2Enabled == "" {
+			wan2Enabled = "not configured" // *** Edit: Handle null or empty wan2.WanEnabled ***
+		}
+		wan2.SetWanEnabled(wan2Enabled)
 		wan2.SetStaticDns(staticDNS2)
 		wan2.SetStaticGatewayIp(wan2Plan.StaticGatewayIp.ValueString())
 		wan2.SetStaticSubnetMask(wan2Plan.StaticSubnetMask.ValueString())
@@ -499,7 +507,8 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Read(ctx cont
 	// Read Terraform prior state data into the model
 
 	diags := req.State.Get(ctx, &data)
-	resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -591,7 +600,11 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Update(ctx co
 		wan1Plan.StaticDns.ElementsAs(ctx, &staticDNS1, false)
 
 		wan1 := openApiClient.UpdateDeviceManagementInterfaceRequestWan1{}
-		wan1.SetWanEnabled(wan1Plan.WanEnabled.ValueString())
+		wan1Enabled := wan1Plan.WanEnabled.ValueString()
+		if wan1Plan.WanEnabled.IsNull() || wan1Enabled == "" {
+			wan1Enabled = "not configured" // *** Edit: Handle null or empty wan1.WanEnabled ***
+		}
+		wan1.SetWanEnabled(wan1Enabled)
 		wan1.SetStaticDns(staticDNS1)
 		wan1.SetStaticGatewayIp(wan1Plan.StaticGatewayIp.ValueString())
 		wan1.SetStaticSubnetMask(wan1Plan.StaticSubnetMask.ValueString())
@@ -617,7 +630,11 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Update(ctx co
 		wan2Plan.StaticDns.ElementsAs(ctx, &staticDNS2, false)
 
 		wan2 := openApiClient.UpdateDeviceManagementInterfaceRequestWan2{}
-		wan2.SetWanEnabled(wan2Plan.WanEnabled.ValueString())
+		wan2Enabled := wan2Plan.WanEnabled.ValueString()
+		if wan2Plan.WanEnabled.IsNull() || wan2Enabled == "" {
+			wan2Enabled = "not configured" // *** Edit: Handle null or empty wan2.WanEnabled ***
+		}
+		wan2.SetWanEnabled(wan2Enabled)
 		wan2.SetStaticDns(staticDNS2)
 		wan2.SetStaticGatewayIp(wan2Plan.StaticGatewayIp.ValueString())
 		wan2.SetStaticSubnetMask(wan2Plan.StaticSubnetMask.ValueString())
@@ -629,7 +646,7 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Update(ctx co
 			wan2.Vlan = &vlan
 		}
 
-		tflog.Debug(ctx, "Wan2 payload before API call", map[string]interface{}{
+		tflog.Debug(ctx, "Wan2 payload", map[string]interface{}{
 			"wan2": wan2,
 		})
 
