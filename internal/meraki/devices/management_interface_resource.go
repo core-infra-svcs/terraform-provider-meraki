@@ -79,7 +79,7 @@ func WANData() map[string]attr.Type {
 	}
 }
 
-func DevicesManagementInterfaceStateWan(rawResp map[string]interface{}, wanKey string) (types.Object, diag.Diagnostics) {
+func DevicesManagementInterfaceStateWan(rawResp map[string]interface{}, wanKey string, wanEnabledPlan string) (types.Object, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	var wan DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan
 
@@ -96,6 +96,15 @@ func DevicesManagementInterfaceStateWan(rawResp map[string]interface{}, wanKey s
 	if d, ok := rawResp[wanKey].(map[string]interface{}); ok {
 		// wan_enabled
 		wanEnabled, err := utils.ExtractStringAttr(d, "wanEnabled")
+
+		if wanEnabledPlan == "not configured" && wanEnabled.IsNull() {
+			wanEnabled = types.StringValue("not configured")
+		}
+
+		if wanEnabledPlan == "" && wanEnabled.IsNull() {
+			wanEnabled = types.StringValue("")
+		}
+
 		if err != nil {
 			diags.Append(err...)
 		}
@@ -171,7 +180,7 @@ func DevicesManagementInterfaceStateWan(rawResp map[string]interface{}, wanKey s
 	return wanObj, diags
 }
 
-func updateDevicesManagementInterfaceResourceState(ctx context.Context, state *DevicesTestAccDevicesManagementInterfaceResourceResourceModel, data map[string]interface{}, httpResp *http.Response) diag.Diagnostics {
+func updateDevicesManagementInterfaceResourceState(ctx context.Context, state *DevicesTestAccDevicesManagementInterfaceResourceResourceModel, data map[string]interface{}, httpResp *http.Response, wan1EnabledPlan string, wan2EnabledPlan string) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	rawResp, err := utils.ExtractResponseToMap(httpResp)
@@ -199,14 +208,14 @@ func updateDevicesManagementInterfaceResourceState(ctx context.Context, state *D
 	}
 
 	// Wan1
-	state.Wan1, diags = DevicesManagementInterfaceStateWan(rawResp, "wan1")
+	state.Wan1, diags = DevicesManagementInterfaceStateWan(rawResp, "wan1", wan1EnabledPlan)
 	if diags.HasError() {
 		diags.AddError("Wan1 Attribute", "")
 		return diags
 	}
 
 	// Wan2
-	state.Wan2, diags = DevicesManagementInterfaceStateWan(rawResp, "wan2")
+	state.Wan2, diags = DevicesManagementInterfaceStateWan(rawResp, "wan2", wan2EnabledPlan)
 	if diags.HasError() {
 		diags.AddError("Wan2 Attribute", "")
 		return diags
@@ -243,7 +252,7 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Schema(ctx co
 				Computed: true,
 				Attributes: map[string]schema.Attribute{
 					"wan_enabled": schema.StringAttribute{
-						MarkdownDescription: "Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled', and 'not configured'.",
+						MarkdownDescription: "Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled' for MX devices. Leave value null for MR and MS devices.",
 						Optional:            true,
 						Computed:            true,
 						CustomType:          types.StringType,
@@ -378,7 +387,11 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Create(ctx co
 		wan1Plan.StaticDns.ElementsAs(ctx, &staticDNS1, false)
 
 		wan1 := openApiClient.UpdateDeviceManagementInterfaceRequestWan1{}
-		wan1.SetWanEnabled(wan1Plan.WanEnabled.ValueString())
+		wan1Enabled := wan1Plan.WanEnabled.ValueString()
+		if wan1Plan.WanEnabled.IsNull() || wan1Enabled == "" {
+			wan1Enabled = "not configured"
+		}
+		wan1.SetWanEnabled(wan1Enabled)
 		wan1.SetStaticDns(staticDNS1)
 		wan1.SetStaticGatewayIp(wan1Plan.StaticGatewayIp.ValueString())
 		wan1.SetStaticSubnetMask(wan1Plan.StaticSubnetMask.ValueString())
@@ -404,7 +417,11 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Create(ctx co
 		wan2Plan.StaticDns.ElementsAs(ctx, &staticDNS2, false)
 
 		wan2 := openApiClient.UpdateDeviceManagementInterfaceRequestWan2{}
-		wan2.SetWanEnabled(wan2Plan.WanEnabled.ValueString())
+		wan2Enabled := wan2Plan.WanEnabled.ValueString()
+		if wan2Plan.WanEnabled.IsNull() || wan2Enabled == "" {
+			wan2Enabled = "not configured"
+		}
+		wan2.SetWanEnabled(wan2Enabled)
 		wan2.SetStaticDns(staticDNS2)
 		wan2.SetStaticGatewayIp(wan2Plan.StaticGatewayIp.ValueString())
 		wan2.SetStaticSubnetMask(wan2Plan.StaticSubnetMask.ValueString())
@@ -481,7 +498,20 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Create(ctx co
 		}
 	}
 
-	diags = updateDevicesManagementInterfaceResourceState(ctx, &data, inlineResp, httpResp)
+	// Extract the wan_enabled value directly from Wan1
+	var wan1Plan DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan
+	data.Wan1.As(ctx, &wan1Plan, basetypes.ObjectAsOptions{})
+
+	// Assign wan_enabled to a variable
+	wan1EnabledPlan := wan1Plan.WanEnabled.ValueString()
+
+	var wan2Plan DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan
+	data.Wan2.As(ctx, &wan2Plan, basetypes.ObjectAsOptions{})
+
+	// Assign wan_enabled to a variable
+	wan2EnabledPlan := wan2Plan.WanEnabled.ValueString()
+
+	diags = updateDevicesManagementInterfaceResourceState(ctx, &data, inlineResp, httpResp, wan1EnabledPlan, wan2EnabledPlan)
 	data.Id = types.StringValue(data.Serial.ValueString())
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -500,6 +530,8 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Read(ctx cont
 
 	diags := req.State.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -554,7 +586,20 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Read(ctx cont
 
 	}
 
-	diags = updateDevicesManagementInterfaceResourceState(ctx, &data, inlineResp, httpResp)
+	// Extract the wan_enabled value directly from Wan1
+	var wan1Plan DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan
+	data.Wan1.As(ctx, &wan1Plan, basetypes.ObjectAsOptions{})
+
+	// Assign wan_enabled to a variable
+	wan1EnabledPlan := wan1Plan.WanEnabled.ValueString()
+
+	var wan2Plan DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan
+	data.Wan2.As(ctx, &wan2Plan, basetypes.ObjectAsOptions{})
+
+	// Assign wan_enabled to a variable
+	wan2EnabledPlan := wan2Plan.WanEnabled.ValueString()
+
+	diags = updateDevicesManagementInterfaceResourceState(ctx, &data, inlineResp, httpResp, wan1EnabledPlan, wan2EnabledPlan)
 
 	data.Id = types.StringValue(data.Serial.ValueString())
 
@@ -591,7 +636,11 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Update(ctx co
 		wan1Plan.StaticDns.ElementsAs(ctx, &staticDNS1, false)
 
 		wan1 := openApiClient.UpdateDeviceManagementInterfaceRequestWan1{}
-		wan1.SetWanEnabled(wan1Plan.WanEnabled.ValueString())
+		wan1Enabled := wan1Plan.WanEnabled.ValueString()
+		if wan1Plan.WanEnabled.IsNull() || wan1Enabled == "" {
+			wan1Enabled = "not configured"
+		}
+		wan1.SetWanEnabled(wan1Enabled)
 		wan1.SetStaticDns(staticDNS1)
 		wan1.SetStaticGatewayIp(wan1Plan.StaticGatewayIp.ValueString())
 		wan1.SetStaticSubnetMask(wan1Plan.StaticSubnetMask.ValueString())
@@ -617,7 +666,11 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Update(ctx co
 		wan2Plan.StaticDns.ElementsAs(ctx, &staticDNS2, false)
 
 		wan2 := openApiClient.UpdateDeviceManagementInterfaceRequestWan2{}
-		wan2.SetWanEnabled(wan2Plan.WanEnabled.ValueString())
+		wan2Enabled := wan2Plan.WanEnabled.ValueString()
+		if wan2Plan.WanEnabled.IsNull() || wan2Enabled == "" {
+			wan2Enabled = "not configured"
+		}
+		wan2.SetWanEnabled(wan2Enabled)
 		wan2.SetStaticDns(staticDNS2)
 		wan2.SetStaticGatewayIp(wan2Plan.StaticGatewayIp.ValueString())
 		wan2.SetStaticSubnetMask(wan2Plan.StaticSubnetMask.ValueString())
@@ -629,7 +682,7 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Update(ctx co
 			wan2.Vlan = &vlan
 		}
 
-		tflog.Debug(ctx, "Wan2 payload before API call", map[string]interface{}{
+		tflog.Debug(ctx, "Wan2 payload", map[string]interface{}{
 			"wan2": wan2,
 		})
 
@@ -684,7 +737,20 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Update(ctx co
 
 	}
 
-	diags = updateDevicesManagementInterfaceResourceState(ctx, &data, inlineResp, httpResp)
+	// Extract the wan_enabled value directly from Wan1
+	var wan1Plan DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan
+	data.Wan1.As(ctx, &wan1Plan, basetypes.ObjectAsOptions{})
+
+	// Assign wan_enabled to a variable
+	wan1EnabledPlan := wan1Plan.WanEnabled.ValueString()
+
+	var wan2Plan DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan
+	data.Wan2.As(ctx, &wan2Plan, basetypes.ObjectAsOptions{})
+
+	// Assign wan_enabled to a variable
+	wan2EnabledPlan := wan2Plan.WanEnabled.ValueString()
+
+	diags = updateDevicesManagementInterfaceResourceState(ctx, &data, inlineResp, httpResp, wan1EnabledPlan, wan2EnabledPlan)
 
 	data.Id = types.StringValue(data.Serial.ValueString())
 
