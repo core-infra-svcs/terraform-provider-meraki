@@ -529,6 +529,7 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Read(ctx cont
 	// Read Terraform prior state data into the model
 
 	diags := req.State.Get(ctx, &data)
+	resp.Diagnostics.Append(diags...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {

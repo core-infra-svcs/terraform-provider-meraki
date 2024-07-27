@@ -39,7 +39,7 @@ Optional:
 - `static_subnet_mask` (String) The subnet mask for the WAN.
 - `using_static_ip` (Boolean) Configure the interface to have static IP settings or use DHCP.
 - `vlan` (Number) The VLAN that management traffic should be tagged with. Applies whether usingStaticIp is true or false.
-- `wan_enabled` (String) Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled', and 'not configured'.
+- `wan_enabled` (String) Enable or disable the interface (only for MX devices). Valid values are 'enabled', 'disabled' for MX devices. Leave value null for MR and MS devices.
 
 
 <a id="nestedatt--wan2"></a>
