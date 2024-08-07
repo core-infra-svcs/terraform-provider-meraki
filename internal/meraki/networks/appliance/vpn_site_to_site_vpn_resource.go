@@ -191,6 +191,7 @@ func (r *NetworksApplianceVpnSiteToSiteVpnResource) Create(ctx context.Context, 
 		return
 	}
 
+	data.Id = data.NetworkId
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
@@ -238,6 +239,7 @@ func (r *NetworksApplianceVpnSiteToSiteVpnResource) Read(ctx context.Context, re
 		return
 	}
 
+	data.Id = data.NetworkId
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
@@ -291,6 +293,7 @@ func (r *NetworksApplianceVpnSiteToSiteVpnResource) Update(ctx context.Context, 
 		return
 	}
 
+	data.Id = data.NetworkId
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
@@ -404,8 +407,6 @@ func NetworkApplianceVpnSiteToSiteVpnResourcePayload(ctx context.Context, data *
 	} else {
 		payload.SetSubnets(nil)
 	}
-
-	data.Id = jsontypes2.StringValue("example-id")
 
 	return &payload, nil
 

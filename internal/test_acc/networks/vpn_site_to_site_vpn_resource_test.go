@@ -46,7 +46,14 @@ func TestAccNetworksApplianceVpnSiteToSiteVpnResource(t *testing.T) {
 					//resource.TestCheckResourceAttr("meraki_networks_appliance_vpn_site_to_site_vpn.test", "hubs.0.hub_id", os.Getenv("TF_ACC_MAIN_OFFICE_SUB_TEST_NETWORK_ID")),
 					resource.TestCheckResourceAttr("meraki_networks_appliance_vpn_site_to_site_vpn.test", "subnets.#", "1"),
 					resource.TestCheckResourceAttr("meraki_networks_appliance_vpn_site_to_site_vpn.test", "subnets.0.local_subnet", "192.168.128.0/24"),
+					resource.TestCheckResourceAttr("meraki_networks_appliance_vpn_site_to_site_vpn.test", "subnets.0.use_vpn", "true"),
 				),
+			},
+
+			{
+				ResourceName:      "meraki_networks_appliance_vpn_site_to_site_vpn.test",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -112,6 +119,7 @@ resource "meraki_networks_appliance_vpn_site_to_site_vpn" "test" {
     mode = "hub"
     subnets = [{
 		local_subnet = "192.168.128.0/24"
+		use_vpn = true
 	}]
 }
 `, orgId)
