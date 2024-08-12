@@ -325,7 +325,7 @@ func DevicesSwitchPortResourcePayload(ctx context.Context, plan *DevicesSwitchPo
 
 	//    PoeEnabled
 	if !plan.PoeEnabled.IsUnknown() && !plan.PoeEnabled.IsNull() {
-		payload.SetEnabled(plan.PoeEnabled.ValueBool())
+		payload.SetPoeEnabled(plan.PoeEnabled.ValueBool())
 	}
 
 	//    Type
