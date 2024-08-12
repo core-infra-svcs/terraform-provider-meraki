@@ -397,6 +397,7 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Create(ctx co
 		wan1.SetStaticSubnetMask(wan1Plan.StaticSubnetMask.ValueString())
 		wan1.SetStaticIp(wan1Plan.StaticIp.ValueString())
 		wan1.SetUsingStaticIp(wan1Plan.UsingStaticIp.ValueBool())
+		wan1.SetVlan(int32(wan1Plan.Vlan.ValueInt64()))
 
 		if !wan1Plan.Vlan.IsNull() {
 			vlan := int32(wan1Plan.Vlan.ValueInt64())
@@ -427,6 +428,7 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Create(ctx co
 		wan2.SetStaticSubnetMask(wan2Plan.StaticSubnetMask.ValueString())
 		wan2.SetStaticIp(wan2Plan.StaticIp.ValueString())
 		wan2.SetUsingStaticIp(wan2Plan.UsingStaticIp.ValueBool())
+		wan2.SetVlan(int32(wan2Plan.Vlan.ValueInt64()))
 
 		if !wan2Plan.Vlan.IsNull() {
 			vlan := int32(wan2Plan.Vlan.ValueInt64())
@@ -646,6 +648,7 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Update(ctx co
 		wan1.SetStaticSubnetMask(wan1Plan.StaticSubnetMask.ValueString())
 		wan1.SetStaticIp(wan1Plan.StaticIp.ValueString())
 		wan1.SetUsingStaticIp(wan1Plan.UsingStaticIp.ValueBool())
+		wan1.SetVlan(int32(wan1Plan.Vlan.ValueInt64()))
 
 		if !wan1Plan.Vlan.IsNull() {
 			vlan := int32(wan1Plan.Vlan.ValueInt64())
@@ -676,6 +679,7 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Update(ctx co
 		wan2.SetStaticSubnetMask(wan2Plan.StaticSubnetMask.ValueString())
 		wan2.SetStaticIp(wan2Plan.StaticIp.ValueString())
 		wan2.SetUsingStaticIp(wan2Plan.UsingStaticIp.ValueBool())
+		wan2.SetVlan(int32(wan2Plan.Vlan.ValueInt64()))
 
 		if !wan2Plan.Vlan.IsNull() {
 			vlan := int32(wan2Plan.Vlan.ValueInt64())
