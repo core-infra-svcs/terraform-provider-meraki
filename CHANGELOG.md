@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.3](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.11.2...v0.11.3) (2024-08-12)
+
+
+### Bug Fixes
+
+* Poe_enabled variable ([#382](https://github.com/core-infra-svcs/terraform-provider-meraki/issues/382)) ([4e177cd](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/4e177cd643b6d8a84706438c2802365df7237906))
+
 ## [0.11.1](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.11.0...v0.11.1) (2024-07-17)
 
 
