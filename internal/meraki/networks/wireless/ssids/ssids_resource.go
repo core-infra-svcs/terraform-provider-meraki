@@ -2228,7 +2228,7 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 				},
 			},
 			"walled_garden_enabled": schema.BoolAttribute{
-				MarkdownDescription: `Allow users to access a configurable list of IP ranges prior to sign-on`,
+				MarkdownDescription: `Allow users to access a configurable list of IP ranges prior to splash page sign-on. Leave this field blank for networks without an enabled splash page.`,
 				Optional:            true,
 				Computed:            true,
 				PlanModifiers: []planmodifier.Bool{
