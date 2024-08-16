@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/float64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
@@ -231,11 +230,16 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 	// RadiusFailOverPolicy
 	if state.RadiusFailOverPolicy.IsNull() || state.RadiusFailOverPolicy.IsUnknown() {
 
-		state.RadiusFailOverPolicy, diags = utils.ExtractStringAttr(rawResp, "radiusFailOverPolicy")
+		state.RadiusFailOverPolicy, diags = utils.ExtractStringAttr(rawResp, "radiusFailoverPolicy")
 		if diags.HasError() {
 			diags.AddError("Radius Failover Attribute", "")
 			return diags
 		}
+
+		//// If the API returns null or unknown, use the value from the plan
+		//if state.RadiusFailOverPolicy.IsNull() || state.RadiusFailOverPolicy.IsUnknown() {
+		//	state.RadiusFailOverPolicy = plan.RadiusFailOverPolicy
+		//}
 
 	}
 
@@ -247,6 +251,11 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 			diags.AddError("Radius load balancing policyAttribute", "")
 			return diags
 		}
+
+		//// If the API returns null or unknown, use the value from the plan
+		//if state.RadiusLoadBalancingPolicy.IsNull() || state.RadiusLoadBalancingPolicy.IsUnknown() {
+		//	state.RadiusLoadBalancingPolicy = plan.RadiusLoadBalancingPolicy
+		//}
 
 	}
 
@@ -307,21 +316,17 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 	// MinBitRate
 	if state.MinBitRate.IsNull() || state.MinBitRate.IsUnknown() {
 
-		minBitrateInt, diags := utils.ExtractInt64Attr(rawResp, "minBitrate")
+		// Attempt to extract the value as an int64 directly
+		var minBitrateInt types.Int64
+		minBitrateInt, diags := utils.ExtractInt64FromFloat(rawResp, "minBitrate")
+		fmt.Printf("Type of minBitrateInt: %T\n", minBitrateInt)
 		if diags.HasError() {
-			diags.AddError("Min Bite Rate Attribute", "")
+			diags.AddError("Min Bit Rate Attribute", "")
 			return diags
 		}
 
-		// convert int64 into float64 type
-		if !minBitrateInt.IsNull() && !minBitrateInt.IsUnknown() {
-			minBitRate := types.Float64Value(float64(minBitrateInt.ValueInt64()))
-			state.MinBitRate = minBitRate
-		} else {
-			minBitRateNull := types.Float64Null()
-			state.MinBitRate = minBitRateNull
-		}
-
+		// Directly assign the extracted int64 value to the state
+		state.MinBitRate = minBitrateInt
 	}
 
 	// BandSelection
@@ -338,7 +343,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 	// PerClientBandwidthLimitUp
 	if state.PerClientBandwidthLimitUp.IsNull() || state.PerClientBandwidthLimitUp.IsUnknown() {
 
-		state.PerClientBandwidthLimitUp, diags = utils.ExtractInt32Attr(rawResp, "ipAssignmentMode")
+		state.PerClientBandwidthLimitUp, diags = utils.ExtractInt64FromFloat(rawResp, "perClientBandwidthLimitUp")
 		if diags.HasError() {
 			diags.AddError("Per client Bandwidth limit up Attribute", "")
 			return diags
@@ -349,7 +354,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 	// PerClientBandwidthLimitDown
 	if state.PerClientBandwidthLimitDown.IsNull() || state.PerClientBandwidthLimitDown.IsUnknown() {
 
-		state.PerClientBandwidthLimitDown, diags = utils.ExtractInt64Attr(rawResp, "perClientBandwidthLimitDown")
+		state.PerClientBandwidthLimitDown, diags = utils.ExtractInt64FromFloat(rawResp, "perClientBandwidthLimitDown")
 		if diags.HasError() {
 			diags.AddError("Per client Bandwidth limit down Attribute", "")
 			return diags
@@ -360,7 +365,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 	// Visible
 	if state.Visible.IsNull() || state.Visible.IsUnknown() {
 
-		state.Visible, diags = utils.ExtractBoolAttr(rawResp, "perClientBandwidthLimitDown")
+		state.Visible, diags = utils.ExtractBoolAttr(rawResp, "visible")
 		if diags.HasError() {
 			diags.AddError("Visible Attribute", "")
 			return diags
@@ -393,7 +398,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 	// PerSsidBandwidthLimitUp
 	if state.PerSsidBandwidthLimitUp.IsNull() || state.PerSsidBandwidthLimitUp.IsUnknown() {
 
-		state.PerSsidBandwidthLimitUp, diags = utils.ExtractInt32Attr(rawResp, "perSsidBandwidthLimitUp")
+		state.PerSsidBandwidthLimitUp, diags = utils.ExtractInt64FromFloat(rawResp, "perSsidBandwidthLimitUp")
 		if diags.HasError() {
 			diags.AddError("perSsidBandwidthLimitUp Attribute", "")
 			return diags
@@ -404,7 +409,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 	// PerSsidBandwidthLimitDown
 	if state.PerSsidBandwidthLimitDown.IsNull() || state.PerSsidBandwidthLimitDown.IsUnknown() {
 
-		state.PerSsidBandwidthLimitDown, diags = utils.ExtractInt32Attr(rawResp, "perSsidBandwidthLimitDown")
+		state.PerSsidBandwidthLimitDown, diags = utils.ExtractInt64FromFloat(rawResp, "perSsidBandwidthLimitDown")
 		if diags.HasError() {
 			diags.AddError("perSsidBandwidthLimitDown Attribute", "")
 			return diags
@@ -914,7 +919,7 @@ func updateNetworksWirelessSsidsResourcePayload(ctx context.Context, plan *Netwo
 	}
 
 	if !plan.MinBitRate.IsNull() && !plan.MinBitRate.IsUnknown() {
-		minBitRate, err := utils.Float32Pointer(plan.MinBitRate.ValueFloat64())
+		minBitRate, err := utils.Float32Pointer(float64(plan.MinBitRate.ValueInt64()))
 		if err.HasError() {
 			tflog.Error(context.Background(), fmt.Sprintf("%s", err.Errors()))
 			diags.Append(err...)
@@ -1645,12 +1650,12 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 					boolplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"min_bitrate": schema.Float64Attribute{
+			"min_bitrate": schema.Int64Attribute{
 				MarkdownDescription: `The minimum bitrate in Mbps of this SSID in the default indoor RF profile`,
 				Computed:            true,
 				Optional:            true,
-				PlanModifiers: []planmodifier.Float64{
-					float64planmodifier.UseStateForUnknown(),
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.UseStateForUnknown(),
 				},
 			},
 			"name": schema.StringAttribute{
@@ -1923,6 +1928,7 @@ func (r *NetworksWirelessSsidsResource) Schema(ctx context.Context, req resource
 						"Airespace-ACL-Name",
 						"Aruba-User-Role",
 						"Filter-ServerId",
+						"Filter-Id",
 						"Reply-Message",
 					),
 				},

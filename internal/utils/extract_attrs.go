@@ -2,11 +2,14 @@ package utils
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"math/big"
+	"strconv"
 )
 
 // ExtractStringAttr Extracts a string attribute from a hashmap
@@ -182,4 +185,36 @@ func ExtractListStringAttr(hashMap map[string]interface{}, key string) (types.Li
 		return result, diags
 	}
 	return types.ListNull(types.StringType), diags
+}
+
+func ExtractInt64FromFloat(hashMap map[string]interface{}, key string) (types.Int64, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	// Try to assert the type directly as float64 and then convert to int64
+	if value, ok := hashMap[key].(float64); ok {
+		return types.Int64Value(int64(value)), diags
+	}
+
+	// Check if the value is a *big.Float and convert it
+	if bigFloatValue, ok := hashMap[key].(*big.Float); ok {
+		float64Val, _ := bigFloatValue.Float64()
+		return types.Int64Value(int64(float64Val)), diags
+	}
+
+	// Handle json.Number or other string representations of numbers
+	if stringValue, ok := hashMap[key].(string); ok {
+		if floatVal, err := strconv.ParseFloat(stringValue, 64); err == nil {
+			return types.Int64Value(int64(floatVal)), diags
+		}
+	}
+
+	// Handle json.Number (if the map comes from unmarshalled JSON)
+	if jsonNumber, ok := hashMap[key].(json.Number); ok {
+		if floatVal, err := jsonNumber.Float64(); err == nil {
+			return types.Int64Value(int64(floatVal)), diags
+		}
+	}
+
+	// If none of the above work, return Null
+	return types.Int64Null(), diags
 }
