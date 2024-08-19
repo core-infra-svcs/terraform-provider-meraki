@@ -2,12 +2,14 @@ package utils
 
 import (
 	"context"
+	"crypto/rand"
 	"encoding/json"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"io"
 	"log"
+	"math/big"
 	"net/http"
 	"time"
 )
@@ -108,8 +110,8 @@ func CustomHttpRequestRetry[T any](ctx context.Context, maxRetries int, initialR
 	var lastResponse *http.Response
 	var lastError error
 
-	// Convert retry delay to milliseconds
-	retryDelay := initialRetryDelay
+	n, _ := rand.Int(rand.Reader, big.NewInt(5))
+	retryDelay := time.Duration(n.Int64()+1) * time.Second
 
 	for i := 0; i < maxRetries; i++ {
 		tflog.Info(ctx, fmt.Sprintf("Attempt %d/%d", i+1, maxRetries))
@@ -160,11 +162,8 @@ func CustomHttpRequestRetry[T any](ctx context.Context, maxRetries int, initialR
 		}
 
 		if i < maxRetries-1 {
-			// Ensure retryDelay is in milliseconds
-			tflog.Info(ctx, fmt.Sprintf("Sleeping for %s before next retry", retryDelay*time.Millisecond))
-			time.Sleep(retryDelay * time.Millisecond)
-			// Exponential backoff: Increase retry delay for next attempt
-			retryDelay *= 2
+			tflog.Info(ctx, fmt.Sprintf("Sleeping for %s before next retry", retryDelay))
+			time.Sleep(retryDelay)
 		}
 	}
 
