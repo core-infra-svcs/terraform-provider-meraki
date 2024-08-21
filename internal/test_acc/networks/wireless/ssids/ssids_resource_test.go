@@ -57,7 +57,14 @@ func TestAccNetworksWirelessSsidsResource(t *testing.T) {
 				),
 			},
 
-			// Test RADIUS servers creation
+			//TODO: ImportState test case.
+			{
+				ResourceName:      "meraki_networks_wireless_ssids.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+
+			//Test RADIUS servers creation
 			{
 				Config: testAccNetworksWirelessSsidsResourceConfigRadiusServers(),
 				Check: resource.ComposeAggregateTestCheckFunc(
@@ -70,15 +77,6 @@ func TestAccNetworksWirelessSsidsResource(t *testing.T) {
 					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test_radius", "radius_servers.0.ca_certificate", "ca_cert_value"),
 				),
 			},
-
-			/*
-				//TODO: ImportState test case.
-					{
-						ResourceName:      "meraki_networks_wireless_ssids.test",
-						ImportState:       true,
-						ImportStateVerify: true,
-					},
-			*/
 
 			// Test RADIUS updating
 			{
