@@ -78,7 +78,7 @@ description: |-
 - `use_vlan_tagging` (Boolean) Whether or not traffic should be directed to use specific VLANs. This param is only valid if the ipAssignmentMode is 'Bridge mode' or 'Layer 3 roaming'
 - `visible` (Boolean) Whether the SSID is advertised or hidden by the AP
 - `vlan_id` (Number) The VLAN ID used for VLAN tagging. This param is only valid when the ipAssignmentMode is 'Layer 3 roaming with a concentrator' or 'VPN'
-- `walled_garden_enabled` (Boolean) Allow users to access a configurable list of IP ranges prior to sign-on
+- `walled_garden_enabled` (Boolean) Allow users to access a configurable list of IP ranges prior to splash page sign-on. Leave this field blank for networks without an enabled splash page.
 - `walled_garden_ranges` (List of String) Domain names and IP address ranges available in Walled Garden mode
 - `wpa_encryption_mode` (String) The types of WPA encryption
 
