@@ -184,6 +184,11 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 		}
 		state.RadiusServers = radiusServers
 
+		// If the API returns null or unknown, use the value from the plan
+		if state.RadiusServers.IsNull() || state.RadiusServers.IsUnknown() {
+			state.RadiusServers = plan.RadiusServers
+		}
+
 	}
 
 	// RadiusAccountingServers
@@ -195,6 +200,11 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 			return diags
 		}
 		state.RadiusAccountingServers = radiusAccountingServers
+
+		// If the API returns null or unknown, use the value from the plan
+		if state.RadiusAccountingServers.IsNull() || state.RadiusAccountingServers.IsUnknown() {
+			state.RadiusAccountingServers = plan.RadiusAccountingServers
+		}
 	}
 
 	// RadiusAccountingEnabled
@@ -319,7 +329,7 @@ func updateNetworksWirelessSsidsResourceState(ctx context.Context, plan *Network
 		// Attempt to extract the value as an int64 directly
 		var minBitrateInt types.Int64
 		minBitrateInt, diags := utils.ExtractInt64FromFloat(rawResp, "minBitrate")
-		fmt.Printf("Type of minBitrateInt: %T\n", minBitrateInt)
+
 		if diags.HasError() {
 			diags.AddError("Min Bit Rate Attribute", "")
 			return diags
