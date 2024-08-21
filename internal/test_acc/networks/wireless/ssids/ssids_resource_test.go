@@ -65,10 +65,20 @@ func TestAccNetworksWirelessSsidsResource(t *testing.T) {
 					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test_radius", "radius_servers.0.host", "radius.example.com"),
 					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test_radius", "radius_servers.0.port", "1812"),
 					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test_radius", "radius_servers.0.secret", "radius_secret"),
+					//TODO: resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test_radius", "radius_servers.0.open_roaming_certificate_id", "0"),
 					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test_radius", "radius_servers.0.rad_sec_enabled", "true"),
 					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test_radius", "radius_servers.0.ca_certificate", "ca_cert_value"),
 				),
 			},
+
+			/*
+				//TODO: ImportState test case.
+					{
+						ResourceName:      "meraki_networks_wireless_ssids.test",
+						ImportState:       true,
+						ImportStateVerify: true,
+					},
+			*/
 
 			// Test RADIUS updating
 			{
@@ -79,6 +89,7 @@ func TestAccNetworksWirelessSsidsResource(t *testing.T) {
 					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test_radius", "radius_servers.0.port", "1812"),
 					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test_radius", "radius_servers.0.secret", "new_radius_secret"),
 					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test_radius", "radius_servers.0.rad_sec_enabled", "true"),
+					//TODO: resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test_radius", "radius_servers.0.open_roaming_certificate_id", "0"),
 					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test_radius", "radius_servers.0.ca_certificate", "new_ca_cert_value"),
 				),
 			},
@@ -164,6 +175,7 @@ resource "meraki_networks_wireless_ssids" "test" {
 	}
 }
 
+// TODO: update with open_roaming_certificate_id = 0
 func testAccNetworksWirelessSsidsResourceConfigRadiusServers() string {
 	return `
 provider "meraki" {
@@ -194,6 +206,7 @@ resource "meraki_networks_wireless_ssids" "test_radius" {
 `
 }
 
+// TODO: update with open_roaming_certificate_id = 0
 func testAccNetworksWirelessSsidsResourceConfigRadiusServersUpdate() string {
 	return `
 provider "meraki" {
