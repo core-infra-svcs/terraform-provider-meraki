@@ -708,7 +708,7 @@ func NetworksWirelessSsidStateRadiusServers(ctx context.Context, plan NetworksWi
 	}
 
 	// Return a populated or empty list instead of a null value
-	if newRadiusServers == nil {
+	if newRadiusServers != nil && len(newRadiusServers) == 0 {
 		newRadiusServersList, err := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: radiusServerAttr}, []attr.Value{})
 		if err.HasError() {
 			diags.Append(err...)
@@ -827,7 +827,7 @@ func NetworksWirelessSsidStateRadiusAccountingServers(ctx context.Context, plan 
 	}
 
 	// Return a populated or empty list instead of a null value
-	if newRadiusServers == nil {
+	if newRadiusServers != nil && len(newRadiusServers) == 0 {
 		newRadiusServersList, err := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: radiusServerAttr}, []attr.Value{})
 		if err.HasError() {
 			diags.Append(err...)
