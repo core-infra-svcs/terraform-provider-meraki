@@ -19,7 +19,7 @@ jobs:
         with:
           token: ${{ secrets.RELEASE_PLEASE_PAT }}
           release-type: terraform-module
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
       - name: tag major and minor versions
         if: ${{ steps.release.outputs.release_created }}
         run: |
