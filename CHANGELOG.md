@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.1](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.12.0...v0.12.1) (2024-08-22)
+
+
+### Bug Fixes
+
+* crazy-max/ghaction-import-gpg@v6 ([#387](https://github.com/core-infra-svcs/terraform-provider-meraki/issues/387)) ([8f0dea0](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/8f0dea09716d1acd8ee3905b1eceadb88867a769))
+
 ## [0.12.0](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.11.3...v0.12.0) (2024-08-22)
 
 
