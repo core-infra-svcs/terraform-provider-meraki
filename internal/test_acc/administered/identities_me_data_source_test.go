@@ -28,7 +28,8 @@ func TestAccAdministeredIdentitiesMeDataSource(t *testing.T) {
 
 							re := regexp.MustCompile(`^((?:(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}:\d{2}(?:\.\d+)?))(Z|[\+-]\d{2}:\d{2})?)$`)
 							if re.MatchString(value) != true {
-								return fmt.Errorf(fmt.Sprintf("received tiemstring does not match RFC3339 format: %s", value))
+								err := fmt.Sprintf("received tiemstring does not match RFC3339 format: %s", value)
+								return fmt.Errorf(err)
 							}
 
 							return nil
