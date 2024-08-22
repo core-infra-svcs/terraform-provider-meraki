@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.12.0](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.11.3...v0.12.0) (2024-08-22)
+
+
+### Features
+
+* lint update ([a024bf7](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/a024bf7e813956298d7cedf30b93d9981b15c0ea))
+
+
+### Bug Fixes
+
+* actions/checkout@v4 ([b8f571c](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/b8f571c323a9f20c5e1094d8e34da81b55ac7b0a))
+
 ## [0.11.3](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.11.2...v0.11.3) (2024-08-12)
 
 
