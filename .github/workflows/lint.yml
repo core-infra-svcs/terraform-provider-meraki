@@ -25,13 +25,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Go
-        uses: actions/setup-go@v4
-
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3
+        uses: actions/setup-go@v5
         with:
-          version: latest
+          go-version: stable
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.60
           args: --timeout 5m
