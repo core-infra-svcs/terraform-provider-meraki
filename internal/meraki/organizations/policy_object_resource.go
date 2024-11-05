@@ -29,7 +29,7 @@ func NewOrganizationPolicyObjectResource() resource.Resource {
 }
 
 type OrganizationPolicyObject struct {
-	Id             types.String `tfsdk:"id"`
+	Id             types.String `tfsdk:"id" json:"id"`
 	OrganizationID types.String `tfsdk:"organization_id"`
 	ObjectId       types.String `tfsdk:"object_id"`
 	Name           types.String `tfsdk:"name"`
@@ -128,7 +128,7 @@ func (r *OrganizationPolicyObjectResource) Schema(ctx context.Context, req resou
 				Description: "Time Stamp of policy object updation.",
 			},
 			"group_ids": schema.ListAttribute{
-				ElementType: types.Int64Type,
+				ElementType: types.StringType,
 				Description: "The IDs of policy object groups the policy object belongs to",
 				Computed:    true,
 				Optional:    true,
@@ -476,13 +476,22 @@ func (r *OrganizationPolicyObjectResource) Update(ctx context.Context, req resou
 		return
 	}
 
+	var state OrganizationPolicyObject
+
+	// Read Terraform prior state into the model
+	diags = req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	payload, err := OrganizationPolicyObjectResourceUpdatePayload(plan)
 	if err.HasError() {
 		resp.Diagnostics.Append(err...)
 		return
 	}
 
-	inlineResp, httpResp, httpErr := r.client.OrganizationsApi.UpdateOrganizationPolicyObject(ctx, plan.OrganizationID.ValueString(), plan.ObjectId.ValueString()).UpdateOrganizationPolicyObjectRequest(payload).Execute()
+	inlineResp, httpResp, httpErr := r.client.OrganizationsApi.UpdateOrganizationPolicyObject(ctx, plan.OrganizationID.ValueString(), state.ObjectId.ValueString()).UpdateOrganizationPolicyObjectRequest(payload).Execute()
 	if httpErr != nil {
 		resp.Diagnostics.AddError(
 			"Error updating policy object",
@@ -525,23 +534,26 @@ func (r *OrganizationPolicyObjectResource) Delete(ctx context.Context, req resou
 		return
 	}
 
-	httpResp, err := r.client.OrganizationsApi.DeleteOrganizationPolicyObject(ctx, state.OrganizationID.ValueString(), state.ObjectId.ValueString()).Execute()
+	httpResp, err := r.client.OrganizationsApi.DeleteOrganizationPolicyObject(
+		ctx,
+		state.OrganizationID.ValueString(),
+		state.ObjectId.ValueString(),
+	).Execute()
+
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error deleting policy object",
-			"Could not delete policy object, unexpected error: "+err.Error(),
+			fmt.Sprintf("Could not delete policy object: %s", err.Error()),
 		)
 		return
 	}
 
-	// Check for API success response code
+	// Confirm deletion with the expected status code
 	if httpResp != nil && httpResp.StatusCode != 204 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
-			"",
+			fmt.Sprintf("Received status code %d, expected 204", httpResp.StatusCode),
 		)
-	}
-	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -556,12 +568,12 @@ func (r *OrganizationPolicyObjectResource) ImportState(ctx context.Context, req 
 	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
 		resp.Diagnostics.AddError(
 			"Unexpected Import Identifier",
-			fmt.Sprintf("Expected import identifier with format: organization_id,policy_id, number. Got: %q", req.ID),
+			fmt.Sprintf("Expected import identifier with format: organization_id,object_id, number. Got: %q", req.ID),
 		)
 		return
 	}
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("organization_id"), idParts[0])...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("policy_id"), idParts[1])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("object_id"), idParts[1])...)
 
 	if resp.Diagnostics.HasError() {
 		return

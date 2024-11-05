@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	jsontypes2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -30,16 +30,16 @@ type OrganizationsSamlIdpsDataSource struct {
 
 type OrganizationsSamlIdpsDataSourceModel struct {
 	Id             types.String                               `tfsdk:"id"`
-	OrganizationId jsontypes2.String                          `tfsdk:"organization_id"`
+	OrganizationId jsontypes.String                           `tfsdk:"organization_id"`
 	List           []OrganizationsSamlIdpsDataSourceModelList `tfsdk:"list"`
 }
 
 // OrganizationsSamlIdpsDataSourceModelList describes the data source data model.
 type OrganizationsSamlIdpsDataSourceModelList struct {
-	ConsumerUrl             jsontypes2.String `tfsdk:"consumer_url"`
-	IdpId                   jsontypes2.String `tfsdk:"idp_id"`
-	SloLogOutUrl            jsontypes2.String `tfsdk:"slo_logout_url"`
-	X509CertSha1FingerPrint jsontypes2.String `tfsdk:"x_509_cert_sha1_fingerprint"`
+	ConsumerUrl             jsontypes.String `tfsdk:"consumer_url"`
+	IdpId                   jsontypes.String `tfsdk:"idp_id"`
+	SloLogOutUrl            jsontypes.String `tfsdk:"slo_logout_url"`
+	X509CertSha1FingerPrint jsontypes.String `tfsdk:"x_509_cert_sha1_fingerprint"`
 }
 
 func (d *OrganizationsSamlIdpsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -58,7 +58,7 @@ func (d *OrganizationsSamlIdpsDataSource) Schema(ctx context.Context, req dataso
 				MarkdownDescription: "Organization ID",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 31),
 				},
@@ -72,22 +72,22 @@ func (d *OrganizationsSamlIdpsDataSource) Schema(ctx context.Context, req dataso
 						"consumer_url": schema.StringAttribute{
 							MarkdownDescription: "URL that is consuming SAML Identity Provider (IdP)",
 							Optional:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"idp_id": schema.StringAttribute{
 							MarkdownDescription: "ID associated with the SAML Identity Provider (IdP)",
 							Optional:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"slo_logout_url": schema.StringAttribute{
 							MarkdownDescription: "Dashboard will redirect users to this URL when they sign out.",
 							Optional:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"x_509_cert_sha1_fingerprint": schema.StringAttribute{
 							MarkdownDescription: "Fingerprint (SHA1) of the SAML certificate provided by your Identity Provider (IdP). This will be used for encryption / validation.",
 							Optional:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 					},
 				},

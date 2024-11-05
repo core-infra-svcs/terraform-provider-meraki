@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	jsontypes2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -25,57 +25,57 @@ import (
 
 // Ensure provider defined types fully satisfy framework interfaces
 var (
-	_ resource.Resource                = &OrganizationsAdminResource{}
-	_ resource.ResourceWithConfigure   = &OrganizationsAdminResource{}
-	_ resource.ResourceWithImportState = &OrganizationsAdminResource{}
+	_ resource.Resource                = &AdminResource{}
+	_ resource.ResourceWithConfigure   = &AdminResource{}
+	_ resource.ResourceWithImportState = &AdminResource{}
 )
 
 func NewOrganizationsAdminResource() resource.Resource {
-	return &OrganizationsAdminResource{}
+	return &AdminResource{}
 }
 
-// OrganizationsAdminResource defines the resource implementation.
-type OrganizationsAdminResource struct {
+// AdminResource defines the resource implementation.
+type AdminResource struct {
 	client *openApiClient.APIClient
 }
 
-// OrganizationsAdminResourceModel describes the resource data model.
-type OrganizationsAdminResourceModel struct {
-	Id                   jsontypes2.String                        `tfsdk:"id"`
-	OrgId                jsontypes2.String                        `tfsdk:"organization_id" json:"organizationId"`
-	AdminId              jsontypes2.String                        `tfsdk:"admin_id" json:"id"`
-	Name                 jsontypes2.String                        `tfsdk:"name"`
-	Email                jsontypes2.String                        `tfsdk:"email"`
-	OrgAccess            jsontypes2.String                        `tfsdk:"org_access" json:"orgAccess"`
-	AccountStatus        jsontypes2.String                        `tfsdk:"account_status" json:"accountStatus"`
-	TwoFactorAuthEnabled jsontypes2.Bool                          `tfsdk:"two_factor_auth_enabled" json:"twoFactorAuthEnabled"`
-	HasApiKey            jsontypes2.Bool                          `tfsdk:"has_api_key" json:"hasApiKey"`
-	LastActive           jsontypes2.String                        `tfsdk:"last_active" json:"lastActive"`
-	Tags                 []OrganizationsAdminResourceModelTag     `tfsdk:"tags" json:"tags"`
-	Networks             []OrganizationsAdminResourceModelNetwork `tfsdk:"networks" json:"networks"`
-	AuthenticationMethod jsontypes2.String                        `tfsdk:"authentication_method" json:"authenticationMethod"`
+// AdminResourceModel describes the resource data model.
+type AdminResourceModel struct {
+	Id                   jsontypes.String            `tfsdk:"id"`
+	OrgId                jsontypes.String            `tfsdk:"organization_id" json:"organizationId"`
+	AdminId              jsontypes.String            `tfsdk:"admin_id" json:"id"`
+	Name                 jsontypes.String            `tfsdk:"name"`
+	Email                jsontypes.String            `tfsdk:"email"`
+	OrgAccess            jsontypes.String            `tfsdk:"org_access" json:"orgAccess"`
+	AccountStatus        jsontypes.String            `tfsdk:"account_status" json:"accountStatus"`
+	TwoFactorAuthEnabled jsontypes.Bool              `tfsdk:"two_factor_auth_enabled" json:"twoFactorAuthEnabled"`
+	HasApiKey            jsontypes.Bool              `tfsdk:"has_api_key" json:"hasApiKey"`
+	LastActive           jsontypes.String            `tfsdk:"last_active" json:"lastActive"`
+	Tags                 []AdminResourceModelTag     `tfsdk:"tags" json:"tags"`
+	Networks             []AdminResourceModelNetwork `tfsdk:"networks" json:"networks"`
+	AuthenticationMethod jsontypes.String            `tfsdk:"authentication_method" json:"authenticationMethod"`
 }
 
-type OrganizationsAdminResourceModelTag struct {
-	Tag    jsontypes2.String `tfsdk:"tag" json:"tag"`
-	Access jsontypes2.String `tfsdk:"access" json:"access"`
+type AdminResourceModelTag struct {
+	Tag    jsontypes.String `tfsdk:"tag" json:"tag"`
+	Access jsontypes.String `tfsdk:"access" json:"access"`
 }
 
-type OrganizationsAdminResourceModelNetwork struct {
-	Id     jsontypes2.String `tfsdk:"id" json:"id"`
-	Access jsontypes2.String `tfsdk:"access" json:"access"`
+type AdminResourceModelNetwork struct {
+	Id     jsontypes.String `tfsdk:"id" json:"id"`
+	Access jsontypes.String `tfsdk:"access" json:"access"`
 }
 
-func (r *OrganizationsAdminResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *AdminResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_organizations_admin"
 }
 
-func (r *OrganizationsAdminResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *AdminResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manage the dashboard administrators in this organization",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				CustomType: jsontypes2.StringType,
+				CustomType: jsontypes.StringType,
 				Computed:   true,
 				Optional:   true,
 			},
@@ -83,7 +83,7 @@ func (r *OrganizationsAdminResource) Schema(ctx context.Context, req resource.Sc
 				MarkdownDescription: "Organization ID",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -95,7 +95,7 @@ func (r *OrganizationsAdminResource) Schema(ctx context.Context, req resource.Sc
 				MarkdownDescription: "Admin ID",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -107,19 +107,19 @@ func (r *OrganizationsAdminResource) Schema(ctx context.Context, req resource.Sc
 				MarkdownDescription: "The name of the dashboard administrator",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"email": schema.StringAttribute{
 				MarkdownDescription: "The email of the dashboard administrator. This attribute can not be updated.",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"org_access": schema.StringAttribute{
 				MarkdownDescription: "The privilege of the dashboard administrator on the organization. Can be one of 'full', 'read-only', 'enterprise' or 'none'",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				Validators: []validator.String{
 					stringvalidator.OneOf([]string{"full", "read-only", "enterprise", "none"}...),
 					stringvalidator.LengthAtLeast(4),
@@ -129,25 +129,25 @@ func (r *OrganizationsAdminResource) Schema(ctx context.Context, req resource.Sc
 				MarkdownDescription: "",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"two_factor_auth_enabled": schema.BoolAttribute{
 				MarkdownDescription: "",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.BoolType,
+				CustomType:          jsontypes.BoolType,
 			},
 			"has_api_key": schema.BoolAttribute{
 				MarkdownDescription: "",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.BoolType,
+				CustomType:          jsontypes.BoolType,
 			},
 			"last_active": schema.StringAttribute{
 				MarkdownDescription: "",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"tags": schema.SetNestedAttribute{
 				Description: "The list of tags that the dashboard administrator has privileges on",
@@ -159,13 +159,13 @@ func (r *OrganizationsAdminResource) Schema(ctx context.Context, req resource.Sc
 							MarkdownDescription: "",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"access": schema.StringAttribute{
 							MarkdownDescription: "",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 					},
 				},
@@ -180,13 +180,13 @@ func (r *OrganizationsAdminResource) Schema(ctx context.Context, req resource.Sc
 							MarkdownDescription: "",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"access": schema.StringAttribute{
 							MarkdownDescription: "",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 					},
 				},
@@ -195,7 +195,7 @@ func (r *OrganizationsAdminResource) Schema(ctx context.Context, req resource.Sc
 				MarkdownDescription: "The method of authentication the user will use to sign in to the Meraki dashboard. Can be one of 'Email' or 'Cisco SecureX Sign-On'. The default is Email authentication",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				Validators: []validator.String{
 
 					stringvalidator.OneOf([]string{"Email", "Cisco SecureX Sign-On"}...),
@@ -206,7 +206,7 @@ func (r *OrganizationsAdminResource) Schema(ctx context.Context, req resource.Sc
 	}
 }
 
-func (r *OrganizationsAdminResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *AdminResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -226,8 +226,8 @@ func (r *OrganizationsAdminResource) Configure(ctx context.Context, req resource
 	r.client = client
 }
 
-func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *OrganizationsAdminResourceModel
+func (r *AdminResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *AdminResourceModel
 	var diags diag.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -284,8 +284,8 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 	_, httpResp, err, tfDiags := utils.CustomHttpRequestRetryStronglyTyped(ctx, maxRetries, retryDelay, apiCall)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error creating group policy",
-			fmt.Sprintf("Could not create group policy, unexpected error: %s", err),
+			"Error creating admin",
+			fmt.Sprintf("Could not create admin, unexpected error: %s", err),
 		)
 
 		if tfDiags.HasError() {
@@ -337,14 +337,14 @@ func (r *OrganizationsAdminResource) Create(ctx context.Context, req resource.Cr
 		return
 	}
 
-	data.Id = jsontypes2.StringValue(fmt.Sprintf("%s,%s", data.OrgId.ValueString(), data.AdminId.ValueString()))
+	data.Id = jsontypes.StringValue(fmt.Sprintf("%s,%s", data.OrgId.ValueString(), data.AdminId.ValueString()))
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 }
 
-func (r *OrganizationsAdminResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *OrganizationsAdminResourceModel
+func (r *AdminResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *AdminResourceModel
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
@@ -394,43 +394,43 @@ func (r *OrganizationsAdminResource) Read(ctx context.Context, req resource.Read
 	}
 
 	// Iterate through the resultSlice directly since it is already of the expected type
-	var foundAdmin *OrganizationsAdminResourceModel
+	var foundAdmin *AdminResourceModel
 	for _, admin := range resultSlice {
 		if admin.GetId() == data.AdminId.ValueString() {
 
 			// tags
-			var tags []OrganizationsAdminResourceModelTag
+			var tags []AdminResourceModelTag
 			for _, t := range admin.GetTags() {
-				var tag OrganizationsAdminResourceModelTag
-				tag.Tag = jsontypes2.StringValue(t.GetTag())
-				tag.Access = jsontypes2.StringValue(t.GetAccess())
+				var tag AdminResourceModelTag
+				tag.Tag = jsontypes.StringValue(t.GetTag())
+				tag.Access = jsontypes.StringValue(t.GetAccess())
 
 				tags = append(tags, tag)
 			}
 
 			// networks
-			var networks []OrganizationsAdminResourceModelNetwork
+			var networks []AdminResourceModelNetwork
 			for _, n := range admin.GetNetworks() {
-				var network OrganizationsAdminResourceModelNetwork
-				network.Id = jsontypes2.StringValue(n.GetId())
-				network.Access = jsontypes2.StringValue(n.GetAccess())
+				var network AdminResourceModelNetwork
+				network.Id = jsontypes.StringValue(n.GetId())
+				network.Access = jsontypes.StringValue(n.GetAccess())
 				networks = append(networks, network)
 			}
 
-			foundAdmin = &OrganizationsAdminResourceModel{
-				Id:                   jsontypes2.StringValue(fmt.Sprintf("%s,%s", data.OrgId.ValueString(), data.AdminId.ValueString())),
+			foundAdmin = &AdminResourceModel{
+				Id:                   jsontypes.StringValue(fmt.Sprintf("%s,%s", data.OrgId.ValueString(), data.AdminId.ValueString())),
 				OrgId:                data.OrgId,
-				AdminId:              jsontypes2.StringValue(admin.GetId()),
-				Name:                 jsontypes2.StringValue(admin.GetName()),
-				Email:                jsontypes2.StringValue(admin.GetEmail()),
-				OrgAccess:            jsontypes2.StringValue(admin.GetOrgAccess()),
-				AccountStatus:        jsontypes2.StringValue(admin.GetAccountStatus()),
-				TwoFactorAuthEnabled: jsontypes2.BoolValue(admin.GetTwoFactorAuthEnabled()),
-				HasApiKey:            jsontypes2.BoolValue(admin.GetHasApiKey()),
-				LastActive:           jsontypes2.StringValue(admin.GetLastActive().String()),
+				AdminId:              jsontypes.StringValue(admin.GetId()),
+				Name:                 jsontypes.StringValue(admin.GetName()),
+				Email:                jsontypes.StringValue(admin.GetEmail()),
+				OrgAccess:            jsontypes.StringValue(admin.GetOrgAccess()),
+				AccountStatus:        jsontypes.StringValue(admin.GetAccountStatus()),
+				TwoFactorAuthEnabled: jsontypes.BoolValue(admin.GetTwoFactorAuthEnabled()),
+				HasApiKey:            jsontypes.BoolValue(admin.GetHasApiKey()),
+				LastActive:           jsontypes.StringValue(admin.GetLastActive().String()),
 				Tags:                 tags,
 				Networks:             networks,
-				AuthenticationMethod: jsontypes2.StringValue(admin.GetAuthenticationMethod()),
+				AuthenticationMethod: jsontypes.StringValue(admin.GetAuthenticationMethod()),
 			}
 
 			break
@@ -449,8 +449,8 @@ func (r *OrganizationsAdminResource) Read(ctx context.Context, req resource.Read
 	resp.Diagnostics.Append(resp.State.Set(ctx, foundAdmin)...)
 }
 
-func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data *OrganizationsAdminResourceModel
+func (r *AdminResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var data *AdminResourceModel
 	var diags diag.Diagnostics
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -554,14 +554,14 @@ func (r *OrganizationsAdminResource) Update(ctx context.Context, req resource.Up
 		return
 	}
 
-	data.Id = jsontypes2.StringValue(fmt.Sprintf("%s,%s", data.OrgId.ValueString(), data.AdminId.ValueString()))
+	data.Id = jsontypes.StringValue(fmt.Sprintf("%s,%s", data.OrgId.ValueString(), data.AdminId.ValueString()))
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func (r *OrganizationsAdminResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data *OrganizationsAdminResourceModel
+func (r *AdminResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data *AdminResourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -606,7 +606,7 @@ func (r *OrganizationsAdminResource) Delete(ctx context.Context, req resource.De
 	}
 }
 
-func (r *OrganizationsAdminResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *AdminResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 	idParts := strings.Split(req.ID, ",")
 	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {

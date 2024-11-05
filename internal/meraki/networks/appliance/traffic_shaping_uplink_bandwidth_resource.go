@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	jsontypes2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"io"
 
@@ -34,14 +34,14 @@ type NetworksApplianceTrafficShapingUplinkBandWidthResource struct {
 
 // NetworksApplianceTrafficShapingUplinkBandWidthResourceModel describes the resource data model.
 type NetworksApplianceTrafficShapingUplinkBandWidthResourceModel struct {
-	Id                              jsontypes2.String `tfsdk:"id"`
-	NetworkId                       jsontypes2.String `tfsdk:"network_id" json:"network_id"`
-	BandwidthLimitCellularLimitUp   jsontypes2.Int64  `tfsdk:"bandwidth_limit_cellular_limit_up"`
-	BandwidthLimitCellularLimitDown jsontypes2.Int64  `tfsdk:"bandwidth_limit_cellular_limit_down"`
-	BandwidthLimitWan2LimitUp       jsontypes2.Int64  `tfsdk:"bandwidth_limit_wan2_limit_up"`
-	BandwidthLimitWan2LimitDown     jsontypes2.Int64  `tfsdk:"bandwidth_limit_wan2_limit_down"`
-	BandwidthLimitWan1LimitUp       jsontypes2.Int64  `tfsdk:"bandwidth_limit_wan1_limit_up"`
-	BandwidthLimitWan1LimitDown     jsontypes2.Int64  `tfsdk:"bandwidth_limit_wan1_limit_down"`
+	Id                              jsontypes.String `tfsdk:"id"`
+	NetworkId                       jsontypes.String `tfsdk:"network_id" json:"network_id"`
+	BandwidthLimitCellularLimitUp   jsontypes.Int64  `tfsdk:"bandwidth_limit_cellular_limit_up"`
+	BandwidthLimitCellularLimitDown jsontypes.Int64  `tfsdk:"bandwidth_limit_cellular_limit_down"`
+	BandwidthLimitWan2LimitUp       jsontypes.Int64  `tfsdk:"bandwidth_limit_wan2_limit_up"`
+	BandwidthLimitWan2LimitDown     jsontypes.Int64  `tfsdk:"bandwidth_limit_wan2_limit_down"`
+	BandwidthLimitWan1LimitUp       jsontypes.Int64  `tfsdk:"bandwidth_limit_wan1_limit_up"`
+	BandwidthLimitWan1LimitDown     jsontypes.Int64  `tfsdk:"bandwidth_limit_wan1_limit_down"`
 }
 
 type NetworksApplianceTrafficShapingUplinkBandWidthResourceModelApiResponse struct {
@@ -55,8 +55,8 @@ type NetworksApplianceTrafficShapingUplinkBandWidthResourceModelUplinkBandwidthL
 }
 
 type NetworksApplianceTrafficShapingUplinkBandWidthResourceModelLimits struct {
-	LimitUp   jsontypes2.Int64 `json:"limitUp"`
-	LimitDown jsontypes2.Int64 `json:"limitDown"`
+	LimitUp   jsontypes.Int64 `json:"limitUp"`
+	LimitDown jsontypes.Int64 `json:"limitDown"`
 }
 
 func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -69,12 +69,12 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Schema(ctx cont
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:   true,
-				CustomType: jsontypes2.StringType,
+				CustomType: jsontypes.StringType,
 			},
 			"network_id": schema.StringAttribute{
 				MarkdownDescription: "Network ID",
 				Required:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -85,32 +85,32 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Schema(ctx cont
 			"bandwidth_limit_cellular_limit_up": schema.Int64Attribute{
 				MarkdownDescription: "The bandwidth settings for the 'cellular' uplink. The maximum upload limit (integer, in Kbps). null indicates no limit",
 				Optional:            true,
-				CustomType:          jsontypes2.Int64Type,
+				CustomType:          jsontypes.Int64Type,
 			},
 			"bandwidth_limit_cellular_limit_down": schema.Int64Attribute{
 				MarkdownDescription: "The bandwidth settings for the 'cellular' uplink. The maximum download limit (integer, in Kbps). null indicates no limit",
 				Optional:            true,
-				CustomType:          jsontypes2.Int64Type,
+				CustomType:          jsontypes.Int64Type,
 			},
 			"bandwidth_limit_wan2_limit_up": schema.Int64Attribute{
 				MarkdownDescription: "The bandwidth settings for the 'wan2' uplink. The maximum upload limit (integer, in Kbps). null indicates no limit",
 				Optional:            true,
-				CustomType:          jsontypes2.Int64Type,
+				CustomType:          jsontypes.Int64Type,
 			},
 			"bandwidth_limit_wan2_limit_down": schema.Int64Attribute{
 				MarkdownDescription: "The bandwidth settings for the 'wan2' uplink. The maximum download limit (integer, in Kbps). null indicates no limit",
 				Optional:            true,
-				CustomType:          jsontypes2.Int64Type,
+				CustomType:          jsontypes.Int64Type,
 			},
 			"bandwidth_limit_wan1_limit_up": schema.Int64Attribute{
 				MarkdownDescription: "The bandwidth settings for the 'wan1' uplink. The maximum upload limit (integer, in Kbps). null indicates no limit",
 				Optional:            true,
-				CustomType:          jsontypes2.Int64Type,
+				CustomType:          jsontypes.Int64Type,
 			},
 			"bandwidth_limit_wan1_limit_down": schema.Int64Attribute{
 				MarkdownDescription: "The bandwidth settings for the 'wan1' uplink. The maximum download limit (integer, in Kbps). null indicates no limit",
 				Optional:            true,
-				CustomType:          jsontypes2.Int64Type,
+				CustomType:          jsontypes.Int64Type,
 			},
 		},
 	}
@@ -214,7 +214,7 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Create(ctx cont
 		return
 	}
 
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -267,7 +267,7 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Read(ctx contex
 		return
 	}
 
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -355,7 +355,7 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Update(ctx cont
 		return
 	}
 
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -441,22 +441,22 @@ func extractHttpResponseUplinkBandwidthResource(ctx context.Context, httpRespBod
 	data.BandwidthLimitWan1LimitUp = apiResponse.UplinkBandwidthLimits.Wan1.LimitUp
 
 	if data.BandwidthLimitWan1LimitDown.IsUnknown() {
-		data.BandwidthLimitWan1LimitDown = jsontypes2.Int64Null()
+		data.BandwidthLimitWan1LimitDown = jsontypes.Int64Null()
 	}
 	if data.BandwidthLimitWan1LimitUp.IsUnknown() {
-		data.BandwidthLimitWan1LimitUp = jsontypes2.Int64Null()
+		data.BandwidthLimitWan1LimitUp = jsontypes.Int64Null()
 	}
 	if data.BandwidthLimitWan2LimitDown.Int64Value.IsUnknown() {
-		data.BandwidthLimitWan2LimitDown = jsontypes2.Int64Null()
+		data.BandwidthLimitWan2LimitDown = jsontypes.Int64Null()
 	}
 	if data.BandwidthLimitWan2LimitUp.IsUnknown() {
-		data.BandwidthLimitWan2LimitUp = jsontypes2.Int64Null()
+		data.BandwidthLimitWan2LimitUp = jsontypes.Int64Null()
 	}
 	if data.BandwidthLimitCellularLimitDown.IsUnknown() {
-		data.BandwidthLimitCellularLimitDown = jsontypes2.Int64Null()
+		data.BandwidthLimitCellularLimitDown = jsontypes.Int64Null()
 	}
 	if data.BandwidthLimitCellularLimitUp.IsUnknown() {
-		data.BandwidthLimitCellularLimitUp = jsontypes2.Int64Null()
+		data.BandwidthLimitCellularLimitUp = jsontypes.Int64Null()
 	}
 
 	return data, nil

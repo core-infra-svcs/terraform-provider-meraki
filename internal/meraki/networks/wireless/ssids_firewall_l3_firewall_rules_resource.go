@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	jsontypes2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"strings"
 
@@ -35,19 +35,19 @@ type NetworksWirelessSsidsFirewallL3FirewallRulesResource struct {
 
 // The NetworksWirelessSsidsFirewallL3FirewallRulesResourceModel structure describes the data model.
 type NetworksWirelessSsidsFirewallL3FirewallRulesResourceModel struct {
-	Id             jsontypes2.String                                               `tfsdk:"id"`
-	NetworkId      jsontypes2.String                                               `tfsdk:"network_id" json:"network_id"`
-	Number         jsontypes2.String                                               `tfsdk:"number"`
-	AllowLanAccess jsontypes2.Bool                                                 `tfsdk:"allow_lan_access"`
+	Id             jsontypes.String                                                `tfsdk:"id"`
+	NetworkId      jsontypes.String                                                `tfsdk:"network_id" json:"network_id"`
+	Number         jsontypes.String                                                `tfsdk:"number"`
+	AllowLanAccess jsontypes.Bool                                                  `tfsdk:"allow_lan_access"`
 	Rules          []NetworksWirelessSsidsFirewallL3FirewallRulesResourceModelRule `tfsdk:"rules" json:"rules"`
 }
 
 type NetworksWirelessSsidsFirewallL3FirewallRulesResourceModelRule struct {
-	Comment  jsontypes2.String `tfsdk:"comment"`
-	DestCidr jsontypes2.String `tfsdk:"dest_cidr"`
-	DestPort jsontypes2.String `tfsdk:"dest_port"`
-	Policy   jsontypes2.String `tfsdk:"policy"`
-	Protocol jsontypes2.String `tfsdk:"protocol"`
+	Comment  jsontypes.String `tfsdk:"comment"`
+	DestCidr jsontypes.String `tfsdk:"dest_cidr"`
+	DestPort jsontypes.String `tfsdk:"dest_port"`
+	Policy   jsontypes.String `tfsdk:"policy"`
+	Protocol jsontypes.String `tfsdk:"protocol"`
 }
 
 // Metadata provides a way to define information about the resource.
@@ -75,12 +75,12 @@ func (r *NetworksWirelessSsidsFirewallL3FirewallRulesResource) Schema(ctx contex
 			// Every resource must have an ID attribute. This is computed by the framework.
 			"id": schema.StringAttribute{
 				Computed:   true,
-				CustomType: jsontypes2.StringType,
+				CustomType: jsontypes.StringType,
 			},
 			"network_id": schema.StringAttribute{
 				MarkdownDescription: "Network ID",
 				Required:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -91,12 +91,12 @@ func (r *NetworksWirelessSsidsFirewallL3FirewallRulesResource) Schema(ctx contex
 			"number": schema.StringAttribute{
 				MarkdownDescription: "SsIds SsidNumber",
 				Required:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"allow_lan_access": schema.BoolAttribute{
 				MarkdownDescription: "Allow wireless client access to local LAN (boolean value - true allows access and false denies access) (optional)",
 				Optional:            true,
-				CustomType:          jsontypes2.BoolType,
+				CustomType:          jsontypes.BoolType,
 			},
 			"rules": schema.SetNestedAttribute{
 				MarkdownDescription: "An ordered array of the firewall rules for this SSID (not including the local LAN access rule or the default rule)",
@@ -108,28 +108,28 @@ func (r *NetworksWirelessSsidsFirewallL3FirewallRulesResource) Schema(ctx contex
 							MarkdownDescription: "Description of the rule (optional)",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"dest_cidr": schema.StringAttribute{
 							MarkdownDescription: "Comma-separated list of destination IP address(es) (in IP or CIDR notation), fully-qualified domain names (FQDN) or 'Any'",
 							Required:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"dest_port": schema.StringAttribute{
 							MarkdownDescription: "Comma-separated list of destination port(s) (integer in the range 1-65535), or 'Any'",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"policy": schema.StringAttribute{
 							MarkdownDescription: "'allow' or 'deny' traffic specified by this rule",
 							Required:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"protocol": schema.StringAttribute{
 							MarkdownDescription: "The type of protocol (must be 'tcp', 'udp', 'icmp', 'icmp6' or 'Any')",
 							Required:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 							Validators: []validator.String{
 								stringvalidator.OneOf([]string{"tcp", "udp", "icmp", "icmp6", "Any"}...),
 							},
@@ -185,8 +185,8 @@ func (r *NetworksWirelessSsidsFirewallL3FirewallRulesResource) Create(ctx contex
 	if len(data.Rules) > 0 {
 		for _, attribute := range data.Rules {
 			var rule openApiClient.UpdateNetworkWirelessSsidFirewallL3FirewallRulesRequestRulesInner
-			if attribute.Comment != jsontypes2.StringValue("Default rule") {
-				if attribute.Comment != jsontypes2.StringValue("Wireless clients accessing LAN") {
+			if attribute.Comment != jsontypes.StringValue("Default rule") {
+				if attribute.Comment != jsontypes.StringValue("Wireless clients accessing LAN") {
 					rule.SetComment(attribute.Comment.ValueString())
 					rule.SetDestCidr(attribute.DestCidr.ValueString())
 					rule.SetDestPort(attribute.DestPort.ValueString())
@@ -235,7 +235,7 @@ func (r *NetworksWirelessSsidsFirewallL3FirewallRulesResource) Create(ctx contex
 	}
 
 	// Set ID for the new resource.
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	// Now set the final state of the resource.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -293,7 +293,7 @@ func (r *NetworksWirelessSsidsFirewallL3FirewallRulesResource) Read(ctx context.
 	}
 
 	// Set ID for the resource.
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	// Now set the final state of the resource.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -321,8 +321,8 @@ func (r *NetworksWirelessSsidsFirewallL3FirewallRulesResource) Update(ctx contex
 	if len(data.Rules) > 0 {
 		for _, attribute := range data.Rules {
 			var rule openApiClient.UpdateNetworkWirelessSsidFirewallL3FirewallRulesRequestRulesInner
-			if attribute.Comment != jsontypes2.StringValue("Default rule") {
-				if attribute.Comment != jsontypes2.StringValue("Wireless clients accessing LAN") {
+			if attribute.Comment != jsontypes.StringValue("Default rule") {
+				if attribute.Comment != jsontypes.StringValue("Wireless clients accessing LAN") {
 					rule.SetComment(attribute.Comment.ValueString())
 					rule.SetDestCidr(attribute.DestCidr.ValueString())
 					rule.SetDestPort(attribute.DestPort.ValueString())
@@ -371,7 +371,7 @@ func (r *NetworksWirelessSsidsFirewallL3FirewallRulesResource) Update(ctx contex
 	}
 
 	// Set ID for the new resource.
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	// Now set the updated state of the resource.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -427,7 +427,7 @@ func (r *NetworksWirelessSsidsFirewallL3FirewallRulesResource) Delete(ctx contex
 	}
 
 	// Set ID for the new resource.
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.State.RemoveResource(ctx)
 

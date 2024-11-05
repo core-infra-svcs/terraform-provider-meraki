@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	jsontypes2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -18,37 +18,37 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ resource.Resource = &NetworksTrafficAnalysisResource{}
-var _ resource.ResourceWithImportState = &NetworksTrafficAnalysisResource{}
+var _ resource.Resource = &TrafficAnalysisResource{}
+var _ resource.ResourceWithImportState = &TrafficAnalysisResource{}
 
 func NewNetworksTrafficAnalysisResource() resource.Resource {
-	return &NetworksTrafficAnalysisResource{}
+	return &TrafficAnalysisResource{}
 }
 
 // NetworksTrafficAnalysisResource defines the resource implementation.
-type NetworksTrafficAnalysisResource struct {
+type TrafficAnalysisResource struct {
 	client *openApiClient.APIClient
 }
 
 // NetworksTrafficAnalysisResourceModel describes the resource data model.
-type NetworksTrafficAnalysisResourceModel struct {
-	Id                  jsontypes2.String                                         `tfsdk:"id"`
-	NetworkId           jsontypes2.String                                         `tfsdk:"network_id" json:"network_id"`
-	Mode                jsontypes2.String                                         `tfsdk:"mode" json:"mode"`
-	CustomPieChartItems []NetworksTrafficAnalysisResourceModelCustomPieChartItems `tfsdk:"custom_pie_chart_items" json:"customPieChartItems"`
+type TrafficAnalysisResourceModel struct {
+	Id                  jsontypes.String                                  `tfsdk:"id"`
+	NetworkId           jsontypes.String                                  `tfsdk:"network_id" json:"network_id"`
+	Mode                jsontypes.String                                  `tfsdk:"mode" json:"mode"`
+	CustomPieChartItems []TrafficAnalysisResourceModelCustomPieChartItems `tfsdk:"custom_pie_chart_items" json:"customPieChartItems"`
 }
 
-type NetworksTrafficAnalysisResourceModelCustomPieChartItems struct {
-	Name  jsontypes2.String `tfsdk:"name" json:"name"`
-	Type  jsontypes2.String `tfsdk:"type" json:"type"`
-	Value jsontypes2.String `tfsdk:"value" json:"value"`
+type TrafficAnalysisResourceModelCustomPieChartItems struct {
+	Name  jsontypes.String `tfsdk:"name" json:"name"`
+	Type  jsontypes.String `tfsdk:"type" json:"type"`
+	Value jsontypes.String `tfsdk:"value" json:"value"`
 }
 
-func (r *NetworksTrafficAnalysisResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *TrafficAnalysisResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_networks_traffic_analysis"
 }
 
-func (r *NetworksTrafficAnalysisResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *TrafficAnalysisResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "NetworksTrafficAnalysis resource for updating networks traffic analysis.",
 		Attributes: map[string]schema.Attribute{
@@ -56,12 +56,12 @@ func (r *NetworksTrafficAnalysisResource) Schema(ctx context.Context, req resour
 			"id": schema.StringAttribute{
 				MarkdownDescription: "Example identifier",
 				Computed:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"network_id": schema.StringAttribute{
 				MarkdownDescription: "Network Id",
 				Required:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -72,7 +72,7 @@ func (r *NetworksTrafficAnalysisResource) Schema(ctx context.Context, req resour
 			"mode": schema.StringAttribute{
 				MarkdownDescription: "The traffic analysis mode for the network. Can be one of 'disabled' (do not collect traffic types) 'basic' (collect generic traffic categories), or 'detailed' (collect destination hostnames)",
 				Required:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				Validators: []validator.String{
 					stringvalidator.OneOf([]string{"disabled", "basic", "detailed"}...),
 					stringvalidator.LengthAtLeast(5),
@@ -87,13 +87,13 @@ func (r *NetworksTrafficAnalysisResource) Schema(ctx context.Context, req resour
 							MarkdownDescription: "The name of the custom pie chart item.",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"type": schema.StringAttribute{
 							MarkdownDescription: "The signature type for the custom pie chart item. Can be one of 'host', 'port' or 'ipRange'.",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 							Validators: []validator.String{
 								stringvalidator.OneOf([]string{"host", "port", "ipRange"}...),
 								stringvalidator.LengthAtLeast(4),
@@ -103,7 +103,7 @@ func (r *NetworksTrafficAnalysisResource) Schema(ctx context.Context, req resour
 							MarkdownDescription: "The value of the custom pie chart item. Valid syntax depends on the signature type of the chart item.",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 					},
 				},
@@ -112,7 +112,7 @@ func (r *NetworksTrafficAnalysisResource) Schema(ctx context.Context, req resour
 	}
 }
 
-func (r *NetworksTrafficAnalysisResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *TrafficAnalysisResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -132,8 +132,8 @@ func (r *NetworksTrafficAnalysisResource) Configure(ctx context.Context, req res
 	r.client = client
 }
 
-func (r *NetworksTrafficAnalysisResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *NetworksTrafficAnalysisResourceModel
+func (r *TrafficAnalysisResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *TrafficAnalysisResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -192,7 +192,7 @@ func (r *NetworksTrafficAnalysisResource) Create(ctx context.Context, req resour
 		return
 	}
 
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -200,8 +200,8 @@ func (r *NetworksTrafficAnalysisResource) Create(ctx context.Context, req resour
 	tflog.Trace(ctx, "create resource")
 }
 
-func (r *NetworksTrafficAnalysisResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *NetworksTrafficAnalysisResourceModel
+func (r *TrafficAnalysisResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *TrafficAnalysisResourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -243,7 +243,7 @@ func (r *NetworksTrafficAnalysisResource) Read(ctx context.Context, req resource
 		return
 	}
 
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -251,9 +251,9 @@ func (r *NetworksTrafficAnalysisResource) Read(ctx context.Context, req resource
 	tflog.Trace(ctx, "read resource")
 }
 
-func (r *NetworksTrafficAnalysisResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *TrafficAnalysisResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 
-	var data *NetworksTrafficAnalysisResourceModel
+	var data *TrafficAnalysisResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -311,7 +311,7 @@ func (r *NetworksTrafficAnalysisResource) Update(ctx context.Context, req resour
 		return
 	}
 
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -319,9 +319,9 @@ func (r *NetworksTrafficAnalysisResource) Update(ctx context.Context, req resour
 	tflog.Trace(ctx, "update resource")
 }
 
-func (r *NetworksTrafficAnalysisResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *TrafficAnalysisResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 
-	var data *NetworksTrafficAnalysisResourceModel
+	var data *TrafficAnalysisResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -364,7 +364,7 @@ func (r *NetworksTrafficAnalysisResource) Delete(ctx context.Context, req resour
 
 }
 
-func (r *NetworksTrafficAnalysisResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *TrafficAnalysisResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("network_id"), req.ID)...)

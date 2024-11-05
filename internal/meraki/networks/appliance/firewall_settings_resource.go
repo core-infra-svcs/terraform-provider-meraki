@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	jsontypes2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -32,8 +32,8 @@ type NetworksApplianceFirewallSettingsResource struct {
 
 // NetworksApplianceFirewallSettingsResourceModel describes the resource data model.
 type NetworksApplianceFirewallSettingsResourceModel struct {
-	Id                 jsontypes2.String                                                `tfsdk:"id"`
-	NetworkId          jsontypes2.String                                                `tfsdk:"network_id" json:"network_id"`
+	Id                 jsontypes.String                                                 `tfsdk:"id"`
+	NetworkId          jsontypes.String                                                 `tfsdk:"network_id" json:"network_id"`
 	SpoofingProtection NetworksApplianceFirewallSettingsResourceModelSpoofingProtection `tfsdk:"spoofing_protection" json:"spoofingProtection"`
 }
 
@@ -42,7 +42,7 @@ type NetworksApplianceFirewallSettingsResourceModelSpoofingProtection struct {
 }
 
 type NetworksApplianceFirewallSettingsResourceModelIpSourceGuard struct {
-	Mode jsontypes2.String `tfsdk:"mode" json:"mode"`
+	Mode jsontypes.String `tfsdk:"mode" json:"mode"`
 }
 
 func (r *NetworksApplianceFirewallSettingsResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -57,12 +57,12 @@ func (r *NetworksApplianceFirewallSettingsResource) Schema(ctx context.Context, 
 			"id": schema.StringAttribute{
 				MarkdownDescription: "Example identifier",
 				Computed:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"network_id": schema.StringAttribute{
 				MarkdownDescription: "Network Id",
 				Required:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -81,7 +81,7 @@ func (r *NetworksApplianceFirewallSettingsResource) Schema(ctx context.Context, 
 							"mode": schema.StringAttribute{
 								MarkdownDescription: "Mode of protection.",
 								Required:            true,
-								CustomType:          jsontypes2.StringType,
+								CustomType:          jsontypes.StringType,
 							},
 						},
 					},
@@ -160,7 +160,7 @@ func (r *NetworksApplianceFirewallSettingsResource) Create(ctx context.Context, 
 		return
 	}
 
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -211,7 +211,7 @@ func (r *NetworksApplianceFirewallSettingsResource) Read(ctx context.Context, re
 		return
 	}
 
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -269,7 +269,7 @@ func (r *NetworksApplianceFirewallSettingsResource) Update(ctx context.Context, 
 		return
 	}
 
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -326,7 +326,7 @@ func (r *NetworksApplianceFirewallSettingsResource) Delete(ctx context.Context, 
 		return
 	}
 
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 

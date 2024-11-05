@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	jsontypes2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"io"
@@ -21,7 +21,7 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ datasource.DataSource = &organizations.OrganizationsAdminsDataSource{}
+var _ datasource.DataSource = &organizations.AdminsDataSource{}
 
 func NewNetworkGroupPoliciesDataSource() datasource.DataSource {
 	return &NetworkGroupPoliciesDataSource{}
@@ -34,16 +34,16 @@ type NetworkGroupPoliciesDataSource struct {
 
 // NetworkGroupPoliciesDataSourceModel describes the data source data model.
 type NetworkGroupPoliciesDataSourceModel struct {
-	Id        jsontypes2.String                         `tfsdk:"id"`
-	NetworkId jsontypes2.String                         `tfsdk:"network_id"`
+	Id        jsontypes.String                          `tfsdk:"id"`
+	NetworkId jsontypes.String                          `tfsdk:"network_id"`
 	List      []NetworkGroupPoliciesDataSourceModelList `tfsdk:"list"`
 }
 
 // NetworkGroupPoliciesDataSourceModelList describes the data source data model.
 type NetworkGroupPoliciesDataSourceModelList struct {
-	GroupPolicyId             jsontypes2.String                                            `tfsdk:"group_policy_id" json:"groupPolicyId"`
-	Name                      jsontypes2.String                                            `tfsdk:"name" json:"name"`
-	SplashAuthSettings        jsontypes2.String                                            `tfsdk:"splash_auth_settings" json:"splashAuthSettings"`
+	GroupPolicyId             jsontypes.String                                             `tfsdk:"group_policy_id" json:"groupPolicyId"`
+	Name                      jsontypes.String                                             `tfsdk:"name" json:"name"`
+	SplashAuthSettings        jsontypes.String                                             `tfsdk:"splash_auth_settings" json:"splashAuthSettings"`
 	BandWidth                 NetworkGroupPoliciesDataSourceModelBandwidthDataSource       `tfsdk:"bandwidth" json:"bandwidth"`
 	BonjourForwarding         NetworkGroupPoliciesDataSourceModelBonjourForwarding         `tfsdk:"bonjour_forwarding" json:"bonjourForwarding"`
 	Scheduling                NetworkGroupPoliciesDataSourceModelScheduling                `tfsdk:"scheduling" json:"scheduling"`
@@ -54,12 +54,12 @@ type NetworkGroupPoliciesDataSourceModelList struct {
 
 type NetworkGroupPoliciesDataSourceModelBandwidthDataSource struct {
 	BandwidthLimitsDataSource NetworkGroupPoliciesDataSourceModelBandwidthLimits `tfsdk:"bandwidth_limits" json:"bandwidthLimits"`
-	Settings                  jsontypes2.String                                  `tfsdk:"settings" json:"settings"`
+	Settings                  jsontypes.String                                   `tfsdk:"settings" json:"settings"`
 }
 
 type NetworkGroupPoliciesDataSourceModelBandwidthLimits struct {
-	LimitUp   jsontypes2.Int64 `tfsdk:"limit_up" json:"limitUp"`
-	LimitDown jsontypes2.Int64 `tfsdk:"limit_down" json:"limitDown"`
+	LimitUp   jsontypes.Int64 `tfsdk:"limit_up" json:"limitUp"`
+	LimitDown jsontypes.Int64 `tfsdk:"limit_down" json:"limitDown"`
 }
 
 type NetworkGroupPoliciesDataSourceModelBonjourForwarding struct {
@@ -68,13 +68,13 @@ type NetworkGroupPoliciesDataSourceModelBonjourForwarding struct {
 }
 
 type NetworkGroupPoliciesDataSourceModelRule struct {
-	Description jsontypes2.String `tfsdk:"description" json:"description"`
-	VlanId      jsontypes2.String `tfsdk:"vlan_id" json:"vlanId"`
-	Services    []string          `tfsdk:"services" json:"services"`
+	Description jsontypes.String `tfsdk:"description" json:"description"`
+	VlanId      jsontypes.String `tfsdk:"vlan_id" json:"vlanId"`
+	Services    []string         `tfsdk:"services" json:"services"`
 }
 
 type NetworkGroupPoliciesDataSourceModelScheduling struct {
-	Enabled   jsontypes2.Bool                             `tfsdk:"enabled" json:"enabled"`
+	Enabled   jsontypes.Bool                              `tfsdk:"enabled" json:"enabled"`
 	Friday    NetworkGroupPoliciesDataSourceModelSchedule `tfsdk:"friday" json:"friday"`
 	Monday    NetworkGroupPoliciesDataSourceModelSchedule `tfsdk:"monday" json:"monday"`
 	Saturday  NetworkGroupPoliciesDataSourceModelSchedule `tfsdk:"saturday" json:"saturday"`
@@ -85,14 +85,14 @@ type NetworkGroupPoliciesDataSourceModelScheduling struct {
 }
 
 type NetworkGroupPoliciesDataSourceModelSchedule struct {
-	From   jsontypes2.String `tfsdk:"from" json:"from"`
-	To     jsontypes2.String `tfsdk:"to" json:"to"`
-	Active jsontypes2.Bool   `tfsdk:"active" json:"active"`
+	From   jsontypes.String `tfsdk:"from" json:"from"`
+	To     jsontypes.String `tfsdk:"to" json:"to"`
+	Active jsontypes.Bool   `tfsdk:"active" json:"active"`
 }
 
 type NetworkGroupPoliciesDataSourceModelVlanTagging struct {
-	Settings jsontypes2.String `tfsdk:"settings" json:"settings"`
-	VlanId   jsontypes2.String `tfsdk:"vlan_id" json:"vlanId"`
+	Settings jsontypes.String `tfsdk:"settings" json:"settings"`
+	VlanId   jsontypes.String `tfsdk:"vlan_id" json:"vlanId"`
 }
 
 type NetworkGroupPoliciesDataSourceModelContentFiltering struct {
@@ -102,54 +102,54 @@ type NetworkGroupPoliciesDataSourceModelContentFiltering struct {
 }
 
 type NetworkGroupPoliciesDataSourceModelAllowedUrlPatterns struct {
-	Settings jsontypes2.String `tfsdk:"settings" json:"settings"`
-	Patterns []string          `tfsdk:"patterns" json:"patterns"`
+	Settings jsontypes.String `tfsdk:"settings" json:"settings"`
+	Patterns []string         `tfsdk:"patterns" json:"patterns"`
 }
 type NetworkGroupPoliciesDataSourceModelBlockedUrlCategories struct {
-	Settings   jsontypes2.String `tfsdk:"settings" json:"settings"`
-	Categories []string          `tfsdk:"categories" json:"categories"`
+	Settings   jsontypes.String `tfsdk:"settings" json:"settings"`
+	Categories []string         `tfsdk:"categories" json:"categories"`
 }
 type NetworkGroupPoliciesDataSourceModelBlockedUrlPatterns struct {
-	Settings jsontypes2.String `tfsdk:"settings" json:"settings"`
-	Patterns []string          `tfsdk:"patterns" json:"patterns"`
+	Settings jsontypes.String `tfsdk:"settings" json:"settings"`
+	Patterns []string         `tfsdk:"patterns" json:"patterns"`
 }
 
 type NetworkGroupPoliciesDataSourceModelFirewallAndTrafficShaping struct {
-	Settings            jsontypes2.String                                       `tfsdk:"settings" json:"settings"`
+	Settings            jsontypes.String                                        `tfsdk:"settings" json:"settings"`
 	L3FirewallRules     []NetworkGroupPoliciesDataSourceModelL3FirewallRule     `tfsdk:"l3_firewall_rules" json:"l3FirewallRules"`
 	L7FirewallRules     []NetworkGroupPoliciesDataSourceModelL7FirewallRule     `tfsdk:"l7_firewall_rules" json:"l7FirewallRules"`
 	TrafficShapingRules []NetworkGroupPoliciesDataSourceModelTrafficShapingRule `tfsdk:"traffic_shaping_rules" json:"trafficShapingRules"`
 }
 
 type NetworkGroupPoliciesDataSourceModelL3FirewallRule struct {
-	Comment  jsontypes2.String `tfsdk:"comment" json:"comment"`
-	DestCidr jsontypes2.String `tfsdk:"dest_cidr" json:"destCidr"`
-	DestPort jsontypes2.String `tfsdk:"dest_port" json:"destPort"`
-	Policy   jsontypes2.String `tfsdk:"policy" json:"policy"`
-	Protocol jsontypes2.String `tfsdk:"protocol" json:"protocol"`
+	Comment  jsontypes.String `tfsdk:"comment" json:"comment"`
+	DestCidr jsontypes.String `tfsdk:"dest_cidr" json:"destCidr"`
+	DestPort jsontypes.String `tfsdk:"dest_port" json:"destPort"`
+	Policy   jsontypes.String `tfsdk:"policy" json:"policy"`
+	Protocol jsontypes.String `tfsdk:"protocol" json:"protocol"`
 }
 
 type NetworkGroupPoliciesDataSourceModelL7FirewallRule struct {
-	Value  jsontypes2.String `tfsdk:"value" json:"value"`
-	Type   jsontypes2.String `tfsdk:"type" json:"type"`
-	Policy jsontypes2.String `tfsdk:"policy" json:"policy"`
+	Value  jsontypes.String `tfsdk:"value" json:"value"`
+	Type   jsontypes.String `tfsdk:"type" json:"type"`
+	Policy jsontypes.String `tfsdk:"policy" json:"policy"`
 }
 
 type NetworkGroupPoliciesDataSourceModelTrafficShapingRule struct {
-	DscpTagValue             jsontypes2.Int64                                            `tfsdk:"dscp_tag_value" json:"dscpTagValue"`
-	PcpTagValue              jsontypes2.Int64                                            `tfsdk:"pcp_tag_value" json:"pcpTagValue"`
+	DscpTagValue             jsontypes.Int64                                             `tfsdk:"dscp_tag_value" json:"dscpTagValue"`
+	PcpTagValue              jsontypes.Int64                                             `tfsdk:"pcp_tag_value" json:"pcpTagValue"`
 	PerClientBandwidthLimits NetworkGroupPoliciesDataSourceModelPerClientBandwidthLimits `tfsdk:"per_client_bandwidth_limits" json:"perClientBandwidthLimits"`
 	Definitions              []NetworkGroupPoliciesDataSourceModelDefinition             `tfsdk:"definitions" json:"definitions"`
 }
 
 type NetworkGroupPoliciesDataSourceModelPerClientBandwidthLimits struct {
 	BandwidthLimitsDataSource NetworkGroupPoliciesDataSourceModelBandwidthLimits `tfsdk:"bandwidth_limits" json:"bandwidthLimits"`
-	Settings                  jsontypes2.String                                  `tfsdk:"settings" json:"settings"`
+	Settings                  jsontypes.String                                   `tfsdk:"settings" json:"settings"`
 }
 
 type NetworkGroupPoliciesDataSourceModelDefinition struct {
-	Value jsontypes2.String `tfsdk:"value" json:"value"`
-	Type  jsontypes2.String `tfsdk:"type" json:"type"`
+	Value jsontypes.String `tfsdk:"value" json:"value"`
+	Type  jsontypes.String `tfsdk:"type" json:"type"`
 }
 
 func (d *NetworkGroupPoliciesDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -164,12 +164,12 @@ func (d *NetworkGroupPoliciesDataSource) Schema(ctx context.Context, req datasou
 			"id": schema.StringAttribute{
 				MarkdownDescription: "Example identifier",
 				Computed:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"network_id": schema.StringAttribute{
 				MarkdownDescription: "Network Id",
 				Required:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"list": schema.ListNestedAttribute{
 				Optional:    true,
@@ -181,7 +181,7 @@ func (d *NetworkGroupPoliciesDataSource) Schema(ctx context.Context, req datasou
 							MarkdownDescription: "Group Policy ID",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 							Validators: []validator.String{
 								stringvalidator.LengthBetween(1, 31),
 							},
@@ -189,13 +189,13 @@ func (d *NetworkGroupPoliciesDataSource) Schema(ctx context.Context, req datasou
 						"name": schema.StringAttribute{
 							MarkdownDescription: "Name of Group Policy",
 							Required:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"splash_auth_settings": schema.StringAttribute{
 							MarkdownDescription: "Whether clients bound to your policy will bypass splash authorization or behave according to the network's rules. Can be one of 'network default' or 'bypass'. Only available if your network has a wireless configuration",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 							Validators: []validator.String{
 								stringvalidator.OneOf([]string{"network default", "bypass"}...),
 							},
@@ -208,7 +208,7 @@ func (d *NetworkGroupPoliciesDataSource) Schema(ctx context.Context, req datasou
 									MarkdownDescription: "Settings Bandwidth",
 									Optional:            true,
 									Computed:            true,
-									CustomType:          jsontypes2.StringType,
+									CustomType:          jsontypes.StringType,
 								},
 								"bandwidth_limits": schema.SingleNestedAttribute{
 									Optional: true,
@@ -219,13 +219,13 @@ func (d *NetworkGroupPoliciesDataSource) Schema(ctx context.Context, req datasou
 											MarkdownDescription: "The maximum download limit (integer, in Kbps).",
 											Optional:            true,
 											Computed:            true,
-											CustomType:          jsontypes2.Int64Type,
+											CustomType:          jsontypes.Int64Type,
 										},
 										"limit_up": schema.Int64Attribute{
 											MarkdownDescription: "The maximum upload limit (integer, in Kbps).",
 											Optional:            true,
 											Computed:            true,
-											CustomType:          jsontypes2.Int64Type,
+											CustomType:          jsontypes.Int64Type,
 										},
 									},
 								},
@@ -243,11 +243,11 @@ func (d *NetworkGroupPoliciesDataSource) Schema(ctx context.Context, req datasou
 											MarkdownDescription: "How URL patterns are applied. Can be 'network default', 'append' or 'override'.",
 											Optional:            true,
 											Computed:            true,
-											CustomType:          jsontypes2.StringType,
+											CustomType:          jsontypes.StringType,
 										},
 										"patterns": schema.SetAttribute{
 											MarkdownDescription: "A list of URL patterns that are allowed",
-											CustomType:          jsontypes2.SetType[jsontypes2.String](),
+											CustomType:          jsontypes.SetType[jsontypes.String](),
 											Optional:            true,
 										},
 									},
@@ -261,11 +261,11 @@ func (d *NetworkGroupPoliciesDataSource) Schema(ctx context.Context, req datasou
 											MarkdownDescription: "How URL categories are applied. Can be 'network default', 'append' or 'override'.",
 											Optional:            true,
 											Computed:            true,
-											CustomType:          jsontypes2.StringType,
+											CustomType:          jsontypes.StringType,
 										},
 										"categories": schema.SetAttribute{
 											MarkdownDescription: "A list of URL categories to block",
-											CustomType:          jsontypes2.SetType[jsontypes2.String](),
+											CustomType:          jsontypes.SetType[jsontypes.String](),
 											Optional:            true,
 										},
 									},
@@ -279,11 +279,11 @@ func (d *NetworkGroupPoliciesDataSource) Schema(ctx context.Context, req datasou
 											MarkdownDescription: "How URL patterns are applied. Can be 'network default', 'append' or 'override'.",
 											Optional:            true,
 											Computed:            true,
-											CustomType:          jsontypes2.StringType,
+											CustomType:          jsontypes.StringType,
 										},
 										"patterns": schema.SetAttribute{
 											MarkdownDescription: "A list of URL patterns that are blocked",
-											CustomType:          jsontypes2.SetType[jsontypes2.String](),
+											CustomType:          jsontypes.SetType[jsontypes.String](),
 											Optional:            true,
 										},
 									},
@@ -299,7 +299,7 @@ func (d *NetworkGroupPoliciesDataSource) Schema(ctx context.Context, req datasou
 									MarkdownDescription: "How Bonjour rules are applied. Can be 'network default', 'ignore' or 'custom'.",
 									Optional:            true,
 									Computed:            true,
-									CustomType:          jsontypes2.StringType,
+									CustomType:          jsontypes.StringType,
 								},
 								"rules": schema.SetNestedAttribute{
 									Optional: true,
@@ -310,16 +310,16 @@ func (d *NetworkGroupPoliciesDataSource) Schema(ctx context.Context, req datasou
 												MarkdownDescription: "A description for your Bonjour forwarding rule. Optional.",
 												Optional:            true,
 												Computed:            true,
-												CustomType:          jsontypes2.StringType,
+												CustomType:          jsontypes.StringType,
 											},
 											"vlan_id": schema.StringAttribute{
 												MarkdownDescription: "The ID of the service VLAN. Required.",
 												Optional:            true,
 												Computed:            true,
-												CustomType:          jsontypes2.StringType,
+												CustomType:          jsontypes.StringType,
 											},
 											"services": schema.SetAttribute{
-												CustomType: jsontypes2.SetType[jsontypes2.String](),
+												CustomType: jsontypes.SetType[jsontypes.String](),
 												Required:   true,
 												Validators: []validator.Set{
 													setvalidator.ValueStringsAre(
@@ -341,7 +341,7 @@ func (d *NetworkGroupPoliciesDataSource) Schema(ctx context.Context, req datasou
 									MarkdownDescription: "How firewall and traffic shaping rules are enforced. Can be 'network default', 'ignore' or 'custom'.",
 									Optional:            true,
 									Computed:            true,
-									CustomType:          jsontypes2.StringType,
+									CustomType:          jsontypes.StringType,
 								},
 								"l3_firewall_rules": schema.ListNestedAttribute{
 									Optional: true,
@@ -352,31 +352,31 @@ func (d *NetworkGroupPoliciesDataSource) Schema(ctx context.Context, req datasou
 												MarkdownDescription: "Description of the rule (optional)",
 												Optional:            true,
 												Computed:            true,
-												CustomType:          jsontypes2.StringType,
+												CustomType:          jsontypes.StringType,
 											},
 											"dest_cidr": schema.StringAttribute{
 												MarkdownDescription: "Destination IP address (in IP or CIDR notation), a fully-qualified domain name (FQDN, if your network supports it) or 'any'.",
 												Optional:            true,
 												Computed:            true,
-												CustomType:          jsontypes2.StringType,
+												CustomType:          jsontypes.StringType,
 											},
 											"dest_port": schema.StringAttribute{
 												MarkdownDescription: "Destination port (integer in the range 1-65535), a port range (e.g. 8080-9090), or 'any'",
 												Optional:            true,
 												Computed:            true,
-												CustomType:          jsontypes2.StringType,
+												CustomType:          jsontypes.StringType,
 											},
 											"policy": schema.StringAttribute{
 												MarkdownDescription: "'allow' or 'deny' traffic specified by this rule",
 												Optional:            true,
 												Computed:            true,
-												CustomType:          jsontypes2.StringType,
+												CustomType:          jsontypes.StringType,
 											},
 											"protocol": schema.StringAttribute{
 												MarkdownDescription: "The type of protocol (must be 'tcp', 'udp', 'icmp', 'icmp6' or 'any')",
 												Optional:            true,
 												Computed:            true,
-												CustomType:          jsontypes2.StringType,
+												CustomType:          jsontypes.StringType,
 											},
 										},
 									},
@@ -390,19 +390,19 @@ func (d *NetworkGroupPoliciesDataSource) Schema(ctx context.Context, req datasou
 												MarkdownDescription: "The 'value' of what you want to block. If 'type' is 'host', 'port' or 'ipRange', 'value' must be a string matching either a hostname (e.g. somewhere.com), a port (e.g. 8080), or an IP range (e.g. 192.1.0.0/16). If 'type' is 'application' or 'applicationCategory', then 'value' must be an object with an ID for the application.",
 												Optional:            true,
 												Computed:            true,
-												CustomType:          jsontypes2.StringType,
+												CustomType:          jsontypes.StringType,
 											},
 											"policy": schema.StringAttribute{
 												MarkdownDescription: "The policy applied to matching traffic. Must be 'deny'.",
 												Optional:            true,
 												Computed:            true,
-												CustomType:          jsontypes2.StringType,
+												CustomType:          jsontypes.StringType,
 											},
 											"type": schema.StringAttribute{
 												MarkdownDescription: "Type of the L7 Rule. Must be 'application', 'applicationCategory', 'host', 'port' or 'ipRange'",
 												Optional:            true,
 												Computed:            true,
-												CustomType:          jsontypes2.StringType,
+												CustomType:          jsontypes.StringType,
 											},
 										},
 									},
@@ -416,13 +416,13 @@ func (d *NetworkGroupPoliciesDataSource) Schema(ctx context.Context, req datasou
 												MarkdownDescription: "The DSCP tag applied by your rule. null means Do not change DSCP tag. For a list of possible tag values, use the trafficShaping/dscpTaggingOptions endpoint",
 												Optional:            true,
 												Computed:            true,
-												CustomType:          jsontypes2.Int64Type,
+												CustomType:          jsontypes.Int64Type,
 											},
 											"pcp_tag_value": schema.Int64Attribute{
 												MarkdownDescription: "The PCP tag applied by your rule. Can be 0 (lowest priority) through 7 (highest priority). null means Do not set PCP tag.",
 												Optional:            true,
 												Computed:            true,
-												CustomType:          jsontypes2.Int64Type,
+												CustomType:          jsontypes.Int64Type,
 											},
 											"per_client_bandwidth_limits": schema.SingleNestedAttribute{
 												Optional: true,
@@ -432,7 +432,7 @@ func (d *NetworkGroupPoliciesDataSource) Schema(ctx context.Context, req datasou
 														MarkdownDescription: "How bandwidth limits are applied by your rule. Can be one of 'network default', 'ignore' or 'custom'.",
 														Optional:            true,
 														Computed:            true,
-														CustomType:          jsontypes2.StringType,
+														CustomType:          jsontypes.StringType,
 													},
 													"bandwidth_limits": schema.SingleNestedAttribute{
 														Optional: true,
@@ -442,13 +442,13 @@ func (d *NetworkGroupPoliciesDataSource) Schema(ctx context.Context, req datasou
 																MarkdownDescription: "The maximum download limit (integer, in Kbps).",
 																Optional:            true,
 																Computed:            true,
-																CustomType:          jsontypes2.Int64Type,
+																CustomType:          jsontypes.Int64Type,
 															},
 															"limit_up": schema.Int64Attribute{
 																MarkdownDescription: "The maximum upload limit (integer, in Kbps).",
 																Optional:            true,
 																Computed:            true,
-																CustomType:          jsontypes2.Int64Type,
+																CustomType:          jsontypes.Int64Type,
 															},
 														},
 													},
@@ -463,13 +463,13 @@ func (d *NetworkGroupPoliciesDataSource) Schema(ctx context.Context, req datasou
 															MarkdownDescription: "The type of definition. Can be one of 'application', 'applicationCategory', 'host', 'port', 'ipRange' or 'localNet'.",
 															Optional:            true,
 															Computed:            true,
-															CustomType:          jsontypes2.StringType,
+															CustomType:          jsontypes.StringType,
 														},
 														"value": schema.StringAttribute{
 															MarkdownDescription: "If type is host, port, ipRange or localNet then value must be a string matching either a hostname (e.g. somesite.com) a port (e.g. 8080) or an IP range (192.1.0.0, 192.1.0.0/16, or 10.1.0.0/16:80). localNet also supports CIDR notation excluding custom ports If type is 'application' or 'applicationCategory', then value must be an object with the structure { id: meraki:layer7/... }, where id is the application category or application ID (for a list of IDs for your network, use the trafficShaping/applicationCategories endpoint)",
 															Optional:            true,
 															Computed:            true,
-															CustomType:          jsontypes2.StringType,
+															CustomType:          jsontypes.StringType,
 														},
 													},
 												},
@@ -487,13 +487,13 @@ func (d *NetworkGroupPoliciesDataSource) Schema(ctx context.Context, req datasou
 									MarkdownDescription: "How VLAN tagging is applied. Can be 'network default', 'ignore' or 'custom'.",
 									Optional:            true,
 									Computed:            true,
-									CustomType:          jsontypes2.StringType,
+									CustomType:          jsontypes.StringType,
 								},
 								"vlan_id": schema.StringAttribute{
 									MarkdownDescription: "The ID of the vlan you want to tag. This only applies if 'settings' is set to 'custom'.",
 									Optional:            true,
 									Computed:            true,
-									CustomType:          jsontypes2.StringType,
+									CustomType:          jsontypes.StringType,
 								},
 							},
 						},
@@ -505,7 +505,7 @@ func (d *NetworkGroupPoliciesDataSource) Schema(ctx context.Context, req datasou
 									MarkdownDescription: "Whether scheduling is enabled (true) or disabled (false). Defaults to false. If true, the schedule objects for each day of the week (monday - sunday) are parsed.",
 									Optional:            true,
 									Computed:            true,
-									CustomType:          jsontypes2.BoolType,
+									CustomType:          jsontypes.BoolType,
 								},
 								"friday": schema.SingleNestedAttribute{
 									Optional: true,
@@ -515,19 +515,19 @@ func (d *NetworkGroupPoliciesDataSource) Schema(ctx context.Context, req datasou
 											MarkdownDescription: "The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.",
 											Optional:            true,
 											Computed:            true,
-											CustomType:          jsontypes2.StringType,
+											CustomType:          jsontypes.StringType,
 										},
 										"to": schema.StringAttribute{
 											MarkdownDescription: "The time, from '00:00' to '24:00'. Must be greater than the time specified in 'from'. Defaults to '24:00'. Only 30 minute increments are allowed.",
 											Optional:            true,
 											Computed:            true,
-											CustomType:          jsontypes2.StringType,
+											CustomType:          jsontypes.StringType,
 										},
 										"active": schema.BoolAttribute{
 											MarkdownDescription: "Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.",
 											Optional:            true,
 											Computed:            true,
-											CustomType:          jsontypes2.BoolType,
+											CustomType:          jsontypes.BoolType,
 										},
 									},
 								},
@@ -539,19 +539,19 @@ func (d *NetworkGroupPoliciesDataSource) Schema(ctx context.Context, req datasou
 											MarkdownDescription: "The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.",
 											Optional:            true,
 											Computed:            true,
-											CustomType:          jsontypes2.StringType,
+											CustomType:          jsontypes.StringType,
 										},
 										"to": schema.StringAttribute{
 											MarkdownDescription: "The time, from '00:00' to '24:00'. Must be greater than the time specified in 'from'. Defaults to '24:00'. Only 30 minute increments are allowed.",
 											Optional:            true,
 											Computed:            true,
-											CustomType:          jsontypes2.StringType,
+											CustomType:          jsontypes.StringType,
 										},
 										"active": schema.BoolAttribute{
 											MarkdownDescription: "Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.",
 											Optional:            true,
 											Computed:            true,
-											CustomType:          jsontypes2.BoolType,
+											CustomType:          jsontypes.BoolType,
 										},
 									},
 								},
@@ -563,19 +563,19 @@ func (d *NetworkGroupPoliciesDataSource) Schema(ctx context.Context, req datasou
 											MarkdownDescription: "The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.",
 											Optional:            true,
 											Computed:            true,
-											CustomType:          jsontypes2.StringType,
+											CustomType:          jsontypes.StringType,
 										},
 										"to": schema.StringAttribute{
 											MarkdownDescription: "The time, from '00:00' to '24:00'. Must be greater than the time specified in 'from'. Defaults to '24:00'. Only 30 minute increments are allowed.",
 											Optional:            true,
 											Computed:            true,
-											CustomType:          jsontypes2.StringType,
+											CustomType:          jsontypes.StringType,
 										},
 										"active": schema.BoolAttribute{
 											MarkdownDescription: "Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.",
 											Optional:            true,
 											Computed:            true,
-											CustomType:          jsontypes2.BoolType,
+											CustomType:          jsontypes.BoolType,
 										},
 									},
 								},
@@ -587,19 +587,19 @@ func (d *NetworkGroupPoliciesDataSource) Schema(ctx context.Context, req datasou
 											MarkdownDescription: "The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.",
 											Optional:            true,
 											Computed:            true,
-											CustomType:          jsontypes2.StringType,
+											CustomType:          jsontypes.StringType,
 										},
 										"to": schema.StringAttribute{
 											MarkdownDescription: "The time, from '00:00' to '24:00'. Must be greater than the time specified in 'from'. Defaults to '24:00'. Only 30 minute increments are allowed.",
 											Optional:            true,
 											Computed:            true,
-											CustomType:          jsontypes2.StringType,
+											CustomType:          jsontypes.StringType,
 										},
 										"active": schema.BoolAttribute{
 											MarkdownDescription: "Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.",
 											Optional:            true,
 											Computed:            true,
-											CustomType:          jsontypes2.BoolType,
+											CustomType:          jsontypes.BoolType,
 										},
 									},
 								},
@@ -611,19 +611,19 @@ func (d *NetworkGroupPoliciesDataSource) Schema(ctx context.Context, req datasou
 											MarkdownDescription: "The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.",
 											Optional:            true,
 											Computed:            true,
-											CustomType:          jsontypes2.StringType,
+											CustomType:          jsontypes.StringType,
 										},
 										"to": schema.StringAttribute{
 											MarkdownDescription: "The time, from '00:00' to '24:00'. Must be greater than the time specified in 'from'. Defaults to '24:00'. Only 30 minute increments are allowed.",
 											Optional:            true,
 											Computed:            true,
-											CustomType:          jsontypes2.StringType,
+											CustomType:          jsontypes.StringType,
 										},
 										"active": schema.BoolAttribute{
 											MarkdownDescription: "Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.",
 											Optional:            true,
 											Computed:            true,
-											CustomType:          jsontypes2.BoolType,
+											CustomType:          jsontypes.BoolType,
 										},
 									},
 								},
@@ -635,19 +635,19 @@ func (d *NetworkGroupPoliciesDataSource) Schema(ctx context.Context, req datasou
 											MarkdownDescription: "The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.",
 											Optional:            true,
 											Computed:            true,
-											CustomType:          jsontypes2.StringType,
+											CustomType:          jsontypes.StringType,
 										},
 										"to": schema.StringAttribute{
 											MarkdownDescription: "The time, from '00:00' to '24:00'. Must be greater than the time specified in 'from'. Defaults to '24:00'. Only 30 minute increments are allowed.",
 											Optional:            true,
 											Computed:            true,
-											CustomType:          jsontypes2.StringType,
+											CustomType:          jsontypes.StringType,
 										},
 										"active": schema.BoolAttribute{
 											MarkdownDescription: "Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.",
 											Optional:            true,
 											Computed:            true,
-											CustomType:          jsontypes2.BoolType,
+											CustomType:          jsontypes.BoolType,
 										},
 									},
 								},
@@ -659,19 +659,19 @@ func (d *NetworkGroupPoliciesDataSource) Schema(ctx context.Context, req datasou
 											MarkdownDescription: "The time, from '00:00' to '24:00'. Must be less than the time specified in 'to'. Defaults to '00:00'. Only 30 minute increments are allowed.",
 											Optional:            true,
 											Computed:            true,
-											CustomType:          jsontypes2.StringType,
+											CustomType:          jsontypes.StringType,
 										},
 										"to": schema.StringAttribute{
 											MarkdownDescription: "The time, from '00:00' to '24:00'. Must be greater than the time specified in 'from'. Defaults to '24:00'. Only 30 minute increments are allowed.",
 											Optional:            true,
 											Computed:            true,
-											CustomType:          jsontypes2.StringType,
+											CustomType:          jsontypes.StringType,
 										},
 										"active": schema.BoolAttribute{
 											MarkdownDescription: "Whether the schedule is active (true) or inactive (false) during the time specified between 'from' and 'to'. Defaults to true.",
 											Optional:            true,
 											Computed:            true,
-											CustomType:          jsontypes2.BoolType,
+											CustomType:          jsontypes.BoolType,
 										},
 									},
 								},
@@ -763,7 +763,7 @@ func (d *NetworkGroupPoliciesDataSource) Read(ctx context.Context, req datasourc
 
 	jsonData, _ := json.Marshal(inlineResp)
 	json.Unmarshal(jsonData, &data.List)
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 

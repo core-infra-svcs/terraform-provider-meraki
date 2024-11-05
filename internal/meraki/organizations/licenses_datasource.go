@@ -3,7 +3,7 @@ package organizations
 import (
 	"context"
 	"fmt"
-	jsontypes2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -26,33 +26,33 @@ type OrganizationsLicensesDataSource struct {
 // The OrganizationsLicensesDataSourceModel structure describes the data model.
 // This struct is where you define all the attributes that are part of this data source's state.
 type OrganizationsLicensesDataSourceModel struct {
-	Id             jsontypes2.String                          `tfsdk:"id"`
-	OrganizationId jsontypes2.String                          `tfsdk:"organization_id"`
-	PerPage        jsontypes2.Int64                           `tfsdk:"per_page"`
-	StartingAfter  jsontypes2.String                          `tfsdk:"starting_after"`
-	EndingBefore   jsontypes2.String                          `tfsdk:"ending_before"`
-	DeviceSerial   jsontypes2.String                          `tfsdk:"device_serial"`
-	NetworkId      jsontypes2.String                          `tfsdk:"network_id"`
-	State          jsontypes2.String                          `tfsdk:"state"`
+	Id             jsontypes.String                           `tfsdk:"id"`
+	OrganizationId jsontypes.String                           `tfsdk:"organization_id"`
+	PerPage        jsontypes.Int64                            `tfsdk:"per_page"`
+	StartingAfter  jsontypes.String                           `tfsdk:"starting_after"`
+	EndingBefore   jsontypes.String                           `tfsdk:"ending_before"`
+	DeviceSerial   jsontypes.String                           `tfsdk:"device_serial"`
+	NetworkId      jsontypes.String                           `tfsdk:"network_id"`
+	State          jsontypes.String                           `tfsdk:"state"`
 	List           []OrganizationsLicensesDataSourceModelList `tfsdk:"list"`
 }
 
 type OrganizationsLicensesDataSourceModelList struct {
-	Id                        jsontypes2.String                                                                     `tfsdk:"id"`
-	LicenseType               jsontypes2.String                                                                     `tfsdk:"license_type"`
-	LicenseKey                jsontypes2.String                                                                     `tfsdk:"license_key"`
-	OrderNumber               jsontypes2.String                                                                     `tfsdk:"order_number"`
-	DeviceSerial              jsontypes2.String                                                                     `tfsdk:"device_serial"`
-	NetworkId                 jsontypes2.String                                                                     `tfsdk:"network_id"`
-	State                     jsontypes2.String                                                                     `tfsdk:"state"`
-	SeatCount                 jsontypes2.Int64                                                                      `tfsdk:"seat_count"`
-	TotalDurationInDays       jsontypes2.Int64                                                                      `tfsdk:"total_duration_in_days"`
-	DurationInDays            jsontypes2.Int64                                                                      `tfsdk:"duration_in_days"`
+	Id                        jsontypes.String                                                                      `tfsdk:"id"`
+	LicenseType               jsontypes.String                                                                      `tfsdk:"license_type"`
+	LicenseKey                jsontypes.String                                                                      `tfsdk:"license_key"`
+	OrderNumber               jsontypes.String                                                                      `tfsdk:"order_number"`
+	DeviceSerial              jsontypes.String                                                                      `tfsdk:"device_serial"`
+	NetworkId                 jsontypes.String                                                                      `tfsdk:"network_id"`
+	State                     jsontypes.String                                                                      `tfsdk:"state"`
+	SeatCount                 jsontypes.Int64                                                                       `tfsdk:"seat_count"`
+	TotalDurationInDays       jsontypes.Int64                                                                       `tfsdk:"total_duration_in_days"`
+	DurationInDays            jsontypes.Int64                                                                       `tfsdk:"duration_in_days"`
 	PermanentlyQueuedLicenses []openApiClient.GetOrganizationLicenses200ResponseInnerPermanentlyQueuedLicensesInner `tfsdk:"permanently_queued_licenses"`
-	ClaimDate                 jsontypes2.String                                                                     `tfsdk:"claim_date"`
-	ActivationDate            jsontypes2.String                                                                     `tfsdk:"activation_date"`
-	ExpirationDate            jsontypes2.String                                                                     `tfsdk:"expiration_date"`
-	HeadLicenseId             jsontypes2.String                                                                     `tfsdk:"head_license_id"`
+	ClaimDate                 jsontypes.String                                                                      `tfsdk:"claim_date"`
+	ActivationDate            jsontypes.String                                                                      `tfsdk:"activation_date"`
+	ExpirationDate            jsontypes.String                                                                      `tfsdk:"expiration_date"`
+	HeadLicenseId             jsontypes.String                                                                      `tfsdk:"head_license_id"`
 }
 
 // Metadata provides a way to define information about the data source.
@@ -78,46 +78,46 @@ func (d *OrganizationsLicensesDataSource) Schema(ctx context.Context, req dataso
 			// Every data source must have an ID attribute. This is computed by the framework.
 			"id": schema.StringAttribute{
 				Computed:   true,
-				CustomType: jsontypes2.StringType,
+				CustomType: jsontypes.StringType,
 			},
 			"organization_id": schema.StringAttribute{
 				MarkdownDescription: "Organization Id",
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				Required:            true,
 			},
 			"per_page": schema.Int64Attribute{
 				MarkdownDescription: "The number of entries per page returned. Acceptable range is 3 - 1000. Default is 1000.",
-				CustomType:          jsontypes2.Int64Type,
+				CustomType:          jsontypes.Int64Type,
 				Optional:            true,
 				Computed:            true,
 			},
 			"starting_after": schema.StringAttribute{
 				MarkdownDescription: "A token used by the server to indicate the start of the page. Often this is a timestamp or an ID but it is not limited to those. This parameter should not be defined by client applications. The link for the first, last, prev, or next page in the HTTP Link header should define it.",
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				Optional:            true,
 				Computed:            true,
 			},
 			"ending_before": schema.StringAttribute{
 				MarkdownDescription: "A token used by the server to indicate the end of the page. Often this is a timestamp or an ID but it is not limited to those. This parameter should not be defined by client applications. The link for the first, last, prev, or next page in the HTTP Link header should define it.",
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				Optional:            true,
 				Computed:            true,
 			},
 			"device_serial": schema.StringAttribute{
 				MarkdownDescription: "Filter the licenses to those assigned to a particular device. Returned in the same order that they are queued to the device",
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				Optional:            true,
 				Computed:            true,
 			},
 			"network_id": schema.StringAttribute{
 				MarkdownDescription: "Filter the licenses to those assigned in a particular network",
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				Optional:            true,
 				Computed:            true,
 			},
 			"state": schema.StringAttribute{
 				MarkdownDescription: "Filter the licenses to those in a particular state. Can be one of 'active', 'expired', 'expiring', 'unused', 'unusedActive' or 'recentlyQueued'",
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				Optional:            true,
 				Computed:            true,
 			},
@@ -128,83 +128,83 @@ func (d *OrganizationsLicensesDataSource) Schema(ctx context.Context, req dataso
 					Attributes: map[string]schema.Attribute{
 						"license_id": schema.StringAttribute{
 							MarkdownDescription: "License ID",
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 							Required:            true,
 						},
 						"device_serial": schema.StringAttribute{
 							MarkdownDescription: "The serial number of the device to assign this license to. Set this to null to unassign the license. If a different license is already active on the device, this parameter will control queueing/dequeuing this license.",
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 							Required:            true,
 						},
 						"license_type": schema.StringAttribute{
 							MarkdownDescription: "License Type.",
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 							Optional:            true,
 							Computed:            true,
 						},
 						"license_key": schema.StringAttribute{
 							MarkdownDescription: "License Key.",
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 							Optional:            true,
 							Computed:            true,
 						},
 						"order_number": schema.StringAttribute{
 							MarkdownDescription: "Order SsidNumber.",
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 							Optional:            true,
 							Computed:            true,
 						},
 						"network_id": schema.StringAttribute{
 							MarkdownDescription: "ID of the network the license is assigned to.",
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 							Optional:            true,
 							Computed:            true,
 						},
 						"state": schema.StringAttribute{
 							MarkdownDescription: "The state of the license. All queued licenses have a status of `recentlyQueued`.",
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 							Optional:            true,
 							Computed:            true,
 						},
 						"claim_date": schema.StringAttribute{
 							MarkdownDescription: "The date the license was claimed into the organization.",
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 							Optional:            true,
 							Computed:            true,
 						},
 						"activation_date": schema.StringAttribute{
 							MarkdownDescription: "The date the license started burning.",
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 							Optional:            true,
 							Computed:            true,
 						},
 						"expiration_date": schema.StringAttribute{
 							MarkdownDescription: "The date the license will expire.",
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 							Optional:            true,
 							Computed:            true,
 						},
 						"head_license_id": schema.StringAttribute{
 							MarkdownDescription: "The id of the head license this license is queued behind. If there is no head license, it returns nil.",
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 							Optional:            true,
 							Computed:            true,
 						},
 						"seat_count": schema.Int64Attribute{
 							MarkdownDescription: "The number of seats of the license. Only applicable to SM licenses.",
-							CustomType:          jsontypes2.Int64Type,
+							CustomType:          jsontypes.Int64Type,
 							Optional:            true,
 							Computed:            true,
 						},
 						"total_duration_in_days": schema.Int64Attribute{
 							MarkdownDescription: "The duration of the license plus all permanently queued licenses associated with it.",
-							CustomType:          jsontypes2.Int64Type,
+							CustomType:          jsontypes.Int64Type,
 							Optional:            true,
 							Computed:            true,
 						},
 						"duration_in_days": schema.Int64Attribute{
 							MarkdownDescription: "The duration of the individual license.",
-							CustomType:          jsontypes2.Int64Type,
+							CustomType:          jsontypes.Int64Type,
 							Optional:            true,
 							Computed:            true,
 						},
@@ -215,27 +215,27 @@ func (d *OrganizationsLicensesDataSource) Schema(ctx context.Context, req dataso
 								"id": schema.StringAttribute{
 									MarkdownDescription: "Permanently queued license ID.",
 									Optional:            true,
-									CustomType:          jsontypes2.StringType,
+									CustomType:          jsontypes.StringType,
 								},
 								"license_type": schema.StringAttribute{
 									MarkdownDescription: "License type.",
 									Optional:            true,
-									CustomType:          jsontypes2.StringType,
+									CustomType:          jsontypes.StringType,
 								},
 								"license_key": schema.StringAttribute{
 									MarkdownDescription: "License key.",
 									Optional:            true,
-									CustomType:          jsontypes2.StringType,
+									CustomType:          jsontypes.StringType,
 								},
 								"order_number": schema.StringAttribute{
 									MarkdownDescription: "Order number.",
 									Optional:            true,
-									CustomType:          jsontypes2.StringType,
+									CustomType:          jsontypes.StringType,
 								},
 								"duration_in_days": schema.Int64Attribute{
 									MarkdownDescription: "The duration of the individual license.",
 									Optional:            true,
-									CustomType:          jsontypes2.Int64Type,
+									CustomType:          jsontypes.Int64Type,
 								},
 							},
 						},
@@ -332,25 +332,25 @@ func (d *OrganizationsLicensesDataSource) Read(ctx context.Context, req datasour
 
 	for _, license := range inlineResp {
 		var licenseData OrganizationsLicensesDataSourceModelList
-		licenseData.LicenseType = jsontypes2.StringValue(license.GetLicenseType())
-		licenseData.LicenseKey = jsontypes2.StringValue(license.GetLicenseKey())
-		licenseData.OrderNumber = jsontypes2.StringValue(license.GetOrderNumber())
-		licenseData.DeviceSerial = jsontypes2.StringValue(license.GetDeviceSerial())
-		licenseData.NetworkId = jsontypes2.StringValue(license.GetNetworkId())
-		licenseData.State = jsontypes2.StringValue(license.GetState())
-		licenseData.ClaimDate = jsontypes2.StringValue(license.GetClaimDate())
-		licenseData.ActivationDate = jsontypes2.StringValue(license.GetActivationDate())
-		licenseData.ExpirationDate = jsontypes2.StringValue(license.GetExpirationDate())
-		licenseData.HeadLicenseId = jsontypes2.StringValue(license.GetHeadLicenseId())
-		licenseData.SeatCount = jsontypes2.Int64Value(int64(license.GetSeatCount()))
-		licenseData.TotalDurationInDays = jsontypes2.Int64Value(int64(license.GetTotalDurationInDays()))
-		licenseData.DurationInDays = jsontypes2.Int64Value(int64(license.GetDurationInDays()))
+		licenseData.LicenseType = jsontypes.StringValue(license.GetLicenseType())
+		licenseData.LicenseKey = jsontypes.StringValue(license.GetLicenseKey())
+		licenseData.OrderNumber = jsontypes.StringValue(license.GetOrderNumber())
+		licenseData.DeviceSerial = jsontypes.StringValue(license.GetDeviceSerial())
+		licenseData.NetworkId = jsontypes.StringValue(license.GetNetworkId())
+		licenseData.State = jsontypes.StringValue(license.GetState())
+		licenseData.ClaimDate = jsontypes.StringValue(license.GetClaimDate())
+		licenseData.ActivationDate = jsontypes.StringValue(license.GetActivationDate())
+		licenseData.ExpirationDate = jsontypes.StringValue(license.GetExpirationDate())
+		licenseData.HeadLicenseId = jsontypes.StringValue(license.GetHeadLicenseId())
+		licenseData.SeatCount = jsontypes.Int64Value(int64(license.GetSeatCount()))
+		licenseData.TotalDurationInDays = jsontypes.Int64Value(int64(license.GetTotalDurationInDays()))
+		licenseData.DurationInDays = jsontypes.Int64Value(int64(license.GetDurationInDays()))
 		licenseData.PermanentlyQueuedLicenses = license.GetPermanentlyQueuedLicenses()
 		data.List = append(data.List, licenseData)
 	}
 
 	// Set ID for the data source.
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	// Now set the final state of the data source.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

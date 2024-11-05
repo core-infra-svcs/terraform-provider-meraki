@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	jsontypes2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -28,9 +28,9 @@ type NetworksApplianceVlansSettingsDatasource struct {
 
 // NetworksApplianceVlansSettingsDatasourceModel NetworksApplianceVlansSettingsResourceModel describes the resource data model.
 type NetworksApplianceVlansSettingsDatasourceModel struct {
-	Id           jsontypes2.String `tfsdk:"id"`
-	NetworkId    jsontypes2.String `tfsdk:"network_id" json:"network_id"`
-	VlansEnabled jsontypes2.Bool   `tfsdk:"vlans_enabled"  json:"vlansEnabled"`
+	Id           jsontypes.String `tfsdk:"id"`
+	NetworkId    jsontypes.String `tfsdk:"network_id" json:"network_id"`
+	VlansEnabled jsontypes.Bool   `tfsdk:"vlans_enabled"  json:"vlansEnabled"`
 }
 
 func (r *NetworksApplianceVlansSettingsDatasource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -46,13 +46,13 @@ func (r *NetworksApplianceVlansSettingsDatasource) Schema(ctx context.Context, r
 				MarkdownDescription: "Example identifier",
 				Computed:            true,
 				Optional:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"network_id": schema.StringAttribute{
 				MarkdownDescription: "Network Id",
 				Computed:            true,
 				Optional:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 31),
 				},
@@ -60,7 +60,7 @@ func (r *NetworksApplianceVlansSettingsDatasource) Schema(ctx context.Context, r
 			"vlans_enabled": schema.BoolAttribute{
 				MarkdownDescription: "Boolean indicating whether to enable (true) or disable (false) VLANs for the network",
 				Computed:            true,
-				CustomType:          jsontypes2.BoolType,
+				CustomType:          jsontypes.BoolType,
 			},
 		},
 	}
@@ -129,7 +129,7 @@ func (r *NetworksApplianceVlansSettingsDatasource) Read(ctx context.Context, req
 		return
 	}
 
-	data.Id = jsontypes2.StringValue(data.NetworkId.ValueString())
+	data.Id = jsontypes.StringValue(data.NetworkId.ValueString())
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 

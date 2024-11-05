@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	jsontypes2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -15,59 +15,59 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ datasource.DataSource = &OrganizationsAdaptivePolicyAclsDataSource{}
+var _ datasource.DataSource = &AdaptivePolicyAclsDataSource{}
 
 func NewOrganizationsAdaptivePolicyAclsDataSource() datasource.DataSource {
-	return &OrganizationsAdaptivePolicyAclsDataSource{}
+	return &AdaptivePolicyAclsDataSource{}
 }
 
-// OrganizationsAdaptivePolicyAclsDataSource defines the data source implementation.
-type OrganizationsAdaptivePolicyAclsDataSource struct {
+// AdaptivePolicyAclsDataSource defines the data source implementation.
+type AdaptivePolicyAclsDataSource struct {
 	client *openApiClient.APIClient
 }
 
-// OrganizationsAdaptivePolicyAclsDataSourceModel describes the data source data model.
-type OrganizationsAdaptivePolicyAclsDataSourceModel struct {
-	Id    jsontypes2.String                                    `tfsdk:"id"`
-	OrgId jsontypes2.String                                    `tfsdk:"organization_id"`
-	List  []OrganizationsAdaptivePolicyAclsDataSourceModelList `tfsdk:"list"`
+// AdaptivePolicyAclsDataSourceModel describes the data source data model.
+type AdaptivePolicyAclsDataSourceModel struct {
+	Id    jsontypes.String                        `tfsdk:"id"`
+	OrgId jsontypes.String                        `tfsdk:"organization_id"`
+	List  []AdaptivePolicyAclsDataSourceModelList `tfsdk:"list"`
 }
 
-// OrganizationsAdaptivePolicyAclsDataSourceModelList describes the acl data source data model.
-type OrganizationsAdaptivePolicyAclsDataSourceModelList struct {
-	AclId       jsontypes2.String                                     `tfsdk:"acl_id" json:"AclId"`
-	Name        jsontypes2.String                                     `tfsdk:"name"`
-	Description jsontypes2.String                                     `tfsdk:"description"`
-	IpVersion   jsontypes2.String                                     `tfsdk:"ip_version" json:"IpVersion"`
-	Rules       []OrganizationsAdaptivePolicyAclsDataSourceModelRules `tfsdk:"rules"`
-	CreatedAt   jsontypes2.String                                     `tfsdk:"created_at" json:"createdAt"`
-	UpdatedAt   jsontypes2.String                                     `tfsdk:"updated_at" json:"updatedAt"`
+// AdaptivePolicyAclsDataSourceModelList describes the acl data source data model.
+type AdaptivePolicyAclsDataSourceModelList struct {
+	AclId       jsontypes.String                         `tfsdk:"acl_id" json:"AclId"`
+	Name        jsontypes.String                         `tfsdk:"name"`
+	Description jsontypes.String                         `tfsdk:"description"`
+	IpVersion   jsontypes.String                         `tfsdk:"ip_version" json:"IpVersion"`
+	Rules       []AdaptivePolicyAclsDataSourceModelRules `tfsdk:"rules"`
+	CreatedAt   jsontypes.String                         `tfsdk:"created_at" json:"createdAt"`
+	UpdatedAt   jsontypes.String                         `tfsdk:"updated_at" json:"updatedAt"`
 }
 
-type OrganizationsAdaptivePolicyAclsDataSourceModelRules struct {
-	Policy   jsontypes2.String `tfsdk:"policy"`
-	Protocol jsontypes2.String `tfsdk:"protocol"`
-	SrcPort  jsontypes2.String `tfsdk:"src_port" json:"srcPort"`
-	DstPort  jsontypes2.String `tfsdk:"dst_port" json:"dstPort"`
+type AdaptivePolicyAclsDataSourceModelRules struct {
+	Policy   jsontypes.String `tfsdk:"policy"`
+	Protocol jsontypes.String `tfsdk:"protocol"`
+	SrcPort  jsontypes.String `tfsdk:"src_port" json:"srcPort"`
+	DstPort  jsontypes.String `tfsdk:"dst_port" json:"dstPort"`
 }
 
-func (d *OrganizationsAdaptivePolicyAclsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *AdaptivePolicyAclsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_organizations_adaptive_policy_acls"
 }
 
-func (d *OrganizationsAdaptivePolicyAclsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *AdaptivePolicyAclsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "List adaptive policy ACLs in a organization",
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:   true,
-				CustomType: jsontypes2.StringType,
+				CustomType: jsontypes.StringType,
 			},
 			"organization_id": schema.StringAttribute{
 				MarkdownDescription: "Organization ID",
 				Optional:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 31),
 				},
@@ -81,22 +81,22 @@ func (d *OrganizationsAdaptivePolicyAclsDataSource) Schema(ctx context.Context, 
 						"acl_id": schema.StringAttribute{
 							MarkdownDescription: "ACL ID",
 							Optional:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"name": schema.StringAttribute{
 							MarkdownDescription: "Name of the adaptive policy ACL",
 							Optional:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"description": schema.StringAttribute{
 							MarkdownDescription: "Description of the adaptive policy ACL",
 							Optional:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"ip_version": schema.StringAttribute{
 							MarkdownDescription: "IP version of adaptive policy ACL. One of: 'any', 'ipv4' or 'ipv6",
 							Optional:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"rules": schema.ListNestedAttribute{
 							Description: "An ordered array of the adaptive policy ACL rules. An empty array will clear the rules.",
@@ -107,22 +107,22 @@ func (d *OrganizationsAdaptivePolicyAclsDataSource) Schema(ctx context.Context, 
 									"policy": schema.StringAttribute{
 										MarkdownDescription: "",
 										Optional:            true,
-										CustomType:          jsontypes2.StringType,
+										CustomType:          jsontypes.StringType,
 									},
 									"protocol": schema.StringAttribute{
 										MarkdownDescription: "",
 										Optional:            true,
-										CustomType:          jsontypes2.StringType,
+										CustomType:          jsontypes.StringType,
 									},
 									"src_port": schema.StringAttribute{
 										MarkdownDescription: "",
 										Optional:            true,
-										CustomType:          jsontypes2.StringType,
+										CustomType:          jsontypes.StringType,
 									},
 									"dst_port": schema.StringAttribute{
 										MarkdownDescription: "",
 										Optional:            true,
-										CustomType:          jsontypes2.StringType,
+										CustomType:          jsontypes.StringType,
 									},
 								},
 							},
@@ -130,12 +130,12 @@ func (d *OrganizationsAdaptivePolicyAclsDataSource) Schema(ctx context.Context, 
 						"created_at": schema.StringAttribute{
 							MarkdownDescription: "",
 							Optional:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"updated_at": schema.StringAttribute{
 							MarkdownDescription: "",
 							Optional:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 					},
 				},
@@ -144,7 +144,7 @@ func (d *OrganizationsAdaptivePolicyAclsDataSource) Schema(ctx context.Context, 
 	}
 }
 
-func (d *OrganizationsAdaptivePolicyAclsDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *AdaptivePolicyAclsDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -163,8 +163,8 @@ func (d *OrganizationsAdaptivePolicyAclsDataSource) Configure(ctx context.Contex
 	d.client = client
 }
 
-func (d *OrganizationsAdaptivePolicyAclsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data OrganizationsAdaptivePolicyAclsDataSourceModel
+func (d *AdaptivePolicyAclsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var data AdaptivePolicyAclsDataSourceModel
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
@@ -198,7 +198,7 @@ func (d *OrganizationsAdaptivePolicyAclsDataSource) Read(ctx context.Context, re
 	}
 
 	// Save data into Terraform state
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 	if err = json.NewDecoder(httpResp.Body).Decode(&data.List); err != nil {
 		resp.Diagnostics.AddError(
 			"JSON decoding error",

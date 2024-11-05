@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	jsontypes2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"strings"
 
@@ -18,94 +18,94 @@ import (
 )
 
 // Ensure provider defined jsontypes fully satisfy framework interfaces
-var _ datasource.DataSource = &OrganizationsNetworksDataSource{}
+var _ datasource.DataSource = &NetworksDataSource{}
 
 func NewOrganizationsNetworksDataSource() datasource.DataSource {
-	return &OrganizationsNetworksDataSource{}
+	return &NetworksDataSource{}
 }
 
-type OrganizationsNetworksDataSourceModelTag string
+type NetworksDataSourceModelTag string
 
-func (t *OrganizationsNetworksDataSourceModelTag) UnmarshalJSON(b []byte) error {
+func (t *NetworksDataSourceModelTag) UnmarshalJSON(b []byte) error {
 	var s string
 	if err := json.Unmarshal(b, &s); err != nil {
 		return err
 	}
 
-	*t = OrganizationsNetworksDataSourceModelTag(strings.Trim(s, `"`))
+	*t = NetworksDataSourceModelTag(strings.Trim(s, `"`))
 	return nil
 }
 
-// OrganizationsNetworksDataSource defines the data source implementation.
-type OrganizationsNetworksDataSource struct {
+// NetworksDataSource defines the data source implementation.
+type NetworksDataSource struct {
 	client *openApiClient.APIClient
 }
 
-// OrganizationsNetworksDataSourceModel describes the data source data model.
-type OrganizationsNetworksDataSourceModel struct {
-	Id                      jsontypes2.String                          `tfsdk:"id"`
-	OrgId                   jsontypes2.String                          `tfsdk:"organization_id"`
-	ConfigTemplateId        jsontypes2.String                          `tfsdk:"config_template_id"`
-	IsBoundToConfigTemplate jsontypes2.Bool                            `tfsdk:"is_bound_to_config_template"`
-	Tags                    jsontypes2.Set[jsontypes2.String]          `tfsdk:"tags"`
-	TagsFilterType          jsontypes2.String                          `tfsdk:"tags_filter_type"`
-	List                    []OrganizationsNetworksDataSourceModelList `tfsdk:"list"`
+// NetworksDataSourceModel describes the data source data model.
+type NetworksDataSourceModel struct {
+	Id                      jsontypes.String                `tfsdk:"id"`
+	OrgId                   jsontypes.String                `tfsdk:"organization_id"`
+	ConfigTemplateId        jsontypes.String                `tfsdk:"config_template_id"`
+	IsBoundToConfigTemplate jsontypes.Bool                  `tfsdk:"is_bound_to_config_template"`
+	Tags                    jsontypes.Set[jsontypes.String] `tfsdk:"tags"`
+	TagsFilterType          jsontypes.String                `tfsdk:"tags_filter_type"`
+	List                    []NetworksDataSourceModelList   `tfsdk:"list"`
 }
 
-type OrganizationsNetworksDataSourceModelList struct {
-	Id                      jsontypes2.String   `tfsdk:"network_id" json:"id"`
-	OrganizationId          jsontypes2.String   `tfsdk:"organization_id" json:"organizationId"`
-	Name                    jsontypes2.String   `tfsdk:"name"`
-	ProductTypes            []jsontypes2.String `tfsdk:"product_types" json:"productTypes"`
-	TimeZone                jsontypes2.String   `tfsdk:"timezone" json:"timeZone"`
-	Tags                    []jsontypes2.String `tfsdk:"tags"`
-	EnrollmentString        jsontypes2.String   `tfsdk:"enrollment_string" json:"enrollmentString"`
-	Url                     jsontypes2.String   `tfsdk:"url"`
-	Notes                   jsontypes2.String   `tfsdk:"notes"`
-	IsBoundToConfigTemplate jsontypes2.Bool     `tfsdk:"is_bound_to_config_template" json:"IsBoundToConfigTemplate"`
+type NetworksDataSourceModelList struct {
+	Id                      jsontypes.String   `tfsdk:"network_id" json:"id"`
+	OrganizationId          jsontypes.String   `tfsdk:"organization_id" json:"organizationId"`
+	Name                    jsontypes.String   `tfsdk:"name"`
+	ProductTypes            []jsontypes.String `tfsdk:"product_types" json:"productTypes"`
+	TimeZone                jsontypes.String   `tfsdk:"timezone" json:"timeZone"`
+	Tags                    []jsontypes.String `tfsdk:"tags"`
+	EnrollmentString        jsontypes.String   `tfsdk:"enrollment_string" json:"enrollmentString"`
+	Url                     jsontypes.String   `tfsdk:"url"`
+	Notes                   jsontypes.String   `tfsdk:"notes"`
+	IsBoundToConfigTemplate jsontypes.Bool     `tfsdk:"is_bound_to_config_template" json:"IsBoundToConfigTemplate"`
 }
 
-func (d *OrganizationsNetworksDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *NetworksDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_organizations_networks"
 }
 
-func (d *OrganizationsNetworksDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *NetworksDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				CustomType: jsontypes2.StringType,
+				CustomType: jsontypes.StringType,
 				Computed:   true,
 			},
 			"organization_id": schema.StringAttribute{
 				MarkdownDescription: "Organization ID",
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				Required:            true,
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 31),
 				},
 			},
 			"config_template_id": schema.StringAttribute{
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				MarkdownDescription: "config_template_id",
 				Optional:            true,
 				Computed:            true,
 			},
 			"is_bound_to_config_template": schema.BoolAttribute{
-				CustomType:          jsontypes2.BoolType,
+				CustomType:          jsontypes.BoolType,
 				MarkdownDescription: "",
 				Optional:            true,
 				Computed:            true,
 			},
 			"tags": schema.SetAttribute{
-				CustomType:  jsontypes2.SetType[jsontypes2.String](),
-				ElementType: jsontypes2.StringType,
+				CustomType:  jsontypes.SetType[jsontypes.String](),
+				ElementType: jsontypes.StringType,
 				Description: "Network tags",
 				Computed:    true,
 				Optional:    true,
 			},
 			"tags_filter_type": schema.StringAttribute{
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				MarkdownDescription: "",
 				Optional:            true,
 				Computed:            true,
@@ -120,7 +120,7 @@ func (d *OrganizationsNetworksDataSource) Schema(ctx context.Context, req dataso
 							MarkdownDescription: "Network ID",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 							Validators: []validator.String{
 								stringvalidator.LengthBetween(1, 31),
 							},
@@ -129,7 +129,7 @@ func (d *OrganizationsNetworksDataSource) Schema(ctx context.Context, req dataso
 							MarkdownDescription: "Organization ID",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 							Validators: []validator.String{
 								stringvalidator.LengthBetween(1, 31),
 							},
@@ -138,10 +138,10 @@ func (d *OrganizationsNetworksDataSource) Schema(ctx context.Context, req dataso
 							MarkdownDescription: "Network name",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"product_types": schema.SetAttribute{
-							ElementType: jsontypes2.StringType,
+							ElementType: jsontypes.StringType,
 							Optional:    true,
 							Computed:    true,
 							Validators: []validator.Set{
@@ -155,11 +155,11 @@ func (d *OrganizationsNetworksDataSource) Schema(ctx context.Context, req dataso
 							MarkdownDescription: "Timezone of the network",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"tags": schema.SetAttribute{
 							Description: "Network tags",
-							ElementType: jsontypes2.StringType,
+							ElementType: jsontypes.StringType,
 							Computed:    true,
 							Optional:    true,
 						},
@@ -167,25 +167,25 @@ func (d *OrganizationsNetworksDataSource) Schema(ctx context.Context, req dataso
 							MarkdownDescription: "A unique identifier which can be used for device enrollment or easy access through the Meraki SM Registration page or the Self Service Portal. Once enabled, a network enrollment strings can be changed but they cannot be deleted.",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"url": schema.StringAttribute{
 							MarkdownDescription: "URL to the network Dashboard UI",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"notes": schema.StringAttribute{
 							MarkdownDescription: "Notes for the network",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"is_bound_to_config_template": schema.BoolAttribute{
 							MarkdownDescription: "If the network is bound to a config template",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.BoolType,
+							CustomType:          jsontypes.BoolType,
 						},
 					},
 				},
@@ -194,7 +194,7 @@ func (d *OrganizationsNetworksDataSource) Schema(ctx context.Context, req dataso
 	}
 }
 
-func (d *OrganizationsNetworksDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *NetworksDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -213,8 +213,8 @@ func (d *OrganizationsNetworksDataSource) Configure(ctx context.Context, req dat
 	d.client = client
 }
 
-func (d *OrganizationsNetworksDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data OrganizationsNetworksDataSourceModel
+func (d *NetworksDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var data NetworksDataSourceModel
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
@@ -288,7 +288,7 @@ func (d *OrganizationsNetworksDataSource) Read(ctx context.Context, req datasour
 		return
 	}
 
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 

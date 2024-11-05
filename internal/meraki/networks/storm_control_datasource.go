@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	jsontypes2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -15,31 +15,31 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ datasource.DataSource = &NetworksSwitchStormControlDataSource{}
+var _ datasource.DataSource = &SwitchStormControlDataSource{}
 
 func NewNetworksSwitchStormControlDataSource() datasource.DataSource {
-	return &NetworksSwitchStormControlDataSource{}
+	return &SwitchStormControlDataSource{}
 }
 
-// NetworksSwitchStormControlDataSource defines the resource implementation.
-type NetworksSwitchStormControlDataSource struct {
+// SwitchStormControlDataSource defines the resource implementation.
+type SwitchStormControlDataSource struct {
 	client *openApiClient.APIClient
 }
 
-// NetworksSwitchStormControlDataSourceModel describes the resource data model.
-type NetworksSwitchStormControlDataSourceModel struct {
-	Id                      jsontypes2.String `tfsdk:"id" json:"id"`
-	NetworkId               jsontypes2.String `tfsdk:"network_id" json:"network_id"`
-	BroadcastThreshold      jsontypes2.Int64  `tfsdk:"broadcast_threshold" json:"broadcastThreshold"`
-	MulticastThreshold      jsontypes2.Int64  `tfsdk:"multicast_threshold" json:"multicastThreshold"`
-	UnknownUnicastThreshold jsontypes2.Int64  `tfsdk:"unknown_unicast_threshold" json:"unknownUnicastThreshold"`
+// SwitchStormControlDataSourceModel describes the resource data model.
+type SwitchStormControlDataSourceModel struct {
+	Id                      jsontypes.String `tfsdk:"id" json:"id"`
+	NetworkId               jsontypes.String `tfsdk:"network_id" json:"network_id"`
+	BroadcastThreshold      jsontypes.Int64  `tfsdk:"broadcast_threshold" json:"broadcastThreshold"`
+	MulticastThreshold      jsontypes.Int64  `tfsdk:"multicast_threshold" json:"multicastThreshold"`
+	UnknownUnicastThreshold jsontypes.Int64  `tfsdk:"unknown_unicast_threshold" json:"unknownUnicastThreshold"`
 }
 
-func (r *NetworksSwitchStormControlDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (r *SwitchStormControlDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_networks_storm_control"
 }
 
-func (r *NetworksSwitchStormControlDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (r *SwitchStormControlDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Networks Switch Storm Control DataSource resource for updating Storm Control",
 		Attributes: map[string]schema.Attribute{
@@ -47,12 +47,12 @@ func (r *NetworksSwitchStormControlDataSource) Schema(ctx context.Context, req d
 			"id": schema.StringAttribute{
 				MarkdownDescription: "Example identifier",
 				Computed:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"network_id": schema.StringAttribute{
 				MarkdownDescription: "Network Id",
 				Required:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 31),
 				},
@@ -61,25 +61,25 @@ func (r *NetworksSwitchStormControlDataSource) Schema(ctx context.Context, req d
 				MarkdownDescription: "Broadcast Threshold",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.Int64Type,
+				CustomType:          jsontypes.Int64Type,
 			},
 			"multicast_threshold": schema.Int64Attribute{
 				MarkdownDescription: "Multicast Threshold",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.Int64Type,
+				CustomType:          jsontypes.Int64Type,
 			},
 			"unknown_unicast_threshold": schema.Int64Attribute{
 				Description: "Unknown Unicast Threshold",
 				Optional:    true,
 				Computed:    true,
-				CustomType:  jsontypes2.Int64Type,
+				CustomType:  jsontypes.Int64Type,
 			},
 		},
 	}
 }
 
-func (r *NetworksSwitchStormControlDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (r *SwitchStormControlDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -99,8 +99,8 @@ func (r *NetworksSwitchStormControlDataSource) Configure(ctx context.Context, re
 	r.client = client
 }
 
-func (r *NetworksSwitchStormControlDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data *NetworksSwitchStormControlDataSourceModel
+func (r *SwitchStormControlDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var data *SwitchStormControlDataSourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)

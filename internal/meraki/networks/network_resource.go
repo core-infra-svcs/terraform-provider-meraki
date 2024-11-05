@@ -391,9 +391,17 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 	inlineResp, httpResp, err := r.client.OrganizationsApi.CreateOrganizationNetwork(ctx, plan.OrganizationId.ValueString()).CreateOrganizationNetworkRequest(createPayload).Execute()
 	if err != nil {
 
+		var failure string
+
+		if httpResp != nil {
+			failure = fmt.Sprintf("%s", httpResp.Body)
+		} else {
+			failure = err.Error()
+		}
+
 		resp.Diagnostics.AddError(
-			"Create Network HTTP Client Failure",
-			err.Error(),
+			"Create Network Failure",
+			failure,
 		)
 
 		return

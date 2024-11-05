@@ -26,19 +26,19 @@ import (
 	"time"
 )
 
-// NetworksGroupPolicyResource defines the resource implementation.
-type NetworksGroupPolicyResource struct {
+// GroupPolicyResource defines the resource implementation.
+type GroupPolicyResource struct {
 	client *client.APIClient
 }
 
 func NewNetworksGroupPolicyResource() resource.Resource {
-	return &NetworksGroupPolicyResource{}
+	return &GroupPolicyResource{}
 }
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ resource.Resource = &NetworksGroupPolicyResource{}
-var _ resource.ResourceWithConfigure = &NetworksGroupPolicyResource{}
-var _ resource.ResourceWithImportState = &NetworksGroupPolicyResource{}
+var _ resource.Resource = &GroupPolicyResource{}
+var _ resource.ResourceWithConfigure = &GroupPolicyResource{}
+var _ resource.ResourceWithImportState = &GroupPolicyResource{}
 
 // GroupPolicyResourceModel represents a group policy.
 type GroupPolicyResourceModel struct {
@@ -167,7 +167,7 @@ type GroupPolicyResourceModelBonjourForwardingRule struct {
 }
 
 // Schema defines the schema for the resource.
-func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *GroupPolicyResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -585,12 +585,12 @@ func (r *NetworksGroupPolicyResource) Schema(ctx context.Context, req resource.S
 	}
 }
 
-func (r *NetworksGroupPolicyResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *GroupPolicyResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_networks_group_policy"
 }
 
 // Configure configures the resource with the API client.
-func (r *NetworksGroupPolicyResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *GroupPolicyResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -1949,7 +1949,7 @@ func updateGroupPolicyResourceState(ctx context.Context, state *GroupPolicyResou
 }
 
 // Create handles the creation of the group policy.
-func (r *NetworksGroupPolicyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *GroupPolicyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan GroupPolicyResourceModel
 
 	diags := req.Plan.Get(ctx, &plan)
@@ -2018,7 +2018,7 @@ func (r *NetworksGroupPolicyResource) Create(ctx context.Context, req resource.C
 }
 
 // Read handles reading the group policy.
-func (r *NetworksGroupPolicyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *GroupPolicyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state GroupPolicyResourceModel
 
 	diags := req.State.Get(ctx, &state)
@@ -2059,7 +2059,7 @@ func (r *NetworksGroupPolicyResource) Read(ctx context.Context, req resource.Rea
 }
 
 // Update handles updating the group policy.
-func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *GroupPolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan GroupPolicyResourceModel
 
 	diags := req.Plan.Get(ctx, &plan)
@@ -2130,7 +2130,7 @@ func (r *NetworksGroupPolicyResource) Update(ctx context.Context, req resource.U
 }
 
 // Delete handles deleting the group policy.
-func (r *NetworksGroupPolicyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *GroupPolicyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var state GroupPolicyResourceModel
 
 	diags := req.State.Get(ctx, &state)
@@ -2165,7 +2165,7 @@ func (r *NetworksGroupPolicyResource) Delete(ctx context.Context, req resource.D
 
 }
 
-func (r *NetworksGroupPolicyResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *GroupPolicyResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 
 	idParts := strings.Split(req.ID, ",")

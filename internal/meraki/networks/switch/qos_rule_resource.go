@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	jsontypes2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"net/http"
 	"strings"
@@ -36,16 +36,16 @@ type NetworksSwitchQosRuleResource struct {
 
 // NetworksSwitchQosRuleResourceModel describes the resource data model.
 type NetworksSwitchQosRuleResourceModel struct {
-	Id           jsontypes2.String  `tfsdk:"id" json:"-"`
-	NetworkId    jsontypes2.String  `tfsdk:"network_id" json:"network_id"`
-	QosRulesId   jsontypes2.String  `tfsdk:"qos_rule_id" json:"id"`
-	Vlan         jsontypes2.Int64   `tfsdk:"vlan" json:"vlan"`
-	Dscp         jsontypes2.Int64   `tfsdk:"dscp" json:"dscp"`
-	DstPort      jsontypes2.Float64 `tfsdk:"dst_port" json:"dstPort"`
-	SrcPort      jsontypes2.Float64 `tfsdk:"src_port" json:"srcPort"`
-	DstPortRange jsontypes2.String  `tfsdk:"dst_port_range" json:"dstPortRange"`
-	Protocol     jsontypes2.String  `tfsdk:"protocol" json:"protocol"`
-	SrcPortRange jsontypes2.String  `tfsdk:"src_port_range" json:"srcPortRange"`
+	Id           jsontypes.String  `tfsdk:"id" json:"-"`
+	NetworkId    jsontypes.String  `tfsdk:"network_id" json:"network_id"`
+	QosRulesId   jsontypes.String  `tfsdk:"qos_rule_id" json:"id"`
+	Vlan         jsontypes.Int64   `tfsdk:"vlan" json:"vlan"`
+	Dscp         jsontypes.Int64   `tfsdk:"dscp" json:"dscp"`
+	DstPort      jsontypes.Float64 `tfsdk:"dst_port" json:"dstPort"`
+	SrcPort      jsontypes.Float64 `tfsdk:"src_port" json:"srcPort"`
+	DstPortRange jsontypes.String  `tfsdk:"dst_port_range" json:"dstPortRange"`
+	Protocol     jsontypes.String  `tfsdk:"protocol" json:"protocol"`
+	SrcPortRange jsontypes.String  `tfsdk:"src_port_range" json:"srcPortRange"`
 }
 
 func (r *NetworksSwitchQosRuleResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -61,12 +61,12 @@ func (r *NetworksSwitchQosRuleResource) Schema(ctx context.Context, req resource
 				MarkdownDescription: "Qos Rule Id",
 				Computed:            true,
 				Optional:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"network_id": schema.StringAttribute{
 				MarkdownDescription: "Network Id",
 				Required:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -78,7 +78,7 @@ func (r *NetworksSwitchQosRuleResource) Schema(ctx context.Context, req resource
 				MarkdownDescription: "Qos Rules Id",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -87,43 +87,43 @@ func (r *NetworksSwitchQosRuleResource) Schema(ctx context.Context, req resource
 				MarkdownDescription: "The VLAN of the incoming packet. A null value will match any VLAN.",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.Int64Type,
+				CustomType:          jsontypes.Int64Type,
 			},
 			"dscp": schema.Int64Attribute{
 				MarkdownDescription: "DSCP tag. Set this to -1 to trust incoming DSCP. Default value is 0.",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.Int64Type,
+				CustomType:          jsontypes.Int64Type,
 			},
 			"dst_port": schema.Float64Attribute{
 				MarkdownDescription: "The destination port of the incoming packet. Applicable only if protocol is TCP or UDP.",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.Float64Type,
+				CustomType:          jsontypes.Float64Type,
 			},
 			"src_port": schema.Float64Attribute{
 				MarkdownDescription: "The source port of the incoming packet. Applicable only if protocol is TCP or UDP.",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.Float64Type,
+				CustomType:          jsontypes.Float64Type,
 			},
 			"dst_port_range": schema.StringAttribute{
 				MarkdownDescription: "The destination port range of the incoming packet. Applicable only if protocol is set to TCP or UDP. Example: 70-80",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"protocol": schema.StringAttribute{
 				MarkdownDescription: "The protocol of the incoming packet. Can be one of ANY, TCP or UDP. Default value is ANY",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"src_port_range": schema.StringAttribute{
 				MarkdownDescription: "The source port range of the incoming packet. Applicable only if protocol is set to TCP or UDP. Example: 70-80",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 		},
 	}
@@ -249,32 +249,32 @@ func (r *NetworksSwitchQosRuleResource) Create(ctx context.Context, req resource
 
 	// Populate the data model with the response
 	if iD := inlineResp["id"]; iD != nil {
-		data.QosRulesId = jsontypes2.StringValue(iD.(string))
+		data.QosRulesId = jsontypes.StringValue(iD.(string))
 	} else {
-		data.QosRulesId = jsontypes2.StringNull()
+		data.QosRulesId = jsontypes.StringNull()
 	}
 	if dstPortRange := inlineResp["dstPortRange"]; dstPortRange != nil {
-		data.DstPortRange = jsontypes2.StringValue(dstPortRange.(string))
+		data.DstPortRange = jsontypes.StringValue(dstPortRange.(string))
 	} else {
-		data.DstPortRange = jsontypes2.StringNull()
+		data.DstPortRange = jsontypes.StringNull()
 	}
 	if srcPortRange := inlineResp["srcPortRange"]; srcPortRange != nil {
-		data.SrcPortRange = jsontypes2.StringValue(srcPortRange.(string))
+		data.SrcPortRange = jsontypes.StringValue(srcPortRange.(string))
 	} else {
-		data.SrcPortRange = jsontypes2.StringNull()
+		data.SrcPortRange = jsontypes.StringNull()
 	}
 	if srcPort := inlineResp["srcPort"]; srcPort != nil {
-		data.SrcPort = jsontypes2.Float64Value(srcPort.(float64))
+		data.SrcPort = jsontypes.Float64Value(srcPort.(float64))
 	} else {
-		data.SrcPort = jsontypes2.Float64Null()
+		data.SrcPort = jsontypes.Float64Null()
 	}
 	if dstPort := inlineResp["dstPort"]; dstPort != nil {
-		data.DstPort = jsontypes2.Float64Value(dstPort.(float64))
+		data.DstPort = jsontypes.Float64Value(dstPort.(float64))
 	} else {
-		data.DstPort = jsontypes2.Float64Null()
+		data.DstPort = jsontypes.Float64Null()
 	}
 
-	data.Id = jsontypes2.StringValue(data.NetworkId.ValueString() + "," + data.QosRulesId.ValueString())
+	data.Id = jsontypes.StringValue(data.NetworkId.ValueString() + "," + data.QosRulesId.ValueString())
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -351,7 +351,7 @@ func (r *NetworksSwitchQosRuleResource) Read(ctx context.Context, req resource.R
 		return
 	}
 
-	data.QosRulesId = jsontypes2.StringValue(id)
+	data.QosRulesId = jsontypes.StringValue(id)
 
 	if data.QosRulesId.IsUnknown() || data.QosRulesId.IsNull() {
 		resp.Diagnostics.AddError(
@@ -361,7 +361,7 @@ func (r *NetworksSwitchQosRuleResource) Read(ctx context.Context, req resource.R
 		return
 	}
 
-	data.Id = jsontypes2.StringValue(data.NetworkId.ValueString() + "," + data.QosRulesId.ValueString())
+	data.Id = jsontypes.StringValue(data.NetworkId.ValueString() + "," + data.QosRulesId.ValueString())
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -458,27 +458,27 @@ func (r *NetworksSwitchQosRuleResource) Update(ctx context.Context, req resource
 	}
 
 	if dstPortRange := inlineResp["dstPortRange"]; dstPortRange != nil {
-		data.DstPortRange = jsontypes2.StringValue(dstPortRange.(string))
+		data.DstPortRange = jsontypes.StringValue(dstPortRange.(string))
 	} else {
-		data.DstPortRange = jsontypes2.StringNull()
+		data.DstPortRange = jsontypes.StringNull()
 	}
 	if srcPortRange := inlineResp["srcPortRange"]; srcPortRange != nil {
-		data.SrcPortRange = jsontypes2.StringValue(srcPortRange.(string))
+		data.SrcPortRange = jsontypes.StringValue(srcPortRange.(string))
 	} else {
-		data.SrcPortRange = jsontypes2.StringNull()
+		data.SrcPortRange = jsontypes.StringNull()
 	}
 	if srcPort := inlineResp["srcPort"]; srcPort != nil {
-		data.SrcPort = jsontypes2.Float64Value(srcPort.(float64))
+		data.SrcPort = jsontypes.Float64Value(srcPort.(float64))
 	} else {
-		data.SrcPort = jsontypes2.Float64Null()
+		data.SrcPort = jsontypes.Float64Null()
 	}
 	if dstPort := inlineResp["dstPort"]; dstPort != nil {
-		data.DstPort = jsontypes2.Float64Value(dstPort.(float64))
+		data.DstPort = jsontypes.Float64Value(dstPort.(float64))
 	} else {
-		data.DstPort = jsontypes2.Float64Null()
+		data.DstPort = jsontypes.Float64Null()
 	}
 
-	data.Id = jsontypes2.StringValue(data.NetworkId.ValueString() + "," + data.QosRulesId.ValueString())
+	data.Id = jsontypes.StringValue(data.NetworkId.ValueString() + "," + data.QosRulesId.ValueString())
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 

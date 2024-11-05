@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	jsontypes2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -27,22 +27,22 @@ type NetworksApplianceFirewallL3FirewallRulesDataSource struct {
 }
 
 type NetworksApplianceFirewallL3FirewallRulesDataSourceModel struct {
-	Id                jsontypes2.String                                             `tfsdk:"id"`
-	NetworkId         jsontypes2.String                                             `tfsdk:"network_id" json:"network_id"`
-	SyslogDefaultRule jsontypes2.Bool                                               `tfsdk:"syslog_default_rule"`
+	Id                jsontypes.String                                              `tfsdk:"id"`
+	NetworkId         jsontypes.String                                              `tfsdk:"network_id" json:"network_id"`
+	SyslogDefaultRule jsontypes.Bool                                                `tfsdk:"syslog_default_rule"`
 	List              []NetworksApplianceFirewallL3FirewallRulesDataSourceModelList `tfsdk:"rules" json:"rules"`
 }
 
 // NetworksApplianceFirewallL3FirewallRulesDataSourceModelList describes the data source data model.
 type NetworksApplianceFirewallL3FirewallRulesDataSourceModelList struct {
-	Comment       jsontypes2.String `tfsdk:"comment"`
-	DestCidr      jsontypes2.String `tfsdk:"dest_cidr"`
-	DestPort      jsontypes2.String `tfsdk:"dest_port"`
-	Policy        jsontypes2.String `tfsdk:"policy"`
-	Protocol      jsontypes2.String `tfsdk:"protocol"`
-	SrcPort       jsontypes2.String `tfsdk:"src_port"`
-	SrcCidr       jsontypes2.String `tfsdk:"src_cidr"`
-	SysLogEnabled jsontypes2.Bool   `tfsdk:"syslog_enabled"`
+	Comment       jsontypes.String `tfsdk:"comment"`
+	DestCidr      jsontypes.String `tfsdk:"dest_cidr"`
+	DestPort      jsontypes.String `tfsdk:"dest_port"`
+	Policy        jsontypes.String `tfsdk:"policy"`
+	Protocol      jsontypes.String `tfsdk:"protocol"`
+	SrcPort       jsontypes.String `tfsdk:"src_port"`
+	SrcCidr       jsontypes.String `tfsdk:"src_cidr"`
+	SysLogEnabled jsontypes.Bool   `tfsdk:"syslog_enabled"`
 }
 
 func (d *NetworksApplianceFirewallL3FirewallRulesDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -57,12 +57,12 @@ func (d *NetworksApplianceFirewallL3FirewallRulesDataSource) Schema(ctx context.
 
 			"id": schema.StringAttribute{
 				Computed:   true,
-				CustomType: jsontypes2.StringType,
+				CustomType: jsontypes.StringType,
 			},
 			"network_id": schema.StringAttribute{
 				MarkdownDescription: "Network ID",
 				Required:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 31),
 				},
@@ -70,7 +70,7 @@ func (d *NetworksApplianceFirewallL3FirewallRulesDataSource) Schema(ctx context.
 			"syslog_default_rule": schema.BoolAttribute{
 				MarkdownDescription: "Log the special default rule (boolean value - enable only if you've configured a syslog server) (optional)",
 				Optional:            true,
-				CustomType:          jsontypes2.BoolType,
+				CustomType:          jsontypes.BoolType,
 			},
 			"rules": schema.ListNestedAttribute{
 				Optional: true,
@@ -81,39 +81,39 @@ func (d *NetworksApplianceFirewallL3FirewallRulesDataSource) Schema(ctx context.
 							MarkdownDescription: "Description of the rule (optional)",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"dest_cidr": schema.StringAttribute{
 							MarkdownDescription: "Comma-separated list of destination IP address(es) (in IP or CIDR notation), fully-qualified domain names (FQDN) or 'Any'",
 							Required:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"dest_port": schema.StringAttribute{
 							MarkdownDescription: "Comma-separated list of destination port(s) (integer in the range 1-65535), or 'Any'",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"src_cidr": schema.StringAttribute{
 							MarkdownDescription: "Comma-separated list of source IP address(es) (in IP or CIDR notation), or 'any' (note: FQDN not supported for source addresses)",
 							Required:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"src_port": schema.StringAttribute{
 							MarkdownDescription: "Comma-separated list of source port(s) (integer in the range 1-65535), or 'Any'",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"policy": schema.StringAttribute{
 							MarkdownDescription: "'allow' or 'deny' traffic specified by this rule",
 							Required:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"protocol": schema.StringAttribute{
 							MarkdownDescription: "The type of protocol (must be 'tcp', 'udp', 'icmp', 'icmp6', 'Any', or 'any')",
 							Required:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 							Validators: []validator.String{
 								stringvalidator.OneOf([]string{"tcp", "udp", "icmp", "icmp6", "Any", "any"}...),
 							},
@@ -121,7 +121,7 @@ func (d *NetworksApplianceFirewallL3FirewallRulesDataSource) Schema(ctx context.
 						"syslog_enabled": schema.BoolAttribute{
 							MarkdownDescription: "Log this rule to syslog (true or false, boolean value) - only applicable if a syslog has been configured (optional)",
 							Optional:            true,
-							CustomType:          jsontypes2.BoolType,
+							CustomType:          jsontypes.BoolType,
 						},
 					},
 				},
@@ -194,10 +194,10 @@ func (d *NetworksApplianceFirewallL3FirewallRulesDataSource) Read(ctx context.Co
 
 	// Check if the default rule is nil
 	if data.SyslogDefaultRule.IsNull() {
-		data.SyslogDefaultRule = jsontypes2.BoolValue(false)
+		data.SyslogDefaultRule = jsontypes.BoolValue(false)
 	}
 
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 

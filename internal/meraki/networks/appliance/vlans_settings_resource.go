@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	jsontypes2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -32,9 +32,9 @@ type NetworksApplianceVlansSettingsResource struct {
 
 // NetworksApplianceVlansSettingsResourceModel describes the resource data model.
 type NetworksApplianceVlansSettingsResourceModel struct {
-	Id           jsontypes2.String `tfsdk:"id"`
-	NetworkId    jsontypes2.String `tfsdk:"network_id" json:"network_id"`
-	VlansEnabled jsontypes2.Bool   `tfsdk:"vlans_enabled"`
+	Id           jsontypes.String `tfsdk:"id"`
+	NetworkId    jsontypes.String `tfsdk:"network_id" json:"network_id"`
+	VlansEnabled jsontypes.Bool   `tfsdk:"vlans_enabled"`
 }
 
 func (r *NetworksApplianceVlansSettingsResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -49,12 +49,12 @@ func (r *NetworksApplianceVlansSettingsResource) Schema(ctx context.Context, req
 			"id": schema.StringAttribute{
 				MarkdownDescription: "Example identifier",
 				Computed:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"network_id": schema.StringAttribute{
 				MarkdownDescription: "Network Id",
 				Required:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -65,7 +65,7 @@ func (r *NetworksApplianceVlansSettingsResource) Schema(ctx context.Context, req
 			"vlans_enabled": schema.BoolAttribute{
 				MarkdownDescription: "Boolean indicating whether to enable (true) or disable (false) VLANs for the network",
 				Required:            true,
-				CustomType:          jsontypes2.BoolType,
+				CustomType:          jsontypes.BoolType,
 			},
 		},
 	}
@@ -136,7 +136,7 @@ func (r *NetworksApplianceVlansSettingsResource) Create(ctx context.Context, req
 		return
 	}
 
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -187,7 +187,7 @@ func (r *NetworksApplianceVlansSettingsResource) Read(ctx context.Context, req r
 		return
 	}
 
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -240,7 +240,7 @@ func (r *NetworksApplianceVlansSettingsResource) Update(ctx context.Context, req
 		return
 	}
 
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 

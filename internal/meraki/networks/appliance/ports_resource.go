@@ -3,7 +3,7 @@ package appliance
 import (
 	"context"
 	"fmt"
-	jsontypes2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"strings"
 
@@ -33,16 +33,16 @@ type NetworksAppliancePortsResource struct {
 
 // NetworksAppliancePortsResourceModel describes the resource data model.
 type NetworksAppliancePortsResourceModel struct {
-	Id                  jsontypes2.String `tfsdk:"id"`
-	NetworkId           jsontypes2.String `tfsdk:"network_id"`
-	PortId              jsontypes2.String `tfsdk:"port_id"`
-	Accesspolicy        jsontypes2.String `tfsdk:"access_policy" json:"access_policy"`
-	Allowedvlans        jsontypes2.String `tfsdk:"allowed_vlans" json:"allowed_vlans"`
-	Dropuntaggedtraffic jsontypes2.Bool   `tfsdk:"drop_untagged_traffic" json:"drop_untagged_traffic"`
-	Enabled             jsontypes2.Bool   `tfsdk:"enabled" json:"enabled"`
-	Number              jsontypes2.Int64  `tfsdk:"number" json:"number"`
-	Type                jsontypes2.String `tfsdk:"type" json:"type"`
-	Vlan                jsontypes2.Int64  `tfsdk:"vlan" json:"vlan"`
+	Id                  jsontypes.String `tfsdk:"id"`
+	NetworkId           jsontypes.String `tfsdk:"network_id"`
+	PortId              jsontypes.String `tfsdk:"port_id"`
+	Accesspolicy        jsontypes.String `tfsdk:"access_policy" json:"access_policy"`
+	Allowedvlans        jsontypes.String `tfsdk:"allowed_vlans" json:"allowed_vlans"`
+	Dropuntaggedtraffic jsontypes.Bool   `tfsdk:"drop_untagged_traffic" json:"drop_untagged_traffic"`
+	Enabled             jsontypes.Bool   `tfsdk:"enabled" json:"enabled"`
+	Number              jsontypes.Int64  `tfsdk:"number" json:"number"`
+	Type                jsontypes.String `tfsdk:"type" json:"type"`
+	Vlan                jsontypes.Int64  `tfsdk:"vlan" json:"vlan"`
 }
 
 func (r *NetworksAppliancePortsResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -55,12 +55,12 @@ func (r *NetworksAppliancePortsResource) Schema(ctx context.Context, req resourc
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:   true,
-				CustomType: jsontypes2.StringType,
+				CustomType: jsontypes.StringType,
 			},
 			"network_id": schema.StringAttribute{
 				MarkdownDescription: "Network ID",
 				Required:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -71,7 +71,7 @@ func (r *NetworksAppliancePortsResource) Schema(ctx context.Context, req resourc
 			"port_id": schema.StringAttribute{
 				MarkdownDescription: "Port ID",
 				Required:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -83,32 +83,32 @@ func (r *NetworksAppliancePortsResource) Schema(ctx context.Context, req resourc
 				MarkdownDescription: "The name of the policy. Only applicable to Access ports.",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"allowed_vlans": schema.StringAttribute{
 				MarkdownDescription: "Comma-delimited list of the VLAN ID's allowed on the port, or 'all' to permit all VLAN's on the port.",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"drop_untagged_traffic": schema.BoolAttribute{
 				MarkdownDescription: "Whether the trunk port can drop all untagged traffic.",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.BoolType,
+				CustomType:          jsontypes.BoolType,
 			},
 			"enabled": schema.BoolAttribute{
 				Description:         "The status of the port",
 				MarkdownDescription: "The status of the port",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.BoolType,
+				CustomType:          jsontypes.BoolType,
 			},
 			"number": schema.Int64Attribute{
 				MarkdownDescription: "SsidNumber of the port",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.Int64Type,
+				CustomType:          jsontypes.Int64Type,
 			},
 			"type": schema.StringAttribute{
 				MarkdownDescription: "The type of the port: 'access' or 'trunk'.",
@@ -118,13 +118,13 @@ func (r *NetworksAppliancePortsResource) Schema(ctx context.Context, req resourc
 					stringvalidator.OneOf([]string{"access", "trunk"}...),
 					stringvalidator.LengthAtLeast(4),
 				},
-				CustomType: jsontypes2.StringType,
+				CustomType: jsontypes.StringType,
 			},
 			"vlan": schema.Int64Attribute{
 				MarkdownDescription: "Native VLAN when the port is in Trunk mode. Access VLAN when the port is in Access mode.",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.Int64Type,
+				CustomType:          jsontypes.Int64Type,
 			},
 		},
 	}
@@ -163,12 +163,12 @@ func (r *NetworksAppliancePortsResource) Create(ctx context.Context, req resourc
 
 	payload := *openApiClient.NewUpdateNetworkAppliancePortRequest()
 
-	if !data.Vlan.IsUnknown() && !data.Vlan.IsNull() && data.Vlan != jsontypes2.Int64Value(0) {
+	if !data.Vlan.IsUnknown() && !data.Vlan.IsNull() && data.Vlan != jsontypes.Int64Value(0) {
 		var vlan = int32(data.Vlan.ValueInt64())
 		payload.Vlan = &vlan
 	}
 
-	if !data.Type.IsUnknown() && !data.Type.IsNull() && data.Type != jsontypes2.StringValue("") {
+	if !data.Type.IsUnknown() && !data.Type.IsNull() && data.Type != jsontypes.StringValue("") {
 		payload.Type = data.Type.ValueStringPointer()
 	}
 
@@ -176,10 +176,10 @@ func (r *NetworksAppliancePortsResource) Create(ctx context.Context, req resourc
 		payload.Enabled = data.Enabled.ValueBoolPointer()
 	}
 
-	if !data.Accesspolicy.IsUnknown() && !data.Accesspolicy.IsNull() && data.Accesspolicy != jsontypes2.StringValue("") {
+	if !data.Accesspolicy.IsUnknown() && !data.Accesspolicy.IsNull() && data.Accesspolicy != jsontypes.StringValue("") {
 		payload.AccessPolicy = data.Accesspolicy.ValueStringPointer()
 	}
-	if !data.Allowedvlans.IsUnknown() && !data.Allowedvlans.IsNull() && data.Allowedvlans != jsontypes2.StringValue("") {
+	if !data.Allowedvlans.IsUnknown() && !data.Allowedvlans.IsNull() && data.Allowedvlans != jsontypes.StringValue("") {
 		payload.AllowedVlans = data.Allowedvlans.ValueStringPointer()
 	}
 	if !data.Dropuntaggedtraffic.IsUnknown() && !data.Dropuntaggedtraffic.IsNull() {
@@ -208,14 +208,14 @@ func (r *NetworksAppliancePortsResource) Create(ctx context.Context, req resourc
 		return
 	}
 
-	data.Enabled = jsontypes2.BoolValue(response.GetEnabled())
-	data.Type = jsontypes2.StringValue(response.GetType())
-	data.Allowedvlans = jsontypes2.StringValue(response.GetAllowedVlans())
-	data.Dropuntaggedtraffic = jsontypes2.BoolValue(response.GetDropUntaggedTraffic())
-	data.Vlan = jsontypes2.Int64Value(int64(response.GetVlan()))
-	data.Accesspolicy = jsontypes2.StringValue(response.GetAccessPolicy())
-	data.Number = jsontypes2.Int64Value(int64(response.GetNumber()))
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Enabled = jsontypes.BoolValue(response.GetEnabled())
+	data.Type = jsontypes.StringValue(response.GetType())
+	data.Allowedvlans = jsontypes.StringValue(response.GetAllowedVlans())
+	data.Dropuntaggedtraffic = jsontypes.BoolValue(response.GetDropUntaggedTraffic())
+	data.Vlan = jsontypes.Int64Value(int64(response.GetVlan()))
+	data.Accesspolicy = jsontypes.StringValue(response.GetAccessPolicy())
+	data.Number = jsontypes.Int64Value(int64(response.GetNumber()))
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -255,14 +255,14 @@ func (r *NetworksAppliancePortsResource) Read(ctx context.Context, req resource.
 		resp.Diagnostics.Append()
 	}
 
-	data.Enabled = jsontypes2.BoolValue(response.GetEnabled())
-	data.Type = jsontypes2.StringValue(response.GetType())
-	data.Allowedvlans = jsontypes2.StringValue(response.GetAllowedVlans())
-	data.Dropuntaggedtraffic = jsontypes2.BoolValue(response.GetDropUntaggedTraffic())
-	data.Vlan = jsontypes2.Int64Value(int64(response.GetVlan()))
-	data.Accesspolicy = jsontypes2.StringValue(response.GetAccessPolicy())
-	data.Number = jsontypes2.Int64Value(int64(response.GetNumber()))
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Enabled = jsontypes.BoolValue(response.GetEnabled())
+	data.Type = jsontypes.StringValue(response.GetType())
+	data.Allowedvlans = jsontypes.StringValue(response.GetAllowedVlans())
+	data.Dropuntaggedtraffic = jsontypes.BoolValue(response.GetDropUntaggedTraffic())
+	data.Vlan = jsontypes.Int64Value(int64(response.GetVlan()))
+	data.Accesspolicy = jsontypes.StringValue(response.GetAccessPolicy())
+	data.Number = jsontypes.Int64Value(int64(response.GetNumber()))
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -283,12 +283,12 @@ func (r *NetworksAppliancePortsResource) Update(ctx context.Context, req resourc
 
 	payload := *openApiClient.NewUpdateNetworkAppliancePortRequest()
 
-	if !data.Vlan.IsUnknown() && !data.Vlan.IsNull() && data.Vlan != jsontypes2.Int64Value(0) {
+	if !data.Vlan.IsUnknown() && !data.Vlan.IsNull() && data.Vlan != jsontypes.Int64Value(0) {
 		var vlan = int32(data.Vlan.ValueInt64())
 		payload.Vlan = &vlan
 	}
 
-	if !data.Type.IsUnknown() && !data.Type.IsNull() && data.Type != jsontypes2.StringValue("") {
+	if !data.Type.IsUnknown() && !data.Type.IsNull() && data.Type != jsontypes.StringValue("") {
 		payload.Type = data.Type.ValueStringPointer()
 	}
 
@@ -296,10 +296,10 @@ func (r *NetworksAppliancePortsResource) Update(ctx context.Context, req resourc
 		payload.Enabled = data.Enabled.ValueBoolPointer()
 	}
 
-	if !data.Accesspolicy.IsUnknown() && !data.Accesspolicy.IsNull() && data.Accesspolicy != jsontypes2.StringValue("") {
+	if !data.Accesspolicy.IsUnknown() && !data.Accesspolicy.IsNull() && data.Accesspolicy != jsontypes.StringValue("") {
 		payload.AccessPolicy = data.Accesspolicy.ValueStringPointer()
 	}
-	if !data.Allowedvlans.IsUnknown() && !data.Allowedvlans.IsNull() && data.Allowedvlans != jsontypes2.StringValue("") {
+	if !data.Allowedvlans.IsUnknown() && !data.Allowedvlans.IsNull() && data.Allowedvlans != jsontypes.StringValue("") {
 		payload.AllowedVlans = data.Allowedvlans.ValueStringPointer()
 	}
 	if !data.Dropuntaggedtraffic.IsUnknown() && !data.Dropuntaggedtraffic.IsNull() {
@@ -328,14 +328,14 @@ func (r *NetworksAppliancePortsResource) Update(ctx context.Context, req resourc
 		return
 	}
 
-	data.Enabled = jsontypes2.BoolValue(response.GetEnabled())
-	data.Type = jsontypes2.StringValue(response.GetType())
-	data.Allowedvlans = jsontypes2.StringValue(response.GetAllowedVlans())
-	data.Dropuntaggedtraffic = jsontypes2.BoolValue(response.GetDropUntaggedTraffic())
-	data.Vlan = jsontypes2.Int64Value(int64(response.GetVlan()))
-	data.Accesspolicy = jsontypes2.StringValue(response.GetAccessPolicy())
-	data.Number = jsontypes2.Int64Value(int64(response.GetNumber()))
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Enabled = jsontypes.BoolValue(response.GetEnabled())
+	data.Type = jsontypes.StringValue(response.GetType())
+	data.Allowedvlans = jsontypes.StringValue(response.GetAllowedVlans())
+	data.Dropuntaggedtraffic = jsontypes.BoolValue(response.GetDropUntaggedTraffic())
+	data.Vlan = jsontypes.Int64Value(int64(response.GetVlan()))
+	data.Accesspolicy = jsontypes.StringValue(response.GetAccessPolicy())
+	data.Number = jsontypes.Int64Value(int64(response.GetNumber()))
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -356,12 +356,12 @@ func (r *NetworksAppliancePortsResource) Delete(ctx context.Context, req resourc
 
 	payload := *openApiClient.NewUpdateNetworkAppliancePortRequest()
 
-	if !data.Vlan.IsUnknown() && !data.Vlan.IsNull() && data.Vlan != jsontypes2.Int64Value(0) {
+	if !data.Vlan.IsUnknown() && !data.Vlan.IsNull() && data.Vlan != jsontypes.Int64Value(0) {
 		var vlan = int32(data.Vlan.ValueInt64())
 		payload.Vlan = &vlan
 	}
 
-	if !data.Type.IsUnknown() && !data.Type.IsNull() && data.Type != jsontypes2.StringValue("") {
+	if !data.Type.IsUnknown() && !data.Type.IsNull() && data.Type != jsontypes.StringValue("") {
 		payload.Type = data.Type.ValueStringPointer()
 	}
 
@@ -369,10 +369,10 @@ func (r *NetworksAppliancePortsResource) Delete(ctx context.Context, req resourc
 		payload.Enabled = data.Enabled.ValueBoolPointer()
 	}
 
-	if !data.Accesspolicy.IsUnknown() && !data.Accesspolicy.IsNull() && data.Accesspolicy != jsontypes2.StringValue("") {
+	if !data.Accesspolicy.IsUnknown() && !data.Accesspolicy.IsNull() && data.Accesspolicy != jsontypes.StringValue("") {
 		payload.AccessPolicy = data.Accesspolicy.ValueStringPointer()
 	}
-	if !data.Allowedvlans.IsUnknown() && !data.Allowedvlans.IsNull() && data.Allowedvlans != jsontypes2.StringValue("") {
+	if !data.Allowedvlans.IsUnknown() && !data.Allowedvlans.IsNull() && data.Allowedvlans != jsontypes.StringValue("") {
 		payload.AllowedVlans = data.Allowedvlans.ValueStringPointer()
 	}
 	if !data.Dropuntaggedtraffic.IsUnknown() && !data.Dropuntaggedtraffic.IsNull() {
@@ -401,14 +401,14 @@ func (r *NetworksAppliancePortsResource) Delete(ctx context.Context, req resourc
 		return
 	}
 
-	data.Enabled = jsontypes2.BoolValue(response.GetEnabled())
-	data.Type = jsontypes2.StringValue(response.GetType())
-	data.Allowedvlans = jsontypes2.StringValue(response.GetAllowedVlans())
-	data.Dropuntaggedtraffic = jsontypes2.BoolValue(response.GetDropUntaggedTraffic())
-	data.Vlan = jsontypes2.Int64Value(int64(response.GetVlan()))
-	data.Accesspolicy = jsontypes2.StringValue(response.GetAccessPolicy())
-	data.Number = jsontypes2.Int64Value(int64(response.GetNumber()))
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Enabled = jsontypes.BoolValue(response.GetEnabled())
+	data.Type = jsontypes.StringValue(response.GetType())
+	data.Allowedvlans = jsontypes.StringValue(response.GetAllowedVlans())
+	data.Dropuntaggedtraffic = jsontypes.BoolValue(response.GetDropUntaggedTraffic())
+	data.Vlan = jsontypes.Int64Value(int64(response.GetVlan()))
+	data.Accesspolicy = jsontypes.StringValue(response.GetAccessPolicy())
+	data.Number = jsontypes.Int64Value(int64(response.GetNumber()))
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 

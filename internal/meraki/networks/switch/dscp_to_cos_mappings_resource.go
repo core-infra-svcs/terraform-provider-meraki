@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	jsontypes2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -32,14 +32,14 @@ type NetworksSwitchDscpToCosMappingsResource struct {
 
 // NetworksSwitchDscpToCosMappingsResourceModel describes the resource data model.
 type NetworksSwitchDscpToCosMappingsResourceModel struct {
-	Id        jsontypes2.String                                     `tfsdk:"id"`
-	NetworkId jsontypes2.String                                     `tfsdk:"network_id"`
+	Id        jsontypes.String                                      `tfsdk:"id"`
+	NetworkId jsontypes.String                                      `tfsdk:"network_id"`
 	Mappings  []NetworksSwitchDscpToCosMappingsResourceModelMapping `tfsdk:"mappings" json:"mappings"`
 }
 
 type NetworksSwitchDscpToCosMappingsResourceModelMapping struct {
-	Dscp jsontypes2.Int64 `tfsdk:"dscp" json:"dscp"`
-	Cos  jsontypes2.Int64 `tfsdk:"cos" json:"cos"`
+	Dscp jsontypes.Int64 `tfsdk:"dscp" json:"dscp"`
+	Cos  jsontypes.Int64 `tfsdk:"cos" json:"cos"`
 }
 
 func (r *NetworksSwitchDscpToCosMappingsResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -53,11 +53,11 @@ func (r *NetworksSwitchDscpToCosMappingsResource) Schema(ctx context.Context, re
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:   true,
-				CustomType: jsontypes2.StringType,
+				CustomType: jsontypes.StringType,
 			},
 			"network_id": schema.StringAttribute{
 				Required:   true,
-				CustomType: jsontypes2.StringType,
+				CustomType: jsontypes.StringType,
 			},
 			"mappings": schema.ListNestedAttribute{
 				Description: "An array of DSCP to CoS mappings. An empty array will reset the mappings to default.",
@@ -67,7 +67,7 @@ func (r *NetworksSwitchDscpToCosMappingsResource) Schema(ctx context.Context, re
 						"dscp": schema.Int64Attribute{
 							MarkdownDescription: "The Differentiated Services Code Point (DSCP) tag in the IP header that will be mapped to a particular Class-of-Service (CoS) queue. Value can be in the range of 0 to 63 inclusive.",
 							Required:            true,
-							CustomType:          jsontypes2.Int64Type,
+							CustomType:          jsontypes.Int64Type,
 							Validators: []validator.Int64{
 								int64validator.Between(0, 63),
 							},
@@ -75,7 +75,7 @@ func (r *NetworksSwitchDscpToCosMappingsResource) Schema(ctx context.Context, re
 						"cos": schema.Int64Attribute{
 							MarkdownDescription: "The actual layer-2 CoS queue the DSCP value is mapped to. These are not bits set on outgoing frames. Value can be in the range of 0 to 5 inclusive.",
 							Required:            true,
-							CustomType:          jsontypes2.Int64Type,
+							CustomType:          jsontypes.Int64Type,
 							Validators: []validator.Int64{
 								int64validator.Between(0, 5),
 							},
@@ -161,7 +161,7 @@ func (r *NetworksSwitchDscpToCosMappingsResource) Create(ctx context.Context, re
 		return
 	}
 
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -211,7 +211,7 @@ func (r *NetworksSwitchDscpToCosMappingsResource) Read(ctx context.Context, req 
 		return
 	}
 
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -272,7 +272,7 @@ func (r *NetworksSwitchDscpToCosMappingsResource) Update(ctx context.Context, re
 		return
 	}
 
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -333,7 +333,7 @@ func (r *NetworksSwitchDscpToCosMappingsResource) Delete(ctx context.Context, re
 		return
 	}
 
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 

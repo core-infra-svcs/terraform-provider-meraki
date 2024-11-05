@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	jsontypes2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -30,15 +30,15 @@ type OrganizationsSnmpResource struct {
 
 // OrganizationsSnmpResourceModel describes the resource data model.
 type OrganizationsSnmpResourceModel struct {
-	Id             jsontypes2.String   `tfsdk:"id"`
-	OrganizationId jsontypes2.String   `tfsdk:"organization_id" json:"organizationId"`
-	V2cEnabled     jsontypes2.Bool     `tfsdk:"v2c_enabled" json:"v2cEnabled,omitempty"`
-	V3Enabled      jsontypes2.Bool     `tfsdk:"v3_enabled" json:"v3Enabled,omitempty"`
-	V3AuthMode     jsontypes2.String   `tfsdk:"v3_auth_mode" json:"v3AuthMode,omitempty"`
-	V3AuthPass     jsontypes2.String   `tfsdk:"v3_auth_pass" json:"v3AuthPass,omitempty"`
-	V3PrivMode     jsontypes2.String   `tfsdk:"v3_priv_mode" json:"v3PrivMode,omitempty"`
-	V3PrivPass     jsontypes2.String   `tfsdk:"v3_priv_pass" json:"v3PrivPass,omitempty"`
-	PeerIps        []jsontypes2.String `tfsdk:"peer_ips" json:"peerIps,omitempty"`
+	Id             jsontypes.String   `tfsdk:"id"`
+	OrganizationId jsontypes.String   `tfsdk:"organization_id" json:"organizationId"`
+	V2cEnabled     jsontypes.Bool     `tfsdk:"v2c_enabled" json:"v2cEnabled,omitempty"`
+	V3Enabled      jsontypes.Bool     `tfsdk:"v3_enabled" json:"v3Enabled,omitempty"`
+	V3AuthMode     jsontypes.String   `tfsdk:"v3_auth_mode" json:"v3AuthMode,omitempty"`
+	V3AuthPass     jsontypes.String   `tfsdk:"v3_auth_pass" json:"v3AuthPass,omitempty"`
+	V3PrivMode     jsontypes.String   `tfsdk:"v3_priv_mode" json:"v3PrivMode,omitempty"`
+	V3PrivPass     jsontypes.String   `tfsdk:"v3_priv_pass" json:"v3PrivPass,omitempty"`
+	PeerIps        []jsontypes.String `tfsdk:"peer_ips" json:"peerIps,omitempty"`
 }
 
 func (r *OrganizationsSnmpResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -51,28 +51,28 @@ func (r *OrganizationsSnmpResource) Schema(ctx context.Context, req resource.Sch
 			"id": schema.StringAttribute{
 				MarkdownDescription: "Example identifier",
 				Computed:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"organization_id": schema.StringAttribute{
 				Description: "The ID of the organization",
 				Required:    true,
-				CustomType:  jsontypes2.StringType,
+				CustomType:  jsontypes.StringType,
 			},
 			"v2c_enabled": schema.BoolAttribute{
 				Description: "Boolean indicating whether SNMP version 2c is enabled for the organization.",
 				Required:    true,
-				CustomType:  jsontypes2.BoolType,
+				CustomType:  jsontypes.BoolType,
 			},
 			"v3_enabled": schema.BoolAttribute{
 				Description: "Boolean indicating whether SNMP version 3 is enabled for the organization.",
 				Required:    true,
-				CustomType:  jsontypes2.BoolType,
+				CustomType:  jsontypes.BoolType,
 			},
 			"v3_auth_mode": schema.StringAttribute{
 				Description: "The SNMP version 3 authentication mode. Can be either 'MD5' or 'SHA'.",
 				Optional:    true,
 				Computed:    true,
-				CustomType:  jsontypes2.StringType,
+				CustomType:  jsontypes.StringType,
 				Validators: []validator.String{
 					stringvalidator.OneOf("MD5", "SHA"),
 				},
@@ -81,13 +81,13 @@ func (r *OrganizationsSnmpResource) Schema(ctx context.Context, req resource.Sch
 				Description: "The SNMP version 3 authentication password.",
 				Optional:    true,
 				Sensitive:   true,
-				CustomType:  jsontypes2.StringType,
+				CustomType:  jsontypes.StringType,
 			},
 			"v3_priv_mode": schema.StringAttribute{
 				Description: "The SNMP version 3 privacy mode. Can be either 'DES' or 'AES128'.",
 				Optional:    true,
 				Computed:    true,
-				CustomType:  jsontypes2.StringType,
+				CustomType:  jsontypes.StringType,
 				Validators: []validator.String{
 					stringvalidator.OneOf("DES", "AES128"),
 				},
@@ -97,14 +97,14 @@ func (r *OrganizationsSnmpResource) Schema(ctx context.Context, req resource.Sch
 				Optional:    true,
 				Computed:    true,
 				Sensitive:   true,
-				CustomType:  jsontypes2.StringType,
+				CustomType:  jsontypes.StringType,
 			},
 			"peer_ips": schema.SetAttribute{
 				Description: "The list of IPv4 addresses that are allowed to access the SNMP server.",
-				ElementType: jsontypes2.StringType,
+				ElementType: jsontypes.StringType,
 				Optional:    true,
 				Computed:    true,
-				CustomType:  jsontypes2.SetType[jsontypes2.String](),
+				CustomType:  jsontypes.SetType[jsontypes.String](),
 			},
 		},
 	}

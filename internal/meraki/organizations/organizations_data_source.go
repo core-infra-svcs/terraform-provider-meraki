@@ -3,7 +3,7 @@ package organizations
 import (
 	"context"
 	"fmt"
-	jsontypes2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -27,18 +27,18 @@ type OrganizationsDataSource struct {
 
 // OrganizationsDataSourceModel describes the data source data model.
 type OrganizationsDataSourceModel struct {
-	Id   jsontypes2.String                  `tfsdk:"id"`
+	Id   jsontypes.String                   `tfsdk:"id"`
 	List []OrganizationsDataSourceModelList `tfsdk:"list"`
 }
 
 // OrganizationsDataSourceModelList describes the data source data model.
 type OrganizationsDataSourceModelList struct {
-	ApiEnabled     jsontypes2.Bool   `tfsdk:"api_enabled"`
-	CloudRegion    jsontypes2.String `tfsdk:"cloud_region_name"`
-	OrgId          jsontypes2.String `tfsdk:"organization_id"`
-	LicensingModel jsontypes2.String `tfsdk:"licensing_model"`
-	Name           jsontypes2.String `tfsdk:"name"`
-	Url            jsontypes2.String `tfsdk:"url"`
+	ApiEnabled     jsontypes.Bool   `tfsdk:"api_enabled"`
+	CloudRegion    jsontypes.String `tfsdk:"cloud_region_name"`
+	OrgId          jsontypes.String `tfsdk:"organization_id"`
+	LicensingModel jsontypes.String `tfsdk:"licensing_model"`
+	Name           jsontypes.String `tfsdk:"name"`
+	Url            jsontypes.String `tfsdk:"url"`
 }
 
 func (d *OrganizationsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -52,7 +52,7 @@ func (d *OrganizationsDataSource) Schema(ctx context.Context, req datasource.Sch
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:   true,
-				CustomType: jsontypes2.StringType,
+				CustomType: jsontypes.StringType,
 			},
 			"list": schema.ListNestedAttribute{
 				Optional:    true,
@@ -63,22 +63,22 @@ func (d *OrganizationsDataSource) Schema(ctx context.Context, req datasource.Sch
 						"api_enabled": schema.BoolAttribute{
 							MarkdownDescription: "Enable API access",
 							Optional:            true,
-							CustomType:          jsontypes2.BoolType,
+							CustomType:          jsontypes.BoolType,
 						},
 						"cloud_region_name": schema.StringAttribute{
 							MarkdownDescription: "Name of region",
 							Optional:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"organization_id": schema.StringAttribute{
 							MarkdownDescription: "Organization ID",
 							Optional:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"licensing_model": schema.StringAttribute{
 							MarkdownDescription: "Organization licensing model. Can be 'co-term', 'per-device', or 'subscription'.",
 							Optional:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 							Validators: []validator.String{
 								stringvalidator.OneOf([]string{"co-term", "per-device", "subscription"}...),
 								stringvalidator.LengthAtLeast(7),
@@ -87,12 +87,12 @@ func (d *OrganizationsDataSource) Schema(ctx context.Context, req datasource.Sch
 						"name": schema.StringAttribute{
 							MarkdownDescription: "Organization name",
 							Optional:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"url": schema.StringAttribute{
 							MarkdownDescription: "Organization URL",
 							Optional:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 					},
 				},
@@ -155,17 +155,17 @@ func (d *OrganizationsDataSource) Read(ctx context.Context, req datasource.ReadR
 	}
 
 	// save inlineResp data into Terraform state.
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	for _, organization := range inlineResp {
 		var result OrganizationsDataSourceModelList
 
-		result.OrgId = jsontypes2.StringValue(organization.GetId())
-		result.Name = jsontypes2.StringValue(organization.GetName())
-		result.Url = jsontypes2.StringValue(organization.GetUrl())
-		result.ApiEnabled = jsontypes2.BoolValue(*organization.GetApi().Enabled)
-		result.LicensingModel = jsontypes2.StringValue(*organization.GetLicensing().Model)
-		result.CloudRegion = jsontypes2.StringValue(organization.Cloud.Region.GetName())
+		result.OrgId = jsontypes.StringValue(organization.GetId())
+		result.Name = jsontypes.StringValue(organization.GetName())
+		result.Url = jsontypes.StringValue(organization.GetUrl())
+		result.ApiEnabled = jsontypes.BoolValue(*organization.GetApi().Enabled)
+		result.LicensingModel = jsontypes.StringValue(*organization.GetLicensing().Model)
+		result.CloudRegion = jsontypes.StringValue(organization.Cloud.Region.GetName())
 
 		data.List = append(data.List, result)
 	}

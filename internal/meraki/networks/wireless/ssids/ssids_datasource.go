@@ -3,7 +3,7 @@ package ssids
 import (
 	"context"
 	"fmt"
-	jsontypes2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -25,51 +25,51 @@ func NewNetworksWirelessSsidsDataSource() datasource.DataSource {
 // The NetworksWirelessSsidsDataSourceModel structure describes the data model.
 // This struct is where you define all the attributes that are part of this data source's state.
 type NetworksWirelessSsidsDataSourceModel struct {
-	Id        jsontypes2.String `tfsdk:"id"`
-	NetworkId jsontypes2.String `tfsdk:"network_id"`
+	Id        jsontypes.String `tfsdk:"id"`
+	NetworkId jsontypes.String `tfsdk:"network_id"`
 
 	List []NetworksWirelessSsidsDataSourceModelList `tfsdk:"list"`
 }
 
 type NetworksWirelessSsidsDataSourceModelRadiusServer struct {
-	Host                     jsontypes2.String `tfsdk:"host" json:"host"`
-	Port                     jsontypes2.Int64  `tfsdk:"port" json:"port"`
-	OpenRoamingCertificateId jsontypes2.Int64  `tfsdk:"open_roaming_certificate_id" json:"openRoamingCertificateId"`
-	CaCertificate            jsontypes2.String `tfsdk:"ca_certificate" json:"caCertificate"`
+	Host                     jsontypes.String `tfsdk:"host" json:"host"`
+	Port                     jsontypes.Int64  `tfsdk:"port" json:"port"`
+	OpenRoamingCertificateId jsontypes.Int64  `tfsdk:"open_roaming_certificate_id" json:"openRoamingCertificateId"`
+	CaCertificate            jsontypes.String `tfsdk:"ca_certificate" json:"caCertificate"`
 }
 
 type NetworksWirelessSsidsDataSourceModelList struct {
-	Number                          jsontypes2.Int64                                   `tfsdk:"number" json:"number"`
-	Name                            jsontypes2.String                                  `tfsdk:"name" json:"name"`
-	Enabled                         jsontypes2.Bool                                    `tfsdk:"enabled" json:"enabled"`
-	SplashPage                      jsontypes2.String                                  `tfsdk:"splash_page" json:"splashPage"`
-	SSIDAdminAccessible             jsontypes2.Bool                                    `tfsdk:"ssid_admin_accessible" json:"ssidAdminAccessible"`
-	LocalAuth                       jsontypes2.Bool                                    `json:"localAuth" tfsdk:"local_auth"`
-	AuthMode                        jsontypes2.String                                  `tfsdk:"auth_mode" json:"authMode"`
-	EncryptionMode                  jsontypes2.String                                  `tfsdk:"encryption_mode" json:"encryptionMode"`
-	WPAEncryptionMode               jsontypes2.String                                  `tfsdk:"wpa_encryption_mode" json:"wpaEncryptionMode"`
+	Number                          jsontypes.Int64                                    `tfsdk:"number" json:"number"`
+	Name                            jsontypes.String                                   `tfsdk:"name" json:"name"`
+	Enabled                         jsontypes.Bool                                     `tfsdk:"enabled" json:"enabled"`
+	SplashPage                      jsontypes.String                                   `tfsdk:"splash_page" json:"splashPage"`
+	SSIDAdminAccessible             jsontypes.Bool                                     `tfsdk:"ssid_admin_accessible" json:"ssidAdminAccessible"`
+	LocalAuth                       jsontypes.Bool                                     `json:"localAuth" tfsdk:"local_auth"`
+	AuthMode                        jsontypes.String                                   `tfsdk:"auth_mode" json:"authMode"`
+	EncryptionMode                  jsontypes.String                                   `tfsdk:"encryption_mode" json:"encryptionMode"`
+	WPAEncryptionMode               jsontypes.String                                   `tfsdk:"wpa_encryption_mode" json:"wpaEncryptionMode"`
 	RadiusServers                   []NetworksWirelessSsidsDataSourceModelRadiusServer `tfsdk:"radius_servers" json:"radiusServers"`
 	RadiusAccountingServers         []NetworksWirelessSsidsDataSourceModelRadiusServer `tfsdk:"radius_accounting_servers" json:"radiusAccountingServers"`
-	RadiusAccountingEnabled         jsontypes2.Bool                                    `tfsdk:"radius_accounting_enabled" json:"radiusAccountingEnabled"`
-	RadiusEnabled                   jsontypes2.Bool                                    `tfsdk:"radius_enabled" json:"radiusEnabled"`
-	RadiusAttributeForGroupPolicies jsontypes2.String                                  `tfsdk:"radius_attribute_for_group_policies" json:"radiusAttributeForGroupPolicies"`
-	RadiusFailoverPolicy            jsontypes2.String                                  `tfsdk:"radius_failover_policy" json:"radiusFailoverPolicy"`
-	RadiusLoadBalancingPolicy       jsontypes2.String                                  `tfsdk:"radius_load_balancing_policy" json:"radiusLoadBalancingPolicy"`
-	IPAssignmentMode                jsontypes2.String                                  `tfsdk:"ip_assignment_mode" json:"ipAssignmentMode"`
-	AdminSplashURL                  jsontypes2.String                                  `tfsdk:"admin_splash_url" json:"adminSplashUrl"`
-	SplashTimeout                   jsontypes2.String                                  `tfsdk:"splash_timeout" json:"splashTimeout"`
-	WalledGardenEnabled             jsontypes2.Bool                                    `tfsdk:"walled_garden_enabled" json:"walledGardenEnabled"`
-	WalledGardenRanges              []jsontypes2.String                                `tfsdk:"walled_garden_ranges" json:"walledGardenRanges"`
-	MinBitrate                      jsontypes2.Int64                                   `tfsdk:"min_bitrate" json:"minBitrate"`
-	BandSelection                   jsontypes2.String                                  `tfsdk:"band_selection" json:"bandSelection"`
-	PerClientBandwidthLimitUp       jsontypes2.Int64                                   `tfsdk:"per_client_bandwidth_limit_up" json:"perClientBandwidthLimitUp"`
-	PerClientBandwidthLimitDown     jsontypes2.Int64                                   `tfsdk:"per_client_bandwidth_limit_down" json:"perClientBandwidthLimitDown"`
-	Visible                         jsontypes2.Bool                                    `tfsdk:"visible" json:"visible"`
-	AvailableOnAllAPs               jsontypes2.Bool                                    `tfsdk:"available_on_all_aps" json:"availableOnAllAps"`
-	AvailabilityTags                []jsontypes2.String                                `tfsdk:"availability_tags" json:"availabilityTags"`
-	PerSSIDBandwidthLimitUp         jsontypes2.Int64                                   `tfsdk:"per_ssid_bandwidth_limit_up" json:"perSsidBandwidthLimitUp"`
-	PerSSIDBandwidthLimitDown       jsontypes2.Int64                                   `tfsdk:"per_ssid_bandwidth_limit_down" json:"perSsidBandwidthLimitDown"`
-	MandatoryDHCPEnabled            jsontypes2.Bool                                    `tfsdk:"mandatory_dhcp_enabled" json:"mandatoryDhcpEnabled"`
+	RadiusAccountingEnabled         jsontypes.Bool                                     `tfsdk:"radius_accounting_enabled" json:"radiusAccountingEnabled"`
+	RadiusEnabled                   jsontypes.Bool                                     `tfsdk:"radius_enabled" json:"radiusEnabled"`
+	RadiusAttributeForGroupPolicies jsontypes.String                                   `tfsdk:"radius_attribute_for_group_policies" json:"radiusAttributeForGroupPolicies"`
+	RadiusFailoverPolicy            jsontypes.String                                   `tfsdk:"radius_failover_policy" json:"radiusFailoverPolicy"`
+	RadiusLoadBalancingPolicy       jsontypes.String                                   `tfsdk:"radius_load_balancing_policy" json:"radiusLoadBalancingPolicy"`
+	IPAssignmentMode                jsontypes.String                                   `tfsdk:"ip_assignment_mode" json:"ipAssignmentMode"`
+	AdminSplashURL                  jsontypes.String                                   `tfsdk:"admin_splash_url" json:"adminSplashUrl"`
+	SplashTimeout                   jsontypes.String                                   `tfsdk:"splash_timeout" json:"splashTimeout"`
+	WalledGardenEnabled             jsontypes.Bool                                     `tfsdk:"walled_garden_enabled" json:"walledGardenEnabled"`
+	WalledGardenRanges              []jsontypes.String                                 `tfsdk:"walled_garden_ranges" json:"walledGardenRanges"`
+	MinBitrate                      jsontypes.Int64                                    `tfsdk:"min_bitrate" json:"minBitrate"`
+	BandSelection                   jsontypes.String                                   `tfsdk:"band_selection" json:"bandSelection"`
+	PerClientBandwidthLimitUp       jsontypes.Int64                                    `tfsdk:"per_client_bandwidth_limit_up" json:"perClientBandwidthLimitUp"`
+	PerClientBandwidthLimitDown     jsontypes.Int64                                    `tfsdk:"per_client_bandwidth_limit_down" json:"perClientBandwidthLimitDown"`
+	Visible                         jsontypes.Bool                                     `tfsdk:"visible" json:"visible"`
+	AvailableOnAllAPs               jsontypes.Bool                                     `tfsdk:"available_on_all_aps" json:"availableOnAllAps"`
+	AvailabilityTags                []jsontypes.String                                 `tfsdk:"availability_tags" json:"availabilityTags"`
+	PerSSIDBandwidthLimitUp         jsontypes.Int64                                    `tfsdk:"per_ssid_bandwidth_limit_up" json:"perSsidBandwidthLimitUp"`
+	PerSSIDBandwidthLimitDown       jsontypes.Int64                                    `tfsdk:"per_ssid_bandwidth_limit_down" json:"perSsidBandwidthLimitDown"`
+	MandatoryDHCPEnabled            jsontypes.Bool                                     `tfsdk:"mandatory_dhcp_enabled" json:"mandatoryDhcpEnabled"`
 }
 
 // Metadata provides a way to define information about the data source.
@@ -94,12 +94,12 @@ func (d *NetworksWirelessSsidsDataSource) Schema(ctx context.Context, req dataso
 			// Every data source must have an ID attribute. This is computed by the framework.
 			"id": schema.StringAttribute{
 				Computed:   true,
-				CustomType: jsontypes2.StringType,
+				CustomType: jsontypes.StringType,
 			},
 			"network_id": schema.StringAttribute{
 				MarkdownDescription: "The VLAN ID of the new VLAN (must be between 1 and 4094)",
 				Required:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"list": schema.ListNestedAttribute{
 				Optional:    true,
@@ -111,53 +111,53 @@ func (d *NetworksWirelessSsidsDataSource) Schema(ctx context.Context, req dataso
 							MarkdownDescription: "Mask used for the subnet of all bound to the template networks. Applicable only for template network.",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.Int64Type,
+							CustomType:          jsontypes.Int64Type,
 						},
 						"name": schema.StringAttribute{
 							MarkdownDescription: "The VLAN ID of the new VLAN (must be between 1 and 4094)",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"enabled": schema.BoolAttribute{
 							MarkdownDescription: "Whether or not the SSID is enabled.",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.BoolType,
+							CustomType:          jsontypes.BoolType,
 						},
 						"splash_page": schema.StringAttribute{
 							MarkdownDescription: "The type of splash page for the SSID ('None', 'Click-through splash page', 'Billing', 'Password-protected with Meraki RADIUS', 'Password-protected with custom RADIUS', 'Password-protected with Active Directory', 'Password-protected with LDAP', 'SMS authentication', 'Systems Manager Sentry', 'Facebook Wi-Fi', 'Google OAuth', 'Sponsored guest', 'Cisco ISE' or 'Google Apps domain'). This attribute is not supported for template children.",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"ssid_admin_accessible": schema.BoolAttribute{
 							MarkdownDescription: "Enable Mandatory DHCP on VLAN.",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.BoolType,
+							CustomType:          jsontypes.BoolType,
 						},
 						"local_auth": schema.BoolAttribute{
 							MarkdownDescription: "Extended local auth flag for Enterprise NAC.",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.BoolType,
+							CustomType:          jsontypes.BoolType,
 						},
 						"auth_mode": schema.StringAttribute{
 							MarkdownDescription: "The association control method for the SSID ('open', 'open-enhanced', 'psk', 'open-with-radius', 'open-with-nac', '8021x-meraki', '8021x-nac', '8021x-radius', '8021x-google', '8021x-localradius', 'ipsk-with-radius' or 'ipsk-without-radius')",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"encryption_mode": schema.StringAttribute{
 							Optional:   true,
 							Computed:   true,
-							CustomType: jsontypes2.StringType,
+							CustomType: jsontypes.StringType,
 						},
 						"wpa_encryption_mode": schema.StringAttribute{
 							Optional:   true,
 							Computed:   true,
-							CustomType: jsontypes2.StringType,
+							CustomType: jsontypes.StringType,
 						},
 						"radius_servers": schema.ListNestedAttribute{
 							Optional:    true,
@@ -168,22 +168,22 @@ func (d *NetworksWirelessSsidsDataSource) Schema(ctx context.Context, req dataso
 									"host": schema.StringAttribute{
 										Optional:   true,
 										Computed:   true,
-										CustomType: jsontypes2.StringType,
+										CustomType: jsontypes.StringType,
 									},
 									"port": schema.Int64Attribute{
 										Optional:   true,
 										Computed:   true,
-										CustomType: jsontypes2.Int64Type,
+										CustomType: jsontypes.Int64Type,
 									},
 									"open_roaming_certificate_id": schema.Int64Attribute{
 										Optional:   true,
 										Computed:   true,
-										CustomType: jsontypes2.Int64Type,
+										CustomType: jsontypes.Int64Type,
 									},
 									"ca_certificate": schema.StringAttribute{
 										Optional:   true,
 										Computed:   true,
-										CustomType: jsontypes2.StringType,
+										CustomType: jsontypes.StringType,
 									},
 								},
 							},
@@ -197,22 +197,22 @@ func (d *NetworksWirelessSsidsDataSource) Schema(ctx context.Context, req dataso
 									"host": schema.StringAttribute{
 										Optional:   true,
 										Computed:   true,
-										CustomType: jsontypes2.StringType,
+										CustomType: jsontypes.StringType,
 									},
 									"port": schema.Int64Attribute{
 										Optional:   true,
 										Computed:   true,
-										CustomType: jsontypes2.Int64Type,
+										CustomType: jsontypes.Int64Type,
 									},
 									"open_roaming_certificate_id": schema.Int64Attribute{
 										Optional:   true,
 										Computed:   true,
-										CustomType: jsontypes2.Int64Type,
+										CustomType: jsontypes.Int64Type,
 									},
 									"ca_certificate": schema.StringAttribute{
 										Optional:   true,
 										Computed:   true,
-										CustomType: jsontypes2.StringType,
+										CustomType: jsontypes.StringType,
 									},
 								},
 							},
@@ -220,105 +220,105 @@ func (d *NetworksWirelessSsidsDataSource) Schema(ctx context.Context, req dataso
 						"radius_accounting_enabled": schema.BoolAttribute{
 							Optional:   true,
 							Computed:   true,
-							CustomType: jsontypes2.BoolType,
+							CustomType: jsontypes.BoolType,
 						},
 						"radius_enabled": schema.BoolAttribute{
 							Optional:   true,
 							Computed:   true,
-							CustomType: jsontypes2.BoolType,
+							CustomType: jsontypes.BoolType,
 						},
 						"radius_attribute_for_group_policies": schema.StringAttribute{
 							Optional:   true,
 							Computed:   true,
-							CustomType: jsontypes2.StringType,
+							CustomType: jsontypes.StringType,
 						},
 						"radius_failover_policy": schema.StringAttribute{
 							Optional:   true,
 							Computed:   true,
-							CustomType: jsontypes2.StringType,
+							CustomType: jsontypes.StringType,
 						},
 						"radius_load_balancing_policy": schema.StringAttribute{
 							Optional:   true,
 							Computed:   true,
-							CustomType: jsontypes2.StringType,
+							CustomType: jsontypes.StringType,
 						},
 						"ip_assignment_mode": schema.StringAttribute{
 							MarkdownDescription: "The client IP assignment mode ('NAT mode', 'Bridge mode', 'Layer 3 roaming', 'Ethernet over GRE', 'Layer 3 roaming with a concentrator' or 'VPN')",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"admin_splash_url": schema.StringAttribute{
 							Optional:   true,
 							Computed:   true,
-							CustomType: jsontypes2.StringType,
+							CustomType: jsontypes.StringType,
 						},
 						"splash_timeout": schema.StringAttribute{
 							Optional:   true,
 							Computed:   true,
-							CustomType: jsontypes2.StringType,
+							CustomType: jsontypes.StringType,
 						},
 						"walled_garden_enabled": schema.BoolAttribute{
 							Optional:   true,
 							Computed:   true,
-							CustomType: jsontypes2.BoolType,
+							CustomType: jsontypes.BoolType,
 						},
 						"walled_garden_ranges": schema.SetAttribute{
 							Optional:    true,
 							Computed:    true,
-							CustomType:  jsontypes2.SetType[jsontypes2.String](),
-							ElementType: jsontypes2.StringType,
+							CustomType:  jsontypes.SetType[jsontypes.String](),
+							ElementType: jsontypes.StringType,
 						},
 						"min_bitrate": schema.Int64Attribute{
 							Optional:   true,
 							Computed:   true,
-							CustomType: jsontypes2.Int64Type,
+							CustomType: jsontypes.Int64Type,
 						},
 						"band_selection": schema.StringAttribute{
 							Optional:   true,
 							Computed:   true,
-							CustomType: jsontypes2.StringType,
+							CustomType: jsontypes.StringType,
 						},
 						"per_client_bandwidth_limit_up": schema.Int64Attribute{
 							Optional:   true,
 							Computed:   true,
-							CustomType: jsontypes2.Int64Type,
+							CustomType: jsontypes.Int64Type,
 						},
 						"per_client_bandwidth_limit_down": schema.Int64Attribute{
 							Optional:   true,
 							Computed:   true,
-							CustomType: jsontypes2.Int64Type,
+							CustomType: jsontypes.Int64Type,
 						},
 						"visible": schema.BoolAttribute{
 							Optional:   true,
 							Computed:   true,
-							CustomType: jsontypes2.BoolType,
+							CustomType: jsontypes.BoolType,
 						},
 						"available_on_all_aps": schema.BoolAttribute{
 							Optional:   true,
 							Computed:   true,
-							CustomType: jsontypes2.BoolType,
+							CustomType: jsontypes.BoolType,
 						},
 						"availability_tags": schema.SetAttribute{
 							Optional:    true,
 							Computed:    true,
-							CustomType:  jsontypes2.SetType[jsontypes2.String](),
-							ElementType: jsontypes2.StringType,
+							CustomType:  jsontypes.SetType[jsontypes.String](),
+							ElementType: jsontypes.StringType,
 						},
 						"per_ssid_bandwidth_limit_up": schema.Int64Attribute{
 							Optional:   true,
 							Computed:   true,
-							CustomType: jsontypes2.Int64Type,
+							CustomType: jsontypes.Int64Type,
 						},
 						"per_ssid_bandwidth_limit_down": schema.Int64Attribute{
 							Optional:   true,
 							Computed:   true,
-							CustomType: jsontypes2.Int64Type,
+							CustomType: jsontypes.Int64Type,
 						},
 						"mandatory_dhcp_enabled": schema.BoolAttribute{
 							Optional:   true,
 							Computed:   true,
-							CustomType: jsontypes2.BoolType,
+							CustomType: jsontypes.BoolType,
 						},
 					},
 				},
@@ -378,67 +378,67 @@ func (d *NetworksWirelessSsidsDataSource) Read(ctx context.Context, req datasour
 	// Now iterate over the inlineResp slice
 	for _, inlineRespData := range inlineResp {
 		result := NetworksWirelessSsidsDataSourceModelList{
-			Number:                          jsontypes2.Int64Value(int64(inlineRespData.GetNumber())),
-			Name:                            jsontypes2.StringValue(inlineRespData.GetName()),
-			Enabled:                         jsontypes2.BoolValue(inlineRespData.GetEnabled()),
-			SplashPage:                      jsontypes2.StringValue(inlineRespData.GetSplashPage()),
-			SSIDAdminAccessible:             jsontypes2.BoolValue(inlineRespData.GetSsidAdminAccessible()),
-			LocalAuth:                       jsontypes2.BoolValue(inlineRespData.GetLocalAuth()),
-			AuthMode:                        jsontypes2.StringValue(inlineRespData.GetAuthMode()),
-			EncryptionMode:                  jsontypes2.StringValue(inlineRespData.GetEncryptionMode()),
-			WPAEncryptionMode:               jsontypes2.StringValue(inlineRespData.GetWpaEncryptionMode()),
+			Number:                          jsontypes.Int64Value(int64(inlineRespData.GetNumber())),
+			Name:                            jsontypes.StringValue(inlineRespData.GetName()),
+			Enabled:                         jsontypes.BoolValue(inlineRespData.GetEnabled()),
+			SplashPage:                      jsontypes.StringValue(inlineRespData.GetSplashPage()),
+			SSIDAdminAccessible:             jsontypes.BoolValue(inlineRespData.GetSsidAdminAccessible()),
+			LocalAuth:                       jsontypes.BoolValue(inlineRespData.GetLocalAuth()),
+			AuthMode:                        jsontypes.StringValue(inlineRespData.GetAuthMode()),
+			EncryptionMode:                  jsontypes.StringValue(inlineRespData.GetEncryptionMode()),
+			WPAEncryptionMode:               jsontypes.StringValue(inlineRespData.GetWpaEncryptionMode()),
 			RadiusServers:                   make([]NetworksWirelessSsidsDataSourceModelRadiusServer, 0),
 			RadiusAccountingServers:         make([]NetworksWirelessSsidsDataSourceModelRadiusServer, 0),
-			RadiusAccountingEnabled:         jsontypes2.BoolValue(inlineRespData.GetRadiusAccountingEnabled()),
-			RadiusEnabled:                   jsontypes2.BoolValue(inlineRespData.GetRadiusEnabled()),
-			RadiusAttributeForGroupPolicies: jsontypes2.StringValue(inlineRespData.GetRadiusAttributeForGroupPolicies()),
-			RadiusFailoverPolicy:            jsontypes2.StringValue(inlineRespData.GetRadiusFailoverPolicy()),
-			RadiusLoadBalancingPolicy:       jsontypes2.StringValue(inlineRespData.GetRadiusLoadBalancingPolicy()),
-			IPAssignmentMode:                jsontypes2.StringValue(inlineRespData.GetIpAssignmentMode()),
-			AdminSplashURL:                  jsontypes2.StringValue(inlineRespData.GetAdminSplashUrl()),
-			SplashTimeout:                   jsontypes2.StringValue(inlineRespData.GetSplashTimeout()),
-			WalledGardenEnabled:             jsontypes2.BoolValue(inlineRespData.GetWalledGardenEnabled()),
-			WalledGardenRanges:              make([]jsontypes2.String, 0),
-			MinBitrate:                      jsontypes2.Int64Value(int64(inlineRespData.GetMinBitrate())),
-			BandSelection:                   jsontypes2.StringValue(inlineRespData.GetBandSelection()),
-			PerClientBandwidthLimitUp:       jsontypes2.Int64Value(int64(inlineRespData.GetPerClientBandwidthLimitUp())),
-			PerClientBandwidthLimitDown:     jsontypes2.Int64Value(int64(inlineRespData.GetPerClientBandwidthLimitDown())),
-			Visible:                         jsontypes2.BoolValue(inlineRespData.GetVisible()),
-			AvailableOnAllAPs:               jsontypes2.BoolValue(inlineRespData.GetAvailableOnAllAps()),
-			AvailabilityTags:                make([]jsontypes2.String, 0),
-			PerSSIDBandwidthLimitUp:         jsontypes2.Int64Value(int64(inlineRespData.GetPerSsidBandwidthLimitUp())),
-			PerSSIDBandwidthLimitDown:       jsontypes2.Int64Value(int64(inlineRespData.GetPerSsidBandwidthLimitDown())),
-			MandatoryDHCPEnabled:            jsontypes2.BoolValue(inlineRespData.GetMandatoryDhcpEnabled()),
+			RadiusAccountingEnabled:         jsontypes.BoolValue(inlineRespData.GetRadiusAccountingEnabled()),
+			RadiusEnabled:                   jsontypes.BoolValue(inlineRespData.GetRadiusEnabled()),
+			RadiusAttributeForGroupPolicies: jsontypes.StringValue(inlineRespData.GetRadiusAttributeForGroupPolicies()),
+			RadiusFailoverPolicy:            jsontypes.StringValue(inlineRespData.GetRadiusFailoverPolicy()),
+			RadiusLoadBalancingPolicy:       jsontypes.StringValue(inlineRespData.GetRadiusLoadBalancingPolicy()),
+			IPAssignmentMode:                jsontypes.StringValue(inlineRespData.GetIpAssignmentMode()),
+			AdminSplashURL:                  jsontypes.StringValue(inlineRespData.GetAdminSplashUrl()),
+			SplashTimeout:                   jsontypes.StringValue(inlineRespData.GetSplashTimeout()),
+			WalledGardenEnabled:             jsontypes.BoolValue(inlineRespData.GetWalledGardenEnabled()),
+			WalledGardenRanges:              make([]jsontypes.String, 0),
+			MinBitrate:                      jsontypes.Int64Value(int64(inlineRespData.GetMinBitrate())),
+			BandSelection:                   jsontypes.StringValue(inlineRespData.GetBandSelection()),
+			PerClientBandwidthLimitUp:       jsontypes.Int64Value(int64(inlineRespData.GetPerClientBandwidthLimitUp())),
+			PerClientBandwidthLimitDown:     jsontypes.Int64Value(int64(inlineRespData.GetPerClientBandwidthLimitDown())),
+			Visible:                         jsontypes.BoolValue(inlineRespData.GetVisible()),
+			AvailableOnAllAPs:               jsontypes.BoolValue(inlineRespData.GetAvailableOnAllAps()),
+			AvailabilityTags:                make([]jsontypes.String, 0),
+			PerSSIDBandwidthLimitUp:         jsontypes.Int64Value(int64(inlineRespData.GetPerSsidBandwidthLimitUp())),
+			PerSSIDBandwidthLimitDown:       jsontypes.Int64Value(int64(inlineRespData.GetPerSsidBandwidthLimitDown())),
+			MandatoryDHCPEnabled:            jsontypes.BoolValue(inlineRespData.GetMandatoryDhcpEnabled()),
 		}
 
 		// Populate RadiusServers slice
 		for _, radiusServer := range inlineRespData.RadiusServers {
 			result.RadiusServers = append(result.RadiusServers, NetworksWirelessSsidsDataSourceModelRadiusServer{
-				Host:                     jsontypes2.StringValue(radiusServer.GetHost()),
-				Port:                     jsontypes2.Int64Value(int64(radiusServer.GetPort())),
-				OpenRoamingCertificateId: jsontypes2.Int64Value(int64(radiusServer.GetOpenRoamingCertificateId())),
-				CaCertificate:            jsontypes2.StringValue(radiusServer.GetCaCertificate()),
+				Host:                     jsontypes.StringValue(radiusServer.GetHost()),
+				Port:                     jsontypes.Int64Value(int64(radiusServer.GetPort())),
+				OpenRoamingCertificateId: jsontypes.Int64Value(int64(radiusServer.GetOpenRoamingCertificateId())),
+				CaCertificate:            jsontypes.StringValue(radiusServer.GetCaCertificate()),
 			})
 		}
 
 		// Populate RadiusAccountingServers slice
 		for _, radiusAccountingServer := range inlineRespData.RadiusAccountingServers {
 			result.RadiusAccountingServers = append(result.RadiusAccountingServers, NetworksWirelessSsidsDataSourceModelRadiusServer{
-				Host:                     jsontypes2.StringValue(radiusAccountingServer.GetHost()),
-				Port:                     jsontypes2.Int64Value(int64(radiusAccountingServer.GetPort())),
-				OpenRoamingCertificateId: jsontypes2.Int64Value(int64(radiusAccountingServer.GetOpenRoamingCertificateId())),
-				CaCertificate:            jsontypes2.StringValue(radiusAccountingServer.GetCaCertificate()),
+				Host:                     jsontypes.StringValue(radiusAccountingServer.GetHost()),
+				Port:                     jsontypes.Int64Value(int64(radiusAccountingServer.GetPort())),
+				OpenRoamingCertificateId: jsontypes.Int64Value(int64(radiusAccountingServer.GetOpenRoamingCertificateId())),
+				CaCertificate:            jsontypes.StringValue(radiusAccountingServer.GetCaCertificate()),
 			})
 		}
 
 		// Populate WalledGardenRanges slice
 		for _, walledGardenRange := range inlineRespData.WalledGardenRanges {
-			result.WalledGardenRanges = append(result.WalledGardenRanges, jsontypes2.StringValue(walledGardenRange))
+			result.WalledGardenRanges = append(result.WalledGardenRanges, jsontypes.StringValue(walledGardenRange))
 		}
 
 		// Populate AvailabilityTags slice
 		for _, availabilityTag := range inlineRespData.AvailabilityTags {
-			result.AvailabilityTags = append(result.AvailabilityTags, jsontypes2.StringValue(availabilityTag))
+			result.AvailabilityTags = append(result.AvailabilityTags, jsontypes.StringValue(availabilityTag))
 		}
 
 		// Save data into Terraform state
@@ -460,7 +460,7 @@ func (d *NetworksWirelessSsidsDataSource) Read(ctx context.Context, req datasour
 	}
 
 	// Set ID for the data source.
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	// Now set the final state of the data source.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

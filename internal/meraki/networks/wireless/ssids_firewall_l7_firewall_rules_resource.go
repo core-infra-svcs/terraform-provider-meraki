@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	jsontypes2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"strings"
 
@@ -37,16 +37,16 @@ type NetworksWirelessSsidsFirewallL7FirewallRulesResource struct {
 // The NetworksWirelessSsidsFirewallL7FirewallRulesResourceModel structure describes the data model.
 // This struct is where you define all the attributes that are part of this resource's state.
 type NetworksWirelessSsidsFirewallL7FirewallRulesResourceModel struct {
-	Id        jsontypes2.String                                               `tfsdk:"id"`
-	NetworkId jsontypes2.String                                               `tfsdk:"network_id" json:"network_id"`
-	Number    jsontypes2.String                                               `tfsdk:"number"`
+	Id        jsontypes.String                                                `tfsdk:"id"`
+	NetworkId jsontypes.String                                                `tfsdk:"network_id" json:"network_id"`
+	Number    jsontypes.String                                                `tfsdk:"number"`
 	Rules     []NetworksWirelessSsidsFirewallL7FirewallRulesResourceModelRule `tfsdk:"rules" json:"rules"`
 }
 
 type NetworksWirelessSsidsFirewallL7FirewallRulesResourceModelRule struct {
-	Policy jsontypes2.String `tfsdk:"policy"`
-	Type   jsontypes2.String `tfsdk:"type"`
-	Value  jsontypes2.String `tfsdk:"value"`
+	Policy jsontypes.String `tfsdk:"policy"`
+	Type   jsontypes.String `tfsdk:"type"`
+	Value  jsontypes.String `tfsdk:"value"`
 }
 
 // Metadata provides a way to define information about the resource.
@@ -73,12 +73,12 @@ func (r *NetworksWirelessSsidsFirewallL7FirewallRulesResource) Schema(ctx contex
 			// Every resource must have an ID attribute. This is computed by the framework.
 			"id": schema.StringAttribute{
 				Computed:   true,
-				CustomType: jsontypes2.StringType,
+				CustomType: jsontypes.StringType,
 			},
 			"network_id": schema.StringAttribute{
 				MarkdownDescription: "Network ID",
 				Required:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -89,7 +89,7 @@ func (r *NetworksWirelessSsidsFirewallL7FirewallRulesResource) Schema(ctx contex
 			"number": schema.StringAttribute{
 				MarkdownDescription: "SsIds SsidNumber",
 				Required:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"rules": schema.SetNestedAttribute{
 				MarkdownDescription: "An array of L7 firewall rules for this SSID. Rules will get applied in the same order user has specified in request. Empty array will clear the L7 firewall rule configuration.",
@@ -100,12 +100,12 @@ func (r *NetworksWirelessSsidsFirewallL7FirewallRulesResource) Schema(ctx contex
 							MarkdownDescription: "Deny' traffic specified by this rule",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"type": schema.StringAttribute{
 							MarkdownDescription: "Type of the L7 rule. One of: 'application', 'applicationCategory', 'host', 'port', 'ipRange'",
 							Required:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 							Validators: []validator.String{
 								stringvalidator.OneOf([]string{"application", "applicationCategory", "host", "port", "ipRange"}...),
 							},
@@ -114,7 +114,7 @@ func (r *NetworksWirelessSsidsFirewallL7FirewallRulesResource) Schema(ctx contex
 							MarkdownDescription: "The value of what needs to get blocked. Format of the value varies depending on type of the firewall rule selected.",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 					},
 				},
@@ -212,7 +212,7 @@ func (r *NetworksWirelessSsidsFirewallL7FirewallRulesResource) Create(ctx contex
 	}
 
 	// Set ID for the new resource.
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	// Now set the final state of the resource.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -270,7 +270,7 @@ func (r *NetworksWirelessSsidsFirewallL7FirewallRulesResource) Read(ctx context.
 	}
 
 	// Set ID for the resource.
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	// Now set the final state of the resource.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -341,7 +341,7 @@ func (r *NetworksWirelessSsidsFirewallL7FirewallRulesResource) Update(ctx contex
 	}
 
 	// Set ID for the new resource.
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	// Now set the updated state of the resource.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -412,7 +412,7 @@ func (r *NetworksWirelessSsidsFirewallL7FirewallRulesResource) Delete(ctx contex
 	}
 
 	// Set ID for the new resource.
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	// TODO: The resource has been deleted, so remove it from the state.
 	resp.State.RemoveResource(ctx)

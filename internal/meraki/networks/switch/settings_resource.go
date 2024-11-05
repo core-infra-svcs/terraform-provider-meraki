@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	jsontypes2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -32,15 +32,15 @@ type NetworksSwitchSettingsResource struct {
 
 // NetworksSwitchSettingsResourceModel describes the resource data model.
 type NetworksSwitchSettingsResourceModel struct {
-	Id               jsontypes2.String                                    `tfsdk:"id"`
-	NetworkId        jsontypes2.String                                    `tfsdk:"network_id" json:"network_id"`
-	Vlan             jsontypes2.Float64                                   `tfsdk:"vlan" json:"vlan"`
-	UseCombinedPower jsontypes2.Bool                                      `tfsdk:"use_combined_power" json:"useCombinedPower"`
+	Id               jsontypes.String                                     `tfsdk:"id"`
+	NetworkId        jsontypes.String                                     `tfsdk:"network_id" json:"network_id"`
+	Vlan             jsontypes.Float64                                    `tfsdk:"vlan" json:"vlan"`
+	UseCombinedPower jsontypes.Bool                                       `tfsdk:"use_combined_power" json:"useCombinedPower"`
 	PowerExceptions  []NetworksSwitchSettingsResourceModelPowerExceptions `tfsdk:"power_exceptions" json:"powerExceptions"`
 }
 type NetworksSwitchSettingsResourceModelPowerExceptions struct {
-	Serial    jsontypes2.String `tfsdk:"serial" json:"serial"`
-	PowerType jsontypes2.String `tfsdk:"power_type" json:"powerType"`
+	Serial    jsontypes.String `tfsdk:"serial" json:"serial"`
+	PowerType jsontypes.String `tfsdk:"power_type" json:"powerType"`
 }
 
 func (r *NetworksSwitchSettingsResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -55,12 +55,12 @@ func (r *NetworksSwitchSettingsResource) Schema(ctx context.Context, req resourc
 			"id": schema.StringAttribute{
 				MarkdownDescription: "Example identifier",
 				Computed:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"network_id": schema.StringAttribute{
 				MarkdownDescription: "Network Id",
 				Required:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -72,13 +72,13 @@ func (r *NetworksSwitchSettingsResource) Schema(ctx context.Context, req resourc
 				MarkdownDescription: "Management VLAN",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.Float64Type,
+				CustomType:          jsontypes.Float64Type,
 			},
 			"use_combined_power": schema.BoolAttribute{
 				MarkdownDescription: "The use combined Power as the default behavior of secondary power supplies on supported devices.",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.BoolType,
+				CustomType:          jsontypes.BoolType,
 			},
 			"power_exceptions": schema.ListNestedAttribute{
 				Description: "Exceptions on a per switch basis to &quot;useCombinedPower&quot;",
@@ -89,13 +89,13 @@ func (r *NetworksSwitchSettingsResource) Schema(ctx context.Context, req resourc
 							MarkdownDescription: "Serial number of the switch",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"power_type": schema.StringAttribute{
 							MarkdownDescription: "Per switch exception (combined, redundant, useNetworkSetting)",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 					},
 				},
@@ -182,7 +182,7 @@ func (r *NetworksSwitchSettingsResource) Create(ctx context.Context, req resourc
 		return
 	}
 
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -232,7 +232,7 @@ func (r *NetworksSwitchSettingsResource) Read(ctx context.Context, req resource.
 		return
 	}
 
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -299,7 +299,7 @@ func (r *NetworksSwitchSettingsResource) Update(ctx context.Context, req resourc
 		return
 	}
 
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 

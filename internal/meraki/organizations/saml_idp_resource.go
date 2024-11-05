@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	jsontypes2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"strings"
 
@@ -21,35 +21,35 @@ import (
 
 // Ensure provider defined types fully satisfy framework interfaces
 var (
-	_ resource.Resource                = &OrganizationsSamlIdpResource{}
-	_ resource.ResourceWithConfigure   = &OrganizationsSamlIdpResource{}
-	_ resource.ResourceWithImportState = &OrganizationsSamlIdpResource{}
+	_ resource.Resource                = &SamlIdpResource{}
+	_ resource.ResourceWithConfigure   = &SamlIdpResource{}
+	_ resource.ResourceWithImportState = &SamlIdpResource{}
 )
 
 func NewOrganizationsSamlIdpResource() resource.Resource {
-	return &OrganizationsSamlIdpResource{}
+	return &SamlIdpResource{}
 }
 
-// OrganizationsSamlIdpResource defines the resource implementation.
-type OrganizationsSamlIdpResource struct {
+// SamlIdpResource defines the resource implementation.
+type SamlIdpResource struct {
 	client *openApiClient.APIClient
 }
 
-// OrganizationsSamlIdpResourceModel describes the resource data model.
-type OrganizationsSamlIdpResourceModel struct {
-	Id                      jsontypes2.String `tfsdk:"id" json:"-"`
-	OrganizationId          jsontypes2.String `tfsdk:"organization_id" json:"-"`
-	ConsumerUrl             jsontypes2.String `tfsdk:"consumer_url"`
-	IdpId                   jsontypes2.String `tfsdk:"idp_id"`
-	SloLogoutUrl            jsontypes2.String `tfsdk:"slo_logout_url"`
-	X509CertSha1Fingerprint jsontypes2.String `tfsdk:"x_509_cert_sha1_fingerprint"`
+// SamlIdpResourceModel describes the resource data model.
+type SamlIdpResourceModel struct {
+	Id                      jsontypes.String `tfsdk:"id" json:"-"`
+	OrganizationId          jsontypes.String `tfsdk:"organization_id" json:"-"`
+	ConsumerUrl             jsontypes.String `tfsdk:"consumer_url"`
+	IdpId                   jsontypes.String `tfsdk:"idp_id"`
+	SloLogoutUrl            jsontypes.String `tfsdk:"slo_logout_url"`
+	X509CertSha1Fingerprint jsontypes.String `tfsdk:"x_509_cert_sha1_fingerprint"`
 }
 
-func (r *OrganizationsSamlIdpResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *SamlIdpResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_organizations_saml_idp"
 }
 
-func (r *OrganizationsSamlIdpResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *SamlIdpResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description: "Manage the SAML IdPs in your organization",
 
@@ -57,7 +57,7 @@ func (r *OrganizationsSamlIdpResource) Schema(ctx context.Context, req resource.
 			"id": schema.StringAttribute{
 				Optional:   true,
 				Computed:   true,
-				CustomType: jsontypes2.StringType,
+				CustomType: jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -65,7 +65,7 @@ func (r *OrganizationsSamlIdpResource) Schema(ctx context.Context, req resource.
 			"organization_id": schema.StringAttribute{
 				MarkdownDescription: "Organization ID",
 				Required:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -77,13 +77,13 @@ func (r *OrganizationsSamlIdpResource) Schema(ctx context.Context, req resource.
 				Description: "URL that is consuming SAML Identity Provider (IdP)",
 				Optional:    true,
 				Computed:    true,
-				CustomType:  jsontypes2.StringType,
+				CustomType:  jsontypes.StringType,
 			},
 			"idp_id": schema.StringAttribute{
 				MarkdownDescription: "ID associated with the SAML Identity Provider (IdP)",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -95,19 +95,19 @@ func (r *OrganizationsSamlIdpResource) Schema(ctx context.Context, req resource.
 				MarkdownDescription: "Dashboard will redirect users to this URL when they sign out.",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"x_509_cert_sha1_fingerprint": schema.StringAttribute{
 				MarkdownDescription: "Fingerprint (SHA1) of the SAML certificate provided by your Identity Provider (IdP). This will be used for encryption / validation.",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 		},
 	}
 }
 
-func (r *OrganizationsSamlIdpResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *SamlIdpResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -127,8 +127,8 @@ func (r *OrganizationsSamlIdpResource) Configure(ctx context.Context, req resour
 	r.client = client
 }
 
-func (r *OrganizationsSamlIdpResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *OrganizationsSamlIdpResourceModel
+func (r *SamlIdpResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *SamlIdpResourceModel
 
 	// Read Terraform plan data
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -175,7 +175,7 @@ func (r *OrganizationsSamlIdpResource) Create(ctx context.Context, req resource.
 		)
 		return
 	}
-	data.Id = jsontypes2.StringValue(data.OrganizationId.ValueString() + "," + data.IdpId.ValueString())
+	data.Id = jsontypes.StringValue(data.OrganizationId.ValueString() + "," + data.IdpId.ValueString())
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -184,8 +184,8 @@ func (r *OrganizationsSamlIdpResource) Create(ctx context.Context, req resource.
 	tflog.Trace(ctx, "created resource")
 }
 
-func (r *OrganizationsSamlIdpResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *OrganizationsSamlIdpResourceModel
+func (r *SamlIdpResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *SamlIdpResourceModel
 
 	// Read Terraform state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -231,8 +231,8 @@ func (r *OrganizationsSamlIdpResource) Read(ctx context.Context, req resource.Re
 	tflog.Trace(ctx, "read resource")
 }
 
-func (r *OrganizationsSamlIdpResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data *OrganizationsSamlIdpResourceModel
+func (r *SamlIdpResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var data *SamlIdpResourceModel
 
 	// Read Terraform plan data
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -286,8 +286,8 @@ func (r *OrganizationsSamlIdpResource) Update(ctx context.Context, req resource.
 	tflog.Trace(ctx, "updated resource")
 }
 
-func (r *OrganizationsSamlIdpResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data *OrganizationsSamlIdpResourceModel
+func (r *SamlIdpResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data *SamlIdpResourceModel
 
 	// Read Terraform state data
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -323,7 +323,7 @@ func (r *OrganizationsSamlIdpResource) Delete(ctx context.Context, req resource.
 
 }
 
-func (r *OrganizationsSamlIdpResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *SamlIdpResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 
 	idParts := strings.Split(req.ID, ",")

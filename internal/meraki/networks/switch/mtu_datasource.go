@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	jsontypes2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -28,16 +28,16 @@ type NetworksSwitchMtuDataSource struct {
 
 // NetworksSwitchMtuDataSourceModel describes the resource data model.
 type NetworksSwitchMtuDataSourceModel struct {
-	Id             jsontypes2.String                          `tfsdk:"id"`
-	NetworkId      jsontypes2.String                          `tfsdk:"network_id" json:"network_id"`
-	DefaultMtuSize jsontypes2.Int64                           `tfsdk:"default_mtu_size" json:"defaultMtuSize"`
+	Id             jsontypes.String                           `tfsdk:"id"`
+	NetworkId      jsontypes.String                           `tfsdk:"network_id" json:"network_id"`
+	DefaultMtuSize jsontypes.Int64                            `tfsdk:"default_mtu_size" json:"defaultMtuSize"`
 	Overrides      []NetworksSwitchMtuDataSourceModelOverride `tfsdk:"overrides" json:"overrides"`
 }
 
 type NetworksSwitchMtuDataSourceModelOverride struct {
-	Switches       []string         `tfsdk:"switches" json:"switches"`
-	SwitchProfiles []string         `tfsdk:"switch_profiles" json:"switchProfiles"`
-	MtuSize        jsontypes2.Int64 `tfsdk:"mtu_size" json:"mtuSize"`
+	Switches       []string        `tfsdk:"switches" json:"switches"`
+	SwitchProfiles []string        `tfsdk:"switch_profiles" json:"switchProfiles"`
+	MtuSize        jsontypes.Int64 `tfsdk:"mtu_size" json:"mtuSize"`
 }
 
 func (r *NetworksSwitchMtuDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -52,12 +52,12 @@ func (r *NetworksSwitchMtuDataSource) Schema(ctx context.Context, req datasource
 			"id": schema.StringAttribute{
 				MarkdownDescription: "Example identifier",
 				Computed:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"network_id": schema.StringAttribute{
 				MarkdownDescription: "Network Id",
 				Required:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 31),
 				},
@@ -66,7 +66,7 @@ func (r *NetworksSwitchMtuDataSource) Schema(ctx context.Context, req datasource
 				MarkdownDescription: "MTU size for the entire network. Default value is 9578.",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.Int64Type,
+				CustomType:          jsontypes.Int64Type,
 			},
 			"overrides": schema.SetNestedAttribute{
 				Description: "Override MTU size for individual switches or switch profiles. An empty array will clear overrides.",
@@ -76,13 +76,13 @@ func (r *NetworksSwitchMtuDataSource) Schema(ctx context.Context, req datasource
 					Attributes: map[string]schema.Attribute{
 						"switches": schema.SetAttribute{
 							MarkdownDescription: "List of switch serials. Applicable only for switch network.",
-							CustomType:          jsontypes2.SetType[jsontypes2.String](),
+							CustomType:          jsontypes.SetType[jsontypes.String](),
 							Optional:            true,
 							Computed:            true,
 						},
 						"switch_profiles": schema.SetAttribute{
 							MarkdownDescription: "List of switch profile IDs. Applicable only for template network.",
-							CustomType:          jsontypes2.SetType[jsontypes2.String](),
+							CustomType:          jsontypes.SetType[jsontypes.String](),
 							Optional:            true,
 							Computed:            true,
 						},
@@ -90,7 +90,7 @@ func (r *NetworksSwitchMtuDataSource) Schema(ctx context.Context, req datasource
 							MarkdownDescription: "MTU size for the switches or switch profiles..",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.Int64Type,
+							CustomType:          jsontypes.Int64Type,
 						},
 					},
 				},

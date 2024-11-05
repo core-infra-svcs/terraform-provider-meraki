@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	jsontypes2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"strings"
 
@@ -39,15 +39,15 @@ type NetworkApplianceStaticRoutesResource struct {
 // NetworkApplianceStaticRoutesResourceModel describes the resource data model.
 type NetworkApplianceStaticRoutesResourceModel struct {
 	Id                             types.String                                               `tfsdk:"id"`
-	NetworkId                      jsontypes2.String                                          `tfsdk:"network_id" json:"networkId"`
-	StaticRoutId                   jsontypes2.String                                          `tfsdk:"static_route_id" json:"id"`
-	Enable                         jsontypes2.Bool                                            `tfsdk:"enable" json:"enabled"`
-	Name                           jsontypes2.String                                          `tfsdk:"name" json:"name"`
-	GatewayIp                      jsontypes2.String                                          `tfsdk:"gateway_ip" json:"gatewayIp"`
-	Subnet                         jsontypes2.String                                          `tfsdk:"subnet" json:"subnet"`
-	FixedIpAssignmentsMacAddress   jsontypes2.String                                          `tfsdk:"fixed_ip_assignments_mac_address"`
-	FixedIpAssignmentsMacIpAddress jsontypes2.String                                          `tfsdk:"fixed_ip_assignments_mac_ip_address"`
-	FixedIpAssignmentsMacName      jsontypes2.String                                          `tfsdk:"fixed_ip_assignments_mac_name"`
+	NetworkId                      jsontypes.String                                           `tfsdk:"network_id" json:"networkId"`
+	StaticRoutId                   jsontypes.String                                           `tfsdk:"static_route_id" json:"id"`
+	Enable                         jsontypes.Bool                                             `tfsdk:"enable" json:"enabled"`
+	Name                           jsontypes.String                                           `tfsdk:"name" json:"name"`
+	GatewayIp                      jsontypes.String                                           `tfsdk:"gateway_ip" json:"gatewayIp"`
+	Subnet                         jsontypes.String                                           `tfsdk:"subnet" json:"subnet"`
+	FixedIpAssignmentsMacAddress   jsontypes.String                                           `tfsdk:"fixed_ip_assignments_mac_address"`
+	FixedIpAssignmentsMacIpAddress jsontypes.String                                           `tfsdk:"fixed_ip_assignments_mac_ip_address"`
+	FixedIpAssignmentsMacName      jsontypes.String                                           `tfsdk:"fixed_ip_assignments_mac_name"`
 	ReservedIpRanges               []NetworkApplianceStaticRoutesResourceModelReservedIpRange `tfsdk:"reserved_ip_ranges" json:"reservedIpRanges"`
 }
 
@@ -57,9 +57,9 @@ type NetworkApplianceStaticRoutesResourceModelMacData struct {
 }
 
 type NetworkApplianceStaticRoutesResourceModelReservedIpRange struct {
-	Comment jsontypes2.String `tfsdk:"comment" json:"comment"`
-	End     jsontypes2.String `tfsdk:"end" json:"end"`
-	Start   jsontypes2.String `tfsdk:"start" json:"start"`
+	Comment jsontypes.String `tfsdk:"comment" json:"comment"`
+	End     jsontypes.String `tfsdk:"end" json:"end"`
+	Start   jsontypes.String `tfsdk:"start" json:"start"`
 }
 
 func (r *NetworkApplianceStaticRoutesResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -78,7 +78,7 @@ func (r *NetworkApplianceStaticRoutesResource) Schema(ctx context.Context, req r
 				MarkdownDescription: "Network ID",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -90,7 +90,7 @@ func (r *NetworkApplianceStaticRoutesResource) Schema(ctx context.Context, req r
 				MarkdownDescription: "Static Route ID",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -99,41 +99,41 @@ func (r *NetworkApplianceStaticRoutesResource) Schema(ctx context.Context, req r
 				MarkdownDescription: "The gateway IP (next hop) of the static route",
 				Computed:            true,
 				Optional:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"enable": schema.BoolAttribute{
 				MarkdownDescription: "The enabled state of the static route",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.BoolType,
+				CustomType:          jsontypes.BoolType,
 			},
 			"name": schema.StringAttribute{
 				MarkdownDescription: "The name of the new static route",
 				Required:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"subnet": schema.StringAttribute{
 				MarkdownDescription: "The subnet of the static route",
 				Required:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"fixed_ip_assignments_mac_address": schema.StringAttribute{
 				MarkdownDescription: "The DHCP fixed IP assignments on the static route. MAC address",
 				Computed:            true,
 				Optional:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"fixed_ip_assignments_mac_ip_address": schema.StringAttribute{
 				MarkdownDescription: "The DHCP fixed IP assignments on the static route. MAC IP address",
 				Computed:            true,
 				Optional:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"fixed_ip_assignments_mac_name": schema.StringAttribute{
 				MarkdownDescription: "The DHCP fixed IP assignments on the static route. MAC Name",
 				Computed:            true,
 				Optional:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"reserved_ip_ranges": schema.SetNestedAttribute{
 				Description: "The DHCP reserved IP ranges on the static route",
@@ -145,19 +145,19 @@ func (r *NetworkApplianceStaticRoutesResource) Schema(ctx context.Context, req r
 							MarkdownDescription: "A text comment for the reserved range",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"end": schema.StringAttribute{
 							MarkdownDescription: "The last IP in the reserved range",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"start": schema.StringAttribute{
 							MarkdownDescription: "The first IP in the reserved range",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 					},
 				},
@@ -232,7 +232,7 @@ func (r *NetworkApplianceStaticRoutesResource) Create(ctx context.Context, req r
 	}
 
 	if staticRouteId := inlineResp["id"]; staticRouteId != nil {
-		data.StaticRoutId = jsontypes2.StringValue(staticRouteId.(string))
+		data.StaticRoutId = jsontypes.StringValue(staticRouteId.(string))
 	}
 
 	if reservedIpRangesResponse := inlineResp["reservedIpRanges"]; reservedIpRangesResponse != nil {
@@ -255,17 +255,17 @@ func (r *NetworkApplianceStaticRoutesResource) Create(ctx context.Context, req r
 			var macData NetworkApplianceStaticRoutesResourceModelMacData
 			jsonData, _ := json.Marshal(fixedIpAssignmentsResponse.(map[string]interface{})[data.FixedIpAssignmentsMacAddress.ValueString()])
 			json.Unmarshal(jsonData, &macData)
-			data.FixedIpAssignmentsMacIpAddress = jsontypes2.StringValue(macData.Ip)
-			data.FixedIpAssignmentsMacName = jsontypes2.StringValue(macData.Name)
+			data.FixedIpAssignmentsMacIpAddress = jsontypes.StringValue(macData.Ip)
+			data.FixedIpAssignmentsMacName = jsontypes.StringValue(macData.Name)
 		} else {
-			data.FixedIpAssignmentsMacIpAddress = jsontypes2.StringNull()
-			data.FixedIpAssignmentsMacAddress = jsontypes2.StringNull()
-			data.FixedIpAssignmentsMacName = jsontypes2.StringNull()
+			data.FixedIpAssignmentsMacIpAddress = jsontypes.StringNull()
+			data.FixedIpAssignmentsMacAddress = jsontypes.StringNull()
+			data.FixedIpAssignmentsMacName = jsontypes.StringNull()
 		}
 	} else {
-		data.FixedIpAssignmentsMacIpAddress = jsontypes2.StringNull()
-		data.FixedIpAssignmentsMacAddress = jsontypes2.StringNull()
-		data.FixedIpAssignmentsMacName = jsontypes2.StringNull()
+		data.FixedIpAssignmentsMacIpAddress = jsontypes.StringNull()
+		data.FixedIpAssignmentsMacAddress = jsontypes.StringNull()
+		data.FixedIpAssignmentsMacName = jsontypes.StringNull()
 	}
 
 	data.Id = types.StringValue("example-id")
@@ -341,17 +341,17 @@ func (r *NetworkApplianceStaticRoutesResource) Read(ctx context.Context, req res
 			var macData NetworkApplianceStaticRoutesResourceModelMacData
 			jsonData, _ := json.Marshal(fixedIpAssignmentsResponse.(map[string]interface{})[data.FixedIpAssignmentsMacAddress.ValueString()])
 			json.Unmarshal(jsonData, &macData)
-			data.FixedIpAssignmentsMacIpAddress = jsontypes2.StringValue(macData.Ip)
-			data.FixedIpAssignmentsMacName = jsontypes2.StringValue(macData.Name)
+			data.FixedIpAssignmentsMacIpAddress = jsontypes.StringValue(macData.Ip)
+			data.FixedIpAssignmentsMacName = jsontypes.StringValue(macData.Name)
 		} else {
-			data.FixedIpAssignmentsMacIpAddress = jsontypes2.StringNull()
-			data.FixedIpAssignmentsMacAddress = jsontypes2.StringNull()
-			data.FixedIpAssignmentsMacName = jsontypes2.StringNull()
+			data.FixedIpAssignmentsMacIpAddress = jsontypes.StringNull()
+			data.FixedIpAssignmentsMacAddress = jsontypes.StringNull()
+			data.FixedIpAssignmentsMacName = jsontypes.StringNull()
 		}
 	} else {
-		data.FixedIpAssignmentsMacIpAddress = jsontypes2.StringNull()
-		data.FixedIpAssignmentsMacAddress = jsontypes2.StringNull()
-		data.FixedIpAssignmentsMacName = jsontypes2.StringNull()
+		data.FixedIpAssignmentsMacIpAddress = jsontypes.StringNull()
+		data.FixedIpAssignmentsMacAddress = jsontypes.StringNull()
+		data.FixedIpAssignmentsMacName = jsontypes.StringNull()
 	}
 
 	data.Id = types.StringValue("example-id")
@@ -471,17 +471,17 @@ func (r *NetworkApplianceStaticRoutesResource) Update(ctx context.Context, req r
 			var macData NetworkApplianceStaticRoutesResourceModelMacData
 			jsonData, _ := json.Marshal(inlineResp["fixedIpAssignments"].(map[string]interface{})[data.FixedIpAssignmentsMacAddress.ValueString()])
 			json.Unmarshal(jsonData, &macData)
-			data.FixedIpAssignmentsMacIpAddress = jsontypes2.StringValue(macData.Ip)
-			data.FixedIpAssignmentsMacName = jsontypes2.StringValue(macData.Name)
+			data.FixedIpAssignmentsMacIpAddress = jsontypes.StringValue(macData.Ip)
+			data.FixedIpAssignmentsMacName = jsontypes.StringValue(macData.Name)
 		} else {
-			data.FixedIpAssignmentsMacIpAddress = jsontypes2.StringNull()
-			data.FixedIpAssignmentsMacAddress = jsontypes2.StringNull()
-			data.FixedIpAssignmentsMacName = jsontypes2.StringNull()
+			data.FixedIpAssignmentsMacIpAddress = jsontypes.StringNull()
+			data.FixedIpAssignmentsMacAddress = jsontypes.StringNull()
+			data.FixedIpAssignmentsMacName = jsontypes.StringNull()
 		}
 	} else {
-		data.FixedIpAssignmentsMacIpAddress = jsontypes2.StringNull()
-		data.FixedIpAssignmentsMacAddress = jsontypes2.StringNull()
-		data.FixedIpAssignmentsMacName = jsontypes2.StringNull()
+		data.FixedIpAssignmentsMacIpAddress = jsontypes.StringNull()
+		data.FixedIpAssignmentsMacAddress = jsontypes.StringNull()
+		data.FixedIpAssignmentsMacName = jsontypes.StringNull()
 	}
 
 	data.Id = types.StringValue("example-id")

@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	jsontypes2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -25,45 +25,45 @@ type OrganizationsCellularGatewayUplinkStatusesDataSource struct {
 // The OrganizationsCellularGatewayUplinkStatusesDataSourceModel structure describes the data model.
 // This struct is where you define all the attributes that are part of this data source's state.
 type OrganizationsCellularGatewayUplinkStatusesDataSourceModel struct {
-	Id             jsontypes2.String                                               `tfsdk:"id"`
-	OrganizationId jsontypes2.String                                               `tfsdk:"organization_id"`
-	PerPage        jsontypes2.Int64                                                `tfsdk:"per_page"`
-	StartingAfter  jsontypes2.String                                               `tfsdk:"starting_after"`
-	EndingBefore   jsontypes2.String                                               `tfsdk:"ending_before"`
-	NetworkIds     []jsontypes2.String                                             `tfsdk:"network_ids"`
-	Serials        []jsontypes2.String                                             `tfsdk:"serials"`
-	Iccids         []jsontypes2.String                                             `tfsdk:"iccids"`
+	Id             jsontypes.String                                                `tfsdk:"id"`
+	OrganizationId jsontypes.String                                                `tfsdk:"organization_id"`
+	PerPage        jsontypes.Int64                                                 `tfsdk:"per_page"`
+	StartingAfter  jsontypes.String                                                `tfsdk:"starting_after"`
+	EndingBefore   jsontypes.String                                                `tfsdk:"ending_before"`
+	NetworkIds     []jsontypes.String                                              `tfsdk:"network_ids"`
+	Serials        []jsontypes.String                                              `tfsdk:"serials"`
+	Iccids         []jsontypes.String                                              `tfsdk:"iccids"`
 	List           []OrganizationsCellularGatewayUplinkStatusesDataSourceModelList `tfsdk:"list"`
 }
 
 type OrganizationsCellularGatewayUplinkStatusesDataSourceModelList struct {
-	NetworkId      jsontypes2.String                                                 `tfsdk:"network_id" json:"networkId,omitempty"`
-	Serial         jsontypes2.String                                                 `tfsdk:"serial"`
-	Model          jsontypes2.String                                                 `tfsdk:"model"`
-	LastReportedAt jsontypes2.String                                                 `tfsdk:"last_reported_at"`
+	NetworkId      jsontypes.String                                                  `tfsdk:"network_id" json:"networkId,omitempty"`
+	Serial         jsontypes.String                                                  `tfsdk:"serial"`
+	Model          jsontypes.String                                                  `tfsdk:"model"`
+	LastReportedAt jsontypes.String                                                  `tfsdk:"last_reported_at"`
 	Uplinks        []OrganizationsCellularGatewayUplinkStatusesDataSourceModelUplink `tfsdk:"uplinks"`
 }
 
 type OrganizationsCellularGatewayUplinkStatusesDataSourceModelUplink struct {
-	Interface      jsontypes2.String                                                   `tfsdk:"interface"`
-	Status         jsontypes2.String                                                   `tfsdk:"status"`
-	Ip             jsontypes2.String                                                   `tfsdk:"ip"`
-	Provider       jsontypes2.String                                                   `tfsdk:"provider"`
-	PublicIp       jsontypes2.String                                                   `tfsdk:"public_ip"`
-	Model          jsontypes2.String                                                   `tfsdk:"model"`
+	Interface      jsontypes.String                                                    `tfsdk:"interface"`
+	Status         jsontypes.String                                                    `tfsdk:"status"`
+	Ip             jsontypes.String                                                    `tfsdk:"ip"`
+	Provider       jsontypes.String                                                    `tfsdk:"provider"`
+	PublicIp       jsontypes.String                                                    `tfsdk:"public_ip"`
+	Model          jsontypes.String                                                    `tfsdk:"model"`
 	SignalStat     OrganizationsCellularGatewayUplinkStatusesDataSourceModelSignalStat `tfsdk:"signal_stat"`
-	ConnectionType jsontypes2.String                                                   `tfsdk:"connection_type"`
-	Apn            jsontypes2.String                                                   `tfsdk:"apn"`
-	Gateway        jsontypes2.String                                                   `tfsdk:"gateway"`
-	Dns1           jsontypes2.String                                                   `tfsdk:"dns1"`
-	Dns2           jsontypes2.String                                                   `tfsdk:"dns2"`
-	SignalType     jsontypes2.String                                                   `tfsdk:"signal_type"`
-	Iccid          jsontypes2.String                                                   `tfsdk:"iccid"`
+	ConnectionType jsontypes.String                                                    `tfsdk:"connection_type"`
+	Apn            jsontypes.String                                                    `tfsdk:"apn"`
+	Gateway        jsontypes.String                                                    `tfsdk:"gateway"`
+	Dns1           jsontypes.String                                                    `tfsdk:"dns1"`
+	Dns2           jsontypes.String                                                    `tfsdk:"dns2"`
+	SignalType     jsontypes.String                                                    `tfsdk:"signal_type"`
+	Iccid          jsontypes.String                                                    `tfsdk:"iccid"`
 }
 
 type OrganizationsCellularGatewayUplinkStatusesDataSourceModelSignalStat struct {
-	Rsrp jsontypes2.String `tfsdk:"rsrp"`
-	Rsrq jsontypes2.String `tfsdk:"rsrq"`
+	Rsrp jsontypes.String `tfsdk:"rsrp"`
+	Rsrq jsontypes.String `tfsdk:"rsrq"`
 }
 
 // Metadata provides a way to define information about the data source.
@@ -87,49 +87,49 @@ func (d *OrganizationsCellularGatewayUplinkStatusesDataSource) Schema(ctx contex
 
 			"id": schema.StringAttribute{
 				Computed:   true,
-				CustomType: jsontypes2.StringType,
+				CustomType: jsontypes.StringType,
 			},
 			"organization_id": schema.StringAttribute{
 				MarkdownDescription: "Organization Id",
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				Required:            true,
 			},
 			"per_page": schema.Int64Attribute{
 				MarkdownDescription: "The number of entries per page returned. Acceptable range is 3 - 1000. Default is 1000.",
-				CustomType:          jsontypes2.Int64Type,
+				CustomType:          jsontypes.Int64Type,
 				Optional:            true,
 				Computed:            true,
 			},
 			"starting_after": schema.StringAttribute{
 				MarkdownDescription: "A token used by the server to indicate the start of the page. Often this is a timestamp or an ID but it is not limited to those. This parameter should not be defined by client applications. The link for the first, last, prev, or next page in the HTTP Link header should define it.",
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				Optional:            true,
 				Computed:            true,
 			},
 			"ending_before": schema.StringAttribute{
 				MarkdownDescription: "A token used by the server to indicate the end of the page. Often this is a timestamp or an ID but it is not limited to those. This parameter should not be defined by client applications. The link for the first, last, prev, or next page in the HTTP Link header should define it.",
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				Optional:            true,
 				Computed:            true,
 			},
 			"serials": schema.SetAttribute{
 				MarkdownDescription: "A list of serial numbers. The returned devices will be filtered to only include these serials.",
-				ElementType:         jsontypes2.StringType,
-				CustomType:          jsontypes2.SetType[jsontypes2.String](),
+				ElementType:         jsontypes.StringType,
+				CustomType:          jsontypes.SetType[jsontypes.String](),
 				Computed:            true,
 				Optional:            true,
 			},
 			"network_ids": schema.SetAttribute{
 				MarkdownDescription: "A list of network IDs. The returned devices will be filtered to only include these networks.",
-				ElementType:         jsontypes2.StringType,
-				CustomType:          jsontypes2.SetType[jsontypes2.String](),
+				ElementType:         jsontypes.StringType,
+				CustomType:          jsontypes.SetType[jsontypes.String](),
 				Computed:            true,
 				Optional:            true,
 			},
 			"iccids": schema.SetAttribute{
 				MarkdownDescription: "A list of ICCIDs. The returned devices will be filtered to only include these ICCIDs.",
-				ElementType:         jsontypes2.StringType,
-				CustomType:          jsontypes2.SetType[jsontypes2.String](),
+				ElementType:         jsontypes.StringType,
+				CustomType:          jsontypes.SetType[jsontypes.String](),
 				Computed:            true,
 				Optional:            true,
 			},
@@ -140,25 +140,25 @@ func (d *OrganizationsCellularGatewayUplinkStatusesDataSource) Schema(ctx contex
 					Attributes: map[string]schema.Attribute{
 						"network_id": schema.StringAttribute{
 							MarkdownDescription: "ID of the network.",
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 							Optional:            true,
 							Computed:            true,
 						},
 						"serial": schema.StringAttribute{
 							MarkdownDescription: "Serial number of the device.",
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 							Optional:            true,
 							Computed:            true,
 						},
 						"model": schema.StringAttribute{
 							MarkdownDescription: "Device model.",
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 							Optional:            true,
 							Computed:            true,
 						},
 						"last_reported_at": schema.StringAttribute{
 							MarkdownDescription: "Last reported time for the device.",
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 							Optional:            true,
 							Computed:            true,
 						},
@@ -169,37 +169,37 @@ func (d *OrganizationsCellularGatewayUplinkStatusesDataSource) Schema(ctx contex
 								Attributes: map[string]schema.Attribute{
 									"interface": schema.StringAttribute{
 										MarkdownDescription: "Uplink interface.",
-										CustomType:          jsontypes2.StringType,
+										CustomType:          jsontypes.StringType,
 										Optional:            true,
 										Computed:            true,
 									},
 									"status": schema.StringAttribute{
 										MarkdownDescription: "Uplink status.",
-										CustomType:          jsontypes2.StringType,
+										CustomType:          jsontypes.StringType,
 										Optional:            true,
 										Computed:            true,
 									},
 									"ip": schema.StringAttribute{
 										MarkdownDescription: "Uplink ip.",
-										CustomType:          jsontypes2.StringType,
+										CustomType:          jsontypes.StringType,
 										Optional:            true,
 										Computed:            true,
 									},
 									"provider": schema.StringAttribute{
 										MarkdownDescription: "Network Provider.",
-										CustomType:          jsontypes2.StringType,
+										CustomType:          jsontypes.StringType,
 										Optional:            true,
 										Computed:            true,
 									},
 									"public_ip": schema.StringAttribute{
 										MarkdownDescription: "Public IP.",
-										CustomType:          jsontypes2.StringType,
+										CustomType:          jsontypes.StringType,
 										Optional:            true,
 										Computed:            true,
 									},
 									"model": schema.StringAttribute{
 										MarkdownDescription: "Uplink model.",
-										CustomType:          jsontypes2.StringType,
+										CustomType:          jsontypes.StringType,
 										Optional:            true,
 										Computed:            true,
 									},
@@ -208,13 +208,13 @@ func (d *OrganizationsCellularGatewayUplinkStatusesDataSource) Schema(ctx contex
 										Attributes: map[string]schema.Attribute{
 											"rsrp": schema.StringAttribute{
 												MarkdownDescription: "Reference Signal Received Power.",
-												CustomType:          jsontypes2.StringType,
+												CustomType:          jsontypes.StringType,
 												Optional:            true,
 												Computed:            true,
 											},
 											"rsrq": schema.StringAttribute{
 												MarkdownDescription: "Reference Signal Received Quality.",
-												CustomType:          jsontypes2.StringType,
+												CustomType:          jsontypes.StringType,
 												Optional:            true,
 												Computed:            true,
 											},
@@ -222,43 +222,43 @@ func (d *OrganizationsCellularGatewayUplinkStatusesDataSource) Schema(ctx contex
 									},
 									"connection_type": schema.StringAttribute{
 										MarkdownDescription: "Connection Type.",
-										CustomType:          jsontypes2.StringType,
+										CustomType:          jsontypes.StringType,
 										Optional:            true,
 										Computed:            true,
 									},
 									"apn": schema.StringAttribute{
 										MarkdownDescription: "Access Point Name.",
-										CustomType:          jsontypes2.StringType,
+										CustomType:          jsontypes.StringType,
 										Optional:            true,
 										Computed:            true,
 									},
 									"gateway": schema.StringAttribute{
 										MarkdownDescription: "Gateway IP.",
-										CustomType:          jsontypes2.StringType,
+										CustomType:          jsontypes.StringType,
 										Optional:            true,
 										Computed:            true,
 									},
 									"dns1": schema.StringAttribute{
 										MarkdownDescription: "Primary DNS IP.",
-										CustomType:          jsontypes2.StringType,
+										CustomType:          jsontypes.StringType,
 										Optional:            true,
 										Computed:            true,
 									},
 									"dns2": schema.StringAttribute{
 										MarkdownDescription: "Secondary DNS IP.",
-										CustomType:          jsontypes2.StringType,
+										CustomType:          jsontypes.StringType,
 										Optional:            true,
 										Computed:            true,
 									},
 									"signal_type": schema.StringAttribute{
 										MarkdownDescription: "Signal Type.",
-										CustomType:          jsontypes2.StringType,
+										CustomType:          jsontypes.StringType,
 										Optional:            true,
 										Computed:            true,
 									},
 									"iccid": schema.StringAttribute{
 										MarkdownDescription: "Integrated Circuit Card Identification SsidNumber.",
-										CustomType:          jsontypes2.StringType,
+										CustomType:          jsontypes.StringType,
 										Optional:            true,
 										Computed:            true,
 									},
@@ -379,7 +379,7 @@ func (d *OrganizationsCellularGatewayUplinkStatusesDataSource) Read(ctx context.
 	}
 
 	// Set ID for the data source.
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	// Now set the final state of the data source.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

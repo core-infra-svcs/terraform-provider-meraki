@@ -421,3 +421,43 @@ func init() {
 		},
 	})
 }
+
+// runSweepers function can be invoked independently or after tests
+func runSweepers() {
+	ctx := context.Background()
+	fmt.Println("Running Sweepers...")
+
+	organizationId := os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")
+	if organizationId == "" {
+		fmt.Println("TF_ACC_MERAKI_ORGANIZATION_ID must be set for sweeper to run")
+		os.Exit(1)
+	}
+
+	client, clientErr := SweeperHTTPClient()
+	if clientErr != nil {
+		fmt.Println("Error getting HTTP client", map[string]interface{}{
+			"error": clientErr,
+		})
+		os.Exit(1)
+	}
+
+	// Sweep a Specific Static Organization
+	err := SweepMerakiOrganization(ctx, client, organizationId)
+	if err != nil {
+		fmt.Println("Error running organization sweeper", map[string]interface{}{
+			"error": err,
+		})
+	} else {
+		fmt.Println("Organization sweeper ran successfully")
+	}
+
+	// Targeted "test_acc" Organizations Sweeper
+	err = SweepMerakiOrganizations(ctx, client)
+	if err != nil {
+		fmt.Println("Error running organizations sweeper", map[string]interface{}{
+			"error": err,
+		})
+	} else {
+		fmt.Println("Organizations sweeper ran successfully")
+	}
+}

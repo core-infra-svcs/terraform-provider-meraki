@@ -20,30 +20,30 @@ import (
 )
 
 var (
-	_ resource.Resource                = &NetworksDevicesClaimResource{}
-	_ resource.ResourceWithImportState = &NetworksDevicesClaimResource{}
-	_ resource.ResourceWithConfigure   = &NetworksDevicesClaimResource{}
+	_ resource.Resource                = &DevicesClaimResource{}
+	_ resource.ResourceWithImportState = &DevicesClaimResource{}
+	_ resource.ResourceWithConfigure   = &DevicesClaimResource{}
 )
 
 func NewNetworksDevicesClaimResource() resource.Resource {
-	return &NetworksDevicesClaimResource{}
+	return &DevicesClaimResource{}
 }
 
-type NetworksDevicesClaimResource struct {
+type DevicesClaimResource struct {
 	client *openApiClient.APIClient
 }
 
-type NetworksDevicesClaimResourceModel struct {
+type DevicesClaimResourceModel struct {
 	Id        types.String `tfsdk:"id"`
 	NetworkId types.String `tfsdk:"network_id"`
 	Serials   types.Set    `tfsdk:"serials"`
 }
 
-func (r *NetworksDevicesClaimResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *DevicesClaimResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_networks_devices_claim"
 }
 
-func (r *NetworksDevicesClaimResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *DevicesClaimResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Claim devices into a network",
 		Attributes: map[string]schema.Attribute{
@@ -67,7 +67,7 @@ func (r *NetworksDevicesClaimResource) Schema(ctx context.Context, req resource.
 	}
 }
 
-func (r *NetworksDevicesClaimResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *DevicesClaimResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -84,8 +84,8 @@ func (r *NetworksDevicesClaimResource) Configure(ctx context.Context, req resour
 	r.client = client
 }
 
-func (r *NetworksDevicesClaimResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data NetworksDevicesClaimResourceModel
+func (r *DevicesClaimResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data DevicesClaimResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -191,8 +191,8 @@ func (r *NetworksDevicesClaimResource) Create(ctx context.Context, req resource.
 	})
 }
 
-func (r *NetworksDevicesClaimResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data NetworksDevicesClaimResourceModel
+func (r *DevicesClaimResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data DevicesClaimResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -240,8 +240,8 @@ func (r *NetworksDevicesClaimResource) Read(ctx context.Context, req resource.Re
 }
 
 // Update method
-func (r *NetworksDevicesClaimResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data, state NetworksDevicesClaimResourceModel
+func (r *DevicesClaimResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var data, state DevicesClaimResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
@@ -294,8 +294,8 @@ func (r *NetworksDevicesClaimResource) Update(ctx context.Context, req resource.
 	})
 }
 
-func (r *NetworksDevicesClaimResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data NetworksDevicesClaimResourceModel
+func (r *DevicesClaimResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data DevicesClaimResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -446,7 +446,7 @@ func mergeSerials(planSerials []string, serialsToAdd []string) []string {
 	return planSerials
 }
 
-func (r *NetworksDevicesClaimResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *DevicesClaimResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("network_id"), req, resp)
 	if resp.Diagnostics.HasError() {
 		return

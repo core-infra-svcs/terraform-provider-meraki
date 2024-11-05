@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	jsontypes2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -32,15 +32,15 @@ type NetworksApplianceFirewallL7FirewallRulesResource struct {
 
 // NetworksApplianceFirewallL7FirewallRulesResourceModel describes the resource data model.
 type NetworksApplianceFirewallL7FirewallRulesResourceModel struct {
-	Id        jsontypes2.String                                           `tfsdk:"id"`
-	NetworkId jsontypes2.String                                           `tfsdk:"network_id" json:"network_id"`
+	Id        jsontypes.String                                            `tfsdk:"id"`
+	NetworkId jsontypes.String                                            `tfsdk:"network_id" json:"network_id"`
 	Rules     []NetworksApplianceFirewallL7FirewallRulesResourceModelRule `tfsdk:"rules" json:"rules"`
 }
 
 type NetworksApplianceFirewallL7FirewallRulesResourceModelRule struct {
-	Policy jsontypes2.String `tfsdk:"policy"`
-	Type   jsontypes2.String `tfsdk:"type"`
-	Value  jsontypes2.String `tfsdk:"value"`
+	Policy jsontypes.String `tfsdk:"policy"`
+	Type   jsontypes.String `tfsdk:"type"`
+	Value  jsontypes.String `tfsdk:"value"`
 }
 
 func (r *NetworksApplianceFirewallL7FirewallRulesResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -53,12 +53,12 @@ func (r *NetworksApplianceFirewallL7FirewallRulesResource) Schema(ctx context.Co
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:   true,
-				CustomType: jsontypes2.StringType,
+				CustomType: jsontypes.StringType,
 			},
 			"network_id": schema.StringAttribute{
 				MarkdownDescription: "Network ID",
 				Required:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -75,12 +75,12 @@ func (r *NetworksApplianceFirewallL7FirewallRulesResource) Schema(ctx context.Co
 							MarkdownDescription: "Deny' traffic specified by this rule",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"type": schema.StringAttribute{
 							MarkdownDescription: "Type of the L7 rule. One of: 'application', 'applicationCategory', 'host', 'port', 'ipRange'",
 							Required:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 							Validators: []validator.String{
 								stringvalidator.OneOf([]string{"application", "applicationCategory", "host", "port", "ipRange"}...),
 							},
@@ -89,7 +89,7 @@ func (r *NetworksApplianceFirewallL7FirewallRulesResource) Schema(ctx context.Co
 							MarkdownDescription: "The 'value' of what you want to block. Format of 'value' varies depending on type of the rule. The application categories and application ids can be retrieved from the the 'MX L7 application categories' endpoint. The countries follow the two-letter ISO 3166-1 alpha-2 format.",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 					},
 				},
@@ -175,7 +175,7 @@ func (r *NetworksApplianceFirewallL7FirewallRulesResource) Create(ctx context.Co
 		return
 	}
 
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -225,7 +225,7 @@ func (r *NetworksApplianceFirewallL7FirewallRulesResource) Read(ctx context.Cont
 		return
 	}
 
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -290,7 +290,7 @@ func (r *NetworksApplianceFirewallL7FirewallRulesResource) Update(ctx context.Co
 		return
 	}
 
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 

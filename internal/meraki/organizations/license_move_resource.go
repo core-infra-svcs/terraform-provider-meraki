@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	jsontypes2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"strings"
 
@@ -32,10 +32,10 @@ type OrganizationsLicenseResource struct {
 // The OrganizationsLicenseResourceModel structure describes the data model.
 // This struct is where you define all the attributes that are part of this resource's state.
 type OrganizationsLicenseResourceModel struct {
-	Id                 jsontypes2.String   `tfsdk:"id" json:"-"`
-	OrganizationId     jsontypes2.String   `tfsdk:"organization_id"`
-	DestOrganizationId jsontypes2.String   `tfsdk:"dest_organization_id"`
-	LicenseIds         []jsontypes2.String `tfsdk:"license_ids"`
+	Id                 jsontypes.String   `tfsdk:"id" json:"-"`
+	OrganizationId     jsontypes.String   `tfsdk:"organization_id"`
+	DestOrganizationId jsontypes.String   `tfsdk:"dest_organization_id"`
+	LicenseIds         []jsontypes.String `tfsdk:"license_ids"`
 }
 
 // Metadata provides a way to define information about the resource.
@@ -62,22 +62,22 @@ func (r *OrganizationsLicenseResource) Schema(ctx context.Context, req resource.
 			// Every resource must have an ID attribute. This is computed by the framework.
 			"id": schema.StringAttribute{
 				Computed:   true,
-				CustomType: jsontypes2.StringType,
+				CustomType: jsontypes.StringType,
 			},
 			"organization_id": schema.StringAttribute{
 				MarkdownDescription: "Organization ID",
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				Required:            true,
 			},
 			"dest_organization_id": schema.StringAttribute{
 				MarkdownDescription: "destOrganizationId",
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				Required:            true,
 			},
 			"license_ids": schema.SetAttribute{
 				MarkdownDescription: "license ids",
-				ElementType:         jsontypes2.StringType,
-				CustomType:          jsontypes2.SetType[jsontypes2.String](),
+				ElementType:         jsontypes.StringType,
+				CustomType:          jsontypes.SetType[jsontypes.String](),
 				Computed:            true,
 				Optional:            true,
 			},
@@ -172,7 +172,7 @@ func (r *OrganizationsLicenseResource) Create(ctx context.Context, req resource.
 		return
 	}
 
-	data.Id = jsontypes2.StringValue(data.OrganizationId.ValueString())
+	data.Id = jsontypes.StringValue(data.OrganizationId.ValueString())
 
 	// Now set the final state of the resource.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

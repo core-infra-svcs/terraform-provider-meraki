@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	jsontypes2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -18,32 +18,32 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ resource.Resource = &NetworksStormControlResource{}
-var _ resource.ResourceWithImportState = &NetworksStormControlResource{}
+var _ resource.Resource = &StormControlResource{}
+var _ resource.ResourceWithImportState = &StormControlResource{}
 
 func NewNetworksStormControlResource() resource.Resource {
-	return &NetworksStormControlResource{}
+	return &StormControlResource{}
 }
 
-// NetworksStormControlResource defines the resource implementation.
-type NetworksStormControlResource struct {
+// StormControlResource defines the resource implementation.
+type StormControlResource struct {
 	client *openApiClient.APIClient
 }
 
-// NetworksStormControlResourceModel describes the resource data model.
-type NetworksStormControlResourceModel struct {
-	Id                      jsontypes2.String `tfsdk:"id" json:"-"`
-	NetworkId               jsontypes2.String `tfsdk:"network_id" json:"network_id"`
-	BroadcastThreshold      jsontypes2.Int64  `tfsdk:"broadcast_threshold" json:"broadcastThreshold"`
-	MulticastThreshold      jsontypes2.Int64  `tfsdk:"multicast_threshold" json:"multicastThreshold"`
-	UnknownUnicastThreshold jsontypes2.Int64  `tfsdk:"unknown_unicast_threshold" json:"unknownUnicastThreshold"`
+// StormControlResourceModel describes the resource data model.
+type StormControlResourceModel struct {
+	Id                      jsontypes.String `tfsdk:"id" json:"-"`
+	NetworkId               jsontypes.String `tfsdk:"network_id" json:"network_id"`
+	BroadcastThreshold      jsontypes.Int64  `tfsdk:"broadcast_threshold" json:"broadcastThreshold"`
+	MulticastThreshold      jsontypes.Int64  `tfsdk:"multicast_threshold" json:"multicastThreshold"`
+	UnknownUnicastThreshold jsontypes.Int64  `tfsdk:"unknown_unicast_threshold" json:"unknownUnicastThreshold"`
 }
 
-func (r *NetworksStormControlResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *StormControlResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_networks_storm_control"
 }
 
-func (r *NetworksStormControlResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *StormControlResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "NetworksSwitchQosRule resource for updating network switch qos rule.",
 		Attributes: map[string]schema.Attribute{
@@ -52,12 +52,12 @@ func (r *NetworksStormControlResource) Schema(ctx context.Context, req resource.
 				MarkdownDescription: "Network ID",
 				Computed:            true,
 				Optional:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"network_id": schema.StringAttribute{
 				MarkdownDescription: "Network Id",
 				Required:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -69,25 +69,25 @@ func (r *NetworksStormControlResource) Schema(ctx context.Context, req resource.
 				MarkdownDescription: "Broadcast Threshold",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.Int64Type,
+				CustomType:          jsontypes.Int64Type,
 			},
 			"multicast_threshold": schema.Int64Attribute{
 				MarkdownDescription: "Multicast Threshold",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.Int64Type,
+				CustomType:          jsontypes.Int64Type,
 			},
 			"unknown_unicast_threshold": schema.Int64Attribute{
 				MarkdownDescription: "Unknown Unicast Threshold",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.Int64Type,
+				CustomType:          jsontypes.Int64Type,
 			},
 		},
 	}
 }
 
-func (r *NetworksStormControlResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *StormControlResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -107,8 +107,8 @@ func (r *NetworksStormControlResource) Configure(ctx context.Context, req resour
 	r.client = client
 }
 
-func (r *NetworksStormControlResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *NetworksStormControlResourceModel
+func (r *StormControlResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *StormControlResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -173,8 +173,8 @@ func (r *NetworksStormControlResource) Create(ctx context.Context, req resource.
 	tflog.Trace(ctx, "create resource")
 }
 
-func (r *NetworksStormControlResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *NetworksStormControlResourceModel
+func (r *StormControlResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *StormControlResourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -223,9 +223,9 @@ func (r *NetworksStormControlResource) Read(ctx context.Context, req resource.Re
 	tflog.Trace(ctx, "read resource")
 }
 
-func (r *NetworksStormControlResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *StormControlResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 
-	var data *NetworksStormControlResourceModel
+	var data *StormControlResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -290,8 +290,8 @@ func (r *NetworksStormControlResource) Update(ctx context.Context, req resource.
 	tflog.Trace(ctx, "updated resource")
 }
 
-func (r *NetworksStormControlResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data *NetworksStormControlResourceModel
+func (r *StormControlResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data *StormControlResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -364,7 +364,7 @@ func (r *NetworksStormControlResource) Delete(ctx context.Context, req resource.
 	tflog.Trace(ctx, "removed resource")
 }
 
-func (r *NetworksStormControlResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *StormControlResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 
 	// Set the imported network ID

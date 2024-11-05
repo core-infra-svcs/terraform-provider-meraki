@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	jsontypes2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -32,21 +32,21 @@ type OrganizationsApplianceVpnVpnFirewallRulesResource struct {
 
 // OrganizationsApplianceVpnVpnFirewallRulesResourceModel describes the resource data model.
 type OrganizationsApplianceVpnVpnFirewallRulesResourceModel struct {
-	Id                jsontypes2.String                                            `tfsdk:"id"`
-	OrganizationId    jsontypes2.String                                            `tfsdk:"organization_id" json:"organizationId"`
-	SyslogDefaultRule jsontypes2.Bool                                              `tfsdk:"syslog_default_rule"`
+	Id                jsontypes.String                                             `tfsdk:"id"`
+	OrganizationId    jsontypes.String                                             `tfsdk:"organization_id" json:"organizationId"`
+	SyslogDefaultRule jsontypes.Bool                                               `tfsdk:"syslog_default_rule"`
 	Rules             []OrganizationsApplianceVpnVpnFirewallRulesResourceModelRule `tfsdk:"rules" json:"rules"`
 }
 
 type OrganizationsApplianceVpnVpnFirewallRulesResourceModelRule struct {
-	Comment       jsontypes2.String `tfsdk:"comment"`
-	DestCidr      jsontypes2.String `tfsdk:"dest_cidr"`
-	DestPort      jsontypes2.String `tfsdk:"dest_port"`
-	Policy        jsontypes2.String `tfsdk:"policy"`
-	Protocol      jsontypes2.String `tfsdk:"protocol"`
-	SrcPort       jsontypes2.String `tfsdk:"src_port"`
-	SrcCidr       jsontypes2.String `tfsdk:"src_cidr"`
-	SysLogEnabled jsontypes2.Bool   `tfsdk:"syslog_enabled"`
+	Comment       jsontypes.String `tfsdk:"comment"`
+	DestCidr      jsontypes.String `tfsdk:"dest_cidr"`
+	DestPort      jsontypes.String `tfsdk:"dest_port"`
+	Policy        jsontypes.String `tfsdk:"policy"`
+	Protocol      jsontypes.String `tfsdk:"protocol"`
+	SrcPort       jsontypes.String `tfsdk:"src_port"`
+	SrcCidr       jsontypes.String `tfsdk:"src_cidr"`
+	SysLogEnabled jsontypes.Bool   `tfsdk:"syslog_enabled"`
 }
 
 func (r *OrganizationsApplianceVpnVpnFirewallRulesResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -60,12 +60,12 @@ func (r *OrganizationsApplianceVpnVpnFirewallRulesResource) Schema(ctx context.C
 			"id": schema.StringAttribute{
 				Computed:   true,
 				Optional:   true,
-				CustomType: jsontypes2.StringType,
+				CustomType: jsontypes.StringType,
 			},
 			"organization_id": schema.StringAttribute{
 				MarkdownDescription: "Organization ID",
 				Required:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -76,7 +76,7 @@ func (r *OrganizationsApplianceVpnVpnFirewallRulesResource) Schema(ctx context.C
 			"syslog_default_rule": schema.BoolAttribute{
 				MarkdownDescription: "Log the special default rule (boolean value - enable only if you've configured a syslog server) (optional)",
 				Optional:            true,
-				CustomType:          jsontypes2.BoolType,
+				CustomType:          jsontypes.BoolType,
 			},
 			"rules": schema.SetNestedAttribute{
 				Required: true,
@@ -86,45 +86,45 @@ func (r *OrganizationsApplianceVpnVpnFirewallRulesResource) Schema(ctx context.C
 							MarkdownDescription: "Description of the rule (optional)",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"dest_cidr": schema.StringAttribute{
 							MarkdownDescription: "Comma-separated list of destination IP address(es) (in IP or CIDR notation), fully-qualified domain names (FQDN) or 'any'",
 							Required:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"dest_port": schema.StringAttribute{
 							MarkdownDescription: "Comma-separated list of destination port(s) (integer in the range 1-65535), or 'any'",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"src_cidr": schema.StringAttribute{
 							MarkdownDescription: "Comma-separated list of source IP address(es) (in IP or CIDR notation), or 'any' (note: FQDN not supported for source addresses)",
 							Required:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"src_port": schema.StringAttribute{
 							MarkdownDescription: "Comma-separated list of source port(s) (integer in the range 1-65535), or 'any'",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"policy": schema.StringAttribute{
 							MarkdownDescription: "'allow' or 'deny' traffic specified by this rule",
 							Required:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"protocol": schema.StringAttribute{
 							MarkdownDescription: "The type of protocol (must be 'tcp', 'udp', 'icmp', 'icmp6' or 'any')",
 							Required:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"syslog_enabled": schema.BoolAttribute{
 							MarkdownDescription: "Log this rule to syslog (true or false, boolean value) - only applicable if a syslog has been configured (optional)",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.BoolType,
+							CustomType:          jsontypes.BoolType,
 						},
 					},
 				},
@@ -170,7 +170,7 @@ func (r *OrganizationsApplianceVpnVpnFirewallRulesResource) Create(ctx context.C
 	if len(data.Rules) > 0 {
 		for _, attribute := range data.Rules {
 			var rule openApiClient.UpdateOrganizationApplianceVpnVpnFirewallRulesRequestRulesInner
-			if attribute.Comment != jsontypes2.StringValue("Default rule") {
+			if attribute.Comment != jsontypes.StringValue("Default rule") {
 				rule.SetComment(attribute.Comment.ValueString())
 				rule.SetDestCidr(attribute.DestCidr.ValueString())
 				rule.SetDestPort(attribute.DestPort.ValueString())
@@ -217,7 +217,7 @@ func (r *OrganizationsApplianceVpnVpnFirewallRulesResource) Create(ctx context.C
 		return
 	}
 
-	data.Id = jsontypes2.StringValue(data.OrganizationId.ValueString())
+	data.Id = jsontypes.StringValue(data.OrganizationId.ValueString())
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -290,7 +290,7 @@ func (r *OrganizationsApplianceVpnVpnFirewallRulesResource) Update(ctx context.C
 	if len(data.Rules) > 0 {
 		for _, attribute := range data.Rules {
 			var rule openApiClient.UpdateOrganizationApplianceVpnVpnFirewallRulesRequestRulesInner
-			if attribute.Comment != jsontypes2.StringValue("Default rule") {
+			if attribute.Comment != jsontypes.StringValue("Default rule") {
 				rule.SetComment(attribute.Comment.ValueString())
 				rule.SetDestCidr(attribute.DestCidr.ValueString())
 				rule.SetDestPort(attribute.DestPort.ValueString())

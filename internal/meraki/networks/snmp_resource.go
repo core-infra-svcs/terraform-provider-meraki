@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	jsontypes2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -14,33 +14,33 @@ import (
 	"github.com/meraki/dashboard-api-go/client"
 )
 
-type NetworksSnmpResource struct {
+type SnmpResource struct {
 	client *client.APIClient
 }
 
 func NewNetworksSnmpResource() resource.Resource {
-	return &NetworksSnmpResource{}
+	return &SnmpResource{}
 }
 
-// NetworksSnmpResourceModel describes the resource data model.
-type NetworksSnmpResourceModel struct {
-	Id              jsontypes2.String                `tfsdk:"id"`
-	NetworkId       jsontypes2.String                `tfsdk:"organization_id" json:"organizationId"`
-	Access          jsontypes2.String                `tfsdk:"access" json:"access"`
-	CommunityString jsontypes2.String                `tfsdk:"community_string" json:"communityString"`
+// SnmpResourceModel describes the resource data model.
+type SnmpResourceModel struct {
+	Id              jsontypes.String                 `tfsdk:"id"`
+	NetworkId       jsontypes.String                 `tfsdk:"organization_id" json:"organizationId"`
+	Access          jsontypes.String                 `tfsdk:"access" json:"access"`
+	CommunityString jsontypes.String                 `tfsdk:"community_string" json:"communityString"`
 	Users           []NetworksSnmpResourceModelUsers `tfsdk:"users" json:"users"`
 }
 
 type NetworksSnmpResourceModelUsers struct {
-	Username   jsontypes2.String `tfsdk:"username"`
-	Passphrase jsontypes2.String `tfsdk:"passphrase"`
+	Username   jsontypes.String `tfsdk:"username"`
+	Passphrase jsontypes.String `tfsdk:"passphrase"`
 }
 
-func (r *NetworksSnmpResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *SnmpResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_networks_snmp"
 }
 
-func (r *NetworksSnmpResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *SnmpResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "network snmp settings.",
 		Attributes: map[string]schema.Attribute{
@@ -48,7 +48,7 @@ func (r *NetworksSnmpResource) Schema(_ context.Context, _ resource.SchemaReques
 			"id": schema.StringAttribute{
 				MarkdownDescription: "Example identifier",
 				Computed:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"network_id": schema.StringAttribute{
 				MarkdownDescription: "Network Id",
@@ -56,13 +56,13 @@ func (r *NetworksSnmpResource) Schema(_ context.Context, _ resource.SchemaReques
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 31),
 				},
-				CustomType: jsontypes2.StringType,
+				CustomType: jsontypes.StringType,
 			},
 			"community_string": schema.StringAttribute{
 				MarkdownDescription: "The SNMP community string. Only relevant if 'access' is set to 'community'.",
 				Computed:            true,
 				Optional:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"access": schema.StringAttribute{
 				MarkdownDescription: "The type of SNMP access. Can be one of 'none' (disabled), 'community' (V1/V2c), or 'users' (V3).",
@@ -72,7 +72,7 @@ func (r *NetworksSnmpResource) Schema(_ context.Context, _ resource.SchemaReques
 					stringvalidator.OneOf([]string{"none", "community", "users"}...),
 					stringvalidator.LengthAtLeast(4),
 				},
-				CustomType: jsontypes2.StringType,
+				CustomType: jsontypes.StringType,
 			},
 			"users": schema.SetNestedAttribute{
 				Description: "The list of SNMP users. Only relevant if 'access' is set to 'users'.",
@@ -84,13 +84,13 @@ func (r *NetworksSnmpResource) Schema(_ context.Context, _ resource.SchemaReques
 							MarkdownDescription: "The username for the SNMP user",
 							Computed:            true,
 							Optional:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"passphrase": schema.StringAttribute{
 							MarkdownDescription: "The passphrase for the SNMP user.",
 							Computed:            true,
 							Optional:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 					},
 				},
@@ -99,7 +99,7 @@ func (r *NetworksSnmpResource) Schema(_ context.Context, _ resource.SchemaReques
 	}
 }
 
-func (r *NetworksSnmpResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *SnmpResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -107,8 +107,8 @@ func (r *NetworksSnmpResource) Configure(_ context.Context, req resource.Configu
 	r.client = req.ProviderData.(*client.APIClient)
 }
 
-func (r *NetworksSnmpResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan NetworksSnmpResourceModel
+func (r *SnmpResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var plan SnmpResourceModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -156,8 +156,8 @@ func (r *NetworksSnmpResource) Create(ctx context.Context, req resource.CreateRe
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
-func (r *NetworksSnmpResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state NetworksSnmpResourceModel
+func (r *SnmpResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var state SnmpResourceModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -195,8 +195,8 @@ func (r *NetworksSnmpResource) Read(ctx context.Context, req resource.ReadReques
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
-func (r *NetworksSnmpResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan NetworksSnmpResourceModel
+func (r *SnmpResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan SnmpResourceModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -244,8 +244,8 @@ func (r *NetworksSnmpResource) Update(ctx context.Context, req resource.UpdateRe
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
-func (r *NetworksSnmpResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var state NetworksSnmpResourceModel
+func (r *SnmpResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var state SnmpResourceModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -265,7 +265,7 @@ func (r *NetworksSnmpResource) Delete(ctx context.Context, req resource.DeleteRe
 	resp.State.RemoveResource(ctx)
 }
 
-func (r *NetworksSnmpResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *SnmpResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("network_id"), req.ID)...)

@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	jsontypes2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -44,16 +44,16 @@ type OrganizationsClaimResourceModel struct {
 
 	// The Id field is mandatory for all resources. It's used for resource identification and is required
 	// for the acceptance tests to run.
-	Id             jsontypes2.String                        `tfsdk:"id"`
-	OrganizationId jsontypes2.String                        `tfsdk:"organization_id"`
-	Orders         []jsontypes2.String                      `tfsdk:"orders"`
-	Serials        []jsontypes2.String                      `tfsdk:"serials"`
+	Id             jsontypes.String                         `tfsdk:"id"`
+	OrganizationId jsontypes.String                         `tfsdk:"organization_id"`
+	Orders         []jsontypes.String                       `tfsdk:"orders"`
+	Serials        []jsontypes.String                       `tfsdk:"serials"`
 	Licences       []OrganizationsClaimResourceModelLicence `tfsdk:"licences"`
 }
 
 type OrganizationsClaimResourceModelLicence struct {
-	Key  jsontypes2.String `tfsdk:"key"`
-	Mode jsontypes2.String `tfsdk:"mode"`
+	Key  jsontypes.String `tfsdk:"key"`
+	Mode jsontypes.String `tfsdk:"mode"`
 }
 
 // Metadata provides a way to define information about the resource.
@@ -81,24 +81,24 @@ func (r *OrganizationsClaimResource) Schema(ctx context.Context, req resource.Sc
 			// Every resource must have an ID attribute. This is computed by the framework.
 			"id": schema.StringAttribute{
 				Computed:   true,
-				CustomType: jsontypes2.StringType,
+				CustomType: jsontypes.StringType,
 			},
 			"organization_id": schema.StringAttribute{
 				Required:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				MarkdownDescription: "Organization ID",
 			},
 			"orders": schema.SetAttribute{
 				MarkdownDescription: "The numbers of the orders that should be claimed",
-				ElementType:         jsontypes2.StringType,
-				CustomType:          jsontypes2.SetType[jsontypes2.String](),
+				ElementType:         jsontypes.StringType,
+				CustomType:          jsontypes.SetType[jsontypes.String](),
 				Computed:            true,
 				Optional:            true,
 			},
 			"serials": schema.SetAttribute{
 				MarkdownDescription: "The serials of the devices that should be claimed",
-				ElementType:         jsontypes2.StringType,
-				CustomType:          jsontypes2.SetType[jsontypes2.String](),
+				ElementType:         jsontypes.StringType,
+				CustomType:          jsontypes.SetType[jsontypes.String](),
 				Computed:            true,
 				Optional:            true,
 			},
@@ -109,7 +109,7 @@ func (r *OrganizationsClaimResource) Schema(ctx context.Context, req resource.Sc
 						"key": schema.StringAttribute{
 							MarkdownDescription: "The key of the license",
 							Required:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"mode": schema.StringAttribute{
 							MarkdownDescription: "Either 'renew' or 'addDevices'. 'addDevices' will increase the license limit, " +
@@ -118,7 +118,7 @@ func (r *OrganizationsClaimResource) Schema(ctx context.Context, req resource.Sc
 								"This parameter is legacy and does not apply to organizations with per-device licensing enabled.",
 							Optional:   true,
 							Computed:   true,
-							CustomType: jsontypes2.StringType,
+							CustomType: jsontypes.StringType,
 							Validators: []validator.String{
 								stringvalidator.OneOf("addDevices", "renew"),
 							},
@@ -239,7 +239,7 @@ func (r *OrganizationsClaimResource) Create(ctx context.Context, req resource.Cr
 	}
 
 	// Set ID for the new resource.
-	data.Id = jsontypes2.StringValue(data.OrganizationId.ValueString())
+	data.Id = jsontypes.StringValue(data.OrganizationId.ValueString())
 
 	// Now set the final state of the resource.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -286,7 +286,7 @@ func (r *OrganizationsClaimResource) Read(ctx context.Context, req resource.Read
 	}
 
 	// Create a list to store the extracted strings
-	var extractedSerials []jsontypes2.String
+	var extractedSerials []jsontypes.String
 
 	// Iterate over each serial in data.Serials
 	for _, serial := range data.Serials {
@@ -299,7 +299,7 @@ func (r *OrganizationsClaimResource) Read(ctx context.Context, req resource.Read
 
 				// Extract the desired serial and add it to the list of strings
 				if innerResp.Serial != nil {
-					extractedSerials = append(extractedSerials, jsontypes2.StringValue(*innerResp.Serial))
+					extractedSerials = append(extractedSerials, jsontypes.StringValue(*innerResp.Serial))
 				}
 			}
 		}

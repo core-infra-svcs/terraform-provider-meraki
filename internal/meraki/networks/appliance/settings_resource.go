@@ -3,7 +3,7 @@ package appliance
 import (
 	"context"
 	"fmt"
-	jsontypes2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -31,13 +31,13 @@ type NetworksApplianceSettingsResource struct {
 
 // NetworksApplianceSettingsResourceModel describes the resource data model.
 type NetworksApplianceSettingsResourceModel struct {
-	Id                   jsontypes2.String `tfsdk:"id"`
-	NetworkId            jsontypes2.String `tfsdk:"network_id" json:"network_id"`
-	ClientTrackingMethod jsontypes2.String `tfsdk:"client_tracking_method"`
-	DeploymentMode       jsontypes2.String `tfsdk:"deployment_mode"`
-	DynamicDnsPrefix     jsontypes2.String `tfsdk:"dynamic_dns_prefix"`
-	DynamicDnsEnabled    jsontypes2.Bool   `tfsdk:"dynamic_dns_enabled"`
-	DynamicDnsUrl        jsontypes2.String `tfsdk:"dynamic_dns_url"`
+	Id                   jsontypes.String `tfsdk:"id"`
+	NetworkId            jsontypes.String `tfsdk:"network_id" json:"network_id"`
+	ClientTrackingMethod jsontypes.String `tfsdk:"client_tracking_method"`
+	DeploymentMode       jsontypes.String `tfsdk:"deployment_mode"`
+	DynamicDnsPrefix     jsontypes.String `tfsdk:"dynamic_dns_prefix"`
+	DynamicDnsEnabled    jsontypes.Bool   `tfsdk:"dynamic_dns_enabled"`
+	DynamicDnsUrl        jsontypes.String `tfsdk:"dynamic_dns_url"`
 }
 
 func (r *NetworksApplianceSettingsResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -52,12 +52,12 @@ func (r *NetworksApplianceSettingsResource) Schema(ctx context.Context, req reso
 			"id": schema.StringAttribute{
 				MarkdownDescription: "Example identifier",
 				Computed:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"network_id": schema.StringAttribute{
 				MarkdownDescription: "Network Id",
 				Required:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -68,7 +68,7 @@ func (r *NetworksApplianceSettingsResource) Schema(ctx context.Context, req reso
 			"client_tracking_method": schema.StringAttribute{
 				MarkdownDescription: "Client tracking method of a network",
 				Required:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				Validators: []validator.String{
 					stringvalidator.OneOf("IP address", "MAC address",
 						"Unique client identifier"),
@@ -77,7 +77,7 @@ func (r *NetworksApplianceSettingsResource) Schema(ctx context.Context, req reso
 			"deployment_mode": schema.StringAttribute{
 				MarkdownDescription: "Deployment mode of a network",
 				Required:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				Validators: []validator.String{
 					stringvalidator.OneOf("passthrough",
 						"routed"),
@@ -86,18 +86,18 @@ func (r *NetworksApplianceSettingsResource) Schema(ctx context.Context, req reso
 			"dynamic_dns_prefix": schema.StringAttribute{
 				MarkdownDescription: "Dynamic DNS url prefix for Dynamic DNS settings for a network. DDNS must be enabled to update",
 				Required:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"dynamic_dns_enabled": schema.BoolAttribute{
 				MarkdownDescription: "Dynamic DNS enabled for Dynamic DNS settings for a network",
 				Required:            true,
-				CustomType:          jsontypes2.BoolType,
+				CustomType:          jsontypes.BoolType,
 			},
 			"dynamic_dns_url": schema.StringAttribute{
 				MarkdownDescription: "Dynamic DNS url. DDNS must be enabled to update",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 		},
 	}
@@ -164,12 +164,12 @@ func (r *NetworksApplianceSettingsResource) Create(ctx context.Context, req reso
 		return
 	}
 
-	data.ClientTrackingMethod = jsontypes2.StringValue(inlineResp.GetClientTrackingMethod())
-	data.DeploymentMode = jsontypes2.StringValue(inlineResp.GetDeploymentMode())
-	data.DynamicDnsPrefix = jsontypes2.StringValue(inlineResp.DynamicDns.GetPrefix())
-	data.DynamicDnsEnabled = jsontypes2.BoolValue(inlineResp.DynamicDns.GetEnabled())
-	data.DynamicDnsUrl = jsontypes2.StringValue(inlineResp.DynamicDns.GetUrl())
-	data.Id = jsontypes2.StringValue("example-id")
+	data.ClientTrackingMethod = jsontypes.StringValue(inlineResp.GetClientTrackingMethod())
+	data.DeploymentMode = jsontypes.StringValue(inlineResp.GetDeploymentMode())
+	data.DynamicDnsPrefix = jsontypes.StringValue(inlineResp.DynamicDns.GetPrefix())
+	data.DynamicDnsEnabled = jsontypes.BoolValue(inlineResp.DynamicDns.GetEnabled())
+	data.DynamicDnsUrl = jsontypes.StringValue(inlineResp.DynamicDns.GetUrl())
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -211,12 +211,12 @@ func (r *NetworksApplianceSettingsResource) Read(ctx context.Context, req resour
 		resp.Diagnostics.Append()
 	}
 
-	data.ClientTrackingMethod = jsontypes2.StringValue(inlineResp.GetClientTrackingMethod())
-	data.DeploymentMode = jsontypes2.StringValue(inlineResp.GetDeploymentMode())
-	data.DynamicDnsPrefix = jsontypes2.StringValue(inlineResp.DynamicDns.GetPrefix())
-	data.DynamicDnsEnabled = jsontypes2.BoolValue(inlineResp.DynamicDns.GetEnabled())
-	data.DynamicDnsUrl = jsontypes2.StringValue(inlineResp.DynamicDns.GetUrl())
-	data.Id = jsontypes2.StringValue("example-id")
+	data.ClientTrackingMethod = jsontypes.StringValue(inlineResp.GetClientTrackingMethod())
+	data.DeploymentMode = jsontypes.StringValue(inlineResp.GetDeploymentMode())
+	data.DynamicDnsPrefix = jsontypes.StringValue(inlineResp.DynamicDns.GetPrefix())
+	data.DynamicDnsEnabled = jsontypes.BoolValue(inlineResp.DynamicDns.GetEnabled())
+	data.DynamicDnsUrl = jsontypes.StringValue(inlineResp.DynamicDns.GetUrl())
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -265,12 +265,12 @@ func (r *NetworksApplianceSettingsResource) Update(ctx context.Context, req reso
 		return
 	}
 
-	data.ClientTrackingMethod = jsontypes2.StringValue(inlineResp.GetClientTrackingMethod())
-	data.DeploymentMode = jsontypes2.StringValue(inlineResp.GetDeploymentMode())
-	data.DynamicDnsPrefix = jsontypes2.StringValue(inlineResp.DynamicDns.GetPrefix())
-	data.DynamicDnsEnabled = jsontypes2.BoolValue(inlineResp.DynamicDns.GetEnabled())
-	data.DynamicDnsUrl = jsontypes2.StringValue(inlineResp.DynamicDns.GetUrl())
-	data.Id = jsontypes2.StringValue("example-id")
+	data.ClientTrackingMethod = jsontypes.StringValue(inlineResp.GetClientTrackingMethod())
+	data.DeploymentMode = jsontypes.StringValue(inlineResp.GetDeploymentMode())
+	data.DynamicDnsPrefix = jsontypes.StringValue(inlineResp.DynamicDns.GetPrefix())
+	data.DynamicDnsEnabled = jsontypes.BoolValue(inlineResp.DynamicDns.GetEnabled())
+	data.DynamicDnsUrl = jsontypes.StringValue(inlineResp.DynamicDns.GetUrl())
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 

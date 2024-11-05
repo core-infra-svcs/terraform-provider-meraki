@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	jsontypes2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -28,28 +28,28 @@ type OrganizationsSamlRolesDataSource struct {
 
 // OrganizationsSamlRolesDataSourceModel describes the data source data model.
 type OrganizationsSamlRolesDataSourceModel struct {
-	Id    jsontypes2.String                     `tfsdk:"id"`
-	OrgId jsontypes2.String                     `tfsdk:"organization_id"`
+	Id    jsontypes.String                      `tfsdk:"id"`
+	OrgId jsontypes.String                      `tfsdk:"organization_id"`
 	List  []OrganizationSamlRoleDataSourceModel `tfsdk:"list"`
 }
 
 // OrganizationSamlRoleDataSourceModel describes the data source data model.
 type OrganizationSamlRoleDataSourceModel struct {
-	Id        jsontypes2.String                             `tfsdk:"id"`
-	Role      jsontypes2.String                             `tfsdk:"role" json:"role"`
-	OrgAccess jsontypes2.String                             `tfsdk:"org_access" json:"orgAccess"`
+	Id        jsontypes.String                              `tfsdk:"id"`
+	Role      jsontypes.String                              `tfsdk:"role" json:"role"`
+	OrgAccess jsontypes.String                              `tfsdk:"org_access" json:"orgAccess"`
 	Tags      []OrganizationsSamlRoleDataSourceModelTag     `tfsdk:"tags" json:"tags"`
 	Networks  []OrganizationsSamlRoleDataSourceModelNetwork `tfsdk:"networks" json:"networks"`
 }
 
 type OrganizationsSamlRoleDataSourceModelNetwork struct {
-	Id     jsontypes2.String `tfsdk:"id" json:"id"`
-	Access jsontypes2.String `tfsdk:"access" json:"access"`
+	Id     jsontypes.String `tfsdk:"id" json:"id"`
+	Access jsontypes.String `tfsdk:"access" json:"access"`
 }
 
 type OrganizationsSamlRoleDataSourceModelTag struct {
-	Tag    jsontypes2.String `tfsdk:"tag" json:"tag"`
-	Access jsontypes2.String `tfsdk:"access" json:"access"`
+	Tag    jsontypes.String `tfsdk:"tag" json:"tag"`
+	Access jsontypes.String `tfsdk:"access" json:"access"`
 }
 
 func (d *OrganizationsSamlRolesDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -63,7 +63,7 @@ func (d *OrganizationsSamlRolesDataSource) Schema(ctx context.Context, req datas
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:   true,
-				CustomType: jsontypes2.StringType,
+				CustomType: jsontypes.StringType,
 			},
 			"organization_id": schema.StringAttribute{
 				MarkdownDescription: "Organization ID",
@@ -71,7 +71,7 @@ func (d *OrganizationsSamlRolesDataSource) Schema(ctx context.Context, req datas
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 31),
 				},
-				CustomType: jsontypes2.StringType,
+				CustomType: jsontypes.StringType,
 			},
 			"list": schema.SetNestedAttribute{
 				Optional:    true,
@@ -82,17 +82,17 @@ func (d *OrganizationsSamlRolesDataSource) Schema(ctx context.Context, req datas
 						"id": schema.StringAttribute{
 							MarkdownDescription: "Role ID",
 							Optional:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"role": schema.StringAttribute{
 							MarkdownDescription: "The role of the SAML administrator",
 							Optional:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"org_access": schema.StringAttribute{
 							MarkdownDescription: "The privilege of the SAML administrator on the organization. Can be one of 'none', 'read-only', 'full' or 'enterprise'",
 							Optional:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"tags": schema.SetNestedAttribute{
 							Description: "The list of tags that the SAML administrator has privleges on.",
@@ -103,12 +103,12 @@ func (d *OrganizationsSamlRolesDataSource) Schema(ctx context.Context, req datas
 									"tag": schema.StringAttribute{
 										MarkdownDescription: "",
 										Optional:            true,
-										CustomType:          jsontypes2.StringType,
+										CustomType:          jsontypes.StringType,
 									},
 									"access": schema.StringAttribute{
 										MarkdownDescription: "",
 										Optional:            true,
-										CustomType:          jsontypes2.StringType,
+										CustomType:          jsontypes.StringType,
 									},
 								},
 							},
@@ -122,12 +122,12 @@ func (d *OrganizationsSamlRolesDataSource) Schema(ctx context.Context, req datas
 									"id": schema.StringAttribute{
 										MarkdownDescription: "",
 										Optional:            true,
-										CustomType:          jsontypes2.StringType,
+										CustomType:          jsontypes.StringType,
 									},
 									"access": schema.StringAttribute{
 										MarkdownDescription: "",
 										Optional:            true,
-										CustomType:          jsontypes2.StringType,
+										CustomType:          jsontypes.StringType,
 									},
 								},
 							},
@@ -199,7 +199,7 @@ func (d *OrganizationsSamlRolesDataSource) Read(ctx context.Context, req datasou
 		return
 	}
 
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 

@@ -3,7 +3,7 @@ package organizations
 import (
 	"context"
 	"fmt"
-	jsontypes2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -36,9 +36,9 @@ type OrganizationSamlResource struct {
 
 // OrganizationSamlResourceModel describes the resource data model.
 type OrganizationSamlResourceModel struct {
-	Id             types.String      `tfsdk:"id" json:"-"`
-	OrganizationId jsontypes2.String `tfsdk:"organization_id" json:"organizationId"`
-	Enabled        jsontypes2.Bool   `tfsdk:"enabled"`
+	Id             types.String     `tfsdk:"id" json:"-"`
+	OrganizationId jsontypes.String `tfsdk:"organization_id" json:"organizationId"`
+	Enabled        jsontypes.Bool   `tfsdk:"enabled"`
 }
 
 func (r *OrganizationSamlResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -57,7 +57,7 @@ func (r *OrganizationSamlResource) Schema(ctx context.Context, req resource.Sche
 				MarkdownDescription: "Organization ID",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -69,7 +69,7 @@ func (r *OrganizationSamlResource) Schema(ctx context.Context, req resource.Sche
 				MarkdownDescription: "Toggle depicting if SAML SSO settings are enabled",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.BoolType,
+				CustomType:          jsontypes.BoolType,
 			},
 		},
 	}
@@ -133,7 +133,7 @@ func (r *OrganizationSamlResource) Create(ctx context.Context, req resource.Crea
 
 	// save into the Terraform state.
 	data.Id = types.StringValue(data.OrganizationId.ValueString())
-	data.Enabled = jsontypes2.BoolValue(inlineResp.GetEnabled())
+	data.Enabled = jsontypes.BoolValue(inlineResp.GetEnabled())
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -172,7 +172,7 @@ func (r *OrganizationSamlResource) Read(ctx context.Context, req resource.ReadRe
 	}
 
 	// save into the Terraform state.
-	data.Enabled = jsontypes2.BoolValue(inlineResp.GetEnabled())
+	data.Enabled = jsontypes.BoolValue(inlineResp.GetEnabled())
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -215,7 +215,7 @@ func (r *OrganizationSamlResource) Update(ctx context.Context, req resource.Upda
 	}
 
 	// save into the Terraform state.
-	data.Enabled = jsontypes2.BoolValue(inlineResp.GetEnabled())
+	data.Enabled = jsontypes.BoolValue(inlineResp.GetEnabled())
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

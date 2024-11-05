@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	jsontypes2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -30,21 +30,21 @@ type NetworksSwitchQosRulesDataSource struct {
 
 // NetworksSwitchQosRulesDataSourceModel describes the resource data model.
 type NetworksSwitchQosRulesDataSourceModel struct {
-	Id        jsontypes2.String                            `tfsdk:"id" json:"-"`
-	NetworkId jsontypes2.String                            `tfsdk:"network_id" json:"network_id"`
+	Id        jsontypes.String                             `tfsdk:"id" json:"-"`
+	NetworkId jsontypes.String                             `tfsdk:"network_id" json:"network_id"`
 	List      []NetworksSwitchQosRulesDataSourceModelRules `tfsdk:"list"`
 }
 
 // NetworksSwitchQosRulesDataSourceModelRules describes the resource data model.
 type NetworksSwitchQosRulesDataSourceModelRules struct {
-	QosRulesId   jsontypes2.String  `tfsdk:"qos_rule_id" json:"id"`
-	Vlan         jsontypes2.Int64   `tfsdk:"vlan" json:"vlan"`
-	Dscp         jsontypes2.Int64   `tfsdk:"dscp" json:"dscp"`
-	DstPort      jsontypes2.Float64 `tfsdk:"dst_port" json:"dstPort"`
-	SrcPort      jsontypes2.Float64 `tfsdk:"src_port" json:"srcPort"`
-	DstPortRange jsontypes2.String  `tfsdk:"dst_port_range" json:"dstPortRange"`
-	Protocol     jsontypes2.String  `tfsdk:"protocol" json:"protocol"`
-	SrcPortRange jsontypes2.String  `tfsdk:"src_port_range" json:"srcPortRange"`
+	QosRulesId   jsontypes.String  `tfsdk:"qos_rule_id" json:"id"`
+	Vlan         jsontypes.Int64   `tfsdk:"vlan" json:"vlan"`
+	Dscp         jsontypes.Int64   `tfsdk:"dscp" json:"dscp"`
+	DstPort      jsontypes.Float64 `tfsdk:"dst_port" json:"dstPort"`
+	SrcPort      jsontypes.Float64 `tfsdk:"src_port" json:"srcPort"`
+	DstPortRange jsontypes.String  `tfsdk:"dst_port_range" json:"dstPortRange"`
+	Protocol     jsontypes.String  `tfsdk:"protocol" json:"protocol"`
+	SrcPortRange jsontypes.String  `tfsdk:"src_port_range" json:"srcPortRange"`
 }
 
 func (r *NetworksSwitchQosRulesDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -60,12 +60,12 @@ func (r *NetworksSwitchQosRulesDataSource) Schema(ctx context.Context, req datas
 				MarkdownDescription: "Qos Rules data source Id",
 				Computed:            true,
 				Optional:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"network_id": schema.StringAttribute{
 				MarkdownDescription: "Network Id",
 				Required:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 31),
 				},
@@ -80,49 +80,49 @@ func (r *NetworksSwitchQosRulesDataSource) Schema(ctx context.Context, req datas
 							MarkdownDescription: "Qos Rules Id",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"vlan": schema.Int64Attribute{
 							MarkdownDescription: "The VLAN of the incoming packet. A null value will match any VLAN.",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.Int64Type,
+							CustomType:          jsontypes.Int64Type,
 						},
 						"dscp": schema.Int64Attribute{
 							MarkdownDescription: "DSCP tag. Set this to -1 to trust incoming DSCP. Default value is 0.",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.Int64Type,
+							CustomType:          jsontypes.Int64Type,
 						},
 						"dst_port": schema.Float64Attribute{
 							MarkdownDescription: "The destination port of the incoming packet. Applicable only if protocol is TCP or UDP.",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.Float64Type,
+							CustomType:          jsontypes.Float64Type,
 						},
 						"src_port": schema.Float64Attribute{
 							MarkdownDescription: "The source port of the incoming packet. Applicable only if protocol is TCP or UDP.",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.Float64Type,
+							CustomType:          jsontypes.Float64Type,
 						},
 						"dst_port_range": schema.StringAttribute{
 							MarkdownDescription: "The destination port range of the incoming packet. Applicable only if protocol is set to TCP or UDP. Example: 70-80",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"protocol": schema.StringAttribute{
 							MarkdownDescription: "The protocol of the incoming packet. Can be one of ANY, TCP or UDP. Default value is ANY",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"src_port_range": schema.StringAttribute{
 							MarkdownDescription: "The source port range of the incoming packet. Applicable only if protocol is set to TCP or UDP. Example: 70-80",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 					},
 				},

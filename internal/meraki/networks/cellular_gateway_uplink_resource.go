@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	jsontypes2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -18,45 +18,45 @@ import (
 )
 
 var (
-	_ resource.Resource                = &NetworksCellularGatewayUplinkResource{} // Terraform resource interface
-	_ resource.ResourceWithConfigure   = &NetworksCellularGatewayUplinkResource{} // Interface for resources with configuration methods
-	_ resource.ResourceWithImportState = &NetworksCellularGatewayUplinkResource{} // Interface for resources with import state functionality
+	_ resource.Resource                = &CellularGatewayUplinkResource{} // Terraform resource interface
+	_ resource.ResourceWithConfigure   = &CellularGatewayUplinkResource{} // Interface for resources with configuration methods
+	_ resource.ResourceWithImportState = &CellularGatewayUplinkResource{} // Interface for resources with import state functionality
 )
 
 func NewNetworksCellularGatewayUplinkResource() resource.Resource {
-	return &NetworksCellularGatewayUplinkResource{}
+	return &CellularGatewayUplinkResource{}
 }
 
-type NetworksCellularGatewayUplinkResource struct {
+type CellularGatewayUplinkResource struct {
 	client *openApiClient.APIClient // APIClient instance for making API requests
 }
 
-// The NetworksCellularGatewayUplinkResourceModel structure describes the data model.
+// The CellularGatewayUplinkResourceModel structure describes the data model.
 // This struct is where you define all the attributes that are part of this resource's state.
-type NetworksCellularGatewayUplinkResourceModel struct {
+type CellularGatewayUplinkResourceModel struct {
 
 	// The Id field is mandatory for all resources. It's used for resource identification and is required
 	// for the acceptance tests to run.
-	Id                             jsontypes2.String                                                        `tfsdk:"id"`
-	NetworkId                      jsontypes2.String                                                        `tfsdk:"network_id"`
-	CellularGatewayBandwidthLimits NetworksCellularGatewayUplinkResourceModelCellularGatewayBandwidthLimits `tfsdk:"bandwidth_limits"`
+	Id                             jsontypes.String                                                 `tfsdk:"id"`
+	NetworkId                      jsontypes.String                                                 `tfsdk:"network_id"`
+	CellularGatewayBandwidthLimits CellularGatewayUplinkResourceModelCellularGatewayBandwidthLimits `tfsdk:"bandwidth_limits"`
 }
 
-type NetworksCellularGatewayUplinkResourceModelCellularGatewayBandwidthLimits struct {
-	LimitUp   jsontypes2.Int64 `tfsdk:"limit_up"`
-	LimitDown jsontypes2.Int64 `tfsdk:"limit_down"`
+type CellularGatewayUplinkResourceModelCellularGatewayBandwidthLimits struct {
+	LimitUp   jsontypes.Int64 `tfsdk:"limit_up"`
+	LimitDown jsontypes.Int64 `tfsdk:"limit_down"`
 }
 
 // Metadata provides a way to define information about the resource.
 // This method is called by the framework to retrieve metadata about the resource.
-func (r *NetworksCellularGatewayUplinkResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *CellularGatewayUplinkResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 
 	resp.TypeName = req.ProviderTypeName + "_networks_cellular_gateway_uplink"
 }
 
 // Schema provides a way to define the structure of the resource data.
 // It is called by the framework to get the schema of the resource.
-func (r *NetworksCellularGatewayUplinkResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *CellularGatewayUplinkResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 
 	// The Schema object defines the structure of the resource.
 	resp.Schema = schema.Schema{
@@ -69,12 +69,12 @@ func (r *NetworksCellularGatewayUplinkResource) Schema(ctx context.Context, req 
 			// Every resource must have an ID attribute. This is computed by the framework.
 			"id": schema.StringAttribute{
 				Computed:   true,
-				CustomType: jsontypes2.StringType,
+				CustomType: jsontypes.StringType,
 			},
 			"network_id": schema.StringAttribute{
 				MarkdownDescription: "Network Id",
 				Required:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -91,13 +91,13 @@ func (r *NetworksCellularGatewayUplinkResource) Schema(ctx context.Context, req 
 						MarkdownDescription: "The maximum download limit (integer, in Kbps). null indicates no limit.",
 						Optional:            true,
 						Computed:            true,
-						CustomType:          jsontypes2.Int64Type,
+						CustomType:          jsontypes.Int64Type,
 					},
 					"limit_up": schema.Int64Attribute{
 						MarkdownDescription: "The maximum upload limit (integer, in Kbps). null indicates no limit.",
 						Optional:            true,
 						Computed:            true,
-						CustomType:          jsontypes2.Int64Type,
+						CustomType:          jsontypes.Int64Type,
 					},
 				},
 			},
@@ -107,7 +107,7 @@ func (r *NetworksCellularGatewayUplinkResource) Schema(ctx context.Context, req 
 
 // Configure is a method of the Resource interface that Terraform calls to provide the configured provider instance to the resource.
 // It passes the ResourceData that's been stored by the provider's ConfigureFunc.
-func (r *NetworksCellularGatewayUplinkResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *CellularGatewayUplinkResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 
 	// The provider must be properly configured before it can be used.
 	if req.ProviderData == nil {
@@ -135,8 +135,8 @@ func (r *NetworksCellularGatewayUplinkResource) Configure(ctx context.Context, r
 // Create method is responsible for creating a new resource.
 // It takes a CreateRequest containing the planned state of the new resource and returns a CreateResponse
 // with the final state of the new resource or an error.
-func (r *NetworksCellularGatewayUplinkResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *NetworksCellularGatewayUplinkResourceModel
+func (r *CellularGatewayUplinkResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *CellularGatewayUplinkResourceModel
 
 	// Unmarshal the plan data into the internal data model struct.
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -189,7 +189,7 @@ func (r *NetworksCellularGatewayUplinkResource) Create(ctx context.Context, req 
 	}
 
 	// Set ID for the new resource.
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	// Now set the final state of the resource.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -200,8 +200,8 @@ func (r *NetworksCellularGatewayUplinkResource) Create(ctx context.Context, req 
 
 // Read method is responsible for reading an existing resource's state.
 // It takes a ReadRequest and returns a ReadResponse with the current state of the resource or an error.
-func (r *NetworksCellularGatewayUplinkResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *NetworksCellularGatewayUplinkResourceModel
+func (r *CellularGatewayUplinkResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *CellularGatewayUplinkResourceModel
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -248,7 +248,7 @@ func (r *NetworksCellularGatewayUplinkResource) Read(ctx context.Context, req re
 	}
 
 	// Set ID for the resource.
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	// Now set the final state of the resource.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -259,9 +259,9 @@ func (r *NetworksCellularGatewayUplinkResource) Read(ctx context.Context, req re
 
 // Update function is responsible for updating the state of an existing resource.
 // It uses an UpdateRequest and responds with an UpdateResponse which contains the updated state of the resource or an error.
-func (r *NetworksCellularGatewayUplinkResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *CellularGatewayUplinkResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 
-	var data *NetworksCellularGatewayUplinkResourceModel
+	var data *CellularGatewayUplinkResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
@@ -313,7 +313,7 @@ func (r *NetworksCellularGatewayUplinkResource) Update(ctx context.Context, req 
 	}
 
 	// Set ID for the new resource.
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	// Now set the updated state of the resource.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -324,9 +324,9 @@ func (r *NetworksCellularGatewayUplinkResource) Update(ctx context.Context, req 
 
 // Delete function is responsible for deleting a resource.
 // It uses a DeleteRequest and responds with a DeleteResponse which contains the updated state of the resource or an error.
-func (r *NetworksCellularGatewayUplinkResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *CellularGatewayUplinkResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 
-	var data *NetworksCellularGatewayUplinkResourceModel
+	var data *CellularGatewayUplinkResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
@@ -376,7 +376,7 @@ func (r *NetworksCellularGatewayUplinkResource) Delete(ctx context.Context, req 
 // ImportState function is used to import an existing resource into Terraform.
 // The function expects an ImportStateRequest and responds with an ImportStateResponse which contains
 // the new state of the resource or an error.
-func (r *NetworksCellularGatewayUplinkResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *CellularGatewayUplinkResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 
 	// Pass through the ID directly from the ImportStateRequest to the ImportStateResponse
 	resource.ImportStatePassthroughID(ctx, path.Root("network_id"), req, resp)

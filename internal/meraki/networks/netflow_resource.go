@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	jsontypes2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -18,34 +18,34 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ resource.Resource = &NetworksNetflowResource{}
-var _ resource.ResourceWithImportState = &NetworksNetflowResource{}
+var _ resource.Resource = &NetflowResource{}
+var _ resource.ResourceWithImportState = &NetflowResource{}
 
 func NewNetworksNetflowResource() resource.Resource {
-	return &NetworksNetflowResource{}
+	return &NetflowResource{}
 }
 
-// NetworksNetflowResource defines the resource implementation.
-type NetworksNetflowResource struct {
+// NetflowResource defines the resource implementation.
+type NetflowResource struct {
 	client *openApiClient.APIClient
 }
 
-// NetworksNetflowResourceModel describes the resource data model.
-type NetworksNetflowResourceModel struct {
-	Id               jsontypes2.String `tfsdk:"id"`
-	NetworkId        jsontypes2.String `tfsdk:"network_id" json:"network_id"`
-	ReportingEnabled jsontypes2.Bool   `tfsdk:"reporting_enabled" json:"reportingEnabled"`
-	CollectorIp      jsontypes2.String `tfsdk:"collector_ip" json:"collectorIp"`
-	CollectorPort    jsontypes2.Int64  `tfsdk:"collector_port" json:"collectorPort"`
-	EtaEnabled       jsontypes2.Bool   `tfsdk:"eta_enabled" json:"etaEnabled"`
-	EtaDstPort       jsontypes2.Int64  `tfsdk:"eta_dst_port" json:"etaDstPort"`
+// NetflowResourceModel describes the resource data model.
+type NetflowResourceModel struct {
+	Id               jsontypes.String `tfsdk:"id"`
+	NetworkId        jsontypes.String `tfsdk:"network_id" json:"network_id"`
+	ReportingEnabled jsontypes.Bool   `tfsdk:"reporting_enabled" json:"reportingEnabled"`
+	CollectorIp      jsontypes.String `tfsdk:"collector_ip" json:"collectorIp"`
+	CollectorPort    jsontypes.Int64  `tfsdk:"collector_port" json:"collectorPort"`
+	EtaEnabled       jsontypes.Bool   `tfsdk:"eta_enabled" json:"etaEnabled"`
+	EtaDstPort       jsontypes.Int64  `tfsdk:"eta_dst_port" json:"etaDstPort"`
 }
 
-func (r *NetworksNetflowResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *NetflowResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_networks_netflow"
 }
 
-func (r *NetworksNetflowResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *NetflowResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "NetworksNetflow resource for updating networks netflow.",
 		Attributes: map[string]schema.Attribute{
@@ -53,12 +53,12 @@ func (r *NetworksNetflowResource) Schema(ctx context.Context, req resource.Schem
 			"id": schema.StringAttribute{
 				MarkdownDescription: "Example identifier",
 				Computed:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"network_id": schema.StringAttribute{
 				MarkdownDescription: "Network Id",
 				Required:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -69,37 +69,37 @@ func (r *NetworksNetflowResource) Schema(ctx context.Context, req resource.Schem
 			"reporting_enabled": schema.BoolAttribute{
 				MarkdownDescription: "Boolean indicating whether NetFlow traffic reporting is enabled (true) or disabled (false).",
 				Required:            true,
-				CustomType:          jsontypes2.BoolType,
+				CustomType:          jsontypes.BoolType,
 			},
 			"collector_ip": schema.StringAttribute{
 				MarkdownDescription: "The IPv4 address of the NetFlow collector.",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"collector_port": schema.Int64Attribute{
 				MarkdownDescription: "The port that the NetFlow collector will be listening on.",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.Int64Type,
+				CustomType:          jsontypes.Int64Type,
 			},
 			"eta_enabled": schema.BoolAttribute{
 				MarkdownDescription: "Boolean indicating whether Encrypted Traffic Analytics is enabled (true) or disabled (false).",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.BoolType,
+				CustomType:          jsontypes.BoolType,
 			},
 			"eta_dst_port": schema.Int64Attribute{
 				MarkdownDescription: "The port that the Encrypted Traffic Analytics collector will be listening on.",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.Int64Type,
+				CustomType:          jsontypes.Int64Type,
 			},
 		},
 	}
 }
 
-func (r *NetworksNetflowResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *NetflowResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -119,8 +119,8 @@ func (r *NetworksNetflowResource) Configure(ctx context.Context, req resource.Co
 	r.client = client
 }
 
-func (r *NetworksNetflowResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *NetworksNetflowResourceModel
+func (r *NetflowResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *NetflowResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -179,20 +179,20 @@ func (r *NetworksNetflowResource) Create(ctx context.Context, req resource.Creat
 	}
 
 	if data.CollectorIp.IsUnknown() {
-		data.CollectorIp = jsontypes2.StringNull()
+		data.CollectorIp = jsontypes.StringNull()
 	}
 	if data.CollectorPort.IsUnknown() {
-		data.CollectorPort = jsontypes2.Int64Null()
+		data.CollectorPort = jsontypes.Int64Null()
 	}
 
 	if data.EtaDstPort.IsUnknown() {
-		data.EtaDstPort = jsontypes2.Int64Null()
+		data.EtaDstPort = jsontypes.Int64Null()
 	}
 	if data.EtaEnabled.IsUnknown() {
-		data.EtaEnabled = jsontypes2.BoolNull()
+		data.EtaEnabled = jsontypes.BoolNull()
 	}
 
-	data.Id = jsontypes2.StringValue(data.NetworkId.ValueString())
+	data.Id = jsontypes.StringValue(data.NetworkId.ValueString())
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -200,8 +200,8 @@ func (r *NetworksNetflowResource) Create(ctx context.Context, req resource.Creat
 	tflog.Trace(ctx, "create resource")
 }
 
-func (r *NetworksNetflowResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *NetworksNetflowResourceModel
+func (r *NetflowResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *NetflowResourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -243,7 +243,7 @@ func (r *NetworksNetflowResource) Read(ctx context.Context, req resource.ReadReq
 		return
 	}
 
-	data.Id = jsontypes2.StringValue(data.NetworkId.ValueString())
+	data.Id = jsontypes.StringValue(data.NetworkId.ValueString())
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -251,9 +251,9 @@ func (r *NetworksNetflowResource) Read(ctx context.Context, req resource.ReadReq
 	tflog.Trace(ctx, "read resource")
 }
 
-func (r *NetworksNetflowResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *NetflowResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 
-	var data *NetworksNetflowResourceModel
+	var data *NetflowResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -312,17 +312,17 @@ func (r *NetworksNetflowResource) Update(ctx context.Context, req resource.Updat
 	}
 
 	if data.CollectorIp.IsUnknown() {
-		data.CollectorIp = jsontypes2.StringNull()
+		data.CollectorIp = jsontypes.StringNull()
 	}
 	if data.CollectorPort.IsUnknown() {
-		data.CollectorPort = jsontypes2.Int64Null()
+		data.CollectorPort = jsontypes.Int64Null()
 	}
 
 	if data.EtaDstPort.IsUnknown() {
-		data.EtaDstPort = jsontypes2.Int64Null()
+		data.EtaDstPort = jsontypes.Int64Null()
 	}
 	if data.EtaEnabled.IsUnknown() {
-		data.EtaEnabled = jsontypes2.BoolNull()
+		data.EtaEnabled = jsontypes.BoolNull()
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -331,9 +331,9 @@ func (r *NetworksNetflowResource) Update(ctx context.Context, req resource.Updat
 	tflog.Trace(ctx, "updated resource")
 }
 
-func (r *NetworksNetflowResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *NetflowResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 
-	var data *NetworksNetflowResourceModel
+	var data *NetflowResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -379,7 +379,7 @@ func (r *NetworksNetflowResource) Delete(ctx context.Context, req resource.Delet
 
 }
 
-func (r *NetworksNetflowResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *NetflowResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("network_id"), req.ID)...)

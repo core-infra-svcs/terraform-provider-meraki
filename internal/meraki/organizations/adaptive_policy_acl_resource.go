@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	jsontypes2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"strings"
@@ -22,46 +22,46 @@ import (
 
 // Ensure provider defined types fully satisfy framework interfaces
 var (
-	_ resource.Resource                = &OrganizationsAdaptivePolicyAclResource{}
-	_ resource.ResourceWithConfigure   = &OrganizationsAdaptivePolicyAclResource{}
-	_ resource.ResourceWithImportState = &OrganizationsAdaptivePolicyAclResource{}
+	_ resource.Resource                = &AdaptivePolicyAclResource{}
+	_ resource.ResourceWithConfigure   = &AdaptivePolicyAclResource{}
+	_ resource.ResourceWithImportState = &AdaptivePolicyAclResource{}
 )
 
-func NewOrganizationsAdaptivePolicyAclResource() resource.Resource {
-	return &OrganizationsAdaptivePolicyAclResource{}
+func NewAdaptivePolicyAclResource() resource.Resource {
+	return &AdaptivePolicyAclResource{}
 }
 
-// OrganizationsAdaptivePolicyAclResource defines the resource implementation.
-type OrganizationsAdaptivePolicyAclResource struct {
+// AdaptivePolicyAclResource defines the resource implementation.
+type AdaptivePolicyAclResource struct {
 	client *openApiClient.APIClient
 }
 
-// OrganizationsAdaptivePolicyAclResourceModel describes the resource data model.
-type OrganizationsAdaptivePolicyAclResourceModel struct {
-	Id          types.String                                      `tfsdk:"id"`
-	OrgId       jsontypes2.String                                 `tfsdk:"organization_id" json:"organizationId"`
-	AclId       jsontypes2.String                                 `tfsdk:"acl_id" json:"aclId"`
-	Name        jsontypes2.String                                 `tfsdk:"name"`
-	Description jsontypes2.String                                 `tfsdk:"description"`
-	IpVersion   jsontypes2.String                                 `tfsdk:"ip_version" json:"ipVersion"`
-	Rules       []OrganizationsAdaptivePolicyAclResourceModelRule `tfsdk:"rules"`
-	CreatedAt   jsontypes2.String                                 `tfsdk:"created_at" json:"createdAt"`
-	UpdatedAt   jsontypes2.String                                 `tfsdk:"updated_at" json:"updatedAt"`
+// AdaptivePolicyAclResourceModel describes the resource data model.
+type AdaptivePolicyAclResourceModel struct {
+	Id          types.String                         `tfsdk:"id"`
+	OrgId       jsontypes.String                     `tfsdk:"organization_id" json:"organizationId"`
+	AclId       jsontypes.String                     `tfsdk:"acl_id" json:"aclId"`
+	Name        jsontypes.String                     `tfsdk:"name"`
+	Description jsontypes.String                     `tfsdk:"description"`
+	IpVersion   jsontypes.String                     `tfsdk:"ip_version" json:"ipVersion"`
+	Rules       []AdaptivePolicyAclResourceModelRule `tfsdk:"rules"`
+	CreatedAt   jsontypes.String                     `tfsdk:"created_at" json:"createdAt"`
+	UpdatedAt   jsontypes.String                     `tfsdk:"updated_at" json:"updatedAt"`
 }
 
-// OrganizationsAdaptivePolicyAclResourceModelRule  describes the rules data model
-type OrganizationsAdaptivePolicyAclResourceModelRule struct {
-	Policy   jsontypes2.String `tfsdk:"policy"`
-	Protocol jsontypes2.String `tfsdk:"protocol"`
-	SrcPort  jsontypes2.String `tfsdk:"src_port" json:"srcPort"`
-	DstPort  jsontypes2.String `tfsdk:"dst_port" json:"dstPort"`
+// AdaptivePolicyAclResourceModelRule  describes the rules data model
+type AdaptivePolicyAclResourceModelRule struct {
+	Policy   jsontypes.String `tfsdk:"policy"`
+	Protocol jsontypes.String `tfsdk:"protocol"`
+	SrcPort  jsontypes.String `tfsdk:"src_port" json:"srcPort"`
+	DstPort  jsontypes.String `tfsdk:"dst_port" json:"dstPort"`
 }
 
-func (r *OrganizationsAdaptivePolicyAclResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *AdaptivePolicyAclResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_organizations_adaptive_policy_acl"
 }
 
-func (r *OrganizationsAdaptivePolicyAclResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *AdaptivePolicyAclResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description: "Manage adaptive policy ACLs in a organization",
 		Attributes: map[string]schema.Attribute{
@@ -73,7 +73,7 @@ func (r *OrganizationsAdaptivePolicyAclResource) Schema(ctx context.Context, req
 				MarkdownDescription: "Organization ID",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -85,7 +85,7 @@ func (r *OrganizationsAdaptivePolicyAclResource) Schema(ctx context.Context, req
 				MarkdownDescription: "ACL ID",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -97,19 +97,19 @@ func (r *OrganizationsAdaptivePolicyAclResource) Schema(ctx context.Context, req
 				MarkdownDescription: "Name of the adaptive policy ACL",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"description": schema.StringAttribute{
 				MarkdownDescription: "Description of the adaptive policy ACL",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"ip_version": schema.StringAttribute{
 				MarkdownDescription: "IP version of adaptive policy ACL. One of: 'any', 'ipv4' or 'ipv6",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				Validators: []validator.String{
 					stringvalidator.OneOf([]string{"any", "ipv4", "ipv6"}...),
 					stringvalidator.LengthAtLeast(3),
@@ -125,25 +125,25 @@ func (r *OrganizationsAdaptivePolicyAclResource) Schema(ctx context.Context, req
 							MarkdownDescription: "",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"protocol": schema.StringAttribute{
 							MarkdownDescription: "",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"src_port": schema.StringAttribute{
 							MarkdownDescription: "",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"dst_port": schema.StringAttribute{
 							MarkdownDescription: "",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 					},
 				},
@@ -152,19 +152,19 @@ func (r *OrganizationsAdaptivePolicyAclResource) Schema(ctx context.Context, req
 				MarkdownDescription: "",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"updated_at": schema.StringAttribute{
 				MarkdownDescription: "",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 		},
 	}
 }
 
-func (r *OrganizationsAdaptivePolicyAclResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *AdaptivePolicyAclResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -184,8 +184,8 @@ func (r *OrganizationsAdaptivePolicyAclResource) Configure(ctx context.Context, 
 	r.client = client
 }
 
-func (r *OrganizationsAdaptivePolicyAclResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *OrganizationsAdaptivePolicyAclResourceModel
+func (r *AdaptivePolicyAclResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *AdaptivePolicyAclResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -255,8 +255,8 @@ func (r *OrganizationsAdaptivePolicyAclResource) Create(ctx context.Context, req
 	tflog.Trace(ctx, "create resource")
 }
 
-func (r *OrganizationsAdaptivePolicyAclResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *OrganizationsAdaptivePolicyAclResourceModel
+func (r *AdaptivePolicyAclResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *AdaptivePolicyAclResourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -303,8 +303,8 @@ func (r *OrganizationsAdaptivePolicyAclResource) Read(ctx context.Context, req r
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func (r *OrganizationsAdaptivePolicyAclResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data *OrganizationsAdaptivePolicyAclResourceModel
+func (r *AdaptivePolicyAclResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var data *AdaptivePolicyAclResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -378,8 +378,8 @@ func (r *OrganizationsAdaptivePolicyAclResource) Update(ctx context.Context, req
 	tflog.Trace(ctx, "updated resource")
 }
 
-func (r *OrganizationsAdaptivePolicyAclResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data *OrganizationsAdaptivePolicyAclResourceModel
+func (r *AdaptivePolicyAclResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data *AdaptivePolicyAclResourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -414,7 +414,7 @@ func (r *OrganizationsAdaptivePolicyAclResource) Delete(ctx context.Context, req
 	resp.State.RemoveResource(ctx)
 }
 
-func (r *OrganizationsAdaptivePolicyAclResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *AdaptivePolicyAclResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 	idParts := strings.Split(req.ID, ",")
 	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {

@@ -3,7 +3,7 @@ package appliance
 import (
 	"context"
 	"fmt"
-	jsontypes2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -30,21 +30,21 @@ type NetworksApplianceVpnSiteToSiteVpnDatasource struct {
 
 // NetworksApplianceVpnSiteToSiteVpnDatasourceModel NetworksApplianceVpnSiteToSiteVpnResourceModel describes the resource data model.
 type NetworksApplianceVpnSiteToSiteVpnDatasourceModel struct {
-	Id        jsontypes2.String `tfsdk:"id"`
-	NetworkId jsontypes2.String `tfsdk:"network_id" json:"network_id"`
-	Mode      jsontypes2.String `tfsdk:"mode" json:"mode"`
-	Hubs      types.List        `tfsdk:"hubs" json:"hubs"`
-	Subnets   types.List        `tfsdk:"subnets" json:"subnets"`
+	Id        jsontypes.String `tfsdk:"id"`
+	NetworkId jsontypes.String `tfsdk:"network_id" json:"network_id"`
+	Mode      jsontypes.String `tfsdk:"mode" json:"mode"`
+	Hubs      types.List       `tfsdk:"hubs" json:"hubs"`
+	Subnets   types.List       `tfsdk:"subnets" json:"subnets"`
 }
 
 type NetworksApplianceVpnSiteToSiteVpnDatasourceModelHubs struct {
-	HubId           jsontypes2.String `tfsdk:"hub_id" json:"hubId"`
-	UseDefaultRoute jsontypes2.Bool   `tfsdk:"use_default_route" json:"useDefaultRoute"`
+	HubId           jsontypes.String `tfsdk:"hub_id" json:"hubId"`
+	UseDefaultRoute jsontypes.Bool   `tfsdk:"use_default_route" json:"useDefaultRoute"`
 }
 
 type NetworksApplianceVpnSiteToSiteVpnDatasourceModelSubnets struct {
-	LocalSubnet jsontypes2.String `tfsdk:"local_subnet" json:"localSubnet"`
-	UseVpn      jsontypes2.Bool   `tfsdk:"use_vpn" json:"useVpn"`
+	LocalSubnet jsontypes.String `tfsdk:"local_subnet" json:"localSubnet"`
+	UseVpn      jsontypes.Bool   `tfsdk:"use_vpn" json:"useVpn"`
 }
 
 func (r *NetworksApplianceVpnSiteToSiteVpnDatasource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -59,12 +59,12 @@ func (r *NetworksApplianceVpnSiteToSiteVpnDatasource) Schema(ctx context.Context
 			"id": schema.StringAttribute{
 				Computed:   true,
 				Optional:   true,
-				CustomType: jsontypes2.StringType,
+				CustomType: jsontypes.StringType,
 			},
 			"network_id": schema.StringAttribute{
 				MarkdownDescription: "Network Id",
 				Required:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(8, 31),
 				},
@@ -72,7 +72,7 @@ func (r *NetworksApplianceVpnSiteToSiteVpnDatasource) Schema(ctx context.Context
 			"mode": schema.StringAttribute{
 				MarkdownDescription: "The site-to-site VPN mode.",
 				Optional:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"hubs": schema.ListNestedAttribute{
 				Description: "The list of VPN hubs, in order of preference.",
@@ -83,13 +83,13 @@ func (r *NetworksApplianceVpnSiteToSiteVpnDatasource) Schema(ctx context.Context
 						"hub_id": schema.StringAttribute{
 							MarkdownDescription: "The network ID of the hub",
 							Required:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"use_default_route": schema.BoolAttribute{
 							MarkdownDescription: "Indicates whether default route traffic should be sent to this hub.",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.BoolType,
+							CustomType:          jsontypes.BoolType,
 						},
 					},
 				},
@@ -103,13 +103,13 @@ func (r *NetworksApplianceVpnSiteToSiteVpnDatasource) Schema(ctx context.Context
 						"local_subnet": schema.StringAttribute{
 							MarkdownDescription: "The CIDR notation subnet used within the VPN",
 							Required:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"use_vpn": schema.BoolAttribute{
 							MarkdownDescription: "Indicates the presence of the subnet in the VPN.",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.BoolType,
+							CustomType:          jsontypes.BoolType,
 						},
 					},
 				},
@@ -174,14 +174,14 @@ func (r *NetworksApplianceVpnSiteToSiteVpnDatasource) Read(ctx context.Context, 
 
 	var diags diag.Diagnostics
 
-	data.Mode = jsontypes2.StringValue(response.GetMode())
+	data.Mode = jsontypes.StringValue(response.GetMode())
 
 	// Hubs
 	var hubs []NetworksApplianceVpnSiteToSiteVpnResourceModelHubs
 	for _, element := range response.GetHubs() {
 		var hub NetworksApplianceVpnSiteToSiteVpnResourceModelHubs
-		hub.UseDefaultRoute = jsontypes2.BoolValue(element.GetUseDefaultRoute())
-		hub.HubId = jsontypes2.StringValue(element.GetHubId())
+		hub.UseDefaultRoute = jsontypes.BoolValue(element.GetUseDefaultRoute())
+		hub.HubId = jsontypes.StringValue(element.GetHubId())
 		hubs = append(hubs, hub)
 
 	}
@@ -204,8 +204,8 @@ func (r *NetworksApplianceVpnSiteToSiteVpnDatasource) Read(ctx context.Context, 
 	var subnets []NetworksApplianceVpnSiteToSiteVpnResourceModelSubnets
 	for _, element := range response.GetSubnets() {
 		var subnet NetworksApplianceVpnSiteToSiteVpnResourceModelSubnets
-		subnet.UseVpn = jsontypes2.BoolValue(element.GetUseVpn())
-		subnet.LocalSubnet = jsontypes2.StringValue(element.GetLocalSubnet())
+		subnet.UseVpn = jsontypes.BoolValue(element.GetUseVpn())
+		subnet.LocalSubnet = jsontypes.StringValue(element.GetLocalSubnet())
 
 		subnets = append(subnets, subnet)
 

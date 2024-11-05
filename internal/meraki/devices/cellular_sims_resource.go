@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	jsontypes2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -31,32 +31,32 @@ type DevicesCellularSimsResource struct {
 
 // DevicesCellularSimsResourceModel describes the resource data model.
 type DevicesCellularSimsResourceModel struct {
-	Id          jsontypes2.String                           `tfsdk:"id"`
-	Serial      jsontypes2.String                           `tfsdk:"serial" json:"serial"`
+	Id          jsontypes.String                            `tfsdk:"id"`
+	Serial      jsontypes.String                            `tfsdk:"serial" json:"serial"`
 	Sims        []DevicesCellularSimsResourceModelSim       `tfsdk:"sims" json:"sims"`
 	SimFailOver DevicesCellularSimsResourceModelSimFailOver `tfsdk:"sim_failover" json:"simFailover"`
 }
 
 type DevicesCellularSimsResourceModelSim struct {
-	Slot      jsontypes2.String                      `tfsdk:"slot" json:"slot"`
-	IsPrimary jsontypes2.Bool                        `tfsdk:"is_primary" json:"isPrimary"`
+	Slot      jsontypes.String                       `tfsdk:"slot" json:"slot"`
+	IsPrimary jsontypes.Bool                         `tfsdk:"is_primary" json:"isPrimary"`
 	Apns      []DevicesCellularSimsResourceModelApns `tfsdk:"apns" json:"apns"`
 }
 
 type DevicesCellularSimsResourceModelApns struct {
-	Name           jsontypes2.String                              `tfsdk:"name" json:"name"`
+	Name           jsontypes.String                               `tfsdk:"name" json:"name"`
 	AllowedIpTypes []string                                       `tfsdk:"allowed_ip_types" json:"allowedIpTypes"`
 	Authentication DevicesCellularSimsResourceModelAuthentication `tfsdk:"authentication" json:"authentication"`
 }
 
 type DevicesCellularSimsResourceModelAuthentication struct {
-	Password jsontypes2.String `tfsdk:"password" json:"password"`
-	Username jsontypes2.String `tfsdk:"username" json:"username"`
-	Type     jsontypes2.String `tfsdk:"type" json:"type"`
+	Password jsontypes.String `tfsdk:"password" json:"password"`
+	Username jsontypes.String `tfsdk:"username" json:"username"`
+	Type     jsontypes.String `tfsdk:"type" json:"type"`
 }
 
 type DevicesCellularSimsResourceModelSimFailOver struct {
-	Enabled jsontypes2.Bool `tfsdk:"enabled" json:"enabled"`
+	Enabled jsontypes.Bool `tfsdk:"enabled" json:"enabled"`
 }
 
 func (r *DevicesCellularSimsResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -69,13 +69,13 @@ func (r *DevicesCellularSimsResource) Schema(ctx context.Context, req resource.S
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:   true,
-				CustomType: jsontypes2.StringType,
+				CustomType: jsontypes.StringType,
 			},
 			"serial": schema.StringAttribute{
 				MarkdownDescription: "serial.",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 			},
 			"sim_failover": schema.SingleNestedAttribute{
 				Optional: true,
@@ -85,7 +85,7 @@ func (r *DevicesCellularSimsResource) Schema(ctx context.Context, req resource.S
 						MarkdownDescription: "Failover to secondary SIM.",
 						Optional:            true,
 						Computed:            true,
-						CustomType:          jsontypes2.BoolType,
+						CustomType:          jsontypes.BoolType,
 					},
 				},
 			},
@@ -98,13 +98,13 @@ func (r *DevicesCellularSimsResource) Schema(ctx context.Context, req resource.S
 							MarkdownDescription: "SIM slot being configured. Must be 'sim1' on single-sim devices.",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.StringType,
+							CustomType:          jsontypes.StringType,
 						},
 						"is_primary": schema.BoolAttribute{
 							MarkdownDescription: "If true, this SIM is used for boot. Must be true on single-sim devices.",
 							Optional:            true,
 							Computed:            true,
-							CustomType:          jsontypes2.BoolType,
+							CustomType:          jsontypes.BoolType,
 						},
 						"apns": schema.SetNestedAttribute{
 							MarkdownDescription: "APN configurations. If empty, the default APN will be used.",
@@ -114,12 +114,12 @@ func (r *DevicesCellularSimsResource) Schema(ctx context.Context, req resource.S
 									"name": schema.StringAttribute{
 										MarkdownDescription: "serial.",
 										Required:            true,
-										CustomType:          jsontypes2.StringType,
+										CustomType:          jsontypes.StringType,
 									},
 									"allowed_ip_types": schema.SetAttribute{
 										MarkdownDescription: "IP versions to support (permitted values include 'ipv4', 'ipv6').",
 										Required:            true,
-										ElementType:         jsontypes2.StringType,
+										ElementType:         jsontypes.StringType,
 									},
 									"authentication": schema.SingleNestedAttribute{
 										Optional:            true,
@@ -130,19 +130,19 @@ func (r *DevicesCellularSimsResource) Schema(ctx context.Context, req resource.S
 												MarkdownDescription: "APN password, if type is set (if APN password is not supplied, the password is left unchanged).",
 												Optional:            true,
 												Computed:            true,
-												CustomType:          jsontypes2.StringType,
+												CustomType:          jsontypes.StringType,
 											},
 											"username": schema.StringAttribute{
 												MarkdownDescription: "APN username, if type is set.",
 												Optional:            true,
 												Computed:            true,
-												CustomType:          jsontypes2.StringType,
+												CustomType:          jsontypes.StringType,
 											},
 											"type": schema.StringAttribute{
 												MarkdownDescription: "APN auth type. Valid values are 'chap', 'none', 'pap'.",
 												Optional:            true,
 												Computed:            true,
-												CustomType:          jsontypes2.StringType,
+												CustomType:          jsontypes.StringType,
 											},
 										},
 									},
@@ -252,7 +252,7 @@ func (r *DevicesCellularSimsResource) Create(ctx context.Context, req resource.C
 		return
 	}
 
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -307,7 +307,7 @@ func (r *DevicesCellularSimsResource) Read(ctx context.Context, req resource.Rea
 		)
 		return
 	}
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -390,7 +390,7 @@ func (r *DevicesCellularSimsResource) Update(ctx context.Context, req resource.U
 		return
 	}
 
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -473,7 +473,7 @@ func (r *DevicesCellularSimsResource) Delete(ctx context.Context, req resource.D
 		return
 	}
 
-	data.Id = jsontypes2.StringValue("example-id")
+	data.Id = jsontypes.StringValue("example-id")
 
 	resp.State.RemoveResource(ctx)
 

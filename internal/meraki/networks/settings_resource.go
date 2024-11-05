@@ -3,7 +3,7 @@ package networks
 import (
 	"context"
 	"fmt"
-	jsontypes2 "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -21,34 +21,34 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ resource.Resource = &NetworksSettingsResource{}
-var _ resource.ResourceWithImportState = &NetworksSettingsResource{}
+var _ resource.Resource = &SettingsResource{}
+var _ resource.ResourceWithImportState = &SettingsResource{}
 
 func NewNetworksSettingsResource() resource.Resource {
-	return &NetworksSettingsResource{}
+	return &SettingsResource{}
 }
 
-// NetworksSettingsResource defines the resource implementation.
-type NetworksSettingsResource struct {
+// SettingsResource defines the resource implementation.
+type SettingsResource struct {
 	client *openApiClient.APIClient
 }
 
-// NetworksSettingsResourceModel describes the resource data model.
-type NetworksSettingsResourceModel struct {
-	Id                      jsontypes2.String `tfsdk:"id"`
-	NetworkId               jsontypes2.String `tfsdk:"network_id" json:"network_id"`
-	LocalStatusPageEnabled  jsontypes2.Bool   `tfsdk:"local_status_page_enabled" json:"localStatusPageEnabled"`
-	RemoteStatusPageEnabled jsontypes2.Bool   `tfsdk:"remote_status_page_enabled" json:"remoteStatusPageEnabled"`
-	LocalStatusPage         types.Object      `tfsdk:"local_status_page" json:"localStatusPage"`
-	SecurePortEnabled       jsontypes2.Bool   `tfsdk:"secure_port_enabled" json:"securePort"`
-	FipsEnabled             jsontypes2.Bool   `tfsdk:"fips_enabled" json:"fipsEnabled"`
-	NamedVlansEnabled       jsontypes2.Bool   `tfsdk:"named_vlans_enabled" json:"namedVlansEnabled"`
+// SettingsResourceModel describes the resource data model.
+type SettingsResourceModel struct {
+	Id                      jsontypes.String `tfsdk:"id"`
+	NetworkId               jsontypes.String `tfsdk:"network_id" json:"network_id"`
+	LocalStatusPageEnabled  jsontypes.Bool   `tfsdk:"local_status_page_enabled" json:"localStatusPageEnabled"`
+	RemoteStatusPageEnabled jsontypes.Bool   `tfsdk:"remote_status_page_enabled" json:"remoteStatusPageEnabled"`
+	LocalStatusPage         types.Object     `tfsdk:"local_status_page" json:"localStatusPage"`
+	SecurePortEnabled       jsontypes.Bool   `tfsdk:"secure_port_enabled" json:"securePort"`
+	FipsEnabled             jsontypes.Bool   `tfsdk:"fips_enabled" json:"fipsEnabled"`
+	NamedVlansEnabled       jsontypes.Bool   `tfsdk:"named_vlans_enabled" json:"namedVlansEnabled"`
 	//ClientPrivacyExpireDataOlderThan      jsontypes.Int64                              `tfsdk:"client_privacy_expire_data_older_than"`
 	//ClientPrivacyExpireDataBefore         jsontypes.String                             `tfsdk:"client_privacy_expire_data_before"`
 }
 
 // FromGetNetworkSettings200Response transforms an API response into the NetworksApplianceVLANsResourceModelIpv6 Terraform structure.
-func (m *NetworksSettingsResourceModel) FromGetNetworkSettings200Response(ctx context.Context, data *NetworksSettingsResourceModel, networkSettings200Response *openApiClient.GetNetworkSettings200Response) diag.Diagnostics {
+func (m *SettingsResourceModel) FromGetNetworkSettings200Response(ctx context.Context, data *SettingsResourceModel, networkSettings200Response *openApiClient.GetNetworkSettings200Response) diag.Diagnostics {
 	tflog.Info(ctx, "[start] NetworksSettingsResourceModel FromGetNetworkSettings200Response")
 	if networkSettings200Response == nil {
 		return diag.Diagnostics{diag.NewErrorDiagnostic("IPv6 Response Error", "Received nil API networkSettings200Response for IPv6")}
@@ -62,37 +62,37 @@ func (m *NetworksSettingsResourceModel) FromGetNetworkSettings200Response(ctx co
 
 	// LocalStatusPageEnabled
 	if networkSettings200Response.HasLocalStatusPageEnabled() {
-		m.LocalStatusPageEnabled = jsontypes2.BoolValue(networkSettings200Response.GetLocalStatusPageEnabled())
+		m.LocalStatusPageEnabled = jsontypes.BoolValue(networkSettings200Response.GetLocalStatusPageEnabled())
 	} else {
-		m.LocalStatusPageEnabled = jsontypes2.BoolNull()
+		m.LocalStatusPageEnabled = jsontypes.BoolNull()
 	}
 
 	// RemoteStatusPageEnabled
 	if networkSettings200Response.HasRemoteStatusPageEnabled() {
-		m.RemoteStatusPageEnabled = jsontypes2.BoolValue(networkSettings200Response.GetRemoteStatusPageEnabled())
+		m.RemoteStatusPageEnabled = jsontypes.BoolValue(networkSettings200Response.GetRemoteStatusPageEnabled())
 	} else {
-		m.RemoteStatusPageEnabled = jsontypes2.BoolNull()
+		m.RemoteStatusPageEnabled = jsontypes.BoolNull()
 	}
 
 	// SecurePortEnabled
 	if networkSettings200Response.SecurePort.HasEnabled() {
-		m.SecurePortEnabled = jsontypes2.BoolValue(networkSettings200Response.SecurePort.GetEnabled())
+		m.SecurePortEnabled = jsontypes.BoolValue(networkSettings200Response.SecurePort.GetEnabled())
 	} else {
-		m.SecurePortEnabled = jsontypes2.BoolNull()
+		m.SecurePortEnabled = jsontypes.BoolNull()
 	}
 
 	// FipsEnabled
 	if networkSettings200Response.Fips.GetEnabled() {
-		m.FipsEnabled = jsontypes2.BoolValue(networkSettings200Response.Fips.GetEnabled())
+		m.FipsEnabled = jsontypes.BoolValue(networkSettings200Response.Fips.GetEnabled())
 	} else {
-		m.FipsEnabled = jsontypes2.BoolValue(false)
+		m.FipsEnabled = jsontypes.BoolValue(false)
 	}
 
 	// NamedVlans
 	if networkSettings200Response.NamedVlans.GetEnabled() {
-		m.NamedVlansEnabled = jsontypes2.BoolValue(networkSettings200Response.NamedVlans.GetEnabled())
+		m.NamedVlansEnabled = jsontypes.BoolValue(networkSettings200Response.NamedVlans.GetEnabled())
 	} else {
-		m.NamedVlansEnabled = jsontypes2.BoolNull()
+		m.NamedVlansEnabled = jsontypes.BoolNull()
 	}
 
 	// LocalStatusPage
@@ -140,7 +140,7 @@ func NetworksSettingsResourceModelNetworksSettingsResourceModelLocalStatusPageAt
 }
 
 // FromGetNetworkSettings200Response transforms an API response into the NetworksApplianceVLANsResourceModelIpv6 Terraform structure.
-func (m *NetworksSettingsResourceModelLocalStatusPage) FromGetNetworkSettings200Response(ctx context.Context, data *NetworksSettingsResourceModel, networkSettings200Response *openApiClient.GetNetworkSettings200Response) diag.Diagnostics {
+func (m *NetworksSettingsResourceModelLocalStatusPage) FromGetNetworkSettings200Response(ctx context.Context, data *SettingsResourceModel, networkSettings200Response *openApiClient.GetNetworkSettings200Response) diag.Diagnostics {
 	tflog.Info(ctx, "[start] NetworksSettingsResourceModelLocalStatusPage FromGetNetworkSettings200Response")
 
 	if networkSettings200Response == nil {
@@ -178,21 +178,21 @@ func (m *NetworksSettingsResourceModelLocalStatusPage) FromGetNetworkSettings200
 }
 
 type NetworksSettingsResourceModelLocalStatusPageAuthentication struct {
-	Enabled  jsontypes2.Bool   `tfsdk:"enabled" json:"enabled"`
-	Username jsontypes2.String `tfsdk:"username" json:"username"`
-	Password jsontypes2.String `tfsdk:"password" json:"password"`
+	Enabled  jsontypes.Bool   `tfsdk:"enabled" json:"enabled"`
+	Username jsontypes.String `tfsdk:"username" json:"username"`
+	Password jsontypes.String `tfsdk:"password" json:"password"`
 }
 
 func NetworksSettingsResourceModelNetworksSettingsResourceModelLocalStatusPageAuthenticationAttrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
-		"enabled":  jsontypes2.BoolType,
-		"username": jsontypes2.StringType,
-		"password": jsontypes2.StringType,
+		"enabled":  jsontypes.BoolType,
+		"username": jsontypes.StringType,
+		"password": jsontypes.StringType,
 	}
 }
 
 // FromGetNetworkSettings200Response transforms an API response into the NetworksApplianceVLANsResourceModelIpv6 Terraform structure.
-func (m *NetworksSettingsResourceModelLocalStatusPageAuthentication) FromGetNetworkSettings200Response(ctx context.Context, data *NetworksSettingsResourceModel, networkSettings200Response *openApiClient.GetNetworkSettings200Response) diag.Diagnostics {
+func (m *NetworksSettingsResourceModelLocalStatusPageAuthentication) FromGetNetworkSettings200Response(ctx context.Context, data *SettingsResourceModel, networkSettings200Response *openApiClient.GetNetworkSettings200Response) diag.Diagnostics {
 	tflog.Info(ctx, "[start] NetworksSettingsResourceModelLocalStatusPageAuthentication FromGetNetworkSettings200Response")
 
 	if networkSettings200Response == nil {
@@ -206,19 +206,19 @@ func (m *NetworksSettingsResourceModelLocalStatusPageAuthentication) FromGetNetw
 
 			// Enabled
 			if networkSettings200Response.LocalStatusPage.Authentication.HasEnabled() {
-				m.Enabled = jsontypes2.BoolValue(networkSettings200Response.LocalStatusPage.Authentication.GetEnabled())
+				m.Enabled = jsontypes.BoolValue(networkSettings200Response.LocalStatusPage.Authentication.GetEnabled())
 			}
 
 			// Username
 			if networkSettings200Response.LocalStatusPage.Authentication.HasUsername() {
-				m.Username = jsontypes2.StringValue(networkSettings200Response.LocalStatusPage.Authentication.GetUsername())
+				m.Username = jsontypes.StringValue(networkSettings200Response.LocalStatusPage.Authentication.GetUsername())
 			}
 		}
 
 	} else {
-		m.Enabled = jsontypes2.BoolNull()
-		m.Username = jsontypes2.StringNull()
-		m.Password = jsontypes2.StringNull()
+		m.Enabled = jsontypes.BoolNull()
+		m.Username = jsontypes.StringNull()
+		m.Password = jsontypes.StringNull()
 	}
 
 	if !data.LocalStatusPage.IsNull() {
@@ -244,7 +244,7 @@ func (m *NetworksSettingsResourceModelLocalStatusPageAuthentication) FromGetNetw
 		// Extract Password if in Plan
 		if m.Password.IsNull() {
 			if LocalStatusPageAuthenticationPlanData.Password.ValueString() != "" {
-				m.Password = jsontypes2.StringValue(LocalStatusPageAuthenticationPlanData.Password.ValueString())
+				m.Password = jsontypes.StringValue(LocalStatusPageAuthenticationPlanData.Password.ValueString())
 			}
 		}
 
@@ -269,7 +269,7 @@ type NetworksSettingsResourceModelClientPrivacy struct {
 }
 */
 
-func createUpdateHttpReqPayload(ctx context.Context, data *NetworksSettingsResourceModel) (openApiClient.UpdateNetworkSettingsRequest, diag.Diagnostics) {
+func createUpdateHttpReqPayload(ctx context.Context, data *SettingsResourceModel) (openApiClient.UpdateNetworkSettingsRequest, diag.Diagnostics) {
 	resp := diag.Diagnostics{}
 
 	tflog.Info(ctx, "[start] createUpdateHttpReqPayload Function Call")
@@ -345,22 +345,22 @@ func createUpdateHttpReqPayload(ctx context.Context, data *NetworksSettingsResou
 	return payload, nil
 }
 
-func (r *NetworksSettingsResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *SettingsResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_networks_settings"
 }
 
-func (r *NetworksSettingsResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *SettingsResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "NetworksSettings resource for updating network settings.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:   true,
-				CustomType: jsontypes2.StringType,
+				CustomType: jsontypes.StringType,
 			},
 			"network_id": schema.StringAttribute{
 				MarkdownDescription: "Network ID",
 				Required:            true,
-				CustomType:          jsontypes2.StringType,
+				CustomType:          jsontypes.StringType,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -372,13 +372,13 @@ func (r *NetworksSettingsResource) Schema(ctx context.Context, req resource.Sche
 				MarkdownDescription: "Enables / disables access to the device status page (http://[device's LAN IP]). Optional. Can only be set if localStatusPageEnabled is set to true",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.BoolType,
+				CustomType:          jsontypes.BoolType,
 			},
 			"remote_status_page_enabled": schema.BoolAttribute{
 				MarkdownDescription: "Enables / disables access to the device status page (http://[device's LAN IP]). Optional. Can only be set if localStatusPageEnabled is set to true",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.BoolType,
+				CustomType:          jsontypes.BoolType,
 			},
 			"local_status_page": schema.SingleNestedAttribute{
 				Optional: true,
@@ -392,18 +392,18 @@ func (r *NetworksSettingsResource) Schema(ctx context.Context, req resource.Sche
 								MarkdownDescription: "Enables / disables the authentication on Local Status page(s).",
 								Optional:            true,
 								Computed:            true,
-								CustomType:          jsontypes2.BoolType,
+								CustomType:          jsontypes.BoolType,
 							},
 							"username": schema.StringAttribute{
 								MarkdownDescription: "The username used for Local Status Page(s).",
 								Optional:            true,
 								Computed:            true,
-								CustomType:          jsontypes2.StringType,
+								CustomType:          jsontypes.StringType,
 							},
 							"password": schema.StringAttribute{
 								MarkdownDescription: "The password used for Local Status Page(s). Set this to null to clear the password.",
 								Optional:            true,
-								CustomType:          jsontypes2.StringType,
+								CustomType:          jsontypes.StringType,
 								Sensitive:           true,
 							},
 						}},
@@ -413,19 +413,19 @@ func (r *NetworksSettingsResource) Schema(ctx context.Context, req resource.Sche
 				MarkdownDescription: "Enables / disables the secure port.",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.BoolType,
+				CustomType:          jsontypes.BoolType,
 			},
 			"fips_enabled": schema.BoolAttribute{
 				MarkdownDescription: "Enables / disables FIPS on the network.",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.BoolType,
+				CustomType:          jsontypes.BoolType,
 			},
 			"named_vlans_enabled": schema.BoolAttribute{
 				MarkdownDescription: "Enables / disables Named VLANs on the Network.",
 				Optional:            true,
 				Computed:            true,
-				CustomType:          jsontypes2.BoolType,
+				CustomType:          jsontypes.BoolType,
 			},
 			/*
 				"client_privacy_expire_data_older_than": schema.Int64Attribute{
@@ -445,7 +445,7 @@ func (r *NetworksSettingsResource) Schema(ctx context.Context, req resource.Sche
 	}
 }
 
-func (r *NetworksSettingsResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *SettingsResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -465,8 +465,8 @@ func (r *NetworksSettingsResource) Configure(ctx context.Context, req resource.C
 	r.client = client
 }
 
-func (r *NetworksSettingsResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *NetworksSettingsResourceModel
+func (r *SettingsResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *SettingsResourceModel
 
 	tflog.Info(ctx, "[start] Create Function Call")
 
@@ -499,7 +499,7 @@ func (r *NetworksSettingsResource) Create(ctx context.Context, req resource.Crea
 		)
 	}
 
-	var NetworkSettings200Response NetworksSettingsResourceModel
+	var NetworkSettings200Response SettingsResourceModel
 	NetworkSettings200ResponseDiags := NetworkSettings200Response.FromGetNetworkSettings200Response(ctx, data, inlineResp)
 	if NetworkSettings200ResponseDiags != nil {
 		resp.Diagnostics.Append(NetworkSettings200ResponseDiags...)
@@ -514,8 +514,8 @@ func (r *NetworksSettingsResource) Create(ctx context.Context, req resource.Crea
 	tflog.Info(ctx, "[finish] Create Function Call")
 }
 
-func (r *NetworksSettingsResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *NetworksSettingsResourceModel
+func (r *SettingsResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *SettingsResourceModel
 
 	tflog.Info(ctx, "[start] Read Function Call")
 
@@ -542,7 +542,7 @@ func (r *NetworksSettingsResource) Read(ctx context.Context, req resource.ReadRe
 		)
 	}
 
-	var NetworkSettings200Response NetworksSettingsResourceModel
+	var NetworkSettings200Response SettingsResourceModel
 	NetworkSettings200ResponseDiags := NetworkSettings200Response.FromGetNetworkSettings200Response(ctx, data, inlineResp)
 	if NetworkSettings200ResponseDiags != nil {
 		resp.Diagnostics.Append(NetworkSettings200ResponseDiags...)
@@ -557,9 +557,9 @@ func (r *NetworksSettingsResource) Read(ctx context.Context, req resource.ReadRe
 	tflog.Info(ctx, "[finish] Read Function Call")
 }
 
-func (r *NetworksSettingsResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *SettingsResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 
-	var data *NetworksSettingsResourceModel
+	var data *SettingsResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -597,7 +597,7 @@ func (r *NetworksSettingsResource) Update(ctx context.Context, req resource.Upda
 		return
 	}
 
-	var NetworkSettings200Response NetworksSettingsResourceModel
+	var NetworkSettings200Response SettingsResourceModel
 	NetworkSettings200ResponseDiags := NetworkSettings200Response.FromGetNetworkSettings200Response(ctx, data, inlineResp)
 	if NetworkSettings200ResponseDiags != nil {
 		resp.Diagnostics.Append(NetworkSettings200ResponseDiags...)
@@ -611,9 +611,9 @@ func (r *NetworksSettingsResource) Update(ctx context.Context, req resource.Upda
 	tflog.Trace(ctx, "updated resource")
 }
 
-func (r *NetworksSettingsResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *SettingsResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 
-	var data *NetworksSettingsResourceModel
+	var data *SettingsResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -666,7 +666,7 @@ func (r *NetworksSettingsResource) Delete(ctx context.Context, req resource.Dele
 	tflog.Trace(ctx, "removed resource")
 }
 
-func (r *NetworksSettingsResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *SettingsResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("network_id"), req.ID)...)
