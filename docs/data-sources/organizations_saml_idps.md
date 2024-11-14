@@ -3,12 +3,12 @@
 page_title: "meraki_organizations_saml_idps Data Source - terraform-provider-meraki"
 subcategory: ""
 description: |-
-  List the SAML IdPs in your organization.
+  Ports the SAML IdPs in your organization.
 ---
 
 # meraki_organizations_saml_idps (Data Source)
 
-List the SAML IdPs in your organization.
+Ports the SAML IdPs in your organization.
 
 
 
@@ -17,7 +17,7 @@ List the SAML IdPs in your organization.
 
 ### Optional
 
-- `list` (Attributes List) (see [below for nested schema](#nestedatt--list))
+- `list` (Attributes Ports) (see [below for nested schema](#nestedatt--list))
 - `organization_id` (String) Organization ID
 
 ### Read-Only

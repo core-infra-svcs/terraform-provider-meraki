@@ -18,7 +18,7 @@ Manage Network Appliance L3 Firewall Rules
 ### Required
 
 - `network_id` (String) Network ID
-- `rules` (Attributes List) (see [below for nested schema](#nestedatt--rules))
+- `rules` (Attributes Ports) (see [below for nested schema](#nestedatt--rules))
 
 ### Optional
 

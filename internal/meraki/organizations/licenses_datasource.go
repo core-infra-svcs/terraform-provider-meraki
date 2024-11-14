@@ -11,33 +11,29 @@ import (
 	openApiClient "github.com/meraki/dashboard-api-go/client"
 )
 
-var _ datasource.DataSource = &OrganizationsLicensesDataSource{}
+var _ datasource.DataSource = &LicensesDataSource{}
 
 func NewOrganizationsLicensesDataSource() datasource.DataSource {
-	return &OrganizationsLicensesDataSource{}
+	return &LicensesDataSource{}
 }
 
-// OrganizationsLicensesDataSource struct defines the structure for this data source.
-// It includes an APIClient field for making requests to the Meraki API.
-type OrganizationsLicensesDataSource struct {
+type LicensesDataSource struct {
 	client *openApiClient.APIClient
 }
 
-// The OrganizationsLicensesDataSourceModel structure describes the data model.
-// This struct is where you define all the attributes that are part of this data source's state.
-type OrganizationsLicensesDataSourceModel struct {
-	Id             jsontypes.String                           `tfsdk:"id"`
-	OrganizationId jsontypes.String                           `tfsdk:"organization_id"`
-	PerPage        jsontypes.Int64                            `tfsdk:"per_page"`
-	StartingAfter  jsontypes.String                           `tfsdk:"starting_after"`
-	EndingBefore   jsontypes.String                           `tfsdk:"ending_before"`
-	DeviceSerial   jsontypes.String                           `tfsdk:"device_serial"`
-	NetworkId      jsontypes.String                           `tfsdk:"network_id"`
-	State          jsontypes.String                           `tfsdk:"state"`
-	List           []OrganizationsLicensesDataSourceModelList `tfsdk:"list"`
+type LicensesDataSourceModel struct {
+	Id             jsontypes.String              `tfsdk:"id"`
+	OrganizationId jsontypes.String              `tfsdk:"organization_id"`
+	PerPage        jsontypes.Int64               `tfsdk:"per_page"`
+	StartingAfter  jsontypes.String              `tfsdk:"starting_after"`
+	EndingBefore   jsontypes.String              `tfsdk:"ending_before"`
+	DeviceSerial   jsontypes.String              `tfsdk:"device_serial"`
+	NetworkId      jsontypes.String              `tfsdk:"network_id"`
+	State          jsontypes.String              `tfsdk:"state"`
+	List           []LicensesDataSourceModelList `tfsdk:"list"`
 }
 
-type OrganizationsLicensesDataSourceModelList struct {
+type LicensesDataSourceModelList struct {
 	Id                        jsontypes.String                                                                      `tfsdk:"id"`
 	LicenseType               jsontypes.String                                                                      `tfsdk:"license_type"`
 	LicenseKey                jsontypes.String                                                                      `tfsdk:"license_key"`
@@ -57,20 +53,20 @@ type OrganizationsLicensesDataSourceModelList struct {
 
 // Metadata provides a way to define information about the data source.
 // This method is called by the framework to retrieve metadata about the data source.
-func (d *OrganizationsLicensesDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *LicensesDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 
 	resp.TypeName = req.ProviderTypeName + "_organizations_licenses"
 }
 
 // Schema provides a way to define the structure of the data source data.
 // It is called by the framework to get the schema of the data source.
-func (d *OrganizationsLicensesDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *LicensesDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 
 	// The Schema object defines the structure of the data source.
 	resp.Schema = schema.Schema{
 
 		// It should provide a clear and concise description of the data source.
-		MarkdownDescription: "List Organization Licenses",
+		MarkdownDescription: "Ports Organization Licenses",
 
 		// The Attributes map describes the fields of the data source.
 		Attributes: map[string]schema.Attribute{
@@ -122,7 +118,7 @@ func (d *OrganizationsLicensesDataSource) Schema(ctx context.Context, req dataso
 				Computed:            true,
 			},
 			"list": schema.SetNestedAttribute{
-				MarkdownDescription: "List of organization acls",
+				MarkdownDescription: "Ports of organization acls",
 				Optional:            true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
@@ -209,7 +205,7 @@ func (d *OrganizationsLicensesDataSource) Schema(ctx context.Context, req dataso
 							Computed:            true,
 						},
 						"permanently_queued_licenses": schema.SingleNestedAttribute{
-							MarkdownDescription: "DEPRECATED List of permanently queued licenses attached to the license. Instead, use /organizations/{organizationId}/licenses?deviceSerial= to retrieved queued licenses for a given device.",
+							MarkdownDescription: "DEPRECATED Ports of permanently queued licenses attached to the license. Instead, use /organizations/{organizationId}/licenses?deviceSerial= to retrieved queued licenses for a given device.",
 							Optional:            true,
 							Attributes: map[string]schema.Attribute{
 								"id": schema.StringAttribute{
@@ -248,7 +244,7 @@ func (d *OrganizationsLicensesDataSource) Schema(ctx context.Context, req dataso
 
 // Configure is a method of the data source interface that Terraform calls to provide the configured provider instance to the data source.
 // It passes the DataSourceData that's been stored by the provider's ConfigureFunc.
-func (d *OrganizationsLicensesDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *LicensesDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 
 	// The provider must be properly configured before it can be used.
 	if req.ProviderData == nil {
@@ -273,8 +269,8 @@ func (d *OrganizationsLicensesDataSource) Configure(ctx context.Context, req dat
 }
 
 // Read method is responsible for reading an existing data source's state.
-func (d *OrganizationsLicensesDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data OrganizationsLicensesDataSourceModel
+func (d *LicensesDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var data LicensesDataSourceModel
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
@@ -331,7 +327,7 @@ func (d *OrganizationsLicensesDataSource) Read(ctx context.Context, req datasour
 	}
 
 	for _, license := range inlineResp {
-		var licenseData OrganizationsLicensesDataSourceModelList
+		var licenseData LicensesDataSourceModelList
 		licenseData.LicenseType = jsontypes.StringValue(license.GetLicenseType())
 		licenseData.LicenseKey = jsontypes.StringValue(license.GetLicenseKey())
 		licenseData.OrderNumber = jsontypes.StringValue(license.GetOrderNumber())

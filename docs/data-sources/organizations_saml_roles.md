@@ -3,12 +3,12 @@
 page_title: "meraki_organizations_saml_roles Data Source - terraform-provider-meraki"
 subcategory: ""
 description: |-
-  List the saml roles in this organization
+  Ports the saml roles in this organization
 ---
 
 # meraki_organizations_saml_roles (Data Source)
 
-List the saml roles in this organization
+Ports the saml roles in this organization
 
 
 

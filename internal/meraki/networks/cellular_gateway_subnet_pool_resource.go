@@ -27,17 +27,12 @@ func NewNetworksCellularGatewaySubnetPoolResource() resource.Resource {
 	return &CellularGatewaySubnetPoolResource{}
 }
 
-// CellularGatewaySubnetPoolResource struct defines the structure for this resource.
-// It includes an APIClient field for making requests to the Meraki API.
 type CellularGatewaySubnetPoolResource struct {
 	client *openApiClient.APIClient // APIClient instance for making API requests
 }
 
-// The CellularGatewaySubnetPoolResourceModel structure describes the data model.
-// This struct is where you define all the attributes that are part of this resource's state.
 type CellularGatewaySubnetPoolResourceModel struct {
-	Id             jsontypes.String                               `tfsdk:"id"`
-	NetworkId      jsontypes.String                               `tfsdk:"network_id"`
+	Id             jsontypes.String                               `tfsdk:"id"  json:"networkId"`
 	Mask           jsontypes.Int64                                `tfsdk:"mask"`
 	Cidr           jsontypes.String                               `tfsdk:"cidr"`
 	DeploymentMode jsontypes.String                               `tfsdk:"deployment_mode"`
@@ -69,13 +64,7 @@ func (r *CellularGatewaySubnetPoolResource) Schema(ctx context.Context, req reso
 
 		// The Attributes map describes the fields of the resource.
 		Attributes: map[string]schema.Attribute{
-
-			// Every resource must have an ID attribute. This is computed by the framework.
 			"id": schema.StringAttribute{
-				Computed:   true,
-				CustomType: jsontypes.StringType,
-			},
-			"network_id": schema.StringAttribute{
 				MarkdownDescription: "Network ID",
 				Required:            true,
 				CustomType:          jsontypes.StringType,
@@ -179,7 +168,7 @@ func (r *CellularGatewaySubnetPoolResource) Create(ctx context.Context, req reso
 	updateNetworkCellularGatewaySubnetPool.SetCidr(data.Cidr.ValueString())
 	updateNetworkCellularGatewaySubnetPool.SetMask(int32(data.Mask.ValueInt64()))
 
-	_, httpResp, err := r.client.SubnetPoolApi.UpdateNetworkCellularGatewaySubnetPool(context.Background(), data.NetworkId.ValueString()).UpdateNetworkCellularGatewaySubnetPoolRequest(updateNetworkCellularGatewaySubnetPool).Execute()
+	_, httpResp, err := r.client.SubnetPoolApi.UpdateNetworkCellularGatewaySubnetPool(context.Background(), data.Id.ValueString()).UpdateNetworkCellularGatewaySubnetPoolRequest(updateNetworkCellularGatewaySubnetPool).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"HTTP Client Failure",
@@ -216,9 +205,6 @@ func (r *CellularGatewaySubnetPoolResource) Create(ctx context.Context, req reso
 		data.Subnets = nil
 	}
 
-	// Set ID for the new resource.
-	data.Id = jsontypes.StringValue("example-id")
-
 	// Now set the final state of the resource.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -239,7 +225,7 @@ func (r *CellularGatewaySubnetPoolResource) Read(ctx context.Context, req resour
 		return
 	}
 
-	_, httpResp, err := r.client.SubnetPoolApi.GetNetworkCellularGatewaySubnetPool(context.Background(), data.NetworkId.ValueString()).Execute()
+	_, httpResp, err := r.client.SubnetPoolApi.GetNetworkCellularGatewaySubnetPool(context.Background(), data.Id.ValueString()).Execute()
 
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -277,9 +263,6 @@ func (r *CellularGatewaySubnetPoolResource) Read(ctx context.Context, req resour
 		data.Subnets = nil
 	}
 
-	// Set ID for the resource.
-	data.Id = jsontypes.StringValue("example-id")
-
 	// Now set the final state of the resource.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -304,7 +287,7 @@ func (r *CellularGatewaySubnetPoolResource) Update(ctx context.Context, req reso
 	updateNetworkCellularGatewaySubnetPool.SetCidr(data.Cidr.ValueString())
 	updateNetworkCellularGatewaySubnetPool.SetMask(int32(data.Mask.ValueInt64()))
 
-	_, httpResp, err := r.client.SubnetPoolApi.UpdateNetworkCellularGatewaySubnetPool(context.Background(), data.NetworkId.ValueString()).UpdateNetworkCellularGatewaySubnetPoolRequest(updateNetworkCellularGatewaySubnetPool).Execute()
+	_, httpResp, err := r.client.SubnetPoolApi.UpdateNetworkCellularGatewaySubnetPool(context.Background(), data.Id.ValueString()).UpdateNetworkCellularGatewaySubnetPoolRequest(updateNetworkCellularGatewaySubnetPool).Execute()
 
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
@@ -343,9 +326,6 @@ func (r *CellularGatewaySubnetPoolResource) Update(ctx context.Context, req reso
 		data.Subnets = nil
 	}
 
-	// Set ID for the new resource.
-	data.Id = jsontypes.StringValue("example-id")
-
 	// Now set the updated state of the resource.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -370,7 +350,7 @@ func (r *CellularGatewaySubnetPoolResource) Delete(ctx context.Context, req reso
 	updateNetworkCellularGatewaySubnetPool.SetCidr(data.Cidr.ValueString())
 	updateNetworkCellularGatewaySubnetPool.SetMask(int32(data.Mask.ValueInt64()))
 
-	_, httpResp, err := r.client.SubnetPoolApi.UpdateNetworkCellularGatewaySubnetPool(context.Background(), data.NetworkId.ValueString()).UpdateNetworkCellularGatewaySubnetPoolRequest(updateNetworkCellularGatewaySubnetPool).Execute()
+	_, httpResp, err := r.client.SubnetPoolApi.UpdateNetworkCellularGatewaySubnetPool(context.Background(), data.Id.ValueString()).UpdateNetworkCellularGatewaySubnetPoolRequest(updateNetworkCellularGatewaySubnetPool).Execute()
 
 	// If there was an error during API call, add it to diagnostics.
 	if err != nil {
@@ -407,6 +387,6 @@ func (r *CellularGatewaySubnetPoolResource) Delete(ctx context.Context, req reso
 func (r *CellularGatewaySubnetPoolResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 
 	// Pass through the ID directly from the ImportStateRequest to the ImportStateResponse
-	resource.ImportStatePassthroughID(ctx, path.Root("network_id"), req, resp)
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 
 }

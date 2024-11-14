@@ -14,25 +14,22 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ datasource.DataSource = &OrganizationsDataSource{}
+var _ datasource.DataSource = &OrganizationDataSource{}
 
 func NewOrganizationsDataSource() datasource.DataSource {
-	return &OrganizationsDataSource{}
+	return &OrganizationDataSource{}
 }
 
-// OrganizationsDataSource defines the data source implementation.
-type OrganizationsDataSource struct {
+type OrganizationDataSource struct {
 	client *openApiClient.APIClient
 }
 
-// OrganizationsDataSourceModel describes the data source data model.
-type OrganizationsDataSourceModel struct {
-	Id   jsontypes.String                   `tfsdk:"id"`
-	List []OrganizationsDataSourceModelList `tfsdk:"list"`
+type OrganizationDataSourceModel struct {
+	Id   jsontypes.String                  `tfsdk:"id"`
+	List []OrganizationDataSourceModelList `tfsdk:"list"`
 }
 
-// OrganizationsDataSourceModelList describes the data source data model.
-type OrganizationsDataSourceModelList struct {
+type OrganizationDataSourceModelList struct {
 	ApiEnabled     jsontypes.Bool   `tfsdk:"api_enabled"`
 	CloudRegion    jsontypes.String `tfsdk:"cloud_region_name"`
 	OrgId          jsontypes.String `tfsdk:"organization_id"`
@@ -41,13 +38,13 @@ type OrganizationsDataSourceModelList struct {
 	Url            jsontypes.String `tfsdk:"url"`
 }
 
-func (d *OrganizationsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *OrganizationDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_organizations"
 }
 
-func (d *OrganizationsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *OrganizationDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "List the organizations that the user has privileges on",
+		Description: "Ports the organizations that the user has privileges on",
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -101,7 +98,7 @@ func (d *OrganizationsDataSource) Schema(ctx context.Context, req datasource.Sch
 	}
 }
 
-func (d *OrganizationsDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *OrganizationDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -120,8 +117,8 @@ func (d *OrganizationsDataSource) Configure(ctx context.Context, req datasource.
 	d.client = client
 }
 
-func (d *OrganizationsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data OrganizationsDataSourceModel
+func (d *OrganizationDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var data OrganizationDataSourceModel
 
 	// Read Terraform state data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
@@ -158,7 +155,7 @@ func (d *OrganizationsDataSource) Read(ctx context.Context, req datasource.ReadR
 	data.Id = jsontypes.StringValue("example-id")
 
 	for _, organization := range inlineResp {
-		var result OrganizationsDataSourceModelList
+		var result OrganizationDataSourceModelList
 
 		result.OrgId = jsontypes.StringValue(organization.GetId())
 		result.Name = jsontypes.StringValue(organization.GetName())

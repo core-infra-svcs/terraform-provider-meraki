@@ -15,20 +15,20 @@ import (
 
 // Ensure provider defined types fully satisfy framework interfaces
 var (
-	_ resource.Resource                = &OrganizationPolicyObjectResource{}
-	_ resource.ResourceWithConfigure   = &OrganizationPolicyObjectResource{}
-	_ resource.ResourceWithImportState = &OrganizationPolicyObjectResource{}
+	_ resource.Resource                = &PolicyObjectResource{}
+	_ resource.ResourceWithConfigure   = &PolicyObjectResource{}
+	_ resource.ResourceWithImportState = &PolicyObjectResource{}
 )
 
-type OrganizationPolicyObjectResource struct {
+type PolicyObjectResource struct {
 	client *client.APIClient
 }
 
 func NewOrganizationPolicyObjectResource() resource.Resource {
-	return &OrganizationPolicyObjectResource{}
+	return &PolicyObjectResource{}
 }
 
-type OrganizationPolicyObject struct {
+type PolicyObject struct {
 	Id             types.String `tfsdk:"id" json:"id"`
 	OrganizationID types.String `tfsdk:"organization_id"`
 	ObjectId       types.String `tfsdk:"object_id"`
@@ -45,11 +45,11 @@ type OrganizationPolicyObject struct {
 	NetworkIds     types.List   `tfsdk:"network_ids"`
 }
 
-func (r *OrganizationPolicyObjectResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *PolicyObjectResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = "meraki_organizations_policy_object"
 }
 
-func (r *OrganizationPolicyObjectResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *PolicyObjectResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -69,7 +69,7 @@ func (r *OrganizationPolicyObjectResource) Configure(ctx context.Context, req re
 	r.client = apiClient
 }
 
-func (r *OrganizationPolicyObjectResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *PolicyObjectResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "",
 		Attributes: map[string]schema.Attribute{
@@ -142,7 +142,7 @@ func (r *OrganizationPolicyObjectResource) Schema(ctx context.Context, req resou
 	}
 }
 
-func updateOrganizationPolicyObjectResourceState(ctx context.Context, inlineResp map[string]interface{}, state *OrganizationPolicyObject) diag.Diagnostics {
+func updateOrganizationPolicyObjectResourceState(ctx context.Context, inlineResp map[string]interface{}, state *PolicyObject) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	//     "id": "1234",
@@ -265,7 +265,7 @@ func updateOrganizationPolicyObjectResourceState(ctx context.Context, inlineResp
 	return diags
 }
 
-func OrganizationPolicyObjectResourceCreatePayload(plan OrganizationPolicyObject) (client.CreateOrganizationPolicyObjectRequest, diag.Diagnostics) {
+func OrganizationPolicyObjectResourceCreatePayload(plan PolicyObject) (client.CreateOrganizationPolicyObjectRequest, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	payload := client.NewCreateOrganizationPolicyObjectRequestWithDefaults()
@@ -327,7 +327,7 @@ func OrganizationPolicyObjectResourceCreatePayload(plan OrganizationPolicyObject
 	return *payload, diags
 }
 
-func OrganizationPolicyObjectResourceUpdatePayload(plan OrganizationPolicyObject) (client.UpdateOrganizationPolicyObjectRequest, diag.Diagnostics) {
+func OrganizationPolicyObjectResourceUpdatePayload(plan PolicyObject) (client.UpdateOrganizationPolicyObjectRequest, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	payload := client.NewUpdateOrganizationPolicyObjectRequestWithDefaults()
@@ -377,8 +377,8 @@ func OrganizationPolicyObjectResourceUpdatePayload(plan OrganizationPolicyObject
 	return *payload, diags
 }
 
-func (r *OrganizationPolicyObjectResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan OrganizationPolicyObject
+func (r *PolicyObjectResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var plan PolicyObject
 
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
@@ -425,8 +425,8 @@ func (r *OrganizationPolicyObjectResource) Create(ctx context.Context, req resou
 	}
 }
 
-func (r *OrganizationPolicyObjectResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state OrganizationPolicyObject
+func (r *PolicyObjectResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var state PolicyObject
 
 	// Read Terraform prior state into the model
 	diags := req.State.Get(ctx, &state)
@@ -467,8 +467,8 @@ func (r *OrganizationPolicyObjectResource) Read(ctx context.Context, req resourc
 	}
 }
 
-func (r *OrganizationPolicyObjectResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan OrganizationPolicyObject
+func (r *PolicyObjectResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan PolicyObject
 
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
@@ -476,7 +476,7 @@ func (r *OrganizationPolicyObjectResource) Update(ctx context.Context, req resou
 		return
 	}
 
-	var state OrganizationPolicyObject
+	var state PolicyObject
 
 	// Read Terraform prior state into the model
 	diags = req.State.Get(ctx, &state)
@@ -524,8 +524,8 @@ func (r *OrganizationPolicyObjectResource) Update(ctx context.Context, req resou
 	}
 }
 
-func (r *OrganizationPolicyObjectResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var state OrganizationPolicyObject
+func (r *PolicyObjectResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var state PolicyObject
 
 	// Read Terraform plan state into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -561,7 +561,7 @@ func (r *OrganizationPolicyObjectResource) Delete(ctx context.Context, req resou
 
 }
 
-func (r *OrganizationPolicyObjectResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *PolicyObjectResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 
 	idParts := strings.Split(req.ID, ",")

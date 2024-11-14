@@ -33,7 +33,7 @@ Manage the management interface settings for a device
 
 Optional:
 
-- `static_dns` (List of String) Up to two DNS IPs.
+- `static_dns` (Ports of String) Up to two DNS IPs.
 - `static_gateway_ip` (String) The IP of the gateway on the WAN.
 - `static_ip` (String) The IP the device should use on the WAN.
 - `static_subnet_mask` (String) The subnet mask for the WAN.
@@ -47,7 +47,7 @@ Optional:
 
 Optional:
 
-- `static_dns` (List of String) Up to two DNS IPs.
+- `static_dns` (Ports of String) Up to two DNS IPs.
 - `static_gateway_ip` (String) The IP of the gateway on the WAN.
 - `static_ip` (String) The IP the device should use on the WAN.
 - `static_subnet_mask` (String) The subnet mask for the WAN.

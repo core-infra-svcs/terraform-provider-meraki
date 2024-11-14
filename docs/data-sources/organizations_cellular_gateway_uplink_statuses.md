@@ -23,7 +23,7 @@ OrganizationsCellularGatewayUplinkStatuses
 
 - `ending_before` (String) A token used by the server to indicate the end of the page. Often this is a timestamp or an ID but it is not limited to those. This parameter should not be defined by client applications. The link for the first, last, prev, or next page in the HTTP Link header should define it.
 - `iccids` (Set of String) A list of ICCIDs. The returned devices will be filtered to only include these ICCIDs.
-- `list` (Attributes Set) List of organization acls (see [below for nested schema](#nestedatt--list))
+- `list` (Attributes Set) Ports of organization acls (see [below for nested schema](#nestedatt--list))
 - `network_ids` (Set of String) A list of network IDs. The returned devices will be filtered to only include these networks.
 - `per_page` (Number) The number of entries per page returned. Acceptable range is 3 - 1000. Default is 1000.
 - `serials` (Set of String) A list of serial numbers. The returned devices will be filtered to only include these serials.
@@ -42,7 +42,7 @@ Optional:
 - `model` (String) Device model.
 - `network_id` (String) ID of the network.
 - `serial` (String) Serial number of the device.
-- `uplinks` (Attributes List) Uplinks info. (see [below for nested schema](#nestedatt--list--uplinks))
+- `uplinks` (Attributes Ports) Uplinks info. (see [below for nested schema](#nestedatt--list--uplinks))
 
 <a id="nestedatt--list--uplinks"></a>
 ### Nested Schema for `list.uplinks`

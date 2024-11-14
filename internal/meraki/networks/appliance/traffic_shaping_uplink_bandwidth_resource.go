@@ -20,20 +20,20 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ resource.Resource = &NetworksApplianceTrafficShapingUplinkBandWidthResource{}
-var _ resource.ResourceWithImportState = &NetworksApplianceTrafficShapingUplinkBandWidthResource{}
+var _ resource.Resource = &TrafficShapingUplinkBandWidthResource{}
+var _ resource.ResourceWithImportState = &TrafficShapingUplinkBandWidthResource{}
 
 func NewNetworksApplianceTrafficShapingUplinkBandWidthResource() resource.Resource {
-	return &NetworksApplianceTrafficShapingUplinkBandWidthResource{}
+	return &TrafficShapingUplinkBandWidthResource{}
 }
 
-// NetworksApplianceTrafficShapingUplinkBandWidthResource defines the resource implementation.
-type NetworksApplianceTrafficShapingUplinkBandWidthResource struct {
+// TrafficShapingUplinkBandWidthResource defines the resource implementation.
+type TrafficShapingUplinkBandWidthResource struct {
 	client *openApiClient.APIClient
 }
 
-// NetworksApplianceTrafficShapingUplinkBandWidthResourceModel describes the resource data model.
-type NetworksApplianceTrafficShapingUplinkBandWidthResourceModel struct {
+// TrafficShapingUplinkBandWidthResourceModel describes the resource data model.
+type TrafficShapingUplinkBandWidthResourceModel struct {
 	Id                              jsontypes.String `tfsdk:"id"`
 	NetworkId                       jsontypes.String `tfsdk:"network_id" json:"network_id"`
 	BandwidthLimitCellularLimitUp   jsontypes.Int64  `tfsdk:"bandwidth_limit_cellular_limit_up"`
@@ -44,26 +44,26 @@ type NetworksApplianceTrafficShapingUplinkBandWidthResourceModel struct {
 	BandwidthLimitWan1LimitDown     jsontypes.Int64  `tfsdk:"bandwidth_limit_wan1_limit_down"`
 }
 
-type NetworksApplianceTrafficShapingUplinkBandWidthResourceModelApiResponse struct {
-	UplinkBandwidthLimits NetworksApplianceTrafficShapingUplinkBandWidthResourceModelUplinkBandwidthLimits `json:"bandwidthLimits"`
+type TrafficShapingUplinkBandWidthResourceModelApiResponse struct {
+	UplinkBandwidthLimits TrafficShapingUplinkBandWidthLimits `json:"bandwidthLimits"`
 }
 
-type NetworksApplianceTrafficShapingUplinkBandWidthResourceModelUplinkBandwidthLimits struct {
-	Wan1     NetworksApplianceTrafficShapingUplinkBandWidthResourceModelLimits `json:"wan1"`
-	Wan2     NetworksApplianceTrafficShapingUplinkBandWidthResourceModelLimits `json:"wan2"`
-	Cellular NetworksApplianceTrafficShapingUplinkBandWidthResourceModelLimits `json:"cellular"`
+type TrafficShapingUplinkBandWidthLimits struct {
+	Wan1     TrafficShapingUplinkBandWidthLimit `json:"wan1"`
+	Wan2     TrafficShapingUplinkBandWidthLimit `json:"wan2"`
+	Cellular TrafficShapingUplinkBandWidthLimit `json:"cellular"`
 }
 
-type NetworksApplianceTrafficShapingUplinkBandWidthResourceModelLimits struct {
+type TrafficShapingUplinkBandWidthLimit struct {
 	LimitUp   jsontypes.Int64 `json:"limitUp"`
 	LimitDown jsontypes.Int64 `json:"limitDown"`
 }
 
-func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *TrafficShapingUplinkBandWidthResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_networks_appliance_traffic_shaping_uplink_bandwidth"
 }
 
-func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *TrafficShapingUplinkBandWidthResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manage Network Appliance Traffic Shaping UplinkBandWidth",
 		Attributes: map[string]schema.Attribute{
@@ -116,7 +116,7 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Schema(ctx cont
 	}
 }
 
-func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *TrafficShapingUplinkBandWidthResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -136,9 +136,9 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Configure(ctx c
 	r.client = client
 }
 
-func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *TrafficShapingUplinkBandWidthResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 
-	var data *NetworksApplianceTrafficShapingUplinkBandWidthResourceModel
+	var data *TrafficShapingUplinkBandWidthResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -205,7 +205,7 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Create(ctx cont
 	}
 
 	// Save data into Terraform state
-	data, err = extractHttpResponseUplinkBandwidthResource(ctx, httpResp.Body, &NetworksApplianceTrafficShapingUplinkBandWidthResourceModelApiResponse{}, data)
+	data, err = extractHttpResponseUplinkBandwidthResource(ctx, httpResp.Body, &TrafficShapingUplinkBandWidthResourceModelApiResponse{}, data)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"JSON decoding error",
@@ -222,8 +222,8 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Create(ctx cont
 	tflog.Trace(ctx, "create resource")
 }
 
-func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *NetworksApplianceTrafficShapingUplinkBandWidthResourceModel
+func (r *TrafficShapingUplinkBandWidthResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *TrafficShapingUplinkBandWidthResourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -258,7 +258,7 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Read(ctx contex
 	// Decode the HTTP response body into your data model.
 	// If there's an error, add it to diagnostics.
 	// Save data into Terraform state
-	data, err = extractHttpResponseUplinkBandwidthResource(ctx, httpResp.Body, &NetworksApplianceTrafficShapingUplinkBandWidthResourceModelApiResponse{}, data)
+	data, err = extractHttpResponseUplinkBandwidthResource(ctx, httpResp.Body, &TrafficShapingUplinkBandWidthResourceModelApiResponse{}, data)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"JSON decoding error",
@@ -275,9 +275,9 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Read(ctx contex
 	tflog.Trace(ctx, "read resource")
 }
 
-func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *TrafficShapingUplinkBandWidthResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 
-	var data *NetworksApplianceTrafficShapingUplinkBandWidthResourceModel
+	var data *TrafficShapingUplinkBandWidthResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -346,7 +346,7 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Update(ctx cont
 	// Decode the HTTP response body into your data model.
 	// If there's an error, add it to diagnostics.
 	// Save data into Terraform state
-	data, err = extractHttpResponseUplinkBandwidthResource(ctx, httpResp.Body, &NetworksApplianceTrafficShapingUplinkBandWidthResourceModelApiResponse{}, data)
+	data, err = extractHttpResponseUplinkBandwidthResource(ctx, httpResp.Body, &TrafficShapingUplinkBandWidthResourceModelApiResponse{}, data)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"JSON decoding error",
@@ -363,9 +363,9 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Update(ctx cont
 	tflog.Trace(ctx, "updated resource")
 }
 
-func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *TrafficShapingUplinkBandWidthResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 
-	var data *NetworksApplianceTrafficShapingUplinkBandWidthResourceModel
+	var data *TrafficShapingUplinkBandWidthResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -417,7 +417,7 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) Delete(ctx cont
 	tflog.Trace(ctx, "removed resource")
 }
 
-func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *TrafficShapingUplinkBandWidthResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("network_id"), req.ID)...)
@@ -427,7 +427,7 @@ func (r *NetworksApplianceTrafficShapingUplinkBandWidthResource) ImportState(ctx
 	}
 }
 
-func extractHttpResponseUplinkBandwidthResource(ctx context.Context, httpRespBody io.ReadCloser, apiResponse *NetworksApplianceTrafficShapingUplinkBandWidthResourceModelApiResponse, data *NetworksApplianceTrafficShapingUplinkBandWidthResourceModel) (*NetworksApplianceTrafficShapingUplinkBandWidthResourceModel, error) {
+func extractHttpResponseUplinkBandwidthResource(ctx context.Context, httpRespBody io.ReadCloser, apiResponse *TrafficShapingUplinkBandWidthResourceModelApiResponse, data *TrafficShapingUplinkBandWidthResourceModel) (*TrafficShapingUplinkBandWidthResourceModel, error) {
 
 	if err := json.NewDecoder(httpRespBody).Decode(apiResponse); err != nil {
 		return data, err

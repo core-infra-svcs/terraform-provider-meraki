@@ -27,19 +27,15 @@ func NewOrganizationsAdminsDataSource() datasource.DataSource {
 	return &AdminsDataSource{}
 }
 
-// AdminsDataSource defines the data source implementation.
 type AdminsDataSource struct {
 	client *openApiClient.APIClient
 }
 
-// AdminsDataSourceModel describes the data source data model.
 type AdminsDataSourceModel struct {
-	Id    types.String                `tfsdk:"id"`
-	OrgId jsontypes.String            `tfsdk:"organization_id"`
-	List  []AdminsDataSourceModelList `tfsdk:"list"`
+	Id   types.String                `tfsdk:"id" json:"organization_id"`
+	List []AdminsDataSourceModelList `tfsdk:"list"`
 }
 
-// AdminsDataSourceModelList describes the data source data model.
 type AdminsDataSourceModelList struct {
 	Id                   jsontypes.String                `tfsdk:"id" json:"id"`
 	Name                 jsontypes.String                `tfsdk:"name"`
@@ -70,7 +66,7 @@ func (d *AdminsDataSource) Metadata(ctx context.Context, req datasource.Metadata
 
 func (d *AdminsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "List the dashboard administrators in this organization",
+		MarkdownDescription: "Ports the dashboard administrators in this organization",
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -216,7 +212,7 @@ func (d *AdminsDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 
 	// usage of CustomHttpRequestRetry with a slice of strongly typed structs
 	apiCallSlice := func() ([]openApiClient.GetOrganizationAdmins200ResponseInner, *http.Response, error, diag.Diagnostics) {
-		inline, httpResp, err := d.client.AdminsApi.GetOrganizationAdmins(context.Background(), data.OrgId.ValueString()).Execute()
+		inline, httpResp, err := d.client.AdminsApi.GetOrganizationAdmins(context.Background(), data.Id.ValueString()).Execute()
 		return inline, httpResp, err, diags
 	}
 
@@ -261,7 +257,6 @@ func (d *AdminsDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	}
 
 	// Save data into Terraform state
-	data.Id = types.StringValue("example-id")
 	if err := json.NewDecoder(httpResp.Body).Decode(&data.List); err != nil {
 		resp.Diagnostics.AddError(
 			"JSON decoding error",

@@ -21,7 +21,7 @@ Claim a list of devices, licenses, and/or orders into an organization. When clai
 
 ### Optional
 
-- `licences` (Attributes List) The licenses that should be claimed (see [below for nested schema](#nestedatt--licences))
+- `licences` (Attributes Ports) The licenses that should be claimed (see [below for nested schema](#nestedatt--licences))
 - `orders` (Set of String) The numbers of the orders that should be claimed
 - `serials` (Set of String) The serials of the devices that should be claimed
 

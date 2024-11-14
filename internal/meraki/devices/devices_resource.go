@@ -26,22 +26,20 @@ import (
 )
 
 var (
-	_ resource.Resource                = &DevicesResource{} // Terraform resource interface
-	_ resource.ResourceWithConfigure   = &DevicesResource{} // Interface for resources with configuration methods
-	_ resource.ResourceWithImportState = &DevicesResource{} // Interface for resources with import state functionality
+	_ resource.Resource                = &DeviceResource{} // Terraform resource interface
+	_ resource.ResourceWithConfigure   = &DeviceResource{} // Interface for resources with configuration methods
+	_ resource.ResourceWithImportState = &DeviceResource{} // Interface for resources with import state functionality
 )
 
 func NewDevicesResource() resource.Resource {
-	return &DevicesResource{}
+	return &DeviceResource{}
 }
 
-// DevicesResource struct defines the structure for this resource.
-type DevicesResource struct {
+type DeviceResource struct {
 	client *openApiClient.APIClient // APIClient instance for making API requests
 }
 
-// The DevicesResourceModel structure describes the data model.
-type DevicesResourceModel struct {
+type DeviceResourceModel struct {
 	Id              types.String  `tfsdk:"id"`
 	Serial          types.String  `tfsdk:"serial"`
 	Name            types.String  `tfsdk:"name"`
@@ -63,24 +61,24 @@ type DevicesResourceModel struct {
 	MoveMapMarker   types.Bool    `tfsdk:"move_map_marker"`
 }
 
-type DevicesResourceModelBeaconIdParams struct {
+type DeviceBeaconIdParamsResourceModel struct {
 	Uuid  types.String `tfsdk:"uuid"`
 	Major types.Int64  `tfsdk:"major"`
 	Minor types.Int64  `tfsdk:"minor"`
 }
 
-type DevicesResourceModelDetails struct {
+type DeviceDetailsResourceModel struct {
 	Name  types.String `tfsdk:"name"`
 	Value types.String `tfsdk:"value"`
 }
 
 // Metadata provides a way to define information about the resource.
-func (r *DevicesResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *DeviceResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_devices"
 }
 
 // Schema provides a way to define the structure of the resource data.
-func (r *DevicesResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *DeviceResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 
 		MarkdownDescription: "Manage network Devices resource. This only works for devices associated with a network.",
@@ -218,7 +216,7 @@ func (r *DevicesResource) Schema(ctx context.Context, req resource.SchemaRequest
 }
 
 // Configure is a method of the Resource interface that Terraform calls to provide the configured provider instance to the resource.
-func (r *DevicesResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *DeviceResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 
 	// The provider must be properly configured before it can be used.
 	if req.ProviderData == nil {
@@ -244,7 +242,7 @@ func (r *DevicesResource) Configure(ctx context.Context, req resource.ConfigureR
 }
 
 // updateDevicesResourceState updates the resource state with the provided api data.
-func updateDevicesResourceState(ctx context.Context, state *DevicesResourceModel, httpResp *http.Response) diag.Diagnostics {
+func updateDevicesResourceState(ctx context.Context, state *DeviceResourceModel, httpResp *http.Response) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	httpRespMap, httpRespMapErr := utils.ExtractResponseToMap(httpResp)
@@ -413,7 +411,7 @@ func updateDevicesResourceState(ctx context.Context, state *DevicesResourceModel
 
 		beaconIdParamsResp, ok := httpRespMap["beaconIdParams"].(map[string]interface{})
 		if ok {
-			var beaconIdParams DevicesResourceModelBeaconIdParams
+			var beaconIdParams DeviceBeaconIdParamsResourceModel
 
 			// uuid
 			uuid, err := utils.ExtractStringAttr(beaconIdParamsResp, "uuid")
@@ -487,7 +485,7 @@ func updateDevicesResourceState(ctx context.Context, state *DevicesResourceModel
 	return diags
 }
 
-func updateDevicesResourcePayload(plan *DevicesResourceModel) (openApiClient.UpdateDeviceRequest, diag.Diagnostics) {
+func updateDevicesResourcePayload(plan *DeviceResourceModel) (openApiClient.UpdateDeviceRequest, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	payload := openApiClient.NewUpdateDeviceRequest()
 
@@ -547,8 +545,8 @@ func updateDevicesResourcePayload(plan *DevicesResourceModel) (openApiClient.Upd
 }
 
 // Create method is responsible for creating a new resource.
-func (r *DevicesResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *DevicesResourceModel
+func (r *DeviceResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *DeviceResourceModel
 
 	// Unmarshal the plan data into the internal data model struct.
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -645,8 +643,8 @@ func (r *DevicesResource) Create(ctx context.Context, req resource.CreateRequest
 }
 
 // Read method is responsible for reading an existing resource's state.
-func (r *DevicesResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *DevicesResourceModel
+func (r *DeviceResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *DeviceResourceModel
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -733,9 +731,9 @@ func (r *DevicesResource) Read(ctx context.Context, req resource.ReadRequest, re
 }
 
 // Update function is responsible for updating the state of an existing resource.
-func (r *DevicesResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *DeviceResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 
-	var data *DevicesResourceModel
+	var data *DeviceResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
@@ -827,8 +825,8 @@ func (r *DevicesResource) Update(ctx context.Context, req resource.UpdateRequest
 }
 
 // Delete function is responsible for deleting a resource.
-func (r *DevicesResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data *DevicesResourceModel
+func (r *DeviceResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data *DeviceResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
@@ -923,7 +921,7 @@ func (r *DevicesResource) Delete(ctx context.Context, req resource.DeleteRequest
 }
 
 // ImportState function is used to import an existing resource into Terraform.
-func (r *DevicesResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *DeviceResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 
 	// Pass through the ID directly from the ImportStateRequest to the ImportStateResponse
 	resource.ImportStatePassthroughID(ctx, path.Root("serial"), req, resp)

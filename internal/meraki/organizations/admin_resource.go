@@ -34,12 +34,10 @@ func NewOrganizationsAdminResource() resource.Resource {
 	return &AdminResource{}
 }
 
-// AdminResource defines the resource implementation.
 type AdminResource struct {
 	client *openApiClient.APIClient
 }
 
-// AdminResourceModel describes the resource data model.
 type AdminResourceModel struct {
 	Id                   jsontypes.String            `tfsdk:"id"`
 	OrgId                jsontypes.String            `tfsdk:"organization_id" json:"organizationId"`

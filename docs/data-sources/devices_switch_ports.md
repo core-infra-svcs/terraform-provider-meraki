@@ -3,12 +3,12 @@
 page_title: "meraki_devices_switch_ports Data Source - terraform-provider-meraki"
 subcategory: ""
 description: |-
-  List the switch ports for a switch
+  Ports the switch ports for a switch
 ---
 
 # meraki_devices_switch_ports (Data Source)
 
-List the switch ports for a switch
+Ports the switch ports for a switch
 
 
 
@@ -21,7 +21,7 @@ List the switch ports for a switch
 
 ### Optional
 
-- `list` (Attributes Set) List of switch ports (see [below for nested schema](#nestedatt--list))
+- `list` (Attributes Set) Ports of switch ports (see [below for nested schema](#nestedatt--list))
 
 ### Read-Only
 

@@ -36,8 +36,8 @@ type NetworkApplianceStaticRoutesResource struct {
 	client *openApiClient.APIClient
 }
 
-// NetworkApplianceStaticRoutesResourceModel describes the resource data model.
-type NetworkApplianceStaticRoutesResourceModel struct {
+// StaticRoutesResourceModel describes the resource data model.
+type StaticRoutesResourceModel struct {
 	Id                             types.String                                               `tfsdk:"id"`
 	NetworkId                      jsontypes.String                                           `tfsdk:"network_id" json:"networkId"`
 	StaticRoutId                   jsontypes.String                                           `tfsdk:"static_route_id" json:"id"`
@@ -186,7 +186,7 @@ func (r *NetworkApplianceStaticRoutesResource) Configure(ctx context.Context, re
 }
 
 func (r *NetworkApplianceStaticRoutesResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *NetworkApplianceStaticRoutesResourceModel
+	var data *StaticRoutesResourceModel
 
 	// Read Terraform plan data
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -278,7 +278,7 @@ func (r *NetworkApplianceStaticRoutesResource) Create(ctx context.Context, req r
 }
 
 func (r *NetworkApplianceStaticRoutesResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *NetworkApplianceStaticRoutesResourceModel
+	var data *StaticRoutesResourceModel
 
 	// Read Terraform state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -364,7 +364,7 @@ func (r *NetworkApplianceStaticRoutesResource) Read(ctx context.Context, req res
 }
 
 func (r *NetworkApplianceStaticRoutesResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data *NetworkApplianceStaticRoutesResourceModel
+	var data *StaticRoutesResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -494,7 +494,7 @@ func (r *NetworkApplianceStaticRoutesResource) Update(ctx context.Context, req r
 }
 
 func (r *NetworkApplianceStaticRoutesResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data *NetworkApplianceStaticRoutesResourceModel
+	var data *StaticRoutesResourceModel
 
 	// Read Terraform state data
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)

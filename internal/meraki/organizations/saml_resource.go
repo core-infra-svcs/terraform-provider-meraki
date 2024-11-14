@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -20,40 +18,33 @@ import (
 
 // Ensure provider defined types fully satisfy framework interfaces
 var (
-	_ resource.Resource                = &OrganizationSamlResource{}
-	_ resource.ResourceWithConfigure   = &OrganizationSamlResource{}
-	_ resource.ResourceWithImportState = &OrganizationSamlResource{}
+	_ resource.Resource                = &SamlResource{}
+	_ resource.ResourceWithConfigure   = &SamlResource{}
+	_ resource.ResourceWithImportState = &SamlResource{}
 )
 
 func NewOrganizationSamlResource() resource.Resource {
-	return &OrganizationSamlResource{}
+	return &SamlResource{}
 }
 
-// OrganizationSamlResource defines the resource implementation.
-type OrganizationSamlResource struct {
+type SamlResource struct {
 	client *openApiClient.APIClient
 }
 
-// OrganizationSamlResourceModel describes the resource data model.
-type OrganizationSamlResourceModel struct {
-	Id             types.String     `tfsdk:"id" json:"-"`
-	OrganizationId jsontypes.String `tfsdk:"organization_id" json:"organizationId"`
-	Enabled        jsontypes.Bool   `tfsdk:"enabled"`
+type SamlResourceModel struct {
+	Id      jsontypes.String `tfsdk:"id" json:"organizationId"`
+	Enabled jsontypes.Bool   `tfsdk:"enabled"`
 }
 
-func (r *OrganizationSamlResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *SamlResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_organization_saml"
 }
 
-func (r *OrganizationSamlResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *SamlResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description: "Manage the SAML SSO enabled settings for an organization.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
-			},
-			"organization_id": schema.StringAttribute{
 				MarkdownDescription: "Organization ID",
 				Optional:            true,
 				Computed:            true,
@@ -75,7 +66,7 @@ func (r *OrganizationSamlResource) Schema(ctx context.Context, req resource.Sche
 	}
 }
 
-func (r *OrganizationSamlResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *SamlResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -95,8 +86,8 @@ func (r *OrganizationSamlResource) Configure(ctx context.Context, req resource.C
 	r.client = client
 }
 
-func (r *OrganizationSamlResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *OrganizationSamlResourceModel
+func (r *SamlResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *SamlResourceModel
 
 	// Read Terraform plan data
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -109,7 +100,7 @@ func (r *OrganizationSamlResource) Create(ctx context.Context, req resource.Crea
 	enableOrganizationSaml.SetEnabled(data.Enabled.ValueBool())
 
 	// Initialize provider client and make API call
-	inlineResp, httpResp, err := r.client.SamlApi.UpdateOrganizationSaml(context.Background(), data.OrganizationId.ValueString()).UpdateOrganizationSamlRequest(enableOrganizationSaml).Execute()
+	inlineResp, httpResp, err := r.client.SamlApi.UpdateOrganizationSaml(context.Background(), data.Id.ValueString()).UpdateOrganizationSamlRequest(enableOrganizationSaml).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"HTTP Client Failure",
@@ -132,7 +123,6 @@ func (r *OrganizationSamlResource) Create(ctx context.Context, req resource.Crea
 	}
 
 	// save into the Terraform state.
-	data.Id = types.StringValue(data.OrganizationId.ValueString())
 	data.Enabled = jsontypes.BoolValue(inlineResp.GetEnabled())
 
 	// Save data into Terraform state
@@ -142,14 +132,14 @@ func (r *OrganizationSamlResource) Create(ctx context.Context, req resource.Crea
 	tflog.Trace(ctx, "created resource")
 }
 
-func (r *OrganizationSamlResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *OrganizationSamlResourceModel
+func (r *SamlResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *SamlResourceModel
 
 	// Read Terraform state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	// Initialize provider client and make API call
-	inlineResp, httpResp, err := r.client.SamlApi.GetOrganizationSaml(context.Background(), data.OrganizationId.ValueString()).Execute()
+	inlineResp, httpResp, err := r.client.SamlApi.GetOrganizationSaml(context.Background(), data.Id.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"HTTP Client Failure",
@@ -181,8 +171,8 @@ func (r *OrganizationSamlResource) Read(ctx context.Context, req resource.ReadRe
 	tflog.Trace(ctx, "read resource")
 }
 
-func (r *OrganizationSamlResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data *OrganizationSamlResourceModel
+func (r *SamlResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var data *SamlResourceModel
 
 	// Read Terraform plan data
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -192,7 +182,7 @@ func (r *OrganizationSamlResource) Update(ctx context.Context, req resource.Upda
 	enableOrganizationSaml.SetEnabled(data.Enabled.ValueBool())
 
 	// Initialize provider client and make API call
-	inlineResp, httpResp, err := r.client.SamlApi.UpdateOrganizationSaml(context.Background(), data.OrganizationId.ValueString()).UpdateOrganizationSamlRequest(enableOrganizationSaml).Execute()
+	inlineResp, httpResp, err := r.client.SamlApi.UpdateOrganizationSaml(context.Background(), data.Id.ValueString()).UpdateOrganizationSamlRequest(enableOrganizationSaml).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"HTTP Client Failure",
@@ -224,8 +214,8 @@ func (r *OrganizationSamlResource) Update(ctx context.Context, req resource.Upda
 	tflog.Trace(ctx, "updated resource")
 }
 
-func (r *OrganizationSamlResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data *OrganizationSamlResourceModel
+func (r *SamlResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data *SamlResourceModel
 
 	// Read Terraform state data
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -238,7 +228,7 @@ func (r *OrganizationSamlResource) Delete(ctx context.Context, req resource.Dele
 
 }
 
-func (r *OrganizationSamlResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *SamlResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("organization_id"), req.ID)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), req.ID)...)
 }

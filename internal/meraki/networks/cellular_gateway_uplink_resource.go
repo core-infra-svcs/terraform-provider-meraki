@@ -31,12 +31,7 @@ type CellularGatewayUplinkResource struct {
 	client *openApiClient.APIClient // APIClient instance for making API requests
 }
 
-// The CellularGatewayUplinkResourceModel structure describes the data model.
-// This struct is where you define all the attributes that are part of this resource's state.
 type CellularGatewayUplinkResourceModel struct {
-
-	// The Id field is mandatory for all resources. It's used for resource identification and is required
-	// for the acceptance tests to run.
 	Id                             jsontypes.String                                                 `tfsdk:"id"`
 	NetworkId                      jsontypes.String                                                 `tfsdk:"network_id"`
 	CellularGatewayBandwidthLimits CellularGatewayUplinkResourceModelCellularGatewayBandwidthLimits `tfsdk:"bandwidth_limits"`

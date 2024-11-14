@@ -15,50 +15,36 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ datasource.DataSource = &OrganizationsSamlRolesDataSource{}
+var _ datasource.DataSource = &SamlRolesDataSource{}
 
 func NewOrganizationsSamlRolesDataSource() datasource.DataSource {
-	return &OrganizationsSamlRolesDataSource{}
+	return &SamlRolesDataSource{}
 }
 
-// OrganizationsSamlRolesDataSource defines the data source implementation.
-type OrganizationsSamlRolesDataSource struct {
+type SamlRolesDataSource struct {
 	client *openApiClient.APIClient
 }
 
-// OrganizationsSamlRolesDataSourceModel describes the data source data model.
-type OrganizationsSamlRolesDataSourceModel struct {
-	Id    jsontypes.String                      `tfsdk:"id"`
-	OrgId jsontypes.String                      `tfsdk:"organization_id"`
-	List  []OrganizationSamlRoleDataSourceModel `tfsdk:"list"`
+type SamlRolesDataSourceModel struct {
+	Id   jsontypes.String          `tfsdk:"id" json:"organization_id"`
+	List []SamlRoleDataSourceModel `tfsdk:"list"`
 }
 
-// OrganizationSamlRoleDataSourceModel describes the data source data model.
-type OrganizationSamlRoleDataSourceModel struct {
-	Id        jsontypes.String                              `tfsdk:"id"`
-	Role      jsontypes.String                              `tfsdk:"role" json:"role"`
-	OrgAccess jsontypes.String                              `tfsdk:"org_access" json:"orgAccess"`
-	Tags      []OrganizationsSamlRoleDataSourceModelTag     `tfsdk:"tags" json:"tags"`
-	Networks  []OrganizationsSamlRoleDataSourceModelNetwork `tfsdk:"networks" json:"networks"`
+type SamlRoleDataSourceModel struct {
+	Id        jsontypes.String       `tfsdk:"id"`
+	Role      jsontypes.String       `tfsdk:"role" json:"role"`
+	OrgAccess jsontypes.String       `tfsdk:"org_access" json:"orgAccess"`
+	Tags      []SamlRoleTagModel     `tfsdk:"tags" json:"tags"`
+	Networks  []SamlRoleNetworkModel `tfsdk:"networks" json:"networks"`
 }
 
-type OrganizationsSamlRoleDataSourceModelNetwork struct {
-	Id     jsontypes.String `tfsdk:"id" json:"id"`
-	Access jsontypes.String `tfsdk:"access" json:"access"`
-}
-
-type OrganizationsSamlRoleDataSourceModelTag struct {
-	Tag    jsontypes.String `tfsdk:"tag" json:"tag"`
-	Access jsontypes.String `tfsdk:"access" json:"access"`
-}
-
-func (d *OrganizationsSamlRolesDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *SamlRolesDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_organizations_saml_roles"
 }
 
-func (d *OrganizationsSamlRolesDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *SamlRolesDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "List the saml roles in this organization",
+		MarkdownDescription: "Ports the saml roles in this organization",
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -139,7 +125,7 @@ func (d *OrganizationsSamlRolesDataSource) Schema(ctx context.Context, req datas
 	}
 }
 
-func (d *OrganizationsSamlRolesDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *SamlRolesDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -158,8 +144,8 @@ func (d *OrganizationsSamlRolesDataSource) Configure(ctx context.Context, req da
 	d.client = client
 }
 
-func (d *OrganizationsSamlRolesDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data OrganizationsSamlRolesDataSourceModel
+func (d *SamlRolesDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var data SamlRolesDataSourceModel
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
@@ -168,7 +154,7 @@ func (d *OrganizationsSamlRolesDataSource) Read(ctx context.Context, req datasou
 		return
 	}
 
-	_, httpResp, err := d.client.OrganizationsApi.GetOrganizationSamlRoles(context.Background(), data.OrgId.ValueString()).Execute()
+	_, httpResp, err := d.client.OrganizationsApi.GetOrganizationSamlRoles(context.Background(), data.Id.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"HTTP Client Failure",
@@ -198,8 +184,6 @@ func (d *OrganizationsSamlRolesDataSource) Read(ctx context.Context, req datasou
 		)
 		return
 	}
-
-	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 

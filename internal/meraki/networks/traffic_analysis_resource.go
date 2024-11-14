@@ -25,12 +25,10 @@ func NewNetworksTrafficAnalysisResource() resource.Resource {
 	return &TrafficAnalysisResource{}
 }
 
-// NetworksTrafficAnalysisResource defines the resource implementation.
 type TrafficAnalysisResource struct {
 	client *openApiClient.APIClient
 }
 
-// NetworksTrafficAnalysisResourceModel describes the resource data model.
 type TrafficAnalysisResourceModel struct {
 	Id                  jsontypes.String                                  `tfsdk:"id"`
 	NetworkId           jsontypes.String                                  `tfsdk:"network_id" json:"network_id"`

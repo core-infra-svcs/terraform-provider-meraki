@@ -34,21 +34,21 @@ type SamlRolesResource struct {
 
 // SamlRolesResourceModel describes the resource data model.
 type SamlRolesResourceModel struct {
-	Id        jsontypes.String               `tfsdk:"id"`
-	OrgId     jsontypes.String               `tfsdk:"organization_id" json:"organizationId"`
-	RoleId    jsontypes.String               `tfsdk:"role_id" json:"id"`
-	Role      jsontypes.String               `tfsdk:"role" json:"role"`
-	OrgAccess jsontypes.String               `tfsdk:"org_access" json:"orgAccess"`
-	Tags      []SamlRoleResourceModelTag     `tfsdk:"tags" json:"tags"`
-	Networks  []SamlRoleResourceModelNetwork `tfsdk:"networks" json:"networks"`
+	Id        jsontypes.String       `tfsdk:"id"`
+	OrgId     jsontypes.String       `tfsdk:"organization_id" json:"organizationId"`
+	RoleId    jsontypes.String       `tfsdk:"role_id" json:"id"`
+	Role      jsontypes.String       `tfsdk:"role" json:"role"`
+	OrgAccess jsontypes.String       `tfsdk:"org_access" json:"orgAccess"`
+	Tags      []SamlRoleTagModel     `tfsdk:"tags" json:"tags"`
+	Networks  []SamlRoleNetworkModel `tfsdk:"networks" json:"networks"`
 }
 
-type SamlRoleResourceModelTag struct {
+type SamlRoleTagModel struct {
 	Tag    jsontypes.String `tfsdk:"tag" json:"tag"`
 	Access jsontypes.String `tfsdk:"access" json:"access"`
 }
 
-type SamlRoleResourceModelNetwork struct {
+type SamlRoleNetworkModel struct {
 	Id     jsontypes.String `tfsdk:"id" json:"id"`
 	Access jsontypes.String `tfsdk:"access" json:"access"`
 }

@@ -20,29 +20,27 @@ import (
 
 // Ensure provider defined types fully satisfy framework interfaces
 var (
-	_ resource.Resource                = &DevicesTestAccDevicesManagementInterfaceResourceResource{}
-	_ resource.ResourceWithConfigure   = &DevicesTestAccDevicesManagementInterfaceResourceResource{}
-	_ resource.ResourceWithImportState = &DevicesTestAccDevicesManagementInterfaceResourceResource{}
+	_ resource.Resource                = &ManagementInterfaceResourceResource{}
+	_ resource.ResourceWithConfigure   = &ManagementInterfaceResourceResource{}
+	_ resource.ResourceWithImportState = &ManagementInterfaceResourceResource{}
 )
 
-func NewDevicesTestAccDevicesManagementInterfaceResourceResource() resource.Resource {
-	return &DevicesTestAccDevicesManagementInterfaceResourceResource{}
+func NewManagementInterfaceResourceResource() resource.Resource {
+	return &ManagementInterfaceResourceResource{}
 }
 
-// DevicesTestAccDevicesManagementInterfaceResourceResource defines the resource implementation.
-type DevicesTestAccDevicesManagementInterfaceResourceResource struct {
+type ManagementInterfaceResourceResource struct {
 	client *openApiClient.APIClient
 }
 
-// DevicesTestAccDevicesManagementInterfaceResourceResourceModel describes the resource data model.
-type DevicesTestAccDevicesManagementInterfaceResourceResourceModel struct {
+type ManagementInterfaceResourceResourceModel struct {
 	Id     types.String `tfsdk:"id"`
 	Serial types.String `tfsdk:"serial" json:"serial"`
 	Wan1   types.Object `tfsdk:"wan1" json:"wan1"`
 	Wan2   types.Object `tfsdk:"wan2" json:"wan2"`
 }
 
-type DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan struct {
+type ManagementInterfaceResourceResourceModelWan struct {
 	WanEnabled       types.String `tfsdk:"wan_enabled" json:"wanEnabled"`
 	UsingStaticIp    types.Bool   `tfsdk:"using_static_ip" json:"usingStaticIp"`
 	StaticIp         types.String `tfsdk:"static_ip" json:"staticIp"`
@@ -52,12 +50,12 @@ type DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan struct {
 	Vlan             types.Int64  `tfsdk:"vlan" json:"vlan,omitempty"`
 }
 
-type OutputDevicesTestAccDevicesManagementInterfaceModel struct {
+type ManagementInterfaceModel struct {
 	Wan1 types.Object `json:"wan1"`
 	Wan2 types.Object `json:"wan2"`
 }
 
-type OutputDevicesTestAccDevicesManagementInterfaceModelWan struct {
+type ManagementInterfaceModelWan struct {
 	WanEnabled       string   `json:"wanEnabled,omitempty"`
 	UsingStaticIp    bool     `json:"usingStaticIp,omitempty"`
 	StaticIp         string   `json:"staticIp,omitempty"`
@@ -79,9 +77,9 @@ func WANData() map[string]attr.Type {
 	}
 }
 
-func DevicesManagementInterfaceStateWan(rawResp map[string]interface{}, wanKey string, wanEnabledPlan string) (types.Object, diag.Diagnostics) {
+func ManagementInterfaceStateWan(rawResp map[string]interface{}, wanKey string, wanEnabledPlan string) (types.Object, diag.Diagnostics) {
 	var diags diag.Diagnostics
-	var wan DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan
+	var wan ManagementInterfaceResourceResourceModelWan
 
 	wanAttrs := map[string]attr.Type{
 		"wan_enabled":        types.StringType,
@@ -180,7 +178,7 @@ func DevicesManagementInterfaceStateWan(rawResp map[string]interface{}, wanKey s
 	return wanObj, diags
 }
 
-func updateDevicesManagementInterfaceResourceState(ctx context.Context, state *DevicesTestAccDevicesManagementInterfaceResourceResourceModel, data map[string]interface{}, httpResp *http.Response, wan1EnabledPlan string, wan2EnabledPlan string) diag.Diagnostics {
+func updateDevicesManagementInterfaceResourceState(ctx context.Context, state *ManagementInterfaceResourceResourceModel, data map[string]interface{}, httpResp *http.Response, wan1EnabledPlan string, wan2EnabledPlan string) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	rawResp, err := utils.ExtractResponseToMap(httpResp)
@@ -208,14 +206,14 @@ func updateDevicesManagementInterfaceResourceState(ctx context.Context, state *D
 	}
 
 	// Wan1
-	state.Wan1, diags = DevicesManagementInterfaceStateWan(rawResp, "wan1", wan1EnabledPlan)
+	state.Wan1, diags = ManagementInterfaceStateWan(rawResp, "wan1", wan1EnabledPlan)
 	if diags.HasError() {
 		diags.AddError("Wan1 Attribute", "")
 		return diags
 	}
 
 	// Wan2
-	state.Wan2, diags = DevicesManagementInterfaceStateWan(rawResp, "wan2", wan2EnabledPlan)
+	state.Wan2, diags = ManagementInterfaceStateWan(rawResp, "wan2", wan2EnabledPlan)
 	if diags.HasError() {
 		diags.AddError("Wan2 Attribute", "")
 		return diags
@@ -229,11 +227,11 @@ func updateDevicesManagementInterfaceResourceState(ctx context.Context, state *D
 	return diags
 }
 
-func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *ManagementInterfaceResourceResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_devices_management_interface"
 }
 
-func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *ManagementInterfaceResourceResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 
 		MarkdownDescription: "Manage the management interface settings for a device",
@@ -347,7 +345,7 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Schema(ctx co
 	}
 }
 
-func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *ManagementInterfaceResourceResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -367,8 +365,8 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Configure(ctx
 	r.client = client
 }
 
-func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data DevicesTestAccDevicesManagementInterfaceResourceResourceModel
+func (r *ManagementInterfaceResourceResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data ManagementInterfaceResourceResourceModel
 
 	// Read Terraform plan data into the model
 	diags := req.Plan.Get(ctx, &data)
@@ -381,7 +379,7 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Create(ctx co
 	payload := openApiClient.NewUpdateDeviceManagementInterfaceRequest()
 
 	if !data.Wan1.IsNull() && !data.Wan1.IsUnknown() {
-		var wan1Plan DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan
+		var wan1Plan ManagementInterfaceResourceResourceModelWan
 		data.Wan1.As(ctx, &wan1Plan, basetypes.ObjectAsOptions{})
 		var staticDNS1 []string
 		wan1Plan.StaticDns.ElementsAs(ctx, &staticDNS1, false)
@@ -412,7 +410,7 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Create(ctx co
 	}
 
 	if !data.Wan2.IsNull() && !data.Wan2.IsUnknown() {
-		var wan2Plan DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan
+		var wan2Plan ManagementInterfaceResourceResourceModelWan
 		data.Wan2.As(ctx, &wan2Plan, basetypes.ObjectAsOptions{})
 		var staticDNS2 []string
 		wan2Plan.StaticDns.ElementsAs(ctx, &staticDNS2, false)
@@ -501,13 +499,13 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Create(ctx co
 	}
 
 	// Extract the wan_enabled value directly from Wan1
-	var wan1Plan DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan
+	var wan1Plan ManagementInterfaceResourceResourceModelWan
 	data.Wan1.As(ctx, &wan1Plan, basetypes.ObjectAsOptions{})
 
 	// Assign wan_enabled to a variable
 	wan1EnabledPlan := wan1Plan.WanEnabled.ValueString()
 
-	var wan2Plan DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan
+	var wan2Plan ManagementInterfaceResourceResourceModelWan
 	data.Wan2.As(ctx, &wan2Plan, basetypes.ObjectAsOptions{})
 
 	// Assign wan_enabled to a variable
@@ -525,8 +523,8 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Create(ctx co
 	tflog.Trace(ctx, "create resource")
 }
 
-func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data DevicesTestAccDevicesManagementInterfaceResourceResourceModel
+func (r *ManagementInterfaceResourceResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data ManagementInterfaceResourceResourceModel
 
 	// Read Terraform prior state data into the model
 
@@ -589,13 +587,13 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Read(ctx cont
 	}
 
 	// Extract the wan_enabled value directly from Wan1
-	var wan1Plan DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan
+	var wan1Plan ManagementInterfaceResourceResourceModelWan
 	data.Wan1.As(ctx, &wan1Plan, basetypes.ObjectAsOptions{})
 
 	// Assign wan_enabled to a variable
 	wan1EnabledPlan := wan1Plan.WanEnabled.ValueString()
 
-	var wan2Plan DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan
+	var wan2Plan ManagementInterfaceResourceResourceModelWan
 	data.Wan2.As(ctx, &wan2Plan, basetypes.ObjectAsOptions{})
 
 	// Assign wan_enabled to a variable
@@ -618,8 +616,8 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Read(ctx cont
 	tflog.Trace(ctx, "read resource")
 }
 
-func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data DevicesTestAccDevicesManagementInterfaceResourceResourceModel
+func (r *ManagementInterfaceResourceResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var data ManagementInterfaceResourceResourceModel
 
 	// Read Terraform plan data into the model
 	diags := req.Plan.Get(ctx, &data)
@@ -632,7 +630,7 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Update(ctx co
 	payload := openApiClient.NewUpdateDeviceManagementInterfaceRequest()
 
 	if !data.Wan1.IsNull() && !data.Wan1.IsUnknown() {
-		var wan1Plan DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan
+		var wan1Plan ManagementInterfaceResourceResourceModelWan
 		data.Wan1.As(ctx, &wan1Plan, basetypes.ObjectAsOptions{})
 		var staticDNS1 []string
 		wan1Plan.StaticDns.ElementsAs(ctx, &staticDNS1, false)
@@ -663,7 +661,7 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Update(ctx co
 	}
 
 	if !data.Wan2.IsNull() && !data.Wan2.IsUnknown() {
-		var wan2Plan DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan
+		var wan2Plan ManagementInterfaceResourceResourceModelWan
 		data.Wan2.As(ctx, &wan2Plan, basetypes.ObjectAsOptions{})
 		var staticDNS2 []string
 		wan2Plan.StaticDns.ElementsAs(ctx, &staticDNS2, false)
@@ -742,13 +740,13 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Update(ctx co
 	}
 
 	// Extract the wan_enabled value directly from Wan1
-	var wan1Plan DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan
+	var wan1Plan ManagementInterfaceResourceResourceModelWan
 	data.Wan1.As(ctx, &wan1Plan, basetypes.ObjectAsOptions{})
 
 	// Assign wan_enabled to a variable
 	wan1EnabledPlan := wan1Plan.WanEnabled.ValueString()
 
-	var wan2Plan DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan
+	var wan2Plan ManagementInterfaceResourceResourceModelWan
 	data.Wan2.As(ctx, &wan2Plan, basetypes.ObjectAsOptions{})
 
 	// Assign wan_enabled to a variable
@@ -774,8 +772,8 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Update(ctx co
 	tflog.Trace(ctx, "updated resource")
 }
 
-func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data *DevicesTestAccDevicesManagementInterfaceResourceResourceModel
+func (r *ManagementInterfaceResourceResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data *ManagementInterfaceResourceResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -829,7 +827,7 @@ func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) Delete(ctx co
 	tflog.Trace(ctx, "removed resource")
 }
 
-func (r *DevicesTestAccDevicesManagementInterfaceResourceResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *ManagementInterfaceResourceResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("serial"), req.ID)...)

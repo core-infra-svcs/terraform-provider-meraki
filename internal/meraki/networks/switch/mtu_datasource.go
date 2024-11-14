@@ -75,13 +75,13 @@ func (r *NetworksSwitchMtuDataSource) Schema(ctx context.Context, req datasource
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"switches": schema.SetAttribute{
-							MarkdownDescription: "List of switch serials. Applicable only for switch network.",
+							MarkdownDescription: "Ports of switch serials. Applicable only for switch network.",
 							CustomType:          jsontypes.SetType[jsontypes.String](),
 							Optional:            true,
 							Computed:            true,
 						},
 						"switch_profiles": schema.SetAttribute{
-							MarkdownDescription: "List of switch profile IDs. Applicable only for template network.",
+							MarkdownDescription: "Ports of switch profile IDs. Applicable only for template network.",
 							CustomType:          jsontypes.SetType[jsontypes.String](),
 							Optional:            true,
 							Computed:            true,

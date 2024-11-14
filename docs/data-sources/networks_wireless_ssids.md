@@ -21,7 +21,7 @@ NetworksWirelessSsids
 
 ### Optional
 
-- `list` (Attributes List) (see [below for nested schema](#nestedatt--list))
+- `list` (Attributes Ports) (see [below for nested schema](#nestedatt--list))
 
 ### Read-Only
 
@@ -50,12 +50,12 @@ Optional:
 - `per_ssid_bandwidth_limit_down` (Number)
 - `per_ssid_bandwidth_limit_up` (Number)
 - `radius_accounting_enabled` (Boolean)
-- `radius_accounting_servers` (Attributes List) (see [below for nested schema](#nestedatt--list--radius_accounting_servers))
+- `radius_accounting_servers` (Attributes Ports) (see [below for nested schema](#nestedatt--list--radius_accounting_servers))
 - `radius_attribute_for_group_policies` (String)
 - `radius_enabled` (Boolean)
 - `radius_failover_policy` (String)
 - `radius_load_balancing_policy` (String)
-- `radius_servers` (Attributes List) (see [below for nested schema](#nestedatt--list--radius_servers))
+- `radius_servers` (Attributes Ports) (see [below for nested schema](#nestedatt--list--radius_servers))
 - `splash_page` (String) The type of splash page for the SSID ('None', 'Click-through splash page', 'Billing', 'Password-protected with Meraki RADIUS', 'Password-protected with custom RADIUS', 'Password-protected with Active Directory', 'Password-protected with LDAP', 'SMS authentication', 'Systems Manager Sentry', 'Facebook Wi-Fi', 'Google OAuth', 'Sponsored guest', 'Cisco ISE' or 'Google Apps domain'). This attribute is not supported for template children.
 - `splash_timeout` (String)
 - `ssid_admin_accessible` (Boolean) Enable Mandatory DHCP on VLAN.

@@ -21,19 +21,15 @@ func NewOrganizationsAdaptivePolicyAclsDataSource() datasource.DataSource {
 	return &AdaptivePolicyAclsDataSource{}
 }
 
-// AdaptivePolicyAclsDataSource defines the data source implementation.
 type AdaptivePolicyAclsDataSource struct {
 	client *openApiClient.APIClient
 }
 
-// AdaptivePolicyAclsDataSourceModel describes the data source data model.
 type AdaptivePolicyAclsDataSourceModel struct {
-	Id    jsontypes.String                        `tfsdk:"id"`
-	OrgId jsontypes.String                        `tfsdk:"organization_id"`
-	List  []AdaptivePolicyAclsDataSourceModelList `tfsdk:"list"`
+	Id   jsontypes.String                        `tfsdk:"id" json:"organization_id"`
+	List []AdaptivePolicyAclsDataSourceModelList `tfsdk:"list"`
 }
 
-// AdaptivePolicyAclsDataSourceModelList describes the acl data source data model.
 type AdaptivePolicyAclsDataSourceModelList struct {
 	AclId       jsontypes.String                         `tfsdk:"acl_id" json:"AclId"`
 	Name        jsontypes.String                         `tfsdk:"name"`
@@ -57,17 +53,12 @@ func (d *AdaptivePolicyAclsDataSource) Metadata(ctx context.Context, req datasou
 
 func (d *AdaptivePolicyAclsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "List adaptive policy ACLs in a organization",
+		MarkdownDescription: "Ports adaptive policy ACLs in a organization",
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:   true,
 				CustomType: jsontypes.StringType,
-			},
-			"organization_id": schema.StringAttribute{
-				MarkdownDescription: "Organization ID",
-				Optional:            true,
-				CustomType:          jsontypes.StringType,
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 31),
 				},
@@ -173,7 +164,7 @@ func (d *AdaptivePolicyAclsDataSource) Read(ctx context.Context, req datasource.
 		return
 	}
 
-	_, httpResp, err := d.client.OrganizationsApi.GetOrganizationAdaptivePolicyAcls(context.Background(), data.OrgId.ValueString()).Execute()
+	_, httpResp, err := d.client.OrganizationsApi.GetOrganizationAdaptivePolicyAcls(context.Background(), data.Id.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"HTTP Client Failure",
@@ -198,7 +189,6 @@ func (d *AdaptivePolicyAclsDataSource) Read(ctx context.Context, req datasource.
 	}
 
 	// Save data into Terraform state
-	data.Id = jsontypes.StringValue("example-id")
 	if err = json.NewDecoder(httpResp.Body).Decode(&data.List); err != nil {
 		resp.Diagnostics.AddError(
 			"JSON decoding error",

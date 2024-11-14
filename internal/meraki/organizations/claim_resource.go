@@ -20,45 +20,37 @@ import (
 
 // OrganizationsClaimResource struct.
 var (
-	_ resource.Resource              = &OrganizationsClaimResource{} // Terraform resource interface
-	_ resource.ResourceWithConfigure = &OrganizationsClaimResource{} // Interface for resources with configuration methods
+	_ resource.Resource              = &ClaimResource{} // Terraform resource interface
+	_ resource.ResourceWithConfigure = &ClaimResource{} // Interface for resources with configuration methods
 )
 
-// The NewOrganizationsClaimResource function is a constructor for the resource. This function needs
-// to be added to the list of Resources in provider.go: func (p *ScaffoldingProvider) Resources.
-// If it's not added, the provider won't be aware of this resource's existence.
 func NewOrganizationsClaimResource() resource.Resource {
-	return &OrganizationsClaimResource{}
+	return &ClaimResource{}
 }
 
-// OrganizationsClaimResource struct defines the structure for this resource.
-// It includes an APIClient field for making requests to the Meraki API.
-// If additional fields are required (e.g., for caching or for tracking internal state), add them here.
-type OrganizationsClaimResource struct {
+type ClaimResource struct {
 	client *openApiClient.APIClient // APIClient instance for making API requests
 }
 
-// The OrganizationsClaimResourceModel structure describes the data model.
-// This struct is where you define all the attributes that are part of this resource's state.
-type OrganizationsClaimResourceModel struct {
+type ClaimResourceModel struct {
 
 	// The Id field is mandatory for all resources. It's used for resource identification and is required
 	// for the acceptance tests to run.
-	Id             jsontypes.String                         `tfsdk:"id"`
-	OrganizationId jsontypes.String                         `tfsdk:"organization_id"`
-	Orders         []jsontypes.String                       `tfsdk:"orders"`
-	Serials        []jsontypes.String                       `tfsdk:"serials"`
-	Licences       []OrganizationsClaimResourceModelLicence `tfsdk:"licences"`
+	Id             jsontypes.String            `tfsdk:"id"`
+	OrganizationId jsontypes.String            `tfsdk:"organization_id"`
+	Orders         []jsontypes.String          `tfsdk:"orders"`
+	Serials        []jsontypes.String          `tfsdk:"serials"`
+	Licences       []ClaimResourceModelLicence `tfsdk:"licences"`
 }
 
-type OrganizationsClaimResourceModelLicence struct {
+type ClaimResourceModelLicence struct {
 	Key  jsontypes.String `tfsdk:"key"`
 	Mode jsontypes.String `tfsdk:"mode"`
 }
 
 // Metadata provides a way to define information about the resource.
 // This method is called by the framework to retrieve metadata about the resource.
-func (r *OrganizationsClaimResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *ClaimResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 
 	// The TypeName attribute is important as it provides the user-friendly name for the resource/data source.
 	// This is the name users will use to reference the resource/data source, and it's also used in the acceptance tests.
@@ -67,7 +59,7 @@ func (r *OrganizationsClaimResource) Metadata(ctx context.Context, req resource.
 
 // Schema provides a way to define the structure of the resource data.
 // It is called by the framework to get the schema of the resource.
-func (r *OrganizationsClaimResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *ClaimResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 
 	// The Schema object defines the structure of the resource.
 	resp.Schema = schema.Schema{
@@ -134,7 +126,7 @@ func (r *OrganizationsClaimResource) Schema(ctx context.Context, req resource.Sc
 
 // Configure is a method of the Resource interface that Terraform calls to provide the configured provider instance to the resource.
 // It passes the ResourceData that's been stored by the provider's ConfigureFunc.
-func (r *OrganizationsClaimResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *ClaimResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 
 	// The provider must be properly configured before it can be used.
 	if req.ProviderData == nil {
@@ -162,8 +154,8 @@ func (r *OrganizationsClaimResource) Configure(ctx context.Context, req resource
 // Create method is responsible for creating a new resource.
 // It takes a CreateRequest containing the planned state of the new resource and returns a CreateResponse
 // with the final state of the new resource or an error.
-func (r *OrganizationsClaimResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *OrganizationsClaimResourceModel
+func (r *ClaimResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *ClaimResourceModel
 
 	// Unmarshal the plan data into the internal data model struct.
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -250,8 +242,8 @@ func (r *OrganizationsClaimResource) Create(ctx context.Context, req resource.Cr
 
 // Read method is responsible for reading an existing resource's state.
 // It takes a ReadRequest and returns a ReadResponse with the current state of the resource or an error.
-func (r *OrganizationsClaimResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *OrganizationsClaimResourceModel
+func (r *ClaimResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *ClaimResourceModel
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -319,8 +311,8 @@ func (r *OrganizationsClaimResource) Read(ctx context.Context, req resource.Read
 
 // Update function is responsible for updating the state of an existing resource.
 // It uses an UpdateRequest and responds with an UpdateResponse which contains the updated state of the resource or an error.
-func (r *OrganizationsClaimResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data *OrganizationsClaimResourceModel
+func (r *ClaimResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var data *ClaimResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
@@ -338,9 +330,9 @@ func (r *OrganizationsClaimResource) Update(ctx context.Context, req resource.Up
 
 // Delete function is responsible for deleting a resource.
 // It uses a DeleteRequest and responds with a DeleteResponse which contains the updated state of the resource or an error.
-func (r *OrganizationsClaimResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *ClaimResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 
-	var data *OrganizationsClaimResourceModel
+	var data *ClaimResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 

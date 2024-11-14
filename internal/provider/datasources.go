@@ -6,8 +6,10 @@ import (
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance"
-	_switch "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/switch"
-	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/wireless/ssids"
+	applianceVlans "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/vlans"
+	networkGroupPolicy "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/groupPolicy"
+	merakiSwitch "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/switch"
+	wirelessSsids "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/wireless/ssid"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 )
@@ -21,21 +23,22 @@ func (p *CiscoMerakiProvider) DataSources(ctx context.Context) []func() datasour
 		devices.NewDevicesSwitchPortsStatusesDataSource,
 		devices.NewDevicesApplianceDhcpSubnetsDataSource,
 
-		networks.NewNetworkGroupPoliciesDataSource,
+		networkGroupPolicy.NewNetworkGroupPoliciesDataSource,
 		networks.NewNetworksSwitchStormControlDataSource,
 
 		appliance.NewNetworksAppliancePortsDataSource,
-		appliance.NewNetworksApplianceVLANsDatasource,
-		appliance.NewNetworksApplianceVlansSettingsDatasource,
+		applianceVlans.NewNetworksApplianceVLANsDatasource,
+		applianceVlans.NewNetworksApplianceVlansSettingsDatasource,
 		appliance.NewNetworksApplianceVpnSiteToSiteVpnDatasource,
 
-		_switch.NewNetworksSwitchMtuDataSource,
-		_switch.NewNetworksSwitchQosRulesDataSource,
+		merakiSwitch.NewNetworksSwitchMtuDataSource,
+		merakiSwitch.NewNetworksSwitchQosRulesDataSource,
 
-		ssids.NewNetworksWirelessSsidsDataSource,
+		wirelessSsids.NewNetworksWirelessSsidsDataSource,
 
 		organizations.NewOrganizationsAdaptivePolicyAclsDataSource,
 		organizations.NewOrganizationsAdminsDataSource,
+		organizations.NewOrganizationsLicensesDataSource,
 		organizations.NewOrganizationsCellularGatewayUplinkStatusesDataSource,
 		organizations.NewOrganizationsDataSource,
 		organizations.NewOrganizationsSamlIdpsDataSource,

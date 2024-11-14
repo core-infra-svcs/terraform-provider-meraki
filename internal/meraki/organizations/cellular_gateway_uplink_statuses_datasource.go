@@ -12,70 +12,68 @@ import (
 	openApiClient "github.com/meraki/dashboard-api-go/client"
 )
 
-var _ datasource.DataSource = &OrganizationsCellularGatewayUplinkStatusesDataSource{}
+var _ datasource.DataSource = &CellularGatewayUplinkStatusesDataSource{}
 
 func NewOrganizationsCellularGatewayUplinkStatusesDataSource() datasource.DataSource {
-	return &OrganizationsCellularGatewayUplinkStatusesDataSource{}
+	return &CellularGatewayUplinkStatusesDataSource{}
 }
 
-type OrganizationsCellularGatewayUplinkStatusesDataSource struct {
+type CellularGatewayUplinkStatusesDataSource struct {
 	client *openApiClient.APIClient
 }
 
-// The OrganizationsCellularGatewayUplinkStatusesDataSourceModel structure describes the data model.
-// This struct is where you define all the attributes that are part of this data source's state.
-type OrganizationsCellularGatewayUplinkStatusesDataSourceModel struct {
-	Id             jsontypes.String                                                `tfsdk:"id"`
-	OrganizationId jsontypes.String                                                `tfsdk:"organization_id"`
-	PerPage        jsontypes.Int64                                                 `tfsdk:"per_page"`
-	StartingAfter  jsontypes.String                                                `tfsdk:"starting_after"`
-	EndingBefore   jsontypes.String                                                `tfsdk:"ending_before"`
-	NetworkIds     []jsontypes.String                                              `tfsdk:"network_ids"`
-	Serials        []jsontypes.String                                              `tfsdk:"serials"`
-	Iccids         []jsontypes.String                                              `tfsdk:"iccids"`
-	List           []OrganizationsCellularGatewayUplinkStatusesDataSourceModelList `tfsdk:"list"`
+type CellularGatewayUplinkStatusesDataSourceModel struct {
+	Id             jsontypes.String                                   `tfsdk:"id"`
+	OrganizationId jsontypes.String                                   `tfsdk:"organization_id"`
+	PerPage        jsontypes.Int64                                    `tfsdk:"per_page"`
+	StartingAfter  jsontypes.String                                   `tfsdk:"starting_after"`
+	EndingBefore   jsontypes.String                                   `tfsdk:"ending_before"`
+	NetworkIds     []jsontypes.String                                 `tfsdk:"network_ids"`
+	Serials        []jsontypes.String                                 `tfsdk:"serials"`
+	Iccids         []jsontypes.String                                 `tfsdk:"iccids"`
+	List           []CellularGatewayUplinkStatusesDataSourceModelList `tfsdk:"list"`
 }
 
-type OrganizationsCellularGatewayUplinkStatusesDataSourceModelList struct {
-	NetworkId      jsontypes.String                                                  `tfsdk:"network_id" json:"networkId,omitempty"`
-	Serial         jsontypes.String                                                  `tfsdk:"serial"`
-	Model          jsontypes.String                                                  `tfsdk:"model"`
-	LastReportedAt jsontypes.String                                                  `tfsdk:"last_reported_at"`
-	Uplinks        []OrganizationsCellularGatewayUplinkStatusesDataSourceModelUplink `tfsdk:"uplinks"`
+type CellularGatewayUplinkStatusesDataSourceModelList struct {
+	NetworkId      jsontypes.String                                     `tfsdk:"network_id" json:"networkId,omitempty"`
+	Serial         jsontypes.String                                     `tfsdk:"serial"`
+	Model          jsontypes.String                                     `tfsdk:"model"`
+	LastReportedAt jsontypes.String                                     `tfsdk:"last_reported_at"`
+	Uplinks        []CellularGatewayUplinkStatusesDataSourceModelUplink `tfsdk:"uplinks"`
 }
 
-type OrganizationsCellularGatewayUplinkStatusesDataSourceModelUplink struct {
-	Interface      jsontypes.String                                                    `tfsdk:"interface"`
-	Status         jsontypes.String                                                    `tfsdk:"status"`
-	Ip             jsontypes.String                                                    `tfsdk:"ip"`
-	Provider       jsontypes.String                                                    `tfsdk:"provider"`
-	PublicIp       jsontypes.String                                                    `tfsdk:"public_ip"`
-	Model          jsontypes.String                                                    `tfsdk:"model"`
-	SignalStat     OrganizationsCellularGatewayUplinkStatusesDataSourceModelSignalStat `tfsdk:"signal_stat"`
-	ConnectionType jsontypes.String                                                    `tfsdk:"connection_type"`
-	Apn            jsontypes.String                                                    `tfsdk:"apn"`
-	Gateway        jsontypes.String                                                    `tfsdk:"gateway"`
-	Dns1           jsontypes.String                                                    `tfsdk:"dns1"`
-	Dns2           jsontypes.String                                                    `tfsdk:"dns2"`
-	SignalType     jsontypes.String                                                    `tfsdk:"signal_type"`
-	Iccid          jsontypes.String                                                    `tfsdk:"iccid"`
+type CellularGatewayUplinkStatusesDataSourceModelUplink struct {
+	Interface      jsontypes.String                                       `tfsdk:"interface"`
+	Status         jsontypes.String                                       `tfsdk:"status"`
+	Ip             jsontypes.String                                       `tfsdk:"ip"`
+	Provider       jsontypes.String                                       `tfsdk:"provider"`
+	PublicIp       jsontypes.String                                       `tfsdk:"public_ip"`
+	Model          jsontypes.String                                       `tfsdk:"model"`
+	SignalStat     CellularGatewayUplinkStatusesDataSourceModelSignalStat `tfsdk:"signal_stat"`
+	ConnectionType jsontypes.String                                       `tfsdk:"connection_type"`
+	Apn            jsontypes.String                                       `tfsdk:"apn"`
+	Gateway        jsontypes.String                                       `tfsdk:"gateway"`
+	Dns1           jsontypes.String                                       `tfsdk:"dns1"`
+	Dns2           jsontypes.String                                       `tfsdk:"dns2"`
+	SignalType     jsontypes.String                                       `tfsdk:"signal_type"`
+	Iccid          jsontypes.String                                       `tfsdk:"iccid"`
 }
 
-type OrganizationsCellularGatewayUplinkStatusesDataSourceModelSignalStat struct {
+type CellularGatewayUplinkStatusesDataSourceModelSignalStat struct {
 	Rsrp jsontypes.String `tfsdk:"rsrp"`
 	Rsrq jsontypes.String `tfsdk:"rsrq"`
 }
 
 // Metadata provides a way to define information about the data source.
 // This method is called by the framework to retrieve metadata about the data source.
-func (d *OrganizationsCellularGatewayUplinkStatusesDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *CellularGatewayUplinkStatusesDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 
 	resp.TypeName = req.ProviderTypeName + "_organizations_cellular_gateway_uplink_statuses"
 }
 
 // Schema provides a way to define the structure of the data source data.
 // It is called by the framework to get the schema of the data source.
-func (d *OrganizationsCellularGatewayUplinkStatusesDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *CellularGatewayUplinkStatusesDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 
 	// The Schema object defines the structure of the data source.
 	resp.Schema = schema.Schema{
@@ -134,7 +132,7 @@ func (d *OrganizationsCellularGatewayUplinkStatusesDataSource) Schema(ctx contex
 				Optional:            true,
 			},
 			"list": schema.SetNestedAttribute{
-				MarkdownDescription: "List of organization acls",
+				MarkdownDescription: "Ports of organization acls",
 				Optional:            true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
@@ -272,7 +270,7 @@ func (d *OrganizationsCellularGatewayUplinkStatusesDataSource) Schema(ctx contex
 
 // Configure is a method of the data source interface that Terraform calls to provide the configured provider instance to the data source.
 // It passes the DataSourceData that's been stored by the provider's ConfigureFunc.
-func (d *OrganizationsCellularGatewayUplinkStatusesDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *CellularGatewayUplinkStatusesDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 
 	// The provider must be properly configured before it can be used.
 	if req.ProviderData == nil {
@@ -297,8 +295,8 @@ func (d *OrganizationsCellularGatewayUplinkStatusesDataSource) Configure(ctx con
 }
 
 // Read method is responsible for reading an existing data source's state.
-func (d *OrganizationsCellularGatewayUplinkStatusesDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data OrganizationsCellularGatewayUplinkStatusesDataSourceModel
+func (d *CellularGatewayUplinkStatusesDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var data CellularGatewayUplinkStatusesDataSourceModel
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)

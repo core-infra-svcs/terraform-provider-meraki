@@ -12,39 +12,23 @@ import (
 	openApiClient "github.com/meraki/dashboard-api-go/client"
 )
 
-// The below var(s) ensures the provider defined types fully satisfy the required interface(s) for a data source.
-// DevicesApplianceDhcpSubnetsDataSource struct. If not, implement them.
-var _ datasource.DataSource = &DevicesApplianceDhcpSubnetsDataSource{}
+var _ datasource.DataSource = &ApplianceDhcpSubnetsDataSource{}
 
-// The NewDevicesApplianceDhcpSubnetsDataSource function is a constructor for the data source. This function needs
-// to be added to the list of Data Sources in provider.go: func (p *ScaffoldingProvider) DataSources.
-// If it's not added, the provider won't be aware of this data source's existence.
 func NewDevicesApplianceDhcpSubnetsDataSource() datasource.DataSource {
-	return &DevicesApplianceDhcpSubnetsDataSource{}
+	return &ApplianceDhcpSubnetsDataSource{}
 }
 
-// DevicesApplianceDhcpSubnetsDataSource struct defines the structure for this data source.
-// It includes an APIClient field for making requests to the Meraki API.
-// If additional fields are required (e.g., for caching or for tracking internal state), add them here.
-type DevicesApplianceDhcpSubnetsDataSource struct {
+type ApplianceDhcpSubnetsDataSource struct {
 	client *openApiClient.APIClient
 }
 
-// The DevicesApplianceDhcpSubnetsDataSourceModel structure describes the data model.
-// This struct is where you define all the attributes that are part of this data source's state.
-type DevicesApplianceDhcpSubnetsDataSourceModel struct {
-
-	// The Id field is mandatory for all data sources. It's used for data source identification and is required
-	// for the acceptance tests to run.
-	Id     jsontypes.String                                 `tfsdk:"id"`
-	Serial jsontypes.String                                 `tfsdk:"serial"`
-	List   []DevicesApplianceDhcpSubnetsDataSourceModelList `tfsdk:"list"`
-
-	// Each of the remaining fields represents an attribute of this data source. They should match the attributes
-	// defined in the tfsdk.Schema for this data source.
+type ApplianceDhcpSubnetsDataSourceModel struct {
+	Id     jsontypes.String                     `tfsdk:"id"`
+	Serial jsontypes.String                     `tfsdk:"serial"`
+	List   []ApplianceDhcpSubnetDataSourceModel `tfsdk:"list"`
 }
 
-type DevicesApplianceDhcpSubnetsDataSourceModelList struct {
+type ApplianceDhcpSubnetDataSourceModel struct {
 	Subnet    jsontypes.String `tfsdk:"subnet" json:"subnet"`
 	VlanId    jsontypes.Int64  `tfsdk:"vlan_id" json:"vlanId"`
 	UsedCount jsontypes.Int64  `tfsdk:"used_count" json:"usedCount"`
@@ -53,13 +37,13 @@ type DevicesApplianceDhcpSubnetsDataSourceModelList struct {
 
 // Metadata provides a way to define information about the data source.
 // This method is called by the framework to retrieve metadata about the data source.
-func (d *DevicesApplianceDhcpSubnetsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *ApplianceDhcpSubnetsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_devices_appliance_dhcp_subnets"
 }
 
 // Schema provides a way to define the structure of the data source data.
 // It is called by the framework to get the schema of the data source.
-func (d *DevicesApplianceDhcpSubnetsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *ApplianceDhcpSubnetsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 
 	// The Schema object defines the structure of the data source.
 	resp.Schema = schema.Schema{
@@ -81,7 +65,7 @@ func (d *DevicesApplianceDhcpSubnetsDataSource) Schema(ctx context.Context, req 
 			"list": schema.ListNestedAttribute{
 				Optional:    true,
 				Computed:    true,
-				Description: "List of DHCP subnets",
+				Description: "Ports of DHCP subnets",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"subnet": schema.StringAttribute{
@@ -117,7 +101,7 @@ func (d *DevicesApplianceDhcpSubnetsDataSource) Schema(ctx context.Context, req 
 
 // Configure is a method of the data source interface that Terraform calls to provide the configured provider instance to the data source.
 // It passes the DataSourceData that's been stored by the provider's ConfigureFunc.
-func (d *DevicesApplianceDhcpSubnetsDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *ApplianceDhcpSubnetsDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 
 	// The provider must be properly configured before it can be used.
 	if req.ProviderData == nil {
@@ -142,8 +126,8 @@ func (d *DevicesApplianceDhcpSubnetsDataSource) Configure(ctx context.Context, r
 }
 
 // Read method is responsible for reading an existing data source's state.
-func (d *DevicesApplianceDhcpSubnetsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data DevicesApplianceDhcpSubnetsDataSourceModel
+func (d *ApplianceDhcpSubnetsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var data ApplianceDhcpSubnetsDataSourceModel
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)

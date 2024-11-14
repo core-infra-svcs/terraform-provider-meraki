@@ -22,7 +22,7 @@ Manage network Devices resource. This only works for devices associated with a n
 ### Optional
 
 - `address` (String) The address of a device
-- `details` (Attributes List) Network tags (see [below for nested schema](#nestedatt--details))
+- `details` (Attributes Ports) Network tags (see [below for nested schema](#nestedatt--details))
 - `firmware` (String) The firmware version of a device
 - `floor_plan_id` (String) The floor plan to associate to this device. null disassociates the device from the floor plan.
 - `lan_ip` (String) The ipv4 lan ip of a device
@@ -35,7 +35,7 @@ Manage network Devices resource. This only works for devices associated with a n
 - `network_id` (String) Network ID
 - `notes` (String) Notes for the network
 - `switch_profile_id` (String) The ID of a switch profile to bind to the device (for available switch profiles, see the 'Switch Profiles' endpoint). Use null to unbind the switch device from the current profile. For a device to be bindable to a switch profile, it must (1) be a switch, and (2) belong to a network that is bound to a configuration template.
-- `tags` (List of String) Network tags
+- `tags` (Ports of String) Network tags
 - `url` (String) The url for the network associated with the device.
 
 ### Read-Only

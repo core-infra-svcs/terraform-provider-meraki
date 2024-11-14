@@ -34,5 +34,5 @@ Networks switch mtu resource for updating networks switch mtu.
 Optional:
 
 - `mtu_size` (Number) MTU size for the switches or switch profiles..
-- `switch_profiles` (Set of String) List of switch profile IDs. Applicable only for template network.
-- `switches` (Set of String) List of switch serials. Applicable only for switch network.
+- `switch_profiles` (Set of String) Ports of switch profile IDs. Applicable only for template network.
+- `switches` (Set of String) Ports of switch serials. Applicable only for switch network.

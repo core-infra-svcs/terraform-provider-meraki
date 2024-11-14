@@ -17,26 +17,24 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ datasource.DataSource = &DevicesManagementInterfaceDatasource{}
+var _ datasource.DataSource = &ManagementInterfaceDatasource{}
 
 func NewDevicesManagementInterfaceDatasource() datasource.DataSource {
-	return &DevicesManagementInterfaceDatasource{}
+	return &ManagementInterfaceDatasource{}
 }
 
-// DevicesManagementInterfaceDatasource defines the resource implementation.
-type DevicesManagementInterfaceDatasource struct {
+type ManagementInterfaceDatasource struct {
 	client *openApiClient.APIClient
 }
 
-// DevicesManagementInterfaceDatasourceModel describes the resource data model.
-type DevicesManagementInterfaceDatasourceModel struct {
+type ManagementInterfaceDatasourceModel struct {
 	Id     types.String `tfsdk:"id"`
 	Serial types.String `tfsdk:"serial" json:"serial"`
 	Wan1   types.Object `tfsdk:"wan1" json:"wan1"`
 	Wan2   types.Object `tfsdk:"wan2" json:"wan2"`
 }
 
-type DevicesManagementInterfaceDatasourceModelModelWan struct {
+type ManagementInterfaceWanDatasourceModel struct {
 	WanEnabled       types.String `tfsdk:"wan_enabled" json:"wanEnabled"`
 	UsingStaticIp    types.Bool   `tfsdk:"using_static_ip" json:"usingStaticIp"`
 	StaticIp         types.String `tfsdk:"static_ip" json:"staticIp"`
@@ -46,9 +44,9 @@ type DevicesManagementInterfaceDatasourceModelModelWan struct {
 	Vlan             types.Int64  `tfsdk:"vlan" json:"vlan,omitempty"`
 }
 
-func DevicesManagementInterfaceDatasourceStateWan(rawResp map[string]interface{}, wanKey string) (types.Object, diag.Diagnostics) {
+func ManagementInterfaceDatasourceStateWan(rawResp map[string]interface{}, wanKey string) (types.Object, diag.Diagnostics) {
 	var diags diag.Diagnostics
-	var wan DevicesTestAccDevicesManagementInterfaceResourceResourceModelWan
+	var wan ManagementInterfaceResourceResourceModelWan
 
 	wanAttrs := map[string]attr.Type{
 		"wan_enabled":        types.StringType,
@@ -138,7 +136,7 @@ func DevicesManagementInterfaceDatasourceStateWan(rawResp map[string]interface{}
 	return wanObj, diags
 }
 
-func updateDevicesManagementInterfaceDatasourceState(ctx context.Context, state *DevicesManagementInterfaceDatasourceModel, data map[string]interface{}, httpResp *http.Response) diag.Diagnostics {
+func updateDevicesManagementInterfaceDatasourceState(ctx context.Context, state *ManagementInterfaceDatasourceModel, data map[string]interface{}, httpResp *http.Response) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	rawResp, err := utils.ExtractResponseToMap(httpResp)
@@ -166,14 +164,14 @@ func updateDevicesManagementInterfaceDatasourceState(ctx context.Context, state 
 	}
 
 	// Wan1
-	state.Wan1, diags = DevicesManagementInterfaceDatasourceStateWan(rawResp, "wan1")
+	state.Wan1, diags = ManagementInterfaceDatasourceStateWan(rawResp, "wan1")
 	if diags.HasError() {
 		diags.AddError("Wan1 Attribute", "")
 		return diags
 	}
 
 	// Wan2
-	state.Wan2, diags = DevicesManagementInterfaceDatasourceStateWan(rawResp, "wan2")
+	state.Wan2, diags = ManagementInterfaceDatasourceStateWan(rawResp, "wan2")
 	if diags.HasError() {
 		diags.AddError("Wan2 Attribute", "")
 		return diags
@@ -187,11 +185,11 @@ func updateDevicesManagementInterfaceDatasourceState(ctx context.Context, state 
 	return diags
 }
 
-func (r *DevicesManagementInterfaceDatasource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (r *ManagementInterfaceDatasource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_devices_management_interface"
 }
 
-func (r *DevicesManagementInterfaceDatasource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (r *ManagementInterfaceDatasource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 
 		MarkdownDescription: "Manage the management interface settings for a device",
@@ -290,7 +288,7 @@ func (r *DevicesManagementInterfaceDatasource) Schema(ctx context.Context, req d
 	}
 }
 
-func (r *DevicesManagementInterfaceDatasource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (r *ManagementInterfaceDatasource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -310,8 +308,8 @@ func (r *DevicesManagementInterfaceDatasource) Configure(ctx context.Context, re
 	r.client = client
 }
 
-func (r *DevicesManagementInterfaceDatasource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data DevicesManagementInterfaceDatasourceModel
+func (r *ManagementInterfaceDatasource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var data ManagementInterfaceDatasourceModel
 
 	diags := req.Config.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)

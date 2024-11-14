@@ -23,20 +23,17 @@ func NewNetworkDevicesDataSource() datasource.DataSource {
 	return &NetworkDevicesDataSource{}
 }
 
-// NetworkDevicesDataSource defines the data source implementation.
 type NetworkDevicesDataSource struct {
 	client *openApiClient.APIClient
 }
 
-// The DevicesDatasourceModel structure describes the data model.
-// This struct is where you define all the attributes that are part of this resource's state.
-type DevicesDatasourceModel struct {
+type DeviceDatasourceModel struct {
 	Id        types.String `tfsdk:"id"`
-	List      types.List   `tfsdk:"list"`
+	Devices   types.List   `tfsdk:"list"`
 	NetworkId types.String `tfsdk:"network_id"`
 }
 
-type DevicesDatasourceModelDevice struct {
+type DeviceDevicesDatasourceModel struct {
 	Id              types.String  `tfsdk:"id"`
 	Serial          types.String  `tfsdk:"serial"`
 	Name            types.String  `tfsdk:"name"`
@@ -58,7 +55,7 @@ type DevicesDatasourceModelDevice struct {
 	MoveMapMarker   types.Bool    `tfsdk:"move_map_marker"`
 }
 
-type DevicesDatasourceModelBeaconIdParams struct {
+type DeviceBeaconIdParamsDatasourceModel struct {
 	Uuid  jsontypes.String `tfsdk:"uuid"`
 	Major jsontypes.Int64  `tfsdk:"major"`
 	Minor jsontypes.Int64  `tfsdk:"minor"`
@@ -80,8 +77,8 @@ func (d *NetworkDevicesDataSource) Schema(ctx context.Context, req datasource.Sc
 				MarkdownDescription: "Network ID",
 				Required:            true,
 			},
-			"list": schema.ListNestedAttribute{
-				MarkdownDescription: "List of devices",
+			"Devices": schema.ListNestedAttribute{
+				MarkdownDescription: "Ports of devices",
 				Optional:            true,
 				Computed:            true,
 				NestedObject: schema.NestedAttributeObject{
@@ -215,9 +212,9 @@ func (d *NetworkDevicesDataSource) Configure(ctx context.Context, req datasource
 
 /*
 
-func updateDevicesDatasourceStateList(ctx context.Context, state *DevicesDatasourceModel, httpResp *http.Response) diag.Diagnostics {
+func updateDevicesDatasourceStateList(ctx context.Context, state *DeviceDatasourceModel, httpResp *http.Response) diag.Diagnostics {
 	var diags diag.Diagnostics
-	var device DevicesDatasourceModelDevice
+	var device DeviceDevicesDatasourceModel
 
 
 
@@ -273,7 +270,7 @@ func updateDevicesDatasourceStateList(ctx context.Context, state *DevicesDatasou
 	// Set ID for the resource.
 	state.Id = jsontypes.StringValue(state.Serial.ValueString())
 
-	state.List = append(state.List, device)
+	state.Ports = append(state.Ports, device)
 
 	return diags
 }
@@ -281,7 +278,7 @@ func updateDevicesDatasourceStateList(ctx context.Context, state *DevicesDatasou
 */
 
 // updateDevicesResourceState updates the resource state with the provided api data.
-func updateDevicesDatasourceState(ctx context.Context, state *DevicesDatasourceModel, inlineResp []map[string]interface{}) diag.Diagnostics {
+func updateDevicesDatasourceState(ctx context.Context, state *DeviceDatasourceModel, inlineResp []map[string]interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	var deviceList []attr.Value
 
@@ -324,7 +321,7 @@ func updateDevicesDatasourceState(ctx context.Context, state *DevicesDatasourceM
 	}
 
 	for _, d := range inlineResp {
-		var device DevicesDatasourceModelDevice
+		var device DeviceDevicesDatasourceModel
 
 		// "name": "My AP",
 		name, err := utils.ExtractStringAttr(d, "name")
@@ -489,7 +486,7 @@ func updateDevicesDatasourceState(ctx context.Context, state *DevicesDatasourceM
 
 			beaconIdParamsResp, ok := d["beaconIdParams"].(map[string]interface{})
 			if ok {
-				var beaconIdParams DevicesResourceModelBeaconIdParams
+				var beaconIdParams DeviceBeaconIdParamsResourceModel
 
 				// uuid
 				uuid, err := utils.ExtractStringAttr(beaconIdParamsResp, "uuid")
@@ -568,13 +565,13 @@ func updateDevicesDatasourceState(ctx context.Context, state *DevicesDatasourceM
 		diags.Append(err...)
 	}
 
-	state.List = deviceListArray
+	state.Devices = deviceListArray
 
 	return diags
 }
 
 func (d *NetworkDevicesDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data DevicesDatasourceModel
+	var data DeviceDatasourceModel
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)

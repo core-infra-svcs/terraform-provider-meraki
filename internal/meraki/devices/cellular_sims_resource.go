@@ -15,62 +15,55 @@ import (
 
 // Ensure provider defined types fully satisfy framework interfaces
 var (
-	_ resource.Resource                = &DevicesCellularSimsResource{}
-	_ resource.ResourceWithConfigure   = &DevicesCellularSimsResource{}
-	_ resource.ResourceWithImportState = &DevicesCellularSimsResource{}
+	_ resource.Resource                = &CellularSimsResource{}
+	_ resource.ResourceWithConfigure   = &CellularSimsResource{}
+	_ resource.ResourceWithImportState = &CellularSimsResource{}
 )
 
 func NewDevicesCellularSimsResource() resource.Resource {
-	return &DevicesCellularSimsResource{}
+	return &CellularSimsResource{}
 }
 
-// DevicesCellularSimsResource defines the resource implementation.
-type DevicesCellularSimsResource struct {
+type CellularSimsResource struct {
 	client *openApiClient.APIClient
 }
 
-// DevicesCellularSimsResourceModel describes the resource data model.
-type DevicesCellularSimsResourceModel struct {
-	Id          jsontypes.String                            `tfsdk:"id"`
-	Serial      jsontypes.String                            `tfsdk:"serial" json:"serial"`
-	Sims        []DevicesCellularSimsResourceModelSim       `tfsdk:"sims" json:"sims"`
-	SimFailOver DevicesCellularSimsResourceModelSimFailOver `tfsdk:"sim_failover" json:"simFailover"`
+type CellularSimsResourceModel struct {
+	Serial      jsontypes.String                     `tfsdk:"id" json:"serial"`
+	Sims        []CellularSimsResourceModelSim       `tfsdk:"sims" json:"sims"`
+	SimFailOver CellularSimsResourceModelSimFailOver `tfsdk:"sim_failover" json:"simFailover"`
 }
 
-type DevicesCellularSimsResourceModelSim struct {
-	Slot      jsontypes.String                       `tfsdk:"slot" json:"slot"`
-	IsPrimary jsontypes.Bool                         `tfsdk:"is_primary" json:"isPrimary"`
-	Apns      []DevicesCellularSimsResourceModelApns `tfsdk:"apns" json:"apns"`
+type CellularSimsResourceModelSim struct {
+	Slot      jsontypes.String                `tfsdk:"slot" json:"slot"`
+	IsPrimary jsontypes.Bool                  `tfsdk:"is_primary" json:"isPrimary"`
+	Apns      []CellularSimsResourceModelApns `tfsdk:"apns" json:"apns"`
 }
 
-type DevicesCellularSimsResourceModelApns struct {
-	Name           jsontypes.String                               `tfsdk:"name" json:"name"`
-	AllowedIpTypes []string                                       `tfsdk:"allowed_ip_types" json:"allowedIpTypes"`
-	Authentication DevicesCellularSimsResourceModelAuthentication `tfsdk:"authentication" json:"authentication"`
+type CellularSimsResourceModelApns struct {
+	Name           jsontypes.String                        `tfsdk:"name" json:"name"`
+	AllowedIpTypes []string                                `tfsdk:"allowed_ip_types" json:"allowedIpTypes"`
+	Authentication CellularSimsResourceModelAuthentication `tfsdk:"authentication" json:"authentication"`
 }
 
-type DevicesCellularSimsResourceModelAuthentication struct {
+type CellularSimsResourceModelAuthentication struct {
 	Password jsontypes.String `tfsdk:"password" json:"password"`
 	Username jsontypes.String `tfsdk:"username" json:"username"`
 	Type     jsontypes.String `tfsdk:"type" json:"type"`
 }
 
-type DevicesCellularSimsResourceModelSimFailOver struct {
+type CellularSimsResourceModelSimFailOver struct {
 	Enabled jsontypes.Bool `tfsdk:"enabled" json:"enabled"`
 }
 
-func (r *DevicesCellularSimsResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *CellularSimsResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_devices_cellular_sims"
 }
 
-func (r *DevicesCellularSimsResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *CellularSimsResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages the SIM and APN configurations for a cellular device.",
 		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed:   true,
-				CustomType: jsontypes.StringType,
-			},
 			"serial": schema.StringAttribute{
 				MarkdownDescription: "serial.",
 				Optional:            true,
@@ -90,7 +83,7 @@ func (r *DevicesCellularSimsResource) Schema(ctx context.Context, req resource.S
 				},
 			},
 			"sims": schema.SetNestedAttribute{
-				MarkdownDescription: "List of SIMs. If a SIM was previously configured and not specified in this request, it will remain unchanged.",
+				MarkdownDescription: "Ports of SIMs. If a SIM was previously configured and not specified in this request, it will remain unchanged.",
 				Required:            true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
@@ -156,7 +149,7 @@ func (r *DevicesCellularSimsResource) Schema(ctx context.Context, req resource.S
 	}
 }
 
-func (r *DevicesCellularSimsResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *CellularSimsResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -176,8 +169,8 @@ func (r *DevicesCellularSimsResource) Configure(ctx context.Context, req resourc
 	r.client = client
 }
 
-func (r *DevicesCellularSimsResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *DevicesCellularSimsResourceModel
+func (r *CellularSimsResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *CellularSimsResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -186,12 +179,12 @@ func (r *DevicesCellularSimsResource) Create(ctx context.Context, req resource.C
 		return
 	}
 
-	updateDeviceCellularSims := *openApiClient.NewUpdateDeviceCellularSimsRequest()
+	payload := *openApiClient.NewUpdateDeviceCellularSimsRequest()
 
 	if !data.SimFailOver.Enabled.IsUnknown() {
 		var enabled openApiClient.UpdateDeviceCellularSimsRequestSimFailover
 		enabled.SetEnabled(data.SimFailOver.Enabled.ValueBool())
-		updateDeviceCellularSims.SetSimFailover(enabled)
+		payload.SetSimFailover(enabled)
 	}
 
 	if len(data.Sims) > 0 {
@@ -217,10 +210,10 @@ func (r *DevicesCellularSimsResource) Create(ctx context.Context, req resource.C
 			}
 			devicesSerialCellularSims = append(devicesSerialCellularSims, devicesSerialCellularSim)
 		}
-		updateDeviceCellularSims.SetSims(devicesSerialCellularSims)
+		payload.SetSims(devicesSerialCellularSims)
 	}
 
-	_, httpResp, err := r.client.CellularApi.UpdateDeviceCellularSims(context.Background(), data.Serial.ValueString()).UpdateDeviceCellularSimsRequest(updateDeviceCellularSims).Execute()
+	_, httpResp, err := r.client.CellularApi.UpdateDeviceCellularSims(context.Background(), data.Serial.ValueString()).UpdateDeviceCellularSimsRequest(payload).Execute()
 
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -252,16 +245,14 @@ func (r *DevicesCellularSimsResource) Create(ctx context.Context, req resource.C
 		return
 	}
 
-	data.Id = jsontypes.StringValue("example-id")
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
 	tflog.Trace(ctx, "create resource")
 }
 
-func (r *DevicesCellularSimsResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *DevicesCellularSimsResourceModel
+func (r *CellularSimsResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *CellularSimsResourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -307,7 +298,6 @@ func (r *DevicesCellularSimsResource) Read(ctx context.Context, req resource.Rea
 		)
 		return
 	}
-	data.Id = jsontypes.StringValue("example-id")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -315,8 +305,8 @@ func (r *DevicesCellularSimsResource) Read(ctx context.Context, req resource.Rea
 	tflog.Trace(ctx, "read resource")
 }
 
-func (r *DevicesCellularSimsResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data *DevicesCellularSimsResourceModel
+func (r *CellularSimsResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var data *CellularSimsResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -390,16 +380,14 @@ func (r *DevicesCellularSimsResource) Update(ctx context.Context, req resource.U
 		return
 	}
 
-	data.Id = jsontypes.StringValue("example-id")
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
 	tflog.Trace(ctx, "updated resource")
 }
 
-func (r *DevicesCellularSimsResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data *DevicesCellularSimsResourceModel
+func (r *CellularSimsResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data *CellularSimsResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -473,15 +461,13 @@ func (r *DevicesCellularSimsResource) Delete(ctx context.Context, req resource.D
 		return
 	}
 
-	data.Id = jsontypes.StringValue("example-id")
-
 	resp.State.RemoveResource(ctx)
 
 	// Write logs using the tflog package
 	tflog.Trace(ctx, "removed resource")
 }
 
-func (r *DevicesCellularSimsResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *CellularSimsResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("serial"), req.ID)...)

@@ -31,26 +31,23 @@ func NewAdaptivePolicyAclResource() resource.Resource {
 	return &AdaptivePolicyAclResource{}
 }
 
-// AdaptivePolicyAclResource defines the resource implementation.
 type AdaptivePolicyAclResource struct {
 	client *openApiClient.APIClient
 }
 
-// AdaptivePolicyAclResourceModel describes the resource data model.
 type AdaptivePolicyAclResourceModel struct {
-	Id          types.String                         `tfsdk:"id"`
-	OrgId       jsontypes.String                     `tfsdk:"organization_id" json:"organizationId"`
-	AclId       jsontypes.String                     `tfsdk:"acl_id" json:"aclId"`
-	Name        jsontypes.String                     `tfsdk:"name"`
-	Description jsontypes.String                     `tfsdk:"description"`
-	IpVersion   jsontypes.String                     `tfsdk:"ip_version" json:"ipVersion"`
-	Rules       []AdaptivePolicyAclResourceModelRule `tfsdk:"rules"`
-	CreatedAt   jsontypes.String                     `tfsdk:"created_at" json:"createdAt"`
-	UpdatedAt   jsontypes.String                     `tfsdk:"updated_at" json:"updatedAt"`
+	Id          types.String                 `tfsdk:"id"`
+	OrgId       jsontypes.String             `tfsdk:"organization_id" json:"organizationId"`
+	AclId       jsontypes.String             `tfsdk:"acl_id" json:"aclId"`
+	Name        jsontypes.String             `tfsdk:"name"`
+	Description jsontypes.String             `tfsdk:"description"`
+	IpVersion   jsontypes.String             `tfsdk:"ip_version" json:"ipVersion"`
+	Rules       []AdaptivePolicyAclRuleModel `tfsdk:"rules"`
+	CreatedAt   jsontypes.String             `tfsdk:"created_at" json:"createdAt"`
+	UpdatedAt   jsontypes.String             `tfsdk:"updated_at" json:"updatedAt"`
 }
 
-// AdaptivePolicyAclResourceModelRule  describes the rules data model
-type AdaptivePolicyAclResourceModelRule struct {
+type AdaptivePolicyAclRuleModel struct {
 	Policy   jsontypes.String `tfsdk:"policy"`
 	Protocol jsontypes.String `tfsdk:"protocol"`
 	SrcPort  jsontypes.String `tfsdk:"src_port" json:"srcPort"`
@@ -212,10 +209,10 @@ func (r *AdaptivePolicyAclResource) Create(ctx context.Context, req resource.Cre
 	}
 
 	// payload
-	createOrganizationsAdaptivePolicyAcl := *openApiClient.NewCreateOrganizationAdaptivePolicyAclRequest(data.Name.ValueString(), rules, data.IpVersion.ValueString())
-	createOrganizationsAdaptivePolicyAcl.SetDescription(data.Description.ValueString())
+	payload := *openApiClient.NewCreateOrganizationAdaptivePolicyAclRequest(data.Name.ValueString(), rules, data.IpVersion.ValueString())
+	payload.SetDescription(data.Description.ValueString())
 
-	_, httpResp, err := r.client.OrganizationsApi.CreateOrganizationAdaptivePolicyAcl(context.Background(), data.OrgId.ValueString()).CreateOrganizationAdaptivePolicyAclRequest(createOrganizationsAdaptivePolicyAcl).Execute()
+	_, httpResp, err := r.client.OrganizationsApi.CreateOrganizationAdaptivePolicyAcl(context.Background(), data.OrgId.ValueString()).CreateOrganizationAdaptivePolicyAclRequest(payload).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"HTTP Client Failure",
@@ -331,13 +328,13 @@ func (r *AdaptivePolicyAclResource) Update(ctx context.Context, req resource.Upd
 	}
 
 	// payload
-	createOrganizationsAdaptivePolicyAcl := *openApiClient.NewUpdateOrganizationAdaptivePolicyAclRequest()
-	createOrganizationsAdaptivePolicyAcl.SetName(data.Name.ValueString())
-	createOrganizationsAdaptivePolicyAcl.SetDescription(data.Description.ValueString())
-	createOrganizationsAdaptivePolicyAcl.SetRules(rules)
-	createOrganizationsAdaptivePolicyAcl.SetIpVersion(data.IpVersion.ValueString())
+	payload := *openApiClient.NewUpdateOrganizationAdaptivePolicyAclRequest()
+	payload.SetName(data.Name.ValueString())
+	payload.SetDescription(data.Description.ValueString())
+	payload.SetRules(rules)
+	payload.SetIpVersion(data.IpVersion.ValueString())
 
-	_, httpResp, err := r.client.OrganizationsApi.UpdateOrganizationAdaptivePolicyAcl(context.Background(), data.OrgId.ValueString(), data.AclId.ValueString()).UpdateOrganizationAdaptivePolicyAclRequest(createOrganizationsAdaptivePolicyAcl).Execute()
+	_, httpResp, err := r.client.OrganizationsApi.UpdateOrganizationAdaptivePolicyAcl(context.Background(), data.OrgId.ValueString(), data.AclId.ValueString()).UpdateOrganizationAdaptivePolicyAclRequest(payload).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"HTTP Client Failure",

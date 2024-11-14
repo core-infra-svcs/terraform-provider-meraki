@@ -24,15 +24,15 @@ func NewOrganizationsNetworksDataSource() datasource.DataSource {
 	return &NetworksDataSource{}
 }
 
-type NetworksDataSourceModelTag string
+type NetworksDataSourceTagModel string
 
-func (t *NetworksDataSourceModelTag) UnmarshalJSON(b []byte) error {
+func (t *NetworksDataSourceTagModel) UnmarshalJSON(b []byte) error {
 	var s string
 	if err := json.Unmarshal(b, &s); err != nil {
 		return err
 	}
 
-	*t = NetworksDataSourceModelTag(strings.Trim(s, `"`))
+	*t = NetworksDataSourceTagModel(strings.Trim(s, `"`))
 	return nil
 }
 
