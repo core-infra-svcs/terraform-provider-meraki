@@ -184,7 +184,8 @@ func (r *CellularGatewayUplinkResource) Create(ctx context.Context, req resource
 	}
 
 	// Set ID for the new resource.
-	data.Id = jsontypes.StringValue("example-id")
+	//data.Id = jsontypes.StringValue("example-id")
+	data.Id = jsontypes.StringValue(data.NetworkId.ValueString())
 
 	// Now set the final state of the resource.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -243,7 +244,8 @@ func (r *CellularGatewayUplinkResource) Read(ctx context.Context, req resource.R
 	}
 
 	// Set ID for the resource.
-	data.Id = jsontypes.StringValue("example-id")
+	//data.Id = jsontypes.StringValue("example-id")
+	data.Id = jsontypes.StringValue(data.NetworkId.ValueString())
 
 	// Now set the final state of the resource.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -308,7 +310,8 @@ func (r *CellularGatewayUplinkResource) Update(ctx context.Context, req resource
 	}
 
 	// Set ID for the new resource.
-	data.Id = jsontypes.StringValue("example-id")
+	//data.Id = jsontypes.StringValue("example-id")
+	data.Id = jsontypes.StringValue(data.NetworkId.ValueString())
 
 	// Now set the updated state of the resource.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
