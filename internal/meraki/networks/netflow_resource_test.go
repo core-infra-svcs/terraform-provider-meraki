@@ -3,6 +3,7 @@ package networks_test
 import (
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"os"
 	"testing"
 
@@ -15,32 +16,16 @@ func TestAccNetworksNetFlowResource(t *testing.T) {
 		ProtoV6ProviderFactories: provider.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 
-			// Create and Read Network.
+			// Create and Read Network
 			{
-				Config: testAccNetworksNetFlowResourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_networks_netflow"),
-					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
-					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
-					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.#", "3"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.0", "appliance"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.1", "switch"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.2", "wireless"),
-					resource.TestCheckResourceAttr("meraki_network.test", "notes", "Additional description of the network"),
-				),
+				Config: utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_networks_netflow"),
+				Check:  utils.NetworkOrgIdTestChecks("test_acc_networks_netflow"),
 			},
 
 			// Update and Read Networks NetFlow.
 			{
-				Config: testAccNetFlowResourceConfigUpdateNetworkNetFlowSettings,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_netflow.test", "reporting_enabled", "false"),
-					resource.TestCheckResourceAttr("meraki_networks_netflow.test", "eta_enabled", "false"),
-					resource.TestCheckResourceAttr("meraki_networks_netflow.test", "collector_ip", "1.2.3.4"),
-					resource.TestCheckResourceAttr("meraki_networks_netflow.test", "collector_port", "443"),
-					resource.TestCheckResourceAttr("meraki_networks_netflow.test", "eta_dst_port", "443"),
-				),
+				Config: NetFlowResourceConfigUpdateSettings(),
+				Check:  NetFlowResourceConfigUpdateSettingsChecks(),
 			},
 
 			/*
@@ -56,25 +41,9 @@ func TestAccNetworksNetFlowResource(t *testing.T) {
 	})
 }
 
-func testAccNetworksNetFlowResourceConfigCreateNetwork(orgId string) string {
-	result := fmt.Sprintf(`
- resource "meraki_network" "test" {
-	organization_id = %s
-	product_types = ["appliance", "switch", "wireless"]
-	tags = ["tag1"]
-	name = "test_acc_networks_netflow"
-	timezone = "America/Los_Angeles"
-	notes = "Additional description of the network"
-}
- `, orgId)
-	return result
-}
-
-const testAccNetFlowResourceConfigUpdateNetworkNetFlowSettings = `
-resource "meraki_network" "test" {
-	product_types = ["appliance", "switch", "wireless"]
-	
-}
+func NetFlowResourceConfigUpdateSettings() string {
+	return fmt.Sprintf(`
+	%s
 resource "meraki_networks_netflow" "test" {
 	  depends_on = [resource.meraki_network.test]
       network_id = resource.meraki_network.test.network_id
@@ -84,4 +53,20 @@ resource "meraki_networks_netflow" "test" {
       collector_port = 443 
 	  eta_dst_port = 443	  
 }
-`
+	
+	`,
+		utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_networks_netflow"),
+	)
+}
+
+// NetFlowResourceConfigUpdateSettingsChecks returns the aggregated test check functions for the netflow resource
+func NetFlowResourceConfigUpdateSettingsChecks() resource.TestCheckFunc {
+	expectedAttrs := map[string]string{
+		"reporting_enabled": "false",
+		"eta_enabled":       "false",
+		"collector_ip":      "1.2.3.4",
+		"collector_port":    "443",
+		"eta_dst_port":      "443",
+	}
+	return utils.ResourceTestCheck("meraki_networks_netflow.test", expectedAttrs)
+}
