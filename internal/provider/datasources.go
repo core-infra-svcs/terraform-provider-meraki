@@ -4,9 +4,11 @@ import (
 	"context"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/administered"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices"
+	switchDevices "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices/switch"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks"
-	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance"
+	appliancePorts "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/ports"
 	applianceVlans "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/vlans"
+	applianceVpn "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/vpn"
 	networkGroupPolicy "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/groupPolicy"
 	merakiSwitch "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/switch"
 	wirelessSsids "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/wireless/ssid"
@@ -20,16 +22,16 @@ func (p *CiscoMerakiProvider) DataSources(ctx context.Context) []func() datasour
 
 		devices.NewNetworkDevicesDataSource,
 		devices.NewDevicesManagementInterfaceDatasource,
-		devices.NewDevicesSwitchPortsStatusesDataSource,
+		switchDevices.NewDevicesSwitchPortsStatusesDataSource,
 		devices.NewDevicesApplianceDhcpSubnetsDataSource,
 
 		networkGroupPolicy.NewNetworkGroupPoliciesDataSource,
 		networks.NewNetworksSwitchStormControlDataSource,
 
-		appliance.NewNetworksAppliancePortsDataSource,
+		appliancePorts.NewNetworksAppliancePortsDataSource,
 		applianceVlans.NewNetworksApplianceVLANsDatasource,
 		applianceVlans.NewNetworksApplianceVlansSettingsDatasource,
-		appliance.NewNetworksApplianceVpnSiteToSiteVpnDatasource,
+		applianceVpn.NewNetworksApplianceVpnSiteToSiteVpnDatasource,
 
 		merakiSwitch.NewNetworksSwitchMtuDataSource,
 		merakiSwitch.NewNetworksSwitchQosRulesDataSource,
