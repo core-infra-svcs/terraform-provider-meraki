@@ -29,10 +29,14 @@ func TestAccNetworksCellularGatewaySubnetPoolResource(t *testing.T) {
 				Check:  utils.NetworkOrgIdTestChecks("test_acc_networks_cellular_gateway_subnet_pool"),
 			},
 
-			// TODO: Update and Read NetworksCellularGatewaySubnetPool
 			{
 				Config: NetworksCellularGatewaySubnetPoolResourceConfigCreate(),
 				Check:  NetworksCellularGatewaySubnetPoolResourceConfigCreateChecks(),
+			},
+			
+			{
+				Config: NetworksCellularGatewaySubnetPoolResourceConfigUpdate(),
+				Check:  NetworksCellularGatewaySubnetPoolResourceConfigUpdateChecks(),
 			},
 
 			//// ImportState test case.
@@ -46,7 +50,7 @@ func TestAccNetworksCellularGatewaySubnetPoolResource(t *testing.T) {
 	})
 }
 
-// testAccNetworksCellularGatewaySubnetPoolResourceConfigUpdate is a constant string that defines the configuration for updating a networks_cellularGateway_subnetPool resource in your tests.
+// NetworksCellularGatewaySubnetPoolResourceConfigCreate is a constant string that defines the configuration for updating a networks_cellularGateway_subnetPool resource in your tests.
 // It depends on both the organization and network resources.
 func NetworksCellularGatewaySubnetPoolResourceConfigCreate() string {
 	return fmt.Sprintf(`
@@ -68,6 +72,33 @@ func NetworksCellularGatewaySubnetPoolResourceConfigCreateChecks() resource.Test
 	expectedAttrs := map[string]string{
 		"deployment_mode": "routed",
 		"cidr":            "192.168.0.0/22",
+		"mask":            "24",
+	}
+	return utils.ResourceTestCheck("meraki_networks_cellular_gateway_subnet_pool.test", expectedAttrs)
+}
+
+// NetworksCellularGatewaySubnetPoolResourceConfigUpdate is a constant string that defines the configuration for updating a networks_cellularGateway_subnetPool resource in your tests.
+// It depends on both the organization and network resources.
+func NetworksCellularGatewaySubnetPoolResourceConfigUpdate() string {
+	return fmt.Sprintf(`
+	%s
+
+	resource "meraki_networks_cellular_gateway_subnet_pool" "test" {
+		depends_on = [resource.meraki_network.test]
+		id = resource.meraki_network.test.network_id
+		cidr = "10.0.0.0/22"
+		mask = 24    
+	}
+	`,
+		utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_networks_cellular_gateway_subnet_pool"),
+	)
+}
+
+// NetworksCellularGatewaySubnetPoolResourceConfigUpdateChecks returns the aggregated test check functions for the cellular gateway subnet pool resource
+func NetworksCellularGatewaySubnetPoolResourceConfigUpdateChecks() resource.TestCheckFunc {
+	expectedAttrs := map[string]string{
+		"deployment_mode": "routed",
+		"cidr":            "10.0.0.0/22",
 		"mask":            "24",
 	}
 	return utils.ResourceTestCheck("meraki_networks_cellular_gateway_subnet_pool.test", expectedAttrs)
