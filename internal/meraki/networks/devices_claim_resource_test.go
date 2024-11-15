@@ -42,8 +42,8 @@ func TestAccNetworksDevicesClaimResource(t *testing.T) {
 
 			// Create and Read Network
 			{
-				Config: utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_networks_cellular_gateway_subnet_pool"),
-				Check:  utils.NetworkOrgIdTestChecks("test_acc_networks_cellular_gateway_subnet_pool"),
+				Config: utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_network_claim_device"),
+				Check:  utils.NetworkOrgIdTestChecks("test_acc_network_claim_device"),
 			},
 
 			// Claim Device serials
@@ -131,5 +131,5 @@ resource "meraki_networks_devices_claim" "test" {
     serials = [%s]
 }
 
-`, utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "nw name"), serialsFormatted)
+`, utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_network_claim_device"), serialsFormatted)
 }
