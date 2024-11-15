@@ -63,6 +63,7 @@ func (r *CellularGatewaySubnetPoolResource) Schema(ctx context.Context, req reso
 		MarkdownDescription: "Manage the subnet pool and mask configuration for MGs in the network.",
 
 		// The Attributes map describes the fields of the resource.
+		// TODO: Update to network_id instead of id
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "Network ID",

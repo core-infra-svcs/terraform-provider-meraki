@@ -77,7 +77,7 @@ func (d *NetworkDevicesDataSource) Schema(ctx context.Context, req datasource.Sc
 				MarkdownDescription: "Network ID",
 				Required:            true,
 			},
-			"Devices": schema.ListNestedAttribute{
+			"devices": schema.ListNestedAttribute{
 				MarkdownDescription: "Ports of devices",
 				Optional:            true,
 				Computed:            true,
