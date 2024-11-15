@@ -3,6 +3,7 @@ package networks_test
 import (
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"os"
 	"reflect"
@@ -39,22 +40,15 @@ func TestAccNetworksDevicesClaimResource(t *testing.T) {
 		// Steps is a slice of TestStep where each TestStep represents a test case.
 		Steps: []resource.TestStep{
 
-			// create network
+			// Create and Read Network
 			{
-				Config: testAccDevicesClaimResourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_network_claim_device"),
-					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
-					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
-					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.#", "3"),
-					resource.TestCheckResourceAttr("meraki_network.test", "notes", "Additional description of the network"),
-				),
+				Config: utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_networks_cellular_gateway_subnet_pool"),
+				Check:  utils.NetworkOrgIdTestChecks("test_acc_networks_cellular_gateway_subnet_pool"),
 			},
 
 			// Claim Device serials
 			{
-				Config: testAccDevicesClaimResourceConfigDeviceClaimWithSerials(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), claimDevices),
+				Config: DevicesClaimResourceConfigDeviceClaimWithSerials(claimDevices),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_networks_devices_claim.test", "serials.#", "3"),
 					testCheckSerialsUnordered("meraki_networks_devices_claim.test", claimDevices),
@@ -63,7 +57,7 @@ func TestAccNetworksDevicesClaimResource(t *testing.T) {
 
 			// Update and Claim additional Device serial
 			{
-				Config: testAccDevicesClaimResourceConfigDeviceClaimWithSerials(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), updateDevices),
+				Config: DevicesClaimResourceConfigDeviceClaimWithSerials(updateDevices),
 				Check: resource.ComposeAggregateTestCheckFunc(
 
 					resource.TestCheckResourceAttr("meraki_networks_devices_claim.test", "serials.#", "4"),
@@ -119,20 +113,7 @@ func testCheckSerialsUnordered(resourceName string, expectedSerials []string) re
 	}
 }
 
-func testAccDevicesClaimResourceConfigCreateNetwork(orgId string) string {
-	return fmt.Sprintf(`
-resource "meraki_network" "test" {
-	organization_id = "%s"
-	name = "test_acc_network_claim_device"
-	product_types = ["wireless", "switch", "appliance"]
-	tags = ["tag1"]
-	timezone = "America/Los_Angeles"
-	notes = "Additional description of the network"
-}
-`, orgId)
-}
-
-func testAccDevicesClaimResourceConfigDeviceClaimWithSerials(orgId string, serials []string) string {
+func DevicesClaimResourceConfigDeviceClaimWithSerials(serials []string) string {
 	serialsFormatted := ""
 	for _, serial := range serials {
 		serialsFormatted += fmt.Sprintf("\"%s\", ", serial)
@@ -142,14 +123,7 @@ func testAccDevicesClaimResourceConfigDeviceClaimWithSerials(orgId string, seria
 	serialsFormatted = serialsFormatted[:len(serialsFormatted)-2]
 
 	return fmt.Sprintf(`
-resource "meraki_network" "test" {
-	organization_id = "%s"
- 	name = "test_acc_network_claim_device"
-	product_types = ["wireless", "switch", "appliance", "cellularGateway"]
-	tags = ["tag1"]
-	timezone = "America/Los_Angeles"
-	notes = "Additional description of the network"
-}
+	%s
 
 resource "meraki_networks_devices_claim" "test" {
     depends_on = ["resource.meraki_network.test"]
@@ -157,5 +131,5 @@ resource "meraki_networks_devices_claim" "test" {
     serials = [%s]
 }
 
-`, orgId, serialsFormatted)
+`, utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "nw name"), serialsFormatted)
 }

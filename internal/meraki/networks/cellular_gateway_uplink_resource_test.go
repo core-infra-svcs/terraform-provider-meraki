@@ -31,8 +31,8 @@ func TestAccNetworksCellularGatewayUplinkResource(t *testing.T) {
 
 			// Update and Read NetworksCellularGatewayUplink
 			{
-				Config: testAccNetworksCellularGatewayUplinkResourceConfigUpdate(),
-				Check:  testAccNetworksCellularGatewayUplinkResourceConfigUpdateChecks(),
+				Config: NetworksCellularGatewayUplinkResourceConfigUpdate(),
+				Check:  NetworksCellularGatewayUplinkResourceConfigUpdateChecks(),
 			},
 		},
 		// ImportState test case.
@@ -50,7 +50,7 @@ func TestAccNetworksCellularGatewayUplinkResource(t *testing.T) {
 
 // testAccNetworksCellularGatewayUplinkResourceConfigUpdate is a constant string that defines the configuration for updating a networks_cellularGateway_uplink resource in your tests.
 // It depends on both the organization and network resources.
-func testAccNetworksCellularGatewayUplinkResourceConfigUpdate() string {
+func NetworksCellularGatewayUplinkResourceConfigUpdate() string {
 	return fmt.Sprintf(`
 	%s
 resource "meraki_networks_cellular_gateway_uplink" "test" {
@@ -68,7 +68,7 @@ resource "meraki_networks_cellular_gateway_uplink" "test" {
 }
 
 // testAccNetworksCellularGatewayUplinkResourceConfigUpdateChecks returns the aggregated test check functions for the cellular gateway uplink redource
-func testAccNetworksCellularGatewayUplinkResourceConfigUpdateChecks() resource.TestCheckFunc {
+func NetworksCellularGatewayUplinkResourceConfigUpdateChecks() resource.TestCheckFunc {
 	expectedAttrs := map[string]string{
 		"bandwidth_limits.limit_up":   "51200",
 		"bandwidth_limits.limit_down": "51200",
