@@ -3,6 +3,7 @@ package networks_test
 import (
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"os"
 	"testing"
 
@@ -15,33 +16,16 @@ func TestAccNetworkSettingsResource(t *testing.T) {
 		ProtoV6ProviderFactories: provider.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 
-			// Create and Read Network.
+			// Create and Read Network
 			{
-				Config: testAccNetworkSettingsResourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_networks_settings"),
-					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
-					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
-					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.#", "3"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.0", "appliance"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.1", "switch"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.2", "wireless"),
-					resource.TestCheckResourceAttr("meraki_network.test", "notes", "Additional description of the network"),
-				),
+				Config: utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_networks_settings"),
+				Check:  utils.NetworkOrgIdTestChecks("test_acc_networks_settings"),
 			},
 
 			// Update and Read Network Settings.
 			{
-				Config: testAccNetworkSettingsResourceConfigUpdateNetworkSettings,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_settings.test", "local_status_page_enabled", "false"),
-					resource.TestCheckResourceAttr("meraki_networks_settings.test", "remote_status_page_enabled", "false"),
-					resource.TestCheckResourceAttr("meraki_networks_settings.test", "local_status_page.authentication.enabled", "true"),
-					resource.TestCheckResourceAttr("meraki_networks_settings.test", "local_status_page.authentication.username", "admin"),
-					resource.TestCheckResourceAttr("meraki_networks_settings.test", "local_status_page.authentication.password", "testpassword"),
-					resource.TestCheckResourceAttr("meraki_networks_settings.test", "secure_port_enabled", "false"),
-				),
+				Config: NetworkSettingsResourceConfigUpdate(),
+				Check:  NetworkSettingsResourceConfigUpdateChecks(),
 			},
 
 			/*
@@ -55,26 +39,9 @@ func TestAccNetworkSettingsResource(t *testing.T) {
 	})
 }
 
-func testAccNetworkSettingsResourceConfigCreateNetwork(orgId string) string {
-	result := fmt.Sprintf(`
-resource "meraki_network" "test" {
-	organization_id = %s
-	product_types = ["appliance", "switch", "wireless"]
-	tags = ["tag1"]
-	name = "test_acc_networks_settings"
-	timezone = "America/Los_Angeles"
-	notes = "Additional description of the network"
-}
-`, orgId)
-	return result
-}
-
-const testAccNetworkSettingsResourceConfigUpdateNetworkSettings = `
-
-resource "meraki_network" "test" {
-	product_types = ["appliance", "switch", "wireless"]	
-}
-
+func NetworkSettingsResourceConfigUpdate() string {
+	return fmt.Sprintf(`
+	%s
 resource "meraki_networks_settings" "test" {
 	depends_on = [resource.meraki_network.test]
   	network_id = resource.meraki_network.test.network_id
@@ -90,4 +57,20 @@ resource "meraki_networks_settings" "test" {
   	secure_port_enabled = false
 	named_vlans_enabled = true
 }
-`
+	`,
+		utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_networks_settings"),
+	)
+}
+
+// NetworkSettingsResourceConfigUpdateChecks returns the aggregated test check functions for the settings resource
+func NetworkSettingsResourceConfigUpdateChecks() resource.TestCheckFunc {
+	expectedAttrs := map[string]string{
+		"local_status_page_enabled":                 "false",
+		"remote_status_page_enabled":                "false",
+		"local_status_page.authentication.enabled":  "true",
+		"local_status_page.authentication.username": "admin",
+		"local_status_page.authentication.password": "testpassword",
+		"secure_port_enabled":                       "false",
+	}
+	return utils.ResourceTestCheck("meraki_networks_settings.test", expectedAttrs)
+}
