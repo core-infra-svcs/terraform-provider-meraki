@@ -68,6 +68,20 @@ func CreateNetworkConfig(orgName, networkName string) string {
 	`, orgName, networkName)
 }
 
+// CreateNetworkOrgIdConfig returns a configuration string to create a network in an existing organization with the necessary test checks
+func CreateNetworkOrgIdConfig(orgId, networkName string) string {
+	return fmt.Sprintf(`
+	resource "meraki_network" "test" {
+		organization_id = "%s"
+		product_types = ["appliance", "switch", "wireless", "cellularGateway"]
+		name = "%s"
+		timezone = "America/Los_Angeles"
+		tags = ["tag1"]
+		notes = "Additional description of the network"
+	}
+	`, orgId, networkName)
+}
+
 // NetworkTestChecks returns the aggregated test check functions for a network resource
 func NetworkTestChecks(networkName string) resource.TestCheckFunc {
 	return ResourceTestCheck("meraki_network.test", map[string]string{
@@ -79,6 +93,22 @@ func NetworkTestChecks(networkName string) resource.TestCheckFunc {
 		"product_types.0": "appliance",
 		"product_types.1": "switch",
 		"product_types.2": "wireless",
+		"notes":           "Additional description of the network",
+	})
+}
+
+// NetworkOrgIdTestChecks returns the aggregated test check functions for a network resource that is in an existing org
+func NetworkOrgIdTestChecks(networkName string) resource.TestCheckFunc {
+	return ResourceTestCheck("meraki_network.test", map[string]string{
+		"name":            networkName,
+		"timezone":        "America/Los_Angeles",
+		"tags.#":          "1",
+		"tags.0":          "tag1",
+		"product_types.#": "4",
+		"product_types.0": "appliance",
+		"product_types.1": "cellularGateway",
+		"product_types.2": "switch",
+		"product_types.3": "wireless",
 		"notes":           "Additional description of the network",
 	})
 }
