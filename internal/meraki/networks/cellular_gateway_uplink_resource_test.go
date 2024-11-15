@@ -3,6 +3,7 @@ package networks_test
 import (
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"os"
 	"testing"
 
@@ -22,31 +23,16 @@ func TestAccNetworksCellularGatewayUplinkResource(t *testing.T) {
 		// Steps is a slice of TestStep where each TestStep represents a test case.
 		Steps: []resource.TestStep{
 
-			// Create and Read a Network.
+			// Create and Read Network
 			{
-				Config: testAccNetworksCellularGatewayUplinkResourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_networks_cellular_gateway_uplink"),
-					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
-					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
-					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.#", "4"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.0", "appliance"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.1", "cellularGateway"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.2", "switch"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.3", "wireless"),
-					resource.TestCheckResourceAttr("meraki_network.test", "notes", "Additional description of the network"),
-				),
+				Config: utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_networks_cellular_gateway_uplink"),
+				Check:  utils.NetworkOrgIdTestChecks("test_acc_networks_cellular_gateway_uplink"),
 			},
 
 			// Update and Read NetworksCellularGatewayUplink
 			{
-				Config: testAccNetworksCellularGatewayUplinkResourceConfigUpdate,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					//resource.TestCheckResourceAttr("meraki_networks_cellular_gateway_uplink.test", "id", "example-id"),
-					resource.TestCheckResourceAttr("meraki_networks_cellular_gateway_uplink.test", "bandwidth_limits.limit_up", "51200"),
-					resource.TestCheckResourceAttr("meraki_networks_cellular_gateway_uplink.test", "bandwidth_limits.limit_down", "51200"),
-				),
+				Config: testAccNetworksCellularGatewayUplinkResourceConfigUpdate(),
+				Check:  testAccNetworksCellularGatewayUplinkResourceConfigUpdateChecks(),
 			},
 		},
 		// ImportState test case.
@@ -62,29 +48,11 @@ func TestAccNetworksCellularGatewayUplinkResource(t *testing.T) {
 	})
 }
 
-// testAccNetworksCellularGatewayUplinkResourceConfigCreateNetwork is a constant string that defines the configuration for creating a network resource in your tests.
-// It depends on the organization resource.
-func testAccNetworksCellularGatewayUplinkResourceConfigCreateNetwork(orgId string) string {
-	result := fmt.Sprintf(`
-resource "meraki_network" "test" {
-	organization_id = %s
-	product_types = ["appliance", "switch", "wireless", "cellularGateway"]
-	tags = ["tag1"]
-	name = "test_acc_networks_cellular_gateway_uplink"
-	timezone = "America/Los_Angeles"
-	notes = "Additional description of the network"
-}
-`, orgId)
-	return result
-}
-
 // testAccNetworksCellularGatewayUplinkResourceConfigUpdate is a constant string that defines the configuration for updating a networks_cellularGateway_uplink resource in your tests.
 // It depends on both the organization and network resources.
-const testAccNetworksCellularGatewayUplinkResourceConfigUpdate = `
-resource "meraki_network" "test" {
-	product_types = ["appliance", "switch", "wireless", "cellularGateway"]
-}
-
+func testAccNetworksCellularGatewayUplinkResourceConfigUpdate() string {
+	return fmt.Sprintf(`
+	%s
 resource "meraki_networks_cellular_gateway_uplink" "test" {
 	depends_on = [resource.meraki_network.test]
   	network_id = resource.meraki_network.test.network_id
@@ -94,4 +62,16 @@ resource "meraki_networks_cellular_gateway_uplink" "test" {
     }
 
 }
-`
+	`,
+		utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_networks_cellular_gateway_uplink"),
+	)
+}
+
+// testAccNetworksCellularGatewayUplinkResourceConfigUpdateChecks returns the aggregated test check functions for the cellular gateway uplink redource
+func testAccNetworksCellularGatewayUplinkResourceConfigUpdateChecks() resource.TestCheckFunc {
+	expectedAttrs := map[string]string{
+		"bandwidth_limits.limit_up":   "51200",
+		"bandwidth_limits.limit_down": "51200",
+	}
+	return utils.ResourceTestCheck("meraki_networks_cellular_gateway_uplink.test", expectedAttrs)
+}
