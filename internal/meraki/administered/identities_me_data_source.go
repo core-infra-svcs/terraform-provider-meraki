@@ -3,13 +3,8 @@ package administered
 import (
 	"context"
 	"fmt"
-	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"time"
-
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
 )
@@ -26,74 +21,12 @@ type IdentitiesMeDataSource struct {
 	client *openApiClient.APIClient
 }
 
-// IdentitiesMeDataSourceModel describes the data source data model.
-type IdentitiesMeDataSourceModel struct {
-	Id                          types.String     `tfsdk:"id"`
-	AuthenticationApiKeyCreated jsontypes.Bool   `tfsdk:"authentication_api_key_created"`
-	AuthenticationMode          jsontypes.String `tfsdk:"authentication_mode"`
-	AuthenticationSaml          jsontypes.Bool   `tfsdk:"authentication_saml_enabled"`
-	AuthenticationTwofactor     jsontypes.Bool   `tfsdk:"authentication_two_factor_enabled"`
-	Email                       jsontypes.String `tfsdk:"email"`
-	LastUsedDashboardAt         jsontypes.String `tfsdk:"last_used_dashboard_at"`
-	Name                        jsontypes.String `tfsdk:"name"`
-}
-
 func (d *IdentitiesMeDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_administered_identities_me"
 }
 
 func (d *IdentitiesMeDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "Returns the identity of the current user",
-
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed: true,
-			},
-			"name": schema.StringAttribute{
-				MarkdownDescription: "Username",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.StringType,
-			},
-			"email": schema.StringAttribute{
-				MarkdownDescription: "User email",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.StringType,
-			},
-			"last_used_dashboard_at": schema.StringAttribute{
-				MarkdownDescription: "Last seen active on Dashboard UI",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.StringType,
-			},
-			"authentication_mode": schema.StringAttribute{
-				MarkdownDescription: "Authentication mode",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.StringType,
-			},
-			"authentication_api_key_created": schema.BoolAttribute{
-				MarkdownDescription: "If API key is created for this user",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.BoolType,
-			},
-			"authentication_two_factor_enabled": schema.BoolAttribute{
-				MarkdownDescription: "If twoFactor authentication is enabled for this user",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.BoolType,
-			},
-			"authentication_saml_enabled": schema.BoolAttribute{
-				MarkdownDescription: "If SAML authentication is enabled for this user",
-				Optional:            true,
-				Computed:            true,
-				CustomType:          jsontypes.BoolType,
-			},
-		},
-	}
+	resp.Schema = identitiesMeSchema
 }
 
 func (d *IdentitiesMeDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
@@ -116,50 +49,48 @@ func (d *IdentitiesMeDataSource) Configure(ctx context.Context, req datasource.C
 }
 
 func (d *IdentitiesMeDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data IdentitiesMeDataSourceModel
+	var data identitiesMeAttrModel
 
 	// Read Terraform configuration data into the model
+	tflog.Trace(ctx, "Reading Terraform configuration data")
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	inlineResp, httpResp, err := d.client.AdministeredApi.GetAdministeredIdentitiesMe(context.Background()).Execute()
+	// API call to retrieve identity
+	tflog.Trace(ctx, "Calling API to retrieve identity")
+	inlineResp, httpResp, err := d.client.AdministeredApi.GetAdministeredIdentitiesMe(ctx).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"HTTP Client Failure",
-			utils.HttpDiagnostics(httpResp),
+			fmt.Sprintf("Error: %s\nDiagnostics: %s", err.Error(), utils.HttpDiagnostics(httpResp)),
 		)
 		return
 	}
 
-	// Check for API success inlineResp code
+	// Handle unexpected status codes
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
 			"Unexpected HTTP Response Status Code",
-			fmt.Sprintf("%v", httpResp.StatusCode),
+			fmt.Sprintf("Received HTTP status code: %v", httpResp.StatusCode),
 		)
 		return
 	}
 
-	// Check for errors after diagnostics collected
+	// Marshal API response into Terraform state
+	tflog.Trace(ctx, "Marshaling API response into Terraform state")
+	marshaledData, diags := marshalState(ctx, inlineResp)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
+		resp.Diagnostics.AddError(
+			"Data Model Error",
+			"Failed to marshal HTTP response into Terraform state. Check diagnostics for details.",
+		)
 		return
 	}
 
-	data.Id = types.StringValue("example-id")
-	data.Name = jsontypes.StringValue(inlineResp.GetName())
-	data.Email = jsontypes.StringValue(inlineResp.GetEmail())
-	data.LastUsedDashboardAt = jsontypes.StringValue(inlineResp.GetLastUsedDashboardAt().Format(time.RFC3339))
-	data.AuthenticationMode = jsontypes.StringValue(inlineResp.Authentication.GetMode())
-	data.AuthenticationApiKeyCreated = jsontypes.BoolValue(inlineResp.Authentication.Api.Key.GetCreated())
-	data.AuthenticationTwofactor = jsontypes.BoolValue(inlineResp.Authentication.TwoFactor.GetEnabled())
-	data.AuthenticationSaml = jsontypes.BoolValue(inlineResp.Authentication.Saml.GetEnabled())
-
-	// Write logs using the tflog package
-	tflog.Trace(ctx, "read a data source")
-
-	// Save data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	// Save marshaled data into Terraform state
+	tflog.Trace(ctx, "Saving marshaled data into Terraform state")
+	resp.Diagnostics.Append(resp.State.Set(ctx, &marshaledData)...)
 }
