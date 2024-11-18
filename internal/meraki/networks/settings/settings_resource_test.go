@@ -1,4 +1,4 @@
-package networks_test
+package networksSettings_test
 
 import (
 	"fmt"

@@ -11,6 +11,7 @@ import (
 	applianceVlans "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/vlans"
 	applianceVpn "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/vpn"
 	networkGroupPolicy "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/groupPolicy"
+	networkSettings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/settings"
 	merakiSwitch "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/switch"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/wireless"
 	wirelessSsids "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/wireless/ssid"
@@ -30,7 +31,7 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		networks.NewNetworksDevicesClaimResource,
 		networks.NewNetworksNetflowResource,
 		networks.NewNetworkResource,
-		networks.NewNetworksSettingsResource,
+		networkSettings.NewNetworksSettingsResource,
 		networks.NewNetworksSnmpResource,
 		networks.NewNetworksStormControlResource,
 		networks.NewNetworksSyslogServersResource,
