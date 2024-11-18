@@ -3,6 +3,7 @@ package networks_test
 import (
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"os"
 	"testing"
@@ -18,37 +19,19 @@ func TestAccNetworkSnmpSettingsResource(t *testing.T) {
 
 			// Create and Read Network
 			{
-				Config: testAccOrganizationsSnmpSettingsResourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_networks_snmp_settings"),
-					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
-					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
-					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.#", "3"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.0", "appliance"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.1", "switch"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.2", "wireless"),
-					resource.TestCheckResourceAttr("meraki_network.test", "notes", "Additional description of the network"),
-				),
+				Config: utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_networks_snmp_settings"),
+				Check:  utils.NetworkOrgIdTestChecks("test_acc_networks_snmp_settings"),
 			},
 
 			// Create
 			{
-				Config: testAccNetworkSnmpSettingsResourceConfigUpdateNetworkSnmpSettings,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_snmp.test", "access", "community"),
-					resource.TestCheckResourceAttr("meraki_networks_snmp.test", "community_string", "public"),
-				),
+				Config: NetworkSnmpSettingsResourceCreate(),
+				Check:  NetworkSnmpSettingsResourceCreateChecks(),
 			},
 
 			{
-				Config: testAccNetworkSnmpSettingsResourceConfigUpdateSNMPSettings,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_snmp.test", "access", "users"),
-					resource.TestCheckResourceAttr("meraki_networks_snmp.test", "users.#", "1"),
-					resource.TestCheckResourceAttr("meraki_networks_snmp.test", "users.0.username", "snmp_user"),
-					resource.TestCheckResourceAttr("meraki_networks_snmp.test", "users.0.passphrase", "snmp_passphrase"),
-				),
+				Config: NetworkSnmpSettingsResourceUpdate(),
+				Check:  NetworkSnmpSettingsResourceUpdateChecks(),
 			},
 			{
 				ResourceName:      "meraki_networks_snmp.test",
@@ -66,37 +49,35 @@ func TestAccNetworkSnmpSettingsResource(t *testing.T) {
 	})
 }
 
-func testAccOrganizationsSnmpSettingsResourceConfigCreateNetwork(orgId string) string {
-	result := fmt.Sprintf(`
-resource "meraki_network" "test" {
-	organization_id = %s
-	product_types = ["appliance", "switch", "wireless"]
-	tags = ["tag1"]
-	name = "test_acc_networks_snmp_settings"
-	timezone = "America/Los_Angeles"
-	notes = "Additional description of the network"
-}
-`, orgId)
-	return result
-}
-
-const testAccNetworkSnmpSettingsResourceConfigUpdateNetworkSnmpSettings = `
-resource "meraki_network" "test" {
-	product_types = ["appliance", "switch", "wireless"]	
-}
-resource "meraki_organizations_snmp" "test" {
+func NetworkSnmpSettingsResourceCreate() string {
+	return fmt.Sprintf(`
+	%s
+resource "meraki_networks_snmp" "test" {
 	depends_on = [resource.meraki_network.test]
 	network_id = resource.meraki_network.test.network_id
 	access = "community"
 	community_string = "public"
+	users = []
 }
-`
+	
+	`,
+		utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_networks_snmp_settings"),
+	)
+}
 
-const testAccNetworkSnmpSettingsResourceConfigUpdateSNMPSettings = `
-resource "meraki_network" "test" {
-	product_types = ["appliance", "switch", "wireless"]	
+// NetworkSnmpSettingsResourceCreateChecks returns the aggregated test check functions for the SNMP Settings resource
+func NetworkSnmpSettingsResourceCreateChecks() resource.TestCheckFunc {
+	expectedAttrs := map[string]string{
+		"access":           "community",
+		"community_string": "public",
+	}
+	return utils.ResourceTestCheck("meraki_networks_snmp.test", expectedAttrs)
 }
-resource "meraki_organizations_snmp" "test" {
+
+func NetworkSnmpSettingsResourceUpdate() string {
+	return fmt.Sprintf(`
+	%s
+resource "meraki_networks_snmp" "test" {
 	depends_on = [resource.meraki_network.test]
 	network_id = resource.meraki_network.test.network_id
 	access = "users"
@@ -105,4 +86,18 @@ resource "meraki_organizations_snmp" "test" {
 		passphrase = "snmp_passphrase"
 	}]
 }
-`
+	
+	`,
+		utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_networks_snmp_settings"),
+	)
+}
+
+// NetworkSnmpSettingsResourceUpdateChecks returns the aggregated test check functions for the SNMP Settings resource
+func NetworkSnmpSettingsResourceUpdateChecks() resource.TestCheckFunc {
+	expectedAttrs := map[string]string{
+		"access":             "users",
+		"users.0.username":   "snmp_user",
+		"users.0.passphrase": "snmp_passphrase",
+	}
+	return utils.ResourceTestCheck("meraki_networks_snmp.test", expectedAttrs)
+}
