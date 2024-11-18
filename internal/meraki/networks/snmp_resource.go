@@ -25,7 +25,7 @@ func NewNetworksSnmpResource() resource.Resource {
 // SnmpResourceModel describes the resource data model.
 type SnmpResourceModel struct {
 	Id              jsontypes.String                 `tfsdk:"id"`
-	NetworkId       jsontypes.String                 `tfsdk:"organization_id" json:"organizationId"`
+	NetworkId       jsontypes.String                 `tfsdk:"network_id" json:"networkId"`
 	Access          jsontypes.String                 `tfsdk:"access" json:"access"`
 	CommunityString jsontypes.String                 `tfsdk:"community_string" json:"communityString"`
 	Users           []NetworksSnmpResourceModelUsers `tfsdk:"users" json:"users"`
@@ -252,7 +252,20 @@ func (r *SnmpResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 		return
 	}
 
-	_, _, err := r.client.NetworksApi.UpdateNetworkSnmp(ctx, state.NetworkId.ValueString()).UpdateNetworkSnmpRequest(client.UpdateNetworkSnmpRequest{}).Execute()
+	// Set body to empty values
+	var users []client.UpdateNetworkSnmpRequestUsersInner
+	accessValue := "none" // Default is 'none'
+	communityStringValue := ""
+
+	snmpDeleteSettings := client.UpdateNetworkSnmpRequest{
+		Access:          &accessValue,
+		CommunityString: &communityStringValue,
+		Users:           users,
+	}
+
+	_, httpResp, err := r.client.NetworksApi.UpdateNetworkSnmp(ctx, state.NetworkId.ValueString()).UpdateNetworkSnmpRequest(snmpDeleteSettings).Execute()
+
+	fmt.Println(httpResp)
 
 	if err != nil {
 		resp.Diagnostics.AddError(
