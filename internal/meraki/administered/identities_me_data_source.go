@@ -3,44 +3,48 @@ package administered
 import (
 	"context"
 	"fmt"
+
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
 )
 
-// Ensure provider defined types fully satisfy framework interfaces
+// Ensure provider-defined types fully satisfy framework interfaces
 var _ datasource.DataSource = &IdentitiesMeDataSource{}
 
+// NewAdministeredIdentitiesMeDataSource initializes a new Administered Identities Me data source.
 func NewAdministeredIdentitiesMeDataSource() datasource.DataSource {
 	return &IdentitiesMeDataSource{}
 }
 
-// IdentitiesMeDataSource defines the data source implementation.
+// IdentitiesMeDataSource implements the Terraform data source for retrieving the current user's identity.
 type IdentitiesMeDataSource struct {
 	client *openApiClient.APIClient
 }
 
+// Metadata sets the data source type name.
 func (d *IdentitiesMeDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_administered_identities_me"
+	resp.TypeName = fmt.Sprintf("%s_administered_identities_me", req.ProviderTypeName)
 }
 
+// Schema sets the data source schema.
 func (d *IdentitiesMeDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = identitiesMeSchema
 }
 
+// Configure initializes the API client for the data source.
 func (d *IdentitiesMeDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	// Prevent panic if the provider has not been configured.
+	// Ensure the provider has been configured
 	if req.ProviderData == nil {
 		return
 	}
 
 	client, ok := req.ProviderData.(*openApiClient.APIClient)
-
 	if !ok {
 		resp.Diagnostics.AddError(
-			"Unexpected Data Source Configure Type",
-			fmt.Sprintf("Expected *http.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			"Unexpected Data Source Configuration",
+			fmt.Sprintf("Expected *openApiClient.APIClient, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 		return
 	}
@@ -48,49 +52,52 @@ func (d *IdentitiesMeDataSource) Configure(ctx context.Context, req datasource.C
 	d.client = client
 }
 
+// Read retrieves the current user's identity and populates the Terraform state.
 func (d *IdentitiesMeDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data identitiesMeAttrModel
+	var config identitiesMeModel
 
 	// Read Terraform configuration data into the model
-	tflog.Trace(ctx, "Reading Terraform configuration data")
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
-	if resp.Diagnostics.HasError() {
+	tflog.Debug(ctx, "[identities_me] Reading Terraform configuration data")
+	if err := req.Config.Get(ctx, &config); err != nil {
+		resp.Diagnostics.Append(err...)
 		return
 	}
 
-	// API call to retrieve identity
-	tflog.Trace(ctx, "Calling API to retrieve identity")
-	inlineResp, httpResp, err := d.client.AdministeredApi.GetAdministeredIdentitiesMe(ctx).Execute()
+	// Call the API to retrieve the current user's identity
+	tflog.Debug(ctx, "[identities_me] Calling API to retrieve identity")
+	apiResponse, httpResp, err := d.client.AdministeredApi.GetAdministeredIdentitiesMe(ctx).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"HTTP Client Failure",
-			fmt.Sprintf("Error: %s\nDiagnostics: %s", err.Error(), utils.HttpDiagnostics(httpResp)),
+			"API Request Failure",
+			fmt.Sprintf("Failed to call API: %s\nDiagnostics: %s", err.Error(), utils.HttpDiagnostics(httpResp)),
 		)
 		return
 	}
 
-	// Handle unexpected status codes
+	// Handle unexpected HTTP status codes
 	if httpResp.StatusCode != 200 {
 		resp.Diagnostics.AddError(
-			"Unexpected HTTP Response Status Code",
-			fmt.Sprintf("Received HTTP status code: %v", httpResp.StatusCode),
+			"Unexpected HTTP Status Code",
+			fmt.Sprintf("Received HTTP status code: %d", httpResp.StatusCode),
 		)
 		return
 	}
 
-	// Marshal API response into Terraform state
-	tflog.Trace(ctx, "Marshaling API response into Terraform state")
-	marshaledData, diags := marshalState(ctx, inlineResp)
+	// Map the API response to the Terraform state model
+	tflog.Debug(ctx, "[identities_me] Mapping API response to Terraform state")
+	state, diags := mapAPIResponseToState(ctx, apiResponse)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		resp.Diagnostics.AddError(
-			"Data Model Error",
-			"Failed to marshal HTTP response into Terraform state. Check diagnostics for details.",
+			"State Mapping Failure",
+			"Failed to map API response to Terraform state. Check diagnostics for details.",
 		)
 		return
 	}
 
-	// Save marshaled data into Terraform state
-	tflog.Trace(ctx, "Saving marshaled data into Terraform state")
-	resp.Diagnostics.Append(resp.State.Set(ctx, &marshaledData)...)
+	// Save the mapped state to Terraform
+	tflog.Debug(ctx, "[identities_me] Saving state to Terraform")
+	if err := resp.State.Set(ctx, &state); err != nil {
+		resp.Diagnostics.Append(err...)
+	}
 }

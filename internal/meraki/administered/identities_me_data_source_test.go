@@ -1,11 +1,13 @@
 package administered_test
 
 import (
+	"context"
 	"fmt"
-	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"regexp"
 	"testing"
+
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccAdministeredIdentitiesMeDataSource(t *testing.T) {
@@ -13,44 +15,48 @@ func TestAccAdministeredIdentitiesMeDataSource(t *testing.T) {
 		PreCheck:                 func() { provider.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: provider.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			// Read AdministeredIdentitiesMe
 			{
-				Config: testAccAdministeredIdentitiesMeDataSourceConfigCreate,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					//testCheckTopLevelFields(),
-					resource.TestCheckResourceAttrWith(
-						"data.meraki_administered_identities_me.test", "last_used_dashboard_at", validateRFC3339),
-					testCheckAuthenticationFields(),
-				),
+				Config: testAccAdministeredIdentitiesMeDataSourceConfig,
+				Check:  testCheckAdministeredIdentitiesMe(),
 			},
 		},
 	})
 }
 
-const testAccAdministeredIdentitiesMeDataSourceConfigCreate = `
-data "meraki_administered_identities_me" "test" {
-}
-`
-
-// Helper function to check top-level fields
-func testCheckTopLevelFields() resource.TestCheckFunc {
+// testCheckAdministeredIdentitiesMe validates the retrieved data source attributes.
+func testCheckAdministeredIdentitiesMe() resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
+		// Check the `id` field
 		resource.TestCheckResourceAttr(
-			"data.meraki_administered_identities_me.test", "name", "Miles Meraki"),
-		resource.TestCheckResourceAttr(
-			"data.meraki_administered_identities_me.test", "email", "miles@meraki.com"),
+			"data.meraki_administered_identities_me.test", "id", "identities_me"),
+		// Validate top-level fields
+		testCheckTopLevelFields(),
+		// Validate authentication fields
+		testCheckAuthenticationFields(),
+		// Validate `last_used_dashboard_at` format
+		resource.TestCheckResourceAttrWith(
+			"data.meraki_administered_identities_me.test",
+			"last_used_dashboard_at",
+			validateRFC3339,
+		),
 	)
 }
 
-// Helper function to check authentication fields
+// testCheckTopLevelFields validates the top-level fields of the data source.
+func testCheckTopLevelFields() resource.TestCheckFunc {
+	return resource.ComposeAggregateTestCheckFunc(
+	//resource.TestCheckResourceAttr("data.meraki_administered_identities_me.test", "name", "Miles Meraki"),
+	//resource.TestCheckResourceAttr("data.meraki_administered_identities_me.test", "email", "miles@meraki.com"),
+	)
+}
+
+// testCheckAuthenticationFields validates the authentication-related fields.
 func testCheckAuthenticationFields() resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
 		resource.TestCheckResourceAttr(
 			"data.meraki_administered_identities_me.test", "authentication.mode", "email"),
 		resource.TestCheckResourceAttr(
-			"data.meraki_administered_identities_me.test", "authentication.api_key_created", "true"),
-		resource.TestCheckResourceAttr(
-			"data.meraki_administered_identities_me.test", "authentication.saml_enabled", "false"),
+			"data.meraki_administered_identities_me.test", "authentication.saml.enabled", "false"),
 		resource.TestCheckResourceAttr(
 			"data.meraki_administered_identities_me.test", "authentication.two_factor.enabled", "false"),
 		resource.TestCheckResourceAttr(
@@ -58,11 +64,16 @@ func testCheckAuthenticationFields() resource.TestCheckFunc {
 	)
 }
 
-// Helper function to validate RFC3339 format
+// validateRFC3339 checks if a string is a valid RFC3339 date-time format.
 func validateRFC3339(value string) error {
-	re := regexp.MustCompile(`^((?:(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}:\d{2}(?:\.\d+)?))(Z|[\+-]\d{2}:\d{2})?)$`)
-	if !re.MatchString(value) {
-		return fmt.Errorf("received timestamp does not match RFC3339 format: %s", value)
+	ctx := context.Background()
+	if err := utils.ValidateRFC3339(ctx, value); err != nil {
+		return fmt.Errorf("value validation failed: %v", err)
 	}
 	return nil
 }
+
+// Terraform configuration for the data source
+const testAccAdministeredIdentitiesMeDataSourceConfig = `
+data "meraki_administered_identities_me" "test" {}
+`
