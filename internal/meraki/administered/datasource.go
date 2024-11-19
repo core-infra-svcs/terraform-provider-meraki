@@ -11,30 +11,30 @@ import (
 )
 
 // Ensure provider-defined types fully satisfy framework interfaces
-var _ datasource.DataSource = &IdentitiesMeDataSource{}
+var _ datasource.DataSource = &DataSource{}
 
 // NewAdministeredIdentitiesMeDataSource initializes a new Administered Identities Me data source.
 func NewAdministeredIdentitiesMeDataSource() datasource.DataSource {
-	return &IdentitiesMeDataSource{}
+	return &DataSource{}
 }
 
-// IdentitiesMeDataSource implements the Terraform data source for retrieving the current user's identity.
-type IdentitiesMeDataSource struct {
+// DataSource implements the Terraform data source for retrieving the current user's identity.
+type DataSource struct {
 	client *openApiClient.APIClient
 }
 
 // Metadata sets the data source type name.
-func (d *IdentitiesMeDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *DataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = fmt.Sprintf("%s_administered_identities_me", req.ProviderTypeName)
 }
 
 // Schema sets the data source schema.
-func (d *IdentitiesMeDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *DataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = identitiesMeSchema
 }
 
 // Configure initializes the API client for the data source.
-func (d *IdentitiesMeDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *DataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Ensure the provider has been configured
 	if req.ProviderData == nil {
 		return
@@ -53,8 +53,8 @@ func (d *IdentitiesMeDataSource) Configure(ctx context.Context, req datasource.C
 }
 
 // Read retrieves the current user's identity and populates the Terraform state.
-func (d *IdentitiesMeDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var config identitiesMeModel
+func (d *DataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var config dataSourceModel
 
 	// Read Terraform configuration data into the model
 	tflog.Debug(ctx, "[identities_me] Reading Terraform configuration data")

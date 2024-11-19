@@ -13,9 +13,9 @@ import (
 )
 
 // mapAPIResponseToState converts the API response into the Terraform state model.
-func mapAPIResponseToState(ctx context.Context, inlineResp *client.GetAdministeredIdentitiesMe200Response) (identitiesMeModel, diag.Diagnostics) {
+func mapAPIResponseToState(ctx context.Context, inlineResp *client.GetAdministeredIdentitiesMe200Response) (dataSourceModel, diag.Diagnostics) {
 	var diags diag.Diagnostics
-	var data identitiesMeModel
+	var data dataSourceModel
 
 	tflog.Trace(ctx, "[identities_me] Starting to marshal API response to Terraform model")
 

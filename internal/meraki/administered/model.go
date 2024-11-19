@@ -86,8 +86,8 @@ var authenticationType = map[string]attr.Type{
 	"two_factor": types.ObjectType{AttrTypes: twoFactorType},
 }
 
-// identitiesMeModel represents the main data model for identities.
-type identitiesMeModel struct {
+// dataSourceModel represents the main data model for identities.
+type dataSourceModel struct {
 	Id                  types.String `tfsdk:"id" json:"-"`
 	Name                types.String `tfsdk:"name" json:"name"`
 	Email               types.String `tfsdk:"email" json:"email"`
@@ -95,8 +95,8 @@ type identitiesMeModel struct {
 	Authentication      types.Object `tfsdk:"authentication" json:"authentication"`
 }
 
-// identitiesMeType defines the attribute types for IdentitiesMeModel.
-var identitiesMeType = map[string]attr.Type{
+// dataSourceType defines the attribute types for IdentitiesMeModel.
+var dataSourceType = map[string]attr.Type{
 	"id":                     types.StringType,
 	"name":                   types.StringType,
 	"email":                  types.StringType,
