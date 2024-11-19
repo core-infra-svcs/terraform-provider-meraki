@@ -1,50 +1,47 @@
 package networks_test
 
+import (
+	"fmt"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"os"
+
+	"testing"
+)
+
 // TODO: This test is only valid for devices that support this feature. MS120's do not.
-/*
+
 func TestAccNetworkStormControlResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
 			provider.TestAccPreCheck(t)
 		},
-		ProtoV6ProviderFactories: test_acc.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: provider.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 
-			// Create and Read Network.
+			// Create and Read Network
 			{
-				Config: testAccNetworkStormControlResourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"),
-					os.Getenv("TF_ACC_MERAKI_MS_SERIAL")),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_network_switch_storm_control"),
-					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
-					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
-					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.#", "1"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.0", "switch"),
-					resource.TestCheckResourceAttr("meraki_network.test", "notes", "Additional description of the network"),
-				),
+				Config: utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_network_switch_storm_control"),
+				Check:  utils.NetworkOrgIdTestChecks("test_acc_network_switch_storm_control"),
 			},
 
-			// Create and Read Networks Switch Qos Rules.
+			// Claim Device
 			{
-				Config: testAccNetworkStormControlResourceConfigCreateNetworkStormControl(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"),
-					os.Getenv("TF_ACC_MERAKI_MS_SERIAL")),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_storm_control.test", "broadcast_threshold", "90"),
-					resource.TestCheckResourceAttr("meraki_networks_storm_control.test", "multicast_threshold", "90"),
-					resource.TestCheckResourceAttr("meraki_networks_storm_control.test", "unknown_unicast_threshold", "90"),
-				),
+				Config: NetworkStormControlResourceClaimNetworkDevice(os.Getenv("TF_ACC_MERAKI_MS_SERIAL")),
+				Check:  NetworkStormControlResourceClaimNetworkDeviceCheck(),
 			},
 
-			//Update Networks Switch Qos Rules.
+			// Create and Read Storm control
 			{
-				Config: testAccNetworkSwiStormControlResourceConfigUpdateNetworkStormControl(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"),
-					os.Getenv("TF_ACC_MERAKI_MS_SERIAL")),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_storm_control.test", "broadcast_threshold", "40"),
-					resource.TestCheckResourceAttr("meraki_networks_storm_control.test", "multicast_threshold", "40"),
-					resource.TestCheckResourceAttr("meraki_networks_storm_control.test", "unknown_unicast_threshold", "40"),
-				),
+				Config: NetworkStormControlResourceConfigCreate(os.Getenv("TF_ACC_MERAKI_MS_SERIAL")),
+				Check:  NetworkStormControlResourceConfigCreateChecks(),
+			},
+
+			// Update and Read Storm control
+			{
+				Config: NetworkStormControlResourceConfigUpdate(os.Getenv("TF_ACC_MERAKI_MS_SERIAL")),
+				Check:  NetworkStormControlResourceConfigUpdateChecks(),
 			},
 
 			// Import testing
@@ -57,38 +54,43 @@ func TestAccNetworkStormControlResource(t *testing.T) {
 	})
 }
 
-func testAccNetworkStormControlResourceConfigCreateNetwork(orgId, serial string) string {
-	result := fmt.Sprintf(`
-resource "meraki_network" "test" {
-    organization_id = %s
-    product_types = ["switch"]
-    tags = ["tag1"]
-    name = "test_acc_network_switch_storm_control"
-    timezone = "America/Los_Angeles"
-    notes = "Additional description of the network"
-}
-
+func NetworkStormControlResourceClaimNetworkDevice(serial string) string {
+	return fmt.Sprintf(`
+	%s
 resource "meraki_networks_devices_claim" "test" {
-    depends_on = [resource.meraki_network.test]
     network_id = resource.meraki_network.test.network_id
     serials = [
       "%s"
   ]
 }
-
-`, orgId, serial)
-	return result
+`,
+		utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_network_switch_storm_control"),
+		serial,
+	)
 }
 
-func testAccNetworkStormControlResourceConfigCreateNetworkStormControl(orgId, serial string) string {
-	result := fmt.Sprintf(`
-resource "meraki_network" "test" {
-        organization_id = "%s"
-        product_types = ["switch"]
+// NetworkStormControlResourceClaimNetworkDeviceCheck returns the test check functions for NetworkStormControlResourceClaimNetworkDevice
+func NetworkStormControlResourceClaimNetworkDeviceCheck() resource.TestCheckFunc {
+	expectedAttrs := map[string]string{
+		"name":            "test_acc_network_switch_storm_control",
+		"product_types.0": "appliance",
+		"product_types.1": "cellularGateway",
+		"product_types.2": "switch",
+		"product_types.3": "wireless",
+		"tags.0":          "tag1",
+	}
+	return utils.ResourceTestCheck("meraki_network.test", expectedAttrs)
+}
+
+func NetworkStormControlResourceConfigCreate(serial string) string {
+	return fmt.Sprintf(`
+	%s
+resource "meraki_networks_devices_claim" "test" {
+	network_id = resource.meraki_network.test.network_id
 }
 
 resource "meraki_networks_storm_control" "test" {
-    depends_on = [resource.meraki_network.test]
+    depends_on = [resource.meraki_network.test, resource.meraki_networks_devices_claim.test]
     network_id = resource.meraki_network.test.network_id
 	broadcast_threshold = 90
 	multicast_threshold = 90
@@ -96,26 +98,36 @@ resource "meraki_networks_storm_control" "test" {
 }
 
 resource "meraki_devices_switch_port" "test" {
-	depends_on = [resource.meraki_network.test, resource.meraki_networks_storm_control.test]
+	depends_on = [resource.meraki_networks_storm_control.test]
 	serial = "%s"
 	storm_control_enabled = true
 	port_id = 1
 }
-
-`, orgId, serial)
-	return result
+`,
+		utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_network_switch_storm_control_data"),
+		serial,
+	)
 }
 
-func testAccNetworkSwiStormControlResourceConfigUpdateNetworkStormControl(orgId, serial string) string {
-	result := fmt.Sprintf(`
-resource "meraki_network" "test" {
-        organization_id = "%s"
-        product_types = ["switch"]
+// NetworkStormControlResourceConfigCreateChecks returns the test check functions for NetworkStormControlResourceConfigCreate
+func NetworkStormControlResourceConfigCreateChecks() resource.TestCheckFunc {
+	expectedAttrs := map[string]string{
+		"broadcast_threshold":       "90",
+		"multicast_threshold":       "90",
+		"unknown_unicast_threshold": "90",
+	}
+	return utils.ResourceTestCheck("meraki_networks_storm_control.test", expectedAttrs)
 }
 
+func NetworkStormControlResourceConfigUpdate(serial string) string {
+	return fmt.Sprintf(`
+	%s
+resource "meraki_networks_devices_claim" "test" {
+	network_id = resource.meraki_network.test.network_id
+}
 
 resource "meraki_networks_storm_control" "test" {
-    depends_on = [resource.meraki_network.test]
+    depends_on = [resource.meraki_network.test, resource.meraki_networks_devices_claim.test]
     network_id = resource.meraki_network.test.network_id
 	broadcast_threshold = 40
 	multicast_threshold = 40
@@ -123,13 +135,23 @@ resource "meraki_networks_storm_control" "test" {
 }
 
 resource "meraki_devices_switch_port" "test" {
-	depends_on = [resource.meraki_network.test, resource.meraki_networks_storm_control.test]
+	depends_on = [resource.meraki_networks_storm_control.test]
 	serial = "%s"
 	storm_control_enabled = true
 	port_id = 1
 }
-
-`, orgId, serial)
-	return result
+`,
+		utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_network_switch_storm_control_data"),
+		serial,
+	)
 }
-*/
+
+// NetworkStormControlResourceConfigUpdateChecks returns the test check functions for NetworkStormControlResourceConfigUpdate
+func NetworkStormControlResourceConfigUpdateChecks() resource.TestCheckFunc {
+	expectedAttrs := map[string]string{
+		"broadcast_threshold":       "40",
+		"multicast_threshold":       "40",
+		"unknown_unicast_threshold": "40",
+	}
+	return utils.ResourceTestCheck("meraki_networks_storm_control.test", expectedAttrs)
+}
