@@ -263,10 +263,7 @@ func (r *SnmpResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 		Users:           users,
 	}
 
-	_, httpResp, err := r.client.NetworksApi.UpdateNetworkSnmp(ctx, state.NetworkId.ValueString()).UpdateNetworkSnmpRequest(snmpDeleteSettings).Execute()
-
-	fmt.Println(httpResp)
-
+	_, _, err := r.client.NetworksApi.UpdateNetworkSnmp(ctx, state.NetworkId.ValueString()).UpdateNetworkSnmpRequest(snmpDeleteSettings).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error deleting SNMP settings",
