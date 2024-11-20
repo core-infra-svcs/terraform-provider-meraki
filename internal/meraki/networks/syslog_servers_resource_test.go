@@ -55,7 +55,7 @@ resource "meraki_networks_syslog_servers" "test" {
 }
 	
 	`,
-		utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "nw name"),
+		utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_networks_syslog_servers"),
 	)
 }
 

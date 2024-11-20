@@ -65,7 +65,7 @@ data "meraki_networks_storm_control" "test" {
 }
 	
 	`,
-		utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "nw name"),
+		utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_network_switch_storm_control_data"),
 	)
 }
 

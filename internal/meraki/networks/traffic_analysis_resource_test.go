@@ -59,7 +59,7 @@ resource "meraki_networks_traffic_analysis" "test" {
 }
 	
 	`,
-		utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "nw name"),
+		utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_networks_traffic_analysis"),
 	)
 }
 

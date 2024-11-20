@@ -104,7 +104,7 @@ resource "meraki_devices_switch_port" "test" {
 	port_id = 1
 }
 `,
-		utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_network_switch_storm_control_data"),
+		utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_network_switch_storm_control"),
 		serial,
 	)
 }
@@ -141,7 +141,7 @@ resource "meraki_devices_switch_port" "test" {
 	port_id = 1
 }
 `,
-		utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_network_switch_storm_control_data"),
+		utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_network_switch_storm_control"),
 		serial,
 	)
 }
