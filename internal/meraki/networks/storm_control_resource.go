@@ -318,21 +318,6 @@ func (r *StormControlResource) Delete(ctx context.Context, req resource.DeleteRe
 		updateNetworkSwitchStormControl.SetUnknownUnicastThreshold(int32(100))
 	}
 
-	// Set BroadcastThreshold
-	if data.BroadcastThreshold.IsUnknown() {
-		updateNetworkSwitchStormControl.SetBroadcastThreshold(int32(100))
-	}
-
-	// Set MulticastThreshold
-	if data.MulticastThreshold.IsUnknown() {
-		updateNetworkSwitchStormControl.SetMulticastThreshold(int32(100))
-	}
-
-	// Set UnknownUnicastThreshold
-	if data.UnknownUnicastThreshold.IsUnknown() {
-		updateNetworkSwitchStormControl.SetUnknownUnicastThreshold(int32(100))
-	}
-
 	// Execute the storm control update request to clear storm control configuration
 	_, httpResp, err := r.client.ConfigureApi.UpdateNetworkSwitchStormControl(ctx, data.NetworkId.ValueString()).UpdateNetworkSwitchStormControlRequest(updateNetworkSwitchStormControl).Execute()
 
