@@ -43,6 +43,14 @@ func (d *L3FirewallRulesDataSource) Schema(ctx context.Context, req datasource.S
 					stringvalidator.LengthBetween(1, 31),
 				},
 			},
+			"network_id": schema.StringAttribute{
+				MarkdownDescription: "Network ID",
+				Required:            true,
+				CustomType:          jsontypes.StringType,
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(1, 31),
+				},
+			},
 			"syslog_default_rule": schema.BoolAttribute{
 				MarkdownDescription: "Log the special default rule (boolean value - enable only if you've configured a syslog server) (optional)",
 				Optional:            true,
@@ -136,7 +144,7 @@ func (d *L3FirewallRulesDataSource) Read(ctx context.Context, req datasource.Rea
 		return
 	}
 
-	_, httpResp, err := d.client.ApplianceApi.GetNetworkApplianceFirewallL3FirewallRules(context.Background(), data.Id.ValueString()).Execute()
+	_, httpResp, err := d.client.ApplianceApi.GetNetworkApplianceFirewallL3FirewallRules(context.Background(), data.NetworkId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"HTTP Client Failure",
@@ -172,6 +180,8 @@ func (d *L3FirewallRulesDataSource) Read(ctx context.Context, req datasource.Rea
 	if data.SyslogDefaultRule.IsNull() {
 		data.SyslogDefaultRule = jsontypes.BoolValue(false)
 	}
+
+	data.Id = jsontypes.StringValue(data.NetworkId.ValueString())
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
