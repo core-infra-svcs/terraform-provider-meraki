@@ -3,6 +3,7 @@ package firewall_test
 import (
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"os"
 	"testing"
 
@@ -17,38 +18,23 @@ func TestAccNetworksApplianceFirewallL3FirewallRulesResource(t *testing.T) {
 		ProtoV6ProviderFactories: provider.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 
-			// Create and Read Network.
+			// Create and Read Network
 			{
-				Config: testAccNetworksApplianceFirewallL3FirewallRulesResourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_networks_appliance_firewall_l3_firewall_rules"),
-					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
-					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
-					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.#", "3"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.0", "appliance"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.1", "switch"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.2", "wireless"),
-					resource.TestCheckResourceAttr("meraki_network.test", "notes", "Additional description of the network"),
-				),
+				Config: utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_networks_appliance_firewall_l3_firewall_rules"),
+				Check:  utils.NetworkOrgIdTestChecks("test_acc_networks_appliance_firewall_l3_firewall_rules"),
+			},
+
+			// Create and Read Network Settings.
+			{
+				Config: NetworksApplianceL3FirewallRulesResourceConfigCreate(),
+				Check:  NetworksApplianceL3FirewallRulesResourceConfigCreateChecks(),
 			},
 
 			// Update and Read Network Settings.
 			{
-				Config: testAccNetworksApplianceFirewallL3FirewallRulesResourceConfigUpdateNetworksApplianceFirewallL3FirewallRules,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_appliance_firewall_l3_firewall_rules.test", "rules.0.comment", "Allow TCP traffic to subnet with HTTP servers."),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_firewall_l3_firewall_rules.test", "rules.0.policy", "allow"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_firewall_l3_firewall_rules.test", "rules.0.protocol", "tcp"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_firewall_l3_firewall_rules.test", "rules.0.dest_port", "443"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_firewall_l3_firewall_rules.test", "rules.0.dest_cidr", "192.168.1.0/24"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_firewall_l3_firewall_rules.test", "rules.0.src_port", "Any"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_firewall_l3_firewall_rules.test", "rules.0.src_cidr", "Any"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_firewall_l3_firewall_rules.test", "rules.0.syslog_enabled", "false"),
-				),
+				Config: NetworksApplianceL3FirewallRulesResourceConfigUpdate(),
+				Check:  NetworksApplianceL3FirewallRulesResourceConfigUpdateChecks(),
 			},
-
-			// TODO - ImportState testing - This only works when hard-coded networkId.
 
 			{
 				ResourceName:      "meraki_networks_appliance_firewall_l3_firewall_rules.test",
@@ -59,26 +45,9 @@ func TestAccNetworksApplianceFirewallL3FirewallRulesResource(t *testing.T) {
 	})
 }
 
-func testAccNetworksApplianceFirewallL3FirewallRulesResourceConfigCreateNetwork(orgId string) string {
-	result := fmt.Sprintf(`
-resource "meraki_network" "test" {
-    organization_id = %s
-    product_types = ["appliance", "switch", "wireless"]
-    tags = ["tag1"]
-    name = "test_acc_networks_appliance_firewall_l3_firewall_rules"
-    timezone = "America/Los_Angeles"
-    notes = "Additional description of the network"
-}
-`, orgId)
-	return result
-}
-
-const testAccNetworksApplianceFirewallL3FirewallRulesResourceConfigUpdateNetworksApplianceFirewallL3FirewallRules = `
-
-resource "meraki_network" "test" {
-    product_types = ["appliance", "switch", "wireless"]
-}
-
+func NetworksApplianceL3FirewallRulesResourceConfigCreate() string {
+	return fmt.Sprintf(`
+	%s
 resource "meraki_networks_appliance_firewall_l3_firewall_rules" "test" {
     depends_on = [resource.meraki_network.test]
     network_id = resource.meraki_network.test.network_id
@@ -108,4 +77,76 @@ resource "meraki_networks_appliance_firewall_l3_firewall_rules" "test" {
     ]
 
 }
-`
+	
+	`,
+		utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_networks_appliance_firewall_l3_firewall_rules"),
+	)
+}
+
+// NetworksApplianceL3FirewallRulesResourceConfigCreateChecks returns the test check functions for NetworksApplianceL3FirewallRulesResourceConfigCreate
+func NetworksApplianceL3FirewallRulesResourceConfigCreateChecks() resource.TestCheckFunc {
+	expectedAttrs := map[string]string{
+		"rules.0.comment":        "Allow TCP traffic to subnet with HTTP servers.",
+		"rules.0.policy":         "allow",
+		"rules.0.protocol":       "tcp",
+		"rules.0.dest_port":      "443",
+		"rules.0.dest_cidr":      "192.168.1.0/24",
+		"rules.0.src_port":       "Any",
+		"rules.0.src_cidr":       "Any",
+		"rules.0.syslog_enabled": "false",
+	}
+	return utils.ResourceTestCheck("meraki_networks_appliance_firewall_l3_firewall_rules.test", expectedAttrs)
+}
+
+func NetworksApplianceL3FirewallRulesResourceConfigUpdate() string {
+	return fmt.Sprintf(`
+	%s
+resource "meraki_networks_appliance_firewall_l3_firewall_rules" "test" {
+    depends_on = [resource.meraki_network.test]
+    network_id = resource.meraki_network.test.network_id
+    syslog_default_rule = false
+    rules = [
+    {
+        comment =  "Allow TCP traffic to subnet with HTTP servers."
+        policy = "deny"
+        protocol = "tcp"
+        dest_port = "443"
+        dest_cidr = "192.168.1.0/24"
+        src_port = "Any"
+        src_cidr = "Any"
+        syslog_enabled = false
+    },
+    {
+        comment =  "Default rule"
+        policy = "allow"
+        protocol = "Any"
+        dest_port = "Any"
+        dest_cidr = "Any"
+        src_port = "Any"
+        src_cidr = "Any"
+        syslog_enabled = false
+    }
+
+    ]
+
+}
+	
+	`,
+		utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_networks_appliance_firewall_l3_firewall_rules"),
+	)
+}
+
+// NetworksApplianceL3FirewallRulesResourceConfigUpdateChecks returns the test check functions for NetworksApplianceL3FirewallRulesResourceConfigUpdate
+func NetworksApplianceL3FirewallRulesResourceConfigUpdateChecks() resource.TestCheckFunc {
+	expectedAttrs := map[string]string{
+		"rules.0.comment":        "Allow TCP traffic to subnet with HTTP servers.",
+		"rules.0.policy":         "deny",
+		"rules.0.protocol":       "tcp",
+		"rules.0.dest_port":      "443",
+		"rules.0.dest_cidr":      "192.168.1.0/24",
+		"rules.0.src_port":       "Any",
+		"rules.0.src_cidr":       "Any",
+		"rules.0.syslog_enabled": "false",
+	}
+	return utils.ResourceTestCheck("meraki_networks_appliance_firewall_l3_firewall_rules.test", expectedAttrs)
+}

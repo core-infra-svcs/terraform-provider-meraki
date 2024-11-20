@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
@@ -39,7 +41,19 @@ func (r *L3FirewallRulesResource) Schema(ctx context.Context, req resource.Schem
 			"id": schema.StringAttribute{
 				MarkdownDescription: "Network ID",
 				Computed:            true,
+				Optional:            true,
 				CustomType:          jsontypes.StringType,
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(1, 31),
+				},
+			},
+			"network_id": schema.StringAttribute{
+				MarkdownDescription: "Network ID",
+				Required:            true,
+				CustomType:          jsontypes.StringType,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 31),
 				},
@@ -159,7 +173,7 @@ func (r *L3FirewallRulesResource) Create(ctx context.Context, req resource.Creat
 
 	updateNetworkApplianceFirewallL3FirewallRules.SetRules(rules)
 
-	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceFirewallL3FirewallRules(context.Background(), data.Id.ValueString()).UpdateNetworkApplianceFirewallL3FirewallRulesRequest(updateNetworkApplianceFirewallL3FirewallRules).Execute()
+	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceFirewallL3FirewallRules(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceFirewallL3FirewallRulesRequest(updateNetworkApplianceFirewallL3FirewallRules).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"HTTP Client Failure",
@@ -190,6 +204,8 @@ func (r *L3FirewallRulesResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
+	data.Id = jsontypes.StringValue(data.NetworkId.ValueString())
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
@@ -206,7 +222,7 @@ func (r *L3FirewallRulesResource) Read(ctx context.Context, req resource.ReadReq
 		return
 	}
 
-	_, httpResp, err := r.client.ApplianceApi.GetNetworkApplianceFirewallL3FirewallRules(context.Background(), data.Id.ValueString()).Execute()
+	_, httpResp, err := r.client.ApplianceApi.GetNetworkApplianceFirewallL3FirewallRules(context.Background(), data.NetworkId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"HTTP Client Failure",
@@ -243,7 +259,7 @@ func (r *L3FirewallRulesResource) Read(ctx context.Context, req resource.ReadReq
 		data.SyslogDefaultRule = jsontypes.BoolValue(false)
 	}
 
-	data.Id = jsontypes.StringValue(data.Id.ValueString())
+	data.Id = jsontypes.StringValue(data.NetworkId.ValueString())
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -284,7 +300,7 @@ func (r *L3FirewallRulesResource) Update(ctx context.Context, req resource.Updat
 
 	updateNetworkApplianceFirewallL3FirewallRules.SetRules(rules)
 
-	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceFirewallL3FirewallRules(context.Background(), data.Id.ValueString()).UpdateNetworkApplianceFirewallL3FirewallRulesRequest(updateNetworkApplianceFirewallL3FirewallRules).Execute()
+	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceFirewallL3FirewallRules(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceFirewallL3FirewallRulesRequest(updateNetworkApplianceFirewallL3FirewallRules).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"HTTP Client Failure",
@@ -315,7 +331,7 @@ func (r *L3FirewallRulesResource) Update(ctx context.Context, req resource.Updat
 		return
 	}
 
-	data.Id = jsontypes.StringValue(data.Id.ValueString())
+	data.Id = jsontypes.StringValue(data.NetworkId.ValueString())
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -339,7 +355,7 @@ func (r *L3FirewallRulesResource) Delete(ctx context.Context, req resource.Delet
 	updateNetworkApplianceFirewallL3FirewallRules.Rules = nil
 	updateNetworkApplianceFirewallL3FirewallRules.SetSyslogDefaultRule(false)
 
-	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceFirewallL3FirewallRules(context.Background(), data.Id.ValueString()).UpdateNetworkApplianceFirewallL3FirewallRulesRequest(updateNetworkApplianceFirewallL3FirewallRules).Execute()
+	_, httpResp, err := r.client.ApplianceApi.UpdateNetworkApplianceFirewallL3FirewallRules(context.Background(), data.NetworkId.ValueString()).UpdateNetworkApplianceFirewallL3FirewallRulesRequest(updateNetworkApplianceFirewallL3FirewallRules).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"HTTP Client Failure",
