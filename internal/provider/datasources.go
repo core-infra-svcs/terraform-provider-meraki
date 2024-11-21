@@ -6,6 +6,7 @@ import (
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices"
 	switchDevices "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices/switch"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks"
+	applianceFirewall "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/firewall"
 	appliancePorts "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/ports"
 	applianceVlans "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/vlans"
 	applianceVpn "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/vpn"
@@ -32,6 +33,7 @@ func (p *CiscoMerakiProvider) DataSources(ctx context.Context) []func() datasour
 		applianceVlans.NewNetworksApplianceVLANsDatasource,
 		applianceVlans.NewNetworksApplianceVlansSettingsDatasource,
 		applianceVpn.NewNetworksApplianceVpnSiteToSiteVpnDatasource,
+		applianceFirewall.NewNetworksApplianceFirewallL3FirewallRulesDataSource,
 
 		merakiSwitch.NewNetworksSwitchMtuDataSource,
 		merakiSwitch.NewNetworksSwitchQosRulesDataSource,

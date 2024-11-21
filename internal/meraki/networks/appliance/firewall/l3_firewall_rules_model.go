@@ -4,7 +4,8 @@ import "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 
 // L3FirewallRulesModel describes the resource data model.
 type L3FirewallRulesModel struct {
-	Id                jsontypes.String           `tfsdk:"id" json:"network_id"`
+	Id                jsontypes.String           `tfsdk:"id"`
+	NetworkId         jsontypes.String           `tfsdk:"network_id" json:"network_id"`
 	SyslogDefaultRule jsontypes.Bool             `tfsdk:"syslog_default_rule"`
 	Rules             []L3FirewallRulesRuleModel `tfsdk:"rules" json:"rules"`
 }
