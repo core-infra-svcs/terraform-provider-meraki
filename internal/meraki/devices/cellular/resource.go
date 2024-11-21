@@ -47,104 +47,82 @@ func (r *Resource) Configure(ctx context.Context, req resource.ConfigureRequest,
 func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan resourceModel
 
-	// Read the planned state into the resource model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Convert the model to the API payload
 	payload, diags := mapModelToApiPayload(&plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Call the API to create the resource
 	apiReq := r.client.CellularApi.UpdateDeviceCellularSims(ctx, plan.Serial.ValueString())
 	apiResp, httpResp, err := apiReq.UpdateDeviceCellularSimsRequest(*payload).Execute()
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Failed to create cellular SIMs resource",
-			fmt.Sprintf("Error: %s, HTTP Response: %v", err.Error(), httpResp),
-		)
+		resp.Diagnostics.AddError("Failed to create cellular SIMs resource", fmt.Sprintf("Error: %s, HTTP Response: %v", err.Error(), httpResp))
 		return
 	}
 
-	// Map the API response to the Terraform model
 	resp.Diagnostics.Append(mapApiResponseToModel(apiResp, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Save the new state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
+
 func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state resourceModel
 
-	// Read the current state into the resource model
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Call the API to fetch the current resource state
 	apiReq := r.client.CellularApi.GetDeviceCellularSims(ctx, state.Serial.ValueString())
 	apiResp, httpResp, err := apiReq.Execute()
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Failed to read cellular SIMs resource",
-			fmt.Sprintf("Error: %s, HTTP Response: %v", err.Error(), httpResp),
-		)
+		resp.Diagnostics.AddError("Failed to read cellular SIMs resource", fmt.Sprintf("Error: %s, HTTP Response: %v", err.Error(), httpResp))
 		return
 	}
 
-	// Map the API response to the Terraform state model
 	resp.Diagnostics.Append(mapApiResponseToModel(apiResp, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Save the updated state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan, state resourceModel
 
-	// Read the current state and planned state into models
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Convert the model to the API payload
 	payload, diags := mapModelToApiPayload(&plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Call the API to update the resource
 	apiReq := r.client.CellularApi.UpdateDeviceCellularSims(ctx, state.Serial.ValueString())
 	apiResp, httpResp, err := apiReq.UpdateDeviceCellularSimsRequest(*payload).Execute()
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Failed to update cellular SIMs resource",
-			fmt.Sprintf("Error: %s, HTTP Response: %v", err.Error(), httpResp),
-		)
+		resp.Diagnostics.AddError("Failed to update cellular SIMs resource", fmt.Sprintf("Error: %s, HTTP Response: %v", err.Error(), httpResp))
 		return
 	}
 
-	// Map the API response to the Terraform model
 	resp.Diagnostics.Append(mapApiResponseToModel(apiResp, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Save the updated state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 

@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices/cellular"
 	switchDevices "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices/switch"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance"
@@ -21,7 +22,7 @@ import (
 
 func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
-		devices.NewDevicesCellularSimsResource,
+		cellular.NewDevicesCellularSimsResource,
 		devices.NewDevicesResource,
 		switchDevices.NewDevicesSwitchPortResource,
 		switchDevices.NewDevicesSwitchPortsCycleResource,

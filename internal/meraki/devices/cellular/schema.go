@@ -2,6 +2,7 @@ package cellular
 
 import (
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -30,7 +31,7 @@ func Schema() schema.Schema {
 						MarkdownDescription: "Timeout value (in seconds) for SIM failover. Defaults to 0.",
 						Optional:            true,
 						Computed:            true,
-						Default:             schema.Int64Attribute.Int64DefaultValue(),
+						Default:             utils.NewInt64Default(0),
 					},
 				},
 			},

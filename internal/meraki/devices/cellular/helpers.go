@@ -73,19 +73,21 @@ func mapApiResponseToModel(apiResponse map[string]interface{}, model *resourceMo
 	}
 
 	// Map SimOrdering
-	if simOrdering, ok := apiResponse["simOrdering"].([]interface{}); ok {
+	model.SimOrdering, diagnostics = mapSimOrderingToTerraformModel(apiResponse["simOrdering"])
+	return diagnostics
+}
+
+func mapSimOrderingToTerraformModel(data interface{}) (types.Set, diag.Diagnostics) {
+	if simOrdering, ok := data.([]interface{}); ok {
 		simOrderingStrings := make([]string, len(simOrdering))
 		for i, slot := range simOrdering {
 			if slotStr, ok := slot.(string); ok {
 				simOrderingStrings[i] = slotStr
 			}
 		}
-		model.SimOrdering = asSetOfStrings(simOrderingStrings)
-	} else {
-		model.SimOrdering = types.SetNull(types.StringType)
+		return asSetOfStrings(simOrderingStrings), nil
 	}
-
-	return diagnostics
+	return types.SetNull(types.StringType), nil
 }
 
 func mapSimFailOverToTerraformModel(apiFailOver map[string]interface{}) types.Object {
@@ -95,7 +97,6 @@ func mapSimFailOverToTerraformModel(apiFailOver map[string]interface{}) types.Ob
 	})
 }
 
-// mapSimsToApiPayload converts Terraform Sims list to API Sims payload.
 func mapSimsToApiPayload(sims types.List) ([]openApiClient.UpdateDeviceCellularSimsRequestSimsInner, diag.Diagnostics) {
 	if sims.IsNull() || sims.IsUnknown() {
 		return nil, nil
@@ -109,7 +110,6 @@ func mapSimsToApiPayload(sims types.List) ([]openApiClient.UpdateDeviceCellularS
 
 	var apiSims []openApiClient.UpdateDeviceCellularSimsRequestSimsInner
 	for _, sim := range simsData {
-		// Create local variables for pointers
 		slot := sim.Slot.ValueString()
 		isPrimary := sim.IsPrimary.ValueBool()
 
@@ -161,7 +161,6 @@ func mapSimsToTerraformModel(apiSims []interface{}) (types.List, diag.Diagnostic
 	return types.ListValueMust(types.ObjectType{AttrTypes: ResourceModelSimAttrTypes()}, sims), diagnostics
 }
 
-// mapApnsToApiPayload converts Terraform APNs list to API APNs payload.
 func mapApnsToApiPayload(apns types.List) ([]openApiClient.UpdateDeviceCellularSimsRequestSimsInnerApnsInner, diag.Diagnostics) {
 	if apns.IsNull() || apns.IsUnknown() {
 		return nil, nil
@@ -184,7 +183,7 @@ func mapApnsToApiPayload(apns types.List) ([]openApiClient.UpdateDeviceCellularS
 		if !apn.Authentication.IsNull() && !apn.Authentication.IsUnknown() {
 			auth := mapAuthenticationToApiPayload(apn.Authentication)
 			if auth != nil {
-				apiApn.SetAuthentication(*auth) // Dereference the pointer
+				apiApn.SetAuthentication(*auth)
 			}
 		}
 
@@ -201,16 +200,13 @@ func mapApnsToTerraformModel(apiApns []openApiClient.UpdateDeviceCellularSimsReq
 
 	var apns []attr.Value
 	for _, apiApn := range apiApns {
-		// Handle authentication
 		var auth types.Object
 		if apiApn.HasAuthentication() {
-			authData := apiApn.GetAuthentication()
-			auth = mapAuthenticationToTerraformModel(&authData)
+			auth = mapAuthenticationToTerraformModel(apiApn.Authentication)
 		} else {
 			auth = types.ObjectNull(ResourceModelAuthenticationAttrTypes())
 		}
 
-		// Map APN to Terraform object
 		apn := types.ObjectValueMust(ResourceModelApnsAttrTypes(), map[string]attr.Value{
 			"name":             types.StringValue(apiApn.GetName()),
 			"allowed_ip_types": asSetOfStrings(apiApn.GetAllowedIpTypes()),
