@@ -104,7 +104,7 @@ resource "meraki_networks_appliance_ports" "test" {
     }
 	
 	`,
-		utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "nw_name"),
+		utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_networks_appliance_ports"),
 	)
 }
 
