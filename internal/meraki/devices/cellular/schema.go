@@ -1,11 +1,11 @@
 package cellular
 
 import (
-	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 // Schema returns the resource schema definition
@@ -13,6 +13,10 @@ func Schema() schema.Schema {
 	return schema.Schema{
 		MarkdownDescription: "Manages the SIM and APN configurations for a cellular device.",
 		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				MarkdownDescription: "Unique identifier for the resource.",
+				Computed:            true,
+			},
 			"serial": schema.StringAttribute{
 				MarkdownDescription: "Serial number of the device.",
 				Optional:            true,
@@ -26,6 +30,7 @@ func Schema() schema.Schema {
 						MarkdownDescription: "If true, failover to the secondary SIM is enabled.",
 						Optional:            true,
 						Computed:            true,
+						Default:             utils.NewBoolDefault(false),
 					},
 					"timeout": schema.Int64Attribute{
 						MarkdownDescription: "Timeout value (in seconds) for SIM failover. Defaults to 0.",
@@ -35,11 +40,11 @@ func Schema() schema.Schema {
 					},
 				},
 			},
-			"sims": SimsSchema(), // Call the helper function for sims schema
+			"sims": SimsSchema(),
 			"sim_ordering": schema.SetAttribute{
 				MarkdownDescription: "Ordered list of SIM slots, prioritized for failover.",
 				Computed:            true,
-				ElementType:         jsontypes.StringType,
+				ElementType:         types.StringType,
 			},
 		},
 	}
@@ -62,7 +67,7 @@ func SimsSchema() schema.SetNestedAttribute {
 					Optional:            true,
 					Computed:            true,
 				},
-				"apns": ApnsSchema(), // Call the helper function for APNs schema
+				"apns": ApnsSchema(),
 			},
 		},
 	}
@@ -82,9 +87,9 @@ func ApnsSchema() schema.SetNestedAttribute {
 				"allowed_ip_types": schema.SetAttribute{
 					MarkdownDescription: "Allowed IP versions for the APN (e.g., 'ipv4', 'ipv6').",
 					Required:            true,
-					ElementType:         jsontypes.StringType,
+					ElementType:         types.StringType,
 				},
-				"authentication": AuthenticationSchema(), // Call the helper function for authentication schema
+				"authentication": AuthenticationSchema(),
 			},
 		},
 	}

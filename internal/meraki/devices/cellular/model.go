@@ -46,8 +46,9 @@ import (
 
 // resourceModel represents the top-level resource structure.
 type resourceModel struct {
+	Id          types.String `tfsdk:"id" json:"-"`
 	Serial      types.String `tfsdk:"serial" json:"serial"`
-	Sims        types.List   `tfsdk:"sims" json:"sims"`
+	Sims        types.Set    `tfsdk:"sims" json:"sims"` // Updated to match schema
 	SimFailOver types.Object `tfsdk:"sim_failover" json:"simFailover"`
 	SimOrdering types.Set    `tfsdk:"sim_ordering" json:"simOrdering"`
 }
@@ -66,7 +67,7 @@ func resourceModelAttrTypes() map[string]attr.Type {
 type ResourceModelSim struct {
 	Slot      types.String `tfsdk:"slot" json:"slot"`
 	IsPrimary types.Bool   `tfsdk:"is_primary" json:"isPrimary"`
-	Apns      types.List   `tfsdk:"apns" json:"apns"`
+	Apns      types.Set    `tfsdk:"apns" json:"apns"` // Updated to match schema
 }
 
 // ResourceModelSimAttrTypes defines the attribute types for ResourceModelSim.
@@ -74,7 +75,7 @@ func ResourceModelSimAttrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"slot":       types.StringType,
 		"is_primary": types.BoolType,
-		"apns":       types.ListType{ElemType: types.ObjectType{AttrTypes: ResourceModelApnsAttrTypes()}},
+		"apns":       types.SetType{ElemType: types.ObjectType{AttrTypes: ResourceModelApnsAttrTypes()}},
 	}
 }
 

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -42,7 +43,7 @@ func testAccDevicesCellularSimsCheckCreate() resource.TestCheckFunc {
 		resource.TestCheckResourceAttr("meraki_devices_cellular_sims.test", "sims.0.slot", "sim1"),
 		resource.TestCheckResourceAttr("meraki_devices_cellular_sims.test", "sims.0.is_primary", "true"),
 		resource.TestCheckResourceAttr("meraki_devices_cellular_sims.test", "sim_failover.enabled", "false"),
-		resource.TestCheckNoResourceAttr("meraki_devices_cellular_sims.test", "sim_failover.timeout"),
+		resource.TestCheckResourceAttr("meraki_devices_cellular_sims.test", "sim_failover.timeout", "0"),
 	)
 }
 
@@ -69,13 +70,14 @@ func testAccDevicesCellularSimsCheckImport() resource.TestCheckFunc {
 }
 
 // testAccDevicesCellularSimsResourceConfigCreate generates the test configuration for creating a network with a device cellular SIMs resource.
+// Generate a unique name for each test run
 func testAccDevicesCellularSimsResourceConfigCreate(orgID string) string {
 	return fmt.Sprintf(`
 resource "meraki_network" "test" {
 	organization_id = "%s"
 	product_types   = ["cellularGateway"]
 	tags            = ["tag1"]
-	name            = "test_acc_device_cellular_sims"
+	name            = "test_acc_device_cellular_sims_%d" # Unique name
 	timezone        = "America/Los_Angeles"
 	notes           = "Additional description of the network"
 }
@@ -84,14 +86,14 @@ resource "meraki_devices_cellular_sims" "test" {
 	serial = "%s"
 	sims = [{
 		slot       = "sim1"
-		apns       = []
+		apns       = [] # Correctly represent an empty set of objects for APNs
 		is_primary = true
 	}]
 	sim_failover = {
 		enabled = false
 	}
 }
-`, orgID, os.Getenv("TF_ACC_MERAKI_MG_SERIAL"))
+`, orgID, time.Now().UnixNano(), os.Getenv("TF_ACC_MERAKI_MG_SERIAL"))
 }
 
 // testAccDevicesCellularSimsResourceConfigUpdate generates the test configuration for updating the device cellular SIMs resource.
