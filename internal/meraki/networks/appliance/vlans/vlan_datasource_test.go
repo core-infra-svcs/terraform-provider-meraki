@@ -3,7 +3,7 @@ package vlans_test
 import (
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"os"
 	"testing"
 
@@ -16,106 +16,30 @@ func TestAccNetworksApplianceVlansDataSource(t *testing.T) {
 		ProtoV6ProviderFactories: provider.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 
-			// Create and Read a Network.
+			// Create and Read Network
 			{
-				Config: testAccNetworksApplianceVlansDataSourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_meraki_networks_appliance_vlans"),
-					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
-					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
-					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.#", "3"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.0", "appliance"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.1", "switch"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.2", "wireless"),
-					resource.TestCheckResourceAttr("meraki_network.test", "notes", "Additional description of the network"),
-				),
+				Config: utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_meraki_networks_appliance_vlans"),
+				Check:  utils.NetworkOrgIdTestChecks("test_acc_meraki_networks_appliance_vlans"),
 			},
 
 			// Create and Read a VLAN
 			{
-				Config: testAccNetworksApplianceVlansDataSourceConfigCreate,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "vlan_id", "10"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "name", "My VLAN"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "subnet", "192.168.2.0/24"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "appliance_ip", "192.168.2.2"),
-					//resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "vpn_nat_subnet", "192.168.1.0/24"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_vlan.test", "mandatory_dhcp.enabled", "true"),
-				),
+				Config: NetworksApplianceVlansDataSourceConfigCreate(),
+				Check:  NetworksApplianceVlansDataSourceConfigCreateChecks(),
 			},
 
 			// Read Ports
 			{
-				Config: testAccNetworksApplianceVlansDataSourceConfigReadList,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.0.vlan_id", "1"),
-					resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.0.name", "Default"),
-					resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.0.appliance_ip", "192.168.128.1"),
-					resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.0.subnet", "192.168.128.0/24"),
-					resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.0.fixed_ip_assignments.%", "0"),
-					resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.1.reserved_ip_ranges.%", "0"),
-					resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.0.dns_nameservers", "upstream_dns"),
-					resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.0.dhcp_handling", "Run a DHCP server"),
-					resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.0.dhcp_lease_time", "1 day"),
-					resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.0.dhcp_boot_options_enabled", "false"),
-
-					testCheckConcatenatedValues(
-						"data.meraki_networks_appliance_vlans.test", "network_id",
-						"data.meraki_networks_appliance_vlans.test", "list.0.vlan_id",
-						",",
-					),
-
-					resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.1.vlan_id", "10"),
-					resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.1.name", "My VLAN"),
-					resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.1.subnet", "192.168.2.0/24"),
-					resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.1.appliance_ip", "192.168.2.2"),
-					resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.1.dhcp_handling", "Run a DHCP server"),
-					resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.1.dhcp_lease_time", "12 hours"),
-					resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.1.dhcp_boot_options_enabled", "true"),
-					resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.1.dhcp_boot_next_server", "2.3.4.5"),
-					resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.1.dhcp_boot_filename", "updated.file"),
-					resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.1.reserved_ip_ranges.0.start", "192.168.2.0"),
-					resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.1.reserved_ip_ranges.0.end", "192.168.2.1"),
-					resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.1.reserved_ip_ranges.0.comment", "A newly reserved IP range"),
-					resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.1.dns_nameservers", "upstream_dns"),
-					resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.1.dhcp_options.0.code", "6"),
-					resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.1.dhcp_options.0.type", "text"),
-					resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.1.dhcp_options.0.value", "six"),
-					resource.TestCheckResourceAttr("data.meraki_networks_appliance_vlans.test", "list.1.mandatory_dhcp.enabled", "true"),
-
-					testCheckConcatenatedValues(
-						"data.meraki_networks_appliance_vlans.test", "network_id",
-						"data.meraki_networks_appliance_vlans.test", "list.1.vlan_id",
-						",",
-					),
-				),
+				Config: NetworksApplianceVlansDataSourceConfigRead(),
+				Check:  NetworksApplianceVlansDataSourceConfigReadChecks(),
 			},
 		},
 	})
 }
 
-// testAccNetworksApplianceVlansDataSourceConfigCreateNetwork is a constant string that defines the configuration for creating a network resource in your tests.
-// It depends on the organization resource.
-func testAccNetworksApplianceVlansDataSourceConfigCreateNetwork(orgId string) string {
-	result := fmt.Sprintf(`
-resource "meraki_network" "test" {
-organization_id = %s
-product_types = ["appliance", "switch", "wireless"]
-tags = ["tag1"]
-name = "test_acc_meraki_networks_appliance_vlans"
-timezone = "America/Los_Angeles"
-notes = "Additional description of the network"
-}
-`, orgId)
-	return result
-}
-
-const testAccNetworksApplianceVlansDataSourceConfigCreate = `
-resource "meraki_network" "test" {
-    product_types = ["appliance", "switch", "wireless"]
-}
-
+func NetworksApplianceVlansDataSourceConfigCreate() string {
+	return fmt.Sprintf(`
+	%s
 resource "meraki_networks_appliance_vlans_settings" "test" {
     depends_on = [resource.meraki_network.test]
     network_id = resource.meraki_network.test.network_id
@@ -153,13 +77,39 @@ resource "meraki_networks_appliance_vlan" "test" {
         enabled = true
     }
 }
-`
-
-const testAccNetworksApplianceVlansDataSourceConfigReadList = `
-resource "meraki_network" "test" {
-    product_types = ["appliance", "switch", "wireless"]
+	
+	`,
+		utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_meraki_networks_appliance_vlans"),
+	)
 }
 
+// NetworksApplianceVlansDataSourceConfigCreateChecks returns the test check functions for NetworksApplianceVlansDataSourceConfigCreate
+func NetworksApplianceVlansDataSourceConfigCreateChecks() resource.TestCheckFunc {
+	expectedAttrs := map[string]string{
+		"vlan_id":                      "10",
+		"name":                         "My VLAN",
+		"subnet":                       "192.168.2.0/24",
+		"appliance_ip":                 "192.168.2.2",
+		"dhcp_handling":                "Run a DHCP server",
+		"dhcp_lease_time":              "12 hours",
+		"dhcp_boot_options_enabled":    "true",
+		"dhcp_boot_next_server":        "2.3.4.5",
+		"dhcp_boot_filename":           "updated.file",
+		"reserved_ip_ranges.0.start":   "192.168.2.0",
+		"reserved_ip_ranges.0.end":     "192.168.2.1",
+		"reserved_ip_ranges.0.comment": "A newly reserved IP range",
+		"dns_nameservers":              "upstream_dns",
+		"dhcp_options.0.code":          "6",
+		"dhcp_options.0.type":          "text",
+		"dhcp_options.0.value":         "six",
+		"mandatory_dhcp.enabled":       "true",
+	}
+	return utils.ResourceTestCheck("meraki_networks_appliance_vlan.test", expectedAttrs)
+}
+
+func NetworksApplianceVlansDataSourceConfigRead() string {
+	return fmt.Sprintf(`
+	%s
 resource "meraki_networks_appliance_vlans_settings" "test" {
     depends_on = [resource.meraki_network.test]
     network_id = resource.meraki_network.test.network_id
@@ -202,35 +152,40 @@ data "meraki_networks_appliance_vlans" "test" {
     depends_on = [resource.meraki_network.test]
     network_id = resource.meraki_network.test.network_id
 }
-`
+	
+	`,
+		utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_meraki_networks_appliance_vlans"),
+	)
+}
 
-func testCheckConcatenatedValues(resource1, attr1, resource2, attr2, separator string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		r1, ok := s.RootModule().Resources[resource1]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resource1)
-		}
+// NetworksApplianceVlansDataSourceConfigReadChecks returns the test check functions for NetworksApplianceVlansDataSourceConfigRead
+func NetworksApplianceVlansDataSourceConfigReadChecks() resource.TestCheckFunc {
+	expectedAttrs := map[string]string{
+		"list.0.vlan_id":                   "1",
+		"list.0.name":                      "Default",
+		"list.0.appliance_ip":              "192.168.128.1",
+		"list.0.subnet":                    "192.168.128.0/24",
+		"list.0.dns_nameservers":           "upstream_dns",
+		"list.0.dhcp_handling":             "Run a DHCP server",
+		"list.0.dhcp_lease_time":           "1 day",
+		"list.0.dhcp_boot_options_enabled": "false",
 
-		r2, ok := s.RootModule().Resources[resource2]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resource2)
-		}
-
-		value1, ok := r1.Primary.Attributes[attr1]
-		if !ok {
-			return fmt.Errorf("Attribute not found: %s", attr1)
-		}
-
-		value2, ok := r2.Primary.Attributes[attr2]
-		if !ok {
-			return fmt.Errorf("Attribute not found: %s", attr2)
-		}
-
-		expectedValue := value1 + separator + value2
-		// Use expectedValue as needed or compare with another expected output
-		// For demonstration: Just log it (or assert equality if there is a specific value to compare)
-		fmt.Printf("Concatenated Value: %s\n", expectedValue)
-
-		return nil
+		"list.1.vlan_id":                      "10",
+		"list.1.name":                         "My VLAN",
+		"list.1.subnet":                       "192.168.2.0/24",
+		"list.1.appliance_ip":                 "192.168.2.2",
+		"list.1.dhcp_handling":                "Run a DHCP server",
+		"list.1.dhcp_lease_time":              "12 hours",
+		"list.1.dhcp_boot_options_enabled":    "true",
+		"list.1.dhcp_boot_next_server":        "2.3.4.5",
+		"list.1.dhcp_boot_filename":           "updated.file",
+		"list.1.reserved_ip_ranges.0.start":   "192.168.2.0",
+		"list.1.reserved_ip_ranges.0.end":     "192.168.2.1",
+		"list.1.reserved_ip_ranges.0.comment": "A newly reserved IP range",
+		"list.1.dns_nameservers":              "upstream_dns",
+		"list.1.dhcp_options.0.code":          "6",
+		"list.1.dhcp_options.0.type":          "text",
+		"list.1.dhcp_options.0.value":         "six",
 	}
+	return utils.ResourceTestCheck("data.meraki_networks_appliance_vlans.test", expectedAttrs)
 }
