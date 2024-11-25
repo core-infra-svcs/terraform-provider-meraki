@@ -3,6 +3,7 @@ package appliance_test
 import (
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"os"
 	"testing"
 
@@ -25,54 +26,24 @@ func TestAccNetworkApplianceSettingsResource(t *testing.T) {
 				},
 			*/
 
-			// Create and Read Network.
+			// Create and Read Network
 			{
-				Config: testAccNetworkApplianceSettingsResourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_networks_appliance_settings"),
-					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
-					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
-					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.#", "3"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.0", "appliance"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.1", "switch"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.2", "wireless"),
-					resource.TestCheckResourceAttr("meraki_network.test", "notes", "Additional description of the network"),
-				),
+				Config: utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_networks_appliance_settings"),
+				Check:  utils.NetworkOrgIdTestChecks("test_acc_networks_appliance_settings"),
 			},
 
 			// Update and Read Network Appliance Settings.
 			{
-				Config: testAccNetworkApplianceSettingsResourceConfigUpdateNetworkApplianceSettings,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_appliance_settings.test", "client_tracking_method", "MAC address"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_settings.test", "deployment_mode", "routed"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_settings.test", "dynamic_dns_prefix", "test"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_settings.test", "dynamic_dns_enabled", "true"),
-				),
+				Config: NetworkApplianceSettingsResourceConfigUpdate(),
+				Check:  NetworkApplianceSettingsResourceConfigUpdateChecks(),
 			},
 		},
 	})
 }
 
-func testAccNetworkApplianceSettingsResourceConfigCreateNetwork(orgId string) string {
-	result := fmt.Sprintf(`
- resource "meraki_network" "test" {
-	organization_id = %s
-	product_types = ["appliance", "switch", "wireless"]
-	tags = ["tag1"]
-	name = "test_acc_networks_appliance_settings"
-	timezone = "America/Los_Angeles"
-	notes = "Additional description of the network"
-}
- `, orgId)
-	return result
-}
-
-const testAccNetworkApplianceSettingsResourceConfigUpdateNetworkApplianceSettings = `
-resource "meraki_network" "test" {
-	product_types = ["appliance", "switch", "wireless"]
-}
+func NetworkApplianceSettingsResourceConfigUpdate() string {
+	return fmt.Sprintf(`
+	%s
 resource "meraki_networks_appliance_settings" "test" {
 	  depends_on = [resource.meraki_network.test]
       network_id = resource.meraki_network.test.network_id
@@ -83,4 +54,19 @@ resource "meraki_networks_appliance_settings" "test" {
 	  
 	 
 }
-`
+	
+	`,
+		utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_networks_appliance_settings"),
+	)
+}
+
+// NetworkApplianceSettingsResourceConfigUpdateChecks returns the test check functions for NetworkApplianceSettingsResourceConfigUpdate
+func NetworkApplianceSettingsResourceConfigUpdateChecks() resource.TestCheckFunc {
+	expectedAttrs := map[string]string{
+		"client_tracking_method": "MAC address",
+		"deployment_mode":        "routed",
+		"dynamic_dns_prefix":     "test",
+		"dynamic_dns_enabled":    "true",
+	}
+	return utils.ResourceTestCheck("meraki_networks_appliance_settings.test", expectedAttrs)
+}

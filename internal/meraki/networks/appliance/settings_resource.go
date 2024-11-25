@@ -169,7 +169,7 @@ func (r *NetworksApplianceSettingsResource) Create(ctx context.Context, req reso
 	data.DynamicDnsPrefix = jsontypes.StringValue(inlineResp.DynamicDns.GetPrefix())
 	data.DynamicDnsEnabled = jsontypes.BoolValue(inlineResp.DynamicDns.GetEnabled())
 	data.DynamicDnsUrl = jsontypes.StringValue(inlineResp.DynamicDns.GetUrl())
-	data.Id = jsontypes.StringValue("example-id")
+	data.Id = data.NetworkId
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -216,7 +216,7 @@ func (r *NetworksApplianceSettingsResource) Read(ctx context.Context, req resour
 	data.DynamicDnsPrefix = jsontypes.StringValue(inlineResp.DynamicDns.GetPrefix())
 	data.DynamicDnsEnabled = jsontypes.BoolValue(inlineResp.DynamicDns.GetEnabled())
 	data.DynamicDnsUrl = jsontypes.StringValue(inlineResp.DynamicDns.GetUrl())
-	data.Id = jsontypes.StringValue("example-id")
+	data.Id = data.NetworkId
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
@@ -270,7 +270,7 @@ func (r *NetworksApplianceSettingsResource) Update(ctx context.Context, req reso
 	data.DynamicDnsPrefix = jsontypes.StringValue(inlineResp.DynamicDns.GetPrefix())
 	data.DynamicDnsEnabled = jsontypes.BoolValue(inlineResp.DynamicDns.GetEnabled())
 	data.DynamicDnsUrl = jsontypes.StringValue(inlineResp.DynamicDns.GetUrl())
-	data.Id = jsontypes.StringValue("example-id")
+	data.Id = data.NetworkId
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
