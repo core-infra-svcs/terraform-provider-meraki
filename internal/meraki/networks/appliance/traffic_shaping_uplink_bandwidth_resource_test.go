@@ -3,6 +3,7 @@ package appliance_test
 import (
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"os"
 	"testing"
 
@@ -15,62 +16,24 @@ func TestAccNetworksApplianceTrafficShapingUplinkBandWidthResource(t *testing.T)
 		ProtoV6ProviderFactories: provider.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 
-			// Create and Read Network.
+			// Create and Read Network
 			{
-				Config: testAccNetworksApplianceTrafficShapingUplinkBandWidthResourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_networks_appliance_traffic_shaping_uplink_bandwidth"),
-					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
-					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
-					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.#", "1"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.0", "appliance"),
-					resource.TestCheckResourceAttr("meraki_network.test", "notes", "Additional description of the network"),
-				),
+				Config: utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_networks_appliance_traffic_shaping_uplink_bandwidth"),
+				Check:  utils.NetworkOrgIdTestChecks("test_acc_networks_appliance_traffic_shaping_uplink_bandwidth"),
 			},
 
 			// Update Network Appliance Traffic Shaping UplinkBandWidth.
 			{
-				Config: testAccNetworksApplianceTrafficShapingUplinkBandWidthResourceConfigUpdateNetworksApplianceTrafficShapingUplinkBandWidth(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_appliance_traffic_shaping_uplink_bandwidth.test", "bandwidth_limit_wan1_limit_up", "100"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_traffic_shaping_uplink_bandwidth.test", "bandwidth_limit_wan1_limit_down", "600"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_traffic_shaping_uplink_bandwidth.test", "bandwidth_limit_wan2_limit_up", "100"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_traffic_shaping_uplink_bandwidth.test", "bandwidth_limit_wan2_limit_down", "600"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_traffic_shaping_uplink_bandwidth.test", "bandwidth_limit_cellular_limit_up", "101200"),
-					resource.TestCheckResourceAttr("meraki_networks_appliance_traffic_shaping_uplink_bandwidth.test", "bandwidth_limit_cellular_limit_up", "101200"),
-				),
+				Config: NetworksApplianceTrafficShapingUplinkBandWidthResourceConfigUpdate(os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
+				Check:  NetworksApplianceTrafficShapingUplinkBandWidthResourceConfigUpdateChecks(),
 			},
 		},
 	})
 }
 
-func testAccNetworksApplianceTrafficShapingUplinkBandWidthResourceConfigCreateNetwork(orgId string) string {
-	result := fmt.Sprintf(`
-resource "meraki_network" "test" {
-	organization_id = "%s"
-	product_types = ["appliance"]
-	tags = ["tag1"]
-	name = "test_acc_networks_appliance_traffic_shaping_uplink_bandwidth"
-	timezone = "America/Los_Angeles"
-	notes = "Additional description of the network"
-}
-`, orgId)
-	return result
-}
-
-func testAccNetworksApplianceTrafficShapingUplinkBandWidthResourceConfigUpdateNetworksApplianceTrafficShapingUplinkBandWidth(orgId string, serial string) string {
-	result := fmt.Sprintf(`
- 
- resource "meraki_network" "test" {
-	 organization_id = "%s"
-	 product_types = ["appliance"]
-	tags = ["tag1"]
-	name = "test_acc_networks_appliance_traffic_shaping_uplink_bandwidth"
-	timezone = "America/Los_Angeles"
-	notes = "Additional description of the network"
- }
-
+func NetworksApplianceTrafficShapingUplinkBandWidthResourceConfigUpdate(serial string) string {
+	return fmt.Sprintf(`
+	%s
  resource "meraki_networks_devices_claim" "test" {
     depends_on = [resource.meraki_network.test]
     network_id = resource.meraki_network.test.network_id
@@ -89,6 +52,22 @@ func testAccNetworksApplianceTrafficShapingUplinkBandWidthResourceConfigUpdateNe
 	 bandwidth_limit_wan1_limit_up = 100
 	 bandwidth_limit_wan1_limit_down = 600
  }
- `, orgId, serial)
-	return result
+	
+	`,
+		utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_networks_appliance_traffic_shaping_uplink_bandwidth"),
+		serial,
+	)
+}
+
+// NetworksApplianceTrafficShapingUplinkBandWidthResourceConfigUpdateChecks returns the test check functions for NetworksApplianceTrafficShapingUplinkBandWidthResourceConfigUpdate
+func NetworksApplianceTrafficShapingUplinkBandWidthResourceConfigUpdateChecks() resource.TestCheckFunc {
+	expectedAttrs := map[string]string{
+		"bandwidth_limit_wan1_limit_up":       "100",
+		"bandwidth_limit_wan1_limit_down":     "600",
+		"bandwidth_limit_wan2_limit_up":       "100",
+		"bandwidth_limit_wan2_limit_down":     "600",
+		"bandwidth_limit_cellular_limit_up":   "101200",
+		"bandwidth_limit_cellular_limit_down": "101200",
+	}
+	return utils.ResourceTestCheck("meraki_networks_appliance_traffic_shaping_uplink_bandwidth.test", expectedAttrs)
 }
