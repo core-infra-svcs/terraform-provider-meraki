@@ -3,6 +3,7 @@ package wireless_test
 import (
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"os"
 	"testing"
 
@@ -22,46 +23,22 @@ func TestAccNetworksWirelessSsidsFirewallL3FirewallRulesResource(t *testing.T) {
 		// Steps is a slice of TestStep where each TestStep represents a test case.
 		Steps: []resource.TestStep{
 
-			// Create and Read a Network.
+			// Create and Read Network
 			{
-				Config: testAccNetworksWirelessSsidsFirewallL3FirewallRulesResourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_networks_wireless_ssids_firewall_l3_firewall_rules"),
-					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
-					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
-					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.#", "3"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.0", "appliance"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.1", "switch"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.2", "wireless"),
-					resource.TestCheckResourceAttr("meraki_network.test", "notes", "Additional description of the network"),
-				),
+				Config: utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_networks_wireless_ssids_firewall_l3_firewall_rules"),
+				Check:  utils.NetworkOrgIdTestChecks("test_acc_networks_wireless_ssids_firewall_l3_firewall_rules"),
 			},
 
 			// Create and Read NetworksWirelessSsidsFirewallL3FirewallRules
 			{
-				Config: testAccNetworksWirelessSsidsFirewallL3FirewallRulesResourceConfigCreate,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					//resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l3_firewall_rules.test", "id", "example-id"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l3_firewall_rules.test", "rules.0.comment", "Allow TCP traffic to subnet with HTTP servers."),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l3_firewall_rules.test", "rules.0.policy", "allow"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l3_firewall_rules.test", "rules.0.protocol", "tcp"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l3_firewall_rules.test", "rules.0.dest_port", "443"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l3_firewall_rules.test", "rules.0.dest_cidr", "Any"),
-				),
+				Config: NetworksWirelessSsidsFirewallL3FirewallRulesResourceConfigCreate(),
+				Check:  NetworksWirelessSsidsFirewallL3FirewallRulesResourceConfigCreateChecks(),
 			},
 
 			// Update and Read NetworksWirelessSsidsFirewallL3FirewallRules
 			{
-				Config: testAccNetworksWirelessSsidsFirewallL3FirewallRulesResourceConfigUpdate,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					//resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l3_firewall_rules.test", "id", "example-id"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l3_firewall_rules.test", "rules.0.comment", "Allow TCP traffic to subnet with HTTP servers."),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l3_firewall_rules.test", "rules.0.policy", "allow"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l3_firewall_rules.test", "rules.0.protocol", "tcp"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l3_firewall_rules.test", "rules.0.dest_port", "443"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l3_firewall_rules.test", "rules.0.dest_cidr", "Any"),
-				),
+				Config: NetworksWirelessSsidsFirewallL3FirewallRulesResourceConfigUpdate(),
+				Check:  NetworksWirelessSsidsFirewallL3FirewallRulesResourceConfigUpdateChecks(),
 			},
 		},
 
@@ -78,28 +55,9 @@ func TestAccNetworksWirelessSsidsFirewallL3FirewallRulesResource(t *testing.T) {
 	})
 }
 
-// testAccNetworksWirelessSsidsFirewallL3FirewallRulesResourceConfigCreateNetwork is a constant string that defines the configuration for creating a network resource in your tests.
-// It depends on the organization resource.
-func testAccNetworksWirelessSsidsFirewallL3FirewallRulesResourceConfigCreateNetwork(orgId string) string {
-	result := fmt.Sprintf(`
-resource "meraki_network" "test" {
-	organization_id = %s
-	product_types = ["appliance", "switch", "wireless"]
-	tags = ["tag1"]
-	name = "test_acc_networks_wireless_ssids_firewall_l3_firewall_rules"
-	timezone = "America/Los_Angeles"
-	notes = "Additional description of the network"
-}
-`, orgId)
-	return result
-}
-
-// testAccNetworksWirelessSsidsFirewallL3FirewallRulesResourceConfigCreate is a constant string that defines the configuration for creating and reading a networks_wireless_ssids_firewall_l3FirewallRules resource in your tests.
-// It depends on both the organization and network resources.
-const testAccNetworksWirelessSsidsFirewallL3FirewallRulesResourceConfigCreate = `
-resource "meraki_network" "test" {
-	product_types = ["appliance", "switch", "wireless"]
-}
+func NetworksWirelessSsidsFirewallL3FirewallRulesResourceConfigCreate() string {
+	return fmt.Sprintf(`
+	%s
 resource "meraki_networks_wireless_ssids_firewall_l3_firewall_rules" "test" {
     depends_on = [resource.meraki_network.test]
   	network_id = resource.meraki_network.test.network_id
@@ -131,16 +89,27 @@ resource "meraki_networks_wireless_ssids_firewall_l3_firewall_rules" "test" {
         }
     ]
     }
-
-`
-
-// testAccNetworksWirelessSsidsFirewallL3FirewallRulesResourceConfigUpdate is a constant string that defines the configuration for updating a networks_wireless_ssids_firewall_l3FirewallRules resource in your tests.
-// It depends on both the organization and network resources.
-const testAccNetworksWirelessSsidsFirewallL3FirewallRulesResourceConfigUpdate = `
-resource "meraki_network" "test" {
-	product_types = ["appliance", "switch", "wireless"]
+	
+	`,
+		utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_networks_wireless_ssids_firewall_l3_firewall_rules"),
+	)
 }
 
+// NetworksWirelessSsidsFirewallL3FirewallRulesResourceConfigCreateChecks returns the test check functions for NetworksWirelessSsidsFirewallL3FirewallRulesResourceConfigCreate
+func NetworksWirelessSsidsFirewallL3FirewallRulesResourceConfigCreateChecks() resource.TestCheckFunc {
+	expectedAttrs := map[string]string{
+		"rules.0.comment":   "Allow TCP traffic to subnet with HTTP servers.",
+		"rules.0.policy":    "allow",
+		"rules.0.protocol":  "tcp",
+		"rules.0.dest_port": "443",
+		"rules.0.dest_cidr": "Any",
+	}
+	return utils.ResourceTestCheck("meraki_networks_wireless_ssids_firewall_l3_firewall_rules.test", expectedAttrs)
+}
+
+func NetworksWirelessSsidsFirewallL3FirewallRulesResourceConfigUpdate() string {
+	return fmt.Sprintf(`
+	%s
 resource "meraki_networks_wireless_ssids_firewall_l3_firewall_rules" "test" {
 	depends_on = [resource.meraki_network.test]
   	network_id = resource.meraki_network.test.network_id
@@ -148,6 +117,14 @@ resource "meraki_networks_wireless_ssids_firewall_l3_firewall_rules" "test" {
       rules = [
         {
             comment = "Allow TCP traffic to subnet with HTTP servers.",
+            policy = "allow",
+			ip_ver = "ipv4",
+            protocol = "tcp",
+            dest_port = "443",
+            dest_cidr = "Any"
+        },
+        {
+            comment = "Allow TCP traffic to subnet with HTTP servers duplicate.",
             policy = "allow",
 			ip_ver = "ipv4",
             protocol = "tcp",
@@ -172,4 +149,20 @@ resource "meraki_networks_wireless_ssids_firewall_l3_firewall_rules" "test" {
         }
     ]
     }
-`
+	
+	`,
+		utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_networks_wireless_ssids_firewall_l3_firewall_rules"),
+	)
+}
+
+// NetworksWirelessSsidsFirewallL3FirewallRulesResourceConfigUpdateChecks returns the test check functions for NetworksWirelessSsidsFirewallL3FirewallRulesResourceConfigUpdate
+func NetworksWirelessSsidsFirewallL3FirewallRulesResourceConfigUpdateChecks() resource.TestCheckFunc {
+	expectedAttrs := map[string]string{
+		"rules.0.comment":   "Allow TCP traffic to subnet with HTTP servers duplicate.",
+		"rules.0.policy":    "allow",
+		"rules.0.protocol":  "tcp",
+		"rules.0.dest_port": "443",
+		"rules.0.dest_cidr": "Any",
+	}
+	return utils.ResourceTestCheck("meraki_networks_wireless_ssids_firewall_l3_firewall_rules.test", expectedAttrs)
+}
