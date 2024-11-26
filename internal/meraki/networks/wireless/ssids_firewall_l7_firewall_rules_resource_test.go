@@ -3,6 +3,7 @@ package wireless_test
 import (
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"os"
 	"testing"
 
@@ -22,60 +23,22 @@ func TestAccNetworksWirelessSsidsFirewallL7FirewallRulesResource(t *testing.T) {
 		// Steps is a slice of TestStep where each TestStep represents a test case.
 		Steps: []resource.TestStep{
 
-			// Create and Read a Network.
+			// Create and Read Network
 			{
-				Config: testAccNetworksWirelessSsidsFirewallL7FirewallRulesResourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_networks_wireless_ssids_firewall_l7_firewall_rules"),
-					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
-					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
-					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.#", "3"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.0", "appliance"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.1", "switch"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.2", "wireless"),
-					resource.TestCheckResourceAttr("meraki_network.test", "notes", "Additional description of the network"),
-				),
+				Config: utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_networks_wireless_ssids_firewall_l7_firewall_rules"),
+				Check:  utils.NetworkOrgIdTestChecks("test_acc_networks_wireless_ssids_firewall_l7_firewall_rules"),
 			},
 
 			// Create and Read NetworksWirelessSsidsFirewallL7FirewallRules
 			{
-				Config: testAccNetworksWirelessSsidsFirewallL7FirewallRulesResourceConfigCreate,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					//resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l7_firewall_rules.test", "id", "example-id"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l7_firewall_rules.test", "rules.0.policy", "deny"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l7_firewall_rules.test", "rules.0.type", "host"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l7_firewall_rules.test", "rules.0.value", "google.com"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l7_firewall_rules.test", "rules.1.policy", "deny"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l7_firewall_rules.test", "rules.1.type", "ipRange"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l7_firewall_rules.test", "rules.1.value", "10.11.12.00/24"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l7_firewall_rules.test", "rules.2.policy", "deny"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l7_firewall_rules.test", "rules.2.type", "ipRange"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l7_firewall_rules.test", "rules.2.value", "10.11.12.00/24:5555"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l7_firewall_rules.test", "rules.3.policy", "deny"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l7_firewall_rules.test", "rules.3.type", "port"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l7_firewall_rules.test", "rules.3.value", "23"),
-				),
+				Config: NetworksWirelessSsidsFirewallL7FirewallRulesResourceConfigCreate(),
+				Check:  NetworksWirelessSsidsFirewallL7FirewallRulesResourceConfigCreateChecks(),
 			},
 
 			// Update and Read NetworksWirelessSsidsFirewallL7FirewallRules
 			{
-				Config: testAccNetworksWirelessSsidsFirewallL7FirewallRulesResourceConfigUpdate,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					//resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l7_firewall_rules.test", "id", "example-id"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l7_firewall_rules.test", "rules.0.policy", "deny"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l7_firewall_rules.test", "rules.0.type", "host"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l7_firewall_rules.test", "rules.0.value", "yahoo.com"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l7_firewall_rules.test", "rules.1.policy", "deny"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l7_firewall_rules.test", "rules.1.type", "ipRange"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l7_firewall_rules.test", "rules.1.value", "10.11.13.00/24"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l7_firewall_rules.test", "rules.2.policy", "deny"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l7_firewall_rules.test", "rules.2.type", "ipRange"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l7_firewall_rules.test", "rules.2.value", "10.13.12.00/24:5555"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l7_firewall_rules.test", "rules.3.policy", "deny"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l7_firewall_rules.test", "rules.3.type", "port"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_firewall_l7_firewall_rules.test", "rules.3.value", "43"),
-				),
+				Config: NetworksWirelessSsidsFirewallL7FirewallRulesResourceConfigUpdate(),
+				Check:  NetworksWirelessSsidsFirewallL7FirewallRulesResourceConfigUpdateChecks(),
 			},
 		},
 		// ImportState test case.
@@ -91,29 +54,9 @@ func TestAccNetworksWirelessSsidsFirewallL7FirewallRulesResource(t *testing.T) {
 	})
 }
 
-// testAccNetworksWirelessSsidsFirewallL7FirewallRulesResourceConfigCreateNetwork is a constant string that defines the configuration for creating a network resource in your tests.
-// It depends on the organization resource.
-func testAccNetworksWirelessSsidsFirewallL7FirewallRulesResourceConfigCreateNetwork(orgId string) string {
-	result := fmt.Sprintf(`
-resource "meraki_network" "test" {
-	organization_id = %s
-	product_types = ["appliance", "switch", "wireless"]
-	tags = ["tag1"]
-	name = "test_acc_networks_wireless_ssids_firewall_l7_firewall_rules"
-	timezone = "America/Los_Angeles"
-	notes = "Additional description of the network"
-}
-`, orgId)
-	return result
-}
-
-// testAccNetworksWirelessSsidsFirewallL7FirewallRulesResourceConfigCreate is a constant string that defines the configuration for creating and reading a networks_wireless_ssids_firewall_l7FirewallRules resource in your tests.
-// It depends on both the organization and network resources.
-const testAccNetworksWirelessSsidsFirewallL7FirewallRulesResourceConfigCreate = `
-resource "meraki_network" "test" {
-	product_types = ["appliance", "switch", "wireless"]
-}
-
+func NetworksWirelessSsidsFirewallL7FirewallRulesResourceConfigCreate() string {
+	return fmt.Sprintf(`
+	%s
 resource "meraki_networks_wireless_ssids_firewall_l7_firewall_rules" "test" {
     depends_on = [resource.meraki_network.test]
   	network_id = resource.meraki_network.test.network_id
@@ -141,15 +84,37 @@ resource "meraki_networks_wireless_ssids_firewall_l7_firewall_rules" "test" {
         }
         ]
 }
-`
-
-// testAccNetworksWirelessSsidsFirewallL7FirewallRulesResourceConfigUpdate is a constant string that defines the configuration for updating a networks_wireless_ssids_firewall_l7FirewallRules resource in your tests.
-// It depends on both the organization and network resources.
-const testAccNetworksWirelessSsidsFirewallL7FirewallRulesResourceConfigUpdate = `
-resource "meraki_network" "test" {
-	product_types = ["appliance", "switch", "wireless"]
+	
+	`,
+		utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_networks_wireless_ssids_firewall_l7_firewall_rules"),
+	)
 }
 
+// NetworksWirelessSsidsFirewallL7FirewallRulesResourceConfigCreateChecks returns the test check functions for NetworksWirelessSsidsFirewallL7FirewallRulesResourceConfigCreate
+func NetworksWirelessSsidsFirewallL7FirewallRulesResourceConfigCreateChecks() resource.TestCheckFunc {
+	expectedAttrs := map[string]string{
+		"rules.0.policy": "deny",
+		"rules.0.type":   "host",
+		"rules.0.value":  "google.com",
+
+		"rules.1.policy": "deny",
+		"rules.1.type":   "ipRange",
+		"rules.1.value":  "10.11.12.00/24",
+
+		"rules.2.policy": "deny",
+		"rules.2.type":   "ipRange",
+		"rules.2.value":  "10.11.12.00/24:5555",
+
+		"rules.3.policy": "deny",
+		"rules.3.type":   "port",
+		"rules.3.value":  "23",
+	}
+	return utils.ResourceTestCheck("meraki_networks_wireless_ssids_firewall_l7_firewall_rules.test", expectedAttrs)
+}
+
+func NetworksWirelessSsidsFirewallL7FirewallRulesResourceConfigUpdate() string {
+	return fmt.Sprintf(`
+	%s
 resource "meraki_networks_wireless_ssids_firewall_l7_firewall_rules" "test" {
 	depends_on = [resource.meraki_network.test]
   	network_id = resource.meraki_network.test.network_id
@@ -177,4 +142,30 @@ resource "meraki_networks_wireless_ssids_firewall_l7_firewall_rules" "test" {
         }
         ]
 }
-`
+	
+	`,
+		utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_networks_wireless_ssids_firewall_l7_firewall_rules"),
+	)
+}
+
+// NetworksWirelessSsidsFirewallL7FirewallRulesResourceConfigUpdateChecks returns the test check functions for NetworksWirelessSsidsFirewallL7FirewallRulesResourceConfigUpdate
+func NetworksWirelessSsidsFirewallL7FirewallRulesResourceConfigUpdateChecks() resource.TestCheckFunc {
+	expectedAttrs := map[string]string{
+		"rules.0.policy": "deny",
+		"rules.0.type":   "host",
+		"rules.0.value":  "yahoo.com",
+
+		"rules.1.policy": "deny",
+		"rules.1.type":   "ipRange",
+		"rules.1.value":  "10.11.13.00/24",
+
+		"rules.2.policy": "deny",
+		"rules.2.type":   "ipRange",
+		"rules.2.value":  "10.13.12.00/24:5555",
+
+		"rules.3.policy": "deny",
+		"rules.3.type":   "port",
+		"rules.3.value":  "43",
+	}
+	return utils.ResourceTestCheck("meraki_networks_wireless_ssids_firewall_l7_firewall_rules.test", expectedAttrs)
+}
