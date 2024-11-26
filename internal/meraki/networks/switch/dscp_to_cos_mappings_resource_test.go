@@ -3,6 +3,7 @@ package _switch_test
 import (
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"os"
 	"testing"
@@ -14,65 +15,30 @@ func TestAccNetworksSwitchDscpToCosMappingsResource(t *testing.T) {
 		ProtoV6ProviderFactories: provider.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 
-			// Create and Read Network.
+			// Create and Read Network
 			{
-				Config: testAccNetworksSwitchDscpToCosMappingsResourceNetworkCreate(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_networks_switch_dscp_to_cos_mappings"),
-					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
-					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "2"),
-					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
-					resource.TestCheckResourceAttr("meraki_network.test", "tags.1", "tag2"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.#", "3"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.0", "appliance"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.1", "switch"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.2", "wireless"),
-					resource.TestCheckResourceAttr("meraki_network.test", "notes", "Additional description of the network"),
-				),
+				Config: utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_networks_switch_dscp_to_cos_mappings"),
+				Check:  utils.NetworkOrgIdTestChecks("test_acc_networks_switch_dscp_to_cos_mappings"),
 			},
 
 			// Create and Read Test
 			{
-				Config: testAccNetworksSwitchDscpToCosMappingsResourceConfigCreate,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_switch_dscp_to_cos_mappings.test", "mappings.#", "1"),
-					resource.TestCheckResourceAttr("meraki_networks_switch_dscp_to_cos_mappings.test", "mappings.0.dscp", "1"),
-					resource.TestCheckResourceAttr("meraki_networks_switch_dscp_to_cos_mappings.test", "mappings.0.cos", "1"),
-				),
+				Config: NetworksSwitchDscpToCosMappingsResourceConfigCreate(),
+				Check:  NetworksSwitchDscpToCosMappingsResourceConfigCreateChecks(),
 			},
 
 			// Update and Read Test
 			{
-				Config: testAccNetworksSwitchDscpToCosMappingsResourceConfigUpdate,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_switch_dscp_to_cos_mappings.test", "mappings.#", "1"),
-					resource.TestCheckResourceAttr("meraki_networks_switch_dscp_to_cos_mappings.test", "mappings.0.dscp", "63"),
-					resource.TestCheckResourceAttr("meraki_networks_switch_dscp_to_cos_mappings.test", "mappings.0.cos", "5"),
-				),
+				Config: NetworksSwitchDscpToCosMappingsResourceConfigUpdate(),
+				Check:  NetworksSwitchDscpToCosMappingsResourceConfigUpdateChecks(),
 			},
 		},
 	})
 }
 
-func testAccNetworksSwitchDscpToCosMappingsResourceNetworkCreate(orgId string) string {
-	result := fmt.Sprintf(`
-resource "meraki_network" "test" {
-  organization_id = %s
-  product_types   = ["appliance", "switch", "wireless"]
-  tags            = ["tag1", "tag2"]
-  name            = "test_acc_networks_switch_dscp_to_cos_mappings"
-  timezone        = "America/Los_Angeles"
-  notes           = "Additional description of the network"
-}
-`, orgId)
-	return result
-}
-
-const testAccNetworksSwitchDscpToCosMappingsResourceConfigCreate = `
-resource "meraki_network" "test" {
-  product_types   = ["appliance", "switch", "wireless"]
-}
-
+func NetworksSwitchDscpToCosMappingsResourceConfigCreate() string {
+	return fmt.Sprintf(`
+	%s
 resource "meraki_networks_switch_dscp_to_cos_mappings" "test" {
   depends_on                = [meraki_network.test]
   network_id                = resource.meraki_network.test.network_id
@@ -83,13 +49,23 @@ resource "meraki_networks_switch_dscp_to_cos_mappings" "test" {
 	}
   ]
 }
-`
-
-const testAccNetworksSwitchDscpToCosMappingsResourceConfigUpdate = `
-resource "meraki_network" "test" {
-  product_types   = ["appliance", "switch", "wireless"]
+	`,
+		utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_networks_switch_dscp_to_cos_mappings"),
+	)
 }
 
+// NetworksSwitchDscpToCosMappingsResourceConfigCreateChecks returns the test check functions for NetworksSwitchDscpToCosMappingsResourceConfigCreate
+func NetworksSwitchDscpToCosMappingsResourceConfigCreateChecks() resource.TestCheckFunc {
+	expectedAttrs := map[string]string{
+		"mappings.0.dscp": "1",
+		"mappings.0.cos":  "1",
+	}
+	return utils.ResourceTestCheck("meraki_networks_switch_dscp_to_cos_mappings.test", expectedAttrs)
+}
+
+func NetworksSwitchDscpToCosMappingsResourceConfigUpdate() string {
+	return fmt.Sprintf(`
+	%s
 resource "meraki_networks_switch_dscp_to_cos_mappings" "test" {
   depends_on                = [meraki_network.test]
   network_id                = resource.meraki_network.test.network_id
@@ -100,4 +76,16 @@ resource "meraki_networks_switch_dscp_to_cos_mappings" "test" {
 	}
   ]
 }
-`
+	`,
+		utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_networks_switch_dscp_to_cos_mappings"),
+	)
+}
+
+// NetworksSwitchDscpToCosMappingsResourceConfigUpdateChecks returns the test check functions for NetworksSwitchDscpToCosMappingsResourceConfigUpdate
+func NetworksSwitchDscpToCosMappingsResourceConfigUpdateChecks() resource.TestCheckFunc {
+	expectedAttrs := map[string]string{
+		"mappings.0.dscp": "63",
+		"mappings.0.cos":  "5",
+	}
+	return utils.ResourceTestCheck("meraki_networks_switch_dscp_to_cos_mappings.test", expectedAttrs)
+}
