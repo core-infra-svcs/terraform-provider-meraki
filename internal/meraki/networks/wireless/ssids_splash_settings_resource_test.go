@@ -3,6 +3,7 @@ package wireless_test
 import (
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"os"
 	"testing"
 
@@ -22,98 +23,52 @@ func TestAccNetworksWirelessSsidsSplashSettingsResource(t *testing.T) {
 		// Steps is a slice of TestStep where each TestStep represents a test case.
 		Steps: []resource.TestStep{
 
-			// Create and Read a Network.
+			//// Create and Read a Network.
+			//{
+			//	Config: testAccNetworksWirelessSsidsSplashSettingsResourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
+			//	Check: resource.ComposeAggregateTestCheckFunc(
+			//		resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_networks_wireless_ssids_splash_settings"),
+			//		resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
+			//		resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
+			//		resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
+			//		resource.TestCheckResourceAttr("meraki_network.test", "product_types.#", "3"),
+			//		resource.TestCheckResourceAttr("meraki_network.test", "product_types.0", "appliance"),
+			//		resource.TestCheckResourceAttr("meraki_network.test", "product_types.1", "switch"),
+			//		resource.TestCheckResourceAttr("meraki_network.test", "product_types.2", "wireless"),
+			//		resource.TestCheckResourceAttr("meraki_network.test", "notes", "Additional description of the network"),
+			//	),
+			//},
+
+			// Create and Read Network
 			{
-				Config: testAccNetworksWirelessSsidsSplashSettingsResourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_networks_wireless_ssids_splash_settings"),
-					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
-					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
-					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.#", "3"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.0", "appliance"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.1", "switch"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.2", "wireless"),
-					resource.TestCheckResourceAttr("meraki_network.test", "notes", "Additional description of the network"),
-				),
+				Config: utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_networks_wireless_ssids_splash_settings"),
+				Check:  utils.NetworkOrgIdTestChecks("test_acc_networks_wireless_ssids_splash_settings"),
 			},
 
-			// Create and Read a SystemsManager Network.
-			{
-				Config: testAccNetworksWirelessSsidsSplashSettingsResourceConfigCreateNetworkSystemsManager(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.testhub", "name", "test_acc_networks_wireless_ssids_splash_settings_hub"),
-					resource.TestCheckResourceAttr("meraki_network.testhub", "timezone", "America/Los_Angeles"),
-					resource.TestCheckResourceAttr("meraki_network.testhub", "tags.#", "1"),
-					resource.TestCheckResourceAttr("meraki_network.testhub", "tags.0", "tag1"),
-					resource.TestCheckResourceAttr("meraki_network.testhub", "product_types.#", "1"),
-					resource.TestCheckResourceAttr("meraki_network.testhub", "product_types.0", "systemsManager"),
-					resource.TestCheckResourceAttr("meraki_network.testhub", "notes", "Additional description of the network"),
-				),
-			},
+			//// Create and Read a SystemsManager Network.
+			//{
+			//	Config: testAccNetworksWirelessSsidsSplashSettingsResourceConfigCreateNetworkSystemsManager(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
+			//	Check: resource.ComposeAggregateTestCheckFunc(
+			//		resource.TestCheckResourceAttr("meraki_network.testhub", "name", "test_acc_networks_wireless_ssids_splash_settings_hub"),
+			//		resource.TestCheckResourceAttr("meraki_network.testhub", "timezone", "America/Los_Angeles"),
+			//		resource.TestCheckResourceAttr("meraki_network.testhub", "tags.#", "1"),
+			//		resource.TestCheckResourceAttr("meraki_network.testhub", "tags.0", "tag1"),
+			//		resource.TestCheckResourceAttr("meraki_network.testhub", "product_types.#", "1"),
+			//		resource.TestCheckResourceAttr("meraki_network.testhub", "product_types.0", "systemsManager"),
+			//		resource.TestCheckResourceAttr("meraki_network.testhub", "notes", "Additional description of the network"),
+			//	),
+			//},
 
 			// Create and Read NetworksWirelessSsidsSplashSettings
 			{
-				Config: testAccNetworksWirelessSsidsSplashSettingsResourceConfigCreate(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "splash_url", "https://www.custom_splash_url.com"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "use_splash_url", "false"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "splash_timeout", "1440"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "welcome_message", "Welcome!"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "redirect_url", "https://example.com"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "use_redirect_url", "false"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "block_all_traffic_before_sign_on", "false"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "controller_disconnection_behavior", "default"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "allow_simultaneous_logins", "false"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "billing.reply_to_email_address", "user@email.com"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "billing.prepaid_access_fast_login_enabled", "false"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "billing.free_access.enabled", "true"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "billing.free_access.duration_in_minutes", "120"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "guest_sponsorship.guest_can_request_time_frame", "false"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "guest_sponsorship.duration_in_minutes", "120"),
-					//resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "splash_image.extension", ""),
-					//resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "splash_image.md5", ""),
-					//resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "splash_logo.extension", ""),
-					//resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "splash_logo.md5", ""),
-					//resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "splash_prepaid_front.extension", ""),
-					//resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "splash_prepaid_front.md5", ""),
-					//resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "sentry_enrollment.systems_manager_network.id", os.Getenv("TF_ACC_MERAKI_NETWORK_ID")),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "sentry_enrollment.enforced_systems.#", "1"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "sentry_enrollment.enforced_systems.0", "iOS"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "sentry_enrollment.strength", "focused"),
-				),
+				Config: NetworksWirelessSsidsSplashSettingsResourceConfigCreate(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
+				Check:  NetworksWirelessSsidsSplashSettingsResourceConfigCreateChecks(),
 			},
 
 			// Update and Read NetworksWirelessSsidsSplashSettings
 			{
-				Config: testAccNetworksWirelessSsidsSplashSettingsResourceConfigUpdate,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "splash_url", "https://www.updatedcustom_splash_url.com"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "use_splash_url", "false"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "splash_timeout", "1440"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "welcome_message", "Welcome hii!"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "redirect_url", "https://updatedexample.com"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "use_redirect_url", "false"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "block_all_traffic_before_sign_on", "true"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "controller_disconnection_behavior", "open"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "allow_simultaneous_logins", "true"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "billing.reply_to_email_address", "updateduser@email.com"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "billing.prepaid_access_fast_login_enabled", "false"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "billing.free_access.enabled", "false"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "billing.free_access.duration_in_minutes", "60"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "guest_sponsorship.guest_can_request_time_frame", "true"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "guest_sponsorship.duration_in_minutes", "60"),
-					//resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "splash_image.extension", ""),
-					//resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "splash_image.md5", ""),
-					//resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "splash_logo.extension", ""),
-					//resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "splash_logo.md5", ""),
-					//resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "splash_prepaid_front.extension", ""),
-					//resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "splash_prepaid_front.md5", ""),
-					//resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "sentry_enrollment.systems_manager_network.id", os.Getenv("TF_ACC_MERAKI_NETWORK_ID")),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "sentry_enrollment.enforced_systems.#", "1"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "sentry_enrollment.enforced_systems.0", "iOS"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids_splash_settings.test", "sentry_enrollment.strength", "focused"),
-				),
+				Config: NetworksWirelessSsidsSplashSettingsResourceConfigUpdate(),
+				Check:  NetworksWirelessSsidsSplashSettingsResourceConfigUpdateChecks(),
 			},
 			// Import State testing
 			{
@@ -132,54 +87,9 @@ func TestAccNetworksWirelessSsidsSplashSettingsResource(t *testing.T) {
 	})
 }
 
-// testAccNetworksWirelessSsidsSplashSettingsResourceConfigCreateNetwork is a constant string that defines the configuration for creating a network resource in your tests.
-// It depends on the organization resource.
-func testAccNetworksWirelessSsidsSplashSettingsResourceConfigCreateNetwork(orgId string) string {
-	result := fmt.Sprintf(`
-
-resource "meraki_network" "test" { 
-	organization_id = "%s" 
-	product_types = ["appliance", "switch", "wireless"] 
-	tags = ["tag1"] 
-	name = "test_acc_networks_wireless_ssids_splash_settings" 
-	timezone = "America/Los_Angeles" 
-	notes = "Additional description of the network" 
-}
-`, orgId)
-	return result
-}
-
-// testAccNetworksWirelessSsidsSplashSettingsResourceConfigCreateNetworkSystemsManager is a constant string that defines the configuration for creating a network resource in your tests.
-// It depends on the organization resource.
-func testAccNetworksWirelessSsidsSplashSettingsResourceConfigCreateNetworkSystemsManager(orgId string) string {
-	result := fmt.Sprintf(`
-
-resource "meraki_network" "testhub" {
-	organization_id = "%s"
-	product_types = ["systemsManager"]
-	tags = ["tag1"]
-	name = "test_acc_networks_wireless_ssids_splash_settings_hub"
-	timezone = "America/Los_Angeles"
-	notes = "Additional description of the network"
-}
-
-`, orgId)
-	return result
-}
-
-// testAccNetworksWirelessSsidsSplashSettingsResourceConfigCreate is a constant string that defines the configuration for creating and reading a networks_wireless_ssids_splash_settings resource in your tests.
-// It depends on both the organization and network resources.
-func testAccNetworksWirelessSsidsSplashSettingsResourceConfigCreate(orgId string) string {
-	result := fmt.Sprintf(`
-resource "meraki_network" "test" {
-	organization_id = "%s"
-	product_types = ["appliance", "switch", "wireless"]
-	tags = ["tag1"]
-	name = "test_acc_networks_wireless_ssids_splash_settings"
-	timezone = "America/Los_Angeles"
-	notes = "Additional description of the network"
-}
-
+func NetworksWirelessSsidsSplashSettingsResourceConfigCreate(orgId string) string {
+	return fmt.Sprintf(`
+	%s
 resource "meraki_network" "testhub" {
 	organization_id = "%s"
 	product_types = ["systemsManager"]
@@ -247,18 +157,39 @@ resource "meraki_networks_wireless_ssids_splash_settings" "test" {
 		strength = "focused"
 	}
 }
-`, orgId, orgId)
-	return result
+	
+	`,
+		utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_networks_wireless_ssids_splash_settings"),
+		orgId,
+	)
 }
 
-// testAccNetworksWirelessSsidsSplashSettingsResourceConfigUpdate is a constant string that defines the configuration for updating a networks_wireless_ssids_splash_settings resource in your tests.
-// It depends on both the organization and network resources.
-const testAccNetworksWirelessSsidsSplashSettingsResourceConfigUpdate = `
-resource "meraki_network" "test" {
-product_types = ["appliance", "switch", "wireless"]
-tags = ["tag1"]
+// NetworksWirelessSsidsSplashSettingsResourceConfigCreateChecks returns the test check functions for NetworksWirelessSsidsSplashSettingsResourceConfigCreate
+func NetworksWirelessSsidsSplashSettingsResourceConfigCreateChecks() resource.TestCheckFunc {
+	expectedAttrs := map[string]string{
+		"splash_url":                                     "https://www.custom_splash_url.com",
+		"use_splash_url":                                 "false",
+		"splash_timeout":                                 "1440",
+		"welcome_message":                                "Welcome!",
+		"redirect_url":                                   "https://example.com",
+		"use_redirect_url":                               "false",
+		"block_all_traffic_before_sign_on":               "false",
+		"controller_disconnection_behavior":              "default",
+		"allow_simultaneous_logins":                      "false",
+		"billing.reply_to_email_address":                 "user@email.com",
+		"billing.prepaid_access_fast_login_enabled":      "false",
+		"billing.free_access.duration_in_minutes":        "120",
+		"guest_sponsorship.guest_can_request_time_frame": "false",
+		"guest_sponsorship.duration_in_minutes":          "120",
+		"sentry_enrollment.enforced_systems.0":           "iOS",
+		"sentry_enrollment.strength":                     "focused",
+	}
+	return utils.ResourceTestCheck("meraki_networks_wireless_ssids_splash_settings.test", expectedAttrs)
 }
 
+func NetworksWirelessSsidsSplashSettingsResourceConfigUpdate() string {
+	return fmt.Sprintf(`
+	%s
 resource "meraki_network" "testhub" {
 product_types = ["systemsManager"]
 tags = ["tag1"]
@@ -316,4 +247,32 @@ resource "meraki_networks_wireless_ssids_splash_settings" "test" {
 		strength = "focused"
 	}
 }
-`
+	
+	`,
+		utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_networks_wireless_ssids_splash_settings"),
+	)
+}
+
+// NetworksWirelessSsidsSplashSettingsResourceConfigUpdateChecks returns the test check functions for NetworksWirelessSsidsSplashSettingsResourceConfigUpdate
+func NetworksWirelessSsidsSplashSettingsResourceConfigUpdateChecks() resource.TestCheckFunc {
+	expectedAttrs := map[string]string{
+		"splash_url":                                     "https://www.updatedcustom_splash_url.com",
+		"use_splash_url":                                 "false",
+		"splash_timeout":                                 "1440",
+		"welcome_message":                                "Welcome hii!",
+		"redirect_url":                                   "https://updatedexample.com",
+		"use_redirect_url":                               "false",
+		"block_all_traffic_before_sign_on":               "true",
+		"controller_disconnection_behavior":              "open",
+		"allow_simultaneous_logins":                      "true",
+		"billing.reply_to_email_address":                 "updateduser@email.com",
+		"billing.prepaid_access_fast_login_enabled":      "false",
+		"billing.free_access.enabled":                    "false",
+		"billing.free_access.duration_in_minutes":        "60",
+		"guest_sponsorship.guest_can_request_time_frame": "true",
+		"guest_sponsorship.duration_in_minutes":          "60",
+		"sentry_enrollment.enforced_systems.0":           "iOS",
+		"sentry_enrollment.strength":                     "focused",
+	}
+	return utils.ResourceTestCheck("meraki_networks_wireless_ssids_splash_settings.test", expectedAttrs)
+}
