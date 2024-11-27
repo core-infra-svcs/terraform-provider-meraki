@@ -4,7 +4,9 @@ import (
 	"context"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/administered"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices"
-	switchDevices "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices/switch"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices/dhcp/subnets"
+	_interface "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices/management/interface"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices/switch/ports"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks"
 	applianceFirewall "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/firewall"
 	appliancePorts "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/ports"
@@ -22,9 +24,9 @@ func (p *CiscoMerakiProvider) DataSources(ctx context.Context) []func() datasour
 		administered.NewAdministeredIdentitiesMeDataSource,
 
 		devices.NewNetworkDevicesDataSource,
-		devices.NewDevicesManagementInterfaceDatasource,
-		switchDevices.NewDevicesSwitchPortsStatusesDataSource,
-		devices.NewDevicesApplianceDhcpSubnetsDataSource,
+		_interface.NewDevicesManagementInterfaceDatasource,
+		ports.NewDevicesSwitchPortsStatusesDataSource,
+		subnets.NewDevicesApplianceDhcpSubnetsDataSource,
 
 		networkGroupPolicy.NewNetworkGroupPoliciesDataSource,
 		networks.NewNetworksSwitchStormControlDataSource,

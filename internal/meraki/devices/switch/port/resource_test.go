@@ -1,4 +1,4 @@
-package _switch_test
+package port_test
 
 import (
 	"fmt"

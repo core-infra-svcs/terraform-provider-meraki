@@ -4,7 +4,9 @@ import (
 	"context"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices/cellular"
-	switchDevices "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices/switch"
+	_interface "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices/management/interface"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices/switch/port"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices/switch/ports/cycle"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance"
 	applianceFirewall "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/firewall"
@@ -24,8 +26,9 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 	return []func() resource.Resource{
 		cellular.NewDevicesCellularSimsResource,
 		devices.NewDevicesResource,
-		switchDevices.NewDevicesSwitchPortResource,
-		switchDevices.NewDevicesSwitchPortsCycleResource,
+		port.NewDevicesSwitchPortResource,
+		cycle.NewDevicesSwitchPortsCycleResource,
+		_interface.NewManagementInterfaceResourceResource,
 
 		networks.NewNetworksCellularGatewaySubnetPoolResource,
 		networks.NewNetworksCellularGatewayUplinkResource,

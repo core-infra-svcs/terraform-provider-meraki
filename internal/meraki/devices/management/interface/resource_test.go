@@ -1,4 +1,4 @@
-package devices_test
+package _interface_test
 
 import (
 	"fmt"

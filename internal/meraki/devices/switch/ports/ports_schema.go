@@ -1,4 +1,4 @@
-package _switch
+package ports
 
 import (
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"

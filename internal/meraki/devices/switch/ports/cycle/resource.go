@@ -1,4 +1,4 @@
-package _switch
+package cycle
 
 import (
 	"context"
