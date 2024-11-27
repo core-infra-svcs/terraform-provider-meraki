@@ -3,6 +3,7 @@ package ssid_test
 import (
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"os"
@@ -17,44 +18,22 @@ func TestAccNetworksWirelessSsidsResource(t *testing.T) {
 		ProtoV6ProviderFactories: provider.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 
-			// Create and Read a Network.
+			// Create and Read Network
 			{
-				Config: testAccNetworksWirelessSsidsResourceConfigCreateNetwork(orgId),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_networks_wireless_ssids_resource"),
-					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
-					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
-					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.#", "3"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.0", "appliance"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.1", "switch"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.2", "wireless"),
-					resource.TestCheckResourceAttr("meraki_network.test", "notes", "Additional description of the network"),
-				),
+				Config: utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_networks_wireless_ssids_resource"),
+				Check:  utils.NetworkOrgIdTestChecks("test_acc_networks_wireless_ssids_resource"),
 			},
 
 			// Create and Read SSID without encryption
 			{
-				Config: testAccNetworksWirelessSsidsResourceConfigBasic(false),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test", "number", "0"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test", "name", "My SSID"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test", "enabled", "true"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test", "auth_mode", "psk"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test", "psk", "deadbeef"),
-				),
+				Config: NetworksWirelessSsidsResourceConfigBasic(false),
+				Check:  NetworksWirelessSsidsResourceConfigBasicChecks(),
 			},
 
 			// Create and Read SSID with encryption
 			{
-				Config: testAccNetworksWirelessSsidsResourceConfigBasic(true),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test", "number", "0"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test", "name", "My SSID"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test", "enabled", "true"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test", "auth_mode", "psk"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test", "psk", "deadbeef"),
-				),
+				Config: NetworksWirelessSsidsResourceConfigBasic(true),
+				Check:  NetworksWirelessSsidsResourceConfigBasicChecks(),
 			},
 
 			//TODO: ImportState test case.
@@ -66,30 +45,14 @@ func TestAccNetworksWirelessSsidsResource(t *testing.T) {
 
 			//Test RADIUS servers creation
 			{
-				Config: testAccNetworksWirelessSsidsResourceConfigRadiusServers(),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test_radius", "radius_servers.#", "1"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test_radius", "radius_servers.0.host", "radius.example.com"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test_radius", "radius_servers.0.port", "1812"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test_radius", "radius_servers.0.secret", "radius_secret"),
-					//TODO: resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test_radius", "radius_servers.0.open_roaming_certificate_id", "0"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test_radius", "radius_servers.0.rad_sec_enabled", "true"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test_radius", "radius_servers.0.ca_certificate", "ca_cert_value"),
-				),
+				Config: NetworksWirelessSsidsResourceConfigRadiusServers(),
+				Check:  NetworksWirelessSsidsResourceConfigRadiusServersChecks(),
 			},
 
 			// Test RADIUS updating
 			{
-				Config: testAccNetworksWirelessSsidsResourceConfigRadiusServersUpdate(),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test_radius", "radius_servers.#", "1"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test_radius", "radius_servers.0.host", "radius.example.com"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test_radius", "radius_servers.0.port", "1812"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test_radius", "radius_servers.0.secret", "new_radius_secret"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test_radius", "radius_servers.0.rad_sec_enabled", "true"),
-					//TODO: resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test_radius", "radius_servers.0.open_roaming_certificate_id", "0"),
-					resource.TestCheckResourceAttr("meraki_networks_wireless_ssids.test_radius", "radius_servers.0.ca_certificate", "new_ca_cert_value"),
-				),
+				Config: NetworksWirelessSsidsResourceConfigRadiusServersUpdate(),
+				Check:  NetworksWirelessSsidsResourceConfigRadiusServersUpdateChecks(),
 			},
 
 			// Test the creation of multiple SSIDs.
@@ -115,30 +78,14 @@ func TestAccNetworksWirelessSsidsResource(t *testing.T) {
 	})
 }
 
-// testAccNetworksWirelessSsidsResourceConfigCreateNetwork is a function which returns a string that defines the configuration for creating a network resource in your tests.
-func testAccNetworksWirelessSsidsResourceConfigCreateNetwork(orgId string) string {
-	return fmt.Sprintf(`
-resource "meraki_network" "test" {
-	organization_id = "%s"
-	name = "test_acc_networks_wireless_ssids_resource"
-	product_types = ["appliance", "switch", "wireless"]
-	tags = ["tag1"]
-	timezone = "America/Los_Angeles"
-	notes = "Additional description of the network"
-}
-`, orgId)
-}
-
-func testAccNetworksWirelessSsidsResourceConfigBasic(encryption bool) string {
+func NetworksWirelessSsidsResourceConfigBasic(encryption bool) string {
 	if encryption {
-		return `
+		return fmt.Sprintf(`
 provider "meraki" {
   encryption_key = "my_secret_encryption_key"
 }
 
-resource "meraki_network" "test" {
-  product_types = ["appliance", "switch", "wireless"]
-}
+	%s
 
 resource "meraki_networks_wireless_ssids" "test" {
 	depends_on = [resource.meraki_network.test]
@@ -152,12 +99,13 @@ resource "meraki_networks_wireless_ssids" "test" {
 	wpa_encryption_mode = "WPA2 only"
 	radius_servers = []
 }
-`
+	
+	`,
+			utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_networks_wireless_ssids_resource"),
+		)
 	} else {
-		return `
-resource "meraki_network" "test" {
-  product_types = ["appliance", "switch", "wireless"]
-}
+		return fmt.Sprintf(`
+	%s
 
 resource "meraki_networks_wireless_ssids" "test" {
 	depends_on = [resource.meraki_network.test]
@@ -171,20 +119,32 @@ resource "meraki_networks_wireless_ssids" "test" {
 	wpa_encryption_mode = "WPA2 only"	
 	radius_servers = []
 }
-`
+	
+	`,
+			utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_networks_wireless_ssids_resource"),
+		)
 	}
 }
 
-// TODO: update with open_roaming_certificate_id = 0
-func testAccNetworksWirelessSsidsResourceConfigRadiusServers() string {
-	return `
+// NetworksWirelessSsidsResourceConfigBasicChecks returns the test check functions for NetworksWirelessSsidsResourceConfigBasic
+func NetworksWirelessSsidsResourceConfigBasicChecks() resource.TestCheckFunc {
+	expectedAttrs := map[string]string{
+		"number":    "0",
+		"name":      "My SSID",
+		"enabled":   "true",
+		"auth_mode": "psk",
+		"psk":       "deadbeef",
+	}
+	return utils.ResourceTestCheck("meraki_networks_wireless_ssids.test", expectedAttrs)
+}
+
+func NetworksWirelessSsidsResourceConfigRadiusServers() string {
+	return fmt.Sprintf(`
 provider "meraki" {
   encryption_key = "my_secret_encryption_key"
 }
 
-resource "meraki_network" "test" {
-  product_types = ["appliance", "switch", "wireless"]
-}
+	%s
 
 resource "meraki_networks_wireless_ssids" "test_radius" {
 	depends_on = [resource.meraki_network.test]
@@ -193,7 +153,7 @@ resource "meraki_networks_wireless_ssids" "test_radius" {
 	auth_mode = "8021x-radius"
 	enabled = true
 	encryption_mode = "wpa-eap"
-	name = "My Radius SSID"
+	name = "My Radius SSID TEST"
 	wpa_encryption_mode = "WPA2 only"
 	radius_servers = [{
 		host = "radius.example.com"
@@ -203,19 +163,31 @@ resource "meraki_networks_wireless_ssids" "test_radius" {
 		ca_certificate = "ca_cert_value"
 	}]
 }
-`
+	
+	`,
+		utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_networks_wireless_ssids_resource"),
+	)
 }
 
-// TODO: update with open_roaming_certificate_id = 0
-func testAccNetworksWirelessSsidsResourceConfigRadiusServersUpdate() string {
-	return `
+// NetworksWirelessSsidsResourceConfigRadiusServersChecks returns the test check functions for NetworksWirelessSsidsResourceConfigRadiusServers
+func NetworksWirelessSsidsResourceConfigRadiusServersChecks() resource.TestCheckFunc {
+	expectedAttrs := map[string]string{
+		"radius_servers.0.host":            "radius.example.com",
+		"radius_servers.0.port":            "1812",
+		"radius_servers.0.secret":          "radius_secret",
+		"radius_servers.0.rad_sec_enabled": "true",
+		"radius_servers.0.ca_certificate":  "ca_cert_value",
+	}
+	return utils.ResourceTestCheck("meraki_networks_wireless_ssids.test_radius", expectedAttrs)
+}
+
+func NetworksWirelessSsidsResourceConfigRadiusServersUpdate() string {
+	return fmt.Sprintf(`
 provider "meraki" {
   encryption_key = "my_secret_encryption_key"
 }
 
-resource "meraki_network" "test" {
-  product_types = ["appliance", "switch", "wireless"]
-}
+	%s
 
 resource "meraki_networks_wireless_ssids" "test_radius" {
 	depends_on = [resource.meraki_network.test]
@@ -234,7 +206,21 @@ resource "meraki_networks_wireless_ssids" "test_radius" {
 		ca_certificate = "new_ca_cert_value"
 	}]
 }
-`
+	`,
+		utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_networks_wireless_ssids_resource"),
+	)
+}
+
+// NetworksWirelessSsidsResourceConfigRadiusServersUpdateChecks returns the test check functions for NetworksWirelessSsidsResourceConfigRadiusServersUpdate
+func NetworksWirelessSsidsResourceConfigRadiusServersUpdateChecks() resource.TestCheckFunc {
+	expectedAttrs := map[string]string{
+		"radius_servers.0.host":            "radius.example.com",
+		"radius_servers.0.port":            "1812",
+		"radius_servers.0.secret":          "new_radius_secret",
+		"radius_servers.0.rad_sec_enabled": "true",
+		"radius_servers.0.ca_certificate":  "new_ca_cert_value",
+	}
+	return utils.ResourceTestCheck("meraki_networks_wireless_ssids.test_radius", expectedAttrs)
 }
 
 func testAccNetworksWirelessSsidsResourceConfigMultiplePolicies(orgId string, ssids int) string {

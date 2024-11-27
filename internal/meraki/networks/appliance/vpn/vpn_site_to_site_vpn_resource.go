@@ -405,7 +405,7 @@ func NetworkApplianceVpnSiteToSiteVpnResourcePayload(ctx context.Context, data *
 		payload.SetSubnets(nil)
 	}
 
-	data.Id = jsontypes.StringValue("example-id")
+	data.Id = data.NetworkId
 
 	return &payload, nil
 

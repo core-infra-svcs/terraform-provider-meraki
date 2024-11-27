@@ -460,7 +460,7 @@ func (d *NetworksWirelessSsidsDataSource) Read(ctx context.Context, req datasour
 	}
 
 	// Set ID for the data source.
-	data.Id = jsontypes.StringValue("example-id")
+	data.Id = data.NetworkId
 
 	// Now set the final state of the data source.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

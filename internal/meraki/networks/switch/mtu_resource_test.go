@@ -3,6 +3,7 @@ package _switch_test
 import (
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"os"
 	"testing"
 
@@ -26,55 +27,40 @@ func TestAccNetworksSwitchMtuResource(t *testing.T) {
 				},
 			*/
 
-			// Create and Read Network.
+			// Create and Read Network
 			{
-				Config: testAccNetworksSwitchMtuResourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_networks_switch_mtu"),
-					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
-					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
-					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.#", "3"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.0", "appliance"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.1", "switch"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.2", "wireless"),
-					resource.TestCheckResourceAttr("meraki_network.test", "notes", "Additional description of the network"),
-				),
+				Config: utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_networks_switch_mtu"),
+				Check:  utils.NetworkOrgIdTestChecks("test_acc_networks_switch_mtu"),
 			},
+
 			// Update and Read Networks Switch Mtu.
 			{
-				Config: testAccSwitchMtuResourceConfigUpdateNetworkSwitchMtuSettings,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_networks_switch_mtu.test", "default_mtu_size", "9578"),
-				),
+				Config: SwitchMtuResourceConfigUpdateNetworkSwitchMtuSettings(),
+				Check:  SwitchMtuResourceConfigUpdateNetworkSwitchMtuSettingsChecks(),
 			},
 		},
 	})
 }
 
-func testAccNetworksSwitchMtuResourceConfigCreateNetwork(orgId string) string {
-	result := fmt.Sprintf(`
-resource "meraki_network" "test" {
-    organization_id = %s
-    product_types = ["appliance", "switch", "wireless"]
-    tags = ["tag1"]
-    name = "test_acc_networks_switch_mtu"
-    timezone = "America/Los_Angeles"
-    notes = "Additional description of the network"
-}
-`, orgId)
-	return result
-}
-
-const testAccSwitchMtuResourceConfigUpdateNetworkSwitchMtuSettings = `
-resource "meraki_network" "test" {
-    product_types = ["appliance", "switch", "wireless"]
-
-}
+func SwitchMtuResourceConfigUpdateNetworkSwitchMtuSettings() string {
+	return fmt.Sprintf(`
+	%s
 resource "meraki_networks_switch_mtu" "test" {
     depends_on = [resource.meraki_network.test]
     network_id = resource.meraki_network.test.network_id
     default_mtu_size = 9578
     overrides = []
 }
-`
+	
+	`,
+		utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_networks_switch_mtu"),
+	)
+}
+
+// SwitchMtuResourceConfigUpdateNetworkSwitchMtuSettingsChecks returns the test check functions for SwitchMtuResourceConfigUpdateNetworkSwitchMtuSettings
+func SwitchMtuResourceConfigUpdateNetworkSwitchMtuSettingsChecks() resource.TestCheckFunc {
+	expectedAttrs := map[string]string{
+		"default_mtu_size": "9578",
+	}
+	return utils.ResourceTestCheck("meraki_networks_switch_mtu.test", expectedAttrs)
+}
