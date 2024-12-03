@@ -3,11 +3,10 @@ package ports
 import (
 	"context"
 	"fmt"
-	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
 	"io"
@@ -15,58 +14,34 @@ import (
 	"time"
 )
 
-var _ datasource.DataSource = &PortsDataSource{}
+var _ datasource.DataSource = &DevicesSwitchPortsStatusesDataSource{}
 
 func NewDevicesSwitchPortsStatusesDataSource() datasource.DataSource {
-	return &PortsDataSource{}
+	return &DevicesSwitchPortsStatusesDataSource{}
 }
 
-type PortsDataSource struct {
+// DevicesSwitchPortsStatusesDataSource struct defines the structure for this data source.
+// It includes an APIClient field for making requests to the Meraki API.
+type DevicesSwitchPortsStatusesDataSource struct {
 	client *openApiClient.APIClient
 }
 
-func (d *PortsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *DevicesSwitchPortsStatusesDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 
 	resp.TypeName = req.ProviderTypeName + "_devices_switch_ports"
 }
 
 // Schema provides a way to define the structure of the data source data.
 // It is called by the framework to get the schema of the data source.
-func (d *PortsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *DevicesSwitchPortsStatusesDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 
 	// The Schema object defines the structure of the data source.
-	resp.Schema = schema.Schema{
-
-		MarkdownDescription: "Ports the switch ports for a switch",
-
-		// The Attributes map describes the fields of the data source.
-		Attributes: map[string]schema.Attribute{
-
-			// Every data source must have an ID attribute. This is computed by the framework.
-			"id": schema.StringAttribute{
-				Computed:   true,
-				CustomType: jsontypes.StringType,
-			},
-			"serial": schema.StringAttribute{
-				MarkdownDescription: "A list of serial numbers. The returned devices will be filtered to only include these serials.",
-				CustomType:          jsontypes.StringType,
-				Required:            true,
-			},
-			"ports": schema.SetNestedAttribute{
-				MarkdownDescription: "Ports of switch ports",
-				Optional:            true,
-				Computed:            true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: portsDataSourceSchema,
-				},
-			},
-		},
-	}
+	resp.Schema = portsDataSourceSchema
 }
 
 // Configure is a method of the data source interface that Terraform calls to provide the configured provider instance to the data source.
 // It passes the DataSourceData that's been stored by the provider's ConfigureFunc.
-func (d *PortsDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *DevicesSwitchPortsStatusesDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 
 	// The provider must be properly configured before it can be used.
 	if req.ProviderData == nil {
@@ -91,7 +66,7 @@ func (d *PortsDataSource) Configure(ctx context.Context, req datasource.Configur
 }
 
 // Read method is responsible for reading an existing data source's state.
-func (d *PortsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (d *DevicesSwitchPortsStatusesDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data PortsDataSourceModel
 	var diags diag.Diagnostics
 	// Read Terraform configuration data into the model
@@ -118,7 +93,7 @@ func (d *PortsDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 			fmt.Printf(": %s\n", tfDiags.Errors())
 		}
 
-		fmt.Printf("Error creating switch port: %s\n", errSlice)
+		fmt.Printf("Error creating group policy: %s\n", errSlice)
 		if httpRespSlice != nil {
 			var responseBody string
 			if httpRespSlice.Body != nil {
@@ -153,19 +128,13 @@ func (d *PortsDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 		return
 	}
 
-	for _, i := range inlineResp {
-
-		var portData *PortResourceModel
-
-		// Use typedApiResp with the correct type for further processing
-		port, portDiags := PortResourceState(ctx, &i, portData)
-		if portDiags.HasError() {
-			resp.Diagnostics.AddError("Resource Response Error", fmt.Sprintf("\n%v", portDiags))
-			return
-		}
-
-		data.Ports = append(data.Ports, *port)
+	for _, switchData := range inlineResp {
+		devicesSwitchPortData := mapSwitchDataToPort(switchData)
+		data.List = append(data.List, devicesSwitchPortData)
 	}
+
+	// Set ID for the data source.
+	data.Id = types.StringValue("example-id")
 
 	// Now set the final state of the data source.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

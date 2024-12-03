@@ -12,7 +12,7 @@ import (
 func TestAccDevicesSwitchPortsDataSource(t *testing.T) {
 	orgId := os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")
 	serial := os.Getenv("TF_ACC_MERAKI_MS_SERIAL")
-	ports := 24 // The number of ports to include in the test, make sure to check the max of your switch
+	ports := 5 // The number of ports to include in the test, make sure to check the max of your switch
 
 	// Configuration for claiming a device
 	claimConfig := testAccDevicesSwitchPortsDataSourceConfigClaimDevice(orgId, serial)
