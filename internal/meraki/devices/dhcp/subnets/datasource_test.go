@@ -2,6 +2,7 @@ package subnets_test
 
 import (
 	"fmt"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"os"
 	"testing"
 
@@ -25,10 +26,6 @@ func TestAccDevicesApplianceDhcpSubnetsDataSource(t *testing.T) {
 	t.Run("Update and Read DevicesApplianceDhcpSubnets", func(t *testing.T) {
 		testUpdateAndReadDevicesApplianceDhcpSubnets(t)
 	})
-
-	t.Run("Read DHCP Subnets Data Source", func(t *testing.T) {
-		testReadApplianceDhcpSubnetsDataSource(t)
-	})
 }
 
 func testCreateAndReadNetwork(t *testing.T) {
@@ -36,17 +33,11 @@ func testCreateAndReadNetwork(t *testing.T) {
 		PreCheck:                 func() { testAccDevicesApplianceDhcpSubnetsPreCheck(t) },
 		ProtoV6ProviderFactories: provider.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
+
+			// Create and Read Network
 			{
-				Config: testAccDevicesApplianceDhcpSubnetsDataSourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_devices_appliance_dhcp_subnets"),
-					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
-					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
-					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.#", "1"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.0", "appliance"),
-					resource.TestCheckResourceAttr("meraki_network.test", "notes", "Additional description of the network"),
-				),
+				Config: utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_devices_appliance_dhcp_subnets"),
+				Check:  utils.NetworkOrgIdTestChecks("test_acc_devices_appliance_dhcp_subnets"),
 			},
 		},
 	})
@@ -60,7 +51,6 @@ func testClaimAndReadNetworkDevices(t *testing.T) {
 			{
 				Config: testAccDevicesApplianceDhcpSubnetsDataSourceConfigClaim(
 					os.Getenv("TF_ACC_MERAKI_MX_SERIAL"),
-					os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"),
 				),
 				Check: resource.ComposeAggregateTestCheckFunc(),
 			},
@@ -74,7 +64,7 @@ func testUpdateNetworkVLANSettings(t *testing.T) {
 		ProtoV6ProviderFactories: provider.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDevicesApplianceDhcpSubnetsDataSourceConfigVlanSettings,
+				Config: DevicesApplianceDhcpSubnetsDataSourceConfigVlanSettings(os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_devices_appliance_dhcp_subnets"),
 				),
@@ -91,37 +81,20 @@ func testUpdateAndReadDevicesApplianceDhcpSubnets(t *testing.T) {
 			{
 				Config: testAccDevicesApplianceDhcpSubnetsDataSourceConfigRead(os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(
-						"data.meraki_devices_appliance_dhcp_subnets.test",
-						"serial",
-						os.Getenv("TF_ACC_MERAKI_MX_SERIAL"),
-					),
+					resource.TestCheckResourceAttr("data.meraki_devices_appliance_dhcp_subnets.test", "serial", os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
+					resource.TestCheckResourceAttr("data.meraki_devices_appliance_dhcp_subnets.test", "resources.#", "1"),
+					resource.TestCheckResourceAttr("data.meraki_devices_appliance_dhcp_subnets.test", "resources.0.subnet", "192.168.128.0/24"),
+					resource.TestCheckResourceAttr("data.meraki_devices_appliance_dhcp_subnets.test", "resources.0.vlan_id", "1"),
+					resource.TestCheckResourceAttr("data.meraki_devices_appliance_dhcp_subnets.test", "resources.0.free_count", "253"),
+					resource.TestCheckResourceAttr("data.meraki_devices_appliance_dhcp_subnets.test", "resources.0.used_count", "0"),
 				),
 			},
 		},
 	})
 }
 
-func testReadApplianceDhcpSubnetsDataSource(t *testing.T) {
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccDevicesApplianceDhcpSubnetsPreCheck(t) },
-		ProtoV6ProviderFactories: provider.TestAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccApplianceDhcpSubnetsDataSourceConfig(os.Getenv("TF_ACC_MERAKI_DEVICE_SERIAL")),
-				Check:  testAccDevicesApplianceDhcpSubnetsDataSourceCheck(),
-			},
-			{
-				ResourceName:      "data.meraki_devices_appliance_dhcp_subnets.test",
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
 func testAccDevicesApplianceDhcpSubnetsPreCheck(t *testing.T) {
-	if v := os.Getenv("TF_ACC_MERAKI_DEVICE_SERIAL"); v == "" {
+	if v := os.Getenv("TF_ACC_MERAKI_MX_SERIAL"); v == "" {
 		t.Fatal("TF_ACC_MERAKI_DEVICE_SERIAL must be set for acceptance tests")
 	}
 	if v := os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"); v == "" {
@@ -129,25 +102,9 @@ func testAccDevicesApplianceDhcpSubnetsPreCheck(t *testing.T) {
 	}
 }
 
-func testAccDevicesApplianceDhcpSubnetsDataSourceConfigCreateNetwork(orgId string) string {
+func testAccDevicesApplianceDhcpSubnetsDataSourceConfigClaim(serial string) string {
 	return fmt.Sprintf(`
-resource "meraki_network" "test" {
-	organization_id = "%s"
-	product_types = ["appliance"]
-	tags = ["tag1"]
-	name = "test_acc_devices_appliance_dhcp_subnets"
-	timezone = "America/Los_Angeles"
-	notes = "Additional description of the network"
-}
-`, orgId)
-}
-
-func testAccDevicesApplianceDhcpSubnetsDataSourceConfigClaim(serial string, orgId string) string {
-	return fmt.Sprintf(`
-resource "meraki_network" "test" {
-        organization_id = "%s"
-        product_types = ["appliance"]
-}    
+%s
 resource "meraki_networks_devices_claim" "test" {
     depends_on = [meraki_network.test]
     network_id = meraki_network.test.network_id
@@ -155,29 +112,46 @@ resource "meraki_networks_devices_claim" "test" {
       "%s"
     ]
 }	
-`, orgId, serial)
+`, utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_devices_appliance_dhcp_subnets"),
+		serial)
 }
 
-const testAccDevicesApplianceDhcpSubnetsDataSourceConfigVlanSettings = `
-resource "meraki_network" "test" {
-	product_types = ["appliance"]
-}
+func DevicesApplianceDhcpSubnetsDataSourceConfigVlanSettings(serial string) string {
+	return fmt.Sprintf(`
+	%s
+
+resource "meraki_networks_devices_claim" "test" {
+    depends_on = [meraki_network.test]
+    network_id = meraki_network.test.network_id
+    serials = [
+      "%s"
+    ]
+}	
 
 resource "meraki_networks_appliance_vlans_settings" "test" {
-	depends_on = [meraki_network.test]
+	depends_on = [meraki_network.test, meraki_networks_devices_claim.test]
 	network_id = meraki_network.test.network_id
 	vlans_enabled = true
 }
-`
-
-func testAccDevicesApplianceDhcpSubnetsDataSourceConfigRead(serialID string) string {
-	return fmt.Sprintf(`
-resource "meraki_network" "test" {
-	product_types = ["appliance"]
+`,
+		utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_devices_appliance_dhcp_subnets"),
+		serial,
+	)
 }
 
+func testAccDevicesApplianceDhcpSubnetsDataSourceConfigRead(serial string) string {
+	return fmt.Sprintf(`
+%s
+resource "meraki_networks_devices_claim" "test" {
+    depends_on = [meraki_network.test]
+    network_id = meraki_network.test.network_id
+    serials = [
+      "%s"
+    ]
+}	
+
 resource "meraki_networks_appliance_vlans_settings" "test" {
-	depends_on = [meraki_network.test]
+	depends_on = [meraki_network.test, meraki_networks_devices_claim.test]
 	network_id = meraki_network.test.network_id
 	vlans_enabled = true
 }
@@ -186,25 +160,10 @@ data "meraki_devices_appliance_dhcp_subnets" "test" {
 	depends_on = [meraki_networks_appliance_vlans_settings.test]
 	serial = "%s"
 }
-`, serialID)
-}
 
-func testAccApplianceDhcpSubnetsDataSourceConfig(serial string) string {
-	return fmt.Sprintf(`
-data "meraki_devices_appliance_dhcp_subnets" "test" {
-  serial = "%s"
+output "dhcp_subnets" {
+    value = data.meraki_devices_appliance_dhcp_subnets.test
 }
-`, serial)
-}
-
-func testAccDevicesApplianceDhcpSubnetsDataSourceCheck() resource.TestCheckFunc {
-	return resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttr(
-			"data.meraki_devices_appliance_dhcp_subnets.test",
-			"serial",
-			os.Getenv("TF_ACC_MERAKI_DEVICE_SERIAL"),
-		),
-		resource.TestCheckResourceAttrSet("data.meraki_devices_appliance_dhcp_subnets.test", "id"),
-		resource.TestCheckResourceAttrSet("data.meraki_devices_appliance_dhcp_subnets.test", "list.#"),
-	)
+`, utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_devices_appliance_dhcp_subnets"),
+		serial, serial)
 }

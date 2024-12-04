@@ -30,6 +30,11 @@ func (d *ApplianceDhcpSubnetsDataSource) Schema(ctx context.Context, req datasou
 
 // Configure configures the data source with the API client.
 func (d *ApplianceDhcpSubnetsDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+	// Ensure the provider has been configured.
+	if req.ProviderData == nil {
+		return
+	}
+
 	client, ok := req.ProviderData.(*openApiClient.APIClient)
 	if !ok {
 		resp.Diagnostics.AddError(
