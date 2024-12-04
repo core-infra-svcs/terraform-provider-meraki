@@ -43,11 +43,13 @@ func (d *ManagementInterfaceDataSource) Configure(ctx context.Context, req datas
 	}
 
 	client, ok := req.ProviderData.(*openApiClient.APIClient)
+
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Data Source Configuration",
 			fmt.Sprintf("Expected *openApiClient.APIClient, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
+
 		return
 	}
 
@@ -89,27 +91,45 @@ func (d *ManagementInterfaceDataSource) Read(ctx context.Context, req datasource
 			"Unexpected HTTP Response",
 			utils.HttpDiagnostics(httpResp),
 		)
-		return
+
+	} else if httpResp.StatusCode != 200 {
+		resp.Diagnostics.AddError(
+			"Unexpected HTTP Response Status Code",
+			fmt.Sprintf("%v", httpResp.StatusCode),
+		)
+
+		// HTTP 400 counts as an error so moving this here
+		// If there was an error during API call, add it to diagnostics.
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"HTTP Client Failure",
+				utils.HttpDiagnostics(httpResp),
+			)
+			return
+		}
+
+		// If there were any errors up to this point, log the state data and return.
+		if resp.Diagnostics.HasError() {
+			resp.Diagnostics.AddError("State Data", fmt.Sprintf("\n%v", config))
+			return
+		}
+
 	}
 
-	// Map API response to Terraform state
-	tflog.Debug(ctx, "[management_interface] Mapping API response to state")
-	state, mappingDiags := mapAPIResponseToState(ctx, inlineResp)
-	resp.Diagnostics.Append(mappingDiags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	diags = updateDatasourceState(ctx, &config, inlineResp, httpResp)
 
-	// Set the ID to the serial number for uniqueness
-	state.Id = types.StringValue(config.Serial.ValueString())
+	config.Id = types.StringValue(config.Serial.ValueString())
 
-	// Save the updated state to Terraform
-	tflog.Debug(ctx, "[management_interface] Saving updated state to Terraform")
-	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
+	diags = resp.State.Set(ctx, &config)
+	resp.Diagnostics.Append(diags...)
+
+	// Write logs using the tflog package
 	tflog.Debug(ctx, "[management_interface] Successfully completed Read operation")
+	tflog.Trace(ctx, "read resource")
 }

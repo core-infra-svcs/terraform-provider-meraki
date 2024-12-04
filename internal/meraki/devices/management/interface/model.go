@@ -96,3 +96,12 @@ var resourceType = map[string]attr.Type{
 	"wan1":           types.ObjectType{AttrTypes: wanType},
 	"wan2":           types.ObjectType{AttrTypes: wanType},
 }
+
+//// Resource describes the resource data model.
+//type DevicesManagementInterfaceResourceModel struct {
+//	Id            types.String `tfsdk:"id"`
+//	Serial        types.String `tfsdk:"serial" json:"serial"`
+//	DDNSHostnames types.Object `tfsdk:"ddns_hostnames" json:"ddnsHostnames"`
+//	Wan1          types.Object `tfsdk:"wan1" json:"wan1"`
+//	Wan2          types.Object `tfsdk:"wan2" json:"wan2"`
+//}

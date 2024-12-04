@@ -28,7 +28,7 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		devices.NewDevicesResource,
 		port.NewDevicesSwitchPortResource,
 		cycle.NewDevicesSwitchPortsCycleResource,
-		_interface.NewManagementInterfaceResourceResource,
+		_interface.NewManagementInterfaceResource,
 
 		networks.NewNetworksCellularGatewaySubnetPoolResource,
 		networks.NewNetworksCellularGatewayUplinkResource,

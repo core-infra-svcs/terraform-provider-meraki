@@ -24,7 +24,7 @@ func (p *CiscoMerakiProvider) DataSources(ctx context.Context) []func() datasour
 		administered.NewAdministeredIdentitiesMeDataSource,
 
 		devices.NewNetworkDevicesDataSource,
-		_interface.NewDevicesManagementInterfaceDatasource,
+		_interface.NewDevicesManagementInterfaceDataSource,
 		ports.NewDevicesSwitchPortsStatusesDataSource,
 		subnets.NewDevicesApplianceDhcpSubnetsDataSource,
 

@@ -3,6 +3,7 @@ package _interface_test
 import (
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"os"
 	"testing"
 
@@ -14,62 +15,34 @@ func TestAccDevicesManagementInterfaceResource(t *testing.T) {
 		PreCheck:                 func() { provider.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: provider.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
+			// Create and Read Network
 			{
-				Config: testAccDevicesManagementInterfaceResourceConfigCreateNetwork(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_network.test", "name", "test_acc_device_management_interface"),
-					resource.TestCheckResourceAttr("meraki_network.test", "timezone", "America/Los_Angeles"),
-					resource.TestCheckResourceAttr("meraki_network.test", "tags.#", "1"),
-					resource.TestCheckResourceAttr("meraki_network.test", "tags.0", "tag1"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.#", "3"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.0", "appliance"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.1", "switch"),
-					resource.TestCheckResourceAttr("meraki_network.test", "product_types.2", "wireless"),
-					resource.TestCheckResourceAttr("meraki_network.test", "notes", "Additional description of the network"),
-				),
+				Config: utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_device_management_interface"),
+				Check:  utils.NetworkOrgIdTestChecks("test_acc_device_management_interface"),
 			},
 
 			// Claim device to Network
 			{
-				Config: testAccDevicesManagementInterfaceResourceConfigCreate(
+				Config: DevicesManagementInterfaceResourceConfigCreate(
 					os.Getenv("TF_ACC_MERAKI_MX_SERIAL"),
 					os.Getenv("TF_ACC_MERAKI_MS_SERIAL"),
 					os.Getenv("TF_ACC_MERAKI_MR_SERIAL")),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_devices_management_interface.mx", "serial", os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
-					resource.TestCheckResourceAttr("meraki_devices_management_interface.mx", "wan1.wan_enabled", "disabled"),
-					resource.TestCheckResourceAttr("meraki_devices_management_interface.mx", "wan1.vlan", "2"),
-					resource.TestCheckResourceAttr("meraki_devices_management_interface.mx", "wan1.using_static_ip", "false"),
-				),
+				Check: DevicesManagementInterfaceResourceConfigCreateCheck(),
 			},
 
 			{
-				Config: testAccDevicesManagementInterfaceResourceConfigUpdate(os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_devices_management_interface.mx", "serial", os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
-					resource.TestCheckResourceAttr("meraki_devices_management_interface.mx", "wan1.wan_enabled", "enabled"),
-					resource.TestCheckResourceAttr("meraki_devices_management_interface.mx", "wan1.vlan", "2"),
-					resource.TestCheckResourceAttr("meraki_devices_management_interface.mx", "wan1.using_static_ip", "false"),
-				),
+				Config: DevicesManagementInterfaceResourceConfigUpdate(os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
+				Check:  DevicesManagementInterfaceResourceConfigUpdateCheck(),
 			},
 
 			{
-				Config: testAccDevicesManagementInterfaceResourceConfigCreateMS(os.Getenv("TF_ACC_MERAKI_MS_SERIAL")),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_devices_management_interface.ms", "serial", os.Getenv("TF_ACC_MERAKI_MS_SERIAL")),
-					resource.TestCheckResourceAttr("meraki_devices_management_interface.ms", "wan1.vlan", "2"),
-					resource.TestCheckResourceAttr("meraki_devices_management_interface.ms", "wan1.using_static_ip", "false"),
-				),
+				Config: DevicesManagementInterfaceResourceConfigCreateMS(os.Getenv("TF_ACC_MERAKI_MS_SERIAL")),
+				Check:  DevicesManagementInterfaceResourceConfigCreateMSCheck(),
 			},
 
 			{
-				Config: testAccDevicesManagementInterfaceResourceConfigCreateMR(os.Getenv("TF_ACC_MERAKI_MR_SERIAL")),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_devices_management_interface.mr", "serial", os.Getenv("TF_ACC_MERAKI_MR_SERIAL")),
-					resource.TestCheckResourceAttr("meraki_devices_management_interface.mr", "wan1.wan_enabled", "not configured"),
-					resource.TestCheckResourceAttr("meraki_devices_management_interface.mr", "wan1.vlan", "2"),
-					resource.TestCheckResourceAttr("meraki_devices_management_interface.mr", "wan1.using_static_ip", "false"),
-				),
+				Config: DevicesManagementInterfaceResourceConfigCreateMR(os.Getenv("TF_ACC_MERAKI_MR_SERIAL")),
+				Check:  DevicesManagementInterfaceResourceConfigCreateMRCheck(),
 			},
 
 			// Delete testing automatically occurs in TestCase
@@ -77,25 +50,9 @@ func TestAccDevicesManagementInterfaceResource(t *testing.T) {
 	})
 }
 
-func testAccDevicesManagementInterfaceResourceConfigCreateNetwork(orgId string) string {
-	result := fmt.Sprintf(`
-resource "meraki_network" "test" {
-   organization_id = "%s"
-   product_types = ["appliance", "switch", "wireless"]
-   tags = ["tag1"]
-   name = "test_acc_device_management_interface"
-   timezone = "America/Los_Angeles"
-   notes = "Additional description of the network"
-}
-`, orgId)
-	return result
-}
-
-func testAccDevicesManagementInterfaceResourceConfigCreate(mxSerial, msSerial, mrSerial string) string {
-	result := fmt.Sprintf(`resource "meraki_network" "test" {
-        product_types = ["appliance", "switch", "wireless"]
-}    
-
+func DevicesManagementInterfaceResourceConfigCreate(mxSerial, msSerial, mrSerial string) string {
+	return fmt.Sprintf(`
+	%s
 resource "meraki_networks_devices_claim" "test" {
     depends_on = [meraki_network.test]
     network_id = meraki_network.test.network_id
@@ -113,15 +70,26 @@ resource "meraki_devices_management_interface" "mx" {
 		using_static_ip = false
 	}
 }
-`, mxSerial, msSerial, mrSerial, mxSerial)
-	return result
+`,
+		utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_device_management_interface"),
+		mxSerial, msSerial, mrSerial, mxSerial,
+	)
 }
 
-func testAccDevicesManagementInterfaceResourceConfigUpdate(serial string) string {
-	result := fmt.Sprintf(`resource "meraki_network" "test" {
-        product_types = ["appliance", "switch", "wireless"]
-}    
+// DevicesManagementInterfaceResourceConfigCreateCheck returns the test check functions for DevicesManagementInterfaceResourceConfigCreate
+func DevicesManagementInterfaceResourceConfigCreateCheck() resource.TestCheckFunc {
+	expectedAttrs := map[string]string{
+		"serial":               os.Getenv("TF_ACC_MERAKI_MX_SERIAL"),
+		"wan1.wan_enabled":     "disabled",
+		"wan1.vlan":            "2",
+		"wan1.using_static_ip": "false",
+	}
+	return utils.ResourceTestCheck("meraki_devices_management_interface.mx", expectedAttrs)
+}
 
+func DevicesManagementInterfaceResourceConfigUpdate(serial string) string {
+	return fmt.Sprintf(`
+	%s
 resource "meraki_networks_devices_claim" "test" {
     depends_on = [meraki_network.test]
     network_id = meraki_network.test.network_id
@@ -139,15 +107,52 @@ resource "meraki_devices_management_interface" "mx" {
 		using_static_ip = false
 	}
 }
-`, serial, serial)
-	return result
+`,
+		utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_device_management_interface"),
+		serial, serial,
+	)
 }
 
-func testAccDevicesManagementInterfaceResourceConfigCreateMS(serial string) string {
-	result := fmt.Sprintf(`resource "meraki_network" "test" {
-        product_types = ["appliance", "switch", "wireless"]
-}    
+// DevicesManagementInterfaceResourceConfigUpdateCheck returns the test check functions for DevicesManagementInterfaceResourceConfigUpdate
+func DevicesManagementInterfaceResourceConfigUpdateCheck() resource.TestCheckFunc {
+	expectedAttrs := map[string]string{
+		"serial":               os.Getenv("TF_ACC_MERAKI_MX_SERIAL"),
+		"wan1.wan_enabled":     "enabled",
+		"wan1.vlan":            "2",
+		"wan1.using_static_ip": "false",
+	}
+	return utils.ResourceTestCheck("meraki_devices_management_interface.mx", expectedAttrs)
+}
 
+//func testAccDevicesManagementInterfaceResourceConfigCreateMS(serial string) string {
+//	result := fmt.Sprintf(`resource "meraki_network" "test" {
+//        product_types = ["appliance", "switch", "wireless"]
+//}
+//
+//resource "meraki_networks_devices_claim" "test" {
+//    depends_on = [meraki_network.test]
+//    network_id = meraki_network.test.network_id
+//    serials = [
+//      "%s"
+//  ]
+//}
+//
+//resource "meraki_devices_management_interface" "ms" {
+//    depends_on = [meraki_network.test, meraki_networks_devices_claim.test]
+//	serial = "%s"
+//	wan1 = {
+//		wan_enabled = null
+//		vlan = 2
+//		using_static_ip = false
+//	}
+//}
+//`, serial, serial)
+//	return result
+//}
+
+func DevicesManagementInterfaceResourceConfigCreateMS(serial string) string {
+	return fmt.Sprintf(`
+	%s
 resource "meraki_networks_devices_claim" "test" {
     depends_on = [meraki_network.test]
     network_id = meraki_network.test.network_id
@@ -165,15 +170,51 @@ resource "meraki_devices_management_interface" "ms" {
 		using_static_ip = false
 	}
 }
-`, serial, serial)
-	return result
+`,
+		utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_device_management_interface"),
+		serial, serial,
+	)
 }
 
-func testAccDevicesManagementInterfaceResourceConfigCreateMR(serial string) string {
-	result := fmt.Sprintf(`resource "meraki_network" "test" {
-        product_types = ["appliance", "switch", "wireless"]
-}    
+// DevicesManagementInterfaceResourceConfigCreateMSCheck returns the test check functions for DevicesManagementInterfaceResourceConfigCreateMS
+func DevicesManagementInterfaceResourceConfigCreateMSCheck() resource.TestCheckFunc {
+	expectedAttrs := map[string]string{
+		"serial":               os.Getenv("TF_ACC_MERAKI_MS_SERIAL"),
+		"wan1.vlan":            "2",
+		"wan1.using_static_ip": "false",
+	}
+	return utils.ResourceTestCheck("meraki_devices_management_interface.ms", expectedAttrs)
+}
 
+//func testAccDevicesManagementInterfaceResourceConfigCreateMR(serial string) string {
+//	result := fmt.Sprintf(`resource "meraki_network" "test" {
+//        product_types = ["appliance", "switch", "wireless"]
+//}
+//
+//resource "meraki_networks_devices_claim" "test" {
+//    depends_on = [meraki_network.test]
+//    network_id = meraki_network.test.network_id
+//    serials = [
+//      "%s"
+//  ]
+//}
+//
+//resource "meraki_devices_management_interface" "mr" {
+//    depends_on = [meraki_network.test, meraki_networks_devices_claim.test]
+//	serial = "%s"
+//	wan1 = {
+//		wan_enabled = "not configured"
+//		vlan = 2
+//		using_static_ip = false
+//	}
+//}
+//`, serial, serial)
+//	return result
+//}
+
+func DevicesManagementInterfaceResourceConfigCreateMR(serial string) string {
+	return fmt.Sprintf(`
+	%s
 resource "meraki_networks_devices_claim" "test" {
     depends_on = [meraki_network.test]
     network_id = meraki_network.test.network_id
@@ -191,6 +232,19 @@ resource "meraki_devices_management_interface" "mr" {
 		using_static_ip = false
 	}
 }
-`, serial, serial)
-	return result
+`,
+		utils.CreateNetworkOrgIdConfig(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), "test_acc_device_management_interface"),
+		serial, serial,
+	)
+}
+
+// DevicesManagementInterfaceResourceConfigCreateMRCheck returns the test check functions for DevicesManagementInterfaceResourceConfigCreateMR
+func DevicesManagementInterfaceResourceConfigCreateMRCheck() resource.TestCheckFunc {
+	expectedAttrs := map[string]string{
+		"serial":               os.Getenv("TF_ACC_MERAKI_MR_SERIAL"),
+		"wan1.wan_enabled":     "not configured",
+		"wan1.vlan":            "2",
+		"wan1.using_static_ip": "false",
+	}
+	return utils.ResourceTestCheck("meraki_devices_management_interface.mr", expectedAttrs)
 }
