@@ -48,10 +48,6 @@ func (d *SamlRolesDataSource) Schema(ctx context.Context, req datasource.SchemaR
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed:   true,
-				CustomType: jsontypes.StringType,
-			},
-			"organization_id": schema.StringAttribute{
 				MarkdownDescription: "Organization ID",
 				Required:            true,
 				Validators: []validator.String{
@@ -59,6 +55,14 @@ func (d *SamlRolesDataSource) Schema(ctx context.Context, req datasource.SchemaR
 				},
 				CustomType: jsontypes.StringType,
 			},
+			//"organization_id": schema.StringAttribute{
+			//	MarkdownDescription: "Organization ID",
+			//	Required:            true,
+			//	Validators: []validator.String{
+			//		stringvalidator.LengthBetween(1, 31),
+			//	},
+			//	CustomType: jsontypes.StringType,
+			//},
 			"list": schema.SetNestedAttribute{
 				Optional:    true,
 				Computed:    true,
