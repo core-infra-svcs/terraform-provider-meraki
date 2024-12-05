@@ -5,13 +5,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-type PortProfileModel struct {
+type profileModel struct {
 	Enabled types.Bool   `tfsdk:"enabled" json:"enabled"`
 	Id      types.String `tfsdk:"id" json:"id"`
 	Iname   types.String `tfsdk:"iname" json:"iname"`
 }
 
-type PortResourceModel struct {
+type resourceModel struct {
 	Id                          types.String `tfsdk:"id"`
 	Serial                      types.String `tfsdk:"serial" json:"serial"`
 	PortId                      types.String `tfsdk:"port_id" json:"portId"`
@@ -44,6 +44,6 @@ type PortResourceModel struct {
 }
 
 type PortsDataSourceModel struct {
-	Serial jsontypes.String    `tfsdk:"id" json:"serial"`
-	Ports  []PortResourceModel `tfsdk:"list"`
+	Serial jsontypes.String `tfsdk:"id" json:"serial"`
+	Ports  []resourceModel  `tfsdk:"list"`
 }

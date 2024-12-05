@@ -35,7 +35,7 @@ func (d *DevicesSwitchPortsStatusesDataSource) Metadata(ctx context.Context, req
 // It is called by the framework to get the schema of the data source.
 func (d *DevicesSwitchPortsStatusesDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 
-	// The Schema object defines the structure of the data source.
+	// The resourceSchema object defines the structure of the data source.
 	resp.Schema = portsDataSourceSchema
 }
 

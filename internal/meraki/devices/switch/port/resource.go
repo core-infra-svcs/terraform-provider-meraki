@@ -17,29 +17,29 @@ import (
 )
 
 var (
-	_ resource.Resource                = &PortResource{} // Terraform resource interface
-	_ resource.ResourceWithConfigure   = &PortResource{} // Interface for resources with configuration methods
-	_ resource.ResourceWithImportState = &PortResource{} // Interface for resources with import state functionality
+	_ resource.Resource                = &Resource{} // Terraform resource interface
+	_ resource.ResourceWithConfigure   = &Resource{} // Interface for resources with configuration methods
+	_ resource.ResourceWithImportState = &Resource{} // Interface for resources with import state functionality
 )
 
 func NewDevicesSwitchPortResource() resource.Resource {
-	return &PortResource{}
+	return &Resource{}
 }
 
-type PortResource struct {
+type Resource struct {
 	client *openApiClient.APIClient // APIClient instance for making API requests
 }
 
 // Metadata provides a way to define information about the resource.
-func (r *PortResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *Resource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 
 	resp.TypeName = req.ProviderTypeName + "_devices_switch_port"
 }
 
 // Schema provides a way to define the structure of the resource data.
-func (r *PortResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *Resource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 
-	// The Schema object defines the structure of the resource.
+	// The resourceSchema object defines the structure of the resource.
 	resp.Schema = schema.Schema{
 
 		MarkdownDescription: "Network Devices resource. This only works for devices associated with a network.",
@@ -50,7 +50,7 @@ func (r *PortResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 }
 
 // Configure is a method of the Resource interface that Terraform calls to provide the configured provider instance to the resource.
-func (r *PortResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *Resource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 
 	// The provider must be properly configured before it can be used.
 	if req.ProviderData == nil {
@@ -76,8 +76,8 @@ func (r *PortResource) Configure(ctx context.Context, req resource.ConfigureRequ
 }
 
 // Create method is responsible for creating a new resource.
-func (r *PortResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *PortResourceModel
+func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *resourceModel
 	// Unmarshal the plan data into the internal data model struct.
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
@@ -165,8 +165,8 @@ func (r *PortResource) Create(ctx context.Context, req resource.CreateRequest, r
 }
 
 // Read method is responsible for reading an existing resource's state.
-func (r *PortResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *PortResourceModel
+func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *resourceModel
 	var diags diag.Diagnostics
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -246,9 +246,9 @@ func (r *PortResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 }
 
 // Update function is responsible for updating the state of an existing resource.
-func (r *PortResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 
-	var data *PortResourceModel
+	var data *resourceModel
 	// Unmarshal the plan data into the internal data model struct.
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
@@ -329,9 +329,9 @@ func (r *PortResource) Update(ctx context.Context, req resource.UpdateRequest, r
 }
 
 // Delete function is responsible for deleting a resource.
-func (r *PortResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 
-	var data *PortResourceModel
+	var data *resourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
 	// If there was an error reading the state, return early.
@@ -417,7 +417,7 @@ func (r *PortResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 }
 
 // ImportState function is used to import an existing resource into Terraform.
-func (r *PortResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	idParts := strings.Split(req.ID, ",")
 	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
 		resp.Diagnostics.AddError(
