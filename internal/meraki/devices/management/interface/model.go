@@ -43,13 +43,6 @@ import (
 
 */
 
-// DDNSHostnamesModel represents the attributes for DDNS hostnames.
-type ddnsHostnamesModel struct {
-	ActiveDdnsHostname types.String `tfsdk:"active_ddns_hostname" json:"activeDdnsHostname"`
-	DdnsHostnameWan1   types.String `tfsdk:"ddns_hostname_wan1" json:"ddnsHostnameWan1"`
-	DdnsHostnameWan2   types.String `tfsdk:"ddns_hostname_wan2" json:"ddnsHostnameWan2"`
-}
-
 // ddnsHostnamesType defines the attribute types for DDNSHostnamesModel.
 var ddnsHostnamesType = map[string]attr.Type{
 	"active_ddns_hostname": types.StringType,
@@ -87,21 +80,3 @@ type resourceModel struct {
 	Wan1          types.Object `tfsdk:"wan1" json:"wan1"`                    // Nested object for WAN1 configuration
 	Wan2          types.Object `tfsdk:"wan2" json:"wan2"`                    // Nested object for WAN2 configuration
 }
-
-// resourceType defines the attribute types for resourceModel.
-var resourceType = map[string]attr.Type{
-	"id":             types.StringType,
-	"serial":         types.StringType,
-	"ddns_hostnames": types.ObjectType{AttrTypes: ddnsHostnamesType},
-	"wan1":           types.ObjectType{AttrTypes: wanType},
-	"wan2":           types.ObjectType{AttrTypes: wanType},
-}
-
-//// Resource describes the resource data model.
-//type DevicesManagementInterfaceResourceModel struct {
-//	Id            types.String `tfsdk:"id"`
-//	Serial        types.String `tfsdk:"serial" json:"serial"`
-//	DDNSHostnames types.Object `tfsdk:"ddns_hostnames" json:"ddnsHostnames"`
-//	Wan1          types.Object `tfsdk:"wan1" json:"wan1"`
-//	Wan2          types.Object `tfsdk:"wan2" json:"wan2"`
-//}

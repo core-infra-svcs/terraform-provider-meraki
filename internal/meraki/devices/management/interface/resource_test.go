@@ -124,32 +124,6 @@ func DevicesManagementInterfaceResourceConfigUpdateCheck() resource.TestCheckFun
 	return utils.ResourceTestCheck("meraki_devices_management_interface.mx", expectedAttrs)
 }
 
-//func testAccDevicesManagementInterfaceResourceConfigCreateMS(serial string) string {
-//	result := fmt.Sprintf(`resource "meraki_network" "test" {
-//        product_types = ["appliance", "switch", "wireless"]
-//}
-//
-//resource "meraki_networks_devices_claim" "test" {
-//    depends_on = [meraki_network.test]
-//    network_id = meraki_network.test.network_id
-//    serials = [
-//      "%s"
-//  ]
-//}
-//
-//resource "meraki_devices_management_interface" "ms" {
-//    depends_on = [meraki_network.test, meraki_networks_devices_claim.test]
-//	serial = "%s"
-//	wan1 = {
-//		wan_enabled = null
-//		vlan = 2
-//		using_static_ip = false
-//	}
-//}
-//`, serial, serial)
-//	return result
-//}
-
 func DevicesManagementInterfaceResourceConfigCreateMS(serial string) string {
 	return fmt.Sprintf(`
 	%s
@@ -185,32 +159,6 @@ func DevicesManagementInterfaceResourceConfigCreateMSCheck() resource.TestCheckF
 	}
 	return utils.ResourceTestCheck("meraki_devices_management_interface.ms", expectedAttrs)
 }
-
-//func testAccDevicesManagementInterfaceResourceConfigCreateMR(serial string) string {
-//	result := fmt.Sprintf(`resource "meraki_network" "test" {
-//        product_types = ["appliance", "switch", "wireless"]
-//}
-//
-//resource "meraki_networks_devices_claim" "test" {
-//    depends_on = [meraki_network.test]
-//    network_id = meraki_network.test.network_id
-//    serials = [
-//      "%s"
-//  ]
-//}
-//
-//resource "meraki_devices_management_interface" "mr" {
-//    depends_on = [meraki_network.test, meraki_networks_devices_claim.test]
-//	serial = "%s"
-//	wan1 = {
-//		wan_enabled = "not configured"
-//		vlan = 2
-//		using_static_ip = false
-//	}
-//}
-//`, serial, serial)
-//	return result
-//}
 
 func DevicesManagementInterfaceResourceConfigCreateMR(serial string) string {
 	return fmt.Sprintf(`

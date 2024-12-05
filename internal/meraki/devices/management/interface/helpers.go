@@ -11,43 +11,6 @@ import (
 	"net/http"
 )
 
-//// mapAPIResponseToState maps the API response to the Terraform data source state.
-//func mapAPIResponseToState(ctx context.Context, rawResponse map[string]interface{}) (resourceModel, diag.Diagnostics) {
-//	var diags diag.Diagnostics
-//	var state resourceModel
-//
-//	tflog.Trace(ctx, "[management_interface] Mapping API response to state")
-//
-//	// Map top-level fields
-//	id, idDiags := utils.ExtractStringAttr(rawResponse, "id")
-//	serial, serialDiags := utils.ExtractStringAttr(rawResponse, "serial")
-//	diags = append(diags, idDiags...)
-//	diags = append(diags, serialDiags...)
-//
-//	state.Id = id
-//	state.Serial = serial
-//
-//	// Map nested DDNSHostnames
-//	ddnsHostnames, ddnsDiags := mapDDNSHostnames(ctx, rawResponse["ddnsHostnames"])
-//	diags = append(diags, ddnsDiags...)
-//	state.DDNSHostnames = ddnsHostnames
-//
-//	// Map WAN1 and WAN2
-//	wan1, wan1Diags := mapWAN(ctx, rawResponse, "wan1")
-//	wan2, wan2Diags := mapWAN(ctx, rawResponse, "wan2")
-//	diags = append(diags, wan1Diags...)
-//	diags = append(diags, wan2Diags...)
-//
-//	state.Wan1 = wan1
-//	state.Wan2 = wan2
-//
-//	tflog.Debug(ctx, "[management_interface] Mapped state", map[string]interface{}{
-//		"state": state,
-//	})
-//
-//	return state, diags
-//}
-
 // mapDDNSHostnames maps the DDNS hostnames from the API response.
 func mapDDNSHostnames(ctx context.Context, raw interface{}) (types.Object, diag.Diagnostics) {
 	tflog.Trace(ctx, "[management_interface] Mapping DDNS hostnames")
