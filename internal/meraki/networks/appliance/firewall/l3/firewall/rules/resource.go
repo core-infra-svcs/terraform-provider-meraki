@@ -1,4 +1,4 @@
-package firewall
+package rules
 
 import (
 	"context"
@@ -6,121 +6,30 @@ import (
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ resource.Resource = &L3FirewallRulesResource{}
-var _ resource.ResourceWithImportState = &L3FirewallRulesResource{}
+var _ resource.Resource = &Resource{}
+var _ resource.ResourceWithImportState = &Resource{}
 
 func NewNetworksApplianceFirewallL3FirewallRulesResource() resource.Resource {
-	return &L3FirewallRulesResource{}
+	return &Resource{}
 }
 
-// L3FirewallRulesResource defines the resource implementation.
-type L3FirewallRulesResource struct {
+// Resource defines the resource implementation.
+type Resource struct {
 	client *openApiClient.APIClient
 }
 
-func (r *L3FirewallRulesResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *Resource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_networks_appliance_firewall_l3_firewall_rules"
 }
 
-func (r *L3FirewallRulesResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manage Network Appliance L3 Firewall Rules",
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				MarkdownDescription: "Network ID",
-				Computed:            true,
-				Optional:            true,
-				CustomType:          jsontypes.StringType,
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 31),
-				},
-			},
-			"network_id": schema.StringAttribute{
-				MarkdownDescription: "Network ID",
-				Required:            true,
-				CustomType:          jsontypes.StringType,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(1, 31),
-				},
-			},
-			"syslog_default_rule": schema.BoolAttribute{
-				MarkdownDescription: "Log the special default rule (boolean value - enable only if you've configured a syslog server) (optional)",
-				Optional:            true,
-				CustomType:          jsontypes.BoolType,
-			},
-			"rules": schema.ListNestedAttribute{
-				Required: true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"comment": schema.StringAttribute{
-							MarkdownDescription: "Description of the rule (optional)",
-							Optional:            true,
-							Computed:            true,
-							CustomType:          jsontypes.StringType,
-						},
-						"dest_cidr": schema.StringAttribute{
-							MarkdownDescription: "Comma-separated list of destination IP address(es) (in IP or CIDR notation), fully-qualified domain names (FQDN) or 'Any'",
-							Required:            true,
-							CustomType:          jsontypes.StringType,
-						},
-						"dest_port": schema.StringAttribute{
-							MarkdownDescription: "Comma-separated list of destination port(s) (integer in the range 1-65535), or 'Any'",
-							Optional:            true,
-							Computed:            true,
-							CustomType:          jsontypes.StringType,
-						},
-						"src_cidr": schema.StringAttribute{
-							MarkdownDescription: "Comma-separated list of source IP address(es) (in IP or CIDR notation), or 'any' (note: FQDN not supported for source addresses)",
-							Required:            true,
-							CustomType:          jsontypes.StringType,
-						},
-						"src_port": schema.StringAttribute{
-							MarkdownDescription: "Comma-separated list of source port(s) (integer in the range 1-65535), or 'Any'",
-							Optional:            true,
-							Computed:            true,
-							CustomType:          jsontypes.StringType,
-						},
-						"policy": schema.StringAttribute{
-							MarkdownDescription: "'allow' or 'deny' traffic specified by this rule",
-							Required:            true,
-							CustomType:          jsontypes.StringType,
-						},
-						"protocol": schema.StringAttribute{
-							MarkdownDescription: "The type of protocol (must be 'tcp', 'udp', 'icmp', 'icmp6', 'Any', or 'any')",
-							Required:            true,
-							CustomType:          jsontypes.StringType,
-							Validators: []validator.String{
-								stringvalidator.OneOf([]string{"tcp", "udp", "icmp", "icmp6", "Any", "any"}...),
-							},
-						},
-						"syslog_enabled": schema.BoolAttribute{
-							MarkdownDescription: "Log this rule to syslog (true or false, boolean value) - only applicable if a syslog has been configured (optional)",
-							Optional:            true,
-							CustomType:          jsontypes.BoolType,
-						},
-					},
-				},
-			},
-		},
-	}
-}
-
-func (r *L3FirewallRulesResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *Resource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -140,7 +49,7 @@ func (r *L3FirewallRulesResource) Configure(ctx context.Context, req resource.Co
 	r.client = client
 }
 
-func (r *L3FirewallRulesResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 
 	var data *L3FirewallRulesModel
 
@@ -212,7 +121,7 @@ func (r *L3FirewallRulesResource) Create(ctx context.Context, req resource.Creat
 	tflog.Trace(ctx, "create resource")
 }
 
-func (r *L3FirewallRulesResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var data *L3FirewallRulesModel
 
 	// Read Terraform prior state data into the model
@@ -267,7 +176,7 @@ func (r *L3FirewallRulesResource) Read(ctx context.Context, req resource.ReadReq
 	tflog.Trace(ctx, "read resource")
 }
 
-func (r *L3FirewallRulesResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 
 	var data *L3FirewallRulesModel
 
@@ -339,7 +248,7 @@ func (r *L3FirewallRulesResource) Update(ctx context.Context, req resource.Updat
 	tflog.Trace(ctx, "updated resource")
 }
 
-func (r *L3FirewallRulesResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 
 	var data *L3FirewallRulesModel
 
@@ -394,7 +303,7 @@ func (r *L3FirewallRulesResource) Delete(ctx context.Context, req resource.Delet
 	tflog.Trace(ctx, "removed resource")
 }
 
-func (r *L3FirewallRulesResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("network_id"), req.ID)...)

@@ -1,4 +1,4 @@
-package firewall
+package rules
 
 import "github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 
