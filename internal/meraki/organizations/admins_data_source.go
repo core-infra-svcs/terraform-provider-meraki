@@ -32,8 +32,9 @@ type AdminsDataSource struct {
 }
 
 type AdminsDataSourceModel struct {
-	Id   types.String                `tfsdk:"id" json:"organization_id"`
-	List []AdminsDataSourceModelList `tfsdk:"list"`
+	Id             types.String                `tfsdk:"id" json:"-"`
+	OrganizationId types.String                `tfsdk:"organization_id" json:"organizationId"`
+	List           []AdminsDataSourceModelList `tfsdk:"list"`
 }
 
 type AdminsDataSourceModelList struct {
@@ -75,7 +76,7 @@ func (d *AdminsDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 			"organization_id": schema.StringAttribute{
 				MarkdownDescription: "Organization ID",
 				Optional:            true,
-				CustomType:          jsontypes.StringType,
+				CustomType:          types.StringType,
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 31),
 				},
@@ -212,7 +213,7 @@ func (d *AdminsDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 
 	// usage of CustomHttpRequestRetry with a slice of strongly typed structs
 	apiCallSlice := func() ([]openApiClient.GetOrganizationAdmins200ResponseInner, *http.Response, error, diag.Diagnostics) {
-		inline, httpResp, err := d.client.AdminsApi.GetOrganizationAdmins(context.Background(), data.Id.ValueString()).Execute()
+		inline, httpResp, err := d.client.AdminsApi.GetOrganizationAdmins(context.Background(), data.OrganizationId.ValueString()).Execute()
 		return inline, httpResp, err, diags
 	}
 
@@ -265,7 +266,7 @@ func (d *AdminsDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		return
 	}
 
-	data.Id = types.StringValue("example-id")
+	data.Id = types.StringValue(data.OrganizationId.ValueString())
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
