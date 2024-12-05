@@ -9,7 +9,7 @@ import (
 	openApiClient "github.com/meraki/dashboard-api-go/client"
 )
 
-func PortResourcePayload(ctx context.Context, plan *esourceModel) (openApiClient.UpdateDeviceSwitchPortRequest, diag.Diagnostics) {
+func PortResourcePayload(ctx context.Context, plan *resourceModel) (openApiClient.UpdateDeviceSwitchPortRequest, diag.Diagnostics) {
 
 	// Create HTTP request body
 	payload := *openApiClient.NewUpdateDeviceSwitchPortRequest()
@@ -170,7 +170,7 @@ func PortResourcePayload(ctx context.Context, plan *esourceModel) (openApiClient
 	return payload, nil
 }
 
-func PortResourceState(ctx context.Context, response *openApiClient.GetDeviceSwitchPorts200ResponseInner, state *esourceModel) (*esourceModel, diag.Diagnostics) {
+func PortResourceState(ctx context.Context, response *openApiClient.GetDeviceSwitchPorts200ResponseInner, state *resourceModel) (*resourceModel, diag.Diagnostics) {
 
 	//   import Id
 	if !state.PortId.IsNull() || !state.PortId.IsUnknown() && !state.Serial.IsNull() || !state.Serial.IsUnknown() {
