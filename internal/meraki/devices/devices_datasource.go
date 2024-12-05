@@ -3,7 +3,6 @@ package devices
 import (
 	"context"
 	"fmt"
-	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -56,9 +55,9 @@ type DeviceDevicesDatasourceModel struct {
 }
 
 type DeviceBeaconIdParamsDatasourceModel struct {
-	Uuid  jsontypes.String `tfsdk:"uuid"`
-	Major jsontypes.Int64  `tfsdk:"major"`
-	Minor jsontypes.Int64  `tfsdk:"minor"`
+	Uuid  types.String `tfsdk:"uuid"`
+	Major types.Int64  `tfsdk:"major"`
+	Minor types.Int64  `tfsdk:"minor"`
 }
 
 func (d *NetworkDevicesDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -486,7 +485,7 @@ func updateDevicesDatasourceState(ctx context.Context, state *DeviceDatasourceMo
 
 			beaconIdParamsResp, ok := d["beaconIdParams"].(map[string]interface{})
 			if ok {
-				var beaconIdParams DeviceBeaconIdParamsResourceModel
+				var beaconIdParams DeviceBeaconIdParamsDatasourceModel
 
 				// uuid
 				uuid, err := utils.ExtractStringAttr(beaconIdParamsResp, "uuid")

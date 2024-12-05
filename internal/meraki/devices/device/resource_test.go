@@ -1,4 +1,4 @@
-package devices_test
+package device_test
 
 import (
 	"fmt"
