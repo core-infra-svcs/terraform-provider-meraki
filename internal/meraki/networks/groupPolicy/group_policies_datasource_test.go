@@ -41,7 +41,7 @@ func NetworkGroupPoliciesDataSourceConfigRead() string {
 	return fmt.Sprintf(`
 	%s
 data "meraki_networks_group_policies" "test" {	
-	depends_on = [resource.meraki_networks_group_policy.test, resource.meraki_network.test]
+	depends_on = [resource.meraki_network.test]
     network_id = resource.meraki_network.test.network_id
 }
 	
