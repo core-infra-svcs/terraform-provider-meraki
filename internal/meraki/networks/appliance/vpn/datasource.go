@@ -17,41 +17,22 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ datasource.DataSource = &NetworksApplianceVpnSiteToSiteVpnDatasource{}
+var _ datasource.DataSource = &Datasource{}
 
 func NewNetworksApplianceVpnSiteToSiteVpnDatasource() datasource.DataSource {
-	return &NetworksApplianceVpnSiteToSiteVpnDatasource{}
+	return &Datasource{}
 }
 
-// NetworksApplianceVpnSiteToSiteVpnDatasource defines the resource implementation.
-type NetworksApplianceVpnSiteToSiteVpnDatasource struct {
+// Datasource defines the resource implementation.
+type Datasource struct {
 	client *openApiClient.APIClient
 }
 
-// NetworksApplianceVpnSiteToSiteVpnDatasourceModel NetworksApplianceVpnSiteToSiteVpnResourceModel describes the resource data model.
-type NetworksApplianceVpnSiteToSiteVpnDatasourceModel struct {
-	Id        jsontypes.String `tfsdk:"id"`
-	NetworkId jsontypes.String `tfsdk:"network_id" json:"network_id"`
-	Mode      jsontypes.String `tfsdk:"mode" json:"mode"`
-	Hubs      types.List       `tfsdk:"hubs" json:"hubs"`
-	Subnets   types.List       `tfsdk:"subnets" json:"subnets"`
-}
-
-type NetworksApplianceVpnSiteToSiteVpnDatasourceModelHubs struct {
-	HubId           jsontypes.String `tfsdk:"hub_id" json:"hubId"`
-	UseDefaultRoute jsontypes.Bool   `tfsdk:"use_default_route" json:"useDefaultRoute"`
-}
-
-type NetworksApplianceVpnSiteToSiteVpnDatasourceModelSubnets struct {
-	LocalSubnet jsontypes.String `tfsdk:"local_subnet" json:"localSubnet"`
-	UseVpn      jsontypes.Bool   `tfsdk:"use_vpn" json:"useVpn"`
-}
-
-func (r *NetworksApplianceVpnSiteToSiteVpnDatasource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (r *Datasource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_networks_appliance_vpn_site_to_site_vpn"
 }
 
-func (r *NetworksApplianceVpnSiteToSiteVpnDatasource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (r *Datasource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manage networks appliance vpn site to site vpn. Only valid for MX networks in NAT mode.",
 		Attributes: map[string]schema.Attribute{
@@ -118,7 +99,7 @@ func (r *NetworksApplianceVpnSiteToSiteVpnDatasource) Schema(ctx context.Context
 	}
 }
 
-func (r *NetworksApplianceVpnSiteToSiteVpnDatasource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (r *Datasource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -138,8 +119,8 @@ func (r *NetworksApplianceVpnSiteToSiteVpnDatasource) Configure(ctx context.Cont
 	r.client = client
 }
 
-func (r *NetworksApplianceVpnSiteToSiteVpnDatasource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data *NetworksApplianceVpnSiteToSiteVpnDatasourceModel
+func (r *Datasource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var data *datasourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
@@ -177,9 +158,9 @@ func (r *NetworksApplianceVpnSiteToSiteVpnDatasource) Read(ctx context.Context, 
 	data.Mode = jsontypes.StringValue(response.GetMode())
 
 	// Hubs
-	var hubs []NetworksApplianceVpnSiteToSiteVpnResourceModelHubs
+	var hubs []resourceModelHubs
 	for _, element := range response.GetHubs() {
-		var hub NetworksApplianceVpnSiteToSiteVpnResourceModelHubs
+		var hub resourceModelHubs
 		hub.UseDefaultRoute = jsontypes.BoolValue(element.GetUseDefaultRoute())
 		hub.HubId = jsontypes.StringValue(element.GetHubId())
 		hubs = append(hubs, hub)
@@ -201,9 +182,9 @@ func (r *NetworksApplianceVpnSiteToSiteVpnDatasource) Read(ctx context.Context, 
 	}
 
 	// Subnets
-	var subnets []NetworksApplianceVpnSiteToSiteVpnResourceModelSubnets
+	var subnets []resourceModelSubnets
 	for _, element := range response.GetSubnets() {
-		var subnet NetworksApplianceVpnSiteToSiteVpnResourceModelSubnets
+		var subnet resourceModelSubnets
 		subnet.UseVpn = jsontypes.BoolValue(element.GetUseVpn())
 		subnet.LocalSubnet = jsontypes.StringValue(element.GetLocalSubnet())
 
