@@ -11,27 +11,27 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ resource.Resource = &SettingsResource{}
-var _ resource.ResourceWithImportState = &SettingsResource{}
+var _ resource.Resource = &Resource{}
+var _ resource.ResourceWithImportState = &Resource{}
 
-func NewNetworksSettingsResource() resource.Resource {
-	return &SettingsResource{}
+func NewResource() resource.Resource {
+	return &Resource{}
 }
 
-// SettingsResource defines the resource implementation.
-type SettingsResource struct {
+// Resource defines the resource implementation.
+type Resource struct {
 	client *openApiClient.APIClient
 }
 
-func (r *SettingsResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *Resource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_networks_settings"
 }
 
-func (r *SettingsResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *Resource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = settingsSchema
 }
 
-func (r *SettingsResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *Resource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -51,8 +51,8 @@ func (r *SettingsResource) Configure(ctx context.Context, req resource.Configure
 	r.client = client
 }
 
-func (r *SettingsResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *SettingsResourceModel
+func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *resourceModel
 
 	tflog.Info(ctx, "[start] Create Function Call")
 
@@ -85,7 +85,7 @@ func (r *SettingsResource) Create(ctx context.Context, req resource.CreateReques
 		)
 	}
 
-	var NetworkSettings200Response SettingsResourceModel
+	var NetworkSettings200Response resourceModel
 	NetworkSettings200ResponseDiags := NetworkSettings200Response.FromGetNetworkSettings200Response(ctx, data, inlineResp)
 	if NetworkSettings200ResponseDiags != nil {
 		resp.Diagnostics.Append(NetworkSettings200ResponseDiags...)
@@ -100,8 +100,8 @@ func (r *SettingsResource) Create(ctx context.Context, req resource.CreateReques
 	tflog.Info(ctx, "[finish] Create Function Call")
 }
 
-func (r *SettingsResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *SettingsResourceModel
+func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *resourceModel
 
 	tflog.Info(ctx, "[start] Read Function Call")
 
@@ -128,7 +128,7 @@ func (r *SettingsResource) Read(ctx context.Context, req resource.ReadRequest, r
 		)
 	}
 
-	var NetworkSettings200Response SettingsResourceModel
+	var NetworkSettings200Response resourceModel
 	NetworkSettings200ResponseDiags := NetworkSettings200Response.FromGetNetworkSettings200Response(ctx, data, inlineResp)
 	if NetworkSettings200ResponseDiags != nil {
 		resp.Diagnostics.Append(NetworkSettings200ResponseDiags...)
@@ -143,9 +143,9 @@ func (r *SettingsResource) Read(ctx context.Context, req resource.ReadRequest, r
 	tflog.Info(ctx, "[finish] Read Function Call")
 }
 
-func (r *SettingsResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 
-	var data *SettingsResourceModel
+	var data *resourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -183,7 +183,7 @@ func (r *SettingsResource) Update(ctx context.Context, req resource.UpdateReques
 		return
 	}
 
-	var NetworkSettings200Response SettingsResourceModel
+	var NetworkSettings200Response resourceModel
 	NetworkSettings200ResponseDiags := NetworkSettings200Response.FromGetNetworkSettings200Response(ctx, data, inlineResp)
 	if NetworkSettings200ResponseDiags != nil {
 		resp.Diagnostics.Append(NetworkSettings200ResponseDiags...)
@@ -197,9 +197,9 @@ func (r *SettingsResource) Update(ctx context.Context, req resource.UpdateReques
 	tflog.Trace(ctx, "updated resource")
 }
 
-func (r *SettingsResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 
-	var data *SettingsResourceModel
+	var data *resourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -252,7 +252,7 @@ func (r *SettingsResource) Delete(ctx context.Context, req resource.DeleteReques
 	tflog.Trace(ctx, "removed resource")
 }
 
-func (r *SettingsResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("network_id"), req.ID)...)

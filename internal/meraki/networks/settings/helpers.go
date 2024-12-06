@@ -13,7 +13,7 @@ import (
 )
 
 // FromGetNetworkSettings200Response transforms an API response into the NetworksApplianceVLANsResourceModelIpv6 Terraform structure.
-func (m *SettingsResourceModel) FromGetNetworkSettings200Response(ctx context.Context, data *SettingsResourceModel, networkSettings200Response *openApiClient.GetNetworkSettings200Response) diag.Diagnostics {
+func (m *resourceModel) FromGetNetworkSettings200Response(ctx context.Context, data *resourceModel, networkSettings200Response *openApiClient.GetNetworkSettings200Response) diag.Diagnostics {
 	tflog.Info(ctx, "[start] NetworksSettingsResourceModel FromGetNetworkSettings200Response")
 	if networkSettings200Response == nil {
 		return diag.Diagnostics{diag.NewErrorDiagnostic("IPv6 Response Error", "Received nil API networkSettings200Response for IPv6")}
@@ -94,7 +94,7 @@ func (m *SettingsResourceModel) FromGetNetworkSettings200Response(ctx context.Co
 }
 
 // FromGetNetworkSettings200Response transforms an API response into the NetworksApplianceVLANsResourceModelIpv6 Terraform structure.
-func (m *NetworksSettingsResourceModelLocalStatusPage) FromGetNetworkSettings200Response(ctx context.Context, data *SettingsResourceModel, networkSettings200Response *openApiClient.GetNetworkSettings200Response) diag.Diagnostics {
+func (m *NetworksSettingsResourceModelLocalStatusPage) FromGetNetworkSettings200Response(ctx context.Context, data *resourceModel, networkSettings200Response *openApiClient.GetNetworkSettings200Response) diag.Diagnostics {
 	tflog.Info(ctx, "[start] NetworksSettingsResourceModelLocalStatusPage FromGetNetworkSettings200Response")
 
 	if networkSettings200Response == nil {
@@ -132,7 +132,7 @@ func (m *NetworksSettingsResourceModelLocalStatusPage) FromGetNetworkSettings200
 }
 
 // FromGetNetworkSettings200Response transforms an API response into the NetworksApplianceVLANsResourceModelIpv6 Terraform structure.
-func (m *NetworksSettingsResourceModelLocalStatusPageAuthentication) FromGetNetworkSettings200Response(ctx context.Context, data *SettingsResourceModel, networkSettings200Response *openApiClient.GetNetworkSettings200Response) diag.Diagnostics {
+func (m *NetworksSettingsResourceModelLocalStatusPageAuthentication) FromGetNetworkSettings200Response(ctx context.Context, data *resourceModel, networkSettings200Response *openApiClient.GetNetworkSettings200Response) diag.Diagnostics {
 	tflog.Info(ctx, "[start] NetworksSettingsResourceModelLocalStatusPageAuthentication FromGetNetworkSettings200Response")
 
 	if networkSettings200Response == nil {
@@ -202,7 +202,7 @@ func (m *NetworksSettingsResourceModelLocalStatusPageAuthentication) FromGetNetw
 	return nil
 }
 
-func createUpdateHttpReqPayload(ctx context.Context, data *SettingsResourceModel) (openApiClient.UpdateNetworkSettingsRequest, diag.Diagnostics) {
+func createUpdateHttpReqPayload(ctx context.Context, data *resourceModel) (openApiClient.UpdateNetworkSettingsRequest, diag.Diagnostics) {
 	resp := diag.Diagnostics{}
 
 	tflog.Info(ctx, "[start] createUpdateHttpReqPayload Function Call")

@@ -40,7 +40,7 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		networks.NewNetworksDevicesClaimResource,
 		networks.NewNetworksNetflowResource,
 		networks.NewNetworkResource,
-		networksSettings.NewNetworksSettingsResource,
+		networksSettings.NewResource,
 		networks.NewNetworksSnmpResource,
 		networks.NewNetworksStormControlResource,
 		networks.NewNetworksSyslogServersResource,
