@@ -9,9 +9,9 @@ import (
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices/switch/ports/cycle"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance"
-	applianceFirewall "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/firewall"
 	applianceFirewallL3Rules "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/firewall/l3/firewall/rules"
 	applianceFirewallL7Rules "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/firewall/l7/firewall/rules"
+	applianceFirewallSettings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/firewall/settings"
 	appliancePorts "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/ports"
 	applianceVlans "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/vlans"
 	applianceVpn "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/vpn"
@@ -51,7 +51,7 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		appliance.NewNetworksApplianceTrafficShapingUplinkBandWidthResource,
 		applianceFirewallL3Rules.NewNetworksApplianceFirewallL3FirewallRulesResource,
 		applianceFirewallL7Rules.NewNetworksApplianceFirewallL7FirewallRulesResource,
-		applianceFirewall.NewNetworksApplianceFirewallSettingsResource,
+		applianceFirewallSettings.NewNetworksApplianceFirewallSettingsResource,
 		applianceVlans.NewNetworksApplianceVLANResource,
 		applianceVlans.NewNetworksApplianceVlansSettingsResource,
 
