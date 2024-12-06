@@ -1,4 +1,4 @@
-package _switch
+package mtu
 
 import (
 	"context"
@@ -15,36 +15,22 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ datasource.DataSource = &NetworksSwitchMtuDataSource{}
+var _ datasource.DataSource = &DataSource{}
 
-func NewNetworksSwitchMtuDataSource() datasource.DataSource {
-	return &NetworksSwitchMtuDataSource{}
+func NewDataSource() datasource.DataSource {
+	return &DataSource{}
 }
 
-// NetworksSwitchMtuDataSource defines the resource implementation.
-type NetworksSwitchMtuDataSource struct {
+// DataSource defines the resource implementation.
+type DataSource struct {
 	client *openApiClient.APIClient
 }
 
-// NetworksSwitchMtuDataSourceModel describes the resource data model.
-type NetworksSwitchMtuDataSourceModel struct {
-	Id             jsontypes.String                           `tfsdk:"id"`
-	NetworkId      jsontypes.String                           `tfsdk:"network_id" json:"network_id"`
-	DefaultMtuSize jsontypes.Int64                            `tfsdk:"default_mtu_size" json:"defaultMtuSize"`
-	Overrides      []NetworksSwitchMtuDataSourceModelOverride `tfsdk:"overrides" json:"overrides"`
-}
-
-type NetworksSwitchMtuDataSourceModelOverride struct {
-	Switches       []string        `tfsdk:"switches" json:"switches"`
-	SwitchProfiles []string        `tfsdk:"switch_profiles" json:"switchProfiles"`
-	MtuSize        jsontypes.Int64 `tfsdk:"mtu_size" json:"mtuSize"`
-}
-
-func (r *NetworksSwitchMtuDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (r *DataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_networks_switch_mtu"
 }
 
-func (r *NetworksSwitchMtuDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (r *DataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Networks switch mtu resource for updating networks switch mtu.",
 		Attributes: map[string]schema.Attribute{
@@ -99,7 +85,7 @@ func (r *NetworksSwitchMtuDataSource) Schema(ctx context.Context, req datasource
 	}
 }
 
-func (r *NetworksSwitchMtuDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (r *DataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -119,8 +105,8 @@ func (r *NetworksSwitchMtuDataSource) Configure(ctx context.Context, req datasou
 	r.client = client
 }
 
-func (r *NetworksSwitchMtuDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data *NetworksSwitchMtuDataSourceModel
+func (r *DataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var data *dataSourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)

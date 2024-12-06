@@ -1,4 +1,4 @@
-package _switch
+package mtu
 
 import (
 	"context"
@@ -18,37 +18,23 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ resource.Resource = &NetworksSwitchMtuResource{}
-var _ resource.ResourceWithImportState = &NetworksSwitchMtuResource{}
+var _ resource.Resource = &Resource{}
+var _ resource.ResourceWithImportState = &Resource{}
 
-func NewNetworksSwitchMtuResource() resource.Resource {
-	return &NetworksSwitchMtuResource{}
+func NewResource() resource.Resource {
+	return &Resource{}
 }
 
-// NetworksSwitchMtuResource defines the resource implementation.
-type NetworksSwitchMtuResource struct {
+// Resource defines the resource implementation.
+type Resource struct {
 	client *openApiClient.APIClient
 }
 
-// NetworksSwitchMtuResourceModel describes the resource data model.
-type NetworksSwitchMtuResourceModel struct {
-	Id             jsontypes.String                         `tfsdk:"id"`
-	NetworkId      jsontypes.String                         `tfsdk:"network_id" json:"network_id"`
-	DefaultMtuSize jsontypes.Int64                          `tfsdk:"default_mtu_size" json:"defaultMtuSize"`
-	Overrides      []NetworksSwitchMtuResourceModelOverride `tfsdk:"overrides" json:"overrides"`
-}
-
-type NetworksSwitchMtuResourceModelOverride struct {
-	Switches       []string        `tfsdk:"switches" json:"switches"`
-	SwitchProfiles []string        `tfsdk:"switch_profiles" json:"switchProfiles"`
-	MtuSize        jsontypes.Int64 `tfsdk:"mtu_size" json:"mtuSize"`
-}
-
-func (r *NetworksSwitchMtuResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *Resource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_networks_switch_mtu"
 }
 
-func (r *NetworksSwitchMtuResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *Resource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Networks switch mtu resource for updating networks switch mtu.",
 		Attributes: map[string]schema.Attribute{
@@ -106,7 +92,7 @@ func (r *NetworksSwitchMtuResource) Schema(ctx context.Context, req resource.Sch
 	}
 }
 
-func (r *NetworksSwitchMtuResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *Resource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -126,8 +112,8 @@ func (r *NetworksSwitchMtuResource) Configure(ctx context.Context, req resource.
 	r.client = client
 }
 
-func (r *NetworksSwitchMtuResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *NetworksSwitchMtuResourceModel
+func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *resourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -197,8 +183,8 @@ func (r *NetworksSwitchMtuResource) Create(ctx context.Context, req resource.Cre
 	tflog.Trace(ctx, "create resource")
 }
 
-func (r *NetworksSwitchMtuResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *NetworksSwitchMtuResourceModel
+func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *resourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -247,9 +233,9 @@ func (r *NetworksSwitchMtuResource) Read(ctx context.Context, req resource.ReadR
 	tflog.Trace(ctx, "read resource")
 }
 
-func (r *NetworksSwitchMtuResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 
-	var data *NetworksSwitchMtuResourceModel
+	var data *resourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -319,9 +305,9 @@ func (r *NetworksSwitchMtuResource) Update(ctx context.Context, req resource.Upd
 	tflog.Trace(ctx, "updated resource")
 }
 
-func (r *NetworksSwitchMtuResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 
-	var data *NetworksSwitchMtuResourceModel
+	var data *resourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -394,7 +380,7 @@ func (r *NetworksSwitchMtuResource) Delete(ctx context.Context, req resource.Del
 
 }
 
-func (r *NetworksSwitchMtuResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("network_id"), req.ID)...)

@@ -1,4 +1,4 @@
-package _switch_test
+package mtu_test
 
 import (
 	"fmt"
@@ -10,13 +10,22 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccNetworkSwitchMtuDataSource(t *testing.T) {
+func TestAccNetworksSwitchMtuResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
 			provider.TestAccPreCheck(t)
 		},
 		ProtoV6ProviderFactories: provider.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
+			// TODO - ImportState testing - This only works when hard-coded networkId.
+			/*
+				{
+					ResourceName:      "meraki_networks_switch_mtu.test",
+					ImportState:       true,
+					ImportStateVerify: false,
+					ImportStateId:     "657525545596096508",
+				},
+			*/
 
 			// Create and Read Network
 			{
@@ -24,28 +33,23 @@ func TestAccNetworkSwitchMtuDataSource(t *testing.T) {
 				Check:  utils.NetworkOrgIdTestChecks("test_acc_networks_switch_mtu"),
 			},
 
-			// Update Networks Switch Mtu.
+			// Update and Read Networks Switch Mtu.
 			{
 				Config: SwitchMtuResourceConfigUpdateNetworkSwitchMtuSettings(),
 				Check:  SwitchMtuResourceConfigUpdateNetworkSwitchMtuSettingsChecks(),
-			},
-
-			// Update Switch MTU
-			{
-				Config: NetworkSwitchMtuDataSourceRead(),
-				Check:  NetworkSwitchMtuDataSourceReadChecks(),
 			},
 		},
 	})
 }
 
-func NetworkSwitchMtuDataSourceRead() string {
+func SwitchMtuResourceConfigUpdateNetworkSwitchMtuSettings() string {
 	return fmt.Sprintf(`
 	%s
-
-data "meraki_networks_switch_mtu" "test" {
-    depends_on = [meraki_network.test]
-    network_id = meraki_network.test.network_id
+resource "meraki_networks_switch_mtu" "test" {
+    depends_on = [resource.meraki_network.test]
+    network_id = resource.meraki_network.test.network_id
+    default_mtu_size = 9578
+    overrides = []
 }
 	
 	`,
@@ -53,10 +57,10 @@ data "meraki_networks_switch_mtu" "test" {
 	)
 }
 
-// NetworkSwitchMtuDataSourceReadChecks returns the test check functions for NetworkSwitchMtuDataSourceRead
-func NetworkSwitchMtuDataSourceReadChecks() resource.TestCheckFunc {
+// SwitchMtuResourceConfigUpdateNetworkSwitchMtuSettingsChecks returns the test check functions for SwitchMtuResourceConfigUpdateNetworkSwitchMtuSettings
+func SwitchMtuResourceConfigUpdateNetworkSwitchMtuSettingsChecks() resource.TestCheckFunc {
 	expectedAttrs := map[string]string{
 		"default_mtu_size": "9578",
 	}
-	return utils.ResourceTestCheck("data.meraki_networks_switch_mtu.test", expectedAttrs)
+	return utils.ResourceTestCheck("meraki_networks_switch_mtu.test", expectedAttrs)
 }
