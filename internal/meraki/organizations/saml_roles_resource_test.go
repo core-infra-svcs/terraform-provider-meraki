@@ -61,7 +61,7 @@ func testAccOrganizationsSamlRolesResourceConfigUpdateOrganizationSaml() string 
 
 	resource "meraki_organization_saml" "test" {
 		depends_on = [resource.meraki_organization.test]
-		organization_id = resource.meraki_organization.test.organization_id
+		id = resource.meraki_organization.test.organization_id
 		enabled = true
 	}
 	`
