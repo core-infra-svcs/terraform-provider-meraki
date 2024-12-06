@@ -1,4 +1,4 @@
-package groupPolicy
+package policy
 
 import (
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"

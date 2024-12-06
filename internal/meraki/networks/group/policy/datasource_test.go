@@ -1,4 +1,4 @@
-package groupPolicy_test
+package policy_test
 
 import (
 	"fmt"

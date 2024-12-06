@@ -1,4 +1,4 @@
-package groupPolicy
+package policy
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
