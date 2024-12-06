@@ -14,6 +14,7 @@ import (
 	networksApplianceFirewallSettings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/firewall/settings"
 	networksAppliancePorts "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/ports"
 	networksApplianceSettings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/settings"
+	networksApplianceStaticRoutes "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/static/routes"
 	networksApplianceVlansSettings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/vlans/settings"
 	networksApplianceVlansVlan "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/vlans/vlan"
 	networksApplianceVpn "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/vpn"
@@ -48,7 +49,7 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 
 		networksAppliancePorts.NewNetworksAppliancePortsResource,
 		networksApplianceSettings.NewNetworksApplianceSettingsResource,
-		networksAppliance.NewNetworkApplianceStaticRoutesResource,
+		networksApplianceStaticRoutes.NewNetworkApplianceStaticRoutesResource,
 		networksAppliance.NewNetworksApplianceTrafficShapingUplinkBandWidthResource,
 		networksApplianceVpn.NewNetworksApplianceVpnSiteToSiteVpnResource,
 		networksApplianceFirewallL3Rules.NewNetworksApplianceFirewallL3FirewallRulesResource,

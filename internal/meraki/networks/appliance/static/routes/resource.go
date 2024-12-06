@@ -1,4 +1,4 @@
-package appliance
+package routes
 
 import (
 	"context"
@@ -22,51 +22,51 @@ import (
 
 // Ensure provider defined types fully satisfy framework interfaces
 var (
-	_ resource.Resource                = &NetworkApplianceStaticRoutesResource{}
-	_ resource.ResourceWithConfigure   = &NetworkApplianceStaticRoutesResource{}
-	_ resource.ResourceWithImportState = &NetworkApplianceStaticRoutesResource{}
+	_ resource.Resource                = &Resource{}
+	_ resource.ResourceWithConfigure   = &Resource{}
+	_ resource.ResourceWithImportState = &Resource{}
 )
 
 func NewNetworkApplianceStaticRoutesResource() resource.Resource {
-	return &NetworkApplianceStaticRoutesResource{}
+	return &Resource{}
 }
 
-// NetworkApplianceStaticRoutesResource defines the resource implementation.
-type NetworkApplianceStaticRoutesResource struct {
+// Resource defines the resource implementation.
+type Resource struct {
 	client *openApiClient.APIClient
 }
 
-// StaticRoutesResourceModel describes the resource data model.
-type StaticRoutesResourceModel struct {
-	Id                             types.String                                               `tfsdk:"id"`
-	NetworkId                      jsontypes.String                                           `tfsdk:"network_id" json:"networkId"`
-	StaticRoutId                   jsontypes.String                                           `tfsdk:"static_route_id" json:"id"`
-	Enable                         jsontypes.Bool                                             `tfsdk:"enable" json:"enabled"`
-	Name                           jsontypes.String                                           `tfsdk:"name" json:"name"`
-	GatewayIp                      jsontypes.String                                           `tfsdk:"gateway_ip" json:"gatewayIp"`
-	Subnet                         jsontypes.String                                           `tfsdk:"subnet" json:"subnet"`
-	FixedIpAssignmentsMacAddress   jsontypes.String                                           `tfsdk:"fixed_ip_assignments_mac_address"`
-	FixedIpAssignmentsMacIpAddress jsontypes.String                                           `tfsdk:"fixed_ip_assignments_mac_ip_address"`
-	FixedIpAssignmentsMacName      jsontypes.String                                           `tfsdk:"fixed_ip_assignments_mac_name"`
-	ReservedIpRanges               []NetworkApplianceStaticRoutesResourceModelReservedIpRange `tfsdk:"reserved_ip_ranges" json:"reservedIpRanges"`
+// resourceModel describes the resource data model.
+type resourceModel struct {
+	Id                             types.String                   `tfsdk:"id"`
+	NetworkId                      jsontypes.String               `tfsdk:"network_id" json:"networkId"`
+	StaticRoutId                   jsontypes.String               `tfsdk:"static_route_id" json:"id"`
+	Enable                         jsontypes.Bool                 `tfsdk:"enable" json:"enabled"`
+	Name                           jsontypes.String               `tfsdk:"name" json:"name"`
+	GatewayIp                      jsontypes.String               `tfsdk:"gateway_ip" json:"gatewayIp"`
+	Subnet                         jsontypes.String               `tfsdk:"subnet" json:"subnet"`
+	FixedIpAssignmentsMacAddress   jsontypes.String               `tfsdk:"fixed_ip_assignments_mac_address"`
+	FixedIpAssignmentsMacIpAddress jsontypes.String               `tfsdk:"fixed_ip_assignments_mac_ip_address"`
+	FixedIpAssignmentsMacName      jsontypes.String               `tfsdk:"fixed_ip_assignments_mac_name"`
+	ReservedIpRanges               []ReservedIpRangeResourceModel `tfsdk:"reserved_ip_ranges" json:"reservedIpRanges"`
 }
 
-type NetworkApplianceStaticRoutesResourceModelMacData struct {
+type resourceModelMacData struct {
 	Ip   string `json:"ip"`
 	Name string `json:"name"`
 }
 
-type NetworkApplianceStaticRoutesResourceModelReservedIpRange struct {
+type ReservedIpRangeResourceModel struct {
 	Comment jsontypes.String `tfsdk:"comment" json:"comment"`
 	End     jsontypes.String `tfsdk:"end" json:"end"`
 	Start   jsontypes.String `tfsdk:"start" json:"start"`
 }
 
-func (r *NetworkApplianceStaticRoutesResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *Resource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_networks_appliance_static_routes"
 }
 
-func (r *NetworkApplianceStaticRoutesResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *Resource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description: "Manage static route for an MX or teleworker network.",
 
@@ -166,7 +166,7 @@ func (r *NetworkApplianceStaticRoutesResource) Schema(ctx context.Context, req r
 	}
 }
 
-func (r *NetworkApplianceStaticRoutesResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *Resource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -185,8 +185,8 @@ func (r *NetworkApplianceStaticRoutesResource) Configure(ctx context.Context, re
 	r.client = client
 }
 
-func (r *NetworkApplianceStaticRoutesResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *StaticRoutesResourceModel
+func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *resourceModel
 
 	// Read Terraform plan data
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -236,12 +236,12 @@ func (r *NetworkApplianceStaticRoutesResource) Create(ctx context.Context, req r
 	}
 
 	if reservedIpRangesResponse := inlineResp["reservedIpRanges"]; reservedIpRangesResponse != nil {
-		var reservedIpRanges []NetworkApplianceStaticRoutesResourceModelReservedIpRange
+		var reservedIpRanges []ReservedIpRangeResourceModel
 		jsonData, _ := json.Marshal(reservedIpRangesResponse)
 		json.Unmarshal(jsonData, &reservedIpRanges)
-		data.ReservedIpRanges = make([]NetworkApplianceStaticRoutesResourceModelReservedIpRange, 0)
+		data.ReservedIpRanges = make([]ReservedIpRangeResourceModel, 0)
 		for _, attribute := range reservedIpRanges {
-			var reservedIpRange NetworkApplianceStaticRoutesResourceModelReservedIpRange
+			var reservedIpRange ReservedIpRangeResourceModel
 			reservedIpRange.Comment = attribute.Comment
 			reservedIpRange.End = attribute.End
 			reservedIpRange.Start = attribute.Start
@@ -252,7 +252,7 @@ func (r *NetworkApplianceStaticRoutesResource) Create(ctx context.Context, req r
 
 	if fixedIpAssignmentsResponse := inlineResp["fixedIpAssignments"]; fixedIpAssignmentsResponse != nil {
 		if macresponse := fixedIpAssignmentsResponse.(map[string]interface{})[data.FixedIpAssignmentsMacAddress.ValueString()]; macresponse != nil {
-			var macData NetworkApplianceStaticRoutesResourceModelMacData
+			var macData resourceModelMacData
 			jsonData, _ := json.Marshal(fixedIpAssignmentsResponse.(map[string]interface{})[data.FixedIpAssignmentsMacAddress.ValueString()])
 			json.Unmarshal(jsonData, &macData)
 			data.FixedIpAssignmentsMacIpAddress = jsontypes.StringValue(macData.Ip)
@@ -277,8 +277,8 @@ func (r *NetworkApplianceStaticRoutesResource) Create(ctx context.Context, req r
 	tflog.Trace(ctx, "created resource")
 }
 
-func (r *NetworkApplianceStaticRoutesResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *StaticRoutesResourceModel
+func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *resourceModel
 
 	// Read Terraform state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -323,12 +323,12 @@ func (r *NetworkApplianceStaticRoutesResource) Read(ctx context.Context, req res
 	}
 
 	if reservedIpRangesResponse := inlineResp["reservedIpRanges"]; reservedIpRangesResponse != nil {
-		var reservedIpRanges []NetworkApplianceStaticRoutesResourceModelReservedIpRange
+		var reservedIpRanges []ReservedIpRangeResourceModel
 		jsonData, _ := json.Marshal(reservedIpRangesResponse)
 		json.Unmarshal(jsonData, &reservedIpRanges)
-		data.ReservedIpRanges = make([]NetworkApplianceStaticRoutesResourceModelReservedIpRange, 0)
+		data.ReservedIpRanges = make([]ReservedIpRangeResourceModel, 0)
 		for _, attribute := range reservedIpRanges {
-			var reservedIpRange NetworkApplianceStaticRoutesResourceModelReservedIpRange
+			var reservedIpRange ReservedIpRangeResourceModel
 			reservedIpRange.Comment = attribute.Comment
 			reservedIpRange.End = attribute.End
 			reservedIpRange.Start = attribute.Start
@@ -338,7 +338,7 @@ func (r *NetworkApplianceStaticRoutesResource) Read(ctx context.Context, req res
 
 	if fixedIpAssignmentsResponse := inlineResp["fixedIpAssignments"]; fixedIpAssignmentsResponse != nil {
 		if macresponse := fixedIpAssignmentsResponse.(map[string]interface{})[data.FixedIpAssignmentsMacAddress.ValueString()]; macresponse != nil {
-			var macData NetworkApplianceStaticRoutesResourceModelMacData
+			var macData resourceModelMacData
 			jsonData, _ := json.Marshal(fixedIpAssignmentsResponse.(map[string]interface{})[data.FixedIpAssignmentsMacAddress.ValueString()])
 			json.Unmarshal(jsonData, &macData)
 			data.FixedIpAssignmentsMacIpAddress = jsontypes.StringValue(macData.Ip)
@@ -363,8 +363,8 @@ func (r *NetworkApplianceStaticRoutesResource) Read(ctx context.Context, req res
 	tflog.Trace(ctx, "read resource")
 }
 
-func (r *NetworkApplianceStaticRoutesResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data *StaticRoutesResourceModel
+func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var data *resourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -453,12 +453,12 @@ func (r *NetworkApplianceStaticRoutesResource) Update(ctx context.Context, req r
 	}
 
 	if reservedIpRangesResponse := inlineResp["reservedIpRanges"]; reservedIpRangesResponse != nil {
-		var reservedIpRanges []NetworkApplianceStaticRoutesResourceModelReservedIpRange
+		var reservedIpRanges []ReservedIpRangeResourceModel
 		jsonData, _ := json.Marshal(reservedIpRangesResponse)
 		json.Unmarshal(jsonData, &reservedIpRanges)
-		data.ReservedIpRanges = make([]NetworkApplianceStaticRoutesResourceModelReservedIpRange, 0)
+		data.ReservedIpRanges = make([]ReservedIpRangeResourceModel, 0)
 		for _, attribute := range reservedIpRanges {
-			var reservedIpRange NetworkApplianceStaticRoutesResourceModelReservedIpRange
+			var reservedIpRange ReservedIpRangeResourceModel
 			reservedIpRange.Comment = attribute.Comment
 			reservedIpRange.End = attribute.End
 			reservedIpRange.Start = attribute.Start
@@ -468,7 +468,7 @@ func (r *NetworkApplianceStaticRoutesResource) Update(ctx context.Context, req r
 
 	if fixedIpAssignmentsResponse := inlineResp["fixedIpAssignments"]; fixedIpAssignmentsResponse != nil {
 		if macresponse := inlineResp["fixedIpAssignments"].(map[string]interface{})[data.FixedIpAssignmentsMacAddress.ValueString()]; macresponse != nil {
-			var macData NetworkApplianceStaticRoutesResourceModelMacData
+			var macData resourceModelMacData
 			jsonData, _ := json.Marshal(inlineResp["fixedIpAssignments"].(map[string]interface{})[data.FixedIpAssignmentsMacAddress.ValueString()])
 			json.Unmarshal(jsonData, &macData)
 			data.FixedIpAssignmentsMacIpAddress = jsontypes.StringValue(macData.Ip)
@@ -493,8 +493,8 @@ func (r *NetworkApplianceStaticRoutesResource) Update(ctx context.Context, req r
 	tflog.Trace(ctx, "updated resource")
 }
 
-func (r *NetworkApplianceStaticRoutesResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data *StaticRoutesResourceModel
+func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data *resourceModel
 
 	// Read Terraform state data
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -532,7 +532,7 @@ func (r *NetworkApplianceStaticRoutesResource) Delete(ctx context.Context, req r
 
 }
 
-func (r *NetworkApplianceStaticRoutesResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 	idParts := strings.Split(req.ID, ",")
 	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {

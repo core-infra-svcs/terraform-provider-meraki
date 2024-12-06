@@ -1,4 +1,4 @@
-package appliance_test
+package routes_test
 
 import (
 	"fmt"
