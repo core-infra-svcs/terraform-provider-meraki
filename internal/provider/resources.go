@@ -21,6 +21,7 @@ import (
 	networksGroupPolicy "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/group/policy"
 	networksSettings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/settings"
 	networksSwitch "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/switch"
+	networksSwitchDscpToCosMappings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/switch/dscp/to/cos/mappings"
 	networksWireless "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/wireless"
 	networksWirelessSsids "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/wireless/ssid"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations"
@@ -58,7 +59,7 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		networksApplianceVlansVlan.NewNetworksApplianceVLANResource,
 		networksApplianceVlansSettings.NewNetworksApplianceVlansSettingsResource,
 
-		networksSwitch.NewNetworksSwitchDscpToCosMappingsResource,
+		networksSwitchDscpToCosMappings.NewResource,
 		networksSwitch.NewNetworksSwitchMtuResource,
 		networksSwitch.NewNetworksSwitchQosRuleResource,
 		networksSwitch.NewNetworksSwitchSettingsResource,
