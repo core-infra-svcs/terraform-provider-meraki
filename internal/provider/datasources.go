@@ -15,8 +15,8 @@ import (
 	applianceVlansVlan "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/vlans/vlan"
 	applianceVpn "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/vpn"
 	networkGroupPolicy "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/group/policy"
-	merakiSwitch "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/switch"
 	networksSwitchMtu "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/switch/mtu"
+	networksSwitchQosRules "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/switch/qos/rules"
 	wirelessSsids "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/wireless/ssid"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -41,7 +41,7 @@ func (p *CiscoMerakiProvider) DataSources(ctx context.Context) []func() datasour
 		applianceFirewallL3Rules.NewNetworksApplianceFirewallL3FirewallRulesDataSource,
 		//applianceFirewallL7Rules.NewNetworksApplianceFirewallL7FirewallRulesDataSource,
 		networksSwitchMtu.NewDataSource,
-		merakiSwitch.NewNetworksSwitchQosRulesDataSource,
+		networksSwitchQosRules.NewDataSource,
 
 		wirelessSsids.NewNetworksWirelessSsidsDataSource,
 

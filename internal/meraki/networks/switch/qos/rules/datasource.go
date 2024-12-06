@@ -1,4 +1,4 @@
-package _switch
+package rules
 
 import (
 	"context"
@@ -17,41 +17,22 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ datasource.DataSource = &NetworksSwitchQosRulesDataSource{}
+var _ datasource.DataSource = &DataSource{}
 
-func NewNetworksSwitchQosRulesDataSource() datasource.DataSource {
-	return &NetworksSwitchQosRulesDataSource{}
+func NewDataSource() datasource.DataSource {
+	return &DataSource{}
 }
 
-// NetworksSwitchQosRulesDataSource defines the resource implementation.
-type NetworksSwitchQosRulesDataSource struct {
+// DataSource defines the resource implementation.
+type DataSource struct {
 	client *openApiClient.APIClient
 }
 
-// NetworksSwitchQosRulesDataSourceModel describes the resource data model.
-type NetworksSwitchQosRulesDataSourceModel struct {
-	Id        jsontypes.String                             `tfsdk:"id" json:"-"`
-	NetworkId jsontypes.String                             `tfsdk:"network_id" json:"network_id"`
-	List      []NetworksSwitchQosRulesDataSourceModelRules `tfsdk:"list"`
-}
-
-// NetworksSwitchQosRulesDataSourceModelRules describes the resource data model.
-type NetworksSwitchQosRulesDataSourceModelRules struct {
-	QosRulesId   jsontypes.String  `tfsdk:"qos_rule_id" json:"id"`
-	Vlan         jsontypes.Int64   `tfsdk:"vlan" json:"vlan"`
-	Dscp         jsontypes.Int64   `tfsdk:"dscp" json:"dscp"`
-	DstPort      jsontypes.Float64 `tfsdk:"dst_port" json:"dstPort"`
-	SrcPort      jsontypes.Float64 `tfsdk:"src_port" json:"srcPort"`
-	DstPortRange jsontypes.String  `tfsdk:"dst_port_range" json:"dstPortRange"`
-	Protocol     jsontypes.String  `tfsdk:"protocol" json:"protocol"`
-	SrcPortRange jsontypes.String  `tfsdk:"src_port_range" json:"srcPortRange"`
-}
-
-func (r *NetworksSwitchQosRulesDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (r *DataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_networks_switch_qos_rules"
 }
 
-func (r *NetworksSwitchQosRulesDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (r *DataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "NetworksSwitchQosRule resource for updating network switch qos rule.",
 		Attributes: map[string]schema.Attribute{
@@ -131,7 +112,7 @@ func (r *NetworksSwitchQosRulesDataSource) Schema(ctx context.Context, req datas
 	}
 }
 
-func (r *NetworksSwitchQosRulesDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (r *DataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -151,8 +132,8 @@ func (r *NetworksSwitchQosRulesDataSource) Configure(ctx context.Context, req da
 	r.client = client
 }
 
-func (r *NetworksSwitchQosRulesDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data *NetworksSwitchQosRulesDataSourceModel
+func (r *DataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var data *dataSourceModel
 
 	// Read Terraform state data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
@@ -195,11 +176,11 @@ func (r *NetworksSwitchQosRulesDataSource) Read(ctx context.Context, req datasou
 		)
 	}
 
-	var rules []NetworksSwitchQosRulesDataSourceModelRules
+	var rules []dataSourceModelRules
 
 	// Iterate through the inline response
 	for _, item := range inlineResp {
-		var rule NetworksSwitchQosRulesDataSourceModelRules
+		var rule dataSourceModelRules
 
 		// Convert the map item to a JSON string
 		itemJSON, itemJSONErr := json.Marshal(item)
@@ -211,7 +192,7 @@ func (r *NetworksSwitchQosRulesDataSource) Read(ctx context.Context, req datasou
 			return
 		}
 
-		// Unmarshal JSON string into NetworksSwitchQosRulesDataSourceModelRules
+		// Unmarshal JSON string into dataSourceModelRules
 		err = json.Unmarshal(itemJSON, &rule)
 		if err != nil {
 			resp.Diagnostics.AddError(

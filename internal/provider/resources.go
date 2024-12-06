@@ -23,6 +23,7 @@ import (
 	networksSwitch "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/switch"
 	networksSwitchDscpToCosMappings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/switch/dscp/to/cos/mappings"
 	networksSwitchMtu "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/switch/mtu"
+	networksSwitchQosRules "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/switch/qos/rules"
 	networksWireless "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/wireless"
 	networksWirelessSsids "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/wireless/ssid"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations"
@@ -62,7 +63,7 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 
 		networksSwitchDscpToCosMappings.NewResource,
 		networksSwitchMtu.NewResource,
-		networksSwitch.NewNetworksSwitchQosRuleResource,
+		networksSwitchQosRules.NewResource,
 		networksSwitch.NewNetworksSwitchSettingsResource,
 
 		networksWireless.NewNetworksWirelessSsidsFirewallL3FirewallRulesResource,

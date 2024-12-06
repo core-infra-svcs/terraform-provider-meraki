@@ -1,4 +1,4 @@
-package _switch
+package rules
 
 import (
 	"context"
@@ -22,37 +22,23 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ resource.Resource = &NetworksSwitchQosRuleResource{}
-var _ resource.ResourceWithImportState = &NetworksSwitchQosRuleResource{}
+var _ resource.Resource = &Resource{}
+var _ resource.ResourceWithImportState = &Resource{}
 
-func NewNetworksSwitchQosRuleResource() resource.Resource {
-	return &NetworksSwitchQosRuleResource{}
+func NewResource() resource.Resource {
+	return &Resource{}
 }
 
-// NetworksSwitchQosRuleResource defines the resource implementation.
-type NetworksSwitchQosRuleResource struct {
+// Resource defines the resource implementation.
+type Resource struct {
 	client *openApiClient.APIClient
 }
 
-// NetworksSwitchQosRuleResourceModel describes the resource data model.
-type NetworksSwitchQosRuleResourceModel struct {
-	Id           jsontypes.String  `tfsdk:"id" json:"-"`
-	NetworkId    jsontypes.String  `tfsdk:"network_id" json:"network_id"`
-	QosRulesId   jsontypes.String  `tfsdk:"qos_rule_id" json:"id"`
-	Vlan         jsontypes.Int64   `tfsdk:"vlan" json:"vlan"`
-	Dscp         jsontypes.Int64   `tfsdk:"dscp" json:"dscp"`
-	DstPort      jsontypes.Float64 `tfsdk:"dst_port" json:"dstPort"`
-	SrcPort      jsontypes.Float64 `tfsdk:"src_port" json:"srcPort"`
-	DstPortRange jsontypes.String  `tfsdk:"dst_port_range" json:"dstPortRange"`
-	Protocol     jsontypes.String  `tfsdk:"protocol" json:"protocol"`
-	SrcPortRange jsontypes.String  `tfsdk:"src_port_range" json:"srcPortRange"`
-}
-
-func (r *NetworksSwitchQosRuleResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *Resource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_networks_switch_qos_rule"
 }
 
-func (r *NetworksSwitchQosRuleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *Resource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "NetworksSwitchQosRule resource for updating network switch qos rule.",
 		Attributes: map[string]schema.Attribute{
@@ -129,7 +115,7 @@ func (r *NetworksSwitchQosRuleResource) Schema(ctx context.Context, req resource
 	}
 }
 
-func (r *NetworksSwitchQosRuleResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *Resource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -149,8 +135,8 @@ func (r *NetworksSwitchQosRuleResource) Configure(ctx context.Context, req resou
 	r.client = client
 }
 
-func (r *NetworksSwitchQosRuleResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *NetworksSwitchQosRuleResourceModel
+func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *resourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -282,8 +268,8 @@ func (r *NetworksSwitchQosRuleResource) Create(ctx context.Context, req resource
 	tflog.Trace(ctx, "create resource")
 }
 
-func (r *NetworksSwitchQosRuleResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *NetworksSwitchQosRuleResourceModel
+func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *resourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -369,14 +355,14 @@ func (r *NetworksSwitchQosRuleResource) Read(ctx context.Context, req resource.R
 	tflog.Trace(ctx, "read resource")
 }
 
-func (r *NetworksSwitchQosRuleResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 
-	var stateData *NetworksSwitchQosRuleResourceModel
+	var stateData *resourceModel
 
 	// Read Terraform state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &stateData)...)
 
-	var data *NetworksSwitchQosRuleResourceModel
+	var data *resourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -486,9 +472,9 @@ func (r *NetworksSwitchQosRuleResource) Update(ctx context.Context, req resource
 	tflog.Trace(ctx, "updated resource")
 }
 
-func (r *NetworksSwitchQosRuleResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 
-	var data *NetworksSwitchQosRuleResourceModel
+	var data *resourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -545,7 +531,7 @@ func (r *NetworksSwitchQosRuleResource) Delete(ctx context.Context, req resource
 
 }
 
-func (r *NetworksSwitchQosRuleResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 	idParts := strings.Split(req.ID, ",")
 	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
