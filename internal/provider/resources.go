@@ -2,69 +2,70 @@ package provider
 
 import (
 	"context"
-	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices/cellular"
-	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices/device"
-	_interface "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices/management/interface"
-	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices/switch/port"
-	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices/switch/ports/cycle"
+	devicesCellular "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices/cellular"
+	devicesDevice "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices/device"
+	devicesManagementInterface "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices/management/interface"
+	devicesSwitchPort "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices/switch/port"
+	devicesSwitchPortsCycle "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices/switch/ports/cycle"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks"
-	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance"
-	applianceFirewallL3Rules "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/firewall/l3/firewall/rules"
-	applianceFirewallL7Rules "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/firewall/l7/firewall/rules"
-	applianceFirewallSettings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/firewall/settings"
-	appliancePorts "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/ports"
-	applianceVlansSettings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/vlans/settings"
-	applianceVlansVlan "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/vlans/vlan"
-	applianceVpn "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/vpn"
-	networkGroupPolicy "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/groupPolicy"
-	networkSettings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/settings"
-	merakiSwitch "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/switch"
-	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/wireless"
-	wirelessSsids "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/wireless/ssid"
+	networksAppliance "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance"
+	networksApplianceFirewallL3Rules "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/firewall/l3/firewall/rules"
+	networksApplianceFirewallL7Rules "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/firewall/l7/firewall/rules"
+	networksApplianceFirewallSettings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/firewall/settings"
+	networksAppliancePorts "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/ports"
+	networksApplianceSettings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/settings"
+	networksApplianceVlansSettings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/vlans/settings"
+	networksApplianceVlansVlan "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/vlans/vlan"
+	networksApplianceVpn "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/vpn"
+	networksGroupPolicy "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/groupPolicy"
+	networksSettings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/settings"
+	networksSwitch "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/switch"
+	networksWireless "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/wireless"
+	networksWirelessSsids "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/wireless/ssid"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
 func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
-		cellular.NewDevicesCellularSimsResource,
-		device.NewDevicesResource,
-		port.NewDevicesSwitchPortResource,
-		cycle.NewDevicesSwitchPortsCycleResource,
-		_interface.NewManagementInterfaceResource,
+		devicesCellular.NewDevicesCellularSimsResource,
+		devicesDevice.NewDevicesResource,
+		devicesSwitchPort.NewDevicesSwitchPortResource,
+		devicesSwitchPortsCycle.NewDevicesSwitchPortsCycleResource,
+		devicesManagementInterface.NewManagementInterfaceResource,
 
 		networks.NewNetworksCellularGatewaySubnetPoolResource,
 		networks.NewNetworksCellularGatewayUplinkResource,
 		networks.NewNetworksDevicesClaimResource,
 		networks.NewNetworksNetflowResource,
 		networks.NewNetworkResource,
-		networkSettings.NewNetworksSettingsResource,
+		networksSettings.NewNetworksSettingsResource,
 		networks.NewNetworksSnmpResource,
 		networks.NewNetworksStormControlResource,
 		networks.NewNetworksSyslogServersResource,
 		networks.NewNetworksTrafficAnalysisResource,
-		networkGroupPolicy.NewNetworksGroupPolicyResource,
+		networksGroupPolicy.NewNetworksGroupPolicyResource,
 
-		appliancePorts.NewNetworksAppliancePortsResource,
-		appliance.NewNetworksApplianceSettingsResource,
-		appliance.NewNetworkApplianceStaticRoutesResource,
-		applianceVpn.NewNetworksApplianceVpnSiteToSiteVpnResource,
-		appliance.NewNetworksApplianceTrafficShapingUplinkBandWidthResource,
-		applianceFirewallL3Rules.NewNetworksApplianceFirewallL3FirewallRulesResource,
-		applianceFirewallL7Rules.NewNetworksApplianceFirewallL7FirewallRulesResource,
-		applianceFirewallSettings.NewNetworksApplianceFirewallSettingsResource,
-		applianceVlansVlan.NewNetworksApplianceVLANResource,
-		applianceVlansSettings.NewNetworksApplianceVlansSettingsResource,
+		networksAppliancePorts.NewNetworksAppliancePortsResource,
+		networksApplianceSettings.NewNetworksApplianceSettingsResource,
+		networksAppliance.NewNetworkApplianceStaticRoutesResource,
+		networksAppliance.NewNetworksApplianceTrafficShapingUplinkBandWidthResource,
+		networksApplianceVpn.NewNetworksApplianceVpnSiteToSiteVpnResource,
+		networksApplianceFirewallL3Rules.NewNetworksApplianceFirewallL3FirewallRulesResource,
+		networksApplianceFirewallL7Rules.NewNetworksApplianceFirewallL7FirewallRulesResource,
+		networksApplianceFirewallSettings.NewNetworksApplianceFirewallSettingsResource,
+		networksApplianceVlansVlan.NewNetworksApplianceVLANResource,
+		networksApplianceVlansSettings.NewNetworksApplianceVlansSettingsResource,
 
-		merakiSwitch.NewNetworksSwitchDscpToCosMappingsResource,
-		merakiSwitch.NewNetworksSwitchMtuResource,
-		merakiSwitch.NewNetworksSwitchQosRuleResource,
-		merakiSwitch.NewNetworksSwitchSettingsResource,
+		networksSwitch.NewNetworksSwitchDscpToCosMappingsResource,
+		networksSwitch.NewNetworksSwitchMtuResource,
+		networksSwitch.NewNetworksSwitchQosRuleResource,
+		networksSwitch.NewNetworksSwitchSettingsResource,
 
-		wireless.NewNetworksWirelessSsidsFirewallL3FirewallRulesResource,
-		wireless.NewNetworksWirelessSsidsFirewallL7FirewallRulesResource,
-		wireless.NewNetworksWirelessSsidsSplashSettingsResource,
-		wirelessSsids.NewNetworksWirelessSsidsResource,
+		networksWireless.NewNetworksWirelessSsidsFirewallL3FirewallRulesResource,
+		networksWireless.NewNetworksWirelessSsidsFirewallL7FirewallRulesResource,
+		networksWireless.NewNetworksWirelessSsidsSplashSettingsResource,
+		networksWirelessSsids.NewNetworksWirelessSsidsResource,
 
 		organizations.NewAdaptivePolicyAclResource,
 		organizations.NewOrganizationsAdminResource,
