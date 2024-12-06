@@ -1,4 +1,4 @@
-package vlans
+package vlan
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -86,6 +86,13 @@ func Ipv6PrefixAssignmentOriginAttrMap(origin *Ipv6PrefixAssignmentOrigin) map[s
 
 type NetworksApplianceVLANModelMandatoryDhcp struct {
 	Enabled types.Bool `tfsdk:"enabled" json:"enabled"`
+}
+
+// datasourceModel NetworksApplianceVLANModel describes the resource data model.
+type datasourceModel struct {
+	Id        types.String                 `tfsdk:"id" json:"-"`
+	NetworkId types.String                 `tfsdk:"network_id" json:"network_id"`
+	List      []NetworksApplianceVLANModel `tfsdk:"list"`
 }
 
 // NetworksApplianceVLANModel is Used in both the vlan_resource and vlan_datasource

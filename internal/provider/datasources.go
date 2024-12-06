@@ -9,11 +9,10 @@ import (
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices/switch/ports"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks"
 	applianceFirewallL3Rules "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/firewall/l3/firewall/rules"
-	applianceVlansSettings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/vlans/settings"
-
-	//applianceFirewallL7Rules "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/firewall/l7/firewall/rules"
 	appliancePorts "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/ports"
-	applianceVlans "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/vlans"
+	//applianceFirewallL7Rules "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/firewall/l7/firewall/rules"
+	applianceVlansSettings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/vlans/settings"
+	applianceVlansVlan "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/vlans/vlan"
 	applianceVpn "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/vpn"
 	networkGroupPolicy "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/groupPolicy"
 	merakiSwitch "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/switch"
@@ -35,7 +34,7 @@ func (p *CiscoMerakiProvider) DataSources(ctx context.Context) []func() datasour
 		networks.NewNetworksSwitchStormControlDataSource,
 
 		appliancePorts.NewNetworksAppliancePortsDataSource,
-		applianceVlans.NewNetworksApplianceVLANsDatasource,
+		applianceVlansVlan.NewNetworksApplianceVLANsDatasource,
 		applianceVlansSettings.NewNetworksApplianceVlansSettingsDatasource,
 		applianceVpn.NewNetworksApplianceVpnSiteToSiteVpnDatasource,
 		applianceFirewallL3Rules.NewNetworksApplianceFirewallL3FirewallRulesDataSource,

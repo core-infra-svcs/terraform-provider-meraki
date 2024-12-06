@@ -13,8 +13,8 @@ import (
 	applianceFirewallL7Rules "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/firewall/l7/firewall/rules"
 	applianceFirewallSettings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/firewall/settings"
 	appliancePorts "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/ports"
-	applianceVlans "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/vlans"
 	applianceVlansSettings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/vlans/settings"
+	applianceVlansVlan "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/vlans/vlan"
 	applianceVpn "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/vpn"
 	networkGroupPolicy "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/groupPolicy"
 	networkSettings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/settings"
@@ -53,7 +53,7 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		applianceFirewallL3Rules.NewNetworksApplianceFirewallL3FirewallRulesResource,
 		applianceFirewallL7Rules.NewNetworksApplianceFirewallL7FirewallRulesResource,
 		applianceFirewallSettings.NewNetworksApplianceFirewallSettingsResource,
-		applianceVlans.NewNetworksApplianceVLANResource,
+		applianceVlansVlan.NewNetworksApplianceVLANResource,
 		applianceVlansSettings.NewNetworksApplianceVlansSettingsResource,
 
 		merakiSwitch.NewNetworksSwitchDscpToCosMappingsResource,
