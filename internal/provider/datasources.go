@@ -9,6 +9,8 @@ import (
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices/switch/ports"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks"
 	applianceFirewallL3Rules "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/firewall/l3/firewall/rules"
+	applianceVlansSettings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/vlans/settings"
+
 	//applianceFirewallL7Rules "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/firewall/l7/firewall/rules"
 	appliancePorts "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/ports"
 	applianceVlans "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/vlans"
@@ -34,7 +36,7 @@ func (p *CiscoMerakiProvider) DataSources(ctx context.Context) []func() datasour
 
 		appliancePorts.NewNetworksAppliancePortsDataSource,
 		applianceVlans.NewNetworksApplianceVLANsDatasource,
-		applianceVlans.NewNetworksApplianceVlansSettingsDatasource,
+		applianceVlansSettings.NewNetworksApplianceVlansSettingsDatasource,
 		applianceVpn.NewNetworksApplianceVpnSiteToSiteVpnDatasource,
 		applianceFirewallL3Rules.NewNetworksApplianceFirewallL3FirewallRulesDataSource,
 		//applianceFirewallL7Rules.NewNetworksApplianceFirewallL7FirewallRulesDataSource,

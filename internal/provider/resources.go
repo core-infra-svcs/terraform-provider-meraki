@@ -14,6 +14,7 @@ import (
 	applianceFirewallSettings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/firewall/settings"
 	appliancePorts "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/ports"
 	applianceVlans "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/vlans"
+	applianceVlansSettings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/vlans/settings"
 	applianceVpn "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/vpn"
 	networkGroupPolicy "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/groupPolicy"
 	networkSettings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/settings"
@@ -53,7 +54,7 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		applianceFirewallL7Rules.NewNetworksApplianceFirewallL7FirewallRulesResource,
 		applianceFirewallSettings.NewNetworksApplianceFirewallSettingsResource,
 		applianceVlans.NewNetworksApplianceVLANResource,
-		applianceVlans.NewNetworksApplianceVlansSettingsResource,
+		applianceVlansSettings.NewNetworksApplianceVlansSettingsResource,
 
 		merakiSwitch.NewNetworksSwitchDscpToCosMappingsResource,
 		merakiSwitch.NewNetworksSwitchMtuResource,
