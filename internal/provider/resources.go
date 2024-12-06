@@ -8,13 +8,13 @@ import (
 	devicesSwitchPort "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices/switch/port"
 	devicesSwitchPortsCycle "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices/switch/ports/cycle"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks"
-	networksAppliance "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance"
 	networksApplianceFirewallL3Rules "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/firewall/l3/firewall/rules"
 	networksApplianceFirewallL7Rules "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/firewall/l7/firewall/rules"
 	networksApplianceFirewallSettings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/firewall/settings"
 	networksAppliancePorts "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/ports"
 	networksApplianceSettings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/settings"
 	networksApplianceStaticRoutes "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/static/routes"
+	networksApplianceTrafficShapingUplinkBandWidth "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/traffic/shaping/uplink/bandwidth"
 	networksApplianceVlansSettings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/vlans/settings"
 	networksApplianceVlansVlan "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/vlans/vlan"
 	networksApplianceVpn "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/vpn"
@@ -50,7 +50,7 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		networksAppliancePorts.NewNetworksAppliancePortsResource,
 		networksApplianceSettings.NewNetworksApplianceSettingsResource,
 		networksApplianceStaticRoutes.NewNetworkApplianceStaticRoutesResource,
-		networksAppliance.NewNetworksApplianceTrafficShapingUplinkBandWidthResource,
+		networksApplianceTrafficShapingUplinkBandWidth.NewResource, // this pattern fyi
 		networksApplianceVpn.NewNetworksApplianceVpnSiteToSiteVpnResource,
 		networksApplianceFirewallL3Rules.NewNetworksApplianceFirewallL3FirewallRulesResource,
 		networksApplianceFirewallL7Rules.NewNetworksApplianceFirewallL7FirewallRulesResource,

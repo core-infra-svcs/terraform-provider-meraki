@@ -1,122 +1,34 @@
-package appliance
+package bandwidth
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
-	"io"
-
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ resource.Resource = &TrafficShapingUplinkBandWidthResource{}
-var _ resource.ResourceWithImportState = &TrafficShapingUplinkBandWidthResource{}
+var _ resource.Resource = &Resource{}
+var _ resource.ResourceWithImportState = &Resource{}
 
-func NewNetworksApplianceTrafficShapingUplinkBandWidthResource() resource.Resource {
-	return &TrafficShapingUplinkBandWidthResource{}
+func NewResource() resource.Resource {
+	return &Resource{}
 }
 
-// TrafficShapingUplinkBandWidthResource defines the resource implementation.
-type TrafficShapingUplinkBandWidthResource struct {
+// Resource defines the resource implementation.
+type Resource struct {
 	client *openApiClient.APIClient
 }
 
-// TrafficShapingUplinkBandWidthResourceModel describes the resource data model.
-type TrafficShapingUplinkBandWidthResourceModel struct {
-	Id                              jsontypes.String `tfsdk:"id"`
-	NetworkId                       jsontypes.String `tfsdk:"network_id" json:"network_id"`
-	BandwidthLimitCellularLimitUp   jsontypes.Int64  `tfsdk:"bandwidth_limit_cellular_limit_up"`
-	BandwidthLimitCellularLimitDown jsontypes.Int64  `tfsdk:"bandwidth_limit_cellular_limit_down"`
-	BandwidthLimitWan2LimitUp       jsontypes.Int64  `tfsdk:"bandwidth_limit_wan2_limit_up"`
-	BandwidthLimitWan2LimitDown     jsontypes.Int64  `tfsdk:"bandwidth_limit_wan2_limit_down"`
-	BandwidthLimitWan1LimitUp       jsontypes.Int64  `tfsdk:"bandwidth_limit_wan1_limit_up"`
-	BandwidthLimitWan1LimitDown     jsontypes.Int64  `tfsdk:"bandwidth_limit_wan1_limit_down"`
-}
-
-type TrafficShapingUplinkBandWidthResourceModelApiResponse struct {
-	UplinkBandwidthLimits TrafficShapingUplinkBandWidthLimits `json:"bandwidthLimits"`
-}
-
-type TrafficShapingUplinkBandWidthLimits struct {
-	Wan1     TrafficShapingUplinkBandWidthLimit `json:"wan1"`
-	Wan2     TrafficShapingUplinkBandWidthLimit `json:"wan2"`
-	Cellular TrafficShapingUplinkBandWidthLimit `json:"cellular"`
-}
-
-type TrafficShapingUplinkBandWidthLimit struct {
-	LimitUp   jsontypes.Int64 `json:"limitUp"`
-	LimitDown jsontypes.Int64 `json:"limitDown"`
-}
-
-func (r *TrafficShapingUplinkBandWidthResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *Resource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_networks_appliance_traffic_shaping_uplink_bandwidth"
 }
 
-func (r *TrafficShapingUplinkBandWidthResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manage Network Appliance Traffic Shaping UplinkBandWidth",
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed:   true,
-				CustomType: jsontypes.StringType,
-			},
-			"network_id": schema.StringAttribute{
-				MarkdownDescription: "Network ID",
-				Required:            true,
-				CustomType:          jsontypes.StringType,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(8, 31),
-				},
-			},
-			"bandwidth_limit_cellular_limit_up": schema.Int64Attribute{
-				MarkdownDescription: "The bandwidth settings for the 'cellular' uplink. The maximum upload limit (integer, in Kbps). null indicates no limit",
-				Optional:            true,
-				CustomType:          jsontypes.Int64Type,
-			},
-			"bandwidth_limit_cellular_limit_down": schema.Int64Attribute{
-				MarkdownDescription: "The bandwidth settings for the 'cellular' uplink. The maximum download limit (integer, in Kbps). null indicates no limit",
-				Optional:            true,
-				CustomType:          jsontypes.Int64Type,
-			},
-			"bandwidth_limit_wan2_limit_up": schema.Int64Attribute{
-				MarkdownDescription: "The bandwidth settings for the 'wan2' uplink. The maximum upload limit (integer, in Kbps). null indicates no limit",
-				Optional:            true,
-				CustomType:          jsontypes.Int64Type,
-			},
-			"bandwidth_limit_wan2_limit_down": schema.Int64Attribute{
-				MarkdownDescription: "The bandwidth settings for the 'wan2' uplink. The maximum download limit (integer, in Kbps). null indicates no limit",
-				Optional:            true,
-				CustomType:          jsontypes.Int64Type,
-			},
-			"bandwidth_limit_wan1_limit_up": schema.Int64Attribute{
-				MarkdownDescription: "The bandwidth settings for the 'wan1' uplink. The maximum upload limit (integer, in Kbps). null indicates no limit",
-				Optional:            true,
-				CustomType:          jsontypes.Int64Type,
-			},
-			"bandwidth_limit_wan1_limit_down": schema.Int64Attribute{
-				MarkdownDescription: "The bandwidth settings for the 'wan1' uplink. The maximum download limit (integer, in Kbps). null indicates no limit",
-				Optional:            true,
-				CustomType:          jsontypes.Int64Type,
-			},
-		},
-	}
-}
-
-func (r *TrafficShapingUplinkBandWidthResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *Resource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -136,9 +48,9 @@ func (r *TrafficShapingUplinkBandWidthResource) Configure(ctx context.Context, r
 	r.client = client
 }
 
-func (r *TrafficShapingUplinkBandWidthResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 
-	var data *TrafficShapingUplinkBandWidthResourceModel
+	var data *resourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -205,7 +117,7 @@ func (r *TrafficShapingUplinkBandWidthResource) Create(ctx context.Context, req 
 	}
 
 	// Save data into Terraform state
-	data, err = extractHttpResponseUplinkBandwidthResource(ctx, httpResp.Body, &TrafficShapingUplinkBandWidthResourceModelApiResponse{}, data)
+	data, err = extractHttpResponseUplinkBandwidthResource(ctx, httpResp.Body, &resourceModelApiResponse{}, data)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"JSON decoding error",
@@ -222,8 +134,8 @@ func (r *TrafficShapingUplinkBandWidthResource) Create(ctx context.Context, req 
 	tflog.Trace(ctx, "create resource")
 }
 
-func (r *TrafficShapingUplinkBandWidthResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *TrafficShapingUplinkBandWidthResourceModel
+func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *resourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -258,7 +170,7 @@ func (r *TrafficShapingUplinkBandWidthResource) Read(ctx context.Context, req re
 	// Decode the HTTP response body into your data model.
 	// If there's an error, add it to diagnostics.
 	// Save data into Terraform state
-	data, err = extractHttpResponseUplinkBandwidthResource(ctx, httpResp.Body, &TrafficShapingUplinkBandWidthResourceModelApiResponse{}, data)
+	data, err = extractHttpResponseUplinkBandwidthResource(ctx, httpResp.Body, &resourceModelApiResponse{}, data)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"JSON decoding error",
@@ -275,9 +187,9 @@ func (r *TrafficShapingUplinkBandWidthResource) Read(ctx context.Context, req re
 	tflog.Trace(ctx, "read resource")
 }
 
-func (r *TrafficShapingUplinkBandWidthResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 
-	var data *TrafficShapingUplinkBandWidthResourceModel
+	var data *resourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -346,7 +258,7 @@ func (r *TrafficShapingUplinkBandWidthResource) Update(ctx context.Context, req 
 	// Decode the HTTP response body into your data model.
 	// If there's an error, add it to diagnostics.
 	// Save data into Terraform state
-	data, err = extractHttpResponseUplinkBandwidthResource(ctx, httpResp.Body, &TrafficShapingUplinkBandWidthResourceModelApiResponse{}, data)
+	data, err = extractHttpResponseUplinkBandwidthResource(ctx, httpResp.Body, &resourceModelApiResponse{}, data)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"JSON decoding error",
@@ -363,9 +275,9 @@ func (r *TrafficShapingUplinkBandWidthResource) Update(ctx context.Context, req 
 	tflog.Trace(ctx, "updated resource")
 }
 
-func (r *TrafficShapingUplinkBandWidthResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 
-	var data *TrafficShapingUplinkBandWidthResourceModel
+	var data *resourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -417,7 +329,7 @@ func (r *TrafficShapingUplinkBandWidthResource) Delete(ctx context.Context, req 
 	tflog.Trace(ctx, "removed resource")
 }
 
-func (r *TrafficShapingUplinkBandWidthResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("network_id"), req.ID)...)
@@ -425,39 +337,4 @@ func (r *TrafficShapingUplinkBandWidthResource) ImportState(ctx context.Context,
 	if resp.Diagnostics.HasError() {
 		return
 	}
-}
-
-func extractHttpResponseUplinkBandwidthResource(ctx context.Context, httpRespBody io.ReadCloser, apiResponse *TrafficShapingUplinkBandWidthResourceModelApiResponse, data *TrafficShapingUplinkBandWidthResourceModel) (*TrafficShapingUplinkBandWidthResourceModel, error) {
-
-	if err := json.NewDecoder(httpRespBody).Decode(apiResponse); err != nil {
-		return data, err
-	}
-
-	data.BandwidthLimitCellularLimitDown = apiResponse.UplinkBandwidthLimits.Cellular.LimitDown
-	data.BandwidthLimitCellularLimitUp = apiResponse.UplinkBandwidthLimits.Cellular.LimitUp
-	data.BandwidthLimitWan2LimitDown = apiResponse.UplinkBandwidthLimits.Wan2.LimitDown
-	data.BandwidthLimitWan2LimitUp = apiResponse.UplinkBandwidthLimits.Wan2.LimitUp
-	data.BandwidthLimitWan1LimitDown = apiResponse.UplinkBandwidthLimits.Wan1.LimitDown
-	data.BandwidthLimitWan1LimitUp = apiResponse.UplinkBandwidthLimits.Wan1.LimitUp
-
-	if data.BandwidthLimitWan1LimitDown.IsUnknown() {
-		data.BandwidthLimitWan1LimitDown = jsontypes.Int64Null()
-	}
-	if data.BandwidthLimitWan1LimitUp.IsUnknown() {
-		data.BandwidthLimitWan1LimitUp = jsontypes.Int64Null()
-	}
-	if data.BandwidthLimitWan2LimitDown.Int64Value.IsUnknown() {
-		data.BandwidthLimitWan2LimitDown = jsontypes.Int64Null()
-	}
-	if data.BandwidthLimitWan2LimitUp.IsUnknown() {
-		data.BandwidthLimitWan2LimitUp = jsontypes.Int64Null()
-	}
-	if data.BandwidthLimitCellularLimitDown.IsUnknown() {
-		data.BandwidthLimitCellularLimitDown = jsontypes.Int64Null()
-	}
-	if data.BandwidthLimitCellularLimitUp.IsUnknown() {
-		data.BandwidthLimitCellularLimitUp = jsontypes.Int64Null()
-	}
-
-	return data, nil
 }

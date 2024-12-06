@@ -1,4 +1,4 @@
-package appliance_test
+package bandwidth_test
 
 import (
 	"fmt"
