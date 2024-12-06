@@ -30,7 +30,7 @@ func (p *CiscoMerakiProvider) DataSources(ctx context.Context) []func() datasour
 		ports.NewDevicesSwitchPortsStatusesDataSource,
 		subnets.NewDevicesApplianceDhcpSubnetsDataSource,
 
-		networkGroupPolicy.NewNetworkGroupPoliciesDataSource,
+		networkGroupPolicy.NewDataSource,
 		networks.NewNetworksSwitchStormControlDataSource,
 
 		appliancePorts.NewNetworksAppliancePortsDataSource,

@@ -15,33 +15,33 @@ import (
 	"time"
 )
 
-// GroupPolicyResource defines the resource implementation.
-type GroupPolicyResource struct {
+// Resource defines the resource implementation.
+type Resource struct {
 	client *client.APIClient
 }
 
-func NewNetworksGroupPolicyResource() resource.Resource {
-	return &GroupPolicyResource{}
+func NewResource() resource.Resource {
+	return &Resource{}
 }
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ resource.Resource = &GroupPolicyResource{}
-var _ resource.ResourceWithConfigure = &GroupPolicyResource{}
-var _ resource.ResourceWithImportState = &GroupPolicyResource{}
+var _ resource.Resource = &Resource{}
+var _ resource.ResourceWithConfigure = &Resource{}
+var _ resource.ResourceWithImportState = &Resource{}
 
 // Schema defines the schema for the resource.
-func (r *GroupPolicyResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *Resource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: ResourceSchema,
 	}
 }
 
-func (r *GroupPolicyResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *Resource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_networks_group_policy"
 }
 
 // Configure configures the resource with the API client.
-func (r *GroupPolicyResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *Resource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -52,8 +52,8 @@ func (r *GroupPolicyResource) Configure(ctx context.Context, req resource.Config
 }
 
 // Create handles the creation of the group policy.
-func (r *GroupPolicyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan GroupPolicyModel
+func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var plan resourceModel
 
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
@@ -61,7 +61,7 @@ func (r *GroupPolicyResource) Create(ctx context.Context, req resource.CreateReq
 		return
 	}
 
-	payload, groupPolicyDiags := groupPolicyPayload(&plan)
+	payload, groupPolicyDiags := fromPayload(&plan)
 	if groupPolicyDiags.HasError() {
 
 		resp.Diagnostics.AddError(
@@ -110,7 +110,7 @@ func (r *GroupPolicyResource) Create(ctx context.Context, req resource.CreateReq
 		return
 	}
 
-	diags = GroupPolicyState(ctx, &plan, inlineResp)
+	diags = ToTerraformState(ctx, &plan, inlineResp)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -121,8 +121,8 @@ func (r *GroupPolicyResource) Create(ctx context.Context, req resource.CreateReq
 }
 
 // Read handles reading the group policy.
-func (r *GroupPolicyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state GroupPolicyModel
+func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var state resourceModel
 
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -148,7 +148,7 @@ func (r *GroupPolicyResource) Read(ctx context.Context, req resource.ReadRequest
 	}
 
 	// Update the state with the new state
-	diags = GroupPolicyState(ctx, &state, inlineResp)
+	diags = ToTerraformState(ctx, &state, inlineResp)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -162,8 +162,8 @@ func (r *GroupPolicyResource) Read(ctx context.Context, req resource.ReadRequest
 }
 
 // Update handles updating the group policy.
-func (r *GroupPolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan GroupPolicyModel
+func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan resourceModel
 
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
@@ -171,7 +171,7 @@ func (r *GroupPolicyResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 
-	var state GroupPolicyModel
+	var state resourceModel
 
 	diags = req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -179,7 +179,7 @@ func (r *GroupPolicyResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 
-	groupPolicy, groupPolicyDiags := groupPolicyPayload(&plan)
+	groupPolicy, groupPolicyDiags := fromPayload(&plan)
 	if groupPolicyDiags.HasError() {
 
 		resp.Diagnostics.AddError(
@@ -218,7 +218,7 @@ func (r *GroupPolicyResource) Update(ctx context.Context, req resource.UpdateReq
 	}
 
 	// Update the state with the new plan
-	diags = GroupPolicyState(ctx, &plan, inlineResp)
+	diags = ToTerraformState(ctx, &plan, inlineResp)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -233,8 +233,8 @@ func (r *GroupPolicyResource) Update(ctx context.Context, req resource.UpdateReq
 }
 
 // Delete handles deleting the group policy.
-func (r *GroupPolicyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var state GroupPolicyModel
+func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var state resourceModel
 
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -268,7 +268,7 @@ func (r *GroupPolicyResource) Delete(ctx context.Context, req resource.DeleteReq
 
 }
 
-func (r *GroupPolicyResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 
 	idParts := strings.Split(req.ID, ",")

@@ -12,9 +12,9 @@ import (
 	"strconv"
 )
 
-// groupPolicyPayload creates a network group policy request payload from the given GroupPolicyModel data
+// fromPayload creates a network group policy request payload from the given resourceModel data
 // and returns the payload along with any diagnostics.
-func groupPolicyPayload(data *GroupPolicyModel) (client.CreateNetworkGroupPolicyRequest, diag.Diagnostics) {
+func fromPayload(data *resourceModel) (client.CreateNetworkGroupPolicyRequest, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	groupPolicy := client.CreateNetworkGroupPolicyRequest{
 		Name:               data.Name.ValueString(),
@@ -1256,8 +1256,8 @@ func ContentFilteringState(ctx context.Context, httpResp map[string]interface{})
 	return contentFilteringObj, diags
 }
 
-// GroupPolicyState updates the resource state with the provided api data.
-func GroupPolicyState(ctx context.Context, state *GroupPolicyModel, inlineResp map[string]interface{}) diag.Diagnostics {
+// ToTerraformState updates the resource state with the provided api data.
+func ToTerraformState(ctx context.Context, state *resourceModel, inlineResp map[string]interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	// GroupPolicyId
