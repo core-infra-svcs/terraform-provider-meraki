@@ -1,4 +1,4 @@
-package networks
+package servers
 
 import (
 	"context"
@@ -20,40 +20,40 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ resource.Resource = &SyslogServersResource{}
-var _ resource.ResourceWithImportState = &SyslogServersResource{}
+var _ resource.Resource = &Resource{}
+var _ resource.ResourceWithImportState = &Resource{}
 
-func NewNetworksSyslogServersResource() resource.Resource {
-	return &SyslogServersResource{}
+func NewResource() resource.Resource {
+	return &Resource{}
 }
 
-// SyslogServersResource defines the resource implementation.
-type SyslogServersResource struct {
+// Resource defines the resource implementation.
+type Resource struct {
 	client *openApiClient.APIClient
 }
 
-// SyslogServersResourceModel describes the resource data model.
-type SyslogServersResourceModel struct {
-	Id        jsontypes.String                   `tfsdk:"id"`
-	NetworkId jsontypes.String                   `tfsdk:"network_id"`
-	Servers   []SyslogServersResourceModelServer `tfsdk:"servers"`
+// resourceModel describes the resource data model.
+type resourceModel struct {
+	Id        jsontypes.String      `tfsdk:"id"`
+	NetworkId jsontypes.String      `tfsdk:"network_id"`
+	Servers   []resourceModelServer `tfsdk:"servers"`
 }
 
-type SyslogServersResourceModelServer struct {
+type resourceModelServer struct {
 	Host  jsontypes.String   `tfsdk:"host"`
 	Port  jsontypes.String   `tfsdk:"port"`
 	Roles []jsontypes.String `tfsdk:"roles"`
 }
 
-type SyslogServersResourceModelResponse struct {
-	Servers []SyslogServersResourceModelServer `tfsdk:"servers"`
+type resourceModelResponse struct {
+	Servers []resourceModelServer `tfsdk:"servers"`
 }
 
-func (r *SyslogServersResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *Resource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_networks_syslog_servers"
 }
 
-func (r *SyslogServersResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *Resource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "NetworksSyslogServers resource for updating networks syslog servers.",
 		Attributes: map[string]schema.Attribute{
@@ -105,7 +105,7 @@ func (r *SyslogServersResource) Schema(ctx context.Context, req resource.SchemaR
 	}
 }
 
-func (r *SyslogServersResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *Resource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -125,8 +125,8 @@ func (r *SyslogServersResource) Configure(ctx context.Context, req resource.Conf
 	r.client = client
 }
 
-func (r *SyslogServersResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *SyslogServersResourceModel
+func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *resourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -203,9 +203,9 @@ func (r *SyslogServersResource) Create(ctx context.Context, req resource.CreateR
 	tflog.Trace(ctx, "create resource")
 }
 
-func (r *SyslogServersResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 
-	var data *SyslogServersResourceModel
+	var data *resourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -253,9 +253,9 @@ func (r *SyslogServersResource) Read(ctx context.Context, req resource.ReadReque
 	tflog.Trace(ctx, "read resource")
 }
 
-func (r *SyslogServersResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 
-	var data *SyslogServersResourceModel
+	var data *resourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -332,9 +332,9 @@ func (r *SyslogServersResource) Update(ctx context.Context, req resource.UpdateR
 	tflog.Trace(ctx, "updated resource")
 }
 
-func (r *SyslogServersResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 
-	var data *SyslogServersResourceModel
+	var data *resourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -374,7 +374,7 @@ func (r *SyslogServersResource) Delete(ctx context.Context, req resource.DeleteR
 
 }
 
-func (r *SyslogServersResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("network_id"), req.ID)...)

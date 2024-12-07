@@ -35,6 +35,7 @@ import (
 	networksSwitchMtu "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/switch/mtu"
 	networksSwitchQosRules "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/switch/qos/rules"
 	networksSwitchSettings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/switch/settings"
+	networksSyslogServers "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/syslog/servers"
 	networksWirelessSsids "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/wireless/ssid"
 	networksWirelessSsidsFirewallL3FirewallRules "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/wireless/ssids/firewall/l3/firewall/rules"
 	networksWirelessSsidsFirewallL7FirewallRules "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/wireless/ssids/firewall/l7/firewall/rules"
@@ -59,7 +60,7 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		networksSettings.NewResource,
 		networksSnmp.NewResource,
 		networksStormControl.NewResource,
-		networks.NewNetworksSyslogServersResource,
+		networksSyslogServers.NewResource,
 		networks.NewNetworksTrafficAnalysisResource,
 		networksGroupPolicy.NewResource,
 		networksAppliancePorts.NewNetworksAppliancePortsResource,

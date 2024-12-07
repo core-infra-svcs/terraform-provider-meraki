@@ -1,4 +1,4 @@
-package networks_test
+package servers_test
 
 import (
 	"fmt"
@@ -16,7 +16,6 @@ func TestAccNetworksSyslogServersResource(t *testing.T) {
 		ProtoV6ProviderFactories: provider.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 
-			// TODO - ImportState testing - This only works when hard-coded networkId.
 			/*
 				{
 					ResourceName:      "meraki_networks_syslog_servers.test",
