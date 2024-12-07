@@ -1,4 +1,4 @@
-package organizations
+package roles
 
 import (
 	"context"
@@ -15,17 +15,17 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ datasource.DataSource = &SamlRolesDataSource{}
+var _ datasource.DataSource = &DataSource{}
 
-func NewOrganizationsSamlRolesDataSource() datasource.DataSource {
-	return &SamlRolesDataSource{}
+func NewDataSource() datasource.DataSource {
+	return &DataSource{}
 }
 
-type SamlRolesDataSource struct {
+type DataSource struct {
 	client *openApiClient.APIClient
 }
 
-type SamlRolesDataSourceModel struct {
+type dataSourceModel struct {
 	Id   jsontypes.String          `tfsdk:"id" json:"organization_id"`
 	List []SamlRoleDataSourceModel `tfsdk:"list"`
 }
@@ -38,11 +38,11 @@ type SamlRoleDataSourceModel struct {
 	Networks  []SamlRoleNetworkModel `tfsdk:"networks" json:"networks"`
 }
 
-func (d *SamlRolesDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *DataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_organizations_saml_roles"
 }
 
-func (d *SamlRolesDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *DataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Ports the saml roles in this organization",
 
@@ -129,7 +129,7 @@ func (d *SamlRolesDataSource) Schema(ctx context.Context, req datasource.SchemaR
 	}
 }
 
-func (d *SamlRolesDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *DataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -148,8 +148,8 @@ func (d *SamlRolesDataSource) Configure(ctx context.Context, req datasource.Conf
 	d.client = client
 }
 
-func (d *SamlRolesDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data SamlRolesDataSourceModel
+func (d *DataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var data dataSourceModel
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)

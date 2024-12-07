@@ -1,4 +1,4 @@
-package organizations
+package roles
 
 import (
 	"context"
@@ -20,20 +20,20 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ resource.Resource = &SamlRolesResource{}
-var _ resource.ResourceWithImportState = &SamlRolesResource{}
+var _ resource.Resource = &Resource{}
+var _ resource.ResourceWithImportState = &Resource{}
 
-func NewOrganizationsSamlRolesResource() resource.Resource {
-	return &SamlRolesResource{}
+func NewResource() resource.Resource {
+	return &Resource{}
 }
 
-// SamlRolesResource defines the resource implementation.
-type SamlRolesResource struct {
+// Resource defines the resource implementation.
+type Resource struct {
 	client *openApiClient.APIClient
 }
 
-// SamlRolesResourceModel describes the resource data model.
-type SamlRolesResourceModel struct {
+// resourceModel describes the resource data model.
+type resourceModel struct {
 	Id        jsontypes.String       `tfsdk:"id"`
 	OrgId     jsontypes.String       `tfsdk:"organization_id" json:"organizationId"`
 	RoleId    jsontypes.String       `tfsdk:"role_id" json:"id"`
@@ -53,11 +53,11 @@ type SamlRoleNetworkModel struct {
 	Access jsontypes.String `tfsdk:"access" json:"access"`
 }
 
-func (r *SamlRolesResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *Resource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_organizations_saml_role"
 }
 
-func (r *SamlRolesResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *Resource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manage the saml roles in this organization",
 		Attributes: map[string]schema.Attribute{
@@ -144,7 +144,7 @@ func (r *SamlRolesResource) Schema(ctx context.Context, req resource.SchemaReque
 	}
 }
 
-func (r *SamlRolesResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *Resource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -164,8 +164,8 @@ func (r *SamlRolesResource) Configure(ctx context.Context, req resource.Configur
 	r.client = client
 }
 
-func (r *SamlRolesResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *SamlRolesResourceModel
+func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *resourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -242,8 +242,8 @@ func (r *SamlRolesResource) Create(ctx context.Context, req resource.CreateReque
 	tflog.Trace(ctx, "create resource")
 }
 
-func (r *SamlRolesResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *SamlRolesResourceModel
+func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *resourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -291,9 +291,9 @@ func (r *SamlRolesResource) Read(ctx context.Context, req resource.ReadRequest, 
 	tflog.Trace(ctx, "read resource")
 }
 
-func (r *SamlRolesResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 
-	var data *SamlRolesResourceModel
+	var data *resourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -367,8 +367,8 @@ func (r *SamlRolesResource) Update(ctx context.Context, req resource.UpdateReque
 	tflog.Trace(ctx, "updated resource")
 }
 
-func (r *SamlRolesResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data *SamlRolesResourceModel
+func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data *resourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -407,7 +407,7 @@ func (r *SamlRolesResource) Delete(ctx context.Context, req resource.DeleteReque
 
 }
 
-func (r *SamlRolesResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 
 	idParts := strings.Split(req.ID, ",")

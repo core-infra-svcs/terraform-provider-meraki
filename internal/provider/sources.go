@@ -53,6 +53,7 @@ import (
 	organizationsOrganization "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations/organization"
 	organizationsPolicyObject "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations/policy/object"
 	organizationsSamlIdps "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations/saml/idps"
+	organizationsSamlRoles "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations/saml/roles"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
@@ -100,7 +101,7 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		organizationsLicencesMove.NewResource,
 		organizationsSamlIdps.NewResource,
 		organizations.NewOrganizationSamlResource,
-		organizations.NewOrganizationsSamlRolesResource,
+		organizationsSamlRoles.NewResource,
 		organizations.NewOrganizationsSnmpResource,
 		organizationsOrganization.NewResource,
 		organizationsPolicyObject.NewResource,
@@ -132,7 +133,7 @@ func (p *CiscoMerakiProvider) DataSources(ctx context.Context) []func() datasour
 		organizationsCellularGatewayUplinkStatuses.NewDataSource,
 		organizationsOrganization.NewDataSource,
 		organizationsSamlIdps.NewDataSource,
-		organizations.NewOrganizationsSamlRolesDataSource,
+		organizationsSamlRoles.NewDataSource,
 		organizationsInventoryDevices.NewDataSource,
 		organizationsNetworks.NewDataSource,
 	}
