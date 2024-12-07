@@ -1,4 +1,4 @@
-package wireless
+package rules
 
 import (
 	"context"
@@ -20,29 +20,29 @@ import (
 )
 
 var (
-	_ resource.Resource                = &NetworksWirelessSsidsFirewallL3FirewallRulesResource{} // Terraform resource interface
-	_ resource.ResourceWithConfigure   = &NetworksWirelessSsidsFirewallL3FirewallRulesResource{} // Interface for resources with configuration methods
-	_ resource.ResourceWithImportState = &NetworksWirelessSsidsFirewallL3FirewallRulesResource{} // Interface for resources with import state functionality
+	_ resource.Resource                = &Resource{} // Terraform resource interface
+	_ resource.ResourceWithConfigure   = &Resource{} // Interface for resources with configuration methods
+	_ resource.ResourceWithImportState = &Resource{} // Interface for resources with import state functionality
 )
 
-func NewNetworksWirelessSsidsFirewallL3FirewallRulesResource() resource.Resource {
-	return &NetworksWirelessSsidsFirewallL3FirewallRulesResource{}
+func NewResource() resource.Resource {
+	return &Resource{}
 }
 
-type NetworksWirelessSsidsFirewallL3FirewallRulesResource struct {
+type Resource struct {
 	client *openApiClient.APIClient // APIClient instance for making API requests
 }
 
-// The NetworksWirelessSsidsFirewallL3FirewallRulesResourceModel structure describes the data model.
-type NetworksWirelessSsidsFirewallL3FirewallRulesResourceModel struct {
-	Id             jsontypes.String                                                `tfsdk:"id"`
-	NetworkId      jsontypes.String                                                `tfsdk:"network_id" json:"network_id"`
-	Number         jsontypes.String                                                `tfsdk:"number"`
-	AllowLanAccess jsontypes.Bool                                                  `tfsdk:"allow_lan_access"`
-	Rules          []NetworksWirelessSsidsFirewallL3FirewallRulesResourceModelRule `tfsdk:"rules" json:"rules"`
+// The resourceModel structure describes the data model.
+type resourceModel struct {
+	Id             jsontypes.String    `tfsdk:"id"`
+	NetworkId      jsontypes.String    `tfsdk:"network_id" json:"network_id"`
+	Number         jsontypes.String    `tfsdk:"number"`
+	AllowLanAccess jsontypes.Bool      `tfsdk:"allow_lan_access"`
+	Rules          []resourceModelRule `tfsdk:"rules" json:"rules"`
 }
 
-type NetworksWirelessSsidsFirewallL3FirewallRulesResourceModelRule struct {
+type resourceModelRule struct {
 	Comment  jsontypes.String `tfsdk:"comment"`
 	DestCidr jsontypes.String `tfsdk:"dest_cidr"`
 	DestPort jsontypes.String `tfsdk:"dest_port"`
@@ -52,7 +52,7 @@ type NetworksWirelessSsidsFirewallL3FirewallRulesResourceModelRule struct {
 
 // Metadata provides a way to define information about the resource.
 // This method is called by the framework to retrieve metadata about the resource.
-func (r *NetworksWirelessSsidsFirewallL3FirewallRulesResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *Resource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 
 	// The TypeName attribute is important as it provides the user-friendly name for the resource/data source.
 	// This is the name users will use to reference the resource/data source and it's also used in the acceptance tests.
@@ -61,7 +61,7 @@ func (r *NetworksWirelessSsidsFirewallL3FirewallRulesResource) Metadata(ctx cont
 
 // Schema provides a way to define the structure of the resource data.
 // It is called by the framework to get the schema of the resource.
-func (r *NetworksWirelessSsidsFirewallL3FirewallRulesResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *Resource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 
 	// The Schema object defines the structure of the resource.
 	resp.Schema = schema.Schema{
@@ -141,7 +141,7 @@ func (r *NetworksWirelessSsidsFirewallL3FirewallRulesResource) Schema(ctx contex
 
 // Configure is a method of the Resource interface that Terraform calls to provide the configured provider instance to the resource.
 // It passes the ResourceData that's been stored by the provider's ConfigureFunc.
-func (r *NetworksWirelessSsidsFirewallL3FirewallRulesResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *Resource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 
 	// The provider must be properly configured before it can be used.
 	if req.ProviderData == nil {
@@ -169,8 +169,8 @@ func (r *NetworksWirelessSsidsFirewallL3FirewallRulesResource) Configure(ctx con
 // Create method is responsible for creating a new resource.
 // It takes a CreateRequest containing the planned state of the new resource and returns a CreateResponse
 // with the final state of the new resource or an error.
-func (r *NetworksWirelessSsidsFirewallL3FirewallRulesResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *NetworksWirelessSsidsFirewallL3FirewallRulesResourceModel
+func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *resourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
@@ -246,8 +246,8 @@ func (r *NetworksWirelessSsidsFirewallL3FirewallRulesResource) Create(ctx contex
 
 // Read method is responsible for reading an existing resource's state.
 // It takes a ReadRequest and returns a ReadResponse with the current state of the resource or an error.
-func (r *NetworksWirelessSsidsFirewallL3FirewallRulesResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *NetworksWirelessSsidsFirewallL3FirewallRulesResourceModel
+func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *resourceModel
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -304,9 +304,9 @@ func (r *NetworksWirelessSsidsFirewallL3FirewallRulesResource) Read(ctx context.
 
 // Update function is responsible for updating the state of an existing resource.
 // It uses an UpdateRequest and responds with an UpdateResponse which contains the updated state of the resource or an error.
-func (r *NetworksWirelessSsidsFirewallL3FirewallRulesResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 
-	var data *NetworksWirelessSsidsFirewallL3FirewallRulesResourceModel
+	var data *resourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
@@ -382,9 +382,9 @@ func (r *NetworksWirelessSsidsFirewallL3FirewallRulesResource) Update(ctx contex
 
 // Delete function is responsible for deleting a resource.
 // It uses a DeleteRequest and responds with a DeleteResponse which contains the updated state of the resource or an error.
-func (r *NetworksWirelessSsidsFirewallL3FirewallRulesResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 
-	var data *NetworksWirelessSsidsFirewallL3FirewallRulesResourceModel
+	var data *resourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
@@ -438,7 +438,7 @@ func (r *NetworksWirelessSsidsFirewallL3FirewallRulesResource) Delete(ctx contex
 // ImportState function is used to import an existing resource into Terraform.
 // The function expects an ImportStateRequest and responds with an ImportStateResponse which contains
 // the new state of the resource or an error.
-func (r *NetworksWirelessSsidsFirewallL3FirewallRulesResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 
 	// Pass through the ID directly from the ImportStateRequest to the ImportStateResponse
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)

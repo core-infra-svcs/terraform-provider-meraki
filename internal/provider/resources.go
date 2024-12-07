@@ -26,6 +26,7 @@ import (
 	networksSwitchSettings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/switch/settings"
 	networksWireless "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/wireless"
 	networksWirelessSsids "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/wireless/ssid"
+	networksWirelessSsidsFirewallL3FirewallRules "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/wireless/ssids/firewall/l3/firewall/rules"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
@@ -66,7 +67,7 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		networksSwitchQosRules.NewResource,
 		networksSwitchSettings.NewResource,
 
-		networksWireless.NewNetworksWirelessSsidsFirewallL3FirewallRulesResource,
+		networksWirelessSsidsFirewallL3FirewallRules.NewResource,
 		networksWireless.NewNetworksWirelessSsidsFirewallL7FirewallRulesResource,
 		networksWireless.NewNetworksWirelessSsidsSplashSettingsResource,
 		networksWirelessSsids.NewResource,
