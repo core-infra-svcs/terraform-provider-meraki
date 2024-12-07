@@ -1,4 +1,4 @@
-package _switch
+package settings
 
 import (
 	"context"
@@ -18,36 +18,36 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ resource.Resource = &NetworksSwitchSettingsResource{}
-var _ resource.ResourceWithImportState = &NetworksSwitchSettingsResource{}
+var _ resource.Resource = &Resource{}
+var _ resource.ResourceWithImportState = &Resource{}
 
-func NewNetworksSwitchSettingsResource() resource.Resource {
-	return &NetworksSwitchSettingsResource{}
+func NewResource() resource.Resource {
+	return &Resource{}
 }
 
-// NetworksSwitchSettingsResource defines the resource implementation.
-type NetworksSwitchSettingsResource struct {
+// Resource defines the resource implementation.
+type Resource struct {
 	client *openApiClient.APIClient
 }
 
-// NetworksSwitchSettingsResourceModel describes the resource data model.
-type NetworksSwitchSettingsResourceModel struct {
-	Id               jsontypes.String                                     `tfsdk:"id"`
-	NetworkId        jsontypes.String                                     `tfsdk:"network_id" json:"network_id"`
-	Vlan             jsontypes.Float64                                    `tfsdk:"vlan" json:"vlan"`
-	UseCombinedPower jsontypes.Bool                                       `tfsdk:"use_combined_power" json:"useCombinedPower"`
-	PowerExceptions  []NetworksSwitchSettingsResourceModelPowerExceptions `tfsdk:"power_exceptions" json:"powerExceptions"`
+// resourceModel describes the resource data model.
+type resourceModel struct {
+	Id               jsontypes.String               `tfsdk:"id"`
+	NetworkId        jsontypes.String               `tfsdk:"network_id" json:"network_id"`
+	Vlan             jsontypes.Float64              `tfsdk:"vlan" json:"vlan"`
+	UseCombinedPower jsontypes.Bool                 `tfsdk:"use_combined_power" json:"useCombinedPower"`
+	PowerExceptions  []ResourceModelPowerExceptions `tfsdk:"power_exceptions" json:"powerExceptions"`
 }
-type NetworksSwitchSettingsResourceModelPowerExceptions struct {
+type ResourceModelPowerExceptions struct {
 	Serial    jsontypes.String `tfsdk:"serial" json:"serial"`
 	PowerType jsontypes.String `tfsdk:"power_type" json:"powerType"`
 }
 
-func (r *NetworksSwitchSettingsResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *Resource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_networks_switch_settings"
 }
 
-func (r *NetworksSwitchSettingsResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *Resource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "NetworksSwitchSettings resource for updating network switch settings.",
 		Attributes: map[string]schema.Attribute{
@@ -104,7 +104,7 @@ func (r *NetworksSwitchSettingsResource) Schema(ctx context.Context, req resourc
 	}
 }
 
-func (r *NetworksSwitchSettingsResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *Resource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -124,8 +124,8 @@ func (r *NetworksSwitchSettingsResource) Configure(ctx context.Context, req reso
 	r.client = client
 }
 
-func (r *NetworksSwitchSettingsResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *NetworksSwitchSettingsResourceModel
+func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *resourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -190,8 +190,8 @@ func (r *NetworksSwitchSettingsResource) Create(ctx context.Context, req resourc
 	tflog.Trace(ctx, "create resource")
 }
 
-func (r *NetworksSwitchSettingsResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *NetworksSwitchSettingsResourceModel
+func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *resourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -240,9 +240,9 @@ func (r *NetworksSwitchSettingsResource) Read(ctx context.Context, req resource.
 	tflog.Trace(ctx, "read resource")
 }
 
-func (r *NetworksSwitchSettingsResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 
-	var data *NetworksSwitchSettingsResourceModel
+	var data *resourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -307,9 +307,9 @@ func (r *NetworksSwitchSettingsResource) Update(ctx context.Context, req resourc
 	tflog.Trace(ctx, "updated resource")
 }
 
-func (r *NetworksSwitchSettingsResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 
-	var data *NetworksSwitchSettingsResourceModel
+	var data *resourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -375,7 +375,7 @@ func (r *NetworksSwitchSettingsResource) Delete(ctx context.Context, req resourc
 
 }
 
-func (r *NetworksSwitchSettingsResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("network_id"), req.ID)...)

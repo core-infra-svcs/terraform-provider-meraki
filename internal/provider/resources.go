@@ -20,10 +20,10 @@ import (
 	networksApplianceVpn "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/vpn"
 	networksGroupPolicy "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/group/policy"
 	networksSettings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/settings"
-	networksSwitch "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/switch"
 	networksSwitchDscpToCosMappings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/switch/dscp/to/cos/mappings"
 	networksSwitchMtu "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/switch/mtu"
 	networksSwitchQosRules "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/switch/qos/rules"
+	networksSwitchSettings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/switch/settings"
 	networksWireless "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/wireless"
 	networksWirelessSsids "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/wireless/ssid"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations"
@@ -64,7 +64,7 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		networksSwitchDscpToCosMappings.NewResource,
 		networksSwitchMtu.NewResource,
 		networksSwitchQosRules.NewResource,
-		networksSwitch.NewNetworksSwitchSettingsResource,
+		networksSwitchSettings.NewResource,
 
 		networksWireless.NewNetworksWirelessSsidsFirewallL3FirewallRulesResource,
 		networksWireless.NewNetworksWirelessSsidsFirewallL7FirewallRulesResource,
