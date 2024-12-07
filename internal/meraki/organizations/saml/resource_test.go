@@ -1,4 +1,4 @@
-package organizations_test
+package saml_test
 
 import (
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider"

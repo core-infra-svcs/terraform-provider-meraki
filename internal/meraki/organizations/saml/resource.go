@@ -1,4 +1,4 @@
-package organizations
+package saml
 
 import (
 	"context"
@@ -18,29 +18,29 @@ import (
 
 // Ensure provider defined types fully satisfy framework interfaces
 var (
-	_ resource.Resource                = &SamlResource{}
-	_ resource.ResourceWithConfigure   = &SamlResource{}
-	_ resource.ResourceWithImportState = &SamlResource{}
+	_ resource.Resource                = &Resource{}
+	_ resource.ResourceWithConfigure   = &Resource{}
+	_ resource.ResourceWithImportState = &Resource{}
 )
 
-func NewOrganizationSamlResource() resource.Resource {
-	return &SamlResource{}
+func NewResource() resource.Resource {
+	return &Resource{}
 }
 
-type SamlResource struct {
+type Resource struct {
 	client *openApiClient.APIClient
 }
 
-type SamlResourceModel struct {
+type resourceModel struct {
 	Id      jsontypes.String `tfsdk:"id" json:"organizationId"`
 	Enabled jsontypes.Bool   `tfsdk:"enabled"`
 }
 
-func (r *SamlResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *Resource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_organization_saml"
 }
 
-func (r *SamlResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *Resource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description: "Manage the SAML SSO enabled settings for an organization.",
 		Attributes: map[string]schema.Attribute{
@@ -66,7 +66,7 @@ func (r *SamlResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 	}
 }
 
-func (r *SamlResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *Resource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -86,8 +86,8 @@ func (r *SamlResource) Configure(ctx context.Context, req resource.ConfigureRequ
 	r.client = client
 }
 
-func (r *SamlResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *SamlResourceModel
+func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *resourceModel
 
 	// Read Terraform plan data
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -132,8 +132,8 @@ func (r *SamlResource) Create(ctx context.Context, req resource.CreateRequest, r
 	tflog.Trace(ctx, "created resource")
 }
 
-func (r *SamlResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *SamlResourceModel
+func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *resourceModel
 
 	// Read Terraform state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -171,8 +171,8 @@ func (r *SamlResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	tflog.Trace(ctx, "read resource")
 }
 
-func (r *SamlResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data *SamlResourceModel
+func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var data *resourceModel
 
 	// Read Terraform plan data
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -214,8 +214,8 @@ func (r *SamlResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	tflog.Trace(ctx, "updated resource")
 }
 
-func (r *SamlResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data *SamlResourceModel
+func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data *resourceModel
 
 	// Read Terraform state data
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -228,7 +228,7 @@ func (r *SamlResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 
 }
 
-func (r *SamlResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), req.ID)...)
 }
