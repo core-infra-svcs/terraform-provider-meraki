@@ -47,7 +47,9 @@ import (
 	organizationsCellularGatewayUplinkStatuses "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations/cellular/gateway/uplink/statuses"
 	organizationsClaim "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations/claim"
 	organizationsInventoryDevices "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations/inventory/devices"
+	organizationsLicences "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations/licences"
 	organizationsLicencesMove "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations/licences/move"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
@@ -123,7 +125,7 @@ func (p *CiscoMerakiProvider) DataSources(ctx context.Context) []func() datasour
 		networksWirelessSsids.NewDataSource,
 		organizationsAdaptivePolicyAcls.NewDataSource,
 		organizationsAdmins.NewDataSource,
-		organizations.NewOrganizationsLicensesDataSource,
+		organizationsLicences.NewDataSource,
 		organizationsCellularGatewayUplinkStatuses.NewDataSource,
 		organizations.NewOrganizationsDataSource,
 		organizations.NewOrganizationsSamlIdpsDataSource,

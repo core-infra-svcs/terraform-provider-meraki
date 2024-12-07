@@ -1,4 +1,4 @@
-package organizations_test
+package licences_test
 
 import (
 	"fmt"
