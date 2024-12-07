@@ -1,4 +1,4 @@
-package networks
+package snmp
 
 import (
 	"context"
@@ -14,33 +14,33 @@ import (
 	"github.com/meraki/dashboard-api-go/client"
 )
 
-type SnmpResource struct {
+type Resource struct {
 	client *client.APIClient
 }
 
-func NewNetworksSnmpResource() resource.Resource {
-	return &SnmpResource{}
+func NewResource() resource.Resource {
+	return &Resource{}
 }
 
-// SnmpResourceModel describes the resource data model.
-type SnmpResourceModel struct {
-	Id              jsontypes.String                 `tfsdk:"id"`
-	NetworkId       jsontypes.String                 `tfsdk:"network_id" json:"networkId"`
-	Access          jsontypes.String                 `tfsdk:"access" json:"access"`
-	CommunityString jsontypes.String                 `tfsdk:"community_string" json:"communityString"`
-	Users           []NetworksSnmpResourceModelUsers `tfsdk:"users" json:"users"`
+// resourceModel describes the resource data model.
+type resourceModel struct {
+	Id              jsontypes.String     `tfsdk:"id"`
+	NetworkId       jsontypes.String     `tfsdk:"network_id" json:"networkId"`
+	Access          jsontypes.String     `tfsdk:"access" json:"access"`
+	CommunityString jsontypes.String     `tfsdk:"community_string" json:"communityString"`
+	Users           []resourceModelUsers `tfsdk:"users" json:"users"`
 }
 
-type NetworksSnmpResourceModelUsers struct {
+type resourceModelUsers struct {
 	Username   jsontypes.String `tfsdk:"username"`
 	Passphrase jsontypes.String `tfsdk:"passphrase"`
 }
 
-func (r *SnmpResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *Resource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_networks_snmp"
 }
 
-func (r *SnmpResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *Resource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "network snmp settings.",
 		Attributes: map[string]schema.Attribute{
@@ -99,7 +99,7 @@ func (r *SnmpResource) Schema(_ context.Context, _ resource.SchemaRequest, resp 
 	}
 }
 
-func (r *SnmpResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *Resource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -107,8 +107,8 @@ func (r *SnmpResource) Configure(_ context.Context, req resource.ConfigureReques
 	r.client = req.ProviderData.(*client.APIClient)
 }
 
-func (r *SnmpResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan SnmpResourceModel
+func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var plan resourceModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -156,8 +156,8 @@ func (r *SnmpResource) Create(ctx context.Context, req resource.CreateRequest, r
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
-func (r *SnmpResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state SnmpResourceModel
+func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var state resourceModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -195,8 +195,8 @@ func (r *SnmpResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
-func (r *SnmpResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan SnmpResourceModel
+func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan resourceModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -244,8 +244,8 @@ func (r *SnmpResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
-func (r *SnmpResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var state SnmpResourceModel
+func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var state resourceModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -275,7 +275,7 @@ func (r *SnmpResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 	resp.State.RemoveResource(ctx)
 }
 
-func (r *SnmpResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("network_id"), req.ID)...)

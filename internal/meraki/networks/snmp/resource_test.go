@@ -1,4 +1,4 @@
-package networks_test
+package snmp_test
 
 import (
 	"fmt"

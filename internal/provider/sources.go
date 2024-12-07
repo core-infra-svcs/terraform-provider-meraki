@@ -29,6 +29,7 @@ import (
 	networksNetflow "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/netflow"
 	networksNetwork "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/network"
 	networksSettings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/settings"
+	networksSnmp "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/snmp"
 	networksSwitchDscpToCosMappings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/switch/dscp/to/cos/mappings"
 	networksSwitchMtu "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/switch/mtu"
 	networksSwitchQosRules "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/switch/qos/rules"
@@ -55,7 +56,7 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		networksNetflow.NewResource,
 		networksNetwork.NewResource,
 		networksSettings.NewResource,
-		networks.NewNetworksSnmpResource,
+		networksSnmp.NewResource,
 		networks.NewNetworksStormControlResource,
 		networks.NewNetworksSyslogServersResource,
 		networks.NewNetworksTrafficAnalysisResource,
