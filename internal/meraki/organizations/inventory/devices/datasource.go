@@ -1,4 +1,4 @@
-package organizations
+package devices
 
 import (
 	"context"
@@ -14,54 +14,54 @@ import (
 )
 
 // OrganizationsInventoryDevicesDataSource struct. If not, implement them.
-var _ datasource.DataSource = &InventoryDevicesDataSource{}
+var _ datasource.DataSource = &DataSource{}
 
-// The NewOrganizationsInventoryDevicesDataSource function is a constructor for the data source. This function needs
-func NewOrganizationsInventoryDevicesDataSource() datasource.DataSource {
-	return &InventoryDevicesDataSource{}
+// The NewDataSource function is a constructor for the data source. This function needs
+func NewDataSource() datasource.DataSource {
+	return &DataSource{}
 }
 
-// InventoryDevicesDataSource struct defines the structure for this data source.
-type InventoryDevicesDataSource struct {
+// DataSource struct defines the structure for this data source.
+type DataSource struct {
 	client *openApiClient.APIClient
 }
 
-// The InventoryDevicesDataSourceModel structure describes the data model.
-type InventoryDevicesDataSourceModel struct {
-	Id             jsontypes.String                                 `tfsdk:"id"`
-	OrganizationID jsontypes.String                                 `tfsdk:"organization_id"`
-	List           []InventoryDevicesDataSourceModelInventoryDevice `tfsdk:"list"`
+// The DataSourceModel structure describes the data model.
+type DataSourceModel struct {
+	Id             jsontypes.String                 `tfsdk:"id"`
+	OrganizationID jsontypes.String                 `tfsdk:"organization_id"`
+	List           []dataSourceModelInventoryDevice `tfsdk:"list"`
 }
 
-type InventoryDevicesDataSourceModelInventoryDevice struct {
-	Mac               jsontypes.String                                        `tfsdk:"mac" json:"mac"`
-	Serial            jsontypes.String                                        `tfsdk:"serial" json:"serial"`
-	Name              jsontypes.String                                        `tfsdk:"name" json:"name"`
-	Model             jsontypes.String                                        `tfsdk:"model" json:"model"`
-	NetworkId         jsontypes.String                                        `tfsdk:"network_id" json:"networkId"`
-	OrderNumber       jsontypes.String                                        `tfsdk:"order_number" json:"orderNumber"`
-	ClaimedAt         jsontypes.String                                        `tfsdk:"claimed_at" json:"claimedAt"`
-	LicenseExpiryDate jsontypes.String                                        `tfsdk:"license_expiry_date" json:"licenseExpiryDate"`
-	Tags              []jsontypes.String                                      `tfsdk:"tags" json:"tags"`
-	ProductType       jsontypes.String                                        `tfsdk:"product_type" json:"productType"`
-	CountryCode       jsontypes.String                                        `tfsdk:"country_code" json:"countryCode"`
-	Details           []InventoryDevicesDataSourceModelInventoryDeviceDetails `tfsdk:"details" json:"details"`
+type dataSourceModelInventoryDevice struct {
+	Mac               jsontypes.String                        `tfsdk:"mac" json:"mac"`
+	Serial            jsontypes.String                        `tfsdk:"serial" json:"serial"`
+	Name              jsontypes.String                        `tfsdk:"name" json:"name"`
+	Model             jsontypes.String                        `tfsdk:"model" json:"model"`
+	NetworkId         jsontypes.String                        `tfsdk:"network_id" json:"networkId"`
+	OrderNumber       jsontypes.String                        `tfsdk:"order_number" json:"orderNumber"`
+	ClaimedAt         jsontypes.String                        `tfsdk:"claimed_at" json:"claimedAt"`
+	LicenseExpiryDate jsontypes.String                        `tfsdk:"license_expiry_date" json:"licenseExpiryDate"`
+	Tags              []jsontypes.String                      `tfsdk:"tags" json:"tags"`
+	ProductType       jsontypes.String                        `tfsdk:"product_type" json:"productType"`
+	CountryCode       jsontypes.String                        `tfsdk:"country_code" json:"countryCode"`
+	Details           []dataSourceModelInventoryDeviceDetails `tfsdk:"details" json:"details"`
 }
 
-type InventoryDevicesDataSourceModelInventoryDeviceDetails struct {
+type dataSourceModelInventoryDeviceDetails struct {
 	Name  jsontypes.String `tfsdk:"name" json:"name"`
 	Value jsontypes.String `tfsdk:"value" json:"value"`
 }
 
 // Metadata provides a way to define information about the data source.
 // This method is called by the framework to retrieve metadata about the data source.
-func (d *InventoryDevicesDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *DataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_organizations_inventory_devices"
 }
 
 // Schema provides a way to define the structure of the data source data.
 // It is called by the framework to get the schema of the data source.
-func (d *InventoryDevicesDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *DataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 
 	// The Schema object defines the structure of the data source.
 	resp.Schema = schema.Schema{
@@ -178,7 +178,7 @@ func (d *InventoryDevicesDataSource) Schema(ctx context.Context, req datasource.
 
 // Configure is a method of the data source interface that Terraform calls to provide the configured provider instance to the data source.
 // It passes the DataSourceData that's been stored by the provider's ConfigureFunc.
-func (d *InventoryDevicesDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *DataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 
 	// The provider must be properly configured before it can be used.
 	if req.ProviderData == nil {
@@ -203,8 +203,8 @@ func (d *InventoryDevicesDataSource) Configure(ctx context.Context, req datasour
 }
 
 // Read method is responsible for reading an existing data source's state.
-func (d *InventoryDevicesDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data InventoryDevicesDataSourceModel
+func (d *DataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var data DataSourceModel
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
@@ -241,7 +241,7 @@ func (d *InventoryDevicesDataSource) Read(ctx context.Context, req datasource.Re
 	data.Id = jsontypes.StringValue("example-id")
 	for _, inlineRespDevice := range inlineResp {
 
-		var deviceData InventoryDevicesDataSourceModelInventoryDevice
+		var deviceData dataSourceModelInventoryDevice
 
 		deviceData.Mac = jsontypes.StringValue(inlineRespDevice.GetMac())
 		deviceData.Serial = jsontypes.StringValue(inlineRespDevice.GetSerial())

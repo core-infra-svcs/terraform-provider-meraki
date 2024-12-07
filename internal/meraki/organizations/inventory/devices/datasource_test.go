@@ -1,4 +1,4 @@
-package organizations_test
+package devices_test
 
 import (
 	"fmt"
