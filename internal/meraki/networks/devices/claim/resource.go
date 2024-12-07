@@ -1,4 +1,4 @@
-package networks
+package claim
 
 import (
 	"context"
@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -20,30 +19,30 @@ import (
 )
 
 var (
-	_ resource.Resource                = &DevicesClaimResource{}
-	_ resource.ResourceWithImportState = &DevicesClaimResource{}
-	_ resource.ResourceWithConfigure   = &DevicesClaimResource{}
+	_ resource.Resource                = &Resource{}
+	_ resource.ResourceWithImportState = &Resource{}
+	_ resource.ResourceWithConfigure   = &Resource{}
 )
 
-func NewNetworksDevicesClaimResource() resource.Resource {
-	return &DevicesClaimResource{}
+func NewResource() resource.Resource {
+	return &Resource{}
 }
 
-type DevicesClaimResource struct {
+type Resource struct {
 	client *openApiClient.APIClient
 }
 
-type DevicesClaimResourceModel struct {
+type resourceModel struct {
 	Id        types.String `tfsdk:"id"`
 	NetworkId types.String `tfsdk:"network_id"`
 	Serials   types.Set    `tfsdk:"serials"`
 }
 
-func (r *DevicesClaimResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *Resource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_networks_devices_claim"
 }
 
-func (r *DevicesClaimResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *Resource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Claim devices into a network",
 		Attributes: map[string]schema.Attribute{
@@ -67,7 +66,7 @@ func (r *DevicesClaimResource) Schema(ctx context.Context, req resource.SchemaRe
 	}
 }
 
-func (r *DevicesClaimResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *Resource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -84,8 +83,8 @@ func (r *DevicesClaimResource) Configure(ctx context.Context, req resource.Confi
 	r.client = client
 }
 
-func (r *DevicesClaimResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data DevicesClaimResourceModel
+func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data resourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -191,8 +190,8 @@ func (r *DevicesClaimResource) Create(ctx context.Context, req resource.CreateRe
 	})
 }
 
-func (r *DevicesClaimResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data DevicesClaimResourceModel
+func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data resourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -239,9 +238,8 @@ func (r *DevicesClaimResource) Read(ctx context.Context, req resource.ReadReques
 	})
 }
 
-// Update method
-func (r *DevicesClaimResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data, state DevicesClaimResourceModel
+func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var data, state resourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
@@ -294,8 +292,8 @@ func (r *DevicesClaimResource) Update(ctx context.Context, req resource.UpdateRe
 	})
 }
 
-func (r *DevicesClaimResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data DevicesClaimResourceModel
+func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data resourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -320,135 +318,4 @@ func (r *DevicesClaimResource) Delete(ctx context.Context, req resource.DeleteRe
 	tflog.Trace(ctx, "Successfully deleted network devices resource", map[string]interface{}{
 		"network_id": data.NetworkId.ValueString(),
 	})
-}
-
-func handleError(ctx context.Context, err error, httpResp *http.Response, message string, resp *resource.CreateResponse) {
-	resp.Diagnostics.AddError(
-		message,
-		fmt.Sprintf("Could not perform operation, unexpected error: %s", err),
-	)
-	if httpResp != nil {
-		var responseBody string
-		if httpResp.Body != nil {
-			bodyBytes, readErr := io.ReadAll(httpResp.Body)
-			if readErr == nil {
-				responseBody = string(bodyBytes)
-			}
-		}
-		tflog.Error(ctx, "API Request failed", map[string]interface{}{
-			"error":          err.Error(),
-			"httpStatusCode": httpResp.StatusCode,
-			"responseBody":   responseBody,
-		})
-		resp.Diagnostics.AddError(
-			"API Request failed",
-			fmt.Sprintf("HTTP Response: %v\nResponse Body: %s", httpResp, responseBody),
-		)
-	}
-}
-
-// Extracts strings from a given attribute set
-func extractSerials(serials types.Set) []string {
-	var results []string
-	for _, serial := range serials.Elements() {
-		results = append(results, strings.Trim(serial.String(), "\""))
-	}
-
-	return results
-}
-
-// difference returns elements in 'a' that are not in 'b'.
-func difference(a, b []string) []string {
-	bMap := make(map[string]bool)
-	for _, item := range b {
-		bMap[item] = true
-	}
-
-	var diff []string
-	for _, item := range a {
-		if _, found := bMap[item]; !found {
-			diff = append(diff, item)
-		}
-	}
-	return diff
-}
-
-// Handles claiming or removing devices based on the provided action
-func manageDeviceClaims(ctx context.Context, client *openApiClient.APIClient, networkID string, serials []string, isAdd bool, resp *resource.UpdateResponse) error {
-	var httpResp *http.Response
-	var err error
-
-	if isAdd {
-		claimRequest := *openApiClient.NewClaimNetworkDevicesRequest(serials)
-		httpResp, err = client.NetworksApi.ClaimNetworkDevices(ctx, networkID).ClaimNetworkDevicesRequest(claimRequest).Execute()
-	} else {
-		for _, serial := range serials {
-			removeRequest := *openApiClient.NewRemoveNetworkDevicesRequest(serial)
-			httpResp, err = client.NetworksApi.RemoveNetworkDevices(ctx, networkID).RemoveNetworkDevicesRequest(removeRequest).Execute()
-		}
-	}
-
-	if err != nil {
-		resp.Diagnostics.AddError("Error managing devices", err.Error())
-		if httpResp != nil {
-			resp.Diagnostics.AddError("HTTP Response", utils.HttpDiagnostics(httpResp))
-		}
-		return fmt.Errorf("failed to manage devices: %w", err)
-	}
-
-	expectedStatusCode := 200
-	if !isAdd {
-		expectedStatusCode = 204
-	}
-
-	if httpResp.StatusCode != expectedStatusCode {
-		resp.Diagnostics.AddError("Unexpected HTTP Response Status Code", fmt.Sprintf("Expected status code %d but got %v", expectedStatusCode, httpResp.StatusCode))
-		return fmt.Errorf("unexpected status code: %d", httpResp.StatusCode)
-	}
-	return nil
-}
-
-// Handles the API call to remove devices from a network
-func removeDevices(ctx context.Context, client *openApiClient.APIClient, networkID string, serials []string, resp *resource.DeleteResponse) error {
-
-	for _, serial := range serials {
-		removeNetworkDevices := *openApiClient.NewRemoveNetworkDevicesRequest(serial)
-		httpResp, err := client.NetworksApi.RemoveNetworkDevices(ctx, networkID).RemoveNetworkDevicesRequest(removeNetworkDevices).Execute()
-		if err != nil {
-			resp.Diagnostics.AddError("Error removing devices", err.Error())
-			return fmt.Errorf("failed to remove devices: %w", err)
-		}
-
-		if httpResp.StatusCode != 204 {
-			resp.Diagnostics.AddError("Unexpected HTTP Response Status Code", fmt.Sprintf("Expected 204 but received %d", httpResp.StatusCode))
-			return fmt.Errorf("unexpected status code: %d", httpResp.StatusCode)
-		}
-
-	}
-	return nil
-}
-
-func mergeSerials(planSerials []string, serialsToAdd []string) []string {
-	// Create a map to keep track of the existing serials in planSerials
-	serialMap := make(map[string]bool)
-	for _, serial := range planSerials {
-		serialMap[serial] = true
-	}
-
-	// Add only the unique serials from serialsToAdd
-	for _, serial := range serialsToAdd {
-		if !serialMap[serial] {
-			planSerials = append(planSerials, serial)
-			serialMap[serial] = true
-		}
-	}
-
-	return planSerials
-}
-
-func (r *DevicesClaimResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("network_id"), req, resp)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 }

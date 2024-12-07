@@ -13,7 +13,7 @@ var (
 	_ resource.ResourceWithImportState = &Resource{}
 )
 
-func NewDevicesCellularSimsResource() resource.Resource {
+func NewResource() resource.Resource {
 	return &Resource{}
 }
 

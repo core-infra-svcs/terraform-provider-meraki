@@ -2,10 +2,14 @@ package provider
 
 import (
 	"context"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/administered"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices"
 	devicesCellular "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices/cellular"
 	devicesDevice "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices/device"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices/dhcp/subnets"
 	devicesManagementInterface "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices/management/interface"
 	devicesSwitchPort "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices/switch/port"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices/switch/ports"
 	devicesSwitchPortsCycle "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices/switch/ports/cycle"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks"
 	networksApplianceFirewallL3Rules "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/firewall/l3/firewall/rules"
@@ -20,6 +24,7 @@ import (
 	networksApplianceVpn "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/vpn"
 	networksCellularGatewaySubnetPool "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/cellular/gateway/subnet/pool"
 	networksCellularGatewayUplink "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/cellular/gateway/uplink"
+	networksDevicesClaim "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/devices/claim"
 	networksGroupPolicy "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/group/policy"
 	networksSettings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/settings"
 	networksSwitchDscpToCosMappings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/switch/dscp/to/cos/mappings"
@@ -31,21 +36,21 @@ import (
 	networksWirelessSsidsFirewallL7FirewallRules "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/wireless/ssids/firewall/l7/firewall/rules"
 	networksWirelessSsidsSplashSettings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/wireless/ssids/splash/settings"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
 func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
-		devicesCellular.NewDevicesCellularSimsResource,
-		devicesDevice.NewDevicesResource,
-		devicesSwitchPort.NewDevicesSwitchPortResource,
-		devicesSwitchPortsCycle.NewDevicesSwitchPortsCycleResource,
-		devicesManagementInterface.NewManagementInterfaceResource,
-
+		devicesCellular.NewResource,
+		devicesDevice.NewResource,
+		devicesSwitchPort.NewResource,
+		devicesSwitchPortsCycle.NewResource,
+		devicesManagementInterface.NewResource,
 		networksCellularGatewaySubnetPool.NewResource,
 		networksCellularGatewayUplink.NewResource,
-		networks.NewNetworksDevicesClaimResource,
-		networks.NewNetworksNetflowResource,
+		networksDevicesClaim.NewResource,
+		networks.NewResource,
 		networks.NewNetworkResource,
 		networksSettings.NewResource,
 		networks.NewNetworksSnmpResource,
@@ -53,7 +58,6 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		networks.NewNetworksSyslogServersResource,
 		networks.NewNetworksTrafficAnalysisResource,
 		networksGroupPolicy.NewResource,
-
 		networksAppliancePorts.NewNetworksAppliancePortsResource,
 		networksApplianceSettings.NewNetworksApplianceSettingsResource,
 		networksApplianceStaticRoutes.NewNetworkApplianceStaticRoutesResource,
@@ -64,17 +68,14 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		networksApplianceFirewallSettings.NewNetworksApplianceFirewallSettingsResource,
 		networksApplianceVlansVlan.NewNetworksApplianceVLANResource,
 		networksApplianceVlansSettings.NewNetworksApplianceVlansSettingsResource,
-
 		networksSwitchDscpToCosMappings.NewResource,
 		networksSwitchMtu.NewResource,
 		networksSwitchQosRules.NewResource,
 		networksSwitchSettings.NewResource,
-
 		networksWirelessSsidsFirewallL3FirewallRules.NewResource,
 		networksWirelessSsidsFirewallL7FirewallRules.NewResource,
 		networksWirelessSsidsSplashSettings.NewResource,
 		networksWirelessSsids.NewResource,
-
 		organizations.NewAdaptivePolicyAclResource,
 		organizations.NewOrganizationsAdminResource,
 		organizations.NewOrganizationsApplianceVpnVpnFirewallRulesResource,
@@ -86,5 +87,36 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		organizations.NewOrganizationsSnmpResource,
 		organizations.NewOrganizationResource,
 		organizations.NewOrganizationPolicyObjectResource,
+	}
+}
+
+func (p *CiscoMerakiProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
+	return []func() datasource.DataSource{
+		administered.NewAdministeredIdentitiesMeDataSource,
+
+		devices.NewNetworkDevicesDataSource,
+		devicesManagementInterface.NewDevicesManagementInterfaceDataSource,
+		ports.NewDevicesSwitchPortsStatusesDataSource,
+		subnets.NewDevicesApplianceDhcpSubnetsDataSource,
+		networksGroupPolicy.NewDataSource,
+		networks.NewNetworksSwitchStormControlDataSource,
+		networksAppliancePorts.NewNetworksAppliancePortsDataSource,
+		networksApplianceVlansVlan.NewNetworksApplianceVLANsDatasource,
+		networksApplianceVlansSettings.NewNetworksApplianceVlansSettingsDatasource,
+		networksApplianceVpn.NewNetworksApplianceVpnSiteToSiteVpnDatasource,
+		networksApplianceFirewallL3Rules.NewNetworksApplianceFirewallL3FirewallRulesDataSource,
+		//networksApplianceFirewallL3Rules.NewNetworksApplianceFirewallL7FirewallRulesDataSource,
+		networksSwitchMtu.NewDataSource,
+		networksSwitchQosRules.NewDataSource,
+		networksWirelessSsids.NewDataSource,
+		organizations.NewOrganizationsAdaptivePolicyAclsDataSource,
+		organizations.NewOrganizationsAdminsDataSource,
+		organizations.NewOrganizationsLicensesDataSource,
+		organizations.NewOrganizationsCellularGatewayUplinkStatusesDataSource,
+		organizations.NewOrganizationsDataSource,
+		organizations.NewOrganizationsSamlIdpsDataSource,
+		organizations.NewOrganizationsSamlRolesDataSource,
+		organizations.NewOrganizationsInventoryDevicesDataSource,
+		organizations.NewOrganizationsNetworksDataSource,
 	}
 }

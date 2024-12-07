@@ -22,7 +22,7 @@ var (
 	_ resource.ResourceWithImportState = &ManagementInterfaceResource{}
 )
 
-func NewManagementInterfaceResource() resource.Resource {
+func NewResource() resource.Resource {
 	return &ManagementInterfaceResource{}
 }
 

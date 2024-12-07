@@ -15,7 +15,7 @@ var (
 	_ resource.ResourceWithImportState = &Resource{} // Interface for resources with import state functionality
 )
 
-func NewDevicesResource() resource.Resource {
+func NewResource() resource.Resource {
 	return &Resource{}
 }
 

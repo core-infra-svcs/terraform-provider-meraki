@@ -18,7 +18,7 @@ var (
 	_ resource.ResourceWithConfigure = &PortsCycleResource{}
 )
 
-func NewDevicesSwitchPortsCycleResource() resource.Resource {
+func NewResource() resource.Resource {
 	return &PortsCycleResource{}
 }
 

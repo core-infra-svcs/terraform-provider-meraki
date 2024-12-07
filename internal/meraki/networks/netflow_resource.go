@@ -21,7 +21,7 @@ import (
 var _ resource.Resource = &NetflowResource{}
 var _ resource.ResourceWithImportState = &NetflowResource{}
 
-func NewNetworksNetflowResource() resource.Resource {
+func NewResource() resource.Resource {
 	return &NetflowResource{}
 }
 

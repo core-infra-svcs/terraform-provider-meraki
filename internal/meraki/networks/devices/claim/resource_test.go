@@ -1,4 +1,4 @@
-package networks_test
+package claim_test
 
 import (
 	"fmt"
