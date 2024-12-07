@@ -1,4 +1,4 @@
-package organizations
+package organization
 
 import (
 	"context"
@@ -20,22 +20,22 @@ import (
 
 // Ensure provider defined types fully satisfy framework interfaces
 var (
-	_ resource.Resource                = &OrganizationResource{}
-	_ resource.ResourceWithConfigure   = &OrganizationResource{}
-	_ resource.ResourceWithImportState = &OrganizationResource{}
+	_ resource.Resource                = &Resource{}
+	_ resource.ResourceWithConfigure   = &Resource{}
+	_ resource.ResourceWithImportState = &Resource{}
 )
 
-func NewOrganizationResource() resource.Resource {
-	return &OrganizationResource{}
+func NewResource() resource.Resource {
+	return &Resource{}
 }
 
-// OrganizationResource defines the resource implementation.
-type OrganizationResource struct {
+// Resource defines the resource implementation.
+type Resource struct {
 	client *openApiClient.APIClient
 }
 
-// OrganizationResourceModel describes the resource data model.
-type OrganizationResourceModel struct {
+// resourceModel describes the resource data model.
+type resourceModel struct {
 	Id                     jsontypes.String `tfsdk:"id"`
 	ApiEnabled             jsontypes.Bool   `tfsdk:"api_enabled"`
 	CloudRegionName        jsontypes.String `tfsdk:"cloud_region_name"`
@@ -48,11 +48,11 @@ type OrganizationResourceModel struct {
 	OrgToClone             jsontypes.String `tfsdk:"clone_organization_id"`
 }
 
-func (r *OrganizationResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *Resource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_organization"
 }
 
-func (r *OrganizationResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *Resource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manage the organizations that the user has privileges on",
 
@@ -128,7 +128,7 @@ func (r *OrganizationResource) Schema(ctx context.Context, req resource.SchemaRe
 	}
 }
 
-func (r *OrganizationResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *Resource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -147,8 +147,8 @@ func (r *OrganizationResource) Configure(ctx context.Context, req resource.Confi
 	r.client = client
 }
 
-func (r *OrganizationResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *OrganizationResourceModel
+func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *resourceModel
 
 	// Read Terraform plan data
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -243,8 +243,8 @@ func (r *OrganizationResource) Create(ctx context.Context, req resource.CreateRe
 	tflog.Trace(ctx, "created resource")
 }
 
-func (r *OrganizationResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *OrganizationResourceModel
+func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *resourceModel
 
 	// Read Terraform state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -311,8 +311,8 @@ func (r *OrganizationResource) Read(ctx context.Context, req resource.ReadReques
 	tflog.Trace(ctx, "read resource")
 }
 
-func (r *OrganizationResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data *OrganizationResourceModel
+func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var data *resourceModel
 
 	// Read Terraform plan data
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -399,8 +399,8 @@ func (r *OrganizationResource) Update(ctx context.Context, req resource.UpdateRe
 	tflog.Trace(ctx, "updated resource")
 }
 
-func (r *OrganizationResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data *OrganizationResourceModel
+func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data *resourceModel
 
 	// Read Terraform state data
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -436,7 +436,7 @@ func (r *OrganizationResource) Delete(ctx context.Context, req resource.DeleteRe
 
 }
 
-func (r *OrganizationResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("organization_id"), req.ID)...)
 }
