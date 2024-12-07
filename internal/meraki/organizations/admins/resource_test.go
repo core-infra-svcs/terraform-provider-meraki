@@ -1,4 +1,4 @@
-package organizations_test
+package admins_test
 
 import (
 	"fmt"

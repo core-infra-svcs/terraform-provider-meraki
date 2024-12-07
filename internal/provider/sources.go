@@ -42,6 +42,7 @@ import (
 	networksWirelessSsidsSplashSettings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/wireless/ssids/splash/settings"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations"
 	organizationsAdaptivePolicyAcls "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations/adaptive/policy/acls"
+	organizationsAdmins "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations/admins"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
@@ -83,7 +84,7 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		networksWirelessSsidsSplashSettings.NewResource,
 		networksWirelessSsids.NewResource,
 		organizationsAdaptivePolicyAcls.NewResource,
-		organizations.NewOrganizationsAdminResource,
+		organizationsAdmins.NewResource,
 		organizations.NewOrganizationsApplianceVpnVpnFirewallRulesResource,
 		organizations.NewOrganizationsClaimResource,
 		organizations.NewOrganizationsLicenseResource,
@@ -116,7 +117,7 @@ func (p *CiscoMerakiProvider) DataSources(ctx context.Context) []func() datasour
 		networksSwitchQosRules.NewDataSource,
 		networksWirelessSsids.NewDataSource,
 		organizationsAdaptivePolicyAcls.NewDataSource,
-		organizations.NewOrganizationsAdminsDataSource,
+		organizationsAdmins.NewDataSource,
 		organizations.NewOrganizationsLicensesDataSource,
 		organizations.NewOrganizationsCellularGatewayUplinkStatusesDataSource,
 		organizations.NewOrganizationsDataSource,

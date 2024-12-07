@@ -1,4 +1,4 @@
-package organizations
+package admins
 
 import (
 	"context"
@@ -21,51 +21,21 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ datasource.DataSource = &AdminsDataSource{}
+var _ datasource.DataSource = &DataSource{}
 
-func NewOrganizationsAdminsDataSource() datasource.DataSource {
-	return &AdminsDataSource{}
+func NewDataSource() datasource.DataSource {
+	return &DataSource{}
 }
 
-type AdminsDataSource struct {
+type DataSource struct {
 	client *openApiClient.APIClient
 }
 
-type AdminsDataSourceModel struct {
-	Id             types.String                `tfsdk:"id" json:"-"`
-	OrganizationId types.String                `tfsdk:"organization_id" json:"organizationId"`
-	List           []AdminsDataSourceModelList `tfsdk:"list"`
-}
-
-type AdminsDataSourceModelList struct {
-	Id                   jsontypes.String                `tfsdk:"id" json:"id"`
-	Name                 jsontypes.String                `tfsdk:"name"`
-	Email                jsontypes.String                `tfsdk:"email"`
-	OrgAccess            jsontypes.String                `tfsdk:"org_access" json:"orgAccess"`
-	AccountStatus        jsontypes.String                `tfsdk:"account_status" json:"accountStatus"`
-	TwoFactorAuthEnabled jsontypes.Bool                  `tfsdk:"two_factor_auth_enabled" json:"twoFactorAuthEnabled"`
-	HasApiKey            jsontypes.Bool                  `tfsdk:"has_api_key" json:"hasApiKey"`
-	LastActive           jsontypes.String                `tfsdk:"last_active" json:"lastActive"`
-	Tags                 []AdminsDataSourceModelTags     `tfsdk:"tags"`
-	Networks             []AdminsDataSourceModelNetworks `tfsdk:"networks"`
-	AuthenticationMethod jsontypes.String                `tfsdk:"authentication_method" json:"authenticationMethod"`
-}
-
-type AdminsDataSourceModelNetworks struct {
-	Id     jsontypes.String `tfsdk:"id"`
-	Access jsontypes.String `tfsdk:"access"`
-}
-
-type AdminsDataSourceModelTags struct {
-	Tag    jsontypes.String `tfsdk:"tag"`
-	Access jsontypes.String `tfsdk:"access"`
-}
-
-func (d *AdminsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *DataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_organizations_admins"
 }
 
-func (d *AdminsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *DataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Ports the dashboard administrators in this organization",
 
@@ -178,7 +148,7 @@ func (d *AdminsDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 	}
 }
 
-func (d *AdminsDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *DataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -197,8 +167,8 @@ func (d *AdminsDataSource) Configure(ctx context.Context, req datasource.Configu
 	d.client = client
 }
 
-func (d *AdminsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data AdminsDataSourceModel
+func (d *DataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var data dataSourceModel
 	var diags diag.Diagnostics
 
 	// Read Terraform configuration data into the model

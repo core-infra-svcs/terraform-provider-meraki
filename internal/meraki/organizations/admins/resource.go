@@ -1,4 +1,4 @@
-package organizations
+package admins
 
 import (
 	"context"
@@ -25,50 +25,24 @@ import (
 
 // Ensure provider defined types fully satisfy framework interfaces
 var (
-	_ resource.Resource                = &AdminResource{}
-	_ resource.ResourceWithConfigure   = &AdminResource{}
-	_ resource.ResourceWithImportState = &AdminResource{}
+	_ resource.Resource                = &Resource{}
+	_ resource.ResourceWithConfigure   = &Resource{}
+	_ resource.ResourceWithImportState = &Resource{}
 )
 
-func NewOrganizationsAdminResource() resource.Resource {
-	return &AdminResource{}
+func NewResource() resource.Resource {
+	return &Resource{}
 }
 
-type AdminResource struct {
+type Resource struct {
 	client *openApiClient.APIClient
 }
 
-type AdminResourceModel struct {
-	Id                   jsontypes.String            `tfsdk:"id"`
-	OrgId                jsontypes.String            `tfsdk:"organization_id" json:"organizationId"`
-	AdminId              jsontypes.String            `tfsdk:"admin_id" json:"id"`
-	Name                 jsontypes.String            `tfsdk:"name"`
-	Email                jsontypes.String            `tfsdk:"email"`
-	OrgAccess            jsontypes.String            `tfsdk:"org_access" json:"orgAccess"`
-	AccountStatus        jsontypes.String            `tfsdk:"account_status" json:"accountStatus"`
-	TwoFactorAuthEnabled jsontypes.Bool              `tfsdk:"two_factor_auth_enabled" json:"twoFactorAuthEnabled"`
-	HasApiKey            jsontypes.Bool              `tfsdk:"has_api_key" json:"hasApiKey"`
-	LastActive           jsontypes.String            `tfsdk:"last_active" json:"lastActive"`
-	Tags                 []AdminResourceModelTag     `tfsdk:"tags" json:"tags"`
-	Networks             []AdminResourceModelNetwork `tfsdk:"networks" json:"networks"`
-	AuthenticationMethod jsontypes.String            `tfsdk:"authentication_method" json:"authenticationMethod"`
-}
-
-type AdminResourceModelTag struct {
-	Tag    jsontypes.String `tfsdk:"tag" json:"tag"`
-	Access jsontypes.String `tfsdk:"access" json:"access"`
-}
-
-type AdminResourceModelNetwork struct {
-	Id     jsontypes.String `tfsdk:"id" json:"id"`
-	Access jsontypes.String `tfsdk:"access" json:"access"`
-}
-
-func (r *AdminResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *Resource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_organizations_admin"
 }
 
-func (r *AdminResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *Resource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manage the dashboard administrators in this organization",
 		Attributes: map[string]schema.Attribute{
@@ -204,7 +178,7 @@ func (r *AdminResource) Schema(ctx context.Context, req resource.SchemaRequest, 
 	}
 }
 
-func (r *AdminResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *Resource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -214,7 +188,7 @@ func (r *AdminResource) Configure(ctx context.Context, req resource.ConfigureReq
 
 	if !ok {
 		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
+			"Unexpected NewResource Configure Type",
 			fmt.Sprintf("Expected *http.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 
@@ -224,8 +198,8 @@ func (r *AdminResource) Configure(ctx context.Context, req resource.ConfigureReq
 	r.client = client
 }
 
-func (r *AdminResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *AdminResourceModel
+func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *resourceModel
 	var diags diag.Diagnostics
 
 	// Read Terraform plan data into the model
@@ -341,8 +315,8 @@ func (r *AdminResource) Create(ctx context.Context, req resource.CreateRequest, 
 
 }
 
-func (r *AdminResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *AdminResourceModel
+func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *resourceModel
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
@@ -392,14 +366,14 @@ func (r *AdminResource) Read(ctx context.Context, req resource.ReadRequest, resp
 	}
 
 	// Iterate through the resultSlice directly since it is already of the expected type
-	var foundAdmin *AdminResourceModel
+	var foundAdmin *resourceModel
 	for _, admin := range resultSlice {
 		if admin.GetId() == data.AdminId.ValueString() {
 
 			// tags
-			var tags []AdminResourceModelTag
+			var tags []resourceModelTag
 			for _, t := range admin.GetTags() {
-				var tag AdminResourceModelTag
+				var tag resourceModelTag
 				tag.Tag = jsontypes.StringValue(t.GetTag())
 				tag.Access = jsontypes.StringValue(t.GetAccess())
 
@@ -407,15 +381,15 @@ func (r *AdminResource) Read(ctx context.Context, req resource.ReadRequest, resp
 			}
 
 			// networks
-			var networks []AdminResourceModelNetwork
+			var networks []resourceModelNetwork
 			for _, n := range admin.GetNetworks() {
-				var network AdminResourceModelNetwork
+				var network resourceModelNetwork
 				network.Id = jsontypes.StringValue(n.GetId())
 				network.Access = jsontypes.StringValue(n.GetAccess())
 				networks = append(networks, network)
 			}
 
-			foundAdmin = &AdminResourceModel{
+			foundAdmin = &resourceModel{
 				Id:                   jsontypes.StringValue(fmt.Sprintf("%s,%s", data.OrgId.ValueString(), data.AdminId.ValueString())),
 				OrgId:                data.OrgId,
 				AdminId:              jsontypes.StringValue(admin.GetId()),
@@ -447,8 +421,8 @@ func (r *AdminResource) Read(ctx context.Context, req resource.ReadRequest, resp
 	resp.Diagnostics.Append(resp.State.Set(ctx, foundAdmin)...)
 }
 
-func (r *AdminResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data *AdminResourceModel
+func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var data *resourceModel
 	var diags diag.Diagnostics
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -558,8 +532,8 @@ func (r *AdminResource) Update(ctx context.Context, req resource.UpdateRequest, 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func (r *AdminResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data *AdminResourceModel
+func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data *resourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -604,7 +578,7 @@ func (r *AdminResource) Delete(ctx context.Context, req resource.DeleteRequest, 
 	}
 }
 
-func (r *AdminResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 	idParts := strings.Split(req.ID, ",")
 	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
