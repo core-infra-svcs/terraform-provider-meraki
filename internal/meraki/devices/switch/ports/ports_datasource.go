@@ -16,7 +16,7 @@ import (
 
 var _ datasource.DataSource = &DevicesSwitchPortsStatusesDataSource{}
 
-func NewDevicesSwitchPortsStatusesDataSource() datasource.DataSource {
+func NewDataSource() datasource.DataSource {
 	return &DevicesSwitchPortsStatusesDataSource{}
 }
 

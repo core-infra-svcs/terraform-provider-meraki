@@ -16,7 +16,7 @@ var _ resource.Resource = &Resource{}
 var _ resource.ResourceWithConfigure = &Resource{}
 var _ resource.ResourceWithImportState = &Resource{}
 
-func NewNetworksApplianceVpnSiteToSiteVpnResource() resource.Resource {
+func NewResource() resource.Resource {
 	return &Resource{}
 }
 

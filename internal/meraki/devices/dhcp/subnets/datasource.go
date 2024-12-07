@@ -13,8 +13,8 @@ type ApplianceDhcpSubnetsDataSource struct {
 	client *openApiClient.APIClient
 }
 
-// NewDevicesApplianceDhcpSubnetsDataSource initializes the data source.
-func NewDevicesApplianceDhcpSubnetsDataSource() datasource.DataSource {
+// NewDataSource initializes the data source.
+func NewDataSource() datasource.DataSource {
 	return &ApplianceDhcpSubnetsDataSource{}
 }
 
