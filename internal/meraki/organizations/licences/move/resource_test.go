@@ -1,4 +1,4 @@
-package organizations_test
+package move_test
 
 /* TODO - Get a Valid License to Move
 import (

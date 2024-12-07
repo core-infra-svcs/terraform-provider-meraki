@@ -47,6 +47,7 @@ import (
 	organizationsCellularGatewayUplinkStatuses "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations/cellular/gateway/uplink/statuses"
 	organizationsClaim "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations/claim"
 	organizationsInventoryDevices "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations/inventory/devices"
+	organizationsLicencesMove "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations/licences/move"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
@@ -91,7 +92,7 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		organizationsAdmins.NewResource,
 		organizationsApplianceVpnFirewallRules.NewResource,
 		organizationsClaim.NewResource,
-		organizations.NewOrganizationsLicenseResource,
+		organizationsLicencesMove.NewResource,
 		organizations.NewOrganizationsSamlIdpResource,
 		organizations.NewOrganizationSamlResource,
 		organizations.NewOrganizationsSamlRolesResource,
