@@ -1,4 +1,4 @@
-package networks
+package analysis
 
 import (
 	"context"
@@ -18,35 +18,35 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ resource.Resource = &TrafficAnalysisResource{}
-var _ resource.ResourceWithImportState = &TrafficAnalysisResource{}
+var _ resource.Resource = &Resource{}
+var _ resource.ResourceWithImportState = &Resource{}
 
-func NewNetworksTrafficAnalysisResource() resource.Resource {
-	return &TrafficAnalysisResource{}
+func NewResource() resource.Resource {
+	return &Resource{}
 }
 
-type TrafficAnalysisResource struct {
+type Resource struct {
 	client *openApiClient.APIClient
 }
 
-type TrafficAnalysisResourceModel struct {
-	Id                  jsontypes.String                                  `tfsdk:"id"`
-	NetworkId           jsontypes.String                                  `tfsdk:"network_id" json:"network_id"`
-	Mode                jsontypes.String                                  `tfsdk:"mode" json:"mode"`
-	CustomPieChartItems []TrafficAnalysisResourceModelCustomPieChartItems `tfsdk:"custom_pie_chart_items" json:"customPieChartItems"`
+type resourceModel struct {
+	Id                  jsontypes.String                   `tfsdk:"id"`
+	NetworkId           jsontypes.String                   `tfsdk:"network_id" json:"network_id"`
+	Mode                jsontypes.String                   `tfsdk:"mode" json:"mode"`
+	CustomPieChartItems []resourceModelCustomPieChartItems `tfsdk:"custom_pie_chart_items" json:"customPieChartItems"`
 }
 
-type TrafficAnalysisResourceModelCustomPieChartItems struct {
+type resourceModelCustomPieChartItems struct {
 	Name  jsontypes.String `tfsdk:"name" json:"name"`
 	Type  jsontypes.String `tfsdk:"type" json:"type"`
 	Value jsontypes.String `tfsdk:"value" json:"value"`
 }
 
-func (r *TrafficAnalysisResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *Resource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_networks_traffic_analysis"
 }
 
-func (r *TrafficAnalysisResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *Resource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "NetworksTrafficAnalysis resource for updating networks traffic analysis.",
 		Attributes: map[string]schema.Attribute{
@@ -110,7 +110,7 @@ func (r *TrafficAnalysisResource) Schema(ctx context.Context, req resource.Schem
 	}
 }
 
-func (r *TrafficAnalysisResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *Resource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -130,8 +130,8 @@ func (r *TrafficAnalysisResource) Configure(ctx context.Context, req resource.Co
 	r.client = client
 }
 
-func (r *TrafficAnalysisResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *TrafficAnalysisResourceModel
+func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *resourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -198,8 +198,8 @@ func (r *TrafficAnalysisResource) Create(ctx context.Context, req resource.Creat
 	tflog.Trace(ctx, "create resource")
 }
 
-func (r *TrafficAnalysisResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *TrafficAnalysisResourceModel
+func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *resourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -249,9 +249,9 @@ func (r *TrafficAnalysisResource) Read(ctx context.Context, req resource.ReadReq
 	tflog.Trace(ctx, "read resource")
 }
 
-func (r *TrafficAnalysisResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 
-	var data *TrafficAnalysisResourceModel
+	var data *resourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -317,9 +317,9 @@ func (r *TrafficAnalysisResource) Update(ctx context.Context, req resource.Updat
 	tflog.Trace(ctx, "update resource")
 }
 
-func (r *TrafficAnalysisResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 
-	var data *TrafficAnalysisResourceModel
+	var data *resourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -362,7 +362,7 @@ func (r *TrafficAnalysisResource) Delete(ctx context.Context, req resource.Delet
 
 }
 
-func (r *TrafficAnalysisResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("network_id"), req.ID)...)

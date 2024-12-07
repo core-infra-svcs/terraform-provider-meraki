@@ -11,7 +11,6 @@ import (
 	devicesSwitchPort "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices/switch/port"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices/switch/ports"
 	devicesSwitchPortsCycle "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices/switch/ports/cycle"
-	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks"
 	networksApplianceFirewallL3Rules "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/firewall/l3/firewall/rules"
 	networksApplianceFirewallL7Rules "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/firewall/l7/firewall/rules"
 	networksApplianceFirewallSettings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/firewall/settings"
@@ -36,6 +35,7 @@ import (
 	networksSwitchQosRules "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/switch/qos/rules"
 	networksSwitchSettings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/switch/settings"
 	networksSyslogServers "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/syslog/servers"
+	networksTrafficAnalysis "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/traffic/analysis"
 	networksWirelessSsids "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/wireless/ssid"
 	networksWirelessSsidsFirewallL3FirewallRules "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/wireless/ssids/firewall/l3/firewall/rules"
 	networksWirelessSsidsFirewallL7FirewallRules "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/wireless/ssids/firewall/l7/firewall/rules"
@@ -61,7 +61,7 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		networksSnmp.NewResource,
 		networksStormControl.NewResource,
 		networksSyslogServers.NewResource,
-		networks.NewNetworksTrafficAnalysisResource,
+		networksTrafficAnalysis.NewResource,
 		networksGroupPolicy.NewResource,
 		networksAppliancePorts.NewNetworksAppliancePortsResource,
 		networksApplianceSettings.NewNetworksApplianceSettingsResource,
