@@ -14,7 +14,7 @@ import (
 // Ensure provider defined types fully satisfy framework interfaces
 var _ datasource.DataSource = &DataSource{}
 
-func NewNetworksApplianceFirewallL3FirewallRulesDataSource() datasource.DataSource {
+func NewDataSource() datasource.DataSource {
 	return &DataSource{}
 }
 

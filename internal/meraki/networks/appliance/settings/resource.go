@@ -20,7 +20,7 @@ import (
 var _ resource.Resource = &Resource{}
 var _ resource.ResourceWithImportState = &Resource{}
 
-func NewNetworksApplianceSettingsResource() resource.Resource {
+func NewResource() resource.Resource {
 	return &Resource{}
 }
 

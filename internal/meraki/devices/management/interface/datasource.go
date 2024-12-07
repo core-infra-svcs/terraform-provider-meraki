@@ -15,8 +15,8 @@ import (
 // Ensure the provider-defined types fully satisfy the framework interfaces
 var _ datasource.DataSource = &ManagementInterfaceDataSource{}
 
-// NewDevicesManagementInterfaceDataSource initializes a new Management Interface data source.
-func NewDevicesManagementInterfaceDataSource() datasource.DataSource {
+// NewDataSource initializes a new Management Interface data source.
+func NewDataSource() datasource.DataSource {
 	return &ManagementInterfaceDataSource{}
 }
 

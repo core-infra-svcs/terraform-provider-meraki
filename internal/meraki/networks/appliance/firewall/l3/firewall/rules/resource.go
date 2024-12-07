@@ -16,7 +16,7 @@ import (
 var _ resource.Resource = &Resource{}
 var _ resource.ResourceWithImportState = &Resource{}
 
-func NewNetworksApplianceFirewallL3FirewallRulesResource() resource.Resource {
+func NewResource() resource.Resource {
 	return &Resource{}
 }
 

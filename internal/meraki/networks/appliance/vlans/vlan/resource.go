@@ -16,7 +16,7 @@ var (
 	_ resource.ResourceWithImportState = &Resource{}
 )
 
-func NewNetworksApplianceVLANResource() resource.Resource {
+func NewResource() resource.Resource {
 	return &Resource{}
 }
 

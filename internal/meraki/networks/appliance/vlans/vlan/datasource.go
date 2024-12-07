@@ -16,7 +16,7 @@ import (
 // Ensure provider defined types fully satisfy framework interfaces
 var _ datasource.DataSource = &Datasource{}
 
-func NewNetworksApplianceVLANsDatasource() datasource.DataSource {
+func NewNDatasource() datasource.DataSource {
 	return &Datasource{}
 }
 

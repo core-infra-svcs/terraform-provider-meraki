@@ -13,8 +13,8 @@ import (
 // Ensure provider-defined types fully satisfy framework interfaces
 var _ datasource.DataSource = &DataSource{}
 
-// NewAdministeredIdentitiesMeDataSource initializes a new Administered Identities Me data source.
-func NewAdministeredIdentitiesMeDataSource() datasource.DataSource {
+// NewDataSource initializes a new Administered Identities Me data source.
+func NewDataSource() datasource.DataSource {
 	return &DataSource{}
 }
 

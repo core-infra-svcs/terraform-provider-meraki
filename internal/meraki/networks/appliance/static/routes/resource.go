@@ -27,7 +27,7 @@ var (
 	_ resource.ResourceWithImportState = &Resource{}
 )
 
-func NewNetworkApplianceStaticRoutesResource() resource.Resource {
+func NewResource() resource.Resource {
 	return &Resource{}
 }
 
