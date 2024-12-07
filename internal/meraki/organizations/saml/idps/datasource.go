@@ -1,4 +1,4 @@
-package organizations
+package idps
 
 import (
 	"context"
@@ -17,34 +17,34 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ datasource.DataSource = &SamlIdpsDataSource{}
+var _ datasource.DataSource = &DataSource{}
 
-func NewOrganizationsSamlIdpsDataSource() datasource.DataSource {
-	return &SamlIdpsDataSource{}
+func NewDataSource() datasource.DataSource {
+	return &DataSource{}
 }
 
-type SamlIdpsDataSource struct {
+type DataSource struct {
 	client *openApiClient.APIClient
 }
 
-type SamlIdpsDataSourceModel struct {
-	Id             types.String                  `tfsdk:"id"`
-	OrganizationId jsontypes.String              `tfsdk:"organization_id"`
-	List           []SamlIdpsDataSourceModelList `tfsdk:"list"`
+type dataSourceModel struct {
+	Id             types.String          `tfsdk:"id"`
+	OrganizationId jsontypes.String      `tfsdk:"organization_id"`
+	List           []dataSourceModelList `tfsdk:"list"`
 }
 
-type SamlIdpsDataSourceModelList struct {
+type dataSourceModelList struct {
 	ConsumerUrl             jsontypes.String `tfsdk:"consumer_url"`
 	IdpId                   jsontypes.String `tfsdk:"idp_id"`
 	SloLogOutUrl            jsontypes.String `tfsdk:"slo_logout_url"`
 	X509CertSha1FingerPrint jsontypes.String `tfsdk:"x_509_cert_sha1_fingerprint"`
 }
 
-func (d *SamlIdpsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *DataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_organizations_saml_idps"
 }
 
-func (d *SamlIdpsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *DataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Ports the SAML IdPs in your organization.",
 
@@ -94,7 +94,7 @@ func (d *SamlIdpsDataSource) Schema(ctx context.Context, req datasource.SchemaRe
 	}
 }
 
-func (d *SamlIdpsDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *DataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -113,8 +113,8 @@ func (d *SamlIdpsDataSource) Configure(ctx context.Context, req datasource.Confi
 	d.client = client
 }
 
-func (d *SamlIdpsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data SamlIdpsDataSourceModel
+func (d *DataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var data dataSourceModel
 
 	// Read Terraform state data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)

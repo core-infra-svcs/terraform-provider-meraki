@@ -1,4 +1,4 @@
-package organizations
+package idps
 
 import (
 	"context"
@@ -21,22 +21,22 @@ import (
 
 // Ensure provider defined types fully satisfy framework interfaces
 var (
-	_ resource.Resource                = &SamlIdpResource{}
-	_ resource.ResourceWithConfigure   = &SamlIdpResource{}
-	_ resource.ResourceWithImportState = &SamlIdpResource{}
+	_ resource.Resource                = &Resource{}
+	_ resource.ResourceWithConfigure   = &Resource{}
+	_ resource.ResourceWithImportState = &Resource{}
 )
 
-func NewOrganizationsSamlIdpResource() resource.Resource {
-	return &SamlIdpResource{}
+func NewResource() resource.Resource {
+	return &Resource{}
 }
 
-// SamlIdpResource defines the resource implementation.
-type SamlIdpResource struct {
+// Resource defines the resource implementation.
+type Resource struct {
 	client *openApiClient.APIClient
 }
 
-// SamlIdpResourceModel describes the resource data model.
-type SamlIdpResourceModel struct {
+// resourceModel describes the resource data model.
+type resourceModel struct {
 	Id                      jsontypes.String `tfsdk:"id" json:"-"`
 	OrganizationId          jsontypes.String `tfsdk:"organization_id" json:"-"`
 	ConsumerUrl             jsontypes.String `tfsdk:"consumer_url"`
@@ -45,11 +45,11 @@ type SamlIdpResourceModel struct {
 	X509CertSha1Fingerprint jsontypes.String `tfsdk:"x_509_cert_sha1_fingerprint"`
 }
 
-func (r *SamlIdpResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *Resource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_organizations_saml_idp"
 }
 
-func (r *SamlIdpResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *Resource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description: "Manage the SAML IdPs in your organization",
 
@@ -107,7 +107,7 @@ func (r *SamlIdpResource) Schema(ctx context.Context, req resource.SchemaRequest
 	}
 }
 
-func (r *SamlIdpResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *Resource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -127,8 +127,8 @@ func (r *SamlIdpResource) Configure(ctx context.Context, req resource.ConfigureR
 	r.client = client
 }
 
-func (r *SamlIdpResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *SamlIdpResourceModel
+func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *resourceModel
 
 	// Read Terraform plan data
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -184,8 +184,8 @@ func (r *SamlIdpResource) Create(ctx context.Context, req resource.CreateRequest
 	tflog.Trace(ctx, "created resource")
 }
 
-func (r *SamlIdpResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *SamlIdpResourceModel
+func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *resourceModel
 
 	// Read Terraform state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -231,8 +231,8 @@ func (r *SamlIdpResource) Read(ctx context.Context, req resource.ReadRequest, re
 	tflog.Trace(ctx, "read resource")
 }
 
-func (r *SamlIdpResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data *SamlIdpResourceModel
+func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var data *resourceModel
 
 	// Read Terraform plan data
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -286,8 +286,8 @@ func (r *SamlIdpResource) Update(ctx context.Context, req resource.UpdateRequest
 	tflog.Trace(ctx, "updated resource")
 }
 
-func (r *SamlIdpResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data *SamlIdpResourceModel
+func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data *resourceModel
 
 	// Read Terraform state data
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -323,7 +323,7 @@ func (r *SamlIdpResource) Delete(ctx context.Context, req resource.DeleteRequest
 
 }
 
-func (r *SamlIdpResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 
 	idParts := strings.Split(req.ID, ",")
