@@ -1,4 +1,4 @@
-package networks
+package control
 
 import (
 	"context"
@@ -15,19 +15,19 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ datasource.DataSource = &SwitchStormControlDataSource{}
+var _ datasource.DataSource = &dataSource{}
 
-func NewNetworksSwitchStormControlDataSource() datasource.DataSource {
-	return &SwitchStormControlDataSource{}
+func NewDataSource() datasource.DataSource {
+	return &dataSource{}
 }
 
-// SwitchStormControlDataSource defines the resource implementation.
-type SwitchStormControlDataSource struct {
+// dataSource defines the resource implementation.
+type dataSource struct {
 	client *openApiClient.APIClient
 }
 
-// SwitchStormControlDataSourceModel describes the resource data model.
-type SwitchStormControlDataSourceModel struct {
+// dataSourceModel describes the resource data model.
+type dataSourceModel struct {
 	Id                      jsontypes.String `tfsdk:"id" json:"id"`
 	NetworkId               jsontypes.String `tfsdk:"network_id" json:"network_id"`
 	BroadcastThreshold      jsontypes.Int64  `tfsdk:"broadcast_threshold" json:"broadcastThreshold"`
@@ -35,11 +35,11 @@ type SwitchStormControlDataSourceModel struct {
 	UnknownUnicastThreshold jsontypes.Int64  `tfsdk:"unknown_unicast_threshold" json:"unknownUnicastThreshold"`
 }
 
-func (r *SwitchStormControlDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (r *dataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_networks_storm_control"
 }
 
-func (r *SwitchStormControlDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (r *dataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Networks Switch Storm Control DataSource resource for updating Storm Control",
 		Attributes: map[string]schema.Attribute{
@@ -79,7 +79,7 @@ func (r *SwitchStormControlDataSource) Schema(ctx context.Context, req datasourc
 	}
 }
 
-func (r *SwitchStormControlDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (r *dataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -99,8 +99,8 @@ func (r *SwitchStormControlDataSource) Configure(ctx context.Context, req dataso
 	r.client = client
 }
 
-func (r *SwitchStormControlDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data *SwitchStormControlDataSourceModel
+func (r *dataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var data *dataSourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)

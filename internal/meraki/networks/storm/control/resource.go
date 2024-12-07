@@ -1,4 +1,4 @@
-package networks
+package control
 
 import (
 	"context"
@@ -18,20 +18,20 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ resource.Resource = &StormControlResource{}
-var _ resource.ResourceWithImportState = &StormControlResource{}
+var _ resource.Resource = &Resource{}
+var _ resource.ResourceWithImportState = &Resource{}
 
-func NewNetworksStormControlResource() resource.Resource {
-	return &StormControlResource{}
+func NewResource() resource.Resource {
+	return &Resource{}
 }
 
-// StormControlResource defines the resource implementation.
-type StormControlResource struct {
+// Resource defines the resource implementation.
+type Resource struct {
 	client *openApiClient.APIClient
 }
 
-// StormControlResourceModel describes the resource data model.
-type StormControlResourceModel struct {
+// resourceModel describes the resource data model.
+type resourceModel struct {
 	Id                      jsontypes.String `tfsdk:"id" json:"-"`
 	NetworkId               jsontypes.String `tfsdk:"network_id" json:"network_id"`
 	BroadcastThreshold      jsontypes.Int64  `tfsdk:"broadcast_threshold" json:"broadcastThreshold"`
@@ -39,11 +39,11 @@ type StormControlResourceModel struct {
 	UnknownUnicastThreshold jsontypes.Int64  `tfsdk:"unknown_unicast_threshold" json:"unknownUnicastThreshold"`
 }
 
-func (r *StormControlResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *Resource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_networks_storm_control"
 }
 
-func (r *StormControlResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *Resource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "NetworksSwitchQosRule resource for updating network switch qos rule.",
 		Attributes: map[string]schema.Attribute{
@@ -87,7 +87,7 @@ func (r *StormControlResource) Schema(ctx context.Context, req resource.SchemaRe
 	}
 }
 
-func (r *StormControlResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *Resource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -107,8 +107,8 @@ func (r *StormControlResource) Configure(ctx context.Context, req resource.Confi
 	r.client = client
 }
 
-func (r *StormControlResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *StormControlResourceModel
+func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *resourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -173,8 +173,8 @@ func (r *StormControlResource) Create(ctx context.Context, req resource.CreateRe
 	tflog.Trace(ctx, "create resource")
 }
 
-func (r *StormControlResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *StormControlResourceModel
+func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *resourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -223,9 +223,9 @@ func (r *StormControlResource) Read(ctx context.Context, req resource.ReadReques
 	tflog.Trace(ctx, "read resource")
 }
 
-func (r *StormControlResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 
-	var data *StormControlResourceModel
+	var data *resourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -290,8 +290,8 @@ func (r *StormControlResource) Update(ctx context.Context, req resource.UpdateRe
 	tflog.Trace(ctx, "updated resource")
 }
 
-func (r *StormControlResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data *StormControlResourceModel
+func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data *resourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -349,7 +349,7 @@ func (r *StormControlResource) Delete(ctx context.Context, req resource.DeleteRe
 	tflog.Trace(ctx, "removed resource")
 }
 
-func (r *StormControlResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 
 	// Set the imported network ID

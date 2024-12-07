@@ -30,6 +30,7 @@ import (
 	networksNetwork "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/network"
 	networksSettings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/settings"
 	networksSnmp "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/snmp"
+	networksStormControl "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/storm/control"
 	networksSwitchDscpToCosMappings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/switch/dscp/to/cos/mappings"
 	networksSwitchMtu "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/switch/mtu"
 	networksSwitchQosRules "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/switch/qos/rules"
@@ -57,7 +58,7 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		networksNetwork.NewResource,
 		networksSettings.NewResource,
 		networksSnmp.NewResource,
-		networks.NewNetworksStormControlResource,
+		networksStormControl.NewResource,
 		networks.NewNetworksSyslogServersResource,
 		networks.NewNetworksTrafficAnalysisResource,
 		networksGroupPolicy.NewResource,
@@ -102,7 +103,7 @@ func (p *CiscoMerakiProvider) DataSources(ctx context.Context) []func() datasour
 		ports.NewDevicesSwitchPortsStatusesDataSource,
 		subnets.NewDevicesApplianceDhcpSubnetsDataSource,
 		networksGroupPolicy.NewDataSource,
-		networks.NewNetworksSwitchStormControlDataSource,
+		networksStormControl.NewDataSource,
 		networksAppliancePorts.NewNetworksAppliancePortsDataSource,
 		networksApplianceVlansVlan.NewNetworksApplianceVLANsDatasource,
 		networksApplianceVlansSettings.NewNetworksApplianceVlansSettingsDatasource,
