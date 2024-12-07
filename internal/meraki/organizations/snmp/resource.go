@@ -1,4 +1,4 @@
-package organizations
+package snmp
 
 import (
 	"context"
@@ -16,18 +16,18 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ resource.Resource = &SnmpResource{}
-var _ resource.ResourceWithImportState = &SnmpResource{}
+var _ resource.Resource = &Resource{}
+var _ resource.ResourceWithImportState = &Resource{}
 
-func NewOrganizationsSnmpResource() resource.Resource {
-	return &SnmpResource{}
+func NewResource() resource.Resource {
+	return &Resource{}
 }
 
-type SnmpResource struct {
+type Resource struct {
 	client *openApiClient.APIClient
 }
 
-type SnmpResourceModel struct {
+type resourceModel struct {
 	Id             jsontypes.String   `tfsdk:"id"`
 	OrganizationId jsontypes.String   `tfsdk:"organization_id" json:"organizationId"`
 	V2cEnabled     jsontypes.Bool     `tfsdk:"v2c_enabled" json:"v2cEnabled,omitempty"`
@@ -39,11 +39,11 @@ type SnmpResourceModel struct {
 	PeerIps        []jsontypes.String `tfsdk:"peer_ips" json:"peerIps,omitempty"`
 }
 
-func (r *SnmpResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *Resource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_organizations_snmp"
 }
 
-func (r *SnmpResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *Resource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -108,7 +108,7 @@ func (r *SnmpResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 	}
 }
 
-func (r *SnmpResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *Resource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -127,8 +127,8 @@ func (r *SnmpResource) Configure(ctx context.Context, req resource.ConfigureRequ
 	r.client = client
 }
 
-func (r *SnmpResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data SnmpResourceModel
+func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data resourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
@@ -193,8 +193,8 @@ func (r *SnmpResource) Create(ctx context.Context, req resource.CreateRequest, r
 	tflog.Trace(ctx, "create resource")
 }
 
-func (r *SnmpResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data SnmpResourceModel
+func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data resourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
@@ -246,8 +246,8 @@ func (r *SnmpResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	tflog.Trace(ctx, "read resource")
 }
 
-func (r *SnmpResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data SnmpResourceModel
+func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var data resourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
@@ -312,8 +312,8 @@ func (r *SnmpResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	tflog.Trace(ctx, "updated resource")
 }
 
-func (r *SnmpResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data SnmpResourceModel
+func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data resourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
@@ -362,7 +362,7 @@ func (r *SnmpResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 	tflog.Trace(ctx, "removed resource")
 }
 
-func (r *SnmpResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("organization_id"), req.ID)...)

@@ -1,4 +1,4 @@
-package organizations_test
+package snmp_test
 
 import (
 	"fmt"

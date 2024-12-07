@@ -40,7 +40,6 @@ import (
 	networksWirelessSsidsFirewallL3FirewallRules "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/wireless/ssids/firewall/l3/firewall/rules"
 	networksWirelessSsidsFirewallL7FirewallRules "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/wireless/ssids/firewall/l7/firewall/rules"
 	networksWirelessSsidsSplashSettings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/wireless/ssids/splash/settings"
-	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations"
 	organizationsAdaptivePolicyAcls "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations/adaptive/policy/acls"
 	organizationsAdmins "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations/admins"
 	organizationsApplianceVpnFirewallRules "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations/appliance/vpn/firewall/rules"
@@ -55,6 +54,7 @@ import (
 	organizationsSaml "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations/saml"
 	organizationsSamlIdps "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations/saml/idps"
 	organizationsSamlRoles "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations/saml/roles"
+	organizationsSnmp "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations/snmp"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
@@ -103,7 +103,7 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		organizationsSamlIdps.NewResource,
 		organizationsSaml.NewResource,
 		organizationsSamlRoles.NewResource,
-		organizations.NewOrganizationsSnmpResource,
+		organizationsSnmp.NewResource,
 		organizationsOrganization.NewResource,
 		organizationsPolicyObject.NewResource,
 	}
