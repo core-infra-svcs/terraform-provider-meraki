@@ -1,4 +1,4 @@
-package networks
+package pool
 
 import (
 	"context"
@@ -18,28 +18,28 @@ import (
 )
 
 var (
-	_ resource.Resource                = &CellularGatewaySubnetPoolResource{} // Terraform resource interface
-	_ resource.ResourceWithConfigure   = &CellularGatewaySubnetPoolResource{} // Interface for resources with configuration methods
-	_ resource.ResourceWithImportState = &CellularGatewaySubnetPoolResource{} // Interface for resources with import state functionality
+	_ resource.Resource                = &Resource{} // Terraform resource interface
+	_ resource.ResourceWithConfigure   = &Resource{} // Interface for resources with configuration methods
+	_ resource.ResourceWithImportState = &Resource{} // Interface for resources with import state functionality
 )
 
-func NewNetworksCellularGatewaySubnetPoolResource() resource.Resource {
-	return &CellularGatewaySubnetPoolResource{}
+func NewResource() resource.Resource {
+	return &Resource{}
 }
 
-type CellularGatewaySubnetPoolResource struct {
+type Resource struct {
 	client *openApiClient.APIClient // APIClient instance for making API requests
 }
 
-type CellularGatewaySubnetPoolResourceModel struct {
-	Id             jsontypes.String                               `tfsdk:"id"  json:"networkId"`
-	Mask           jsontypes.Int64                                `tfsdk:"mask"`
-	Cidr           jsontypes.String                               `tfsdk:"cidr"`
-	DeploymentMode jsontypes.String                               `tfsdk:"deployment_mode"`
-	Subnets        []CellularGatewaySubnetPoolResourceModelSubnet `tfsdk:"subnets"`
+type resourceModel struct {
+	Id             jsontypes.String      `tfsdk:"id"  json:"networkId"`
+	Mask           jsontypes.Int64       `tfsdk:"mask"`
+	Cidr           jsontypes.String      `tfsdk:"cidr"`
+	DeploymentMode jsontypes.String      `tfsdk:"deployment_mode"`
+	Subnets        []resourceModelSubnet `tfsdk:"subnets"`
 }
 
-type CellularGatewaySubnetPoolResourceModelSubnet struct {
+type resourceModelSubnet struct {
 	Serial      jsontypes.String `tfsdk:"serial"`
 	Name        jsontypes.String `tfsdk:"name"`
 	ApplianceIp jsontypes.String `tfsdk:"appliance_ip"`
@@ -48,14 +48,14 @@ type CellularGatewaySubnetPoolResourceModelSubnet struct {
 
 // Metadata provides a way to define information about the resource.
 // This method is called by the framework to retrieve metadata about the resource.
-func (r *CellularGatewaySubnetPoolResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *Resource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 
 	resp.TypeName = req.ProviderTypeName + "_networks_cellular_gateway_subnet_pool"
 }
 
 // Schema provides a way to define the structure of the resource data.
 // It is called by the framework to get the schema of the resource.
-func (r *CellularGatewaySubnetPoolResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *Resource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 
 	// The Schema object defines the structure of the resource.
 	resp.Schema = schema.Schema{
@@ -63,7 +63,6 @@ func (r *CellularGatewaySubnetPoolResource) Schema(ctx context.Context, req reso
 		MarkdownDescription: "Manage the subnet pool and mask configuration for MGs in the network.",
 
 		// The Attributes map describes the fields of the resource.
-		// TODO: Update to network_id instead of id
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "Network ID",
@@ -126,7 +125,7 @@ func (r *CellularGatewaySubnetPoolResource) Schema(ctx context.Context, req reso
 
 // Configure is a method of the Resource interface that Terraform calls to provide the configured provider instance to the resource.
 // It passes the ResourceData that's been stored by the provider's ConfigureFunc.
-func (r *CellularGatewaySubnetPoolResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *Resource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 
 	// The provider must be properly configured before it can be used.
 	if req.ProviderData == nil {
@@ -154,8 +153,8 @@ func (r *CellularGatewaySubnetPoolResource) Configure(ctx context.Context, req r
 // Create method is responsible for creating a new resource.
 // It takes a CreateRequest containing the planned state of the new resource and returns a CreateResponse
 // with the final state of the new resource or an error.
-func (r *CellularGatewaySubnetPoolResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *CellularGatewaySubnetPoolResourceModel
+func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *resourceModel
 
 	// Unmarshal the plan data into the internal data model struct.
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -215,8 +214,8 @@ func (r *CellularGatewaySubnetPoolResource) Create(ctx context.Context, req reso
 
 // Read method is responsible for reading an existing resource's state.
 // It takes a ReadRequest and returns a ReadResponse with the current state of the resource or an error.
-func (r *CellularGatewaySubnetPoolResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *CellularGatewaySubnetPoolResourceModel
+func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *resourceModel
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -273,9 +272,9 @@ func (r *CellularGatewaySubnetPoolResource) Read(ctx context.Context, req resour
 
 // Update function is responsible for updating the state of an existing resource.
 // It uses an UpdateRequest and responds with an UpdateResponse which contains the updated state of the resource or an error.
-func (r *CellularGatewaySubnetPoolResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 
-	var data *CellularGatewaySubnetPoolResourceModel
+	var data *resourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
@@ -336,9 +335,9 @@ func (r *CellularGatewaySubnetPoolResource) Update(ctx context.Context, req reso
 
 // Delete function is responsible for deleting a resource.
 // It uses a DeleteRequest and responds with a DeleteResponse which contains the updated state of the resource or an error.
-func (r *CellularGatewaySubnetPoolResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 
-	var data *CellularGatewaySubnetPoolResourceModel
+	var data *resourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
@@ -385,7 +384,7 @@ func (r *CellularGatewaySubnetPoolResource) Delete(ctx context.Context, req reso
 // ImportState function is used to import an existing resource into Terraform.
 // The function expects an ImportStateRequest and responds with an ImportStateResponse which contains
 // the new state of the resource or an error.
-func (r *CellularGatewaySubnetPoolResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 
 	// Pass through the NetworkId directly from the ImportStateRequest to the ImportStateResponse
 	resource.ImportStatePassthroughID(ctx, path.Root("network_id"), req, resp)

@@ -1,4 +1,4 @@
-package networks_test
+package pool_test
 
 import (
 	"fmt"
@@ -33,7 +33,7 @@ func TestAccNetworksCellularGatewaySubnetPoolResource(t *testing.T) {
 				Config: NetworksCellularGatewaySubnetPoolResourceConfigCreate(),
 				Check:  NetworksCellularGatewaySubnetPoolResourceConfigCreateChecks(),
 			},
-			
+
 			{
 				Config: NetworksCellularGatewaySubnetPoolResourceConfigUpdate(),
 				Check:  NetworksCellularGatewaySubnetPoolResourceConfigUpdateChecks(),
