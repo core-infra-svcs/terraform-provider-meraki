@@ -1,4 +1,4 @@
-package organizations
+package rules
 
 import (
 	"context"
@@ -18,25 +18,25 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ resource.Resource = &ApplianceVpnVpnFirewallRulesResource{}
-var _ resource.ResourceWithImportState = &ApplianceVpnVpnFirewallRulesResource{}
+var _ resource.Resource = &Resource{}
+var _ resource.ResourceWithImportState = &Resource{}
 
-func NewOrganizationsApplianceVpnVpnFirewallRulesResource() resource.Resource {
-	return &ApplianceVpnVpnFirewallRulesResource{}
+func NewResource() resource.Resource {
+	return &Resource{}
 }
 
-type ApplianceVpnVpnFirewallRulesResource struct {
+type Resource struct {
 	client *openApiClient.APIClient
 }
 
-type ApplianceVpnVpnFirewallRulesResourceModel struct {
-	Id                jsontypes.String                                `tfsdk:"id"`
-	OrganizationId    jsontypes.String                                `tfsdk:"organization_id" json:"organizationId"`
-	SyslogDefaultRule jsontypes.Bool                                  `tfsdk:"syslog_default_rule"`
-	Rules             []ApplianceVpnVpnFirewallRulesResourceModelRule `tfsdk:"rules" json:"rules"`
+type resourceModel struct {
+	Id                jsontypes.String    `tfsdk:"id"`
+	OrganizationId    jsontypes.String    `tfsdk:"organization_id" json:"organizationId"`
+	SyslogDefaultRule jsontypes.Bool      `tfsdk:"syslog_default_rule"`
+	Rules             []resourceModelRule `tfsdk:"rules" json:"rules"`
 }
 
-type ApplianceVpnVpnFirewallRulesResourceModelRule struct {
+type resourceModelRule struct {
 	Comment       jsontypes.String `tfsdk:"comment"`
 	DestCidr      jsontypes.String `tfsdk:"dest_cidr"`
 	DestPort      jsontypes.String `tfsdk:"dest_port"`
@@ -47,11 +47,11 @@ type ApplianceVpnVpnFirewallRulesResourceModelRule struct {
 	SysLogEnabled jsontypes.Bool   `tfsdk:"syslog_enabled"`
 }
 
-func (r *ApplianceVpnVpnFirewallRulesResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *Resource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_organizations_appliance_vpn_vpn_firewall_rules"
 }
 
-func (r *ApplianceVpnVpnFirewallRulesResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *Resource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "OrganizationsApplianceVpnVpnFirewallRules resource for updating Organizations Appliance Vpn Vpn Firewall Rules.",
 		Attributes: map[string]schema.Attribute{
@@ -131,7 +131,7 @@ func (r *ApplianceVpnVpnFirewallRulesResource) Schema(ctx context.Context, req r
 	}
 }
 
-func (r *ApplianceVpnVpnFirewallRulesResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *Resource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -151,9 +151,9 @@ func (r *ApplianceVpnVpnFirewallRulesResource) Configure(ctx context.Context, re
 	r.client = client
 }
 
-func (r *ApplianceVpnVpnFirewallRulesResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 
-	var data *ApplianceVpnVpnFirewallRulesResourceModel
+	var data *resourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -223,8 +223,8 @@ func (r *ApplianceVpnVpnFirewallRulesResource) Create(ctx context.Context, req r
 	tflog.Trace(ctx, "read resource")
 }
 
-func (r *ApplianceVpnVpnFirewallRulesResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *ApplianceVpnVpnFirewallRulesResourceModel
+func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *resourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -271,9 +271,9 @@ func (r *ApplianceVpnVpnFirewallRulesResource) Read(ctx context.Context, req res
 	tflog.Trace(ctx, "read resource")
 }
 
-func (r *ApplianceVpnVpnFirewallRulesResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 
-	var data *ApplianceVpnVpnFirewallRulesResourceModel
+	var data *resourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -341,9 +341,9 @@ func (r *ApplianceVpnVpnFirewallRulesResource) Update(ctx context.Context, req r
 	tflog.Trace(ctx, "updated resource")
 }
 
-func (r *ApplianceVpnVpnFirewallRulesResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 
-	var data *ApplianceVpnVpnFirewallRulesResourceModel
+	var data *resourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -385,7 +385,7 @@ func (r *ApplianceVpnVpnFirewallRulesResource) Delete(ctx context.Context, req r
 	tflog.Trace(ctx, "removed resource")
 }
 
-func (r *ApplianceVpnVpnFirewallRulesResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("organization_id"), req.ID)...)

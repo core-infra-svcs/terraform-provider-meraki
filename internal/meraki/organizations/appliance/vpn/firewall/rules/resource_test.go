@@ -1,4 +1,4 @@
-package organizations_test
+package rules_test
 
 import (
 	"fmt"
