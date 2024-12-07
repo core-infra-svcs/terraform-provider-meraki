@@ -1,4 +1,4 @@
-package organizations
+package networks
 
 import (
 	"context"
@@ -17,42 +17,42 @@ import (
 	openApiClient "github.com/meraki/dashboard-api-go/client"
 )
 
-// Ensure provider defined jsontypes fully satisfy framework interfaces
-var _ datasource.DataSource = &NetworksDataSource{}
+// Ensure provider defined types fully satisfy framework interfaces
+var _ datasource.DataSource = &DataSource{}
 
-func NewOrganizationsNetworksDataSource() datasource.DataSource {
-	return &NetworksDataSource{}
+func NewDataSource() datasource.DataSource {
+	return &DataSource{}
 }
 
-type NetworksDataSourceTagModel string
+// DataSource defines the data source implementation.
+type DataSource struct {
+	client *openApiClient.APIClient
+}
 
-func (t *NetworksDataSourceTagModel) UnmarshalJSON(b []byte) error {
+type dataSourceTagModel string
+
+func (t *dataSourceTagModel) UnmarshalJSON(b []byte) error {
 	var s string
 	if err := json.Unmarshal(b, &s); err != nil {
 		return err
 	}
 
-	*t = NetworksDataSourceTagModel(strings.Trim(s, `"`))
+	*t = dataSourceTagModel(strings.Trim(s, `"`))
 	return nil
 }
 
-// NetworksDataSource defines the data source implementation.
-type NetworksDataSource struct {
-	client *openApiClient.APIClient
-}
-
-// NetworksDataSourceModel describes the data source data model.
-type NetworksDataSourceModel struct {
+// dataSourceModel describes the data source data model.
+type dataSourceModel struct {
 	Id                      jsontypes.String                `tfsdk:"id"`
 	OrgId                   jsontypes.String                `tfsdk:"organization_id"`
 	ConfigTemplateId        jsontypes.String                `tfsdk:"config_template_id"`
 	IsBoundToConfigTemplate jsontypes.Bool                  `tfsdk:"is_bound_to_config_template"`
 	Tags                    jsontypes.Set[jsontypes.String] `tfsdk:"tags"`
 	TagsFilterType          jsontypes.String                `tfsdk:"tags_filter_type"`
-	List                    []NetworksDataSourceModelList   `tfsdk:"list"`
+	List                    []dataSourceModelList           `tfsdk:"list"`
 }
 
-type NetworksDataSourceModelList struct {
+type dataSourceModelList struct {
 	Id                      jsontypes.String   `tfsdk:"network_id" json:"id"`
 	OrganizationId          jsontypes.String   `tfsdk:"organization_id" json:"organizationId"`
 	Name                    jsontypes.String   `tfsdk:"name"`
@@ -65,11 +65,11 @@ type NetworksDataSourceModelList struct {
 	IsBoundToConfigTemplate jsontypes.Bool     `tfsdk:"is_bound_to_config_template" json:"IsBoundToConfigTemplate"`
 }
 
-func (d *NetworksDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *DataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_organizations_networks"
 }
 
-func (d *NetworksDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *DataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "",
 		Attributes: map[string]schema.Attribute{
@@ -194,7 +194,7 @@ func (d *NetworksDataSource) Schema(ctx context.Context, req datasource.SchemaRe
 	}
 }
 
-func (d *NetworksDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *DataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -213,8 +213,8 @@ func (d *NetworksDataSource) Configure(ctx context.Context, req datasource.Confi
 	d.client = client
 }
 
-func (d *NetworksDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data NetworksDataSourceModel
+func (d *DataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var data dataSourceModel
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)

@@ -1,4 +1,4 @@
-package organizations_test
+package networks_test
 
 import (
 	"fmt"

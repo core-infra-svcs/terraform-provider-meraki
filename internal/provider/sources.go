@@ -49,6 +49,7 @@ import (
 	organizationsInventoryDevices "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations/inventory/devices"
 	organizationsLicences "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations/licences"
 	organizationsLicencesMove "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations/licences/move"
+	organizationsNetworks "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations/networks"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -131,6 +132,6 @@ func (p *CiscoMerakiProvider) DataSources(ctx context.Context) []func() datasour
 		organizations.NewOrganizationsSamlIdpsDataSource,
 		organizations.NewOrganizationsSamlRolesDataSource,
 		organizationsInventoryDevices.NewDataSource,
-		organizations.NewOrganizationsNetworksDataSource,
+		organizationsNetworks.NewDataSource,
 	}
 }
