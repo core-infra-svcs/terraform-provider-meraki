@@ -1,4 +1,4 @@
-package organizations
+package acls
 
 import (
 	"context"
@@ -15,43 +15,43 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ datasource.DataSource = &AdaptivePolicyAclsDataSource{}
+var _ datasource.DataSource = &DataSource{}
 
-func NewOrganizationsAdaptivePolicyAclsDataSource() datasource.DataSource {
-	return &AdaptivePolicyAclsDataSource{}
+func NewDataSource() datasource.DataSource {
+	return &DataSource{}
 }
 
-type AdaptivePolicyAclsDataSource struct {
+type DataSource struct {
 	client *openApiClient.APIClient
 }
 
-type AdaptivePolicyAclsDataSourceModel struct {
-	Id   jsontypes.String                        `tfsdk:"id" json:"organization_id"`
-	List []AdaptivePolicyAclsDataSourceModelList `tfsdk:"list"`
+type dataSourceModel struct {
+	Id   jsontypes.String      `tfsdk:"id" json:"organization_id"`
+	List []dataSourceModelList `tfsdk:"list"`
 }
 
-type AdaptivePolicyAclsDataSourceModelList struct {
-	AclId       jsontypes.String                         `tfsdk:"acl_id" json:"AclId"`
-	Name        jsontypes.String                         `tfsdk:"name"`
-	Description jsontypes.String                         `tfsdk:"description"`
-	IpVersion   jsontypes.String                         `tfsdk:"ip_version" json:"IpVersion"`
-	Rules       []AdaptivePolicyAclsDataSourceModelRules `tfsdk:"rules"`
-	CreatedAt   jsontypes.String                         `tfsdk:"created_at" json:"createdAt"`
-	UpdatedAt   jsontypes.String                         `tfsdk:"updated_at" json:"updatedAt"`
+type dataSourceModelList struct {
+	AclId       jsontypes.String       `tfsdk:"acl_id" json:"AclId"`
+	Name        jsontypes.String       `tfsdk:"name"`
+	Description jsontypes.String       `tfsdk:"description"`
+	IpVersion   jsontypes.String       `tfsdk:"ip_version" json:"IpVersion"`
+	Rules       []dataSourceModelRules `tfsdk:"rules"`
+	CreatedAt   jsontypes.String       `tfsdk:"created_at" json:"createdAt"`
+	UpdatedAt   jsontypes.String       `tfsdk:"updated_at" json:"updatedAt"`
 }
 
-type AdaptivePolicyAclsDataSourceModelRules struct {
+type dataSourceModelRules struct {
 	Policy   jsontypes.String `tfsdk:"policy"`
 	Protocol jsontypes.String `tfsdk:"protocol"`
 	SrcPort  jsontypes.String `tfsdk:"src_port" json:"srcPort"`
 	DstPort  jsontypes.String `tfsdk:"dst_port" json:"dstPort"`
 }
 
-func (d *AdaptivePolicyAclsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *DataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_organizations_adaptive_policy_acls"
 }
 
-func (d *AdaptivePolicyAclsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *DataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Ports adaptive policy ACLs in a organization",
 
@@ -135,7 +135,7 @@ func (d *AdaptivePolicyAclsDataSource) Schema(ctx context.Context, req datasourc
 	}
 }
 
-func (d *AdaptivePolicyAclsDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *DataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -154,8 +154,8 @@ func (d *AdaptivePolicyAclsDataSource) Configure(ctx context.Context, req dataso
 	d.client = client
 }
 
-func (d *AdaptivePolicyAclsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data AdaptivePolicyAclsDataSourceModel
+func (d *DataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var data dataSourceModel
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)

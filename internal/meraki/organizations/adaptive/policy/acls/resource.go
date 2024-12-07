@@ -1,4 +1,4 @@
-package organizations
+package acls
 
 import (
 	"context"
@@ -22,43 +22,43 @@ import (
 
 // Ensure provider defined types fully satisfy framework interfaces
 var (
-	_ resource.Resource                = &AdaptivePolicyAclResource{}
-	_ resource.ResourceWithConfigure   = &AdaptivePolicyAclResource{}
-	_ resource.ResourceWithImportState = &AdaptivePolicyAclResource{}
+	_ resource.Resource                = &Resource{}
+	_ resource.ResourceWithConfigure   = &Resource{}
+	_ resource.ResourceWithImportState = &Resource{}
 )
 
-func NewAdaptivePolicyAclResource() resource.Resource {
-	return &AdaptivePolicyAclResource{}
+func NewResource() resource.Resource {
+	return &Resource{}
 }
 
-type AdaptivePolicyAclResource struct {
+type Resource struct {
 	client *openApiClient.APIClient
 }
 
-type AdaptivePolicyAclResourceModel struct {
-	Id          types.String                 `tfsdk:"id"`
-	OrgId       jsontypes.String             `tfsdk:"organization_id" json:"organizationId"`
-	AclId       jsontypes.String             `tfsdk:"acl_id" json:"aclId"`
-	Name        jsontypes.String             `tfsdk:"name"`
-	Description jsontypes.String             `tfsdk:"description"`
-	IpVersion   jsontypes.String             `tfsdk:"ip_version" json:"ipVersion"`
-	Rules       []AdaptivePolicyAclRuleModel `tfsdk:"rules"`
-	CreatedAt   jsontypes.String             `tfsdk:"created_at" json:"createdAt"`
-	UpdatedAt   jsontypes.String             `tfsdk:"updated_at" json:"updatedAt"`
+type resourceModel struct {
+	Id          types.String     `tfsdk:"id"`
+	OrgId       jsontypes.String `tfsdk:"organization_id" json:"organizationId"`
+	AclId       jsontypes.String `tfsdk:"acl_id" json:"aclId"`
+	Name        jsontypes.String `tfsdk:"name"`
+	Description jsontypes.String `tfsdk:"description"`
+	IpVersion   jsontypes.String `tfsdk:"ip_version" json:"ipVersion"`
+	Rules       []RuleModel      `tfsdk:"rules"`
+	CreatedAt   jsontypes.String `tfsdk:"created_at" json:"createdAt"`
+	UpdatedAt   jsontypes.String `tfsdk:"updated_at" json:"updatedAt"`
 }
 
-type AdaptivePolicyAclRuleModel struct {
+type RuleModel struct {
 	Policy   jsontypes.String `tfsdk:"policy"`
 	Protocol jsontypes.String `tfsdk:"protocol"`
 	SrcPort  jsontypes.String `tfsdk:"src_port" json:"srcPort"`
 	DstPort  jsontypes.String `tfsdk:"dst_port" json:"dstPort"`
 }
 
-func (r *AdaptivePolicyAclResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *Resource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_organizations_adaptive_policy_acl"
 }
 
-func (r *AdaptivePolicyAclResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *Resource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description: "Manage adaptive policy ACLs in a organization",
 		Attributes: map[string]schema.Attribute{
@@ -161,7 +161,7 @@ func (r *AdaptivePolicyAclResource) Schema(ctx context.Context, req resource.Sch
 	}
 }
 
-func (r *AdaptivePolicyAclResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *Resource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -181,8 +181,8 @@ func (r *AdaptivePolicyAclResource) Configure(ctx context.Context, req resource.
 	r.client = client
 }
 
-func (r *AdaptivePolicyAclResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *AdaptivePolicyAclResourceModel
+func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *resourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -252,8 +252,8 @@ func (r *AdaptivePolicyAclResource) Create(ctx context.Context, req resource.Cre
 	tflog.Trace(ctx, "create resource")
 }
 
-func (r *AdaptivePolicyAclResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *AdaptivePolicyAclResourceModel
+func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *resourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -300,8 +300,8 @@ func (r *AdaptivePolicyAclResource) Read(ctx context.Context, req resource.ReadR
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func (r *AdaptivePolicyAclResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data *AdaptivePolicyAclResourceModel
+func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var data *resourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -375,8 +375,8 @@ func (r *AdaptivePolicyAclResource) Update(ctx context.Context, req resource.Upd
 	tflog.Trace(ctx, "updated resource")
 }
 
-func (r *AdaptivePolicyAclResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data *AdaptivePolicyAclResourceModel
+func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data *resourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -411,7 +411,7 @@ func (r *AdaptivePolicyAclResource) Delete(ctx context.Context, req resource.Del
 	resp.State.RemoveResource(ctx)
 }
 
-func (r *AdaptivePolicyAclResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 	idParts := strings.Split(req.ID, ",")
 	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {

@@ -1,4 +1,4 @@
-package organizations_test
+package acls_test
 
 import (
 	"fmt"
