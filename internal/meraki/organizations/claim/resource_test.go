@@ -1,4 +1,4 @@
-package organizations_test
+package claim_test
 
 import (
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider"

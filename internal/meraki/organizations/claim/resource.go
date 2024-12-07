@@ -1,4 +1,4 @@
-package organizations
+package claim
 
 import (
 	"context"
@@ -20,37 +20,37 @@ import (
 
 // OrganizationsClaimResource struct.
 var (
-	_ resource.Resource              = &ClaimResource{} // Terraform resource interface
-	_ resource.ResourceWithConfigure = &ClaimResource{} // Interface for resources with configuration methods
+	_ resource.Resource              = &Resource{} // Terraform resource interface
+	_ resource.ResourceWithConfigure = &Resource{} // Interface for resources with configuration methods
 )
 
-func NewOrganizationsClaimResource() resource.Resource {
-	return &ClaimResource{}
+func NewResource() resource.Resource {
+	return &Resource{}
 }
 
-type ClaimResource struct {
+type Resource struct {
 	client *openApiClient.APIClient // APIClient instance for making API requests
 }
 
-type ClaimResourceModel struct {
+type resourceModel struct {
 
 	// The Id field is mandatory for all resources. It's used for resource identification and is required
 	// for the acceptance tests to run.
-	Id             jsontypes.String            `tfsdk:"id"`
-	OrganizationId jsontypes.String            `tfsdk:"organization_id"`
-	Orders         []jsontypes.String          `tfsdk:"orders"`
-	Serials        []jsontypes.String          `tfsdk:"serials"`
-	Licences       []ClaimResourceModelLicence `tfsdk:"licences"`
+	Id             jsontypes.String       `tfsdk:"id"`
+	OrganizationId jsontypes.String       `tfsdk:"organization_id"`
+	Orders         []jsontypes.String     `tfsdk:"orders"`
+	Serials        []jsontypes.String     `tfsdk:"serials"`
+	Licences       []resourceModelLicence `tfsdk:"licences"`
 }
 
-type ClaimResourceModelLicence struct {
+type resourceModelLicence struct {
 	Key  jsontypes.String `tfsdk:"key"`
 	Mode jsontypes.String `tfsdk:"mode"`
 }
 
 // Metadata provides a way to define information about the resource.
 // This method is called by the framework to retrieve metadata about the resource.
-func (r *ClaimResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *Resource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 
 	// The TypeName attribute is important as it provides the user-friendly name for the resource/data source.
 	// This is the name users will use to reference the resource/data source, and it's also used in the acceptance tests.
@@ -59,7 +59,7 @@ func (r *ClaimResource) Metadata(ctx context.Context, req resource.MetadataReque
 
 // Schema provides a way to define the structure of the resource data.
 // It is called by the framework to get the schema of the resource.
-func (r *ClaimResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *Resource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 
 	// The Schema object defines the structure of the resource.
 	resp.Schema = schema.Schema{
@@ -126,7 +126,7 @@ func (r *ClaimResource) Schema(ctx context.Context, req resource.SchemaRequest, 
 
 // Configure is a method of the Resource interface that Terraform calls to provide the configured provider instance to the resource.
 // It passes the ResourceData that's been stored by the provider's ConfigureFunc.
-func (r *ClaimResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *Resource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 
 	// The provider must be properly configured before it can be used.
 	if req.ProviderData == nil {
@@ -154,8 +154,8 @@ func (r *ClaimResource) Configure(ctx context.Context, req resource.ConfigureReq
 // Create method is responsible for creating a new resource.
 // It takes a CreateRequest containing the planned state of the new resource and returns a CreateResponse
 // with the final state of the new resource or an error.
-func (r *ClaimResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *ClaimResourceModel
+func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *resourceModel
 
 	// Unmarshal the plan data into the internal data model struct.
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -242,8 +242,8 @@ func (r *ClaimResource) Create(ctx context.Context, req resource.CreateRequest, 
 
 // Read method is responsible for reading an existing resource's state.
 // It takes a ReadRequest and returns a ReadResponse with the current state of the resource or an error.
-func (r *ClaimResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *ClaimResourceModel
+func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *resourceModel
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -311,8 +311,8 @@ func (r *ClaimResource) Read(ctx context.Context, req resource.ReadRequest, resp
 
 // Update function is responsible for updating the state of an existing resource.
 // It uses an UpdateRequest and responds with an UpdateResponse which contains the updated state of the resource or an error.
-func (r *ClaimResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data *ClaimResourceModel
+func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var data *resourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
@@ -330,9 +330,9 @@ func (r *ClaimResource) Update(ctx context.Context, req resource.UpdateRequest, 
 
 // Delete function is responsible for deleting a resource.
 // It uses a DeleteRequest and responds with a DeleteResponse which contains the updated state of the resource or an error.
-func (r *ClaimResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 
-	var data *ClaimResourceModel
+	var data *resourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
