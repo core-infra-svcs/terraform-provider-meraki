@@ -69,7 +69,7 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		networksWireless.NewNetworksWirelessSsidsFirewallL3FirewallRulesResource,
 		networksWireless.NewNetworksWirelessSsidsFirewallL7FirewallRulesResource,
 		networksWireless.NewNetworksWirelessSsidsSplashSettingsResource,
-		networksWirelessSsids.NewNetworksWirelessSsidsResource,
+		networksWirelessSsids.NewResource,
 
 		organizations.NewAdaptivePolicyAclResource,
 		organizations.NewOrganizationsAdminResource,

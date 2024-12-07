@@ -1,9 +1,62 @@
 package ssid
 
-import "github.com/hashicorp/terraform-plugin-framework/types"
+import (
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+)
 
-// NetworksWirelessSsidResourceModel represents the internal structure for the Networks Wireless SSID resource
-type NetworksWirelessSsidResourceModel struct {
+// The dataSourceModel structure describes the data model.
+// This struct is where you define all the attributes that are part of this data source's state.
+type dataSourceModel struct {
+	Id        jsontypes.String `tfsdk:"id"`
+	NetworkId jsontypes.String `tfsdk:"network_id"`
+
+	List []dataSourceModelList `tfsdk:"list"`
+}
+
+type dataSourceModelRadiusServer struct {
+	Host                     jsontypes.String `tfsdk:"host" json:"host"`
+	Port                     jsontypes.Int64  `tfsdk:"port" json:"port"`
+	OpenRoamingCertificateId jsontypes.Int64  `tfsdk:"open_roaming_certificate_id" json:"openRoamingCertificateId"`
+	CaCertificate            jsontypes.String `tfsdk:"ca_certificate" json:"caCertificate"`
+}
+
+type dataSourceModelList struct {
+	Number                          jsontypes.Int64               `tfsdk:"number" json:"number"`
+	Name                            jsontypes.String              `tfsdk:"name" json:"name"`
+	Enabled                         jsontypes.Bool                `tfsdk:"enabled" json:"enabled"`
+	SplashPage                      jsontypes.String              `tfsdk:"splash_page" json:"splashPage"`
+	SSIDAdminAccessible             jsontypes.Bool                `tfsdk:"ssid_admin_accessible" json:"ssidAdminAccessible"`
+	LocalAuth                       jsontypes.Bool                `json:"localAuth" tfsdk:"local_auth"`
+	AuthMode                        jsontypes.String              `tfsdk:"auth_mode" json:"authMode"`
+	EncryptionMode                  jsontypes.String              `tfsdk:"encryption_mode" json:"encryptionMode"`
+	WPAEncryptionMode               jsontypes.String              `tfsdk:"wpa_encryption_mode" json:"wpaEncryptionMode"`
+	RadiusServers                   []dataSourceModelRadiusServer `tfsdk:"radius_servers" json:"radiusServers"`
+	RadiusAccountingServers         []dataSourceModelRadiusServer `tfsdk:"radius_accounting_servers" json:"radiusAccountingServers"`
+	RadiusAccountingEnabled         jsontypes.Bool                `tfsdk:"radius_accounting_enabled" json:"radiusAccountingEnabled"`
+	RadiusEnabled                   jsontypes.Bool                `tfsdk:"radius_enabled" json:"radiusEnabled"`
+	RadiusAttributeForGroupPolicies jsontypes.String              `tfsdk:"radius_attribute_for_group_policies" json:"radiusAttributeForGroupPolicies"`
+	RadiusFailoverPolicy            jsontypes.String              `tfsdk:"radius_failover_policy" json:"radiusFailoverPolicy"`
+	RadiusLoadBalancingPolicy       jsontypes.String              `tfsdk:"radius_load_balancing_policy" json:"radiusLoadBalancingPolicy"`
+	IPAssignmentMode                jsontypes.String              `tfsdk:"ip_assignment_mode" json:"ipAssignmentMode"`
+	AdminSplashURL                  jsontypes.String              `tfsdk:"admin_splash_url" json:"adminSplashUrl"`
+	SplashTimeout                   jsontypes.String              `tfsdk:"splash_timeout" json:"splashTimeout"`
+	WalledGardenEnabled             jsontypes.Bool                `tfsdk:"walled_garden_enabled" json:"walledGardenEnabled"`
+	WalledGardenRanges              []jsontypes.String            `tfsdk:"walled_garden_ranges" json:"walledGardenRanges"`
+	MinBitrate                      jsontypes.Int64               `tfsdk:"min_bitrate" json:"minBitrate"`
+	BandSelection                   jsontypes.String              `tfsdk:"band_selection" json:"bandSelection"`
+	PerClientBandwidthLimitUp       jsontypes.Int64               `tfsdk:"per_client_bandwidth_limit_up" json:"perClientBandwidthLimitUp"`
+	PerClientBandwidthLimitDown     jsontypes.Int64               `tfsdk:"per_client_bandwidth_limit_down" json:"perClientBandwidthLimitDown"`
+	Visible                         jsontypes.Bool                `tfsdk:"visible" json:"visible"`
+	AvailableOnAllAPs               jsontypes.Bool                `tfsdk:"available_on_all_aps" json:"availableOnAllAps"`
+	AvailabilityTags                []jsontypes.String            `tfsdk:"availability_tags" json:"availabilityTags"`
+	PerSSIDBandwidthLimitUp         jsontypes.Int64               `tfsdk:"per_ssid_bandwidth_limit_up" json:"perSsidBandwidthLimitUp"`
+	PerSSIDBandwidthLimitDown       jsontypes.Int64               `tfsdk:"per_ssid_bandwidth_limit_down" json:"perSsidBandwidthLimitDown"`
+	MandatoryDHCPEnabled            jsontypes.Bool                `tfsdk:"mandatory_dhcp_enabled" json:"mandatoryDhcpEnabled"`
+}
+
+// resourceModel represents the internal structure for the Networks Wireless SSID resource
+type resourceModel struct {
 	Id                               types.String `tfsdk:"id" json:"id"`
 	NetworkId                        types.String `tfsdk:"network_id" json:"networkId"`
 	Number                           types.Int64  `tfsdk:"number" json:"number"`

@@ -43,7 +43,7 @@ func (p *CiscoMerakiProvider) DataSources(ctx context.Context) []func() datasour
 		networksSwitchMtu.NewDataSource,
 		networksSwitchQosRules.NewDataSource,
 
-		wirelessSsids.NewNetworksWirelessSsidsDataSource,
+		wirelessSsids.NewDataSource,
 
 		organizations.NewOrganizationsAdaptivePolicyAclsDataSource,
 		organizations.NewOrganizationsAdminsDataSource,

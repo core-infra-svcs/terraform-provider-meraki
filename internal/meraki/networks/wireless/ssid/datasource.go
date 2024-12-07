@@ -11,76 +11,26 @@ import (
 	openApiClient "github.com/meraki/dashboard-api-go/client"
 )
 
-// NetworksWirelessSsidsDataSource struct. If not, implement them.
-var _ datasource.DataSource = &NetworksWirelessSsidsDataSource{}
+// DataSource struct. If not, implement them.
+var _ datasource.DataSource = &DataSource{}
 
-type NetworksWirelessSsidsDataSource struct {
+type DataSource struct {
 	client *openApiClient.APIClient
 }
 
-func NewNetworksWirelessSsidsDataSource() datasource.DataSource {
-	return &NetworksWirelessSsidsDataSource{}
-}
-
-// The NetworksWirelessSsidsDataSourceModel structure describes the data model.
-// This struct is where you define all the attributes that are part of this data source's state.
-type NetworksWirelessSsidsDataSourceModel struct {
-	Id        jsontypes.String `tfsdk:"id"`
-	NetworkId jsontypes.String `tfsdk:"network_id"`
-
-	List []NetworksWirelessSsidsDataSourceModelList `tfsdk:"list"`
-}
-
-type NetworksWirelessSsidsDataSourceModelRadiusServer struct {
-	Host                     jsontypes.String `tfsdk:"host" json:"host"`
-	Port                     jsontypes.Int64  `tfsdk:"port" json:"port"`
-	OpenRoamingCertificateId jsontypes.Int64  `tfsdk:"open_roaming_certificate_id" json:"openRoamingCertificateId"`
-	CaCertificate            jsontypes.String `tfsdk:"ca_certificate" json:"caCertificate"`
-}
-
-type NetworksWirelessSsidsDataSourceModelList struct {
-	Number                          jsontypes.Int64                                    `tfsdk:"number" json:"number"`
-	Name                            jsontypes.String                                   `tfsdk:"name" json:"name"`
-	Enabled                         jsontypes.Bool                                     `tfsdk:"enabled" json:"enabled"`
-	SplashPage                      jsontypes.String                                   `tfsdk:"splash_page" json:"splashPage"`
-	SSIDAdminAccessible             jsontypes.Bool                                     `tfsdk:"ssid_admin_accessible" json:"ssidAdminAccessible"`
-	LocalAuth                       jsontypes.Bool                                     `json:"localAuth" tfsdk:"local_auth"`
-	AuthMode                        jsontypes.String                                   `tfsdk:"auth_mode" json:"authMode"`
-	EncryptionMode                  jsontypes.String                                   `tfsdk:"encryption_mode" json:"encryptionMode"`
-	WPAEncryptionMode               jsontypes.String                                   `tfsdk:"wpa_encryption_mode" json:"wpaEncryptionMode"`
-	RadiusServers                   []NetworksWirelessSsidsDataSourceModelRadiusServer `tfsdk:"radius_servers" json:"radiusServers"`
-	RadiusAccountingServers         []NetworksWirelessSsidsDataSourceModelRadiusServer `tfsdk:"radius_accounting_servers" json:"radiusAccountingServers"`
-	RadiusAccountingEnabled         jsontypes.Bool                                     `tfsdk:"radius_accounting_enabled" json:"radiusAccountingEnabled"`
-	RadiusEnabled                   jsontypes.Bool                                     `tfsdk:"radius_enabled" json:"radiusEnabled"`
-	RadiusAttributeForGroupPolicies jsontypes.String                                   `tfsdk:"radius_attribute_for_group_policies" json:"radiusAttributeForGroupPolicies"`
-	RadiusFailoverPolicy            jsontypes.String                                   `tfsdk:"radius_failover_policy" json:"radiusFailoverPolicy"`
-	RadiusLoadBalancingPolicy       jsontypes.String                                   `tfsdk:"radius_load_balancing_policy" json:"radiusLoadBalancingPolicy"`
-	IPAssignmentMode                jsontypes.String                                   `tfsdk:"ip_assignment_mode" json:"ipAssignmentMode"`
-	AdminSplashURL                  jsontypes.String                                   `tfsdk:"admin_splash_url" json:"adminSplashUrl"`
-	SplashTimeout                   jsontypes.String                                   `tfsdk:"splash_timeout" json:"splashTimeout"`
-	WalledGardenEnabled             jsontypes.Bool                                     `tfsdk:"walled_garden_enabled" json:"walledGardenEnabled"`
-	WalledGardenRanges              []jsontypes.String                                 `tfsdk:"walled_garden_ranges" json:"walledGardenRanges"`
-	MinBitrate                      jsontypes.Int64                                    `tfsdk:"min_bitrate" json:"minBitrate"`
-	BandSelection                   jsontypes.String                                   `tfsdk:"band_selection" json:"bandSelection"`
-	PerClientBandwidthLimitUp       jsontypes.Int64                                    `tfsdk:"per_client_bandwidth_limit_up" json:"perClientBandwidthLimitUp"`
-	PerClientBandwidthLimitDown     jsontypes.Int64                                    `tfsdk:"per_client_bandwidth_limit_down" json:"perClientBandwidthLimitDown"`
-	Visible                         jsontypes.Bool                                     `tfsdk:"visible" json:"visible"`
-	AvailableOnAllAPs               jsontypes.Bool                                     `tfsdk:"available_on_all_aps" json:"availableOnAllAps"`
-	AvailabilityTags                []jsontypes.String                                 `tfsdk:"availability_tags" json:"availabilityTags"`
-	PerSSIDBandwidthLimitUp         jsontypes.Int64                                    `tfsdk:"per_ssid_bandwidth_limit_up" json:"perSsidBandwidthLimitUp"`
-	PerSSIDBandwidthLimitDown       jsontypes.Int64                                    `tfsdk:"per_ssid_bandwidth_limit_down" json:"perSsidBandwidthLimitDown"`
-	MandatoryDHCPEnabled            jsontypes.Bool                                     `tfsdk:"mandatory_dhcp_enabled" json:"mandatoryDhcpEnabled"`
+func NewDataSource() datasource.DataSource {
+	return &DataSource{}
 }
 
 // Metadata provides a way to define information about the data source.
 // This method is called by the framework to retrieve metadata about the data source.
-func (d *NetworksWirelessSsidsDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *DataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_networks_wireless_ssids"
 }
 
 // Schema provides a way to define the structure of the data source data.
 // It is called by the framework to get the schema of the data source.
-func (d *NetworksWirelessSsidsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *DataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 
 	// The Schema object defines the structure of the data source.
 	resp.Schema = schema.Schema{
@@ -329,7 +279,7 @@ func (d *NetworksWirelessSsidsDataSource) Schema(ctx context.Context, req dataso
 
 // Configure is a method of the data source interface that Terraform calls to provide the configured provider instance to the data source.
 // It passes the DataSourceData that's been stored by the provider's ConfigureFunc.
-func (d *NetworksWirelessSsidsDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *DataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 
 	// The provider must be properly configured before it can be used.
 	if req.ProviderData == nil {
@@ -354,8 +304,8 @@ func (d *NetworksWirelessSsidsDataSource) Configure(ctx context.Context, req dat
 }
 
 // Read method is responsible for reading an existing data source's state.
-func (d *NetworksWirelessSsidsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data NetworksWirelessSsidsDataSourceModel
+func (d *DataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var data dataSourceModel
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
@@ -377,7 +327,7 @@ func (d *NetworksWirelessSsidsDataSource) Read(ctx context.Context, req datasour
 
 	// Now iterate over the inlineResp slice
 	for _, inlineRespData := range inlineResp {
-		result := NetworksWirelessSsidsDataSourceModelList{
+		result := dataSourceModelList{
 			Number:                          jsontypes.Int64Value(int64(inlineRespData.GetNumber())),
 			Name:                            jsontypes.StringValue(inlineRespData.GetName()),
 			Enabled:                         jsontypes.BoolValue(inlineRespData.GetEnabled()),
@@ -387,8 +337,8 @@ func (d *NetworksWirelessSsidsDataSource) Read(ctx context.Context, req datasour
 			AuthMode:                        jsontypes.StringValue(inlineRespData.GetAuthMode()),
 			EncryptionMode:                  jsontypes.StringValue(inlineRespData.GetEncryptionMode()),
 			WPAEncryptionMode:               jsontypes.StringValue(inlineRespData.GetWpaEncryptionMode()),
-			RadiusServers:                   make([]NetworksWirelessSsidsDataSourceModelRadiusServer, 0),
-			RadiusAccountingServers:         make([]NetworksWirelessSsidsDataSourceModelRadiusServer, 0),
+			RadiusServers:                   make([]dataSourceModelRadiusServer, 0),
+			RadiusAccountingServers:         make([]dataSourceModelRadiusServer, 0),
 			RadiusAccountingEnabled:         jsontypes.BoolValue(inlineRespData.GetRadiusAccountingEnabled()),
 			RadiusEnabled:                   jsontypes.BoolValue(inlineRespData.GetRadiusEnabled()),
 			RadiusAttributeForGroupPolicies: jsontypes.StringValue(inlineRespData.GetRadiusAttributeForGroupPolicies()),
@@ -413,7 +363,7 @@ func (d *NetworksWirelessSsidsDataSource) Read(ctx context.Context, req datasour
 
 		// Populate RadiusServers slice
 		for _, radiusServer := range inlineRespData.RadiusServers {
-			result.RadiusServers = append(result.RadiusServers, NetworksWirelessSsidsDataSourceModelRadiusServer{
+			result.RadiusServers = append(result.RadiusServers, dataSourceModelRadiusServer{
 				Host:                     jsontypes.StringValue(radiusServer.GetHost()),
 				Port:                     jsontypes.Int64Value(int64(radiusServer.GetPort())),
 				OpenRoamingCertificateId: jsontypes.Int64Value(int64(radiusServer.GetOpenRoamingCertificateId())),
@@ -423,7 +373,7 @@ func (d *NetworksWirelessSsidsDataSource) Read(ctx context.Context, req datasour
 
 		// Populate RadiusAccountingServers slice
 		for _, radiusAccountingServer := range inlineRespData.RadiusAccountingServers {
-			result.RadiusAccountingServers = append(result.RadiusAccountingServers, NetworksWirelessSsidsDataSourceModelRadiusServer{
+			result.RadiusAccountingServers = append(result.RadiusAccountingServers, dataSourceModelRadiusServer{
 				Host:                     jsontypes.StringValue(radiusAccountingServer.GetHost()),
 				Port:                     jsontypes.Int64Value(int64(radiusAccountingServer.GetPort())),
 				OpenRoamingCertificateId: jsontypes.Int64Value(int64(radiusAccountingServer.GetOpenRoamingCertificateId())),
