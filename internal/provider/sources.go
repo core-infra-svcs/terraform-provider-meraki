@@ -27,6 +27,7 @@ import (
 	networksDevicesClaim "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/devices/claim"
 	networksGroupPolicy "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/group/policy"
 	networksNetflow "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/netflow"
+	networksNetwork "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/network"
 	networksSettings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/settings"
 	networksSwitchDscpToCosMappings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/switch/dscp/to/cos/mappings"
 	networksSwitchMtu "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/switch/mtu"
@@ -52,7 +53,7 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		networksCellularGatewayUplink.NewResource,
 		networksDevicesClaim.NewResource,
 		networksNetflow.NewResource,
-		networks.NewNetworkResource,
+		networksNetwork.NewResource,
 		networksSettings.NewResource,
 		networks.NewNetworksSnmpResource,
 		networks.NewNetworksStormControlResource,

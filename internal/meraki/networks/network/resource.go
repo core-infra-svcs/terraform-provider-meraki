@@ -1,10 +1,9 @@
-package networks
+package network
 
 import (
 	"context"
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"io"
 	"net/http"
 	"strings"
@@ -26,22 +25,22 @@ import (
 
 // Ensure provider defined types fully satisfy framework interfaces
 var (
-	_ resource.Resource                = &NetworkResource{}
-	_ resource.ResourceWithConfigure   = &NetworkResource{}
-	_ resource.ResourceWithImportState = &NetworkResource{}
+	_ resource.Resource                = &Resource{}
+	_ resource.ResourceWithConfigure   = &Resource{}
+	_ resource.ResourceWithImportState = &Resource{}
 )
 
-func NewNetworkResource() resource.Resource {
-	return &NetworkResource{}
+func NewResource() resource.Resource {
+	return &Resource{}
 }
 
-// NetworkResource defines the resource implementation.
-type NetworkResource struct {
+// Resource defines the resource implementation.
+type Resource struct {
 	client *openApiClient.APIClient
 }
 
-// NetworkResourceModel describes the resource data model.
-type NetworkResourceModel struct {
+// resourceModel describes the resource data model.
+type resourceModel struct {
 	Id                      types.String `tfsdk:"id"`
 	NetworkId               types.String `tfsdk:"network_id" json:"id"`
 	OrganizationId          types.String `tfsdk:"organization_id" json:"organizationId"`
@@ -56,11 +55,11 @@ type NetworkResourceModel struct {
 	CopyFromNetworkId       types.String `tfsdk:"copy_from_network_id" json:"copyFromNetworkId"`
 }
 
-func (r *NetworkResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *Resource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_network"
 }
 
-func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *Resource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description: "Manage the networks that the user has privileges on in an organization",
 
@@ -168,7 +167,7 @@ func (r *NetworkResource) Schema(ctx context.Context, req resource.SchemaRequest
 	}
 }
 
-func (r *NetworkResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *Resource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -187,188 +186,8 @@ func (r *NetworkResource) Configure(ctx context.Context, req resource.ConfigureR
 	r.client = client
 }
 
-func updateNetworksNetworksResourceCreatePayload(plan *NetworkResourceModel) (openApiClient.CreateOrganizationNetworkRequest, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	// name
-	name := plan.Name.ValueString()
-
-	// ProductTypes
-	var productTypes []string
-	if !plan.ProductTypes.IsNull() && !plan.ProductTypes.IsUnknown() {
-		for _, product := range plan.ProductTypes.Elements() {
-			pt := fmt.Sprint(strings.Trim(product.String(), "\""))
-			productTypes = append(productTypes, pt)
-		}
-	}
-
-	// Create HTTP request body
-	payload := openApiClient.NewCreateOrganizationNetworkRequest(name, productTypes)
-
-	// Tags
-	if !plan.Tags.IsNull() && !plan.Tags.IsUnknown() {
-		var tags []string
-		for _, tag := range plan.Tags.Elements() {
-			t := fmt.Sprint(strings.Trim(tag.String(), "\""))
-			tags = append(tags, t)
-		}
-		payload.SetTags(tags)
-	}
-
-	//    TimeZone
-	if !plan.Timezone.IsNull() && !plan.Timezone.IsUnknown() {
-		payload.SetTimeZone(plan.Timezone.ValueString())
-	}
-
-	// CopyFromNetworkId
-	if !plan.CopyFromNetworkId.IsNull() && !plan.CopyFromNetworkId.IsUnknown() {
-		payload.SetCopyFromNetworkId(plan.CopyFromNetworkId.ValueString())
-	}
-
-	// Notes
-	if !plan.Notes.IsNull() && !plan.Notes.IsUnknown() {
-		payload.SetNotes(plan.Notes.ValueString())
-	}
-
-	return *payload, diags
-
-}
-
-func updateNetworksNetworksResourceUpdatePayload(plan *NetworkResourceModel) (openApiClient.UpdateNetworkRequest, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	payload := openApiClient.NewUpdateNetworkRequest()
-
-	//   Name
-	if !plan.Name.IsNull() && !plan.Name.IsUnknown() {
-		payload.SetName(plan.Name.ValueString())
-	}
-
-	//    TimeZone
-	if !plan.Timezone.IsNull() && !plan.Timezone.IsUnknown() {
-		payload.SetTimeZone(plan.Timezone.ValueString())
-	}
-
-	//    Tags
-	if !plan.Tags.IsNull() && !plan.Tags.IsUnknown() {
-		var tags []string
-		for _, tag := range plan.Tags.Elements() {
-			tags = append(tags, tag.String())
-		}
-		payload.SetTags(tags)
-	}
-
-	//    EnrollmentString
-	if !plan.EnrollmentString.IsNull() && !plan.EnrollmentString.IsUnknown() {
-		payload.SetEnrollmentString(plan.EnrollmentString.ValueString())
-	}
-
-	//    Notes
-	if !plan.Notes.IsNull() && !plan.Notes.IsUnknown() {
-		payload.SetNotes(plan.Notes.ValueString())
-	}
-
-	return *payload, diags
-
-}
-
-func createNetworksNetworksResourceState(ctx context.Context, state *NetworkResourceModel, inlineResp *openApiClient.GetNetwork200Response, httpResp *http.Response) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	//  Id (NetworkId)
-	if state.NetworkId.IsNull() || state.NetworkId.IsUnknown() {
-		state.NetworkId = types.StringValue(inlineResp.GetId())
-	}
-
-	orgId := fmt.Sprint(strings.Trim(inlineResp.GetOrganizationId(), "\""))
-	state.OrganizationId = types.StringValue(orgId)
-
-	//  Id (Terraform Resource)
-	if !state.NetworkId.IsNull() || !state.NetworkId.IsUnknown() && !state.OrganizationId.IsNull() || !state.OrganizationId.IsUnknown() {
-		importId := state.OrganizationId.String() + "," + inlineResp.GetId()
-		state.Id = types.StringValue(importId)
-	} else {
-		state.Id = types.StringNull()
-	}
-
-	//    Name
-	if state.Name.IsNull() || state.Name.IsUnknown() {
-		state.Name = types.StringValue(inlineResp.GetName())
-	}
-
-	//    ProductTypes
-	if state.ProductTypes.IsNull() || state.ProductTypes.IsUnknown() {
-
-		var productTypesList []string
-
-		productTypesList = append(productTypesList, inlineResp.ProductTypes...)
-
-		productTypesListObj, err := types.SetValueFrom(ctx, types.StringType, productTypesList)
-		if err.HasError() {
-			diags.Append(err...)
-		}
-
-		state.ProductTypes = productTypesListObj
-
-	}
-
-	//  	Timezone
-	if state.Timezone.IsNull() || state.Timezone.IsUnknown() {
-		state.Timezone = types.StringValue(inlineResp.GetTimeZone())
-	}
-
-	//    Tags
-	if state.Tags.IsNull() || state.Tags.IsUnknown() {
-
-		// Tags
-		var tagsList []string
-		for _, tag := range inlineResp.Tags {
-			// Strip any extra quotes from the tags
-			tagsList = append(tagsList, strings.Trim(tag, `"`))
-		}
-		tagsListObj, err := types.SetValueFrom(ctx, types.StringType, tagsList)
-		if err.HasError() {
-			diags.Append(err...)
-		}
-		state.Tags = tagsListObj
-
-	}
-
-	//    EnrollmentString
-	if state.EnrollmentString.IsNull() || state.EnrollmentString.IsUnknown() {
-		if inlineResp.GetEnrollmentString() == "" {
-			state.EnrollmentString = types.StringNull()
-		} else {
-			state.EnrollmentString = types.StringValue(inlineResp.GetEnrollmentString())
-		}
-
-	}
-
-	//    Url
-	if state.Url.IsNull() || state.Url.IsUnknown() {
-		state.Url = types.StringValue(inlineResp.GetUrl())
-	}
-
-	//    Notes
-	if state.Notes.IsNull() || state.Notes.IsUnknown() {
-		state.Notes = types.StringValue(inlineResp.GetNotes())
-	}
-
-	//    IsBoundToConfigTemplate
-	if state.IsBoundToConfigTemplate.IsNull() || state.IsBoundToConfigTemplate.IsUnknown() {
-		state.IsBoundToConfigTemplate = types.BoolValue(inlineResp.GetIsBoundToConfigTemplate())
-	}
-
-	// CopyFromNetworkId
-	if state.CopyFromNetworkId.IsNull() || state.CopyFromNetworkId.IsUnknown() {
-		state.CopyFromNetworkId = types.StringNull()
-	}
-
-	return diags
-}
-
-func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan NetworkResourceModel
+func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var plan resourceModel
 
 	// Read Terraform plan data
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
@@ -432,8 +251,8 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 	resp.Diagnostics.Append(diags...)
 }
 
-func (r *NetworkResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state NetworkResourceModel
+func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var state resourceModel
 
 	// Read Terraform prior state into the model
 	diags := req.State.Get(ctx, &state)
@@ -472,8 +291,8 @@ func (r *NetworkResource) Read(ctx context.Context, req resource.ReadRequest, re
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
-func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan NetworkResourceModel
+func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan resourceModel
 
 	// Read Terraform plan data into the model
 	diags := req.Plan.Get(ctx, &plan)
@@ -529,8 +348,8 @@ func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
-func (r *NetworkResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var state NetworkResourceModel
+func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var state resourceModel
 
 	// Read Terraform plan state into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -596,7 +415,7 @@ func (r *NetworkResource) Delete(ctx context.Context, req resource.DeleteRequest
 	resp.State.RemoveResource(ctx)
 }
 
-func (r *NetworkResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 	idParts := strings.Split(req.ID, ",")
 	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
