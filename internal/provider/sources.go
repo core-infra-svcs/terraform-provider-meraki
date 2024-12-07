@@ -51,7 +51,7 @@ import (
 	organizationsLicencesMove "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations/licences/move"
 	organizationsNetworks "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations/networks"
 	organizationsOrganization "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations/organization"
-
+	organizationsPolicyObject "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations/policy/object"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
@@ -102,7 +102,7 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		organizations.NewOrganizationsSamlRolesResource,
 		organizations.NewOrganizationsSnmpResource,
 		organizationsOrganization.NewResource,
-		organizations.NewOrganizationPolicyObjectResource,
+		organizationsPolicyObject.NewResource,
 	}
 }
 
