@@ -18,7 +18,8 @@ import (
 	networksApplianceVlansSettings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/vlans/settings"
 	networksApplianceVlansVlan "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/vlans/vlan"
 	networksApplianceVpn "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/appliance/vpn"
-	networksCellularSubnetPool "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/cellular/gateway/subnet/pool"
+	networksCellularGatewaySubnetPool "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/cellular/gateway/subnet/pool"
+	networksCellularGatewayUplink "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/cellular/gateway/uplink"
 	networksGroupPolicy "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/group/policy"
 	networksSettings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/settings"
 	networksSwitchDscpToCosMappings "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/networks/switch/dscp/to/cos/mappings"
@@ -41,8 +42,8 @@ func (p *CiscoMerakiProvider) Resources(ctx context.Context) []func() resource.R
 		devicesSwitchPortsCycle.NewDevicesSwitchPortsCycleResource,
 		devicesManagementInterface.NewManagementInterfaceResource,
 
-		networksCellularSubnetPool.NewResource,
-		networks.NewNetworksCellularGatewayUplinkResource,
+		networksCellularGatewaySubnetPool.NewResource,
+		networksCellularGatewayUplink.NewResource,
 		networks.NewNetworksDevicesClaimResource,
 		networks.NewNetworksNetflowResource,
 		networks.NewNetworkResource,

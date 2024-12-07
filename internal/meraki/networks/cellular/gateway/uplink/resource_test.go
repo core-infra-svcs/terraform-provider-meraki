@@ -1,4 +1,4 @@
-package networks_test
+package uplink_test
 
 import (
 	"fmt"

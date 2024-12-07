@@ -1,4 +1,4 @@
-package networks
+package uplink
 
 import (
 	"context"
@@ -18,40 +18,40 @@ import (
 )
 
 var (
-	_ resource.Resource                = &CellularGatewayUplinkResource{} // Terraform resource interface
-	_ resource.ResourceWithConfigure   = &CellularGatewayUplinkResource{} // Interface for resources with configuration methods
-	_ resource.ResourceWithImportState = &CellularGatewayUplinkResource{} // Interface for resources with import state functionality
+	_ resource.Resource                = &Resource{} // Terraform resource interface
+	_ resource.ResourceWithConfigure   = &Resource{} // Interface for resources with configuration methods
+	_ resource.ResourceWithImportState = &Resource{} // Interface for resources with import state functionality
 )
 
-func NewNetworksCellularGatewayUplinkResource() resource.Resource {
-	return &CellularGatewayUplinkResource{}
+func NewResource() resource.Resource {
+	return &Resource{}
 }
 
-type CellularGatewayUplinkResource struct {
+type Resource struct {
 	client *openApiClient.APIClient // APIClient instance for making API requests
 }
 
-type CellularGatewayUplinkResourceModel struct {
-	Id                             jsontypes.String                                                 `tfsdk:"id"`
-	NetworkId                      jsontypes.String                                                 `tfsdk:"network_id"`
-	CellularGatewayBandwidthLimits CellularGatewayUplinkResourceModelCellularGatewayBandwidthLimits `tfsdk:"bandwidth_limits"`
+type resourceModel struct {
+	Id                             jsontypes.String                            `tfsdk:"id"`
+	NetworkId                      jsontypes.String                            `tfsdk:"network_id"`
+	CellularGatewayBandwidthLimits resourceModelCellularGatewayBandwidthLimits `tfsdk:"bandwidth_limits"`
 }
 
-type CellularGatewayUplinkResourceModelCellularGatewayBandwidthLimits struct {
+type resourceModelCellularGatewayBandwidthLimits struct {
 	LimitUp   jsontypes.Int64 `tfsdk:"limit_up"`
 	LimitDown jsontypes.Int64 `tfsdk:"limit_down"`
 }
 
 // Metadata provides a way to define information about the resource.
 // This method is called by the framework to retrieve metadata about the resource.
-func (r *CellularGatewayUplinkResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *Resource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 
 	resp.TypeName = req.ProviderTypeName + "_networks_cellular_gateway_uplink"
 }
 
 // Schema provides a way to define the structure of the resource data.
 // It is called by the framework to get the schema of the resource.
-func (r *CellularGatewayUplinkResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *Resource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 
 	// The Schema object defines the structure of the resource.
 	resp.Schema = schema.Schema{
@@ -102,7 +102,7 @@ func (r *CellularGatewayUplinkResource) Schema(ctx context.Context, req resource
 
 // Configure is a method of the Resource interface that Terraform calls to provide the configured provider instance to the resource.
 // It passes the ResourceData that's been stored by the provider's ConfigureFunc.
-func (r *CellularGatewayUplinkResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *Resource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 
 	// The provider must be properly configured before it can be used.
 	if req.ProviderData == nil {
@@ -130,8 +130,8 @@ func (r *CellularGatewayUplinkResource) Configure(ctx context.Context, req resou
 // Create method is responsible for creating a new resource.
 // It takes a CreateRequest containing the planned state of the new resource and returns a CreateResponse
 // with the final state of the new resource or an error.
-func (r *CellularGatewayUplinkResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *CellularGatewayUplinkResourceModel
+func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *resourceModel
 
 	// Unmarshal the plan data into the internal data model struct.
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -196,8 +196,8 @@ func (r *CellularGatewayUplinkResource) Create(ctx context.Context, req resource
 
 // Read method is responsible for reading an existing resource's state.
 // It takes a ReadRequest and returns a ReadResponse with the current state of the resource or an error.
-func (r *CellularGatewayUplinkResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *CellularGatewayUplinkResourceModel
+func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *resourceModel
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -256,9 +256,9 @@ func (r *CellularGatewayUplinkResource) Read(ctx context.Context, req resource.R
 
 // Update function is responsible for updating the state of an existing resource.
 // It uses an UpdateRequest and responds with an UpdateResponse which contains the updated state of the resource or an error.
-func (r *CellularGatewayUplinkResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 
-	var data *CellularGatewayUplinkResourceModel
+	var data *resourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
@@ -322,9 +322,9 @@ func (r *CellularGatewayUplinkResource) Update(ctx context.Context, req resource
 
 // Delete function is responsible for deleting a resource.
 // It uses a DeleteRequest and responds with a DeleteResponse which contains the updated state of the resource or an error.
-func (r *CellularGatewayUplinkResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 
-	var data *CellularGatewayUplinkResourceModel
+	var data *resourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
@@ -374,7 +374,7 @@ func (r *CellularGatewayUplinkResource) Delete(ctx context.Context, req resource
 // ImportState function is used to import an existing resource into Terraform.
 // The function expects an ImportStateRequest and responds with an ImportStateResponse which contains
 // the new state of the resource or an error.
-func (r *CellularGatewayUplinkResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 
 	// Pass through the ID directly from the ImportStateRequest to the ImportStateResponse
 	resource.ImportStatePassthroughID(ctx, path.Root("network_id"), req, resp)
