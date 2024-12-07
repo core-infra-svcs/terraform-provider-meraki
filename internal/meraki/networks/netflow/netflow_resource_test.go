@@ -1,4 +1,4 @@
-package networks_test
+package netflow_test
 
 import (
 	"fmt"

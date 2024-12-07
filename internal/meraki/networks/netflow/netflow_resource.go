@@ -1,4 +1,4 @@
-package networks
+package netflow
 
 import (
 	"context"
@@ -18,20 +18,20 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ resource.Resource = &NetflowResource{}
-var _ resource.ResourceWithImportState = &NetflowResource{}
+var _ resource.Resource = &Resource{}
+var _ resource.ResourceWithImportState = &Resource{}
 
 func NewResource() resource.Resource {
-	return &NetflowResource{}
+	return &Resource{}
 }
 
-// NetflowResource defines the resource implementation.
-type NetflowResource struct {
+// Resource defines the resource implementation.
+type Resource struct {
 	client *openApiClient.APIClient
 }
 
-// NetflowResourceModel describes the resource data model.
-type NetflowResourceModel struct {
+// resourceModel describes the resource data model.
+type resourceModel struct {
 	Id               jsontypes.String `tfsdk:"id"`
 	NetworkId        jsontypes.String `tfsdk:"network_id" json:"network_id"`
 	ReportingEnabled jsontypes.Bool   `tfsdk:"reporting_enabled" json:"reportingEnabled"`
@@ -41,11 +41,11 @@ type NetflowResourceModel struct {
 	EtaDstPort       jsontypes.Int64  `tfsdk:"eta_dst_port" json:"etaDstPort"`
 }
 
-func (r *NetflowResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *Resource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_networks_netflow"
 }
 
-func (r *NetflowResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *Resource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "NetworksNetflow resource for updating networks netflow.",
 		Attributes: map[string]schema.Attribute{
@@ -99,7 +99,7 @@ func (r *NetflowResource) Schema(ctx context.Context, req resource.SchemaRequest
 	}
 }
 
-func (r *NetflowResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *Resource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -119,8 +119,8 @@ func (r *NetflowResource) Configure(ctx context.Context, req resource.ConfigureR
 	r.client = client
 }
 
-func (r *NetflowResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *NetflowResourceModel
+func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data *resourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -200,8 +200,8 @@ func (r *NetflowResource) Create(ctx context.Context, req resource.CreateRequest
 	tflog.Trace(ctx, "create resource")
 }
 
-func (r *NetflowResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *NetflowResourceModel
+func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *resourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -251,9 +251,9 @@ func (r *NetflowResource) Read(ctx context.Context, req resource.ReadRequest, re
 	tflog.Trace(ctx, "read resource")
 }
 
-func (r *NetflowResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 
-	var data *NetflowResourceModel
+	var data *resourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -331,9 +331,9 @@ func (r *NetflowResource) Update(ctx context.Context, req resource.UpdateRequest
 	tflog.Trace(ctx, "updated resource")
 }
 
-func (r *NetflowResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 
-	var data *NetflowResourceModel
+	var data *resourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -379,7 +379,7 @@ func (r *NetflowResource) Delete(ctx context.Context, req resource.DeleteRequest
 
 }
 
-func (r *NetflowResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("network_id"), req.ID)...)
