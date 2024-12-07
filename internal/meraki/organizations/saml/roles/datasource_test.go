@@ -4,6 +4,7 @@ import (
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"strconv"
 	"testing"
 )
 
@@ -44,6 +45,15 @@ func TestAccOrganizationsSamlRolesDataSource(t *testing.T) {
 			},
 		},
 	})
+}
+
+// OrganizationsSamlTestChecks returns the test check functions for verifying the organization SAML state
+func OrganizationsSamlTestChecks(enabled bool) resource.TestCheckFunc {
+	expectedAttrs := map[string]string{
+		"enabled": strconv.FormatBool(enabled),
+	}
+
+	return utils.ResourceTestCheck("meraki_organization_saml.test", expectedAttrs)
 }
 
 // testAccOrganizationsSamlRolesDataSourceConfigUpdateOrganizationSaml returns the configuration for enabling SAML on the organization
