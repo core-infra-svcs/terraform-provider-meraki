@@ -44,6 +44,7 @@ import (
 	organizationsAdaptivePolicyAcls "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations/adaptive/policy/acls"
 	organizationsAdmins "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations/admins"
 	organizationsApplianceVpnFirewallRules "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations/appliance/vpn/firewall/rules"
+	organizationsCellularGatewayUplinkStatuses "github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations/cellular/gateway/uplink/statuses"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
@@ -120,7 +121,7 @@ func (p *CiscoMerakiProvider) DataSources(ctx context.Context) []func() datasour
 		organizationsAdaptivePolicyAcls.NewDataSource,
 		organizationsAdmins.NewDataSource,
 		organizations.NewOrganizationsLicensesDataSource,
-		organizations.NewOrganizationsCellularGatewayUplinkStatusesDataSource,
+		organizationsCellularGatewayUplinkStatuses.NewDataSource,
 		organizations.NewOrganizationsDataSource,
 		organizations.NewOrganizationsSamlIdpsDataSource,
 		organizations.NewOrganizationsSamlRolesDataSource,

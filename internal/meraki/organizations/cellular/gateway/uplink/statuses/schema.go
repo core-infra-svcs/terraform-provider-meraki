@@ -1,79 +1,15 @@
-package organizations
+package statuses
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
-	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
-	openApiClient "github.com/meraki/dashboard-api-go/client"
 )
-
-var _ datasource.DataSource = &CellularGatewayUplinkStatusesDataSource{}
-
-func NewOrganizationsCellularGatewayUplinkStatusesDataSource() datasource.DataSource {
-	return &CellularGatewayUplinkStatusesDataSource{}
-}
-
-type CellularGatewayUplinkStatusesDataSource struct {
-	client *openApiClient.APIClient
-}
-
-type CellularGatewayUplinkStatusesDataSourceModel struct {
-	Id             jsontypes.String                                   `tfsdk:"id"`
-	OrganizationId jsontypes.String                                   `tfsdk:"organization_id"`
-	PerPage        jsontypes.Int64                                    `tfsdk:"per_page"`
-	StartingAfter  jsontypes.String                                   `tfsdk:"starting_after"`
-	EndingBefore   jsontypes.String                                   `tfsdk:"ending_before"`
-	NetworkIds     []jsontypes.String                                 `tfsdk:"network_ids"`
-	Serials        []jsontypes.String                                 `tfsdk:"serials"`
-	Iccids         []jsontypes.String                                 `tfsdk:"iccids"`
-	List           []CellularGatewayUplinkStatusesDataSourceModelList `tfsdk:"list"`
-}
-
-type CellularGatewayUplinkStatusesDataSourceModelList struct {
-	NetworkId      jsontypes.String                                     `tfsdk:"network_id" json:"networkId,omitempty"`
-	Serial         jsontypes.String                                     `tfsdk:"serial"`
-	Model          jsontypes.String                                     `tfsdk:"model"`
-	LastReportedAt jsontypes.String                                     `tfsdk:"last_reported_at"`
-	Uplinks        []CellularGatewayUplinkStatusesDataSourceModelUplink `tfsdk:"uplinks"`
-}
-
-type CellularGatewayUplinkStatusesDataSourceModelUplink struct {
-	Interface      jsontypes.String                                       `tfsdk:"interface"`
-	Status         jsontypes.String                                       `tfsdk:"status"`
-	Ip             jsontypes.String                                       `tfsdk:"ip"`
-	Provider       jsontypes.String                                       `tfsdk:"provider"`
-	PublicIp       jsontypes.String                                       `tfsdk:"public_ip"`
-	Model          jsontypes.String                                       `tfsdk:"model"`
-	SignalStat     CellularGatewayUplinkStatusesDataSourceModelSignalStat `tfsdk:"signal_stat"`
-	ConnectionType jsontypes.String                                       `tfsdk:"connection_type"`
-	Apn            jsontypes.String                                       `tfsdk:"apn"`
-	Gateway        jsontypes.String                                       `tfsdk:"gateway"`
-	Dns1           jsontypes.String                                       `tfsdk:"dns1"`
-	Dns2           jsontypes.String                                       `tfsdk:"dns2"`
-	SignalType     jsontypes.String                                       `tfsdk:"signal_type"`
-	Iccid          jsontypes.String                                       `tfsdk:"iccid"`
-}
-
-type CellularGatewayUplinkStatusesDataSourceModelSignalStat struct {
-	Rsrp jsontypes.String `tfsdk:"rsrp"`
-	Rsrq jsontypes.String `tfsdk:"rsrq"`
-}
-
-// Metadata provides a way to define information about the data source.
-// This method is called by the framework to retrieve metadata about the data source.
-func (d *CellularGatewayUplinkStatusesDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-
-	resp.TypeName = req.ProviderTypeName + "_organizations_cellular_gateway_uplink_statuses"
-}
 
 // Schema provides a way to define the structure of the data source data.
 // It is called by the framework to get the schema of the data source.
-func (d *CellularGatewayUplinkStatusesDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *DataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 
 	// The Schema object defines the structure of the data source.
 	resp.Schema = schema.Schema{
@@ -266,122 +202,4 @@ func (d *CellularGatewayUplinkStatusesDataSource) Schema(ctx context.Context, re
 					}}},
 		},
 	}
-}
-
-// Configure is a method of the data source interface that Terraform calls to provide the configured provider instance to the data source.
-// It passes the DataSourceData that's been stored by the provider's ConfigureFunc.
-func (d *CellularGatewayUplinkStatusesDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-
-	// The provider must be properly configured before it can be used.
-	if req.ProviderData == nil {
-		return
-	}
-
-	// Here we expect the provider data to be of type *openApiClient.APIClient.
-	client, ok := req.ProviderData.(*openApiClient.APIClient)
-
-	// This is a fatal error and the provider cannot proceed without it.
-	// If you see this error, it means there is an issue with the provider setup.
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Data Source Configure Type",
-			fmt.Sprintf("Expected *http.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
-		)
-		return
-	}
-
-	// This allows the data source to use the configured provider for any API calls it needs to make.
-	d.client = client
-}
-
-// Read method is responsible for reading an existing data source's state.
-func (d *CellularGatewayUplinkStatusesDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data CellularGatewayUplinkStatusesDataSourceModel
-
-	// Read Terraform configuration data into the model
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
-
-	// Check if there are any errors before proceeding.
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	request := d.client.CellularGatewayApi.GetOrganizationCellularGatewayUplinkStatuses(context.Background(), data.OrganizationId.ValueString())
-
-	if !data.PerPage.IsUnknown() {
-		request.PerPage(int32(data.PerPage.ValueInt64()))
-	}
-	if !data.StartingAfter.IsUnknown() {
-		request.StartingAfter(data.StartingAfter.ValueString())
-	}
-	if !data.EndingBefore.IsUnknown() {
-		request.EndingBefore(data.EndingBefore.ValueString())
-	}
-
-	if len(data.Serials) > 0 {
-		var serials []string
-		for _, serial := range data.Serials {
-			serials = append(serials, serial.String())
-		}
-		request.Serials(serials)
-	}
-
-	if len(data.NetworkIds) > 0 {
-		var networkIds []string
-		for _, networkId := range data.NetworkIds {
-			networkIds = append(networkIds, networkId.String())
-		}
-		request.NetworkIds(networkIds)
-	}
-
-	if len(data.Iccids) > 0 {
-		var iccids []string
-		for _, iccid := range data.Iccids {
-			iccids = append(iccids, iccid.String())
-		}
-		request.Iccids(iccids)
-	}
-
-	_, httpResp, err := request.Execute()
-
-	// If there was an error during API call, add it to diagnostics.
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"HTTP Client Failure",
-			utils.HttpDiagnostics(httpResp),
-		)
-		return
-	}
-
-	// If it's not what you expect, add an error to diagnostics.
-	if httpResp.StatusCode != 200 {
-		resp.Diagnostics.AddError(
-			"Unexpected HTTP Response Status Code",
-			fmt.Sprintf("%v", httpResp.StatusCode),
-		)
-	}
-
-	// If there were any errors up to this point, log the state data and return.
-	if resp.Diagnostics.HasError() {
-		resp.Diagnostics.AddError("State Data", fmt.Sprintf("\n%v", data))
-		return
-	}
-
-	// save into the Terraform state.
-	if err = json.NewDecoder(httpResp.Body).Decode(&data.List); err != nil {
-		resp.Diagnostics.AddError(
-			"JSON decoding error",
-			fmt.Sprintf("%v\n", err.Error()),
-		)
-		return
-	}
-
-	// Set ID for the data source.
-	data.Id = jsontypes.StringValue("example-id")
-
-	// Now set the final state of the data source.
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-
-	// Write logs using the tflog package
-	tflog.Trace(ctx, "read data source")
 }
