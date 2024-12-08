@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/jsontypes"
-	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/organizations"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -18,7 +17,7 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ datasource.DataSource = &organizations.AdminsDataSource{}
+var _ datasource.DataSource = &DataSource{}
 
 func NewDataSource() datasource.DataSource {
 	return &DataSource{}
