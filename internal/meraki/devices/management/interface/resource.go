@@ -17,29 +17,29 @@ import (
 
 // Ensure provider defined types fully satisfy framework interfaces
 var (
-	_ resource.Resource                = &ManagementInterfaceResource{}
-	_ resource.ResourceWithConfigure   = &ManagementInterfaceResource{}
-	_ resource.ResourceWithImportState = &ManagementInterfaceResource{}
+	_ resource.Resource                = &Resource{}
+	_ resource.ResourceWithConfigure   = &Resource{}
+	_ resource.ResourceWithImportState = &Resource{}
 )
 
 func NewResource() resource.Resource {
-	return &ManagementInterfaceResource{}
+	return &Resource{}
 }
 
-// ManagementInterfaceResource defines the resource implementation.
-type ManagementInterfaceResource struct {
+// Resource defines the resource implementation.
+type Resource struct {
 	client *openApiClient.APIClient
 }
 
-func (r *ManagementInterfaceResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *Resource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_devices_management_interface"
 }
 
-func (r *ManagementInterfaceResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *Resource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = GetResourceSchema
 }
 
-func (r *ManagementInterfaceResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *Resource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -59,7 +59,7 @@ func (r *ManagementInterfaceResource) Configure(ctx context.Context, req resourc
 	r.client = client
 }
 
-func (r *ManagementInterfaceResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data resourceModel
 
 	// Read Terraform plan data into the model
@@ -217,7 +217,7 @@ func (r *ManagementInterfaceResource) Create(ctx context.Context, req resource.C
 	tflog.Trace(ctx, "create resource")
 }
 
-func (r *ManagementInterfaceResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var data resourceModel
 
 	// Read Terraform prior state data into the model
@@ -310,7 +310,7 @@ func (r *ManagementInterfaceResource) Read(ctx context.Context, req resource.Rea
 	tflog.Trace(ctx, "read resource")
 }
 
-func (r *ManagementInterfaceResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var data resourceModel
 
 	// Read Terraform plan data into the model
@@ -466,7 +466,7 @@ func (r *ManagementInterfaceResource) Update(ctx context.Context, req resource.U
 	tflog.Trace(ctx, "updated resource")
 }
 
-func (r *ManagementInterfaceResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var data *resourceModel
 
 	// Read Terraform plan data into the model
@@ -521,7 +521,7 @@ func (r *ManagementInterfaceResource) Delete(ctx context.Context, req resource.D
 	tflog.Trace(ctx, "removed resource")
 }
 
-func (r *ManagementInterfaceResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("serial"), req.ID)...)

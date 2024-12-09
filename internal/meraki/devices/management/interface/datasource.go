@@ -13,30 +13,30 @@ import (
 )
 
 // Ensure the provider-defined types fully satisfy the framework interfaces
-var _ datasource.DataSource = &ManagementInterfaceDataSource{}
+var _ datasource.DataSource = &DataSource{}
 
 // NewDataSource initializes a new Management Interface data source.
 func NewDataSource() datasource.DataSource {
-	return &ManagementInterfaceDataSource{}
+	return &DataSource{}
 }
 
-// ManagementInterfaceDataSource represents the data source for management interface settings.
-type ManagementInterfaceDataSource struct {
+// DataSource represents the data source for management interface settings.
+type DataSource struct {
 	client *openApiClient.APIClient
 }
 
 // Metadata sets the data source type name.
-func (d *ManagementInterfaceDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *DataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = fmt.Sprintf("%s_devices_management_interface", req.ProviderTypeName)
 }
 
 // Schema defines the schema for the data source.
-func (d *ManagementInterfaceDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *DataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = GetDatasourceSchema
 }
 
 // Configure initializes the API client for the data source.
-func (d *ManagementInterfaceDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *DataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Ensure the provider has been configured.
 	if req.ProviderData == nil {
 		return
@@ -57,7 +57,7 @@ func (d *ManagementInterfaceDataSource) Configure(ctx context.Context, req datas
 }
 
 // Read retrieves the management interface settings and updates the Terraform state.
-func (d *ManagementInterfaceDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (d *DataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var config resourceModel
 
 	// Read Terraform configuration data into the model
