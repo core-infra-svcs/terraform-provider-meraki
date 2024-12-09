@@ -123,7 +123,6 @@ func (p *CiscoMerakiProvider) DataSources(ctx context.Context) []func() datasour
 		networksApplianceVlansSettings.NewDatasource,
 		networksApplianceVpn.NewDatasource,
 		networksApplianceFirewallL3Rules.NewDataSource,
-		//networksApplianceFirewallL7Rules.NewDataSource,
 		networksSwitchMtu.NewDataSource,
 		networksSwitchQosRules.NewDataSource,
 		networksWirelessSsids.NewDataSource,

@@ -25,6 +25,10 @@ type Resource struct {
 	client *openApiClient.APIClient
 }
 
+func (r *Resource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = ResourceSchema
+}
+
 func (r *Resource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_networks_appliance_firewall_l3_firewall_rules"
 }

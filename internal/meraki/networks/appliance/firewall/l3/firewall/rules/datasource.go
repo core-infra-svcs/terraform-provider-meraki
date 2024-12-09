@@ -23,6 +23,10 @@ type DataSource struct {
 	client *openApiClient.APIClient
 }
 
+func (d *DataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	resp.Schema = GetDatasourceSchema
+}
+
 func (d *DataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_networks_appliance_firewall_l3_firewall_rules"
 }

@@ -37,6 +37,7 @@ func dataSourceAttrTypes() map[string]attr.Type {
 
 // resourceModel represents an individual DHCP subnet configuration.
 type resourceModel struct {
+	Id        types.String `tfsdk:"id" json:"-"`
 	Subnet    types.String `tfsdk:"subnet" json:"subnet"`
 	VlanId    types.Int64  `tfsdk:"vlan_id" json:"vlanId"`
 	UsedCount types.Int64  `tfsdk:"used_count" json:"usedCount"`
@@ -46,6 +47,7 @@ type resourceModel struct {
 // resourceAttrTypes defines the attribute types for an individual resource (subnet).
 func resourceAttrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
+		"id":         types.StringType,
 		"subnet":     types.StringType,
 		"vlan_id":    types.Int64Type,
 		"used_count": types.Int64Type,

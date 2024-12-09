@@ -23,6 +23,7 @@ func mapApiResponseToModel(apiResponse []map[string]interface{}, model *dataSour
 		subnetObj, diagErr := types.ObjectValue(
 			resourceAttrTypes(),
 			map[string]attr.Value{
+				"id":         types.StringValue(model.Id.ValueString()),
 				"subnet":     types.StringValue(subnetStr),
 				"vlan_id":    types.Int64Value(int64(vlanIdFloat)),
 				"used_count": types.Int64Value(int64(usedCountFloat)),

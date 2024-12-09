@@ -32,7 +32,7 @@ func (d *ManagementInterfaceDataSource) Metadata(ctx context.Context, req dataso
 
 // Schema defines the schema for the data source.
 func (d *ManagementInterfaceDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = dataSourceSchema
+	resp.Schema = GetDatasourceSchema
 }
 
 // Configure initializes the API client for the data source.

@@ -36,7 +36,7 @@ func (r *ManagementInterfaceResource) Metadata(ctx context.Context, req resource
 }
 
 func (r *ManagementInterfaceResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = resourceSchema
+	resp.Schema = GetResourceSchema
 }
 
 func (r *ManagementInterfaceResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
