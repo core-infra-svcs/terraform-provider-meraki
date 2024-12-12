@@ -26,7 +26,8 @@ func SafeFormatRFC3339(ctx context.Context, t *time.Time, layout string) string 
 
 // ValidateRFC3339 validates whether a given string conforms to the RFC3339 format.
 // Returns an error if the format is invalid.
-func ValidateRFC3339(ctx context.Context, value string) error {
+func ValidateRFC3339(value string) error {
+	ctx := context.Background()
 	tflog.Trace(ctx, "validateRFC3339: Validating RFC3339 format", map[string]interface{}{
 		"value": value,
 	})
