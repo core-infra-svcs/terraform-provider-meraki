@@ -2,7 +2,6 @@ package routes_test
 
 import (
 	"fmt"
-	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"os"
 	"testing"
@@ -13,9 +12,9 @@ import (
 func TestAccNetworksApplianceStaticRoutesResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
-			provider.TestAccPreCheck(t)
+			testutils.TestAccPreCheck(t)
 		},
-		ProtoV6ProviderFactories: provider.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testutils.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 
 			// Create and Read Network

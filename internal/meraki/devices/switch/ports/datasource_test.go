@@ -3,6 +3,7 @@ package ports_test
 import (
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/testutils"
 	"os"
 	"testing"
 
@@ -75,8 +76,8 @@ resource "meraki_devices_switch_port" "test_%[1]d" {
 	}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { provider.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: provider.TestAccProtoV6ProviderFactories,
+		PreCheck:                 func() { testutils.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutils.TestAccProtoV6ProviderFactories,
 
 		Steps: []resource.TestStep{
 

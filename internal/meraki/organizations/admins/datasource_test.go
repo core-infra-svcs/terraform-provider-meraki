@@ -2,7 +2,6 @@ package admins_test
 
 import (
 	"fmt"
-	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"testing"
@@ -13,8 +12,8 @@ func TestAccOrganizationsAdminsDataSource(t *testing.T) {
 	timestamp := utils.GenerateTimestamp() // Using the utility function to generate a timestamp
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { provider.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: provider.TestAccProtoV6ProviderFactories,
+		PreCheck:                 func() { testutils.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutils.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 
 			// Create and Read testing (Organization)

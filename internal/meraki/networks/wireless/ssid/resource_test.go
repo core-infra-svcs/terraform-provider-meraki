@@ -2,7 +2,6 @@ package ssid_test
 
 import (
 	"fmt"
-	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -14,8 +13,8 @@ func TestAccNetworksWirelessSsidsResource(t *testing.T) {
 	orgId := os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")
 	ssids := 10 // Number of SSIDs to create, Meraki max is 15
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { provider.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: provider.TestAccProtoV6ProviderFactories,
+		PreCheck:                 func() { testutils.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutils.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 
 			// Create and Read Network

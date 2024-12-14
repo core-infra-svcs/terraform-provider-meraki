@@ -6,7 +6,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
@@ -31,7 +30,7 @@ func TestAccDevicesApplianceDhcpSubnetsDataSource(t *testing.T) {
 func testCreateAndReadNetwork(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccDevicesApplianceDhcpSubnetsPreCheck(t) },
-		ProtoV6ProviderFactories: provider.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testutils.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 
 			// Create and Read Network
@@ -46,7 +45,7 @@ func testCreateAndReadNetwork(t *testing.T) {
 func testClaimAndReadNetworkDevices(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccDevicesApplianceDhcpSubnetsPreCheck(t) },
-		ProtoV6ProviderFactories: provider.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testutils.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDevicesApplianceDhcpSubnetsDataSourceConfigClaim(
@@ -61,7 +60,7 @@ func testClaimAndReadNetworkDevices(t *testing.T) {
 func testUpdateNetworkVLANSettings(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccDevicesApplianceDhcpSubnetsPreCheck(t) },
-		ProtoV6ProviderFactories: provider.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testutils.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: DevicesApplianceDhcpSubnetsDataSourceConfigVlanSettings(os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
@@ -76,7 +75,7 @@ func testUpdateNetworkVLANSettings(t *testing.T) {
 func testUpdateAndReadDevicesApplianceDhcpSubnets(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccDevicesApplianceDhcpSubnetsPreCheck(t) },
-		ProtoV6ProviderFactories: provider.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testutils.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDevicesApplianceDhcpSubnetsDataSourceConfigRead(os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),

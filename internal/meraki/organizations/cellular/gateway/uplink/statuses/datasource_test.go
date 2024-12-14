@@ -10,8 +10,8 @@ import (
 /*
 func TestAccOrganizationsCellularGatewayUplinkStatusesDataSource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { provider.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: provider.TestAccProtoV6ProviderFactories,
+		PreCheck:                 func() { testutils.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutils.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 
 			// Create and Read a Network

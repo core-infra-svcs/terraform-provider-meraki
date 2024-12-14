@@ -6,15 +6,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 // TestAccDevicesCellularSimsResource tests the full lifecycle of the devices cellular sims resource.
 func TestAccDevicesCellularSimsResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { provider.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: provider.TestAccProtoV6ProviderFactories,
+		PreCheck:                 func() { testutils.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutils.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDevicesCellularSimsResourceConfigCreate(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")),

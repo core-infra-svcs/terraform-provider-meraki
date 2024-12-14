@@ -2,7 +2,6 @@ package ssid_test
 
 import (
 	"fmt"
-	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"os"
@@ -16,8 +15,8 @@ func TestAccNetworksWirelessSsidsDataSource(t *testing.T) {
 	// The resource.Test function is used to run the test cases.
 	resource.Test(t, resource.TestCase{
 		// PreCheck function is used to do the necessary setup before running the test cases.
-		PreCheck:                 func() { provider.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: provider.TestAccProtoV6ProviderFactories,
+		PreCheck:                 func() { testutils.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testutils.TestAccProtoV6ProviderFactories,
 
 		// Steps is a slice of TestStep where each TestStep represents a test case.
 		Steps: []resource.TestStep{
