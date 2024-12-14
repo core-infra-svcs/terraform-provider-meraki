@@ -8,46 +8,44 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// Schema returns the resource schema definition
-func Schema() schema.Schema {
-	return schema.Schema{
-		MarkdownDescription: "Manages the SIM and APN configurations for a cellular device.",
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				MarkdownDescription: "Unique identifier for the resource.",
-				Computed:            true,
-			},
-			"serial": schema.StringAttribute{
-				MarkdownDescription: "Serial number of the device.",
-				Optional:            true,
-				Computed:            true,
-			},
-			"sim_failover": schema.SingleNestedAttribute{
-				Optional: true,
-				Computed: true,
-				Attributes: map[string]schema.Attribute{
-					"enabled": schema.BoolAttribute{
-						MarkdownDescription: "If true, failover to the secondary SIM is enabled.",
-						Optional:            true,
-						Computed:            true,
-						Default:             utils.NewBoolDefault(false),
-					},
-					"timeout": schema.Int64Attribute{
-						MarkdownDescription: "Timeout value (in seconds) for SIM failover. Defaults to 0.",
-						Optional:            true,
-						Computed:            true,
-						Default:             utils.NewInt64Default(0),
-					},
+// GetResourceSchema defines the schema for the resource.
+var GetResourceSchema = schema.Schema{
+	MarkdownDescription: "Manages the SIM and APN configurations for a cellular device.",
+	Attributes: map[string]schema.Attribute{
+		"id": schema.StringAttribute{
+			MarkdownDescription: "Unique identifier for the resource.",
+			Computed:            true,
+		},
+		"serial": schema.StringAttribute{
+			MarkdownDescription: "Serial number of the device.",
+			Optional:            true,
+			Computed:            true,
+		},
+		"sim_failover": schema.SingleNestedAttribute{
+			Optional: true,
+			Computed: true,
+			Attributes: map[string]schema.Attribute{
+				"enabled": schema.BoolAttribute{
+					MarkdownDescription: "If true, failover to the secondary SIM is enabled.",
+					Optional:            true,
+					Computed:            true,
+					Default:             utils.NewBoolDefault(false),
+				},
+				"timeout": schema.Int64Attribute{
+					MarkdownDescription: "Timeout value (in seconds) for SIM failover. Defaults to 0.",
+					Optional:            true,
+					Computed:            true,
+					Default:             utils.NewInt64Default(0),
 				},
 			},
-			"sims": SimsSchema(),
-			"sim_ordering": schema.SetAttribute{
-				MarkdownDescription: "Ordered list of SIM slots, prioritized for failover.",
-				Computed:            true,
-				ElementType:         types.StringType,
-			},
 		},
-	}
+		"sims": SimsSchema(),
+		"sim_ordering": schema.SetAttribute{
+			MarkdownDescription: "Ordered list of SIM slots, prioritized for failover.",
+			Computed:            true,
+			ElementType:         types.StringType,
+		},
+	},
 }
 
 // SimsSchema defines the schema for the sims attribute.
