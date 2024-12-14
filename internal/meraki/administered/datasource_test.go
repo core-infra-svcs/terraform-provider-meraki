@@ -1,6 +1,7 @@
 package administered_test
 
 import (
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/administered"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/testutils"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -8,6 +9,26 @@ import (
 )
 
 func TestAccDataSource(t *testing.T) {
+	// Validate schema-model consistency for the top-level DataSource schema
+	t.Run("Validate Top-Level Schema", func(t *testing.T) {
+		testutils.ValidateDataSourceSchemaModelConsistency(t, administered.GetDatasourceSchema.Attributes, administered.DataSourceModel{})
+	})
+
+	// Validate schema-model consistency for nested schemas
+	t.Run("Validate Nested Authentication Schema", func(t *testing.T) {
+		testutils.ValidateDataSourceSchemaModelConsistency(t, administered.DatasourceAuthenticationAttributes.Attributes, administered.AuthenticationModel{})
+	})
+	t.Run("Validate Nested API Schema", func(t *testing.T) {
+		testutils.ValidateDataSourceSchemaModelConsistency(t, administered.DatasourceAPIAttributes.Attributes, administered.APIModel{})
+	})
+	t.Run("Validate Nested SAML Schema", func(t *testing.T) {
+		testutils.ValidateDataSourceSchemaModelConsistency(t, administered.DatasourceSAMLAttributes.Attributes, administered.SAMLModel{})
+	})
+	t.Run("Validate Nested Two-Factor Schema", func(t *testing.T) {
+		testutils.ValidateDataSourceSchemaModelConsistency(t, administered.DatasourceTwoFactorAttributes.Attributes, administered.TwoFactorModel{})
+	})
+
+	// Run Terraform acceptance test
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutils.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutils.TestAccProtoV6ProviderFactories,
@@ -42,8 +63,8 @@ func testCheckAttributes() resource.TestCheckFunc {
 // testCheckTopLevelFields validates the top-level fields of the data source.
 func testCheckTopLevelFields() resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
-	//resource.TestCheckResourceAttr("data.meraki_administered_identities_me.test", "name", "Miles Meraki"),
-	//resource.TestCheckResourceAttr("data.meraki_administered_identities_me.test", "email", "miles@meraki.com"),
+		resource.TestCheckResourceAttr("data.meraki_administered_identities_me.test", "name", "Core Infrastructure Services"),
+		resource.TestCheckResourceAttr("data.meraki_administered_identities_me.test", "email", "dl-core-infra-svcs-public@starbucks.com"),
 	)
 }
 
