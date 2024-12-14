@@ -1,30 +1,27 @@
 package administered_test
 
 import (
-	"context"
-	"fmt"
-	"testing"
-
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/provider"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"testing"
 )
 
-func TestAccAdministeredIdentitiesMeDataSource(t *testing.T) {
+func TestAccDataSource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { provider.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: provider.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAdministeredIdentitiesMeDataSourceConfig,
-				Check:  testCheckAdministeredIdentitiesMe(),
+				Config: testAccDataSourceConfig,
+				Check:  testCheckAttributes(),
 			},
 		},
 	})
 }
 
-// testCheckAdministeredIdentitiesMe validates the retrieved data source attributes.
-func testCheckAdministeredIdentitiesMe() resource.TestCheckFunc {
+// testCheckAttributes validates the retrieved data source attributes.
+func testCheckAttributes() resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
 		// Check the `id` field
 		resource.TestCheckResourceAttr(
@@ -37,7 +34,7 @@ func testCheckAdministeredIdentitiesMe() resource.TestCheckFunc {
 		resource.TestCheckResourceAttrWith(
 			"data.meraki_administered_identities_me.test",
 			"last_used_dashboard_at",
-			validateRFC3339,
+			utils.ValidateRFC3339,
 		),
 	)
 }
@@ -64,16 +61,7 @@ func testCheckAuthenticationFields() resource.TestCheckFunc {
 	)
 }
 
-// validateRFC3339 checks if a string is a valid RFC3339 date-time format.
-func validateRFC3339(value string) error {
-	ctx := context.Background()
-	if err := utils.ValidateRFC3339(ctx, value); err != nil {
-		return fmt.Errorf("value validation failed: %v", err)
-	}
-	return nil
-}
-
 // Terraform configuration for the data source
-const testAccAdministeredIdentitiesMeDataSourceConfig = `
+const testAccDataSourceConfig = `
 data "meraki_administered_identities_me" "test" {}
 `

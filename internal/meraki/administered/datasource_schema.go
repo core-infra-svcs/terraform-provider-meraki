@@ -4,8 +4,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 )
 
-// identitiesMeSchema defines the schema for the current user's identity.
-var identitiesMeSchema = schema.Schema{
+// GetDatasourceSchema defines the schema for the current user's identity.
+var GetDatasourceSchema = schema.Schema{
 	MarkdownDescription: "Returns the identity of the current user.",
 
 	Attributes: map[string]schema.Attribute{
@@ -25,12 +25,12 @@ var identitiesMeSchema = schema.Schema{
 			MarkdownDescription: "The last time the user was active on the Dashboard UI.",
 			Computed:            true,
 		},
-		"authentication": identitiesMeAuthenticationSchema,
+		"authentication": DatasourceAuthenticationAttributes,
 	},
 }
 
-// identitiesMeAuthenticationSchema defines the schema for authentication details.
-var identitiesMeAuthenticationSchema = schema.SingleNestedAttribute{
+// DatasourceAuthenticationAttributes defines the schema for the authentication object.
+var DatasourceAuthenticationAttributes = schema.SingleNestedAttribute{
 	MarkdownDescription: "Authentication details for the user.",
 	Computed:            true,
 	Attributes: map[string]schema.Attribute{
@@ -38,14 +38,14 @@ var identitiesMeAuthenticationSchema = schema.SingleNestedAttribute{
 			MarkdownDescription: "The authentication mode.",
 			Computed:            true,
 		},
-		"api":        identitiesMeAPISchema,
-		"saml":       identitiesMeSAMLSchema,
-		"two_factor": identitiesMeTwoFactorSchema,
+		"api":        DatasourceAPIAttributes,
+		"saml":       DatasourceSAMLAttributes,
+		"two_factor": DatasourceTwoFactorAttributes,
 	},
 }
 
-// identitiesMeAPISchema defines the schema for API details.
-var identitiesMeAPISchema = schema.SingleNestedAttribute{
+// DatasourceAPIAttributes defines the schema for API details.
+var DatasourceAPIAttributes = schema.SingleNestedAttribute{
 	MarkdownDescription: "API details for the user.",
 	Computed:            true,
 	Attributes: map[string]schema.Attribute{
@@ -62,8 +62,8 @@ var identitiesMeAPISchema = schema.SingleNestedAttribute{
 	},
 }
 
-// identitiesMeSAMLSchema defines the schema for SAML authentication.
-var identitiesMeSAMLSchema = schema.SingleNestedAttribute{
+// DatasourceSAMLAttributes defines the schema for SAML authentication.
+var DatasourceSAMLAttributes = schema.SingleNestedAttribute{
 	MarkdownDescription: "Details about SAML authentication.",
 	Computed:            true,
 	Attributes: map[string]schema.Attribute{
@@ -74,8 +74,8 @@ var identitiesMeSAMLSchema = schema.SingleNestedAttribute{
 	},
 }
 
-// identitiesMeTwoFactorSchema defines the schema for two-factor authentication.
-var identitiesMeTwoFactorSchema = schema.SingleNestedAttribute{
+// DatasourceTwoFactorAttributes defines the schema for two-factor authentication.
+var DatasourceTwoFactorAttributes = schema.SingleNestedAttribute{
 	MarkdownDescription: "Details about two-factor authentication.",
 	Computed:            true,
 	Attributes: map[string]schema.Attribute{

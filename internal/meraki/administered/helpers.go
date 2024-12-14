@@ -13,9 +13,9 @@ import (
 )
 
 // mapAPIResponseToState converts the API response into the Terraform state model.
-func mapAPIResponseToState(ctx context.Context, inlineResp *client.GetAdministeredIdentitiesMe200Response) (dataSourceModel, diag.Diagnostics) {
+func mapAPIResponseToState(ctx context.Context, inlineResp *client.GetAdministeredIdentitiesMe200Response) (DataSourceModel, diag.Diagnostics) {
 	var diags diag.Diagnostics
-	var data dataSourceModel
+	var data DataSourceModel
 
 	tflog.Trace(ctx, "[identities_me] Starting to marshal API response to Terraform model")
 
@@ -59,7 +59,7 @@ func mapLastUsedDashboardAt(ctx context.Context, inlineResp *client.GetAdministe
 	}
 
 	lastUsedFormatted := utils.SafeFormatRFC3339(ctx, inlineResp.LastUsedDashboardAt, time.RFC3339)
-	if err := utils.ValidateRFC3339(ctx, lastUsedFormatted); err != nil {
+	if err := utils.ValidateRFC3339(lastUsedFormatted); err != nil {
 		tflog.Error(ctx, "[identities_me] Validation failed for LastUsedDashboardAt", map[string]interface{}{
 			"value": lastUsedFormatted,
 			"error": err.Error(),
@@ -78,7 +78,7 @@ func mapAuthentication(ctx context.Context, auth *client.GetAdministeredIdentiti
 	tflog.Trace(ctx, "[identities_me] Starting to map Authentication fields")
 
 	if auth == nil {
-		return types.ObjectNull(authenticationType), diags
+		return types.ObjectNull(AuthenticationType), diags
 	}
 
 	apiValue, apiDiags := mapApi(ctx, auth.Api)
@@ -97,7 +97,7 @@ func mapAuthentication(ctx context.Context, auth *client.GetAdministeredIdentiti
 		"two_factor": twoFactorValue,
 	}
 
-	authValue, authDiags := types.ObjectValue(authenticationType, authAttrValues)
+	authValue, authDiags := types.ObjectValue(AuthenticationType, authAttrValues)
 	diags = append(diags, authDiags...)
 
 	tflog.Trace(ctx, "[identities_me] Successfully mapped Authentication fields")
@@ -111,7 +111,7 @@ func mapApi(ctx context.Context, api *client.GetAdministeredIdentitiesMe200Respo
 
 	if api == nil || !api.HasKey() {
 		tflog.Trace(ctx, "[identities_me] API Key field is not present, setting to null")
-		return types.ObjectNull(apiType), diags
+		return types.ObjectNull(APIType), diags
 	}
 
 	keyValue, keyDiags := mapKey(ctx, api.Key)
@@ -121,7 +121,7 @@ func mapApi(ctx context.Context, api *client.GetAdministeredIdentitiesMe200Respo
 		"key": keyValue,
 	}
 
-	apiValue, apiDiags := types.ObjectValue(apiType, apiAttrValue)
+	apiValue, apiDiags := types.ObjectValue(APIType, apiAttrValue)
 	diags = append(diags, apiDiags...)
 
 	return apiValue, diags
@@ -133,14 +133,14 @@ func mapKey(ctx context.Context, key *client.GetAdministeredIdentitiesMe200Respo
 
 	if key == nil {
 		tflog.Trace(ctx, "[identities_me] Key field is not present, setting to null")
-		return types.ObjectNull(keyType), nil
+		return types.ObjectNull(KeyType), nil
 	}
 
 	keyAttrValue := map[string]attr.Value{
 		"created": types.BoolValue(key.GetCreated()),
 	}
 
-	keyValue, diags := types.ObjectValue(keyType, keyAttrValue)
+	keyValue, diags := types.ObjectValue(KeyType, keyAttrValue)
 	return keyValue, diags
 }
 
@@ -150,14 +150,14 @@ func mapSaml(ctx context.Context, saml *client.GetAdministeredIdentitiesMe200Res
 
 	if saml == nil {
 		tflog.Trace(ctx, "[identities_me] SAML field is not present, setting to null")
-		return types.ObjectNull(samlType), nil
+		return types.ObjectNull(SAMLType), nil
 	}
 
 	samlAttrValue := map[string]attr.Value{
 		"enabled": types.BoolValue(saml.GetEnabled()),
 	}
 
-	samlValue, diags := types.ObjectValue(samlType, samlAttrValue)
+	samlValue, diags := types.ObjectValue(SAMLType, samlAttrValue)
 	return samlValue, diags
 }
 
@@ -167,13 +167,13 @@ func mapTwoFactor(ctx context.Context, twoFactor *client.GetAdministeredIdentiti
 
 	if twoFactor == nil {
 		tflog.Trace(ctx, "[identities_me] TwoFactor field is not present, setting to null")
-		return types.ObjectNull(twoFactorType), nil
+		return types.ObjectNull(TwoFactorType), nil
 	}
 
 	twoFactorAttrValue := map[string]attr.Value{
 		"enabled": types.BoolValue(twoFactor.GetEnabled()),
 	}
 
-	twoFactorValue, diags := types.ObjectValue(twoFactorType, twoFactorAttrValue)
+	twoFactorValue, diags := types.ObjectValue(TwoFactorType, twoFactorAttrValue)
 	return twoFactorValue, diags
 }

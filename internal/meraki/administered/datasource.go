@@ -30,7 +30,7 @@ func (d *DataSource) Metadata(ctx context.Context, req datasource.MetadataReques
 
 // Schema sets the data source schema.
 func (d *DataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = identitiesMeSchema
+	resp.Schema = GetDatasourceSchema
 }
 
 // Configure initializes the API client for the data source.
@@ -54,7 +54,7 @@ func (d *DataSource) Configure(ctx context.Context, req datasource.ConfigureRequ
 
 // Read retrieves the current user's identity and populates the Terraform state.
 func (d *DataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var config dataSourceModel
+	var config DataSourceModel
 
 	// Read Terraform configuration data into the model
 	tflog.Debug(ctx, "[identities_me] Reading Terraform configuration data")
