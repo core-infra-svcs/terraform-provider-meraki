@@ -2,22 +2,19 @@ package _interface
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// GetResourceSchema defines the schema for the management interface resource.
+// GetResourceSchema defines the schema for the resource.
 var GetResourceSchema = schema.Schema{
 	MarkdownDescription: "Manage the management interface settings for a device",
 	Attributes: map[string]schema.Attribute{
 		"id": schema.StringAttribute{
 			MarkdownDescription: "The unique identifier for the resource.",
 			Computed:            true,
-			CustomType:          types.StringType,
 		},
 		"serial": schema.StringAttribute{
 			MarkdownDescription: "Serial number of the device.",
 			Required:            true,
-			CustomType:          types.StringType,
 		},
 		"ddns_hostnames": schema.SingleNestedAttribute{
 			MarkdownDescription: "Dynamic DNS hostnames for the device.",
@@ -55,7 +52,7 @@ var ResourceDdnsHostnamesAttributes = map[string]schema.Attribute{
 	},
 }
 
-// ResourceWanAttributes defines attributes for WAN1 in resources.
+// ResourceWanAttributes defines attributes for WAN in resources.
 var ResourceWanAttributes = map[string]schema.Attribute{
 	"wan_enabled": schema.StringAttribute{
 		Description: "Enable or disable the WAN interface.",

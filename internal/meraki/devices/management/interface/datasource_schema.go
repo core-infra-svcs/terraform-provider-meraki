@@ -4,7 +4,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 )
 
-// GetDatasourceSchema provides the schema for the management interface data source.
+// GetDatasourceSchema provides the schema for the data source.
 var GetDatasourceSchema = schema.Schema{
 	Description: "Retrieve the management interface settings for a device.",
 	Attributes: map[string]schema.Attribute{
