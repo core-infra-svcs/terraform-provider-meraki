@@ -85,7 +85,7 @@ func (d *DataSource) Read(ctx context.Context, req datasource.ReadRequest, resp 
 
 	// Map the API response to the Terraform state model
 	tflog.Debug(ctx, "[identities_me] Mapping API response to Terraform state")
-	state, diags := mapAPIResponseToState(ctx, apiResponse)
+	state, diags := MarshalIdentitiesMeForRead(ctx, apiResponse)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		resp.Diagnostics.AddError(

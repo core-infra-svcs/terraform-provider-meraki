@@ -12,29 +12,28 @@ import (
 	"time"
 )
 
-// mapAPIResponseToState converts the API response into the Terraform state model.
-func mapAPIResponseToState(ctx context.Context, inlineResp *client.GetAdministeredIdentitiesMe200Response) (DataSourceModel, diag.Diagnostics) {
+// MarshalIdentitiesMeForRead maps the API response into the Terraform state model for the identities_me resource.
+func MarshalIdentitiesMeForRead(ctx context.Context, inlineResp *client.GetAdministeredIdentitiesMe200Response) (DataSourceModel, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	var data DataSourceModel
 
-	tflog.Trace(ctx, "[identities_me] Starting to marshal API response to Terraform model")
+	tflog.Trace(ctx, "[identities_me] Starting to marshal API response to Terraform state")
 
-	// Map top-level fields
-	// Assign a static ID
+	// Assign static ID
 	data.Id = types.StringValue("identities_me")
-	data.Name = mapName(ctx, inlineResp)
-	data.Email = mapEmail(ctx, inlineResp)
-	data.LastUsedDashboardAt = mapLastUsedDashboardAt(ctx, inlineResp)
+	data.Name = MarshalNameForRead(ctx, inlineResp)
+	data.Email = MarshalEmailForRead(ctx, inlineResp)
+	data.LastUsedDashboardAt = MarshalLastUsedDashboardAtForRead(ctx, inlineResp)
 
 	// Map Authentication fields
-	data.Authentication, diags = mapAuthentication(ctx, inlineResp.Authentication, diags)
+	data.Authentication, diags = MarshalAuthenticationForRead(ctx, inlineResp.Authentication, diags)
 
-	tflog.Trace(ctx, "[identities_me] Successfully marshaled API response to Terraform model")
+	tflog.Trace(ctx, "[identities_me] Successfully marshaled API response to Terraform state")
 	return data, diags
 }
 
-// mapName maps the Name field from the API response to the Terraform state.
-func mapName(ctx context.Context, inlineResp *client.GetAdministeredIdentitiesMe200Response) types.String {
+// MarshalNameForRead maps the Name field from the API response to the Terraform state.
+func MarshalNameForRead(ctx context.Context, inlineResp *client.GetAdministeredIdentitiesMe200Response) types.String {
 	tflog.Trace(ctx, "[identities_me] Mapping Name field")
 	if inlineResp.HasName() {
 		return types.StringValue(inlineResp.GetName())
@@ -42,8 +41,8 @@ func mapName(ctx context.Context, inlineResp *client.GetAdministeredIdentitiesMe
 	return types.StringNull()
 }
 
-// mapEmail maps the Email field from the API response to the Terraform state.
-func mapEmail(ctx context.Context, inlineResp *client.GetAdministeredIdentitiesMe200Response) types.String {
+// MarshalEmailForRead maps the Email field from the API response to the Terraform state.
+func MarshalEmailForRead(ctx context.Context, inlineResp *client.GetAdministeredIdentitiesMe200Response) types.String {
 	tflog.Trace(ctx, "[identities_me] Mapping Email field")
 	if inlineResp.HasEmail() {
 		return types.StringValue(inlineResp.GetEmail())
@@ -51,8 +50,8 @@ func mapEmail(ctx context.Context, inlineResp *client.GetAdministeredIdentitiesM
 	return types.StringNull()
 }
 
-// mapLastUsedDashboardAt maps and validates the LastUsedDashboardAt field from the API response.
-func mapLastUsedDashboardAt(ctx context.Context, inlineResp *client.GetAdministeredIdentitiesMe200Response) types.String {
+// MarshalLastUsedDashboardAtForRead maps and validates the LastUsedDashboardAt field from the API response.
+func MarshalLastUsedDashboardAtForRead(ctx context.Context, inlineResp *client.GetAdministeredIdentitiesMe200Response) types.String {
 	tflog.Trace(ctx, "[identities_me] Mapping LastUsedDashboardAt field")
 	if !inlineResp.HasLastUsedDashboardAt() {
 		return types.StringNull()
@@ -73,21 +72,21 @@ func mapLastUsedDashboardAt(ctx context.Context, inlineResp *client.GetAdministe
 	return types.StringValue(lastUsedFormatted)
 }
 
-// mapAuthentication maps the Authentication object from the API response.
-func mapAuthentication(ctx context.Context, auth *client.GetAdministeredIdentitiesMe200ResponseAuthentication, diags diag.Diagnostics) (basetypes.ObjectValue, diag.Diagnostics) {
+// MarshalAuthenticationForRead maps the Authentication object from the API response to the Terraform state.
+func MarshalAuthenticationForRead(ctx context.Context, auth *client.GetAdministeredIdentitiesMe200ResponseAuthentication, diags diag.Diagnostics) (basetypes.ObjectValue, diag.Diagnostics) {
 	tflog.Trace(ctx, "[identities_me] Starting to map Authentication fields")
 
 	if auth == nil {
 		return types.ObjectNull(AuthenticationType), diags
 	}
 
-	apiValue, apiDiags := mapApi(ctx, auth.Api)
+	apiValue, apiDiags := MarshalAuthenticationAPIForRead(ctx, auth.Api)
 	diags = append(diags, apiDiags...)
 
-	samlValue, samlDiags := mapSaml(ctx, auth.Saml)
+	samlValue, samlDiags := MarshalAuthenticationSAMLForRead(ctx, auth.Saml)
 	diags = append(diags, samlDiags...)
 
-	twoFactorValue, twoFactorDiags := mapTwoFactor(ctx, auth.TwoFactor)
+	twoFactorValue, twoFactorDiags := MarshalAuthenticationTwoFactorForRead(ctx, auth.TwoFactor)
 	diags = append(diags, twoFactorDiags...)
 
 	authAttrValues := map[string]attr.Value{
@@ -104,17 +103,16 @@ func mapAuthentication(ctx context.Context, auth *client.GetAdministeredIdentiti
 	return authValue, diags
 }
 
-// mapApi maps the API object from the Authentication section of the API response.
-func mapApi(ctx context.Context, api *client.GetAdministeredIdentitiesMe200ResponseAuthenticationApi) (basetypes.ObjectValue, diag.Diagnostics) {
+// MarshalAuthenticationAPIForRead maps the API object from the Authentication section of the API response to Terraform state.
+func MarshalAuthenticationAPIForRead(ctx context.Context, api *client.GetAdministeredIdentitiesMe200ResponseAuthenticationApi) (basetypes.ObjectValue, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	tflog.Trace(ctx, "[identities_me] Mapping API field")
 
 	if api == nil || !api.HasKey() {
-		tflog.Trace(ctx, "[identities_me] API Key field is not present, setting to null")
 		return types.ObjectNull(APIType), diags
 	}
 
-	keyValue, keyDiags := mapKey(ctx, api.Key)
+	keyValue, keyDiags := MarshalAuthenticationAPIKeyForRead(ctx, api.Key)
 	diags = append(diags, keyDiags...)
 
 	apiAttrValue := map[string]attr.Value{
@@ -127,12 +125,11 @@ func mapApi(ctx context.Context, api *client.GetAdministeredIdentitiesMe200Respo
 	return apiValue, diags
 }
 
-// mapKey maps the Key object from the API section of the API response.
-func mapKey(ctx context.Context, key *client.GetAdministeredIdentitiesMe200ResponseAuthenticationApiKey) (basetypes.ObjectValue, diag.Diagnostics) {
+// MarshalAuthenticationAPIKeyForRead maps the API Key object to Terraform state.
+func MarshalAuthenticationAPIKeyForRead(ctx context.Context, key *client.GetAdministeredIdentitiesMe200ResponseAuthenticationApiKey) (basetypes.ObjectValue, diag.Diagnostics) {
 	tflog.Trace(ctx, "[identities_me] Mapping Key field in API")
 
 	if key == nil {
-		tflog.Trace(ctx, "[identities_me] Key field is not present, setting to null")
 		return types.ObjectNull(KeyType), nil
 	}
 
@@ -144,12 +141,11 @@ func mapKey(ctx context.Context, key *client.GetAdministeredIdentitiesMe200Respo
 	return keyValue, diags
 }
 
-// mapSaml maps the SAML object from the Authentication section of the API response.
-func mapSaml(ctx context.Context, saml *client.GetAdministeredIdentitiesMe200ResponseAuthenticationSaml) (basetypes.ObjectValue, diag.Diagnostics) {
+// MarshalAuthenticationSAMLForRead maps the SAML object from the Authentication section of the API response to Terraform state.
+func MarshalAuthenticationSAMLForRead(ctx context.Context, saml *client.GetAdministeredIdentitiesMe200ResponseAuthenticationSaml) (basetypes.ObjectValue, diag.Diagnostics) {
 	tflog.Trace(ctx, "[identities_me] Mapping SAML field")
 
 	if saml == nil {
-		tflog.Trace(ctx, "[identities_me] SAML field is not present, setting to null")
 		return types.ObjectNull(SAMLType), nil
 	}
 
@@ -161,12 +157,11 @@ func mapSaml(ctx context.Context, saml *client.GetAdministeredIdentitiesMe200Res
 	return samlValue, diags
 }
 
-// mapTwoFactor maps the TwoFactor object from the Authentication section of the API response.
-func mapTwoFactor(ctx context.Context, twoFactor *client.GetAdministeredIdentitiesMe200ResponseAuthenticationTwoFactor) (basetypes.ObjectValue, diag.Diagnostics) {
+// MarshalAuthenticationTwoFactorForRead maps the TwoFactor object from the Authentication section of the API response to Terraform state.
+func MarshalAuthenticationTwoFactorForRead(ctx context.Context, twoFactor *client.GetAdministeredIdentitiesMe200ResponseAuthenticationTwoFactor) (basetypes.ObjectValue, diag.Diagnostics) {
 	tflog.Trace(ctx, "[identities_me] Mapping TwoFactor field")
 
 	if twoFactor == nil {
-		tflog.Trace(ctx, "[identities_me] TwoFactor field is not present, setting to null")
 		return types.ObjectNull(TwoFactorType), nil
 	}
 
