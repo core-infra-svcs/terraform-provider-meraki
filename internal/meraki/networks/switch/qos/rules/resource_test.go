@@ -2,6 +2,7 @@ package rules_test
 
 import (
 	"fmt"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/testutils"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"os"
 	"testing"
