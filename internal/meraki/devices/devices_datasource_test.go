@@ -2,6 +2,7 @@ package devices_test
 
 import (
 	"fmt"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/testutils"
 	"os"
 	"testing"
 

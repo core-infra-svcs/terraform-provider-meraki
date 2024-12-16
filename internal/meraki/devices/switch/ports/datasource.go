@@ -67,7 +67,7 @@ func (d *DevicesSwitchPortsStatusesDataSource) Configure(ctx context.Context, re
 
 // Read method is responsible for reading an existing data source's state.
 func (d *DevicesSwitchPortsStatusesDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data PortsDataSourceModel
+	var data DataSourceModel
 	var diags diag.Diagnostics
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)

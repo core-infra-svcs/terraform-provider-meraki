@@ -5,8 +5,8 @@ import (
 	openApiClient "github.com/meraki/dashboard-api-go/client"
 )
 
-func mapSwitchDataToPort(switchData openApiClient.GetDeviceSwitchPorts200ResponseInner) PortResourceModel {
-	var devicesSwitchPortData PortResourceModel
+func mapSwitchDataToPort(switchData openApiClient.GetDeviceSwitchPorts200ResponseInner) ResourceModel {
+	var devicesSwitchPortData ResourceModel
 	devicesSwitchPortData.Name = types.StringValue(switchData.GetName())
 	devicesSwitchPortData.PortId = types.StringValue(switchData.GetPortId())
 	devicesSwitchPortData.Enabled = types.BoolValue(switchData.GetEnabled())

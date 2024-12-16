@@ -8,9 +8,9 @@ import (
 )
 
 var (
-	_ resource.Resource                = &Resource{}
-	_ resource.ResourceWithConfigure   = &Resource{}
-	_ resource.ResourceWithImportState = &Resource{}
+	_ resource.Resource                = &Resource{} // Terraform resource interface
+	_ resource.ResourceWithConfigure   = &Resource{} // Interface for resources with configuration methods
+	_ resource.ResourceWithImportState = &Resource{} // Interface for resources with import state functionality
 )
 
 func NewResource() resource.Resource {
@@ -18,7 +18,7 @@ func NewResource() resource.Resource {
 }
 
 type Resource struct {
-	client *openApiClient.APIClient
+	client *openApiClient.APIClient // APIClient instance for making API requests
 }
 
 func (r *Resource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {

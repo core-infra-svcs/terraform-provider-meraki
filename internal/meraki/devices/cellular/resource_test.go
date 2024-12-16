@@ -2,10 +2,11 @@ package cellular_test
 
 import (
 	"fmt"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/testutils"
 	"os"
 	"testing"
 	"time"
-
+	//"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices/cellular"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
