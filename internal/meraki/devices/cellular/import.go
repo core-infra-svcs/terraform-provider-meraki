@@ -25,7 +25,7 @@ func (r *Resource) ImportState(ctx context.Context, req resource.ImportStateRequ
 	}
 
 	// Map the API response to the Terraform model
-	var state resourceModel
+	var state ResourceModel
 	mapDiags := mapApiResponseToModel(apiResp, &state)
 	resp.Diagnostics.Append(mapDiags...)
 	if resp.Diagnostics.HasError() {
