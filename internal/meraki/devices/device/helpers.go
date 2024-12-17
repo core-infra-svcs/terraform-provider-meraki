@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-func mapPayload(plan *resourceModel) (openApiClient.UpdateDeviceRequest, diag.Diagnostics) {
+func mapPayload(plan *ResourceModel) (openApiClient.UpdateDeviceRequest, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	payload := openApiClient.NewUpdateDeviceRequest()
 
@@ -74,7 +74,7 @@ func mapPayload(plan *resourceModel) (openApiClient.UpdateDeviceRequest, diag.Di
 }
 
 // mapApiResponseToState updates the resource state with the provided api data.
-func mapApiResponseToState(ctx context.Context, state *resourceModel, httpResp *http.Response) diag.Diagnostics {
+func mapApiResponseToState(ctx context.Context, state *ResourceModel, httpResp *http.Response) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	httpRespMap, httpRespMapErr := utils.ExtractResponseToMap(httpResp)
@@ -244,7 +244,7 @@ func mapApiResponseToState(ctx context.Context, state *resourceModel, httpResp *
 
 		beaconIdParamsResp, ok := httpRespMap["beaconIdParams"].(map[string]interface{})
 		if ok {
-			var beaconIdParams beaconIdParamsModel
+			var beaconIdParams BeaconIdParamsModel
 
 			// uuid
 			uuid, err := utils.ExtractStringAttr(beaconIdParamsResp, "uuid")

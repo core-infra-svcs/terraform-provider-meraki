@@ -2,7 +2,7 @@ package device
 
 import "github.com/hashicorp/terraform-plugin-framework/types"
 
-type resourceModel struct {
+type ResourceModel struct {
 	Id              types.String  `tfsdk:"id"`
 	Serial          types.String  `tfsdk:"serial"`
 	Name            types.String  `tfsdk:"name"`
@@ -24,13 +24,13 @@ type resourceModel struct {
 	MoveMapMarker   types.Bool    `tfsdk:"move_map_marker"`
 }
 
-type beaconIdParamsModel struct {
+type BeaconIdParamsModel struct {
 	Uuid  types.String `tfsdk:"uuid"`
 	Major types.Int64  `tfsdk:"major"`
 	Minor types.Int64  `tfsdk:"minor"`
 }
 
-type detailsModel struct {
+type DetailsModel struct {
 	Name  types.String `tfsdk:"name"`
 	Value types.String `tfsdk:"value"`
 }

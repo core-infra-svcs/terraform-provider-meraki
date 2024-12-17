@@ -56,7 +56,7 @@ func (r *Resource) Configure(ctx context.Context, req resource.ConfigureRequest,
 
 // Create method is responsible for creating a new resource.
 func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *resourceModel
+	var data *ResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -91,7 +91,7 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 
 // Read method is responsible for reading an existing resource's state.
 func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *resourceModel
+	var data *ResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -120,7 +120,7 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 
 // Update function is responsible for updating the state of an existing resource.
 func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data *resourceModel
+	var data *ResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -155,7 +155,7 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 
 // Delete function is responsible for deleting a resource.
 func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data *resourceModel
+	var data *ResourceModel
 
 	// Retrieve the current state
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
