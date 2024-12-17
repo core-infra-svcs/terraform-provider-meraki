@@ -11,7 +11,7 @@ import (
 )
 
 // mapModelToApiPayload maps the Terraform resource model to the API request payload.
-func mapModelToApiPayload(model *resourceModel) (*openApiClient.UpdateDeviceCellularSimsRequest, diag.Diagnostics) {
+func mapModelToApiPayload(model *ResourceModel) (*openApiClient.UpdateDeviceCellularSimsRequest, diag.Diagnostics) {
 	diagnostics := diag.Diagnostics{}
 	payload := openApiClient.NewUpdateDeviceCellularSimsRequest()
 
@@ -53,7 +53,7 @@ func mapModelToApiPayload(model *resourceModel) (*openApiClient.UpdateDeviceCell
 
 // mapApiResponseToModel maps the API response payload back to the Terraform resource model.
 // mapApiResponseToModel maps the API response payload back to the Terraform resource model.
-func mapApiResponseToModel(apiResponse map[string]interface{}, model *resourceModel) diag.Diagnostics {
+func mapApiResponseToModel(apiResponse map[string]interface{}, model *ResourceModel) diag.Diagnostics {
 	diagnostics := diag.Diagnostics{}
 
 	// Map Sims

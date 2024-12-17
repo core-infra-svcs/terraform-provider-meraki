@@ -44,8 +44,8 @@ import (
 
 */
 
-// resourceModel represents the top-level resource structure.
-type resourceModel struct {
+// ResourceModel represents the top-level resource structure.
+type ResourceModel struct {
 	Id          types.String `tfsdk:"id" json:"-"`
 	Serial      types.String `tfsdk:"serial" json:"serial"`
 	Sims        types.Set    `tfsdk:"sims" json:"sims"` // Updated to match schema
@@ -53,8 +53,8 @@ type resourceModel struct {
 	SimOrdering types.Set    `tfsdk:"sim_ordering" json:"simOrdering"`
 }
 
-// resourceModelAttrTypes defines the attribute types for the top-level resourceModel.
-func resourceModelAttrTypes() map[string]attr.Type {
+// ResourceModelAttrTypes defines the attribute types for the top-level ResourceModel.
+func ResourceModelAttrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"serial":       types.StringType,
 		"sims":         types.ListType{ElemType: types.ObjectType{AttrTypes: ResourceModelSimAttrTypes()}},
