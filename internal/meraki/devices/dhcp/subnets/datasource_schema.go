@@ -17,7 +17,7 @@ func GetDatasourceSchema() schema.Schema {
 				MarkdownDescription: "The serial number of the appliance.",
 				Required:            true,
 			},
-			"data": DatasourceDataAttributes(),
+			"resources": DatasourceDataAttributes(),
 		},
 	}
 }
