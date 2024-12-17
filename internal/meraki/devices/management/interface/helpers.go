@@ -3,386 +3,232 @@ package _interface
 import (
 	"context"
 	"fmt"
-	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"net/http"
+
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"net/http"
+
+	client "github.com/meraki/dashboard-api-go/client"
 )
 
-// mapDDNSHostnames maps the DDNS hostnames from the API response.
-func mapDDNSHostnames(ctx context.Context, raw interface{}) (types.Object, diag.Diagnostics) {
-	tflog.Trace(ctx, "[management_interface] Mapping DDNS hostnames")
-	if raw == nil {
-		return types.ObjectNull(ddnsHostnamesType), nil
-	}
+/* Payload Helper Methods */
 
-	ddnsRaw, ok := raw.(map[string]interface{})
-	if !ok {
-		return types.ObjectNull(ddnsHostnamesType), diag.Diagnostics{
-			diag.NewErrorDiagnostic("Mapping Error", "Expected a map for DDNS hostnames"),
-		}
-	}
-
-	activeDDNS, activeDDNSDiags := utils.ExtractStringAttr(ddnsRaw, "activeDdnsHostname")
-	wan1DDNS, wan1DDNSDiags := utils.ExtractStringAttr(ddnsRaw, "ddnsHostnameWan1")
-	wan2DDNS, wan2DDNSDiags := utils.ExtractStringAttr(ddnsRaw, "ddnsHostnameWan2")
-
-	diags := append(activeDDNSDiags, wan1DDNSDiags...)
-	diags = append(diags, wan2DDNSDiags...)
-
-	ddnsAttrValues := map[string]attr.Value{
-		"active_ddns_hostname": activeDDNS,
-		"ddns_hostname_wan1":   wan1DDNS,
-		"ddns_hostname_wan2":   wan2DDNS,
-	}
-
-	ddnsObject, err := types.ObjectValue(ddnsHostnamesType, ddnsAttrValues)
-	if err.HasError() {
-		diags = append(diags, err...)
-	}
-	return ddnsObject, diags
+// GenerateCreatePayload generates the payload for the CREATE operation.
+func GenerateCreatePayload(ctx context.Context, data ResourceModel) *client.UpdateDeviceManagementInterfaceRequest {
+	tflog.Debug(ctx, "Generating Create payload")
+	return generateBasePayload(ctx, data)
 }
 
-// mapWAN maps a single WAN configuration (WAN1 or WAN2) from the API response.
-func mapWAN(ctx context.Context, rawResponse map[string]interface{}, wanKey string) (types.Object, diag.Diagnostics) {
-	tflog.Trace(ctx, fmt.Sprintf("[management_interface] Mapping %s", wanKey))
-	if rawResponse[wanKey] == nil {
-		return types.ObjectNull(wanType), nil
-	}
+// GenerateUpdatePayload generates the payload for the UPDATE operation.
+func GenerateUpdatePayload(ctx context.Context, data ResourceModel) *client.UpdateDeviceManagementInterfaceRequest {
+	tflog.Debug(ctx, "Generating Update payload")
+	return generateBasePayload(ctx, data)
+}
 
-	wanRaw, ok := rawResponse[wanKey].(map[string]interface{})
-	if !ok {
-		return types.ObjectNull(wanType), diag.Diagnostics{
-			diag.NewErrorDiagnostic("Mapping Error", fmt.Sprintf("Expected a map for %s", wanKey)),
+// GenerateDeletePayload generates a blank/default payload for the DELETE operation.
+func GenerateDeletePayload(ctx context.Context, data ResourceModel) *client.UpdateDeviceManagementInterfaceRequest {
+	tflog.Debug(ctx, "Generating Delete payload")
+	return &client.UpdateDeviceManagementInterfaceRequest{
+		Wan1: &client.UpdateDeviceManagementInterfaceRequestWan1{},
+		Wan2: &client.UpdateDeviceManagementInterfaceRequestWan2{},
+	}
+}
+
+// generateBasePayload maps the state data into the API request payload.
+func generateBasePayload(ctx context.Context, data ResourceModel) *client.UpdateDeviceManagementInterfaceRequest {
+	payload := &client.UpdateDeviceManagementInterfaceRequest{}
+
+	// Map WAN1 configuration
+	if !data.Wan1.IsNull() {
+		wan1, diags := generateWan1Payload(ctx, data.Wan1)
+		if diags.HasError() {
+			tflog.Error(ctx, "Failed to map WAN1 configuration")
 		}
+		payload.Wan1 = wan1
 	}
 
-	wanEnabled, wanEnabledDiags := utils.ExtractStringAttr(wanRaw, "wanEnabled")
-	usingStaticIP, usingStaticIPDiags := utils.ExtractBoolAttr(wanRaw, "usingStaticIp")
-	staticIP, staticIPDiags := utils.ExtractStringAttr(wanRaw, "staticIp")
-	staticSubnet, staticSubnetDiags := utils.ExtractStringAttr(wanRaw, "staticSubnetMask")
-	gatewayIP, gatewayIPDiags := utils.ExtractStringAttr(wanRaw, "staticGatewayIp")
-	dns, dnsDiags := utils.ExtractListStringAttr(wanRaw, "staticDns")
-	vlan, vlanDiags := utils.ExtractInt64Attr(wanRaw, "vlan")
-
-	diags := append(wanEnabledDiags, usingStaticIPDiags...)
-	diags = append(diags, staticIPDiags...)
-	diags = append(diags, staticSubnetDiags...)
-	diags = append(diags, gatewayIPDiags...)
-	diags = append(diags, dnsDiags...)
-	diags = append(diags, vlanDiags...)
-
-	wanAttrValues := map[string]attr.Value{
-		"wan_enabled":        wanEnabled,
-		"using_static_ip":    usingStaticIP,
-		"static_ip":          staticIP,
-		"static_subnet_mask": staticSubnet,
-		"static_gateway_ip":  gatewayIP,
-		"static_dns":         dns,
-		"vlan":               vlan,
+	// Map WAN2 configuration
+	if !data.Wan2.IsNull() {
+		wan2, diags := generateWan2Payload(ctx, data.Wan2)
+		if diags.HasError() {
+			tflog.Error(ctx, "Failed to map WAN2 configuration")
+		}
+		payload.Wan2 = wan2
 	}
 
-	wanObject, err := types.ObjectValue(wanType, wanAttrValues)
-	if err.HasError() {
-		diags = append(diags, err...)
+	return payload
+}
+
+/* Attribute Mapping Helpers */
+
+// mapWAN maps a WAN configuration from the Terraform state to the API payload.
+func generateWan1Payload(ctx context.Context, wanObject types.Object) (*client.UpdateDeviceManagementInterfaceRequestWan1, diag.Diagnostics) {
+	var wan WANModel
+	var diags diag.Diagnostics
+
+	wanObject.As(ctx, &wan, basetypes.ObjectAsOptions{})
+
+	payload := &client.UpdateDeviceManagementInterfaceRequestWan1{
+		WanEnabled:       wan.WanEnabled.ValueStringPointer(),
+		UsingStaticIp:    wan.UsingStaticIp.ValueBoolPointer(),
+		StaticIp:         wan.StaticIp.ValueStringPointer(),
+		StaticSubnetMask: wan.StaticSubnetMask.ValueStringPointer(),
+		StaticGatewayIp:  wan.StaticGatewayIp.ValueStringPointer(),
+		StaticDns:        utils.FlattenList(wan.StaticDns),
+	}
+
+	// Explicit Vlan mapping with type validation
+	if !wan.Vlan.IsNull() {
+		vlan := int32(wan.Vlan.ValueInt64())
+		payload.Vlan = &vlan
+	}
+
+	return payload, diags
+}
+
+// mapWAN maps a WAN configuration from the Terraform state to the API payload.
+func generateWan2Payload(ctx context.Context, wanObject types.Object) (*client.UpdateDeviceManagementInterfaceRequestWan2, diag.Diagnostics) {
+	var wan WANModel
+	var diags diag.Diagnostics
+
+	wanObject.As(ctx, &wan, basetypes.ObjectAsOptions{})
+
+	payload := &client.UpdateDeviceManagementInterfaceRequestWan2{
+		WanEnabled:       wan.WanEnabled.ValueStringPointer(),
+		UsingStaticIp:    wan.UsingStaticIp.ValueBoolPointer(),
+		StaticIp:         wan.StaticIp.ValueStringPointer(),
+		StaticSubnetMask: wan.StaticSubnetMask.ValueStringPointer(),
+		StaticGatewayIp:  wan.StaticGatewayIp.ValueStringPointer(),
+		StaticDns:        utils.FlattenList(wan.StaticDns),
+	}
+
+	// Explicit Vlan mapping with type validation
+	if !wan.Vlan.IsNull() {
+		vlan := int32(wan.Vlan.ValueInt64())
+		payload.Vlan = &vlan
+	}
+
+	return payload, diags
+}
+
+/* API Call Abstractions   */
+
+func CallCreateAPI(ctx context.Context, client *client.APIClient, payload *client.UpdateDeviceManagementInterfaceRequest, serial string) (map[string]interface{}, *http.Response, error) {
+	return client.ManagementInterfaceApi.UpdateDeviceManagementInterface(ctx, serial).UpdateDeviceManagementInterfaceRequest(*payload).Execute()
+}
+
+func CallReadAPI(ctx context.Context, client *client.APIClient, serial string) (map[string]interface{}, *http.Response, error) {
+	return client.ManagementInterfaceApi.GetDeviceManagementInterface(ctx, serial).Execute()
+}
+
+func CallUpdateAPI(ctx context.Context, client *client.APIClient, payload *client.UpdateDeviceManagementInterfaceRequest, serial string) (map[string]interface{}, *http.Response, error) {
+	return client.ManagementInterfaceApi.UpdateDeviceManagementInterface(ctx, serial).UpdateDeviceManagementInterfaceRequest(*payload).Execute()
+}
+
+func CallDeleteAPI(ctx context.Context, client *client.APIClient, payload *client.UpdateDeviceManagementInterfaceRequest, serial string) (*http.Response, error) {
+	_, resp, err := client.ManagementInterfaceApi.UpdateDeviceManagementInterface(ctx, serial).UpdateDeviceManagementInterfaceRequest(*payload).Execute()
+	return resp, err
+}
+
+/* State Transformation    */
+
+func MarshalStateFromAPI(ctx context.Context, apiResponse map[string]interface{}) (ResourceModel, diag.Diagnostics) {
+	var state ResourceModel
+	var diags diag.Diagnostics
+
+	tflog.Debug(ctx, "Mapping API response to Terraform state", map[string]interface{}{
+		"api_response": apiResponse,
+	})
+
+	// Map Serial
+	if serial, ok := apiResponse["serial"].(string); ok {
+		state.Serial = types.StringValue(serial)
+	} else {
+		state.Serial = types.StringNull()
+	}
+
+	// Map DDNS Hostnames
+	if ddnsRaw, ok := apiResponse["ddnsHostnames"].(map[string]interface{}); ok {
+		ddnsValues := map[string]attr.Value{
+			"active_ddns_hostname": utils.SafeStringAttr(ddnsRaw, "activeDdnsHostname"),
+			"ddns_hostname_wan1":   utils.SafeStringAttr(ddnsRaw, "ddnsHostnameWan1"),
+			"ddns_hostname_wan2":   utils.SafeStringAttr(ddnsRaw, "ddnsHostnameWan2"),
+		}
+
+		ddnsObject, err := types.ObjectValue(DdnsHostnamesType, ddnsValues)
+		if err != nil {
+			diags.AddError("State Mapping Error", fmt.Sprintf("Failed to map DDNS hostnames: %s", err))
+		}
+		state.DDNSHostnames = ddnsObject
+	} else {
+		state.DDNSHostnames = types.ObjectNull(DdnsHostnamesType)
+	}
+
+	// Map WAN1
+	if wan1Raw, ok := apiResponse["wan1"].(map[string]interface{}); ok {
+		wan1Values := map[string]attr.Value{
+			"wan_enabled":        utils.SafeStringAttr(wan1Raw, "wanEnabled"),
+			"using_static_ip":    utils.SafeBoolAttr(wan1Raw, "usingStaticIp"),
+			"static_ip":          utils.SafeStringAttr(wan1Raw, "staticIp"),
+			"static_subnet_mask": utils.SafeStringAttr(wan1Raw, "staticSubnetMask"),
+			"static_gateway_ip":  utils.SafeStringAttr(wan1Raw, "staticGatewayIp"),
+			"static_dns":         utils.SafeListStringAttr(wan1Raw, "staticDns"),
+			"vlan":               utils.SafeInt64Attr(wan1Raw, "vlan"),
+		}
+
+		wan1Object, err := types.ObjectValue(WANType, wan1Values)
+		if err != nil {
+			diags.AddError("State Mapping Error", fmt.Sprintf("Failed to map WAN1: %s", err))
+		}
+		state.Wan1 = wan1Object
+	} else {
+		state.Wan1 = types.ObjectNull(WANType)
+	}
+
+	// Map WAN2
+	if wan2Raw, ok := apiResponse["wan2"].(map[string]interface{}); ok {
+		wan2Values := map[string]attr.Value{
+			"wan_enabled":        utils.SafeStringAttr(wan2Raw, "wanEnabled"),
+			"using_static_ip":    utils.SafeBoolAttr(wan2Raw, "usingStaticIp"),
+			"static_ip":          utils.SafeStringAttr(wan2Raw, "staticIp"),
+			"static_subnet_mask": utils.SafeStringAttr(wan2Raw, "staticSubnetMask"),
+			"static_gateway_ip":  utils.SafeStringAttr(wan2Raw, "staticGatewayIp"),
+			"static_dns":         utils.SafeListStringAttr(wan2Raw, "staticDns"),
+			"vlan":               utils.SafeInt64Attr(wan2Raw, "vlan"),
+		}
+
+		wan2Object, err := types.ObjectValue(WANType, wan2Values)
+		if err != nil {
+			diags.AddError("State Mapping Error", fmt.Sprintf("Failed to map WAN2: %s", err))
+		}
+		state.Wan2 = wan2Object
+	} else {
+		state.Wan2 = types.ObjectNull(WANType)
+	}
+
+	return state, diags
+}
+
+// mapWAN safely maps the WAN data into a types.Object
+func mapWAN(ctx context.Context, raw map[string]interface{}) (types.Object, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	wanValues := map[string]attr.Value{
+		"wan_enabled":        utils.SafeStringAttr(raw, "wanEnabled"),
+		"using_static_ip":    utils.SafeBoolAttr(raw, "usingStaticIp"),
+		"static_ip":          utils.SafeStringAttr(raw, "staticIp"),
+		"static_subnet_mask": utils.SafeStringAttr(raw, "staticSubnetMask"),
+		"static_gateway_ip":  utils.SafeStringAttr(raw, "staticGatewayIp"),
+		"static_dns":         utils.SafeListStringAttr(raw, "staticDns"),
+		"vlan":               utils.SafeInt64Attr(raw, "vlan"),
+	}
+
+	wanObject, err := types.ObjectValue(WANType, wanValues)
+	if err != nil {
+		diags.AddError("State Mapping Error", "Failed to map WAN configuration")
 	}
 	return wanObject, diags
-}
-
-func resourceWanState(rawResp map[string]interface{}, wanKey string, wanEnabledPlan string) (types.Object, diag.Diagnostics) {
-	var diags diag.Diagnostics
-	var wan wanModel
-
-	wanAttrs := map[string]attr.Type{
-		"wan_enabled":        types.StringType,
-		"using_static_ip":    types.BoolType,
-		"static_ip":          types.StringType,
-		"static_subnet_mask": types.StringType,
-		"static_gateway_ip":  types.StringType,
-		"static_dns":         types.ListType{ElemType: types.StringType},
-		"vlan":               types.Int64Type,
-	}
-
-	if d, ok := rawResp[wanKey].(map[string]interface{}); ok {
-		// wan_enabled
-		wanEnabled, err := utils.ExtractStringAttr(d, "wanEnabled")
-
-		if wanEnabledPlan == "not configured" && wanEnabled.IsNull() {
-			wanEnabled = types.StringValue("not configured")
-		}
-
-		if wanEnabledPlan == "" && wanEnabled.IsNull() {
-			wanEnabled = types.StringValue("")
-		}
-
-		if err != nil {
-			diags.Append(err...)
-		}
-		wan.WanEnabled = wanEnabled
-
-		// using_static_ip
-		usingStaticIp, err := utils.ExtractBoolAttr(d, "usingStaticIp")
-		if err != nil {
-			diags.Append(err...)
-		}
-		wan.UsingStaticIp = usingStaticIp
-
-		// static_ip
-		staticIp, err := utils.ExtractStringAttr(d, "staticIp")
-		if err != nil {
-			diags.Append(err...)
-		}
-		wan.StaticIp = staticIp
-
-		// static_subnet_mask
-		staticSubnetMask, err := utils.ExtractStringAttr(d, "staticSubnetMask")
-		if err != nil {
-			diags.Append(err...)
-		}
-		wan.StaticSubnetMask = staticSubnetMask
-
-		// static_gateway_ip
-		staticGatewayIp, err := utils.ExtractStringAttr(d, "staticGatewayIp")
-		if err != nil {
-			diags.Append(err...)
-		}
-		wan.StaticGatewayIp = staticGatewayIp
-
-		// static_dns
-		staticDns, err := utils.ExtractListStringAttr(d, "staticDns")
-		if err != nil {
-			diags.Append(err...)
-		}
-		wan.StaticDns = staticDns
-
-		// vlan
-		if vlanValue, exists := d["vlan"]; exists && vlanValue != nil {
-			switch v := vlanValue.(type) {
-			case float64:
-				wan.Vlan = types.Int64Value(int64(v))
-			case int64:
-				wan.Vlan = types.Int64Value(v)
-			case int:
-				wan.Vlan = types.Int64Value(int64(v))
-			default:
-				wan.Vlan = types.Int64Null()
-				diags.AddError("Type Error", fmt.Sprintf("Unsupported type for vlan attribute: %T", v))
-			}
-		} else {
-			wan.Vlan = types.Int64Null()
-		}
-
-		// Log the extracted vlan value
-		tflog.Debug(context.Background(), "Extracted vlan", map[string]interface{}{
-			"vlan": wan.Vlan.ValueInt64(),
-		})
-
-	} else {
-		WanNull := types.ObjectNull(wanAttrs)
-		return WanNull, diags
-	}
-
-	wanObj, err := types.ObjectValueFrom(context.Background(), wanAttrs, wan)
-	if err != nil {
-		diags.Append(err...)
-	}
-
-	return wanObj, diags
-}
-
-func updateResourceState(ctx context.Context, state *resourceModel, data map[string]interface{}, httpResp *http.Response, wan1EnabledPlan string, wan2EnabledPlan string) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	rawResp, err := utils.ExtractResponseToMap(httpResp)
-	if err != nil {
-		diags.AddError("Failed to Unmarshal HttpResp", err.Error())
-		return diags
-	}
-
-	// ID
-	if state.Id.IsNull() || state.Id.IsUnknown() {
-		state.Id, diags = utils.ExtractStringAttr(rawResp, "id")
-		if diags.HasError() {
-			diags.AddError("ID Attribute", "")
-			return diags
-		}
-	}
-
-	// Serial
-	if state.Serial.IsNull() || state.Serial.IsUnknown() {
-		state.Serial, diags = utils.ExtractStringAttr(rawResp, "serial")
-		if diags.HasError() {
-			diags.AddError("Serial Attribute", "")
-			return diags
-		}
-	}
-
-	// Map nested DDNSHostnames
-	ddnsHostnames, ddnsDiags := mapDDNSHostnames(ctx, data["ddnsHostnames"])
-	diags = append(diags, ddnsDiags...)
-	state.DDNSHostnames = ddnsHostnames
-
-	// Wan1
-	state.Wan1, diags = resourceWanState(rawResp, "wan1", wan1EnabledPlan)
-	if diags.HasError() {
-		diags.AddError("Wan1 Attribute", "")
-		return diags
-	}
-
-	// Wan2
-	state.Wan2, diags = resourceWanState(rawResp, "wan2", wan2EnabledPlan)
-	if diags.HasError() {
-		diags.AddError("Wan2 Attribute", "")
-		return diags
-	}
-
-	// Log the updated state
-	tflog.Debug(ctx, "Updated state", map[string]interface{}{
-		"state": state,
-	})
-
-	return diags
-}
-
-func datasourceWanState(rawResp map[string]interface{}, wanKey string) (types.Object, diag.Diagnostics) {
-	var diags diag.Diagnostics
-	var wan wanModel
-
-	wanAttrs := map[string]attr.Type{
-		"wan_enabled":        types.StringType,
-		"using_static_ip":    types.BoolType,
-		"static_ip":          types.StringType,
-		"static_subnet_mask": types.StringType,
-		"static_gateway_ip":  types.StringType,
-		"static_dns":         types.ListType{ElemType: types.StringType},
-		"vlan":               types.Int64Type,
-	}
-
-	if d, ok := rawResp[wanKey].(map[string]interface{}); ok {
-		// wan_enabled
-		wanEnabled, err := utils.ExtractStringAttr(d, "wanEnabled")
-		if err != nil {
-			diags.Append(err...)
-		}
-		wan.WanEnabled = wanEnabled
-
-		// using_static_ip
-		usingStaticIp, err := utils.ExtractBoolAttr(d, "usingStaticIp")
-		if err != nil {
-			diags.Append(err...)
-		}
-		wan.UsingStaticIp = usingStaticIp
-
-		// static_ip
-		staticIp, err := utils.ExtractStringAttr(d, "staticIp")
-		if err != nil {
-			diags.Append(err...)
-		}
-		wan.StaticIp = staticIp
-
-		// static_subnet_mask
-		staticSubnetMask, err := utils.ExtractStringAttr(d, "staticSubnetMask")
-		if err != nil {
-			diags.Append(err...)
-		}
-		wan.StaticSubnetMask = staticSubnetMask
-
-		// static_gateway_ip
-		staticGatewayIp, err := utils.ExtractStringAttr(d, "staticGatewayIp")
-		if err != nil {
-			diags.Append(err...)
-		}
-		wan.StaticGatewayIp = staticGatewayIp
-
-		// static_dns
-		staticDns, err := utils.ExtractListStringAttr(d, "staticDns")
-		if err != nil {
-			diags.Append(err...)
-		}
-		wan.StaticDns = staticDns
-
-		// vlan
-		if vlanValue, exists := d["vlan"]; exists && vlanValue != nil {
-			switch v := vlanValue.(type) {
-			case float64:
-				wan.Vlan = types.Int64Value(int64(v))
-			case int64:
-				wan.Vlan = types.Int64Value(v)
-			case int:
-				wan.Vlan = types.Int64Value(int64(v))
-			default:
-				wan.Vlan = types.Int64Null()
-				diags.AddError("Type Error", fmt.Sprintf("Unsupported type for vlan attribute: %T", v))
-			}
-		} else {
-			wan.Vlan = types.Int64Null()
-		}
-
-		// Log the extracted vlan value
-		tflog.Debug(context.Background(), "Extracted vlan", map[string]interface{}{
-			"vlan": wan.Vlan.ValueInt64(),
-		})
-
-	} else {
-		WanNull := types.ObjectNull(wanAttrs)
-		return WanNull, diags
-	}
-
-	wanObj, err := types.ObjectValueFrom(context.Background(), wanAttrs, wan)
-	if err != nil {
-		diags.Append(err...)
-	}
-
-	return wanObj, diags
-}
-
-func updateDatasourceState(ctx context.Context, state *resourceModel, data map[string]interface{}, httpResp *http.Response) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	rawResp, err := utils.ExtractResponseToMap(httpResp)
-	if err != nil {
-		diags.AddError("Failed to Unmarshal HttpResp", err.Error())
-		return diags
-	}
-
-	// ID
-	if state.Id.IsNull() || state.Id.IsUnknown() {
-		state.Id, diags = utils.ExtractStringAttr(rawResp, "id")
-		if diags.HasError() {
-			diags.AddError("ID Attribute", "")
-			return diags
-		}
-	}
-
-	// Serial
-	if state.Serial.IsNull() || state.Serial.IsUnknown() {
-		state.Serial, diags = utils.ExtractStringAttr(rawResp, "serial")
-		if diags.HasError() {
-			diags.AddError("Serial Attribute", "")
-			return diags
-		}
-	}
-
-	// Wan1
-	state.Wan1, diags = datasourceWanState(rawResp, "wan1")
-	if diags.HasError() {
-		diags.AddError("Wan1 Attribute", "")
-		return diags
-	}
-
-	// Wan2
-	state.Wan2, diags = datasourceWanState(rawResp, "wan2")
-	if diags.HasError() {
-		diags.AddError("Wan2 Attribute", "")
-		return diags
-	}
-
-	// Log the state after updating
-	tflog.Debug(ctx, "State after update", map[string]interface{}{
-		"state": state,
-	})
-
-	return diags
 }

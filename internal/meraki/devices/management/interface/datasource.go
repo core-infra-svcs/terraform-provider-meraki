@@ -5,11 +5,8 @@ import (
 	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
-	"net/http"
-	"time"
 )
 
 // Ensure the provider-defined types fully satisfy the framework interfaces
@@ -58,7 +55,7 @@ func (d *DataSource) Configure(ctx context.Context, req datasource.ConfigureRequ
 
 // Read retrieves the management interface settings and updates the Terraform state.
 func (d *DataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var config resourceModel
+	var config DataSourceModel
 
 	// Read Terraform configuration data into the model
 	tflog.Debug(ctx, "[management_interface] Reading Terraform configuration data")
@@ -68,19 +65,19 @@ func (d *DataSource) Read(ctx context.Context, req datasource.ReadRequest, resp 
 		return
 	}
 
-	// Retry mechanism for API call
-	maxRetries := d.client.GetConfig().MaximumRetries
-	retryDelay := time.Duration(d.client.GetConfig().Retry4xxErrorWaitTime)
+	// Validate the required 'serial' attribute
+	if config.Serial.IsNull() || config.Serial.IsUnknown() || config.Serial.ValueString() == "" {
+		resp.Diagnostics.AddError(
+			"Missing Serial Number",
+			"The 'serial' attribute must be specified in the data source configuration.",
+		)
+		return
+	}
 
-	// Execute API call with retry logic
+	// Call the READ API (GET)
 	tflog.Debug(ctx, "[management_interface] Calling API to retrieve management interface settings")
-	inlineResp, httpResp, err := utils.CustomHttpRequestRetry[map[string]interface{}](ctx, maxRetries, retryDelay, func() (map[string]interface{}, *http.Response, error) {
-		return d.client.DevicesApi.GetDeviceManagementInterface(ctx, config.Serial.ValueString()).Execute()
-	})
-	if err != nil {
-		tflog.Error(ctx, "[management_interface] API call failed", map[string]interface{}{
-			"error": err.Error(),
-		})
+	apiResponse, httpResp, err := CallReadAPI(ctx, d.client, config.Serial.ValueString())
+	if err := utils.HandleAPIError(ctx, httpResp, err, &resp.Diagnostics); err != nil {
 		resp.Diagnostics.AddError("API Call Failure", fmt.Sprintf("Error details: %s", err.Error()))
 		return
 	}
@@ -91,45 +88,25 @@ func (d *DataSource) Read(ctx context.Context, req datasource.ReadRequest, resp 
 			"Unexpected HTTP Response",
 			utils.HttpDiagnostics(httpResp),
 		)
-
-	} else if httpResp.StatusCode != 200 {
-		resp.Diagnostics.AddError(
-			"Unexpected HTTP Response Status Code",
-			fmt.Sprintf("%v", httpResp.StatusCode),
-		)
-
-		// HTTP 400 counts as an error so moving this here
-		// If there was an error during API call, add it to diagnostics.
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"HTTP Client Failure",
-				utils.HttpDiagnostics(httpResp),
-			)
-			return
-		}
-
-		// If there were any errors up to this point, log the state data and return.
-		if resp.Diagnostics.HasError() {
-			resp.Diagnostics.AddError("State Data", fmt.Sprintf("\n%v", config))
-			return
-		}
-
+		return
 	}
 
-	diags = updateDatasourceState(ctx, &config, inlineResp, httpResp)
-
-	config.Id = types.StringValue(config.Serial.ValueString())
-
+	// Marshal API response into Terraform state
+	state, diags := MarshalStateFromAPI(ctx, apiResponse)
 	resp.Diagnostics.Append(diags...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	diags = resp.State.Set(ctx, &config)
+	// Set the state for Terraform
+	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
-	// Write logs using the tflog package
-	tflog.Debug(ctx, "[management_interface] Successfully completed Read operation")
-	tflog.Trace(ctx, "read resource")
+	// Log successful operation
+	tflog.Debug(ctx, "[management_interface] Successfully completed Read operation", map[string]interface{}{
+		"serial": config.Serial.ValueString(),
+	})
 }

@@ -43,15 +43,22 @@ import (
 
 */
 
-// ddnsHostnamesType defines the attribute types for DDNSHostnamesModel.
-var ddnsHostnamesType = map[string]attr.Type{
+// DdnsHostnamesModel represents the attributes for DDNSHostnames configuration.
+type DdnsHostnamesModel struct {
+	ActiveDdnsHostname types.String `tfsdk:"active_ddns_hostname" json:"activeDdnsHostname"`
+	DdnsHostnameWan1   types.String `tfsdk:"ddns_hostname_wan1" json:"ddnsHostnameWan1"`
+	DdnsHostnameWan2   types.String `tfsdk:"ddns_hostname_wan2" json:"ddnsHostnameWan2"`
+}
+
+// DdnsHostnamesType defines the attribute types for DDNSHostnamesModel.
+var DdnsHostnamesType = map[string]attr.Type{
 	"active_ddns_hostname": types.StringType,
-	"ddns_hostname_wan1":   types.StringType,
-	"ddns_hostname_wan2":   types.StringType,
+	"wan1":                 types.StringType,
+	"wan2":                 types.StringType,
 }
 
 // WANModel represents the attributes for WAN configuration.
-type wanModel struct {
+type WANModel struct {
 	WanEnabled       types.String `tfsdk:"wan_enabled" json:"wanEnabled"`
 	UsingStaticIp    types.Bool   `tfsdk:"using_static_ip" json:"usingStaticIp"`
 	StaticIp         types.String `tfsdk:"static_ip" json:"staticIp"`
@@ -61,8 +68,8 @@ type wanModel struct {
 	Vlan             types.Int64  `tfsdk:"vlan" json:"vlan"`
 }
 
-// wanType defines the attribute types for WANModel.
-var wanType = map[string]attr.Type{
+// WANType defines the attribute types for WANModel.
+var WANType = map[string]attr.Type{
 	"wan_enabled":        types.StringType,
 	"using_static_ip":    types.BoolType,
 	"static_ip":          types.StringType,
@@ -72,11 +79,14 @@ var wanType = map[string]attr.Type{
 	"vlan":               types.Int64Type,
 }
 
-// resourceModel represents the main data model for the resource.
-type resourceModel struct {
+// ResourceModel represents the resource's main data model.
+type ResourceModel struct {
 	Id            types.String `tfsdk:"id" json:"-"`
 	Serial        types.String `tfsdk:"serial" json:"serial"`
-	DDNSHostnames types.Object `tfsdk:"ddns_hostnames" json:"ddnsHostnames"` // Nested object for DDNS hostnames
-	Wan1          types.Object `tfsdk:"wan1" json:"wan1"`                    // Nested object for WAN1 configuration
-	Wan2          types.Object `tfsdk:"wan2" json:"wan2"`                    // Nested object for WAN2 configuration
+	DDNSHostnames types.Object `tfsdk:"ddns_hostnames" json:"ddnsHostnames"`
+	Wan1          types.Object `tfsdk:"wan1" json:"wan1"`
+	Wan2          types.Object `tfsdk:"wan2" json:"wan2"`
 }
+
+// DataSourceModel represents the data source's main data model.
+type DataSourceModel ResourceModel
