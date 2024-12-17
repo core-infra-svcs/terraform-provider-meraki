@@ -19,24 +19,24 @@ import (
 ]
 */
 
-// dataSourceModel represents the top-level data source structure.
-type dataSourceModel struct {
+// DataSourceModel represents the top-level data source structure.
+type DataSourceModel struct {
 	Id        types.String `tfsdk:"id" json:"id"`
 	Serial    types.String `tfsdk:"serial" json:"serial"`
 	Resources types.List   `tfsdk:"resources" json:"-"`
 }
 
-// dataSourceAttrTypes defines the attribute types for the data source model.
-func dataSourceAttrTypes() map[string]attr.Type {
+// DataSourceAttrTypes defines the attribute types for the data source model.
+func DataSourceAttrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"id":        types.StringType,
 		"serial":    types.StringType,
-		"resources": types.ListType{ElemType: types.ObjectType{AttrTypes: resourceAttrTypes()}},
+		"resources": types.ListType{ElemType: types.ObjectType{AttrTypes: ResourceAttrTypes()}},
 	}
 }
 
-// resourceModel represents an individual DHCP subnet configuration.
-type resourceModel struct {
+// ResourceModel represents an individual DHCP subnet configuration.
+type ResourceModel struct {
 	Id        types.String `tfsdk:"id" json:"-"`
 	Subnet    types.String `tfsdk:"subnet" json:"subnet"`
 	VlanId    types.Int64  `tfsdk:"vlan_id" json:"vlanId"`
@@ -44,8 +44,8 @@ type resourceModel struct {
 	FreeCount types.Int64  `tfsdk:"free_count" json:"freeCount"`
 }
 
-// resourceAttrTypes defines the attribute types for an individual resource (subnet).
-func resourceAttrTypes() map[string]attr.Type {
+// ResourceAttrTypes defines the attribute types for an individual resource (subnet).
+func ResourceAttrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
 		"id":         types.StringType,
 		"subnet":     types.StringType,

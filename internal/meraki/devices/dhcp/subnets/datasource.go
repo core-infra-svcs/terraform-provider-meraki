@@ -23,9 +23,9 @@ func (d *ApplianceDhcpSubnetsDataSource) Metadata(ctx context.Context, req datas
 	resp.TypeName = req.ProviderTypeName + "_devices_appliance_dhcp_subnets"
 }
 
-// GetResourceSchema returns the schema definition.
+// Schema returns the schema definition.
 func (d *ApplianceDhcpSubnetsDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = GetDatasourceSchema()
+	resp.Schema = GetDataSourceSchema
 }
 
 // Configure configures the data source with the API client.
@@ -48,7 +48,7 @@ func (d *ApplianceDhcpSubnetsDataSource) Configure(ctx context.Context, req data
 
 // Read fetches data from the API and sets the state.
 func (d *ApplianceDhcpSubnetsDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data dataSourceModel
+	var data DataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {

@@ -2,6 +2,8 @@ package subnets_test
 
 import (
 	"fmt"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices/dhcp/subnets"
+
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/testutils"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"os"
@@ -11,6 +13,12 @@ import (
 )
 
 func TestAccDevicesApplianceDhcpSubnetsDataSource(t *testing.T) {
+
+	// Validate schema-model consistency for the top-level DataSource schema
+	t.Run("Validate Top-Level Schema", func(t *testing.T) {
+		testutils.ValidateDataSourceSchemaModelConsistency(t, subnets.GetDataSourceSchema.Attributes, subnets.DataSourceModel{})
+	})
+
 	t.Run("Create and Read Network", func(t *testing.T) {
 		testCreateAndReadNetwork(t)
 	})

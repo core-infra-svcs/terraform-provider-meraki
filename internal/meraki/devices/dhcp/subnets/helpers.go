@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func mapApiResponseToModel(apiResponse []map[string]interface{}, model *dataSourceModel) diag.Diagnostics {
+func mapApiResponseToModel(apiResponse []map[string]interface{}, model *DataSourceModel) diag.Diagnostics {
 	diagnostics := diag.Diagnostics{}
 
 	// Prepare a slice to store the processed subnets.
@@ -21,7 +21,7 @@ func mapApiResponseToModel(apiResponse []map[string]interface{}, model *dataSour
 
 		// Attempt to create an object for the subnet.
 		subnetObj, diagErr := types.ObjectValue(
-			resourceAttrTypes(),
+			ResourceAttrTypes(),
 			map[string]attr.Value{
 				"id":         types.StringValue(model.Id.ValueString()),
 				"subnet":     types.StringValue(subnetStr),
@@ -44,7 +44,7 @@ func mapApiResponseToModel(apiResponse []map[string]interface{}, model *dataSour
 	}
 
 	// Attempt to create the final list of subnets.
-	subnetList, diagErr := types.ListValue(types.ObjectType{AttrTypes: resourceAttrTypes()}, subnets)
+	subnetList, diagErr := types.ListValue(types.ObjectType{AttrTypes: ResourceAttrTypes()}, subnets)
 	if diagErr.HasError() {
 		diagnostics.Append(diagErr...)
 		return diagnostics
