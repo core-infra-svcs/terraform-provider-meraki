@@ -80,7 +80,7 @@ func (d *DataSource) Read(ctx context.Context, req datasource.ReadRequest, resp 
 	// Save data into Terraform state
 	data.Id = jsontypes.StringValue("example-id")
 	for _, appliance_port := range inlineResp {
-		var result resourceModel
+		var result dataSourceListModel
 		result.Accesspolicy = jsontypes.StringValue(appliance_port.GetAccessPolicy())
 		result.Allowedvlans = jsontypes.StringValue(appliance_port.GetAllowedVlans())
 		result.Dropuntaggedtraffic = jsontypes.BoolValue(appliance_port.GetDropUntaggedTraffic())
