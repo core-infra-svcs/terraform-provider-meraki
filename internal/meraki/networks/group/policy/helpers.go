@@ -1355,3 +1355,87 @@ func ToTerraformState(ctx context.Context, state *resourceModel, inlineResp map[
 
 	return diags
 }
+
+// ToTerraformStateData updates the resource state with the provided api data.
+func ToTerraformStateData(ctx context.Context, state *dataSourceListModel, inlineResp map[string]interface{}) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	// GroupPolicyId
+	if state.GroupPolicyId.IsNull() || state.GroupPolicyId.IsUnknown() {
+		groupPolicyId, err := utils.ExtractStringAttr(inlineResp, "groupPolicyId")
+		if err.HasError() {
+			diags.AddError("groupPolicyId Attribute", fmt.Sprintf("%s", err.Errors()))
+			return diags
+		}
+
+		if !groupPolicyId.IsNull() {
+			state.GroupPolicyId = groupPolicyId
+		}
+	}
+	
+	// Name
+	if state.Name.IsNull() || state.Name.IsUnknown() {
+		state.Name, diags = utils.ExtractStringAttr(inlineResp, "name")
+		if diags.HasError() {
+			diags.AddError("name Attribute", "")
+			return diags
+		}
+	}
+
+	// Update Scheduling
+	if state.Scheduling.IsNull() || state.Scheduling.IsUnknown() {
+		scheduling, err := SchedulingState(inlineResp)
+		if err.HasError() {
+			diags.AddError("scheduling Attr", fmt.Sprintf("%s", err.Errors()))
+		}
+		state.Scheduling = scheduling
+	}
+
+	// Update Bandwidth
+	bandwidth, bandwidthErr := BandwidthState(inlineResp)
+	if bandwidthErr.HasError() {
+		diags.AddError("bandwidth Attr", fmt.Sprintf("%s", bandwidthErr.Errors()))
+	}
+	state.Bandwidth = bandwidth
+
+	//SplashAuthSettings
+	if state.SplashAuthSettings.IsNull() || state.SplashAuthSettings.IsUnknown() {
+		state.SplashAuthSettings, diags = utils.ExtractStringAttr(inlineResp, "splashAuthSettings")
+		if diags.HasError() {
+			return diags
+		}
+	}
+
+	// Update VlanTagging
+	vlanTaggingObj, vlanTaggingObjErr := VlanTaggingState(ctx, inlineResp)
+	if vlanTaggingObjErr.HasError() {
+		diags.AddError("vlanTagging Attr", fmt.Sprintf("%s", vlanTaggingObjErr.Errors()))
+	}
+	state.VlanTagging = vlanTaggingObj
+
+	// Update BonjourForwarding
+	if state.BonjourForwarding.IsNull() || state.BonjourForwarding.IsUnknown() {
+		bonjourForwarding, err := BonjourForwardingState(inlineResp)
+		if err.HasError() {
+			diags.AddError("vlanTagging Attr", fmt.Sprintf("%s", err.Errors()))
+		}
+		state.BonjourForwarding = bonjourForwarding
+
+	}
+
+	// Update FirewallAndTrafficShaping
+	firewallAndTrafficShapingObject, firewallAndTrafficShapingObjectDiags := TrafficShapingRulesState(ctx, inlineResp)
+	if firewallAndTrafficShapingObjectDiags.HasError() {
+		diags.Append(firewallAndTrafficShapingObjectDiags...)
+	}
+	state.FirewallAndTrafficShaping = firewallAndTrafficShapingObject
+
+	// Update ContentFiltering
+	contentFilteringObj, cfDiags := ContentFilteringState(ctx, inlineResp)
+	if cfDiags.HasError() {
+		diags.Append(cfDiags...)
+	}
+	state.ContentFiltering = contentFilteringObj
+
+	return diags
+}
