@@ -25,12 +25,22 @@ type resourceModel struct {
 	BonjourForwarding         types.Object `tfsdk:"bonjour_forwarding" json:"bonjourForwarding"`
 }
 
+type dataSourceListModel struct {
+	Name                      types.String `tfsdk:"name" json:"name"`
+	GroupPolicyId             types.String `tfsdk:"group_policy_id" json:"groupPolicyId"`
+	Scheduling                types.Object `tfsdk:"scheduling" json:"scheduling"`
+	Bandwidth                 types.Object `tfsdk:"bandwidth" json:"bandwidth"`
+	FirewallAndTrafficShaping types.Object `tfsdk:"firewall_and_traffic_shaping" json:"firewallAndTrafficShaping"`
+	ContentFiltering          types.Object `tfsdk:"content_filtering" json:"contentFiltering"`
+	SplashAuthSettings        types.String `tfsdk:"splash_auth_settings" json:"splashAuthSettings"`
+	VlanTagging               types.Object `tfsdk:"vlan_tagging" json:"vlanTagging"`
+	BonjourForwarding         types.Object `tfsdk:"bonjour_forwarding" json:"bonjourForwarding"`
+}
+
 func resourceModelAttrs() map[string]attr.Type {
 	return map[string]attr.Type{
-		"id":                           types.StringType,
 		"name":                         types.StringType,
 		"group_policy_id":              types.StringType,
-		"network_id":                   types.StringType,
 		"scheduling":                   types.ObjectType{AttrTypes: schedulingModelAttrs()},
 		"bandwidth":                    types.ObjectType{AttrTypes: bandwidthModelAttrs()},
 		"firewall_and_traffic_shaping": types.ObjectType{AttrTypes: firewallAndTrafficShapingModelAttrs()},
