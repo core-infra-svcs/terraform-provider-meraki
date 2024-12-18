@@ -3,7 +3,6 @@ package _interface
 import (
 	"context"
 	"fmt"
-	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
@@ -62,20 +61,18 @@ func (r *Resource) Create(ctx context.Context, req resource.CreateRequest, resp 
 		return
 	}
 
-	// Generate API payload
-	payload := GenerateCreatePayload(ctx, data)
+	// Call the CREATE API
+	state, diags := CallCreateAPI(ctx, r.client, data)
+	resp.Diagnostics.Append(diags...)
 
-	// Call the CREATE API (PUT)
-	apiResponse, httpResp, err := CallCreateAPI(ctx, r.client, payload, data.Serial.ValueString())
-	if err := utils.HandleAPIError(ctx, httpResp, err, &resp.Diagnostics); err != nil {
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Marshal API response into state
-	state, diags := MarshalStateFromAPI(ctx, apiResponse)
-	resp.Diagnostics.Append(diags...)
-
-	resp.State.Set(ctx, &state)
+	// Set the state
+	if err := resp.State.Set(ctx, &state); err != nil {
+		resp.Diagnostics.AddError("State Error", fmt.Sprintf("Failed to set state: %s", err))
+	}
 }
 
 // Read implements the READ operation.
@@ -87,18 +84,18 @@ func (r *Resource) Read(ctx context.Context, req resource.ReadRequest, resp *res
 		return
 	}
 
-	// Call the READ API (GET)
-	apiResponse, httpResp, err := CallReadAPI(ctx, r.client, data.Serial.ValueString())
-	if err := utils.HandleAPIError(ctx, httpResp, err, &resp.Diagnostics); err != nil {
-		resp.State.RemoveResource(ctx)
+	// Call the READ API
+	state, diags := CallReadAPI(ctx, r.client, data)
+	resp.Diagnostics.Append(diags...)
+
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Marshal API response into state
-	state, diags := MarshalStateFromAPI(ctx, apiResponse)
-	resp.Diagnostics.Append(diags...)
-
-	resp.State.Set(ctx, &state)
+	// Set the state
+	if err := resp.State.Set(ctx, &state); err != nil {
+		resp.Diagnostics.AddError("State Error", fmt.Sprintf("Failed to set state: %s", err))
+	}
 }
 
 // Update implements the UPDATE operation.
@@ -110,20 +107,18 @@ func (r *Resource) Update(ctx context.Context, req resource.UpdateRequest, resp 
 		return
 	}
 
-	// Generate API payload
-	payload := GenerateUpdatePayload(ctx, data)
+	// Call the UPDATE API
+	state, diags := CallUpdateAPI(ctx, r.client, data)
+	resp.Diagnostics.Append(diags...)
 
-	// Call the UPDATE API (PUT)
-	apiResponse, httpResp, err := CallUpdateAPI(ctx, r.client, payload, data.Serial.ValueString())
-	if err := utils.HandleAPIError(ctx, httpResp, err, &resp.Diagnostics); err != nil {
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Marshal API response into state
-	state, diags := MarshalStateFromAPI(ctx, apiResponse)
-	resp.Diagnostics.Append(diags...)
-
-	resp.State.Set(ctx, &state)
+	// Set the state
+	if err := resp.State.Set(ctx, &state); err != nil {
+		resp.Diagnostics.AddError("State Error", fmt.Sprintf("Failed to set state: %s", err))
+	}
 }
 
 // Delete implements the DELETE operation.
@@ -135,12 +130,11 @@ func (r *Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp 
 		return
 	}
 
-	// Generate blank/default payload for DELETE
-	payload := GenerateDeletePayload(ctx, data)
+	// Call the DELETE API
+	diags := CallDeleteAPI(ctx, r.client, data)
+	resp.Diagnostics.Append(diags...)
 
-	// Call the DELETE API (PUT with blank payload)
-	httpResp, err := CallDeleteAPI(ctx, r.client, payload, data.Serial.ValueString())
-	if err := utils.HandleAPIError(ctx, httpResp, err, &resp.Diagnostics); err != nil {
+	if resp.Diagnostics.HasError() {
 		return
 	}
 

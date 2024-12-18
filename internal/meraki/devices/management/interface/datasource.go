@@ -3,7 +3,6 @@ package _interface
 import (
 	"context"
 	"fmt"
-	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
@@ -74,39 +73,16 @@ func (d *DataSource) Read(ctx context.Context, req datasource.ReadRequest, resp 
 		return
 	}
 
-	// Call the READ API (GET)
-	tflog.Debug(ctx, "[management_interface] Calling API to retrieve management interface settings")
-	apiResponse, httpResp, err := CallReadAPI(ctx, d.client, config.Serial.ValueString())
-	if err := utils.HandleAPIError(ctx, httpResp, err, &resp.Diagnostics); err != nil {
-		resp.Diagnostics.AddError("API Call Failure", fmt.Sprintf("Error details: %s", err.Error()))
-		return
-	}
-
-	// Handle unexpected HTTP status codes
-	if httpResp.StatusCode != 200 {
-		resp.Diagnostics.AddError(
-			"Unexpected HTTP Response",
-			utils.HttpDiagnostics(httpResp),
-		)
-		return
-	}
-
-	// Marshal API response into Terraform state
-	state, diags := MarshalStateFromAPI(ctx, apiResponse)
+	// Call the READ API
+	state, diags := CallReadAPIDataSource(ctx, d.client, config)
 	resp.Diagnostics.Append(diags...)
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Set the state for Terraform
-	diags = resp.State.Set(ctx, &state)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
+	// Set the state
+	if err := resp.State.Set(ctx, &state); err != nil {
+		resp.Diagnostics.AddError("State Error", fmt.Sprintf("Failed to set state: %s", err))
 	}
-
-	// Log successful operation
-	tflog.Debug(ctx, "[management_interface] Successfully completed Read operation", map[string]interface{}{
-		"serial": config.Serial.ValueString(),
-	})
 }

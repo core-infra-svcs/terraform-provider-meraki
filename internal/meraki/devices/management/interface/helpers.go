@@ -3,10 +3,8 @@ package _interface
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"net/http"
-
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -70,7 +68,17 @@ func generateWan1Payload(ctx context.Context, wanObject types.Object) (*client.U
 	var wan WANModel
 	var diags diag.Diagnostics
 
+	// Deserialize the Object into the WANModel
 	wanObject.As(ctx, &wan, basetypes.ObjectAsOptions{})
+
+	// Perform manual validation of required attributes
+	attributes := wanObject.Attributes()
+
+	// Ensure "wan_enabled" exists and is not null
+	if wanEnabled, ok := attributes["wan_enabled"]; !ok || wanEnabled.IsNull() {
+		diags.AddError("Validation Error", "WAN configuration must include 'wan_enabled'")
+		return nil, diags
+	}
 
 	payload := &client.UpdateDeviceManagementInterfaceRequestWan1{
 		WanEnabled:       wan.WanEnabled.ValueStringPointer(),
@@ -117,26 +125,105 @@ func generateWan2Payload(ctx context.Context, wanObject types.Object) (*client.U
 
 /* API Call Abstractions   */
 
-func CallCreateAPI(ctx context.Context, client *client.APIClient, payload *client.UpdateDeviceManagementInterfaceRequest, serial string) (map[string]interface{}, *http.Response, error) {
-	return client.ManagementInterfaceApi.UpdateDeviceManagementInterface(ctx, serial).UpdateDeviceManagementInterfaceRequest(*payload).Execute()
+func CallCreateAPI(ctx context.Context, client *client.APIClient, data ResourceModel) (ResourceModel, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	// Generate API payload
+	payload := GenerateCreatePayload(ctx, data)
+
+	// Call the CREATE API
+	apiResponse, httpResp, err := client.ManagementInterfaceApi.UpdateDeviceManagementInterface(ctx, data.Serial.ValueString()).
+		UpdateDeviceManagementInterfaceRequest(*payload).Execute()
+	if err := utils.HandleAPIError(ctx, httpResp, err, &diags); err != nil {
+		return ResourceModel{}, diags
+	}
+
+	// Marshal API response into state
+	state, apiDiags := MarshalStateFromAPI(ctx, apiResponse, data)
+	diags.Append(apiDiags...)
+
+	// Set the ID to the serial value
+	state.Id = types.StringValue(data.Serial.ValueString())
+
+	// Retain the serial in the state
+	state.Serial = data.Serial
+
+	return state, diags
 }
 
-func CallReadAPI(ctx context.Context, client *client.APIClient, serial string) (map[string]interface{}, *http.Response, error) {
-	return client.ManagementInterfaceApi.GetDeviceManagementInterface(ctx, serial).Execute()
+func CallReadAPIDataSource(ctx context.Context, client *client.APIClient, data DataSourceModel) (ResourceModel, diag.Diagnostics) {
+	state, diags := CallReadAPI(ctx, client, ResourceModel(data))
+
+	return state, diags
 }
 
-func CallUpdateAPI(ctx context.Context, client *client.APIClient, payload *client.UpdateDeviceManagementInterfaceRequest, serial string) (map[string]interface{}, *http.Response, error) {
-	return client.ManagementInterfaceApi.UpdateDeviceManagementInterface(ctx, serial).UpdateDeviceManagementInterfaceRequest(*payload).Execute()
+func CallReadAPI(ctx context.Context, client *client.APIClient, data ResourceModel) (ResourceModel, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	// Call the READ API
+	apiResponse, httpResp, err := client.ManagementInterfaceApi.GetDeviceManagementInterface(ctx, data.Serial.ValueString()).Execute()
+	if err := utils.HandleAPIError(ctx, httpResp, err, &diags); err != nil {
+		return ResourceModel{}, diags
+	}
+
+	// Marshal API response into state
+	state, apiDiags := MarshalStateFromAPI(ctx, apiResponse, data)
+	diags.Append(apiDiags...)
+
+	// Retain the serial in the state
+	state.Serial = data.Serial
+
+	// Set the ID to the serial value
+	state.Id = types.StringValue(data.Serial.ValueString())
+
+	return state, diags
 }
 
-func CallDeleteAPI(ctx context.Context, client *client.APIClient, payload *client.UpdateDeviceManagementInterfaceRequest, serial string) (*http.Response, error) {
-	_, resp, err := client.ManagementInterfaceApi.UpdateDeviceManagementInterface(ctx, serial).UpdateDeviceManagementInterfaceRequest(*payload).Execute()
-	return resp, err
+func CallUpdateAPI(ctx context.Context, client *client.APIClient, data ResourceModel) (ResourceModel, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	// Generate API payload
+	payload := GenerateUpdatePayload(ctx, data)
+
+	// Call the UPDATE API
+	apiResponse, httpResp, err := client.ManagementInterfaceApi.UpdateDeviceManagementInterface(ctx, data.Serial.ValueString()).
+		UpdateDeviceManagementInterfaceRequest(*payload).Execute()
+	if err := utils.HandleAPIError(ctx, httpResp, err, &diags); err != nil {
+		return ResourceModel{}, diags
+	}
+
+	// Marshal API response into state
+	state, apiDiags := MarshalStateFromAPI(ctx, apiResponse, data)
+	diags.Append(apiDiags...)
+
+	// Retain the serial in the state
+	state.Serial = data.Serial
+
+	// Set the ID to the serial value
+	state.Id = types.StringValue(data.Serial.ValueString())
+
+	return state, diags
+}
+
+func CallDeleteAPI(ctx context.Context, client *client.APIClient, data ResourceModel) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	// Generate DELETE payload
+	payload := GenerateDeletePayload(ctx, data)
+
+	// Call the DELETE API
+	_, httpResp, err := client.ManagementInterfaceApi.UpdateDeviceManagementInterface(ctx, data.Serial.ValueString()).
+		UpdateDeviceManagementInterfaceRequest(*payload).Execute()
+	if err := utils.HandleAPIError(ctx, httpResp, err, &diags); err != nil {
+		return diags
+	}
+
+	return diags
 }
 
 /* State Transformation    */
 
-func MarshalStateFromAPI(ctx context.Context, apiResponse map[string]interface{}) (ResourceModel, diag.Diagnostics) {
+func MarshalStateFromAPI(ctx context.Context, apiResponse map[string]interface{}, data ResourceModel) (ResourceModel, diag.Diagnostics) {
 	var state ResourceModel
 	var diags diag.Diagnostics
 
@@ -144,68 +231,33 @@ func MarshalStateFromAPI(ctx context.Context, apiResponse map[string]interface{}
 		"api_response": apiResponse,
 	})
 
-	// Map Serial
-	if serial, ok := apiResponse["serial"].(string); ok {
-		state.Serial = types.StringValue(serial)
-	} else {
-		state.Serial = types.StringNull()
-	}
+	// Map Serial/Id
+	state.Id = types.StringValue(data.Serial.ValueString())
+	state.Serial = types.StringValue(data.Serial.ValueString())
 
 	// Map DDNS Hostnames
 	if ddnsRaw, ok := apiResponse["ddnsHostnames"].(map[string]interface{}); ok {
-		ddnsValues := map[string]attr.Value{
-			"active_ddns_hostname": utils.SafeStringAttr(ddnsRaw, "activeDdnsHostname"),
-			"ddns_hostname_wan1":   utils.SafeStringAttr(ddnsRaw, "ddnsHostnameWan1"),
-			"ddns_hostname_wan2":   utils.SafeStringAttr(ddnsRaw, "ddnsHostnameWan2"),
-		}
-
-		ddnsObject, err := types.ObjectValue(DdnsHostnamesType, ddnsValues)
-		if err != nil {
-			diags.AddError("State Mapping Error", fmt.Sprintf("Failed to map DDNS hostnames: %s", err))
-		}
-		state.DDNSHostnames = ddnsObject
+		ddns, ddnsDiags := mapDDNS(ctx, ddnsRaw)
+		diags.Append(ddnsDiags...)
+		state.DDNSHostnames = ddns
 	} else {
 		state.DDNSHostnames = types.ObjectNull(DdnsHostnamesType)
 	}
 
 	// Map WAN1
 	if wan1Raw, ok := apiResponse["wan1"].(map[string]interface{}); ok {
-		wan1Values := map[string]attr.Value{
-			"wan_enabled":        utils.SafeStringAttr(wan1Raw, "wanEnabled"),
-			"using_static_ip":    utils.SafeBoolAttr(wan1Raw, "usingStaticIp"),
-			"static_ip":          utils.SafeStringAttr(wan1Raw, "staticIp"),
-			"static_subnet_mask": utils.SafeStringAttr(wan1Raw, "staticSubnetMask"),
-			"static_gateway_ip":  utils.SafeStringAttr(wan1Raw, "staticGatewayIp"),
-			"static_dns":         utils.SafeListStringAttr(wan1Raw, "staticDns"),
-			"vlan":               utils.SafeInt64Attr(wan1Raw, "vlan"),
-		}
-
-		wan1Object, err := types.ObjectValue(WANType, wan1Values)
-		if err != nil {
-			diags.AddError("State Mapping Error", fmt.Sprintf("Failed to map WAN1: %s", err))
-		}
-		state.Wan1 = wan1Object
+		wan1, wan1Diags := mapWAN(ctx, wan1Raw)
+		diags.Append(wan1Diags...)
+		state.Wan1 = wan1
 	} else {
 		state.Wan1 = types.ObjectNull(WANType)
 	}
 
 	// Map WAN2
 	if wan2Raw, ok := apiResponse["wan2"].(map[string]interface{}); ok {
-		wan2Values := map[string]attr.Value{
-			"wan_enabled":        utils.SafeStringAttr(wan2Raw, "wanEnabled"),
-			"using_static_ip":    utils.SafeBoolAttr(wan2Raw, "usingStaticIp"),
-			"static_ip":          utils.SafeStringAttr(wan2Raw, "staticIp"),
-			"static_subnet_mask": utils.SafeStringAttr(wan2Raw, "staticSubnetMask"),
-			"static_gateway_ip":  utils.SafeStringAttr(wan2Raw, "staticGatewayIp"),
-			"static_dns":         utils.SafeListStringAttr(wan2Raw, "staticDns"),
-			"vlan":               utils.SafeInt64Attr(wan2Raw, "vlan"),
-		}
-
-		wan2Object, err := types.ObjectValue(WANType, wan2Values)
-		if err != nil {
-			diags.AddError("State Mapping Error", fmt.Sprintf("Failed to map WAN2: %s", err))
-		}
-		state.Wan2 = wan2Object
+		wan2, wan2Diags := mapWAN(ctx, wan2Raw)
+		diags.Append(wan2Diags...)
+		state.Wan2 = wan2
 	} else {
 		state.Wan2 = types.ObjectNull(WANType)
 	}
@@ -213,22 +265,42 @@ func MarshalStateFromAPI(ctx context.Context, apiResponse map[string]interface{}
 	return state, diags
 }
 
-// mapWAN safely maps the WAN data into a types.Object
 func mapWAN(ctx context.Context, raw map[string]interface{}) (types.Object, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	wanValues := map[string]attr.Value{
 		"wan_enabled":        utils.SafeStringAttr(raw, "wanEnabled"),
 		"using_static_ip":    utils.SafeBoolAttr(raw, "usingStaticIp"),
-		"static_ip":          utils.SafeStringAttr(raw, "staticIp"),
+		"static_ip":          utils.SafeStringAttr(raw, "staticIp"), // Defaults to null if missing
 		"static_subnet_mask": utils.SafeStringAttr(raw, "staticSubnetMask"),
 		"static_gateway_ip":  utils.SafeStringAttr(raw, "staticGatewayIp"),
-		"static_dns":         utils.SafeListStringAttr(raw, "staticDns"),
-		"vlan":               utils.SafeInt64Attr(raw, "vlan"),
+		"static_dns":         utils.SafeListStringAttr(raw, "staticDns"), // Defaults to an empty list
+		"vlan":               utils.SafeInt64Attr(raw, "vlan"),           // Defaults to 0
 	}
 
+	// Create the ObjectValue using WANType
 	wanObject, err := types.ObjectValue(WANType, wanValues)
 	if err != nil {
-		diags.AddError("State Mapping Error", "Failed to map WAN configuration")
+		diags.AddError("State Mapping Error", fmt.Sprintf("Failed to map WAN: %s", err))
 	}
 	return wanObject, diags
+}
+
+// mapWAN safely maps the WAN data into a types.Object
+func mapDDNS(ctx context.Context, raw map[string]interface{}) (types.Object, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	// Convert raw attributes to attr.Values
+	ddnsValues := map[string]attr.Value{
+		"active_ddns_hostname": types.StringValue(raw["activeDdnsHostname"].(string)),
+		"ddns_hostname_wan1":   types.StringValue(raw["ddnsHostnameWan1"].(string)),
+		"ddns_hostname_wan2":   types.StringValue(raw["ddnsHostnameWan2"].(string)),
+	}
+
+	// Create the ObjectValue using DdnsHostnamesType
+	ddnsObject, err := types.ObjectValue(DdnsHostnamesType, ddnsValues)
+	if err != nil {
+		diags.AddError("State Mapping Error", fmt.Sprintf("Failed to map DDNS hostnames: %s", err))
+	}
+
+	return ddnsObject, diags
 }

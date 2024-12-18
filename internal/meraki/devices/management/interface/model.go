@@ -53,8 +53,8 @@ type DdnsHostnamesModel struct {
 // DdnsHostnamesType defines the attribute types for DDNSHostnamesModel.
 var DdnsHostnamesType = map[string]attr.Type{
 	"active_ddns_hostname": types.StringType,
-	"wan1":                 types.StringType,
-	"wan2":                 types.StringType,
+	"ddns_hostname_wan1":   types.StringType,
+	"ddns_hostname_wan2":   types.StringType,
 }
 
 // WANModel represents the attributes for WAN configuration.
