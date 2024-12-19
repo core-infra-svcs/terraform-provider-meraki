@@ -274,7 +274,7 @@ func mapWAN(ctx context.Context, raw map[string]interface{}) (types.Object, diag
 		"static_subnet_mask": utils.SafeStringAttr(raw, "staticSubnetMask"),
 		"static_gateway_ip":  utils.SafeStringAttr(raw, "staticGatewayIp"),
 		"static_dns":         utils.SafeListStringAttr(raw, "staticDns"), // Defaults to an empty list
-		"vlan":               utils.SafeInt64Attr(raw, "vlan"),           // Defaults to 0
+		"vlan":               utils.SafeInt64Attr(raw, "vlan"),
 	}
 
 	// Create the ObjectValue using WANType
