@@ -417,9 +417,11 @@ type BeaconIdParamsModel struct {
 
 // BeaconIdParamsType represents the beacon ID parameters of a device.
 var BeaconIdParamsType = map[string]attr.Type{
-	"uuid":  types.StringType,
-	"major": types.Int64Type,
-	"minor": types.Int64Type,
+	"uuid":      types.StringType,
+	"major":     types.Int64Type,
+	"minor":     types.Int64Type,
+	"beacon_id": types.StringType,
+	"proximity": types.StringType,
 }
 
 // DetailsModel represents additional details of a device.

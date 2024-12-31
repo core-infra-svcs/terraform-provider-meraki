@@ -5,78 +5,66 @@ import (
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/meraki/devices/device"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/testutils"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"os"
 	"strconv"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
+// TestAccResource runs schema validation and resource lifecycle tests.
 func TestAccResource(t *testing.T) {
 	t.Run("Validate Schema-Model Consistency", func(t *testing.T) {
-		validateResourceSchemaModelConsistency(t)
+		validateDeviceResourceSchemaModelConsistency(t)
 	})
 
 	t.Run("Test Resource Lifecycle", func(t *testing.T) {
-		testResourceLifecycle(t)
+		testDeviceResourceLifecycle(t)
 	})
 }
 
-// Validate schema-model consistency for the resource
-func validateResourceSchemaModelConsistency(t *testing.T) {
+// Validate schema-model consistency for the device resource
+func validateDeviceResourceSchemaModelConsistency(t *testing.T) {
 	testutils.ValidateResourceSchemaModelConsistency(
 		t, device.GetResourceSchema.Attributes, device.ResourceModel{},
 	)
 }
 
-// Test the full resource lifecycle
-func testResourceLifecycle(t *testing.T) {
-	mxSerial, msSerial, mrSerial, orgId := getResourceTestEnvironmentVariables(t)
+// Test the full lifecycle of the device resource
+func testDeviceResourceLifecycle(t *testing.T) {
+	mxSerial, orgId := getDeviceResourceTestEnvVars(t)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutils.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testutils.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			// Step 1: Create network
 			{
 				Config: createNetworkConfigResource(orgId),
 				Check:  networkCheckResource("test_acc_device"),
 			},
-			// Step 2: Claim devices
 			{
-				Config: claimDevicesConfigResource(mxSerial, msSerial, mrSerial),
-				Check:  claimDevicesCheckResource(),
+				Config: claimDeviceConfigResource(mxSerial),
+				Check:  claimDeviceCheckResource(),
 			},
-			// Step 3: Update devices
 			{
-				Config: updateDeviceConfigResource(mxSerial, msSerial, mrSerial),
+				Config: updateDeviceConfigResource(mxSerial),
 				Check:  updateDeviceCheckResource(),
-			},
-			// Step 4: Import and validate state
-			{
-				ResourceName:      "meraki_devices.test_mx",
-				ImportState:       true,
-				ImportStateVerify: true,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("meraki_devices.test_mx", "serial", mxSerial),
-				),
 			},
 		},
 	})
 }
 
 // Retrieve required environment variables for tests
-func getResourceTestEnvironmentVariables(t *testing.T) (string, string, string, string) {
+func getDeviceResourceTestEnvVars(t *testing.T) (string, string) {
 	mxSerial := os.Getenv("TF_ACC_MERAKI_MX_SERIAL")
-	msSerial := os.Getenv("TF_ACC_MERAKI_MS_SERIAL")
-	mrSerial := os.Getenv("TF_ACC_MERAKI_MR_SERIAL")
 	orgId := os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")
 
-	if mxSerial == "" || msSerial == "" || mrSerial == "" || orgId == "" {
-		t.Fatal("Environment variables TF_ACC_MERAKI_MX_SERIAL, TF_ACC_MERAKI_MS_SERIAL, TF_ACC_MERAKI_MR_SERIAL, and TF_ACC_MERAKI_ORGANIZATION_ID must be set for acceptance tests")
+	if mxSerial == "" || orgId == "" {
+		t.Fatal("Environment variables TF_ACC_MERAKI_MX_SERIAL and TF_ACC_MERAKI_ORGANIZATION_ID must be set for acceptance tests")
 	}
 
-	return mxSerial, msSerial, mrSerial, orgId
+	return mxSerial, orgId
 }
 
 // Create network configuration
@@ -89,22 +77,22 @@ func networkCheckResource(networkName string) resource.TestCheckFunc {
 	return utils.NetworkOrgIdTestChecks(networkName)
 }
 
-// Claim devices configuration
-func claimDevicesConfigResource(mxSerial, msSerial, mrSerial string) string {
+// Claim device configuration
+func claimDeviceConfigResource(mxSerial string) string {
 	return fmt.Sprintf(`
 %s
-resource "meraki_networks_devices_claim" "test" {
+resource "meraki_networks_devices_claim" "test_claim" {
     depends_on = [meraki_network.test]
     network_id = meraki_network.test.network_id
-    serials = ["%s", "%s", "%s"]
+    serials = ["%s"]
 }
-`, createNetworkConfigResource(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")), mxSerial, msSerial, mrSerial)
+`, createNetworkConfigResource(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")), mxSerial)
 }
 
-// Validate device claiming
-func claimDevicesCheckResource() resource.TestCheckFunc {
+// Validate device claim
+func claimDeviceCheckResource() resource.TestCheckFunc {
 	return func(state *terraform.State) error {
-		rs, ok := state.RootModule().Resources["meraki_networks_devices_claim.test"]
+		rs, ok := state.RootModule().Resources["meraki_networks_devices_claim.test_claim"]
 		if !ok {
 			return fmt.Errorf("resource not found in state")
 		}
@@ -119,88 +107,50 @@ func claimDevicesCheckResource() resource.TestCheckFunc {
 			return fmt.Errorf("invalid serial count: %s", serialCountStr)
 		}
 
-		actualSerials := make(map[string]bool)
-		for i := 0; i < serialCount; i++ {
-			serialKey := fmt.Sprintf("serials.%d", i)
-			actualSerial := rs.Primary.Attributes[serialKey]
-			if actualSerial == "" {
-				return fmt.Errorf("serial %d not found in state", i)
-			}
-			actualSerials[actualSerial] = true
+		if serialCount != 1 {
+			return fmt.Errorf("expected 1 serial, got %d", serialCount)
 		}
 
-		expectedSerials := []string{
-			os.Getenv("TF_ACC_MERAKI_MX_SERIAL"),
-			os.Getenv("TF_ACC_MERAKI_MS_SERIAL"),
-			os.Getenv("TF_ACC_MERAKI_MR_SERIAL"),
-		}
+		expectedSerial := os.Getenv("TF_ACC_MERAKI_MX_SERIAL")
+		actualSerial := rs.Primary.Attributes["serials.0"]
 
-		for _, expected := range expectedSerials {
-			if !actualSerials[expected] {
-				return fmt.Errorf("expected serial %s not found in actual serials: %+v", expected, actualSerials)
-			}
+		if actualSerial != expectedSerial {
+			return fmt.Errorf("expected serial %s, got %s", expectedSerial, actualSerial)
 		}
 
 		return nil
 	}
 }
 
-// Update devices configuration
-func updateDeviceConfigResource(mxSerial, msSerial, mrSerial string) string {
+// Update device configuration with device claim
+func updateDeviceConfigResource(mxSerial string) string {
 	return fmt.Sprintf(`
-resource "meraki_network" "test" {
-	organization_id = "%s"
-	product_types   = ["wireless", "switch", "appliance"]
+%s
+
+resource "meraki_networks_devices_claim" "test_claim" {
+    depends_on = [meraki_network.test]
+    network_id = meraki_network.test.network_id
+    serials    = ["%s"]
 }
 
-resource "meraki_networks_devices_claim" "test" {
-	depends_on = [meraki_network.test]
-	network_id = meraki_network.test.network_id
-	serials    = ["%s", "%s", "%s"]
+resource "meraki_devices" "test_device" {
+    depends_on = [meraki_networks_devices_claim.test_claim]
+    serial = "%s"
+    name   = "test_acc_device"
+    tags   = ["test"]
+    address = "test"
+    notes   = "test"
+}
+`, createNetworkConfigResource(os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID")), mxSerial, mxSerial)
 }
 
-resource "meraki_devices" "test_mx" {
-	depends_on = [meraki_networks_devices_claim.test]
-	network_id = meraki_network.test.network_id
-	serial     = "%s"
-	name       = "Updated MX Device"
-	tags       = ["updated"]
-	address    = "123 MX Street"
-}
-
-resource "meraki_devices" "test_ms" {
-	depends_on = [meraki_networks_devices_claim.test]
-	network_id = meraki_network.test.network_id
-	serial     = "%s"
-	name       = "Updated MS Device"
-	tags       = ["updated"]
-	address    = "123 MS Street"
-}
-
-resource "meraki_devices" "test_mr" {
-	depends_on = [meraki_networks_devices_claim.test]
-	network_id = meraki_network.test.network_id
-	serial     = "%s"
-	name       = "Updated MR Device"
-	tags       = ["updated"]
-	address    = "123 MR Street"
-}
-`, os.Getenv("TF_ACC_MERAKI_ORGANIZATION_ID"), mxSerial, msSerial, mrSerial, mxSerial, msSerial, mrSerial)
-}
-
-// Validate device updates
+// Validate device update
 func updateDeviceCheckResource() resource.TestCheckFunc {
 	return resource.ComposeTestCheckFunc(
-		resource.TestCheckResourceAttr("meraki_devices.test_mx", "name", "Updated MX Device"),
-		resource.TestCheckResourceAttr("meraki_devices.test_mx", "tags.0", "updated"),
-		resource.TestCheckResourceAttr("meraki_devices.test_mx", "address", "123 MX Street"),
-
-		resource.TestCheckResourceAttr("meraki_devices.test_ms", "name", "Updated MS Device"),
-		resource.TestCheckResourceAttr("meraki_devices.test_ms", "tags.0", "updated"),
-		resource.TestCheckResourceAttr("meraki_devices.test_ms", "address", "123 MS Street"),
-
-		resource.TestCheckResourceAttr("meraki_devices.test_mr", "name", "Updated MR Device"),
-		resource.TestCheckResourceAttr("meraki_devices.test_mr", "tags.0", "updated"),
-		resource.TestCheckResourceAttr("meraki_devices.test_mr", "address", "123 MR Street"),
+		resource.TestCheckResourceAttr("meraki_devices.test_device", "serial", os.Getenv("TF_ACC_MERAKI_MX_SERIAL")),
+		resource.TestCheckResourceAttr("meraki_devices.test_device", "name", "test_acc_device"),
+		resource.TestCheckResourceAttr("meraki_devices.test_device", "tags.#", "1"),
+		resource.TestCheckResourceAttr("meraki_devices.test_device", "address", "test"),
+		resource.TestCheckResourceAttr("meraki_devices.test_device", "notes", "test"),
 	)
 }

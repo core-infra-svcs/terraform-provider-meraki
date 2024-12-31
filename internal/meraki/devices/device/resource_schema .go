@@ -1,6 +1,7 @@
 package device
 
 import (
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
@@ -69,8 +70,8 @@ var GetResourceSchema = schema.Schema{
 		"details": DetailsSchema,
 		"move_map_marker": schema.BoolAttribute{
 			MarkdownDescription: "Indicates whether to set latitude and longitude based on the address. Ignored if `lat` and `lng` are provided.",
-			Optional:            true,
 			Computed:            true,
+			Default:             utils.NewBoolDefault(false),
 		},
 		"switch_profile_id": schema.StringAttribute{
 			MarkdownDescription: "ID of the switch profile to bind to the device. Use `null` to unbind.",
@@ -114,36 +115,45 @@ var DetailsSchema = schema.ListNestedAttribute{
 		Attributes: map[string]schema.Attribute{
 			"name": schema.StringAttribute{
 				MarkdownDescription: "The name of the detail.",
-				Optional:            true,
-				Computed:            true,
+				Required:            true,
 			},
 			"value": schema.StringAttribute{
 				MarkdownDescription: "The value of the detail.",
-				Optional:            true,
-				Computed:            true,
+				Required:            true,
 			},
 		},
-	},
-	PlanModifiers: []planmodifier.List{
-		listplanmodifier.UseStateForUnknown(),
 	},
 }
 
 var BeaconIdParamsSchema = schema.SingleNestedAttribute{
 	MarkdownDescription: "Beacon ID parameters of the device.",
 	Computed:            true,
+	Optional:            true,
 	Attributes: map[string]schema.Attribute{
 		"uuid": schema.StringAttribute{
 			MarkdownDescription: "UUID of the beacon identifier.",
 			Computed:            true,
+			Optional:            true,
 		},
 		"major": schema.Int64Attribute{
 			MarkdownDescription: "Major number of the beacon identifier.",
 			Computed:            true,
+			Optional:            true,
 		},
 		"minor": schema.Int64Attribute{
 			MarkdownDescription: "Minor number of the beacon identifier.",
 			Computed:            true,
+			Optional:            true,
+		},
+		"beacon_id": schema.StringAttribute{
+			MarkdownDescription: "Beacon ID (alternative to UUID).",
+			Computed:            true,
+			Optional:            true,
+		},
+		"proximity": schema.StringAttribute{
+			MarkdownDescription: "Proximity of the beacon.",
+			Computed:            true,
+			Optional:            true,
 		},
 	},
 }

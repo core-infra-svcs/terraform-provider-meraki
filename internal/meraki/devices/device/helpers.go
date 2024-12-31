@@ -3,10 +3,13 @@ package device
 import (
 	"context"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	openApiClient "github.com/meraki/dashboard-api-go/client"
-	"net/http"
+	"sort"
 )
 
 // GenerateCreatePayload Generate payload for CREATE operation
@@ -21,51 +24,77 @@ func GenerateUpdatePayload(ctx context.Context, data ResourceModel) *openApiClie
 
 // GenerateDeletePayload Generate blank payload for DELETE operation
 func GenerateDeletePayload(ctx context.Context, data ResourceModel) *openApiClient.UpdateDeviceRequest {
-	return &openApiClient.UpdateDeviceRequest{}
+
+	payload := openApiClient.UpdateDeviceRequest{}
+	payload.SetName("")
+	payload.SetNotes("")
+	payload.SetAddress("")
+	//payload.SetFloorPlanId("")
+	//payload.SetMoveMapMarker(false)
+	payload.SetTags(nil)
+	payload.SetLat(0)
+	payload.SetLng(0)
+
+	return &payload
 }
 
 // Generate base payload for API operations
 func generateBasePayload(ctx context.Context, data ResourceModel) *openApiClient.UpdateDeviceRequest {
 	payload := openApiClient.NewUpdateDeviceRequest()
 
-	if !data.Name.IsNull() {
+	// Set Name
+	if !data.Name.IsUnknown() && !data.Name.IsNull() {
 		payload.SetName(data.Name.ValueString())
 	}
 
-	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
+	// Set Tags
+	if !data.Tags.IsUnknown() && !data.Tags.IsNull() {
 		var tags []string
 		for _, element := range data.Tags.Elements() {
-			if str, ok := element.(types.String); ok && !str.IsNull() && !str.IsUnknown() {
+			if str, ok := element.(types.String); ok && !str.IsUnknown() && !str.IsNull() {
 				tags = append(tags, str.ValueString())
 			}
 		}
+		sort.Strings(tags)
 		payload.SetTags(tags)
 	}
-	if !data.Lat.IsNull() {
+
+	// Set Latitude - OMIT if null
+	if !data.Lat.IsUnknown() && !data.Lat.IsNull() {
 		payload.SetLat(float32(data.Lat.ValueFloat64()))
 	}
 
-	if !data.Lng.IsNull() {
+	// Set Longitude - OMIT if null
+	if !data.Lng.IsUnknown() && !data.Lng.IsNull() {
 		payload.SetLng(float32(data.Lng.ValueFloat64()))
 	}
 
-	if !data.Address.IsNull() {
+	// Set Address - OMIT if null
+	if !data.Address.IsUnknown() && !data.Address.IsNull() {
 		payload.SetAddress(data.Address.ValueString())
 	}
 
-	if !data.Notes.IsNull() {
+	// Set Notes - OMIT if null
+	if !data.Notes.IsUnknown() && !data.Notes.IsNull() {
 		payload.SetNotes(data.Notes.ValueString())
 	}
 
-	if !data.MoveMapMarker.IsNull() {
+	// Set MoveMapMarker (default false if null)
+	if !data.MoveMapMarker.IsUnknown() && !data.MoveMapMarker.IsNull() {
 		payload.SetMoveMapMarker(data.MoveMapMarker.ValueBool())
 	}
 
-	if !data.SwitchProfileId.IsNull() {
+	if data.MoveMapMarker.IsNull() {
+		payload.SetMoveMapMarker(false)
+	}
+
+	// Set SwitchProfileId - OMIT if null
+	if !data.SwitchProfileId.IsUnknown() && !data.SwitchProfileId.IsNull() {
 		payload.SetSwitchProfileId(data.SwitchProfileId.ValueString())
 	}
 
-	if !data.FloorPlanId.IsNull() {
+	// Set FloorPlanId - OMIT if null
+	if !data.FloorPlanId.IsUnknown() && !data.FloorPlanId.IsNull() {
 		payload.SetFloorPlanId(data.FloorPlanId.ValueString())
 	}
 
@@ -77,12 +106,24 @@ func CallCreateAPI(ctx context.Context, client *openApiClient.APIClient, data Re
 	var diags diag.Diagnostics
 	payload := GenerateCreatePayload(ctx, data)
 
-	_, httpResp, err := client.DevicesApi.UpdateDevice(ctx, data.Serial.ValueString()).UpdateDeviceRequest(*payload).Execute()
+	utils.LogPayload(ctx, payload)
+
+	// Call the API
+	i, httpResp, err := client.DevicesApi.UpdateDevice(ctx, data.Serial.ValueString()).
+		UpdateDeviceRequest(*payload).Execute()
+
+	utils.LogResponseBody(ctx, httpResp)
+
 	if err := utils.HandleAPIError(ctx, httpResp, err, &diags); err != nil {
+		tflog.Error(ctx, "CREATE operation failed", map[string]interface{}{
+			"error":         err,
+			"response_code": httpResp.StatusCode,
+		})
 		return ResourceModel{}, diags
 	}
 
-	state, diags := MarshalStateFromAPI(ctx, httpResp, data)
+	// Map API response to Terraform state
+	state, diags := MarshalStateFromAPI(ctx, i)
 	return state, diags
 }
 
@@ -90,14 +131,19 @@ func CallCreateAPI(ctx context.Context, client *openApiClient.APIClient, data Re
 func CallReadAPI(ctx context.Context, client *openApiClient.APIClient, data ResourceModel) (ResourceModel, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	// API call without using the response directly
-	_, httpResp, err := client.DevicesApi.GetDevice(ctx, data.Serial.ValueString()).Execute()
+	i, httpResp, err := client.DevicesApi.GetDevice(ctx, data.Serial.ValueString()).Execute()
+
+	utils.LogResponseBody(ctx, httpResp)
+
 	if err := utils.HandleAPIError(ctx, httpResp, err, &diags); err != nil {
+		tflog.Error(ctx, "READ operation failed", map[string]interface{}{
+			"error":         err,
+			"response_code": httpResp.StatusCode,
+		})
 		return ResourceModel{}, diags
 	}
 
-	// Use httpResp to marshal the state
-	state, diags := MarshalStateFromAPI(ctx, httpResp, data)
+	state, diags := MarshalStateFromAPI(ctx, i)
 	return state, diags
 }
 
@@ -106,12 +152,23 @@ func CallUpdateAPI(ctx context.Context, client *openApiClient.APIClient, data Re
 	var diags diag.Diagnostics
 	payload := GenerateUpdatePayload(ctx, data)
 
-	_, httpResp, err := client.DevicesApi.UpdateDevice(ctx, data.Serial.ValueString()).UpdateDeviceRequest(*payload).Execute()
+	utils.LogPayload(ctx, payload)
+
+	// Call the API
+	i, httpResp, err := client.DevicesApi.UpdateDevice(ctx, data.Serial.ValueString()).
+		UpdateDeviceRequest(*payload).Execute()
+
+	utils.LogResponseBody(ctx, httpResp)
+
 	if err := utils.HandleAPIError(ctx, httpResp, err, &diags); err != nil {
+		tflog.Error(ctx, "UPDATE operation failed", map[string]interface{}{
+			"error":         err,
+			"response_code": httpResp.StatusCode,
+		})
 		return ResourceModel{}, diags
 	}
 
-	state, diags := MarshalStateFromAPI(ctx, httpResp, data)
+	state, diags := MarshalStateFromAPI(ctx, i)
 	return state, diags
 }
 
@@ -120,75 +177,186 @@ func CallDeleteAPI(ctx context.Context, client *openApiClient.APIClient, data Re
 	var diags diag.Diagnostics
 	payload := GenerateDeletePayload(ctx, data)
 
-	_, httpResp, err := client.DevicesApi.UpdateDevice(ctx, data.Serial.ValueString()).UpdateDeviceRequest(*payload).Execute()
+	utils.LogPayload(ctx, payload)
+
+	// Call the API
+	_, httpResp, err := client.DevicesApi.UpdateDevice(ctx, data.Serial.ValueString()).
+		UpdateDeviceRequest(*payload).Execute()
+
+	utils.LogResponseBody(ctx, httpResp)
+
 	if err := utils.HandleAPIError(ctx, httpResp, err, &diags); err != nil {
+		tflog.Error(ctx, "DELETE operation failed", map[string]interface{}{
+			"error":         err,
+			"response_code": httpResp.StatusCode,
+		})
 		return diags
 	}
 
 	return diags
 }
 
-// MarshalStateFromAPI Map API response to Terraform state
-func MarshalStateFromAPI(ctx context.Context, httpResp *http.Response, data ResourceModel) (ResourceModel, diag.Diagnostics) {
+// MarshalStateFromAPI marshals the API response (map) to the Terraform state model.
+func MarshalStateFromAPI(ctx context.Context, apiData map[string]interface{}) (ResourceModel, diag.Diagnostics) {
 	var diags diag.Diagnostics
+	var data ResourceModel
 
-	// Extract API response into a map
-	apiData, err := utils.ExtractResponseToMap(httpResp)
-	if err != nil {
-		diags.AddError("Failed to parse API response", err.Error())
-		return ResourceModel{}, diags
-	}
+	tflog.Trace(ctx, "[device] Starting to marshal API response to Terraform state")
 
-	// Map attributes from API response to Terraform state
-	mapAttribute := func(apiKey string, stateField *types.String, optional bool) {
-		if value, ok := apiData[apiKey]; ok && value != nil {
-			if strValue, ok := value.(string); ok {
-				*stateField = types.StringValue(strValue)
-			}
-		} else if !optional {
-			*stateField = types.StringNull()
-		}
-	}
-
-	mapFloat64Attribute := func(apiKey string, stateField *types.Float64) {
-		if value, ok := apiData[apiKey]; ok && value != nil {
-			if floatValue, ok := value.(float64); ok {
-				*stateField = types.Float64Value(floatValue)
-			}
-		} else {
-			*stateField = types.Float64Null()
-		}
-	}
-
-	mapBoolAttribute := func(apiKey string, stateField *types.Bool) {
-		if value, ok := apiData[apiKey]; ok && value != nil {
-			if boolValue, ok := value.(bool); ok {
-				*stateField = types.BoolValue(boolValue)
-			}
-		} else {
-			*stateField = types.BoolNull()
-		}
-	}
-
-	// Map individual attributes
-	mapAttribute("name", &data.Name, true)
-	mapFloat64Attribute("lat", &data.Lat)
-	mapFloat64Attribute("lng", &data.Lng)
-	mapAttribute("address", &data.Address, true)
-	mapAttribute("notes", &data.Notes, true)
-	mapAttribute("networkId", &data.NetworkId, true)
-	mapAttribute("serial", &data.Serial, false)
-	mapAttribute("model", &data.Model, true)
-	mapAttribute("mac", &data.Mac, true)
-	mapAttribute("lanIp", &data.LanIp, true)
-	mapAttribute("firmware", &data.Firmware, true)
-	mapAttribute("floorPlanId", &data.FloorPlanId, true)
-	mapAttribute("url", &data.Url, true)
-	mapAttribute("switchProfileId", &data.SwitchProfileId, true)
-	mapBoolAttribute("moveMapMarker", &data.MoveMapMarker)
-
-	// Set the resource ID to the serial value
+	// Use utils.ExtractStringAttr for string mappings
+	data.Serial, _ = utils.ExtractStringAttr(apiData, "serial")
 	data.Id = data.Serial
 
+	data.Name, _ = utils.ExtractStringAttr(apiData, "name")
+	data.Address, _ = utils.ExtractStringAttr(apiData, "address")
+	data.Notes, _ = utils.ExtractStringAttr(apiData, "notes")
+	data.LanIp, _ = utils.ExtractStringAttr(apiData, "lanIp")
+	data.Model, _ = utils.ExtractStringAttr(apiData, "model")
+
+	value, exists := apiData["moveMapMarker"]
+	if exists && value != nil {
+		data.MoveMapMarker = types.BoolValue(value.(bool))
+	} else {
+		data.MoveMapMarker = types.BoolValue(false)
+	}
+
+	// Handle coordinates
+	data.Lat, _ = utils.ExtractFloat64Attr(apiData, "lat")
+	data.Lng, _ = utils.ExtractFloat64Attr(apiData, "lng")
+
+	// Extract lists
+	// Extract lists
+	data.Tags, _ = utils.ExtractListStringAttr(apiData, "tags")
+
+	// Convert []attr.Value to []string
+	tags := make([]string, len(data.Tags.Elements()))
+	for i, v := range data.Tags.Elements() {
+		tags[i] = v.(basetypes.StringValue).ValueString()
+	}
+
+	// Sort the converted []string
+	sort.Strings(tags)
+
+	// Handle complex nested details separately
+	data.Details, diags = MarshalDetailsFromAPI(ctx, apiData)
+
+	data.BeaconIdParams, diags = MarshalBeaconIdParamsFromAPI(ctx, apiData)
+
+	tflog.Trace(ctx, "[device] Successfully marshaled API response to Terraform state")
 	return data, diags
+}
+
+// MarshalDetailsFromAPI handles extracting and marshaling the 'details' attribute from the API response.
+func MarshalDetailsFromAPI(ctx context.Context, apiData map[string]interface{}) (types.List, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	var detailsElements []attr.Value
+
+	if detailsList, exists := apiData["details"].([]interface{}); exists {
+		for _, item := range detailsList {
+			detail := item.(map[string]interface{})
+
+			objValue, objDiags := types.ObjectValue(
+				map[string]attr.Type{
+					"name":  types.StringType,
+					"value": types.StringType,
+				},
+				map[string]attr.Value{
+					"name":  types.StringValue(detail["name"].(string)),
+					"value": types.StringValue(detail["value"].(string)),
+				},
+			)
+
+			// Capture diagnostics if there's an error
+			diags.Append(objDiags...)
+
+			if objDiags.HasError() {
+				tflog.Error(ctx, "Failed to create ObjectValue for details attribute", map[string]interface{}{
+					"diagnostics": objDiags,
+				})
+				continue
+			}
+
+			// Append only the ObjectValue to the list
+			detailsElements = append(detailsElements, objValue)
+		}
+	}
+
+	// Create ListValue from ObjectValues
+	listValue, listDiags := types.ListValue(
+		types.ObjectType{
+			AttrTypes: map[string]attr.Type{
+				"name":  types.StringType,
+				"value": types.StringType,
+			},
+		}, detailsElements)
+
+	// Append list-level diagnostics
+	diags.Append(listDiags...)
+
+	return listValue, diags
+}
+
+func MarshalBeaconIdParamsFromAPI(ctx context.Context, apiData map[string]interface{}) (types.Object, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	// Define attribute types for beacon_id_params
+	beaconIdParamsAttrTypes := map[string]attr.Type{
+		"beacon_id": types.StringType,
+		"major":     types.Int64Type,
+		"minor":     types.Int64Type,
+		"proximity": types.StringType,
+		"uuid":      types.StringType,
+	}
+
+	// Check if beacon_id_params exists in the API response
+	beaconParams, ok := apiData["beacon_id_params"].(map[string]interface{})
+	if !ok || len(beaconParams) == 0 {
+		// Return an empty/null object if no data is found
+		return types.ObjectNull(beaconIdParamsAttrTypes), diags
+	}
+
+	// Extract fields from the beaconParams map
+	beaconId := types.StringNull()
+	major := types.Int64Null()
+	minor := types.Int64Null()
+	proximity := types.StringNull()
+	uuid := types.StringNull()
+
+	if v, exists := beaconParams["beacon_id"]; exists && v != nil {
+		beaconId = types.StringValue(v.(string))
+	}
+	if v, exists := beaconParams["major"]; exists && v != nil {
+		major = types.Int64Value(int64(v.(float64)))
+	}
+	if v, exists := beaconParams["minor"]; exists && v != nil {
+		minor = types.Int64Value(int64(v.(float64)))
+	}
+	if v, exists := beaconParams["proximity"]; exists && v != nil {
+		proximity = types.StringValue(v.(string))
+	}
+	if v, exists := beaconParams["uuid"]; exists && v != nil {
+		uuid = types.StringValue(v.(string))
+	}
+
+	// Construct the ObjectValue for beacon_id_params
+	beaconIdObject, objDiags := types.ObjectValue(
+		beaconIdParamsAttrTypes,
+		map[string]attr.Value{
+			"beacon_id": beaconId,
+			"major":     major,
+			"minor":     minor,
+			"proximity": proximity,
+			"uuid":      uuid,
+		},
+	)
+	diags.Append(objDiags...)
+
+	if objDiags.HasError() {
+		tflog.Error(ctx, "Failed to marshal beacon_id_params", map[string]interface{}{
+			"diagnostics": objDiags,
+		})
+		return types.ObjectNull(beaconIdParamsAttrTypes), diags
+	}
+
+	return beaconIdObject, diags
 }
