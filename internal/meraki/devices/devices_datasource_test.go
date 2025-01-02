@@ -132,7 +132,6 @@ resource "meraki_networks_devices_claim" "test" {
 
 resource "meraki_devices" "test" {
 	depends_on = ["resource.meraki_network.test", "resource.meraki_networks_devices_claim.test"]
-	network_id = resource.meraki_network.test.network_id
   	serial = "%s"
     lat = 37.418095
     lng = -122.09853
