@@ -26,8 +26,9 @@ type DataSource struct {
 }
 
 type dataSourceModel struct {
-	Id   jsontypes.String      `tfsdk:"id" json:"organization_id"`
-	List []dataSourceModelList `tfsdk:"list"`
+	Id    jsontypes.String      `tfsdk:"id"`
+	OrgId jsontypes.String      `tfsdk:"organization_id" json:"organizationId"`
+	List  []dataSourceModelList `tfsdk:"list"`
 }
 
 type dataSourceModelList struct {
@@ -59,6 +60,15 @@ func (d *DataSource) Schema(ctx context.Context, req datasource.SchemaRequest, r
 			"id": schema.StringAttribute{
 				Computed:   true,
 				CustomType: jsontypes.StringType,
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(1, 31),
+				},
+			},
+			"organization_id": schema.StringAttribute{
+				MarkdownDescription: "Organization ID",
+				Optional:            true,
+				Computed:            true,
+				CustomType:          jsontypes.StringType,
 				Validators: []validator.String{
 					stringvalidator.LengthBetween(1, 31),
 				},
@@ -164,7 +174,7 @@ func (d *DataSource) Read(ctx context.Context, req datasource.ReadRequest, resp 
 		return
 	}
 
-	_, httpResp, err := d.client.OrganizationsApi.GetOrganizationAdaptivePolicyAcls(context.Background(), data.Id.ValueString()).Execute()
+	_, httpResp, err := d.client.OrganizationsApi.GetOrganizationAdaptivePolicyAcls(context.Background(), data.OrgId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"HTTP Client Failure",
@@ -196,6 +206,9 @@ func (d *DataSource) Read(ctx context.Context, req datasource.ReadRequest, resp 
 		)
 		return
 	}
+
+	data.Id = data.OrgId
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
 	// Write logs using the tflog package
