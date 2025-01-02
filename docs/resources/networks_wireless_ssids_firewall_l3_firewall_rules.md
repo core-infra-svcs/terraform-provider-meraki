@@ -3,12 +3,12 @@
 page_title: "meraki_networks_wireless_ssids_firewall_l3_firewall_rules Resource - terraform-provider-meraki"
 subcategory: ""
 description: |-
-  NetworksWirelessSsidsFirewallL3FirewallRules for Updating Networks Wireless Ssids Firewall L3FirewallRules
+  networksWirelessSsidsFirewallL3FirewallRules for Updating Networks Wireless Ssids Firewall L3FirewallRules
 ---
 
 # meraki_networks_wireless_ssids_firewall_l3_firewall_rules (Resource)
 
-NetworksWirelessSsidsFirewallL3FirewallRules for Updating Networks Wireless Ssids Firewall L3FirewallRules
+networksWirelessSsidsFirewallL3FirewallRules for Updating Networks Wireless Ssids Firewall L3FirewallRules
 
 
 

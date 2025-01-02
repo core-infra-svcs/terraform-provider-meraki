@@ -3,10 +3,103 @@ package utils
 import (
 	"context"
 	"fmt"
+	datasourceSchema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
+
+// ConvertResourceSchemaToDataSourceSchema converts a resource schema to a data source schema while carrying over all settings.
+func ConvertResourceSchemaToDataSourceSchema(resourceAttrs map[string]schema.Attribute) map[string]datasourceSchema.Attribute {
+	dataSourceAttrs := make(map[string]datasourceSchema.Attribute)
+	for key, attr := range resourceAttrs {
+		dataSourceAttrs[key] = convertResourceAttrToDataSourceAttr(attr)
+	}
+	return dataSourceAttrs
+}
+
+// Helper function to convert a single resource schema attribute to a data source schema attribute.
+func convertResourceAttrToDataSourceAttr(attr schema.Attribute) datasourceSchema.Attribute {
+	switch a := attr.(type) {
+	case schema.StringAttribute:
+		return datasourceSchema.StringAttribute{
+			CustomType:          a.CustomType,
+			MarkdownDescription: a.MarkdownDescription,
+			Description:         a.Description,
+			DeprecationMessage:  a.DeprecationMessage,
+			Validators:          a.Validators,
+			Computed:            true,
+			Sensitive:           a.Sensitive,
+		}
+	case schema.BoolAttribute:
+		return datasourceSchema.BoolAttribute{
+			CustomType:          a.CustomType,
+			MarkdownDescription: a.MarkdownDescription,
+			Description:         a.Description,
+			DeprecationMessage:  a.DeprecationMessage,
+			Validators:          a.Validators,
+			Computed:            true,
+			Sensitive:           a.Sensitive,
+		}
+	case schema.Int64Attribute:
+		return datasourceSchema.Int64Attribute{
+			CustomType:          a.CustomType,
+			MarkdownDescription: a.MarkdownDescription,
+			Description:         a.Description,
+			DeprecationMessage:  a.DeprecationMessage,
+			Validators:          a.Validators,
+			Computed:            true,
+			Sensitive:           a.Sensitive,
+		}
+	case schema.ListAttribute:
+		return datasourceSchema.ListAttribute{
+			ElementType:         a.ElementType,
+			CustomType:          a.CustomType,
+			MarkdownDescription: a.MarkdownDescription,
+			Description:         a.Description,
+			DeprecationMessage:  a.DeprecationMessage,
+			Validators:          a.Validators,
+			Computed:            true,
+			Sensitive:           a.Sensitive,
+		}
+	case schema.SingleNestedAttribute:
+		return datasourceSchema.SingleNestedAttribute{
+			Attributes:          ConvertResourceSchemaToDataSourceSchema(a.Attributes),
+			CustomType:          a.CustomType,
+			MarkdownDescription: a.MarkdownDescription,
+			Description:         a.Description,
+			DeprecationMessage:  a.DeprecationMessage,
+			Validators:          a.Validators,
+			Computed:            true,
+			Sensitive:           a.Sensitive,
+		}
+	case schema.MapAttribute:
+		return datasourceSchema.MapAttribute{
+			ElementType:         a.ElementType,
+			CustomType:          a.CustomType,
+			MarkdownDescription: a.MarkdownDescription,
+			Description:         a.Description,
+			DeprecationMessage:  a.DeprecationMessage,
+			Validators:          a.Validators,
+			Computed:            true,
+			Sensitive:           a.Sensitive,
+		}
+	case schema.SetAttribute:
+		return datasourceSchema.SetAttribute{
+			ElementType:         a.ElementType,
+			CustomType:          a.CustomType,
+			MarkdownDescription: a.MarkdownDescription,
+			Description:         a.Description,
+			DeprecationMessage:  a.DeprecationMessage,
+			Validators:          a.Validators,
+			Computed:            true,
+			Sensitive:           a.Sensitive,
+		}
+	default:
+		return nil // Handle unsupported attribute types gracefully
+	}
+}
 
 // NewStringDefault returns a struct that implements the defaults.String interface for a resource Schema
 func NewStringDefault(defaultValue string) defaults.String {

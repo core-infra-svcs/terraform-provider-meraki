@@ -21,7 +21,7 @@ Return the DHCP subnet information for an appliance
 
 ### Optional
 
-- `list` (Attributes List) List of DHCP subnets (see [below for nested schema](#nestedatt--list))
+- `list` (Attributes Ports) Ports of DHCP subnets (see [below for nested schema](#nestedatt--list))
 
 ### Read-Only
 

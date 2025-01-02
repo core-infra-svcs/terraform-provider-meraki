@@ -65,7 +65,7 @@ Required:
 
 Optional:
 
-- `rules` (Attributes List) (see [below for nested schema](#nestedatt--bonjour_forwarding--rules))
+- `rules` (Attributes Ports) (see [below for nested schema](#nestedatt--bonjour_forwarding--rules))
 
 <a id="nestedatt--bonjour_forwarding--rules"></a>
 ### Nested Schema for `bonjour_forwarding.rules`
@@ -73,7 +73,7 @@ Optional:
 Optional:
 
 - `description` (String)
-- `services` (List of String)
+- `services` (Ports of String)
 - `vlan_id` (String)
 
 
@@ -92,7 +92,7 @@ Optional:
 
 Optional:
 
-- `patterns` (List of String)
+- `patterns` (Ports of String)
 - `settings` (String)
 
 
@@ -101,7 +101,7 @@ Optional:
 
 Optional:
 
-- `categories` (List of String)
+- `categories` (Ports of String)
 - `settings` (String)
 
 
@@ -110,7 +110,7 @@ Optional:
 
 Optional:
 
-- `patterns` (List of String)
+- `patterns` (Ports of String)
 - `settings` (String)
 
 
@@ -120,10 +120,10 @@ Optional:
 
 Optional:
 
-- `l3_firewall_rules` (Attributes List) (see [below for nested schema](#nestedatt--firewall_and_traffic_shaping--l3_firewall_rules))
-- `l7_firewall_rules` (Attributes List) (see [below for nested schema](#nestedatt--firewall_and_traffic_shaping--l7_firewall_rules))
+- `l3_firewall_rules` (Attributes Ports) (see [below for nested schema](#nestedatt--firewall_and_traffic_shaping--l3_firewall_rules))
+- `l7_firewall_rules` (Attributes Ports) (see [below for nested schema](#nestedatt--firewall_and_traffic_shaping--l7_firewall_rules))
 - `settings` (String)
-- `traffic_shaping_rules` (Attributes List) (see [below for nested schema](#nestedatt--firewall_and_traffic_shaping--traffic_shaping_rules))
+- `traffic_shaping_rules` (Attributes Ports) (see [below for nested schema](#nestedatt--firewall_and_traffic_shaping--traffic_shaping_rules))
 
 <a id="nestedatt--firewall_and_traffic_shaping--l3_firewall_rules"></a>
 ### Nested Schema for `firewall_and_traffic_shaping.l3_firewall_rules`
@@ -152,7 +152,7 @@ Optional:
 
 Optional:
 
-- `definitions` (Attributes List) (see [below for nested schema](#nestedatt--firewall_and_traffic_shaping--traffic_shaping_rules--definitions))
+- `definitions` (Attributes Ports) (see [below for nested schema](#nestedatt--firewall_and_traffic_shaping--traffic_shaping_rules--definitions))
 - `dscp_tag_value` (Number)
 - `pcp_tag_value` (Number)
 - `per_client_bandwidth_limits` (Attributes) (see [below for nested schema](#nestedatt--firewall_and_traffic_shaping--traffic_shaping_rules--per_client_bandwidth_limits))

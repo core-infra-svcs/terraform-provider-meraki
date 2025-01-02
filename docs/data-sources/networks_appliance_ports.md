@@ -21,7 +21,7 @@ Get appliance ports
 
 ### Optional
 
-- `list` (Attributes Set) List of Network Appliance Ports (see [below for nested schema](#nestedatt--list))
+- `list` (Attributes Set) Ports of Network Appliance Ports (see [below for nested schema](#nestedatt--list))
 
 ### Read-Only
 

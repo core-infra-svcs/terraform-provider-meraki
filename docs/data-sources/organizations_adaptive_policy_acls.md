@@ -3,12 +3,12 @@
 page_title: "meraki_organizations_adaptive_policy_acls Data Source - terraform-provider-meraki"
 subcategory: ""
 description: |-
-  List adaptive policy ACLs in a organization
+  Ports adaptive policy ACLs in a organization
 ---
 
 # meraki_organizations_adaptive_policy_acls (Data Source)
 
-List adaptive policy ACLs in a organization
+Ports adaptive policy ACLs in a organization
 
 
 
@@ -17,7 +17,7 @@ List adaptive policy ACLs in a organization
 
 ### Optional
 
-- `list` (Attributes List) (see [below for nested schema](#nestedatt--list))
+- `list` (Attributes Ports) (see [below for nested schema](#nestedatt--list))
 - `organization_id` (String) Organization ID
 
 ### Read-Only
@@ -34,7 +34,7 @@ Optional:
 - `description` (String) Description of the adaptive policy ACL
 - `ip_version` (String) IP version of adaptive policy ACL. One of: 'any', 'ipv4' or 'ipv6
 - `name` (String) Name of the adaptive policy ACL
-- `rules` (Attributes List) An ordered array of the adaptive policy ACL rules. An empty array will clear the rules. (see [below for nested schema](#nestedatt--list--rules))
+- `rules` (Attributes Ports) An ordered array of the adaptive policy ACL rules. An empty array will clear the rules. (see [below for nested schema](#nestedatt--list--rules))
 - `updated_at` (String)
 
 <a id="nestedatt--list--rules"></a>

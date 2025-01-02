@@ -17,7 +17,7 @@ NetworksTrafficAnalysis resource for updating networks traffic analysis.
 
 ### Required
 
-- `custom_pie_chart_items` (Attributes List) The list of items that make up the custom pie chart for traffic reporting. (see [below for nested schema](#nestedatt--custom_pie_chart_items))
+- `custom_pie_chart_items` (Attributes Ports) The list of items that make up the custom pie chart for traffic reporting. (see [below for nested schema](#nestedatt--custom_pie_chart_items))
 - `mode` (String) The traffic analysis mode for the network. Can be one of 'disabled' (do not collect traffic types) 'basic' (collect generic traffic categories), or 'detailed' (collect destination hostnames)
 - `network_id` (String) Network Id
 

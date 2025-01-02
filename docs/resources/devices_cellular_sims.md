@@ -17,7 +17,7 @@ Manages the SIM and APN configurations for a cellular device.
 
 ### Required
 
-- `sims` (Attributes Set) List of SIMs. If a SIM was previously configured and not specified in this request, it will remain unchanged. (see [below for nested schema](#nestedatt--sims))
+- `sims` (Attributes Set) Ports of SIMs. If a SIM was previously configured and not specified in this request, it will remain unchanged. (see [below for nested schema](#nestedatt--sims))
 
 ### Optional
 

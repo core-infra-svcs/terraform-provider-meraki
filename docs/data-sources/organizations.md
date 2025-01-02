@@ -3,12 +3,12 @@
 page_title: "meraki_organizations Data Source - terraform-provider-meraki"
 subcategory: ""
 description: |-
-  List the organizations that the user has privileges on
+  Ports the organizations that the user has privileges on
 ---
 
 # meraki_organizations (Data Source)
 
-List the organizations that the user has privileges on
+Ports the organizations that the user has privileges on
 
 
 
@@ -17,7 +17,7 @@ List the organizations that the user has privileges on
 
 ### Optional
 
-- `list` (Attributes List) (see [below for nested schema](#nestedatt--list))
+- `list` (Attributes Ports) (see [below for nested schema](#nestedatt--list))
 
 ### Read-Only
 

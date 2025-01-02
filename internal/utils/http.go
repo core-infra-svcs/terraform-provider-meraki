@@ -14,6 +14,21 @@ import (
 	"time"
 )
 
+// HandleAPIError processes API errors and maps them to Terraform diagnostics.
+func HandleAPIError(ctx context.Context, resp *http.Response, err error, diags *diag.Diagnostics) error {
+	if err != nil {
+		diags.AddError("API Error", fmt.Sprintf("Error during API call: %s", err.Error()))
+		return err
+	}
+
+	if resp.StatusCode >= 400 {
+		diags.AddError("API Response Error", fmt.Sprintf("Unexpected status code: %d", resp.StatusCode))
+		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	return nil
+}
+
 // ExtractResponseToMap reads an HTTP response body and unmarshals the JSON content into a map[string]interface{}.
 // It returns the map along with any error that occurs during the read or unmarshal process.
 func ExtractResponseToMap(resp *http.Response) (map[string]interface{}, error) {

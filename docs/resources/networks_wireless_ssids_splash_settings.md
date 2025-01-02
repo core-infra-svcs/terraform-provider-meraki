@@ -75,7 +75,7 @@ Optional:
 
 Optional:
 
-- `enforced_systems` (List of String) The system types that the Sentry enforces. Must be included in: 'iOS, 'Android', 'macOS', and 'Windows'.
+- `enforced_systems` (Ports of String) The system types that the Sentry enforces. Must be included in: 'iOS, 'Android', 'macOS', and 'Windows'.
 - `strength` (String) The strength of the enforcement of selected system types. Must be one of: 'focused', 'click-through', and 'strict'.
 - `systems_manager_network` (Attributes) Systems Manager network targeted for sentry enrollment.. (see [below for nested schema](#nestedatt--sentry_enrollment--systems_manager_network))
 

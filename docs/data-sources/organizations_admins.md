@@ -3,12 +3,12 @@
 page_title: "meraki_organizations_admins Data Source - terraform-provider-meraki"
 subcategory: ""
 description: |-
-  List the dashboard administrators in this organization
+  Ports the dashboard administrators in this organization
 ---
 
 # meraki_organizations_admins (Data Source)
 
-List the dashboard administrators in this organization
+Ports the dashboard administrators in this organization
 
 
 

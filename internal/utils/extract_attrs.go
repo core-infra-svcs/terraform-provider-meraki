@@ -218,3 +218,64 @@ func ExtractInt64FromFloat(hashMap map[string]interface{}, key string) (types.In
 	// If none of the above work, return Null
 	return types.Int64Null(), diags
 }
+
+// FlattenList converts a Terraform types.List into a slice of strings.
+func FlattenList(input types.List) []string {
+	var result []string
+	if !input.IsNull() && !input.IsUnknown() {
+		for _, elem := range input.Elements() {
+			if str, ok := elem.(types.String); ok && !str.IsNull() {
+				result = append(result, str.ValueString())
+			}
+		}
+	}
+	return result
+}
+
+// SafeStringAttr safely maps a string field
+func SafeStringAttr(data map[string]interface{}, key string) attr.Value {
+	if val, ok := data[key].(string); ok {
+		return types.StringValue(val)
+	}
+	return types.StringNull()
+}
+
+// SafeBoolAttr safely maps a boolean field
+func SafeBoolAttr(data map[string]interface{}, key string) attr.Value {
+	if val, ok := data[key].(bool); ok {
+		return types.BoolValue(val)
+	}
+	return types.BoolNull()
+}
+
+// SafeInt64Attr safely maps an integer field
+func SafeInt64Attr(data map[string]interface{}, key string) attr.Value {
+	if val, ok := data[key].(float64); ok { // JSON numbers are float64
+		return types.Int64Value(int64(val))
+	}
+	return types.Int64Null()
+}
+
+// SafeListStringAttr safely maps a list of strings
+func SafeListStringAttr(data map[string]interface{}, key string) attr.Value {
+	if rawList, ok := data[key].([]interface{}); ok {
+		var list []string
+		for _, v := range rawList {
+			if str, ok := v.(string); ok {
+				list = append(list, str)
+			}
+		}
+		if len(list) > 0 {
+			return types.ListValueMust(types.StringType, listToValues(list))
+		}
+	}
+	return types.ListNull(types.StringType)
+}
+
+func listToValues(strings []string) []attr.Value {
+	values := make([]attr.Value, len(strings))
+	for i, str := range strings {
+		values[i] = types.StringValue(str)
+	}
+	return values
+}

@@ -21,7 +21,7 @@ Returns the list of network devices
 
 ### Optional
 
-- `list` (Attributes List) List of devices (see [below for nested schema](#nestedatt--list))
+- `list` (Attributes Ports) Ports of devices (see [below for nested schema](#nestedatt--list))
 
 ### Read-Only
 
@@ -34,7 +34,7 @@ Read-Only:
 
 - `address` (String) The address of a device
 - `beacon_id_params` (Attributes) (see [below for nested schema](#nestedatt--list--beacon_id_params))
-- `details` (Attributes List) Network tags (see [below for nested schema](#nestedatt--list--details))
+- `details` (Attributes Ports) Network tags (see [below for nested schema](#nestedatt--list--details))
 - `firmware` (String) The firmware version of a device
 - `floor_plan_id` (String) The floor plan to associate to this device. null disassociates the device from the floor plan.
 - `id` (String)
@@ -49,7 +49,7 @@ Read-Only:
 - `notes` (String) Notes for the network
 - `serial` (String) The devices serial number
 - `switch_profile_id` (String) The ID of a switch profile to bind to the device (for available switch profiles, see the 'Switch Profiles' endpoint). Use null to unbind the switch device from the current profile. For a device to be bindable to a switch profile, it must (1) be a switch, and (2) belong to a network that is bound to a configuration template.
-- `tags` (List of String) Network tags
+- `tags` (Ports of String) Network tags
 - `url` (String) The url for the network associated with the device.
 
 <a id="nestedatt--list--beacon_id_params"></a>
