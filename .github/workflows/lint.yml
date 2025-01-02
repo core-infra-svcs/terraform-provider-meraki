@@ -40,3 +40,4 @@ jobs:
         with:
           version: v1.60
           args: --timeout 5m
+          working-directory: ./internal
