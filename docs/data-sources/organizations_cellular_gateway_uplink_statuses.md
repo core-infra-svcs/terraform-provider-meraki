@@ -42,7 +42,7 @@ Optional:
 - `model` (String) Device model.
 - `network_id` (String) ID of the network.
 - `serial` (String) Serial number of the device.
-- `uplinks` (Attributes Ports) Uplinks info. (see [below for nested schema](#nestedatt--list--uplinks))
+- `uplinks` (Attributes List) Uplinks info. (see [below for nested schema](#nestedatt--list--uplinks))
 
 <a id="nestedatt--list--uplinks"></a>
 ### Nested Schema for `list.uplinks`

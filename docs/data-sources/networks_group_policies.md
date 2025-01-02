@@ -21,7 +21,7 @@ Manage the group policy's in this network
 
 ### Optional
 
-- `list` (Attributes Ports) (see [below for nested schema](#nestedatt--list))
+- `list` (Attributes List) (see [below for nested schema](#nestedatt--list))
 
 ### Read-Only
 
@@ -68,19 +68,16 @@ Optional:
 
 Optional:
 
-- `rules` (Attributes Set) (see [below for nested schema](#nestedatt--list--bonjour_forwarding--rules))
+- `rules` (Attributes List) (see [below for nested schema](#nestedatt--list--bonjour_forwarding--rules))
 - `settings` (String) How Bonjour rules are applied. Can be 'network default', 'ignore' or 'custom'.
 
 <a id="nestedatt--list--bonjour_forwarding--rules"></a>
 ### Nested Schema for `list.bonjour_forwarding.rules`
 
-Required:
-
-- `services` (Set of String)
-
 Optional:
 
 - `description` (String) A description for your Bonjour forwarding rule. Optional.
+- `services` (List of String)
 - `vlan_id` (String) The ID of the service VLAN. Required.
 
 
@@ -99,7 +96,7 @@ Optional:
 
 Optional:
 
-- `patterns` (Set of String) A list of URL patterns that are allowed
+- `patterns` (List of String) A list of URL patterns that are allowed
 - `settings` (String) How URL patterns are applied. Can be 'network default', 'append' or 'override'.
 
 
@@ -108,7 +105,7 @@ Optional:
 
 Optional:
 
-- `categories` (Set of String) A list of URL categories to block
+- `categories` (List of String) A list of URL categories to block
 - `settings` (String) How URL categories are applied. Can be 'network default', 'append' or 'override'.
 
 
@@ -117,7 +114,7 @@ Optional:
 
 Optional:
 
-- `patterns` (Set of String) A list of URL patterns that are blocked
+- `patterns` (List of String) A list of URL patterns that are blocked
 - `settings` (String) How URL patterns are applied. Can be 'network default', 'append' or 'override'.
 
 
@@ -127,10 +124,10 @@ Optional:
 
 Optional:
 
-- `l3_firewall_rules` (Attributes Ports) (see [below for nested schema](#nestedatt--list--firewall_and_traffic_shaping--l3_firewall_rules))
-- `l7_firewall_rules` (Attributes Set) (see [below for nested schema](#nestedatt--list--firewall_and_traffic_shaping--l7_firewall_rules))
+- `l3_firewall_rules` (Attributes List) (see [below for nested schema](#nestedatt--list--firewall_and_traffic_shaping--l3_firewall_rules))
+- `l7_firewall_rules` (Attributes List) (see [below for nested schema](#nestedatt--list--firewall_and_traffic_shaping--l7_firewall_rules))
 - `settings` (String) How firewall and traffic shaping rules are enforced. Can be 'network default', 'ignore' or 'custom'.
-- `traffic_shaping_rules` (Attributes Set) (see [below for nested schema](#nestedatt--list--firewall_and_traffic_shaping--traffic_shaping_rules))
+- `traffic_shaping_rules` (Attributes List) (see [below for nested schema](#nestedatt--list--firewall_and_traffic_shaping--traffic_shaping_rules))
 
 <a id="nestedatt--list--firewall_and_traffic_shaping--l3_firewall_rules"></a>
 ### Nested Schema for `list.firewall_and_traffic_shaping.l3_firewall_rules`
@@ -159,7 +156,7 @@ Optional:
 
 Optional:
 
-- `definitions` (Attributes Set) (see [below for nested schema](#nestedatt--list--firewall_and_traffic_shaping--traffic_shaping_rules--definitions))
+- `definitions` (Attributes List) (see [below for nested schema](#nestedatt--list--firewall_and_traffic_shaping--traffic_shaping_rules--definitions))
 - `dscp_tag_value` (Number) The DSCP tag applied by your rule. null means Do not change DSCP tag. For a list of possible tag values, use the trafficShaping/dscpTaggingOptions endpoint
 - `pcp_tag_value` (Number) The PCP tag applied by your rule. Can be 0 (lowest priority) through 7 (highest priority). null means Do not set PCP tag.
 - `per_client_bandwidth_limits` (Attributes) (see [below for nested schema](#nestedatt--list--firewall_and_traffic_shaping--traffic_shaping_rules--per_client_bandwidth_limits))

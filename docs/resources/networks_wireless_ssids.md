@@ -24,9 +24,9 @@ description: |-
 
 - `active_directory` (Attributes) The current setting for Active Directory. Only valid if splashPage is 'Password-protected with Active Directory' (see [below for nested schema](#nestedatt--active_directory))
 - `adult_content_filtering_enabled` (Boolean) Boolean indicating whether or not adult content will be blocked
-- `ap_tags_and_vlan_ids` (Attributes Ports) The list of tags and VLAN IDs used for VLAN tagging. This param is only valid when the ipAssignmentMode is 'Bridge mode' or 'Layer 3 roaming' (see [below for nested schema](#nestedatt--ap_tags_and_vlan_ids))
+- `ap_tags_and_vlan_ids` (Attributes List) The list of tags and VLAN IDs used for VLAN tagging. This param is only valid when the ipAssignmentMode is 'Bridge mode' or 'Layer 3 roaming' (see [below for nested schema](#nestedatt--ap_tags_and_vlan_ids))
 - `auth_mode` (String) The association control method for the SSID
-- `availability_tags` (Ports of String) Ports of tags for this SSID. If availableOnAllAps is false, then the SSID is only broadcast by APs with tags matching any of the tags in this list
+- `availability_tags` (List of String) Ports of tags for this SSID. If availableOnAllAps is false, then the SSID is only broadcast by APs with tags matching any of the tags in this list
 - `available_on_all_aps` (Boolean) Whether all APs broadcast the SSID or if it's restricted to APs matching any availability tags
 - `band_selection` (String) The client-serving radio frequencies of this SSID in the default indoor RF profile
 - `concentrator_network_id` (String) The concentrator to use when the ipAssignmentMode is 'Layer 3 roaming with a concentrator' or 'VPN'.
@@ -55,7 +55,7 @@ description: |-
 - `psk` (String, Sensitive) The passkey for the SSID. This param is only valid if the authMode is 'psk'
 - `radius_accounting_enabled` (Boolean) Whether or not RADIUS accounting is enabled
 - `radius_accounting_interim_interval` (Number) The interval (in seconds) in which accounting information is updated and sent to the RADIUS accounting server.
-- `radius_accounting_servers` (Attributes Ports) Ports of RADIUS accounting 802.1X servers to be used for authentication (see [below for nested schema](#nestedatt--radius_accounting_servers))
+- `radius_accounting_servers` (Attributes List) Ports of RADIUS accounting 802.1X servers to be used for authentication (see [below for nested schema](#nestedatt--radius_accounting_servers))
 - `radius_attribute_for_group_policies` (String) RADIUS attribute used to look up group policies
 - `radius_authentication_nas_id` (String) The template of the NAS identifier to be used for RADIUS authentication (ex. $NODE_MAC$:$VAP_NUM$).
 - `radius_called_station_id` (String) The template of the called station identifier to be used for RADIUS (ex. $NODE_MAC$:$VAP_NUM$).
@@ -69,17 +69,17 @@ description: |-
 - `radius_proxy_enabled` (Boolean) If true, Meraki devices will proxy RADIUS messages through the Meraki cloud to the configured RADIUS auth and accounting servers.
 - `radius_server_attempts_limit` (Number) The maximum number of transmit attempts after which a RADIUS server is failed over (must be between 1-5).
 - `radius_server_timeout` (Number) The amount of time for which a RADIUS client waits for a reply from the RADIUS server (must be between 1-10 seconds).
-- `radius_servers` (Attributes Ports) The RADIUS 802.1X servers to be used for authentication. This param is only valid if the authMode is 'open-with-radius', '8021x-radius' or 'ipsk-with-radius' (see [below for nested schema](#nestedatt--radius_servers))
+- `radius_servers` (Attributes List) The RADIUS 802.1X servers to be used for authentication. This param is only valid if the authMode is 'open-with-radius', '8021x-radius' or 'ipsk-with-radius' (see [below for nested schema](#nestedatt--radius_servers))
 - `radius_testing_enabled` (Boolean) If true, Meraki devices will periodically send Access-Request messages to configured RADIUS servers using identity 'meraki_8021x_test' to ensure that the RADIUS servers are reachable.
 - `secondary_concentrator_network_id` (String) The secondary concentrator to use when the ipAssignmentMode is 'VPN'. If configured, the APs will switch to using this concentrator if the primary concentrator is unreachable. This param is optional. ('disabled' represents no secondary concentrator.)
 - `speed_burst` (Attributes) The SpeedBurst setting for this SSID' (see [below for nested schema](#nestedatt--speed_burst))
-- `splash_guest_sponsor_domains` (Ports of String) Array of valid sponsor email domains for sponsored guest splash type.
+- `splash_guest_sponsor_domains` (List of String) Array of valid sponsor email domains for sponsored guest splash type.
 - `splash_page` (String) The type of splash page for the SSID
 - `use_vlan_tagging` (Boolean) Whether or not traffic should be directed to use specific VLANs. This param is only valid if the ipAssignmentMode is 'Bridge mode' or 'Layer 3 roaming'
 - `visible` (Boolean) Whether the SSID is advertised or hidden by the AP
 - `vlan_id` (Number) The VLAN ID used for VLAN tagging. This param is only valid when the ipAssignmentMode is 'Layer 3 roaming with a concentrator' or 'VPN'
 - `walled_garden_enabled` (Boolean) Allow users to access a configurable list of IP ranges prior to splash page sign-on. Leave this field blank for networks without an enabled splash page.
-- `walled_garden_ranges` (Ports of String) Domain names and IP address ranges available in Walled Garden mode
+- `walled_garden_ranges` (List of String) Domain names and IP address ranges available in Walled Garden mode
 - `wpa_encryption_mode` (String) The types of WPA encryption
 
 ### Read-Only
@@ -97,7 +97,7 @@ description: |-
 Optional:
 
 - `credentials` (Attributes) (Optional) The credentials of the user account to be used by the AP to bind to your Active Directory server. The Active Directory account should have permissions on all your Active Directory servers. Only valid if the splashPage is 'Password-protected with Active Directory'. (see [below for nested schema](#nestedatt--active_directory--credentials))
-- `servers` (Attributes Ports) The Active Directory servers to be used for authentication. (see [below for nested schema](#nestedatt--active_directory--servers))
+- `servers` (Attributes List) The Active Directory servers to be used for authentication. (see [below for nested schema](#nestedatt--active_directory--servers))
 
 <a id="nestedatt--active_directory--credentials"></a>
 ### Nested Schema for `active_directory.credentials`
@@ -123,7 +123,7 @@ Optional:
 
 Optional:
 
-- `tags` (Ports of String) Array of AP tags
+- `tags` (List of String) Array of AP tags
 - `vlan_id` (Number) Numerical identifier that is assigned to the VLAN
 
 
@@ -132,7 +132,7 @@ Optional:
 
 Optional:
 
-- `dns_custom_name_servers` (Ports of String) User specified DNS servers (up to two servers)
+- `dns_custom_name_servers` (List of String) User specified DNS servers (up to two servers)
 - `enabled` (Boolean) Boolean indicating whether or not DNS server rewrite is enabled. If disabled, upstream DNS will be used
 
 
@@ -179,7 +179,7 @@ Optional:
 - `base_distinguished_name` (String) The base distinguished name of users on the LDAP server.
 - `credentials` (Attributes) (Optional) The credentials of the user account to be used by the AP to bind to your LDAP server. The LDAP account should have permissions on all your LDAP servers. (see [below for nested schema](#nestedatt--ldap--credentials))
 - `server_ca_certificate` (Attributes) The CA certificate used to sign the LDAP server's key. (see [below for nested schema](#nestedatt--ldap--server_ca_certificate))
-- `servers` (Attributes Ports) The LDAP servers to be used for authentication. (see [below for nested schema](#nestedatt--ldap--servers))
+- `servers` (Attributes List) The LDAP servers to be used for authentication. (see [below for nested schema](#nestedatt--ldap--servers))
 
 <a id="nestedatt--ldap--credentials"></a>
 ### Nested Schema for `ldap.credentials`
@@ -276,7 +276,7 @@ Optional:
 
 Optional:
 
-- `by_ap_tags` (Attributes Ports) The list of AP tags and VLAN names used for named VLAN tagging. If an AP has a tag matching one in the list, then traffic on this SSID will be directed to use the VLAN name associated to the tag. (see [below for nested schema](#nestedatt--named_vlans--tagging--by_ap_tags))
+- `by_ap_tags` (Attributes List) The list of AP tags and VLAN names used for named VLAN tagging. If an AP has a tag matching one in the list, then traffic on this SSID will be directed to use the VLAN name associated to the tag. (see [below for nested schema](#nestedatt--named_vlans--tagging--by_ap_tags))
 - `default_vlan_name` (String) The default VLAN name used to tag traffic in the absence of a matching AP tag.
 - `enabled` (Boolean) Whether or not traffic should be directed to use specific VLAN names.
 
@@ -285,7 +285,7 @@ Optional:
 
 Optional:
 
-- `tags` (Ports of String) Ports of AP tags.
+- `tags` (List of String) Ports of AP tags.
 - `vlan_name` (String) VLAN name that will be used to tag traffic.
 
 
@@ -296,7 +296,7 @@ Optional:
 
 Optional:
 
-- `allowed_domains` (Ports of String) (Optional) The list of domains allowed access to the network.
+- `allowed_domains` (List of String) (Optional) The list of domains allowed access to the network.
 
 
 <a id="nestedatt--radius_accounting_servers"></a>

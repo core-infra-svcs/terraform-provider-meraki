@@ -18,7 +18,6 @@ Cycle a set of switch ports
 ### Optional
 
 - `ports` (Set of String) URL that is consuming SAML Identity Provider (IdP)
-- `serial` (String) Serial
 
 ### Read-Only
 

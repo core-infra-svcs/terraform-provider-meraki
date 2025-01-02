@@ -17,7 +17,7 @@ Ports the organizations that the user has privileges on
 
 ### Optional
 
-- `list` (Attributes Ports) (see [below for nested schema](#nestedatt--list))
+- `list` (Attributes List) (see [below for nested schema](#nestedatt--list))
 
 ### Read-Only
 

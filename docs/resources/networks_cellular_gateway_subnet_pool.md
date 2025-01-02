@@ -17,7 +17,7 @@ Manage the subnet pool and mask configuration for MGs in the network.
 
 ### Required
 
-- `network_id` (String) Network ID
+- `id` (String) Network ID
 
 ### Optional
 
@@ -25,10 +25,6 @@ Manage the subnet pool and mask configuration for MGs in the network.
 - `deployment_mode` (String)
 - `mask` (Number) Mask used for the subnet of all MGs in this network.
 - `subnets` (Attributes Set) (see [below for nested schema](#nestedatt--subnets))
-
-### Read-Only
-
-- `id` (String) The ID of this resource.
 
 <a id="nestedatt--subnets"></a>
 ### Nested Schema for `subnets`

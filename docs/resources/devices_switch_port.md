@@ -51,7 +51,7 @@ Network Devices resource. This only works for devices associated with a network.
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-- `link_negotiation_capabilities` (Ports of String) The link speeds for the switch port.
+- `link_negotiation_capabilities` (List of String) The link speeds for the switch port.
 
 <a id="nestedatt--profile"></a>
 ### Nested Schema for `profile`

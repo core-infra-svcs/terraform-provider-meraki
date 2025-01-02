@@ -17,49 +17,50 @@ Manages the SIM and APN configurations for a cellular device.
 
 ### Required
 
-- `sims` (Attributes Set) Ports of SIMs. If a SIM was previously configured and not specified in this request, it will remain unchanged. (see [below for nested schema](#nestedatt--sims))
+- `sims` (Attributes Set) Configuration for device SIMs. Unspecified SIMs remain unchanged. (see [below for nested schema](#nestedatt--sims))
 
 ### Optional
 
-- `serial` (String) serial.
+- `serial` (String) Serial number of the device.
 - `sim_failover` (Attributes) (see [below for nested schema](#nestedatt--sim_failover))
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
+- `id` (String) Unique identifier for the resource.
+- `sim_ordering` (Set of String) Ordered list of SIM slots, prioritized for failover.
 
 <a id="nestedatt--sims"></a>
 ### Nested Schema for `sims`
 
 Required:
 
-- `apns` (Attributes Set) APN configurations. If empty, the default APN will be used. (see [below for nested schema](#nestedatt--sims--apns))
+- `apns` (Attributes Set) APN configurations for the SIM. If empty, the default APN is used. (see [below for nested schema](#nestedatt--sims--apns))
 
 Optional:
 
-- `is_primary` (Boolean) If true, this SIM is used for boot. Must be true on single-sim devices.
-- `slot` (String) SIM slot being configured. Must be 'sim1' on single-sim devices.
+- `is_primary` (Boolean) Indicates if this SIM is the primary SIM for boot. Must be true for single-SIM devices.
+- `slot` (String) SIM slot being configured. Must be 'sim1' for single-SIM devices.
 
 <a id="nestedatt--sims--apns"></a>
 ### Nested Schema for `sims.apns`
 
 Required:
 
-- `allowed_ip_types` (Set of String) IP versions to support (permitted values include 'ipv4', 'ipv6').
-- `name` (String) serial.
+- `allowed_ip_types` (Set of String) Allowed IP versions for the APN (e.g., 'ipv4', 'ipv6').
+- `name` (String) Name of the APN.
 
 Optional:
 
-- `authentication` (Attributes) APN authentication configurations. (see [below for nested schema](#nestedatt--sims--apns--authentication))
+- `authentication` (Attributes) Authentication details for the APN. (see [below for nested schema](#nestedatt--sims--apns--authentication))
 
 <a id="nestedatt--sims--apns--authentication"></a>
 ### Nested Schema for `sims.apns.authentication`
 
 Optional:
 
-- `password` (String) APN password, if type is set (if APN password is not supplied, the password is left unchanged).
-- `type` (String) APN auth type. Valid values are 'chap', 'none', 'pap'.
-- `username` (String) APN username, if type is set.
+- `password` (String) Password for APN authentication.
+- `type` (String) Type of authentication. Valid values: 'chap', 'none', 'pap'.
+- `username` (String) Username for APN authentication.
 
 
 
@@ -69,4 +70,5 @@ Optional:
 
 Optional:
 
-- `enabled` (Boolean) Failover to secondary SIM.
+- `enabled` (Boolean) If true, failover to the secondary SIM is enabled.
+- `timeout` (Number) Timeout value (in seconds) for SIM failover. Defaults to 0.

@@ -22,8 +22,8 @@ Manage networks appliance vpn site to site vpn. Only valid for MX networks in NA
 
 ### Optional
 
-- `hubs` (Attributes Ports) The list of VPN hubs, in order of preference. (see [below for nested schema](#nestedatt--hubs))
-- `subnets` (Attributes Ports) The list of subnets and their VPN presence. (see [below for nested schema](#nestedatt--subnets))
+- `hubs` (Attributes List) The list of VPN hubs, in order of preference. (see [below for nested schema](#nestedatt--hubs))
+- `subnets` (Attributes List) The list of subnets and their VPN presence. (see [below for nested schema](#nestedatt--subnets))
 
 ### Read-Only
 

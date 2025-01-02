@@ -23,7 +23,7 @@ Manage adaptive policy ACLs in a organization
 - `ip_version` (String) IP version of adaptive policy ACL. One of: 'any', 'ipv4' or 'ipv6
 - `name` (String) Name of the adaptive policy ACL
 - `organization_id` (String) Organization ID
-- `rules` (Attributes Ports) An ordered array of the adaptive policy ACL rules. An empty array will clear the rules. (see [below for nested schema](#nestedatt--rules))
+- `rules` (Attributes List) An ordered array of the adaptive policy ACL rules. An empty array will clear the rules. (see [below for nested schema](#nestedatt--rules))
 - `updated_at` (String)
 
 ### Read-Only

@@ -3,12 +3,12 @@
 page_title: "meraki_devices Resource - terraform-provider-meraki"
 subcategory: ""
 description: |-
-  Manage network Devices resource. This only works for devices associated with a network.
+  Manage Meraki devices resource. This resource allows updating device attributes for devices associated with a network.
 ---
 
 # meraki_devices (Resource)
 
-Manage network Devices resource. This only works for devices associated with a network.
+Manage Meraki devices resource. This resource allows updating device attributes for devices associated with a network.
 
 
 
@@ -17,46 +17,48 @@ Manage network Devices resource. This only works for devices associated with a n
 
 ### Required
 
-- `serial` (String) The devices serial number
+- `serial` (String) The serial number of the device.
 
 ### Optional
 
-- `address` (String) The address of a device
-- `details` (Attributes Ports) Network tags (see [below for nested schema](#nestedatt--details))
-- `firmware` (String) The firmware version of a device
-- `floor_plan_id` (String) The floor plan to associate to this device. null disassociates the device from the floor plan.
-- `lan_ip` (String) The ipv4 lan ip of a device
-- `lat` (Number) The latitude of a device
-- `lng` (Number) The longitude of a device
-- `mac` (String) The mac address of a device
-- `model` (String) The model of a device
-- `move_map_marker` (Boolean) Whether or not to set the latitude and longitude of a device based on the new address. Only applies when lat and lng are not specified.
-- `name` (String) The name of a device
-- `network_id` (String) Network ID
-- `notes` (String) Notes for the network
-- `switch_profile_id` (String) The ID of a switch profile to bind to the device (for available switch profiles, see the 'Switch Profiles' endpoint). Use null to unbind the switch device from the current profile. For a device to be bindable to a switch profile, it must (1) be a switch, and (2) belong to a network that is bound to a configuration template.
-- `tags` (Ports of String) Network tags
-- `url` (String) The url for the network associated with the device.
+- `address` (String) The physical address of the device.
+- `beacon_id_params` (Attributes) Beacon ID parameters of the device. (see [below for nested schema](#nestedatt--beacon_id_params))
+- `details` (Attributes List) Additional details about the device. (see [below for nested schema](#nestedatt--details))
+- `floor_plan_id` (String) Floor plan ID associated with the device. Use `null` to disassociate.
+- `lat` (Number) The latitude of the device.
+- `lng` (Number) The longitude of the device.
+- `name` (String) The name of the device.
+- `network_id` (String) Network ID to which the device belongs.
+- `notes` (String) Notes about the device, limited to 255 characters.
+- `switch_profile_id` (String) ID of the switch profile to bind to the device. Use `null` to unbind.
+- `tags` (List of String) Tags associated with the device.
 
 ### Read-Only
 
-- `beacon_id_params` (Attributes) (see [below for nested schema](#nestedatt--beacon_id_params))
+- `firmware` (String) Firmware version of the device.
 - `id` (String) The ID of this resource.
-
-<a id="nestedatt--details"></a>
-### Nested Schema for `details`
-
-Optional:
-
-- `name` (String) The name of a device
-- `value` (String) The value of a device
-
+- `lan_ip` (String) LAN IP address of the device.
+- `mac` (String) MAC address of the device.
+- `model` (String) Model of the device.
+- `move_map_marker` (Boolean) Indicates whether to set latitude and longitude based on the address. Ignored if `lat` and `lng` are provided.
+- `url` (String) URL of the network associated with the device.
 
 <a id="nestedatt--beacon_id_params"></a>
 ### Nested Schema for `beacon_id_params`
 
-Read-Only:
+Optional:
 
-- `major` (Number)
-- `minor` (Number)
-- `uuid` (String)
+- `beacon_id` (String) Beacon ID (alternative to UUID).
+- `major` (Number) Major number of the beacon identifier.
+- `minor` (Number) Minor number of the beacon identifier.
+- `proximity` (String) Proximity of the beacon.
+- `uuid` (String) UUID of the beacon identifier.
+
+
+<a id="nestedatt--details"></a>
+### Nested Schema for `details`
+
+Required:
+
+- `name` (String) The name of the detail.
+- `value` (String) The value of the detail.
