@@ -24,9 +24,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version-file: 'go.mod'
+          go-version-file: './internal/go.mod'
           cache: true
       - run: go mod download
+        working-directory: ./internal
       - run: go build -v .
 
   generate:
@@ -36,9 +37,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version-file: 'go.mod'
+          go-version-file: './internal/go.mod'
           cache: true
       - run: go generate ./...
+        working-directory: ./internal
       - name: git diff
         run: |
           git diff --compact-summary --exit-code || \
@@ -61,6 +63,7 @@ jobs:
           terraform_version: '1.2.*'
           terraform_wrapper: false
       - run: go mod download
+        working-directory: ./internal
       - env:
           TF_ACC: "1"
           MERAKI_DASHBOARD_API_KEY: ${{ secrets.MERAKI_DASHBOARD_API_KEY }}

@@ -18,8 +18,4 @@ Manage the SAML SSO enabled settings for an organization.
 ### Optional
 
 - `enabled` (Boolean) Toggle depicting if SAML SSO settings are enabled
-- `organization_id` (String) Organization ID
-
-### Read-Only
-
-- `id` (String) The ID of this resource.
+- `id` (String) Organization ID

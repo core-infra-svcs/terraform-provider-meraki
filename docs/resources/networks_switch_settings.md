@@ -18,7 +18,7 @@ NetworksSwitchSettings resource for updating network switch settings.
 ### Required
 
 - `network_id` (String) Network Id
-- `power_exceptions` (Attributes Ports) Exceptions on a per switch basis to &quot;useCombinedPower&quot; (see [below for nested schema](#nestedatt--power_exceptions))
+- `power_exceptions` (Attributes List) Exceptions on a per switch basis to &quot;useCombinedPower&quot; (see [below for nested schema](#nestedatt--power_exceptions))
 
 ### Optional
 

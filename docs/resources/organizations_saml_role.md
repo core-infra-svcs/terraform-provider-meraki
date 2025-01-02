@@ -23,9 +23,9 @@ Manage the saml roles in this organization
 
 ### Optional
 
-- `networks` (Attributes Set) The list of networks that the SAML administrator has privileges on. (see [below for nested schema](#nestedatt--networks))
+- `networks` (Attributes Set) The list of networks that the dashboard administrator has privileges on (see [below for nested schema](#nestedatt--networks))
 - `role_id` (String) Saml Role ID
-- `tags` (Attributes Set) The list of tags that the SAML administrator has privleges on. (see [below for nested schema](#nestedatt--tags))
+- `tags` (Attributes Set) The list of tags that the dashboard administrator has privileges on (see [below for nested schema](#nestedatt--tags))
 
 ### Read-Only
 

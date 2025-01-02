@@ -3,12 +3,12 @@
 page_title: "meraki_devices_appliance_dhcp_subnets Data Source - terraform-provider-meraki"
 subcategory: ""
 description: |-
-  Return the DHCP subnet information for an appliance
+  Retrieve the DHCP subnet information for an appliance.
 ---
 
 # meraki_devices_appliance_dhcp_subnets (Data Source)
 
-Return the DHCP subnet information for an appliance
+Retrieve the DHCP subnet information for an appliance.
 
 
 
@@ -17,22 +17,20 @@ Return the DHCP subnet information for an appliance
 
 ### Required
 
-- `serial` (String)
-
-### Optional
-
-- `list` (Attributes Ports) Ports of DHCP subnets (see [below for nested schema](#nestedatt--list))
+- `serial` (String) The serial number of the appliance.
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
+- `id` (String) The ID of the data source instance.
+- `resources` (Attributes List) The list of DHCP subnets. (see [below for nested schema](#nestedatt--resources))
 
-<a id="nestedatt--list"></a>
-### Nested Schema for `list`
+<a id="nestedatt--resources"></a>
+### Nested Schema for `resources`
 
-Optional:
+Read-Only:
 
-- `free_count` (Number) free count
-- `subnet` (String) Network ID
-- `used_count` (Number) used count
-- `vlan_id` (Number) VLAN ID
+- `free_count` (Number) The number of IP addresses available in the subnet.
+- `id` (String) The ID of the data source instance.
+- `subnet` (String) The subnet (CIDR) of the DHCP pool.
+- `used_count` (Number) The number of IP addresses currently in use in the subnet.
+- `vlan_id` (Number) The VLAN ID associated with the subnet.

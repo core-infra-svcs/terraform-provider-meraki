@@ -17,15 +17,11 @@ Ports the saml roles in this organization
 
 ### Required
 
-- `organization_id` (String) Organization ID
+- `id` (String) Organization ID
 
 ### Optional
 
 - `list` (Attributes Set) (see [below for nested schema](#nestedatt--list))
-
-### Read-Only
-
-- `id` (String) The ID of this resource.
 
 <a id="nestedatt--list"></a>
 ### Nested Schema for `list`

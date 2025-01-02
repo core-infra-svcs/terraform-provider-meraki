@@ -29,10 +29,15 @@ jobs:
           go-version: stable
 
       - name: Install dependencies
-        run: go mod download
+        run: |
+          pwd
+          ls
+          cd ./internal
+          go mod download
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
           version: v1.60
           args: --timeout 5m
+          working-directory: ./internal

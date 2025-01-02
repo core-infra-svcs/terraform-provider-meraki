@@ -22,7 +22,7 @@ NetworksSwitchQosRule resource for updating network switch qos rule.
 ### Optional
 
 - `id` (String) Qos Rules data source Id
-- `list` (Attributes Ports) list of switch qos rules (see [below for nested schema](#nestedatt--list))
+- `list` (Attributes List) list of switch qos rules (see [below for nested schema](#nestedatt--list))
 
 <a id="nestedatt--list"></a>
 ### Nested Schema for `list`

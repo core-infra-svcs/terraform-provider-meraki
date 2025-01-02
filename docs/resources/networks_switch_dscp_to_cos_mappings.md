@@ -17,7 +17,7 @@ Networks Switch Dscp to cos mappings
 
 ### Required
 
-- `mappings` (Attributes Ports) An array of DSCP to CoS mappings. An empty array will reset the mappings to default. (see [below for nested schema](#nestedatt--mappings))
+- `mappings` (Attributes List) An array of DSCP to CoS mappings. An empty array will reset the mappings to default. (see [below for nested schema](#nestedatt--mappings))
 - `network_id` (String)
 
 ### Read-Only

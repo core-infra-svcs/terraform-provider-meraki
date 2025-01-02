@@ -17,7 +17,7 @@ Ports the SAML IdPs in your organization.
 
 ### Optional
 
-- `list` (Attributes Ports) (see [below for nested schema](#nestedatt--list))
+- `list` (Attributes List) (see [below for nested schema](#nestedatt--list))
 - `organization_id` (String) Organization ID
 
 ### Read-Only

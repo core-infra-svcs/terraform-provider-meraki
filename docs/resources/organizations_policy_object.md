@@ -26,7 +26,7 @@ description: |-
 
 - `cidr` (String) CIDR Value of a policy object (e.g. 10.11.12.1/24")
 - `fqdn` (String) Fully qualified domain name of policy object (e.g. "example.com")
-- `group_ids` (Ports of Number) The IDs of policy object groups the policy object belongs to
+- `group_ids` (List of String) The IDs of policy object groups the policy object belongs to
 - `id` (String) The ID of the resource
 - `ip` (String) IP Address of a policy object (e.g. "1.2.3.4")
 - `mask` (String) Mask of a policy object (e.g. "255.255.0.0")
@@ -35,5 +35,5 @@ description: |-
 ### Read-Only
 
 - `created_at` (String) Time Stamp of policy object creation.
-- `network_ids` (Ports of String) The IDs of the networks that use the policy object.
+- `network_ids` (List of String) The IDs of the networks that use the policy object.
 - `updated_at` (String) Time Stamp of policy object updation.
