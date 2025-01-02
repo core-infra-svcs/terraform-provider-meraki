@@ -29,8 +29,9 @@ jobs:
           go-version: stable
 
       - name: Install dependencies
-        working-directory: ./
-        run: go mod download
+        run: |
+          cd ./
+          go mod download
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
