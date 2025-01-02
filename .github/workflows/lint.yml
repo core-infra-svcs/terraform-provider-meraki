@@ -27,6 +27,8 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: stable
+        env:
+          working-directory: ./
 
       - name: Install dependencies
         run: go mod download
@@ -36,3 +38,5 @@ jobs:
         with:
           version: v1.60
           args: --timeout 5m
+        env:
+          working-directory: ./
