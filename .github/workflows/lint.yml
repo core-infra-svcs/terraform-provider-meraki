@@ -30,6 +30,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          pwd
           cd ./
           go mod download
 
