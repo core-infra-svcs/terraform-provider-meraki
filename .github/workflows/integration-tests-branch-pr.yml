@@ -25,7 +25,6 @@ jobs:
       - run: go mod download
         working-directory: ./internal
       - run: go build -v .
-        working-directory: ./internal
 
   generate:
     needs: build
