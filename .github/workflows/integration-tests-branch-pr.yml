@@ -24,7 +24,6 @@ jobs:
         with:
           go-version-file: 'go.mod'
           cache: true
-        env:
           working-directory: ./
       - run: go mod download
       - run: go build -v .
@@ -38,6 +37,7 @@ jobs:
         with:
           go-version-file: 'go.mod'
           cache: true
+          working-directory: ./
       - run: go generate ./...
       - name: git diff
         run: |
@@ -62,7 +62,6 @@ jobs:
         with:
           go-version-file: 'go.mod'
           cache: true
-        env:
           working-directory: ./
 
       - uses: hashicorp/setup-terraform@v3
