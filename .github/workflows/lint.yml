@@ -27,10 +27,9 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: stable
-        env:
-          working-directory: ./
 
       - name: Install dependencies
+        working-directory: ./
         run: go mod download
 
       - name: golangci-lint
@@ -38,5 +37,3 @@ jobs:
         with:
           version: v1.60
           args: --timeout 5m
-        env:
-          working-directory: ./
