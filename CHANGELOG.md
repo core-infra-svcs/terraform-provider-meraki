@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.3](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.12.2...v0.12.3) (2025-01-02)
+
+
+### Bug Fixes
+
+* add working directory ([#392](https://github.com/core-infra-svcs/terraform-provider-meraki/issues/392)) ([953a1d4](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/953a1d419d68992df021827eb1964ef0a993e10b))
+
 ## [0.12.1](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.12.0...v0.12.1) (2024-08-22)
 
 
