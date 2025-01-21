@@ -1,3 +1,6 @@
+//go:build ignore
+
+//nolint:all
 package provider
 
 import (

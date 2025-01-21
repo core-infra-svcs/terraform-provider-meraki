@@ -1,16 +1,16 @@
 package cellular_test
 
+/*
+
+
 import (
 	"fmt"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/testutils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	//"github.com/core-infra-svcs/terraform-provider-meraki/internal/testutils"
-	//"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"os"
-	//"testing"
+	"testing"
 	"time"
 )
-
-/*
 
 // 403 Forbidden, "Meraki API services are available for licensed Meraki devices
 //        only. Please contact Meraki support. To renew your licenses, go to..
@@ -39,7 +39,7 @@ func TestAccDevicesCellularSimsResource(t *testing.T) {
 		},
 	})
 }
-*/
+
 
 // testAccDevicesCellularSimsCheckCreate validates the attributes after creation.
 func testAccDevicesCellularSimsCheckCreate() resource.TestCheckFunc {
@@ -131,3 +131,7 @@ resource "meraki_devices_cellular_sims" "test" {
 }
 `, orgID, serial, serial)
 }
+
+
+
+*/

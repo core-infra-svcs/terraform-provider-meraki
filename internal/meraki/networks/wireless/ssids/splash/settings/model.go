@@ -77,6 +77,7 @@ type resourceModelSystemsManagerNetwork struct {
 	Id types.String `tfsdk:"id"`
 }
 
+/*
 var resourceModelAttrTypes = map[string]attr.Type{
 	"id":                                types.StringType,
 	"network_id":                        types.StringType,
@@ -97,6 +98,7 @@ var resourceModelAttrTypes = map[string]attr.Type{
 	"splash_logo":                       types.ObjectType{AttrTypes: resourceModelSplashLogoAttrTypes},
 	"splash_prepaid_front":              types.ObjectType{AttrTypes: resourceModelSplashPrepaidFrontAttrTypes},
 }
+*/
 
 var resourceModelBillingAttrTypes = map[string]attr.Type{
 	"reply_to_email_address":            types.StringType,

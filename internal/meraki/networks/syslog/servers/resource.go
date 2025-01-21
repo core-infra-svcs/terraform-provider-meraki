@@ -45,9 +45,11 @@ type resourceModelServer struct {
 	Roles []jsontypes.String `tfsdk:"roles"`
 }
 
+/*
 type resourceModelResponse struct {
 	Servers []resourceModelServer `tfsdk:"servers"`
 }
+*/
 
 func (r *Resource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_networks_syslog_servers"
