@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.0](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.12.3...v0.13.0) (2025-01-21)
+
+
+### Features
+
+* linter fixes ([#397](https://github.com/core-infra-svcs/terraform-provider-meraki/issues/397)) ([e0d52ee](https://github.com/core-infra-svcs/terraform-provider-meraki/commit/e0d52ee0a7c750d46e2f6bffa260b01fe44a2094))
+
 ## [0.12.3](https://github.com/core-infra-svcs/terraform-provider-meraki/compare/v0.12.2...v0.12.3) (2025-01-02)
 
 
