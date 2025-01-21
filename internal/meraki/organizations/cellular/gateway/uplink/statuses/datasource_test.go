@@ -1,13 +1,18 @@
 package statuses_test
 
+/*
+
 import (
 	"fmt"
+	"github.com/core-infra-svcs/terraform-provider-meraki/internal/testutils"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"os"
+	"testing"
 )
 
 // TODO: debug device unclaiming issue.
-/*
+
 func TestAccOrganizationsCellularGatewayUplinkStatusesDataSource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutils.TestAccPreCheck(t) },
@@ -40,7 +45,7 @@ func TestAccOrganizationsCellularGatewayUplinkStatusesDataSource(t *testing.T) {
 		},
 	})
 }
-*/
+
 
 // Unclaim device from organization
 func testAccOrganizationsUnclaimDevice(orgId string, serial string) string {
@@ -109,3 +114,5 @@ func OrganizationsCellularGatewayUplinkStatusesDataSourceTestChecks(serial strin
 
 	return utils.ResourceTestCheck("data.meraki_organizations_cellular_gateway_uplink_statuses.test", expectedAttrs)
 }
+
+*/

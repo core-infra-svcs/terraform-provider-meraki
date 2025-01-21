@@ -33,6 +33,7 @@ type datasourceModel struct {
 	Subnets   types.List       `tfsdk:"subnets" json:"subnets"`
 }
 
+/*
 type datasourceModelHubs struct {
 	HubId           jsontypes.String `tfsdk:"hub_id" json:"hubId"`
 	UseDefaultRoute jsontypes.Bool   `tfsdk:"use_default_route" json:"useDefaultRoute"`
@@ -42,3 +43,5 @@ type datasourceModelSubnets struct {
 	LocalSubnet jsontypes.String `tfsdk:"local_subnet" json:"localSubnet"`
 	UseVpn      jsontypes.Bool   `tfsdk:"use_vpn" json:"useVpn"`
 }
+
+*/

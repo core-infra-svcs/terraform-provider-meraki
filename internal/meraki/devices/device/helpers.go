@@ -238,7 +238,7 @@ func MarshalStateFromAPI(ctx context.Context, apiData map[string]interface{}) (R
 	sort.Strings(tags)
 
 	// Handle complex nested details separately
-	data.Details, diags = MarshalDetailsFromAPI(ctx, apiData)
+	data.Details, _ = MarshalDetailsFromAPI(ctx, apiData)
 
 	data.BeaconIdParams, diags = MarshalBeaconIdParamsFromAPI(ctx, apiData)
 

@@ -29,15 +29,15 @@ type DataSource struct {
 	client *openApiClient.APIClient
 }
 
-type dataSourceTagModel string
+type DataSourceTagModel string
 
-func (t *dataSourceTagModel) UnmarshalJSON(b []byte) error {
+func (t *DataSourceTagModel) UnmarshalJSON(b []byte) error {
 	var s string
 	if err := json.Unmarshal(b, &s); err != nil {
 		return err
 	}
 
-	*t = dataSourceTagModel(strings.Trim(s, `"`))
+	*t = DataSourceTagModel(strings.Trim(s, `"`))
 	return nil
 }
 

@@ -52,9 +52,8 @@ func mapModelToApiPayload(model *ResourceModel) (*openApiClient.UpdateDeviceCell
 }
 
 // mapApiResponseToModel maps the API response payload back to the Terraform resource model.
-// mapApiResponseToModel maps the API response payload back to the Terraform resource model.
 func mapApiResponseToModel(apiResponse map[string]interface{}, model *ResourceModel) diag.Diagnostics {
-	diagnostics := diag.Diagnostics{}
+	var diagnostics diag.Diagnostics
 
 	// Map Sims
 	if sims, ok := apiResponse["sims"].([]interface{}); ok {

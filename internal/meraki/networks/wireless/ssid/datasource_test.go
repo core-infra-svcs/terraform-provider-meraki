@@ -58,6 +58,7 @@ func TestAccNetworksWirelessSsidsDataSource(t *testing.T) {
 	})
 }
 
+/*
 // testAccNetworksWirelessSsidsDataSourceConfigCreateNetwork is a constant string that defines the configuration for creating a network resource in your tests.
 // It depends on the organization resource.
 func testAccNetworksWirelessSsidsDataSourceConfigCreateNetwork(orgId string) string {
@@ -86,6 +87,7 @@ data "meraki_networks_wireless_ssids" "test" {
   	network_id = resource.meraki_network.test.network_id
 }
 `
+*/
 
 func NetworksWirelessSsidsDataSourceConfigRead() string {
 	return fmt.Sprintf(`

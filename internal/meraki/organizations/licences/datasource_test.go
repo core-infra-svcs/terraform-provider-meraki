@@ -1,7 +1,6 @@
 package licences_test
 
 import (
-	"fmt"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/testutils"
 	"github.com/core-infra-svcs/terraform-provider-meraki/internal/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -45,6 +44,7 @@ func TestAccOrganizationsLicensesDataSource(t *testing.T) {
 	})
 }
 
+/*
 // testAccOrganizationsLicensesDataSourceConfigRead returns the configuration for reading licenses data source
 func testAccOrganizationsLicensesDataSourceConfigRead(licenceID, serial string) string {
 	return fmt.Sprintf(`
@@ -67,3 +67,5 @@ func OrganizationsLicensesDataSourceTestChecks(licenseID string) resource.TestCh
 
 	return utils.ResourceTestCheck("data.meraki_organizations_licenses.test", expectedAttrs)
 }
+
+*/
