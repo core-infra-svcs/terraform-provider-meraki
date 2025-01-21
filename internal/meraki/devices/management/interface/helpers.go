@@ -89,10 +89,15 @@ func generateWan1Payload(ctx context.Context, wanObject types.Object) (*client.U
 		StaticDns:        utils.FlattenList(wan.StaticDns),
 	}
 
-	// Explicit Vlan mapping with type validation
+	// Explicit VLAN mapping with type validation and null handling
 	if !wan.Vlan.IsNull() {
 		vlan := int32(wan.Vlan.ValueInt64())
-		payload.Vlan = &vlan
+		if vlan == 0 {
+			// Set the VLAN to null if it's set to 0
+			payload.Vlan = nil
+		} else {
+			payload.Vlan = &vlan
+		}
 	}
 
 	return payload, diags
@@ -114,10 +119,15 @@ func generateWan2Payload(ctx context.Context, wanObject types.Object) (*client.U
 		StaticDns:        utils.FlattenList(wan.StaticDns),
 	}
 
-	// Explicit Vlan mapping with type validation
+	// Explicit VLAN mapping with type validation and null handling
 	if !wan.Vlan.IsNull() {
 		vlan := int32(wan.Vlan.ValueInt64())
-		payload.Vlan = &vlan
+		if vlan == 0 {
+			// Set the VLAN to null if it's set to 0
+			payload.Vlan = nil
+		} else {
+			payload.Vlan = &vlan
+		}
 	}
 
 	return payload, diags
